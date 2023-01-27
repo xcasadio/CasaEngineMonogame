@@ -1,0 +1,10 @@
+﻿BUG
+-------------
+
+
+
+TODO
+-------------
+- Debugging plus complet
+
+

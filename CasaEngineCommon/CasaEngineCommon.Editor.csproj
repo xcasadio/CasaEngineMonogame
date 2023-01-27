@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}</ProjectGuid>
+    <ProjectTypeGuids>{6D335F3A-9D43-41b4-9D22-F6F17C4BE596};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CasaEngineCommon</RootNamespace>
+    <AssemblyName>CasaEngineCommon.Editor</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x86\Debug</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WINDOWS;EDITOR</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x86\Release</OutputPath>
+    <DefineConstants>TRACE;WINDOWS;EDITOR</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Net">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collection\Deque.cs" />
+    <Compile Include="Collection\IndexedPriorityQueue.cs" />
+    <Compile Include="Collection\IPriorityQueue.cs" />
+    <Compile Include="Collection\Listable.cs" />
+    <Compile Include="Collection\PriorityQueue.cs" />
+    <Compile Include="Collection\UniquePriorityQueue.cs" />
+    <Compile Include="Config\IniFile.cs" />
+    <Compile Include="Design\IObservable.cs" />
+    <Compile Include="Design\IObserver.cs" />
+    <Compile Include="Design\IRenderable.cs" />
+    <Compile Include="Design\ISaveLoad.cs" />
+    <Compile Include="Design\IUpdateable.cs" />
+    <Compile Include="Extension\BinaryExtension.cs" />
+    <Compile Include="Extension\StringBuilderExtensions.cs" />
+    <Compile Include="Extension\XmlExtension.cs" />
+    <Compile Include="Factory\IAbstractFactory.cs" />
+    <Compile Include="Factory\PrototypeFactory.cs" />
+    <Compile Include="Factory\PrototypeFactory.Test.cs">
+      <DependentUpon>PrototypeFactory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Helper\BoundingBoxHelper.cs" />
+    <Compile Include="Helper\ColorHelper.cs" />
+    <Compile Include="Helper\GameTimeHelper.cs" />
+    <Compile Include="Helper\GeometryHelper.cs" />
+    <Compile Include="Helper\MathHelper.cs" />
+    <Compile Include="Helper\RandomHelper.cs" />
+    <Compile Include="Helper\Vector2Helper.cs" />
+    <Compile Include="Helper\Vector3Helper.cs" />
+    <Compile Include="Logger\FileLogger.cs" />
+    <Compile Include="Logger\ILog.cs" />
+    <Compile Include="Logger\LogManager.cs" />
+    <Compile Include="Packing\ArevaloRectanglePacker.cs" />
+    <Compile Include="Packing\ArevaloRectanglePacker.Test.cs">
+      <DependentUpon>ArevaloRectanglePacker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Packing\CygonRectanglePacker.cs" />
+    <Compile Include="Packing\CygonRectanglePacker.Test.cs">
+      <DependentUpon>CygonRectanglePacker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Packing\OutOfSpaceException.cs" />
+    <Compile Include="Packing\OutOfSpaceException.Test.cs">
+      <DependentUpon>OutOfSpaceException.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Packing\RectanglePacker.cs" />
+    <Compile Include="Packing\RectanglePacker.Test.cs">
+      <DependentUpon>RectanglePacker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Packing\SimpleRectanglePacker.cs" />
+    <Compile Include="Packing\SimpleRectanglePacker.Test.cs">
+      <DependentUpon>SimpleRectanglePacker.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Pool\Pool.cs" />
+    <Compile Include="Pool\PoolWithoutAccessor.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!--
+      To modify your build process, add your task inside one of the targets below and uncomment it. 
+      Other similar extension points exist, see Microsoft.Common.targets.
+      <Target Name="BeforeBuild">
+      </Target>
+      <Target Name="AfterBuild">
+      </Target>
+    -->
+</Project>

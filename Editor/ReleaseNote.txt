@@ -1,0 +1,27 @@
+﻿CasaEngine Editor
+=================
+
+
+-----------------
+Version 1.0.0.0
+-----------------
+
+Addition
+--------
+
+Change
+------
+
+** ContentBrowser
+- treeview click on node
+- ListView icon depending on item type
+- icon sprite (mario)
+
+** Animation2DEditor
+- Add CurveEditor
+
+BugFix
+------
+- Correction fermeture des subEditor
+
+

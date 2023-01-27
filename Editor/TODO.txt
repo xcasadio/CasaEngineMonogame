@@ -1,0 +1,27 @@
+﻿-------------
+Enhancement
+-------------
+
+* Sprite2DEditor
+	- liste des autres sprites (tous le project ? seulement le dossier courant ?)
+	- propertygrid : propager les changements dans les 2 sens:
+		changement dans propertyGrid vers editeur et changement editeur vers propertyGrid
+
+* Animation2DEditor
+	- liste des autres animations (tous le project ? seulement le dossier courant ?)
+	- curve editor
+	- hotspot manipulation
+	- frame event
+
+* Lancement du jeu
+
+-------------
+BUG
+-------------
+
+
+-------------
+Code source
+-------------
+* Sprite2D
+	- supprimer ID
