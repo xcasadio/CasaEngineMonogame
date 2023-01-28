@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,18 +9,15 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using CasaEngine.Asset;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
-              
+
     public enum BevelStyle
     {
         None,
@@ -42,7 +38,6 @@ namespace XNAFinalEngine.UserInterface
         All
     } // BevelBorder
 
-    #endregion
 
     /// <summary>
     /// Bevel.
@@ -50,7 +45,6 @@ namespace XNAFinalEngine.UserInterface
     public class Bevel : Control
     {
 
-        #region Variables
 
         /// <summary>
         /// Border (none, top, left, right, bottom, all)
@@ -62,9 +56,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private BevelStyle style = BevelStyle.Etched;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Border (none, top, left, right, bottom, all)
@@ -98,17 +90,13 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Style
 
-        #endregion
 
-        #region Events
-                
+
         public event EventHandler BorderChanged;
         public event EventHandler StyleChanged;
 
-        #endregion
 
-        #region Constructor
-      
+
         /// <summary>
         /// Bevel.
         /// </summary>
@@ -121,9 +109,7 @@ namespace XNAFinalEngine.UserInterface
             Height = 64;
         } // Bevel
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -136,9 +122,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -280,25 +264,20 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawPart
 
-        #endregion
 
-        #region On Border Changed
 
         protected virtual void OnBorderChanged(EventArgs e)
         {
             if (BorderChanged != null) BorderChanged.Invoke(this, e);
         } // OnBorderChanged
 
-        #endregion
 
-        #region On Style Changed
 
         protected virtual void OnStyleChanged(EventArgs e)
         {
             if (StyleChanged != null) StyleChanged.Invoke(this, e);
         } // OnStyleChanged
 
-        #endregion
 
     } // Bevel
 } // XNAFinalEngine.UserInterface

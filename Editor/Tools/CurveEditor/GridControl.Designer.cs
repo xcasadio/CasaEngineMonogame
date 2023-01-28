@@ -26,7 +26,6 @@ namespace Editor.Tools.CurveEditor
             base.Dispose(disposing);
         }
 
-        #region Component Designer generated code
 
         /// <summary> 
         /// Required method for Designer support - do not modify 
@@ -48,6 +47,5 @@ namespace Editor.Tools.CurveEditor
 
         }
 
-        #endregion
     }
 }

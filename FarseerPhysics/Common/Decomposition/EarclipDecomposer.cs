@@ -18,7 +18,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-using System;
+
 using System.Collections.Generic;
 using FarseerPhysics.Common.PolygonManipulation;
 using Microsoft.Xna.Framework;

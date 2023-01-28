@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,28 +25,26 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 //using XNAFinalEngine.EngineCore;
 using XNAFinalEngine.Helpers;
-#endregion
 
 namespace XNAFinalEngine.Input
 {
 
-	/// <summary>
+    /// <summary>
     /// Virtual axes serve two purposes: 
     /// * They allow you to reference your inputs by axis name in scripting.
     /// * They allow the players of your game to customize the controls to their liking.
-	/// </summary>
-	public class Axis : Disposable
+    /// </summary>
+    public class Axis : Disposable
     {
 
-        #region Enumerates
 
         /// <summary>
         /// Indicates the behavior of the axis.
@@ -64,36 +61,32 @@ namespace XNAFinalEngine.Input
             AnalogInput,
         } // AxisBehaviors
 
-        #endregion
-        
-        #region Variables
+
 
         // The value of the axis.
-	    private float value;
+        private float value;
 
         // The value of the axis with no smoothing filtering applied.
         // The value will be in the range -1...1 for keyboard and joystick input.
         // Since input is not smoothed, keyboard input will always be either -1, 0 or 1. 
-	    private float valueRaw;
+        private float valueRaw;
 
         // Previous values. Used for smooth input calculations.
         private readonly float[] previousValues = new float[] { 0, 0 };
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// The list of all axes.
         /// </summary>
         public static List<Axis> Axes { get; set; }
-       
-	    /// <summary>
+
+        /// <summary>
         /// The string that refers to the axis.
         /// </summary>
         public string Name { get; set; }
 
-	    /// <summary>
+        /// <summary>
         /// Use Key / Button for any kind of buttons or use Analog Movement for mouse delta, scrollwheels and gamepad sticks and triggers.
         /// </summary>
         public AxisBehaviors AxisBehavior { get; set; }
@@ -150,19 +143,17 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public bool Invert { get; set; }
 
-	    /// <summary>
-	    /// Which gamepad should be used. By default (0) this is set to retrieve the input from all gamepads.
-	    /// </summary>
-	    public int GamePadNumber { get; set; }
+        /// <summary>
+        /// Which gamepad should be used. By default (0) this is set to retrieve the input from all gamepads.
+        /// </summary>
+        public int GamePadNumber { get; set; }
 
         /// <summary>
         /// Average the input of the current frame with the previous values.
         /// </summary>
         public bool TemporalSmoothing { get; set; }
 
-        #endregion
 
-        #region Constructor
 
         public Axis()
         {
@@ -177,9 +168,7 @@ namespace XNAFinalEngine.Input
             Axes = new List<Axis>();
         } // Axis
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -189,9 +178,7 @@ namespace XNAFinalEngine.Input
             Axes.Remove(this);
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Update
 
         /// <summary>
         /// Update.
@@ -200,7 +187,6 @@ namespace XNAFinalEngine.Input
         internal void Update(float elapsedTime_)
         {
 
-            #region Digital
 
             if (AxisBehavior == AxisBehaviors.DigitalInput)
             {
@@ -243,15 +229,12 @@ namespace XNAFinalEngine.Input
                 }
             }
 
-            #endregion
 
-            #region Analog
 
             else if (AxisBehavior == AxisBehaviors.AnalogInput)
             {
                 valueRaw = 0;
-                
-                #region Raw values for mouse
+
 
                 if (AnalogAxis == AnalogAxes.MouseX)
                 {
@@ -266,9 +249,7 @@ namespace XNAFinalEngine.Input
                     valueRaw = Mouse.WheelDelta;
                 }
 
-                #endregion
 
-                #region Raw values for game pad
 
                 else if (AnalogAxis == AnalogAxes.LeftStickX)
                 {
@@ -336,7 +317,6 @@ namespace XNAFinalEngine.Input
                     }
                 }
 
-                #endregion
 
                 // Invert if necessary.
                 if (Invert)
@@ -363,7 +343,6 @@ namespace XNAFinalEngine.Input
                 }
             }
 
-            #endregion
 
             if (TemporalSmoothing)
             {
@@ -376,9 +355,7 @@ namespace XNAFinalEngine.Input
 
         } // Update
 
-        #endregion
 
-        #region Value
 
         /// <summary>
         /// Returns the value of the virtual axis identified by axisName.
@@ -423,7 +400,6 @@ namespace XNAFinalEngine.Input
             return maxValue;
         } // ValueRaw
 
-        #endregion
 
     } // Axis
 } // XNAFinalEngine.Input

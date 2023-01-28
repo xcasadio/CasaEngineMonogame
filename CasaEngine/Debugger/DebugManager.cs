@@ -1,13 +1,10 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // DebugManager.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -18,7 +15,6 @@ using CasaEngine.Game;
 //using CasaEngine.Editor.GameComponent;
 #endif
 
-#endregion
 
 namespace CasaEngine.Debugger
 {
@@ -28,7 +24,6 @@ namespace CasaEngine.Debugger
     public class DebugManager
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        #region Properties
 
 		/// <summary>
 		/// Gets/Sets
@@ -53,9 +48,7 @@ namespace CasaEngine.Debugger
         /// </summary>
         public Texture2D WhiteTexture { get; private set; }
 
-        #endregion
 
-        #region Initialize
 
 		/// <summary>
 		/// 
@@ -117,6 +110,5 @@ namespace CasaEngine.Debugger
 			base.LoadContent();
 		}
 
-        #endregion
     }
 }

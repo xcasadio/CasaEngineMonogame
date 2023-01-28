@@ -20,7 +20,6 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -135,7 +134,6 @@
 
         }
 
-        #endregion
 
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label1;

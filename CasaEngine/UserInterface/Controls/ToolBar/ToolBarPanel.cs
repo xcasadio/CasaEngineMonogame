@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,7 +9,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -21,7 +19,6 @@ namespace XNAFinalEngine.UserInterface
     public class ToolBarPanel : Control
     {
 
-        #region Constructor
    
         /// <summary>
         /// Tool Bar Panel.
@@ -34,9 +31,7 @@ namespace XNAFinalEngine.UserInterface
             Height = 25;
         } // ToolBarPanel
 
-        #endregion
 
-        #region Init
                       
         protected internal override void InitSkin()
         {
@@ -44,9 +39,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ToolBarPanel"]);
         } // InitSkin
 
-        #endregion
 
-        #region Update
 
         protected internal override void Update(float elapsedTime_)
         {
@@ -82,7 +75,6 @@ namespace XNAFinalEngine.UserInterface
             Height = height;
         } // AlignBars
 
-        #endregion
 
     } // ToolBarPanel
 } // XNAFinalEngine.UserInterface

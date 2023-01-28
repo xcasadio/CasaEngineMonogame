@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,10 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.IO;
 using System.Xml.Linq;
 using CasaEngine.Asset;
@@ -37,34 +36,30 @@ using CasaEngine.Game;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngineCommon.Design;
 using System.Xml;
-#endregion
 
 namespace XNAFinalEngine.Assets
 {
 
-	/// <summary>
-	/// XML Documents.
+    /// <summary>
+    /// XML Documents.
     /// http://msdn.microsoft.com/en-us/library/ms745778.aspx 
-	/// </summary>
+    /// </summary>
     public class Document : Asset
-    {        
-        #region Properties
+    {
 
         /// <summary>
         /// Internal X Document.
         /// </summary>
         public XDocument Resource { get; private set; }
-        
-        #endregion
 
-        #region Constructor
 
-		/// <summary>
-		/// Load document.
-		/// </summary>
+
+        /// <summary>
+        /// Load document.
+        /// </summary>
         /// <param name="filename">The filename must be relative to the content directory.</param>
         public Document(string filename)
-		{
+        {
             Name = filename;
             Filename = Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
             //Filename = GameInfo.Instance.ProjectManager.ProjectPath + filename;
@@ -89,9 +84,7 @@ namespace XNAFinalEngine.Assets
             }
         } // Document
 
-		#endregion
 
-        #region Recreate Resource
 
         /// <summary>
         /// Useful when the XNA device is disposed.
@@ -102,9 +95,7 @@ namespace XNAFinalEngine.Assets
                 Resource = Engine.Instance.AssetContentManager.Load<XDocument>(Filename, device_);
         } // RecreateResource
 
-        #endregion
 
-        #region Load
 
         /// <summary>
         /// 
@@ -126,7 +117,6 @@ namespace XNAFinalEngine.Assets
 
         }
 
-        #endregion
 
     } // Document
 } // XNAFinalEngine.Assets

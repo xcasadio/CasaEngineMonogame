@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,13 +11,15 @@ using CasaEngine.Game;
 using CasaEngine.CoreSystems.Game;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Assets.Graphics2D;
+using Color = Microsoft.Xna.Framework.Color;
+using Point = Microsoft.Xna.Framework.Point;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Editor.Game
 {
     class Animation2DEditorComponent
         : CasaEngine.Game.DrawableGameComponent
     {
-        #region Fields
 
         Animation2D m_CurrentAnimation2D;
         Animation2D m_OriginalAnimation2D;
@@ -38,9 +40,7 @@ namespace Editor.Game
 
         public event EventHandler CurrentAnimationSetted;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -76,7 +76,7 @@ namespace Editor.Game
             get;
             set;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -86,9 +86,7 @@ namespace Editor.Game
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -104,11 +102,8 @@ namespace Editor.Game
             m_Zoom = Vector2.One;
         }
 
-        #endregion
 
-        #region Methods
 
-        #region GameComponent
 
         /// <summary>
         /// 
@@ -242,7 +237,6 @@ namespace Editor.Game
             }
         }
 
-        #endregion
 
         /// <summary>
         /// Use to change the current Sprite2D in
@@ -258,7 +252,7 @@ namespace Editor.Game
             m_Sprites.Clear();
 
             m_OriginalAnimation2D = m_ChangeCurrentAnimation;
-            m_CurrentAnimation2D = (Animation2D) m_ChangeCurrentAnimation.Clone();
+            m_CurrentAnimation2D = (Animation2D)m_ChangeCurrentAnimation.Clone();
             m_SpritePosition.X = Game.GraphicsDevice.Viewport.Width / 2;
             m_SpritePosition.Y = Game.GraphicsDevice.Viewport.Height / 2;
 
@@ -322,6 +316,5 @@ namespace Editor.Game
             }
         }
 
-        #endregion
     }
 }

@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,15 +9,14 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.CoreSystems;
 
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -32,20 +30,15 @@ namespace XNAFinalEngine.UserInterface
     public class ContextMenu : MenuBase
     {
 
-        #region Variables
 
         private long timer;
         private Control sender;
 
-        #endregion
 
-        #region Properties
 
         protected internal Control Sender { get { return sender; } set { sender = value; } }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Context Menu. (right click over control)
@@ -60,9 +53,7 @@ namespace XNAFinalEngine.UserInterface
             UserInterfaceManager.InputSystem.MouseDown += InputMouseDown;
         } // ContextMenu
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -73,9 +64,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -83,9 +72,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ContextMenu"]);
         } // InitSkin
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -94,7 +81,7 @@ namespace XNAFinalEngine.UserInterface
         {
             base.DrawControl(rect);
 
-            SkinLayer layerControl   = SkinInformation.Layers["Control"];
+            SkinLayer layerControl = SkinInformation.Layers["Control"];
             SkinLayer layerSelection = SkinInformation.Layers["Selection"];
             int verticalSize = LineHeight();
             Color color;
@@ -124,7 +111,6 @@ namespace XNAFinalEngine.UserInterface
                     UserInterfaceManager.Renderer.Draw(UserInterfaceManager.Skin.Controls["Control"].Layers[0].Image.Texture.Resource, rectangle, layerControl.Text.Colors.Enabled);
                 }
 
-                #region No Selected
                 if (ItemIndex != i)
                 {
                     if (Items[i].Enabled)
@@ -156,14 +142,12 @@ namespace XNAFinalEngine.UserInterface
                         color = layerControl.Text.Colors.Disabled;
                     }
                 }
-                #endregion
 
-                #region Selected
                 else
                 {
                     if (Items[i].Enabled)
                     {
-                        Rectangle rs = new Rectangle(rect.Left + layerControl.ContentMargins.Left, 
+                        Rectangle rs = new Rectangle(rect.Left + layerControl.ContentMargins.Left,
                                                      top,
                                                      Width - (layerControl.ContentMargins.Horizontal - SkinInformation.OriginMargins.Horizontal),
                                                      hight);
@@ -206,7 +190,6 @@ namespace XNAFinalEngine.UserInterface
                         color = layerSelection.Text.Colors.Disabled;
                     }
                 }
-                #endregion
 
                 if (Items[i].Icon != null)
                 {
@@ -221,9 +204,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region Line Height and Width
 
         private int LineHeight()
         {
@@ -249,7 +230,7 @@ namespace XNAFinalEngine.UserInterface
                 {
                     // Text maximum.
                     int itemWidth = (int)font.Font.MeasureString(item.Text).X + 16;
-                    if (itemWidth > maximumWidth) 
+                    if (itemWidth > maximumWidth)
                         maximumWidth = itemWidth;
                     // Right side text maximum.
                     int itemRightSideWidth;
@@ -257,7 +238,7 @@ namespace XNAFinalEngine.UserInterface
                         itemRightSideWidth = 0;
                     else
                         itemRightSideWidth = (int)font.Font.MeasureString(item.RightSideText).X + 16;
-                    if (itemRightSideWidth > maximumRightSideWidth) 
+                    if (itemRightSideWidth > maximumRightSideWidth)
                         maximumRightSideWidth = itemRightSideWidth;
                 }
             }
@@ -265,9 +246,7 @@ namespace XNAFinalEngine.UserInterface
             return maximumWidth;
         } // LineWidth
 
-        #endregion
 
-        #region Auto Size
 
         /// <summary>
         /// Auto Size
@@ -287,9 +266,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // AutoSize
 
-        #endregion
 
-        #region Track Item
 
         private void TrackItem(int y)
         {
@@ -325,9 +302,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // TrackItem
 
-        #endregion
 
-        #region Update
 
         /// <summary>
         /// Update.
@@ -346,9 +321,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Update
 
-        #endregion
 
-        #region OnMouseMove, OnMouseOut, OnClick, OnKeyPress
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
@@ -452,9 +425,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnKeyPress
 
-        #endregion
 
-        #region Hide Menu
 
         public virtual void HideMenu(bool hideCurrent)
         {
@@ -471,9 +442,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // HideMenu
 
-        #endregion
 
-        #region Show
 
         public override void Show()
         {
@@ -492,9 +461,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 UserInterfaceManager.Add(this);
             }
-            
+
             this.sender = sender;
-            
+
             if (sender != null && sender.Root != null && sender.Root is Container)
             {
                 Left = x - Root.ControlLeftAbsoluteCoordinate;
@@ -534,9 +503,7 @@ namespace XNAFinalEngine.UserInterface
             Focused = true;
         } // Show
 
-        #endregion
 
-        #region Input Mouse Down
 
         private void InputMouseDown(object sender, MouseEventArgs e)
         {
@@ -550,9 +517,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // InputMouseDown
 
-        #endregion
 
-        #region Check Area
 
         private bool CheckArea(int x, int y)
         {
@@ -575,7 +540,6 @@ namespace XNAFinalEngine.UserInterface
             return false;
         } // CheckArea
 
-        #endregion
 
     } // ContextMenu
 } // XNAFinalEngine.UserInterface

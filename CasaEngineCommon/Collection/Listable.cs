@@ -1,9 +1,7 @@
-#region Using directives
 
 using System;
 using System.Collections.Generic;
 
-#endregion
 
 //TODO: Implement sorting
 
@@ -14,7 +12,6 @@ namespace CasaEngineCommon.Collection
 	/// </summary>
 	public interface IListable
 	{
-		#region Properties
 		
 		/// <summary>
 		/// Gets or sets the name value
@@ -33,7 +30,6 @@ namespace CasaEngineCommon.Collection
 			get;
 		}
 
-		#endregion
 	}
 
 	/// <summary>
@@ -47,7 +43,6 @@ namespace CasaEngineCommon.Collection
 	/// </remarks>
 	public class Listable<T> where T : IListable
 	{
-		#region Fields
 		
 		/// <summary>
 		/// Hash elements
@@ -59,9 +54,7 @@ namespace CasaEngineCommon.Collection
 		/// </summary>
 		protected List<T> listData;
 
-		#endregion
 
-		#region Constructor
 		
 		/// <summary>
 		/// Default constructor
@@ -72,9 +65,7 @@ namespace CasaEngineCommon.Collection
 			listData = new List<T>();
 		}
 
-		#endregion
 
-		#region Properties
 		
 		/// <summary>
 		/// Gets the data of the Listable as a List. Useful for the AddRange method
@@ -112,9 +103,7 @@ namespace CasaEngineCommon.Collection
 			get { return listData.Count; }
 		}
 
-		#endregion
 
-		#region Methods
 		
 		/// <summary>
 		/// Tests if a name exists in the Listable, and if true, returns the first element
@@ -266,7 +255,6 @@ namespace CasaEngineCommon.Collection
 			return default(T);
 		}
 
-		#endregion
 	}
 
 	/// <summary>
@@ -275,7 +263,6 @@ namespace CasaEngineCommon.Collection
 	/// </summary>
 	public class ListableString
 	{
-		#region Fields
 
 		/// <summary>
 		/// Hash elements
@@ -287,9 +274,7 @@ namespace CasaEngineCommon.Collection
 		/// </summary>
 		protected List<object> listData;
 
-		#endregion
 
-		#region Constructors
 
 		/// <summary>
 		/// Default constructor
@@ -300,9 +285,7 @@ namespace CasaEngineCommon.Collection
 			listData = new List<object>();
 		}
 
-		#endregion
 
-		#region Properties
 
 		/// <summary>
 		/// Gets the data of the ListableString as a List. Useful for the AddRange method
@@ -340,9 +323,7 @@ namespace CasaEngineCommon.Collection
 			get { return listData.Count; }
 		}
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// Tests if a key exists in the ListableString
@@ -402,7 +383,6 @@ namespace CasaEngineCommon.Collection
 			listData.Clear();
 		}
 
-		#endregion
 	}
 
 	/// <summary>
@@ -411,7 +391,6 @@ namespace CasaEngineCommon.Collection
 	/// <typeparam name="T">Class that the list will contain. Must implement IListable</typeparam>
 	public class ListableUnique<T> where T : IListable
 	{
-		#region Fields
 
 		/// <summary>
 		/// Couter value to be able to add repeated elements (when a value its repeated the counter is added
@@ -429,9 +408,7 @@ namespace CasaEngineCommon.Collection
 		/// </summary>
 		protected List<T> listData;
 
-		#endregion
 
-		#region Constructors
 
 		/// <summary>
 		/// Default constructor
@@ -442,9 +419,7 @@ namespace CasaEngineCommon.Collection
 			listData = new List<T>();
 		}
 
-		#endregion
 
-		#region Properties
 
 		/// <summary>
 		/// Return the data as a List. Useful for the AddRange method.
@@ -482,9 +457,7 @@ namespace CasaEngineCommon.Collection
 			get { return listData.Count; }
 		}
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// Checks if the element is contained in the collection.
@@ -585,6 +558,5 @@ namespace CasaEngineCommon.Collection
 			listData.Clear();
 		}
 
-		#endregion
 	}
 }

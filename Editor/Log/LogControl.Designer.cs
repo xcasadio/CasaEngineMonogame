@@ -20,7 +20,6 @@
             base.Dispose(disposing);
         }
 
-        #region Code généré par le Concepteur de composants
 
         /// <summary> 
         /// Méthode requise pour la prise en charge du concepteur - ne modifiez pas 
@@ -88,7 +87,6 @@
 
         }
 
-        #endregion
 
         private System.Windows.Forms.Button buttonClearLog;
         private System.Windows.Forms.Label label1;

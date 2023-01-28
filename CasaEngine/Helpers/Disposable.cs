@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,11 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
-#endregion
+
+
 
 namespace XNAFinalEngine.Helpers
 {
@@ -73,7 +71,7 @@ namespace XNAFinalEngine.Helpers
             // from executing a second time.
             GC.SuppressFinalize(this);
         } // Dispose
-                
+
         /// <summary>
         /// Dispose(bool disposing) executes in two distinct scenarios.
         /// 
@@ -108,7 +106,7 @@ namespace XNAFinalEngine.Helpers
         /// Dispose managed resources.
         /// </summary>
         protected virtual void DisposeManagedResources()
-        { 
+        {
             // Overrite it!!
         } // DisposeManagedResources
 

@@ -12,6 +12,7 @@ using CasaEngineCommon.Helper;
 using Editor.Game;
 using XNAFinalEngine.UserInterface;
 using XNAFinalEngine;
+using Control = XNAFinalEngine.UserInterface.Control;
 
 namespace Editor.Tools.UIScreenEditor
 {
@@ -21,7 +22,6 @@ namespace Editor.Tools.UIScreenEditor
     internal class UIScreenEditorComponent
         : CasaEngine.Game.DrawableGameComponent
     {
-        #region Fields
 
         UIScreenDesigner m_Screen;
         System.Windows.Forms.Control m_Control;
@@ -30,13 +30,9 @@ namespace Editor.Tools.UIScreenEditor
         List<XNAFinalEngine.UserInterface.Control> m_ControlToAdd = new List<XNAFinalEngine.UserInterface.Control>();
         List<XNAFinalEngine.UserInterface.Control> m_ControlToRemove = new List<XNAFinalEngine.UserInterface.Control>();
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -51,11 +47,8 @@ namespace Editor.Tools.UIScreenEditor
             m_UIManager = game_.UIManager;
         }
 
-        #endregion
 
-        #region Methods
 
-        #region GameComponent
 
         /// <summary>
         /// 
@@ -76,7 +69,7 @@ namespace Editor.Tools.UIScreenEditor
             //m_Screen.ControllingPlayer = new PlayerIndex?(PlayerIndex.One);
             //m_Screen.ScreenState = ScreenState.Active;
             m_Screen.TransitionOffTime = TimeSpan.Zero;
-            m_Screen.TransitionOnTime = TimeSpan.Zero;            
+            m_Screen.TransitionOnTime = TimeSpan.Zero;
         }
 
         /// <summary>
@@ -92,7 +85,7 @@ namespace Editor.Tools.UIScreenEditor
                 foreach (var control in m_ControlToAdd)
                 {
                     control.CanFocus = true;
-                    m_UIManager.RootControls.Add(control);                    
+                    m_UIManager.RootControls.Add(control);
                     control.Focused = true;
                 }
                 m_ControlToAdd.Clear();
@@ -103,7 +96,7 @@ namespace Editor.Tools.UIScreenEditor
                 }
                 m_ControlToRemove.Clear();
             }
-            
+
             //m_Screen.Update(elpasedTime, false, false);
 
             base.Update(gameTime);
@@ -120,7 +113,6 @@ namespace Editor.Tools.UIScreenEditor
             base.Draw(gameTime);
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -182,6 +174,5 @@ namespace Editor.Tools.UIScreenEditor
             //screen_.CopyFrom(m_Screen);
         }
 
-        #endregion
     }
 }

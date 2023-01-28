@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,11 +9,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -25,7 +22,6 @@ namespace XNAFinalEngine.UserInterface
     public class Label : Control
     {
 
-        #region Variables
 
         /// <summary>
         /// Aligment. (None, TopLeft, TopCenter, TopRight, MiddleLeft, MiddleCenter, MiddleRight, BottomLeft, BottomCenter, BottomRight).
@@ -37,9 +33,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private bool ellipsis = true;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Aligment. (None, TopLeft, TopCenter, TopRight, MiddleLeft, MiddleCenter, MiddleRight, BottomLeft, BottomCenter, BottomRight).
@@ -59,9 +53,7 @@ namespace XNAFinalEngine.UserInterface
             set { ellipsis = value; }
         } // Ellipsis
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Label.
@@ -75,9 +67,7 @@ namespace XNAFinalEngine.UserInterface
             Height = 16;
         } // Label
 
-        #endregion
 
-        #region Draw Control
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -88,7 +78,6 @@ namespace XNAFinalEngine.UserInterface
             UserInterfaceManager.Renderer.DrawString(this, skinLayer, Text, rect, true, 0, 0, ellipsis);
         } // DrawControl
 
-        #endregion
 
     } // Label
 } // XNAFinalEngine.UserInterface

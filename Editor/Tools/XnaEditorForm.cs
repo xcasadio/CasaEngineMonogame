@@ -64,7 +64,6 @@ namespace Editor.Tools
             m_EventWaitHandle = new AutoResetEvent(true);
         }
 
-        #region Focus
 
         /// <summary>
         /// 
@@ -87,7 +86,6 @@ namespace Editor.Tools
             Microsoft.Xna.Framework.Input.Mouse.WindowHandle = m_XnaControlHandle;
         }
 
-        #endregion
 
         /// <summary>
         /// 

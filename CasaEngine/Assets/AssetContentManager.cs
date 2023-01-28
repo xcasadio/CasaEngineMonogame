@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,16 +13,13 @@ namespace CasaEngine.Asset
     /// </summary>
     public class AssetContentManager
     {
-        #region Fields
 
         private List<Asset> m_Assets = new List<Asset>();
 
         private Dictionary<string, Dictionary<string, object>> m_LoadedAssets = new Dictionary<string, Dictionary<string, object>>();
         private Dictionary<Type, IAssetLoader> m_AssetLoader = new Dictionary<Type, IAssetLoader>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -31,9 +30,7 @@ namespace CasaEngine.Asset
             set;
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -41,12 +38,10 @@ namespace CasaEngine.Asset
         /// <param name="device_"></param>
         public AssetContentManager()
         {
-            RootDirectory = Environment.CurrentDirectory;            
+            RootDirectory = Environment.CurrentDirectory;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -100,7 +95,7 @@ namespace CasaEngine.Asset
 
                 if (m_AssetLoader.ContainsKey(type) == true)
                 {
-                    T asset = (T) m_AssetLoader[type].LoadAsset(filePath_, device_);
+                    T asset = (T)m_AssetLoader[type].LoadAsset(filePath_, device_);
                     categoryAssetList.Add(filePath_, asset);
                     return asset;
                 }
@@ -130,7 +125,7 @@ namespace CasaEngine.Asset
                 if (a.Value is IDisposable)
                 {
                     ((IDisposable)a.Value).Dispose();
-                }                
+                }
             }
 
             m_LoadedAssets.Remove(categoryName_);
@@ -147,7 +142,6 @@ namespace CasaEngine.Asset
             }
         }
 
-        #region Asset
 
         /// <summary>
         /// 
@@ -179,14 +173,12 @@ namespace CasaEngine.Asset
                 }
             }*/
 
-            foreach (var a in  m_Assets)
+            foreach (var a in m_Assets)
             {
                 a.OnDeviceReset(device);
             }
         }
 
-        #endregion
 
-        #endregion
     }
 }

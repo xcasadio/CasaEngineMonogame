@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,11 +17,8 @@ namespace CasaEngine.Editor.Assets
     [TypeConverter(typeof(AssetBuildParamConverter))]
     public abstract class AssetBuildParam
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -48,9 +47,7 @@ namespace CasaEngine.Editor.Assets
             get;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -75,9 +72,7 @@ namespace CasaEngine.Editor.Assets
             Load(el_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -121,10 +116,8 @@ namespace CasaEngine.Editor.Assets
 
         public abstract bool Compare(AssetBuildParam param_);
 
-        #endregion
     }
 
-    #region Texture
 
     /// <summary>
     /// 
@@ -153,7 +146,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamColor(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -232,7 +225,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamColorKeyEnabled(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -297,7 +290,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamGenerateMipmaps(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -362,7 +355,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamPremultiplyAlpha(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -427,7 +420,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamResizeToPowerOfTwo(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -502,7 +495,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamTextureFormat(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -531,9 +524,7 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    #endregion
 
-    #region Effect
 
     /// <summary>
     /// 
@@ -581,7 +572,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamDebuggingOptions(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -646,7 +637,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamDefines(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -675,9 +666,7 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    #endregion
 
-    #region SpriteFontTexture
 
     /// <summary>
     /// 
@@ -715,7 +704,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamFirstCharacter(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -744,9 +733,7 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    #endregion
 
-    #region Model
 
     /// <summary>
     /// 
@@ -796,7 +783,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamDefaultEffect(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -861,7 +848,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamPremultiplyTextureAlpha(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -926,7 +913,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamPremultiplyVertexColor(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -991,7 +978,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamGenerateTangentFrames(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1056,7 +1043,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamScale(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1121,7 +1108,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamSwapWindingOrder(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1186,7 +1173,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamXRotation(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1251,7 +1238,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamYRotation(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1316,7 +1303,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamZRotation(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1345,9 +1332,7 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    #endregion
 
-    #region SoundEffect
 
     /// <summary>
     /// 
@@ -1395,7 +1380,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamCompressionQuality(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1424,9 +1409,7 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    #endregion
 
-    #region Video
 
     /// <summary>
     /// 
@@ -1474,7 +1457,7 @@ namespace CasaEngine.Editor.Assets
         /// <param name="el_"></param>
         public AssetBuildParamVideoSoundTrackType(XmlElement el_)
             : base(el_)
-        {}
+        { }
 
         /// <summary>
         /// 
@@ -1503,5 +1486,4 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    #endregion
 }

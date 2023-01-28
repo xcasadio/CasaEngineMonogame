@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,13 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-using Keys = Microsoft.Xna.Framework.Input.Keys;
 
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -43,16 +39,13 @@ namespace XNAFinalEngine.UserInterface
     public class Vector3Box : Control
     {
         
-        #region Variables
 
         // Controls
         private readonly TextBox xTextBox, yTextBox, zTextBox;
         
         private Vector3 value;
 
-        #endregion
 
-        #region Properties
         
         /// <summary>
         /// Current value.
@@ -70,15 +63,11 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Value
 
-        #endregion
 
-        #region Events
 
         public event EventHandler ValueChanged;
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -90,9 +79,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// A composite control with 3 text box to modified vector3 data.
@@ -150,7 +137,6 @@ namespace XNAFinalEngine.UserInterface
                 Text = "0",
             };
             
-            #region Events
 
             KeyEventHandler keyHandler = delegate(object sender, KeyEventArgs e)
             {
@@ -196,22 +182,17 @@ namespace XNAFinalEngine.UserInterface
                 zTextBox.Text = value.Z.ToString();
             };
             
-            #endregion
             
         } // Vector3Box
 
-        #endregion
 
-        #region Draw
 
         protected override void DrawControl(Rectangle rect)
         {
             // Only the children will be rendered.
         } // DrawControl
 
-        #endregion
 
-        #region On Value Changed
 
         protected virtual void OnValueChanged(EventArgs e)
         {
@@ -219,7 +200,6 @@ namespace XNAFinalEngine.UserInterface
                 ValueChanged.Invoke(this, e);
         } // OnValueChanged
 
-        #endregion
 
     } // Vector3Box
 } // XNAFinalEngine.UserInterface

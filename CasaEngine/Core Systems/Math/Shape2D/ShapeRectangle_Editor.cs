@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,15 +17,10 @@ namespace CasaEngine.Math.Shape2D
     /// </summary>
     public partial class ShapeRectangle
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -36,9 +33,7 @@ namespace CasaEngine.Math.Shape2D
             m_Height = h_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -67,7 +62,7 @@ namespace CasaEngine.Math.Shape2D
         {
             base.Save(el_, option_);
             el_.OwnerDocument.AddAttribute(el_, "width", m_Width.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "height", m_Height.ToString()); 
+            el_.OwnerDocument.AddAttribute(el_, "height", m_Height.ToString());
         }
 
         /// <summary>
@@ -92,6 +87,5 @@ namespace CasaEngine.Math.Shape2D
             return "Rectangle " + m_Width.ToString() + " - " + m_Height.ToString();
         }
 
-        #endregion
     }
 }

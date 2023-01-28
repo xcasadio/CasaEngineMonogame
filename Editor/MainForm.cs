@@ -32,6 +32,7 @@ using CasaEngine.Asset.Fonts;
 using Editor.Tools.Font;
 using Editor.Tools.SkinUIEditor;
 using CasaEngine.Assets.UI;
+using Font = CasaEngine.Asset.Fonts.Font;
 
 #if !DEBUG
 using Editor.Debugger;
@@ -43,10 +44,9 @@ using Editor.Tools.Event.EventForm;
 
 namespace Editor
 {
-    public partial class MainForm 
+    public partial class MainForm
         : Form
     {
-        #region Fields
 
         private MruManager m_MruManager;
         private const string m_RegistryPath = "Software\\Studio_XC\\CasaEngineEditor";
@@ -60,13 +60,9 @@ namespace Editor
         private Tools.Graphics2D.Sprite2DEditorForm m_Sprite2DEditorForm = null;
         private Tools.Graphics2D.Animation2DEditorForm m_Animation2DEditorForm = null;
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -87,14 +83,14 @@ namespace Editor
             m_LogForm = new LogForm();
             m_LogForm.Show(dockPanel1, DockState.DockBottom);
 
-            
+
 
             //ExternalTool.SaveProject = saveToolStripMenuItem_Click;
 
-            AnimationListEventForm.AddEventWindowFactory("PlaySound", new SoundEventWindowFactory());
+            //AnimationListEventForm.AddEventWindowFactory("PlaySound", new SoundEventWindowFactory());
 
             //SourceControlManager.Instance.Initialize(new P4SourceControl());
-            
+
 
             m_MruManager = new MruManager();
             m_MruManager.Initialize(
@@ -103,7 +99,7 @@ namespace Editor
                 fileToolStripMenuItem,					// parent
                 m_RegistryPath);						// Registry path to keep MRU list
 
-            m_MruManager.MruOpenEvent += delegate(object sender_, MruFileOpenEventArgs e_)
+            m_MruManager.MruOpenEvent += delegate (object sender_, MruFileOpenEventArgs e_)
             {
                 LoadProject(e_.FileName);
             };
@@ -133,11 +129,8 @@ namespace Editor
 #endif
         }
 
-        #endregion
 
-        #region Methods
 
-        #region Main Menu
 
         /// <summary>
         /// 
@@ -302,7 +295,7 @@ namespace Editor
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(Animation2D).FullName, typeof(Animation2DEditorForm));
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(UIScreen).FullName, typeof(UIScreenEditorForm));
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(Font).FullName, typeof(FontPreviewForm));
-            Engine.Instance.ExternalToolManager.RegisterEditor(typeof(SkinUI).FullName, typeof(SkinUIEditorForm)); 
+            Engine.Instance.ExternalToolManager.RegisterEditor(typeof(SkinUI).FullName, typeof(SkinUIEditorForm));
 
             ContentBrowserForm.SetCustomObjectNames(Engine.Instance.ExternalToolManager.GetAllCustomObjectNames());
         }
@@ -378,7 +371,6 @@ namespace Editor
             }
         }
 
-        #region Debug
 
         /// <summary>
         /// 
@@ -419,11 +411,8 @@ namespace Editor
             LogManager.Instance.Verbosity = LogManager.LogVerbosity.None;
         }
 
-        #endregion
 
-        #endregion
 
-        #region Project Methods
 
         /// <summary>
         /// 
@@ -465,7 +454,7 @@ namespace Editor
 #endif
             ClearProject();
             Engine.Instance.ProjectManager.CreateProject(fileName_);
-            Engine.Instance.ProjectConfig.ProjectName = "New Project"; 
+            Engine.Instance.ProjectConfig.ProjectName = "New Project";
             OnProjectLoaded(fileName_);
 #if !DEBUG
             }
@@ -493,12 +482,12 @@ namespace Editor
             try
             {
 #endif
-            ClearProject();            
+            ClearProject();
             Engine.Instance.ProjectManager.Load(fileName_);
             CheckExternalTool();
             SourceControlManager.Instance.LoadConfig(Path.GetDirectoryName(fileName_) + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath);
 
-            Engine.Instance.AssetContentManager.RootDirectory = Engine.Instance.ProjectManager.ProjectPath + 
+            Engine.Instance.AssetContentManager.RootDirectory = Engine.Instance.ProjectManager.ProjectPath +
                 Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
 
 #if !UNITTEST
@@ -592,9 +581,7 @@ namespace Editor
             }
         }
 
-        #endregion
 
-        #region ToolStrip Menu
 
         /// <summary>
         /// 
@@ -673,7 +660,6 @@ namespace Editor
             m_SubMainForm.TopMost = false;
         }
 
-        #region Launch Game
 
         /// <summary>
         /// 
@@ -877,9 +863,7 @@ namespace Editor
             return string.Empty;
         }
 
-        #endregion
 
-        #region Event
 
         /// <summary>
         /// 
@@ -892,11 +876,8 @@ namespace Editor
             Dispose(true);
         }
 
-        #endregion
 
-        #endregion
 
-        #region Sub Editor
 
         /// <summary>
         /// 
@@ -986,8 +967,6 @@ namespace Editor
             }
         }*/
 
-        #endregion
 
-        #endregion
     }
 }

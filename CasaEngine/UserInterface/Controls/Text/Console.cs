@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,21 +9,19 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.GamerServices;
+
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Asset.Fonts;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Console Message
 
     public struct ConsoleMessage
     {
@@ -40,9 +37,7 @@ namespace XNAFinalEngine.UserInterface
         }
     } // ConsoleMessage
 
-    #endregion
 
-    #region Channel List
 
     public class ChannelList : EventedList<ConsoleChannel>
     {
@@ -102,9 +97,7 @@ namespace XNAFinalEngine.UserInterface
         } // ConsoleChannel
     } // ChannelList
 
-    #endregion
 
-    #region Console Channel
 
     public class ConsoleChannel
     {
@@ -122,9 +115,7 @@ namespace XNAFinalEngine.UserInterface
         public virtual string Name { get; set; }
     } // ConsoleChannel
 
-    #endregion
 
-    #region Console Message Formats
 
     [Flags]
     public enum ConsoleMessageFormats
@@ -135,7 +126,6 @@ namespace XNAFinalEngine.UserInterface
         All = ChannelName | TimeStamp
     } // ConsoleMessageFormats
 
-    #endregion
 
     /// <summary>
     /// Console.
@@ -143,7 +133,6 @@ namespace XNAFinalEngine.UserInterface
     public class Console : Container
     {
 
-        #region Variables
 
         private readonly TextBox textMain;
         private readonly ComboBox cmbMain;
@@ -155,9 +144,7 @@ namespace XNAFinalEngine.UserInterface
         private bool channelsVisible = true;
         private bool textBoxVisible = true;
 
-        #endregion
 
-        #region Properties
 
         public virtual EventedList<ConsoleMessage> MessageBuffer
         {
@@ -222,15 +209,11 @@ namespace XNAFinalEngine.UserInterface
             }
         } // TextBoxVisible
 
-        #endregion
 
-        #region Events
 
         public event ConsoleMessageEventHandler MessageSent;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Console.
@@ -260,12 +243,12 @@ namespace XNAFinalEngine.UserInterface
             Add(cmbMain, false);
 
             textMain = new TextBox(UserInterfaceManager)
-                          {
-                              Left = cmbMain.Width + 1,
-                              Anchor = Anchors.Left | Anchors.Bottom | Anchors.Right,
-                              Detached = false,
-                              Visible = textBoxVisible
-                          };
+            {
+                Left = cmbMain.Width + 1,
+                Anchor = Anchors.Left | Anchors.Bottom | Anchors.Right,
+                Detached = false,
+                Visible = textBoxVisible
+            };
             textMain.Top = Height - textMain.Height;
             textMain.KeyDown += TextMain_KeyDown;
             textMain.FocusGained += TextMain_FocusGained;
@@ -292,9 +275,7 @@ namespace XNAFinalEngine.UserInterface
             PositionControls();
         } // Console
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -303,9 +284,7 @@ namespace XNAFinalEngine.UserInterface
             PositionControls();
         } // InitSkin
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -317,9 +296,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
-        
-        #region Draw
+
 
         private void ClientArea_Draw(object sender, DrawEventArgs e)
         {
@@ -373,9 +350,7 @@ namespace XNAFinalEngine.UserInterface
             base.DrawControl(r);
         } // DrawControl
 
-        #endregion
 
-        #region Position Controls
 
         private void PositionControls()
         {
@@ -398,9 +373,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // PositionControls
 
-        #endregion
 
-        #region Methods
 
         private void TextMain_FocusGained(object sender, EventArgs e)
         {
@@ -489,7 +462,7 @@ namespace XNAFinalEngine.UserInterface
         {
             ClientArea.Invalidate();
         } // ScrollBarVertical_ValueChanged
-        
+
         protected override void OnResize(ResizeEventArgs e)
         {
             CalcScrolling();
@@ -514,7 +487,6 @@ namespace XNAFinalEngine.UserInterface
             return buffer;
         } // GetFilteredBuffer
 
-        #endregion
 
     } // Console
 } // XNAFinalEngine.UserInterface

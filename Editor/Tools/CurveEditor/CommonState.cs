@@ -1,11 +1,9 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // CommonState.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
 //-----------------------------------------------------------------------------
 // CommonState.cs
@@ -13,12 +11,10 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#region Using Statements
-using System;
+
 using System.Collections.Generic;
 using System.Text;
 
-#endregion
 
 
 
@@ -30,7 +26,6 @@ namespace Editor.Tools.CurveEditor
     /// <typeparam name="T"></typeparam>
     class CommonState<T> where T: struct
     {
-        #region Properties
         /// <summary>
         /// Gets common value.
         /// </summary>
@@ -54,16 +49,13 @@ namespace Editor.Tools.CurveEditor
         /// Gets number of added states.
         /// </summary>
         public int Count { get { return count; } }
-        #endregion
 
-        #region Constructor
         public CommonState()
         {
             hasValue = false;
             hasSameValues = true;
             count = 0;
         }
-        #endregion
 
         /// <summary>
         /// Add new state to group.
@@ -83,12 +75,10 @@ namespace Editor.Tools.CurveEditor
             count++;
         }
 
-        #region Private Members
         private T value;
         private bool hasValue;
         private bool hasSameValues;
         private int count;
-        #endregion
 
     }
 }

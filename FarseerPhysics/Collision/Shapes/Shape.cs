@@ -54,14 +54,12 @@ namespace FarseerPhysics.Collision.Shapes
         /// </summary>
         public float Mass;
 
-        #region IEquatable<MassData> Members
 
         public bool Equals(MassData other)
         {
             return this == other;
         }
 
-        #endregion
 
         public static bool operator ==(MassData left, MassData right)
         {

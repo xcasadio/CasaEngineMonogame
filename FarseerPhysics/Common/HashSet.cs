@@ -3,7 +3,7 @@
 
 //TODO: FIX
 
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 
@@ -26,7 +26,6 @@ namespace FarseerPhysics.Common
 
         // Methods
 
-#region ICollection<T> Members
 
         public void Add(T item)
         {
@@ -75,7 +74,6 @@ namespace FarseerPhysics.Common
             get { return false; }
         }
 
-        #endregion
     }
 }
 #endif

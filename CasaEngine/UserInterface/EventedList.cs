@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,13 +9,12 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using XNAFinalEngine.Helpers;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -27,22 +25,17 @@ namespace XNAFinalEngine.UserInterface
     public class EventedList<T> : List<T>
     {
 
-        #region Events
 
         public event EventHandler ItemAdded;
         public event EventHandler ItemRemoved;
 
-        #endregion
 
-        #region Constructors
 
         public EventedList() { }
         public EventedList(int capacity) : base(capacity) { }
-        public EventedList(IEnumerable<T> collection) : base(collection) { }             
+        public EventedList(IEnumerable<T> collection) : base(collection) { }
 
-        #endregion
 
-        #region Methods
 
         public new void Add(T item)
         {
@@ -56,10 +49,10 @@ namespace XNAFinalEngine.UserInterface
         {
             int c = Count;
             base.Remove(obj);
-            if (ItemRemoved != null && c != Count) 
+            if (ItemRemoved != null && c != Count)
                 ItemRemoved.Invoke(this, new EventArgs());
         } // Remove
-    
+
         public new void Clear()
         {
             int c = Count;
@@ -72,10 +65,10 @@ namespace XNAFinalEngine.UserInterface
         {
             int c = Count;
             base.AddRange(collection);
-            if (ItemAdded != null && c != Count) 
+            if (ItemAdded != null && c != Count)
                 ItemAdded.Invoke(this, new EventArgs());
         } // AddRange
-  
+
         public new void Insert(int index, T item)
         {
             int c = Count;
@@ -83,23 +76,23 @@ namespace XNAFinalEngine.UserInterface
             if (ItemAdded != null && c != Count)
                 ItemAdded.Invoke(this, new EventArgs());
         } // Insert
-   
+
         public new void InsertRange(int index, IEnumerable<T> collection)
         {
             int c = Count;
             base.InsertRange(index, collection);
-            if (ItemAdded != null && c != Count) 
+            if (ItemAdded != null && c != Count)
                 ItemAdded.Invoke(this, new EventArgs());
         } // InsertRange
 
         public new int RemoveAll(Predicate<T> match)
         {
             int c = Count;
-            #if (WINDOWS)
-                int ret = base.RemoveAll(match);
-            #else
+#if (WINDOWS)
+            int ret = base.RemoveAll(match);
+#else
                 int ret = ExtensionMethods.RemoveAll(this, match); // The extension method does not work.
-            #endif
+#endif
             if (ItemRemoved != null && c != Count)
                 ItemRemoved.Invoke(this, new EventArgs());
             return ret;
@@ -109,7 +102,7 @@ namespace XNAFinalEngine.UserInterface
         {
             int c = Count;
             base.RemoveAt(index);
-            if (ItemRemoved != null && c != Count) 
+            if (ItemRemoved != null && c != Count)
                 ItemRemoved.Invoke(this, new EventArgs());
         } // RemoveAt
 
@@ -117,11 +110,10 @@ namespace XNAFinalEngine.UserInterface
         {
             int c = Count;
             base.RemoveRange(index, count);
-            if (ItemRemoved != null && c != Count) 
+            if (ItemRemoved != null && c != Count)
                 ItemRemoved.Invoke(this, new EventArgs());
         } // RemoveRange    
-        
-        #endregion
+
 
     } // EventedList
 } // XNAFinalEngine.UserInterface

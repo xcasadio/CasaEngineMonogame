@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,13 +9,13 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Asset.Fonts;
-#endregion
+
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -33,16 +32,13 @@ namespace XNAFinalEngine.UserInterface
     public class GroupBox : Container
     {
 
-        #region Variables
 
         /// <summary>
         /// Group Box Type (Normal, Flat).
         /// </summary>
         private GroupBoxType type = GroupBoxType.Normal;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Group Box Type (Normal, Flat).
@@ -53,9 +49,7 @@ namespace XNAFinalEngine.UserInterface
             set { type = value; Invalidate(); }
         } // Type
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Group Box. Group controls with and title in a line.
@@ -73,9 +67,7 @@ namespace XNAFinalEngine.UserInterface
             BackgroundColor = Color.Transparent;
         } // GroupBox
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -99,7 +91,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
     } // GroupBox
 } // XNAFinalEngine.UserInterface

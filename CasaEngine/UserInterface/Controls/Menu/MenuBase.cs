@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,11 +9,8 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System.Collections.Generic;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -25,14 +21,11 @@ namespace XNAFinalEngine.UserInterface
     public abstract class MenuBase : Control
     {
 
-        #region Variables
               
         private int itemIndex = -1;
         private readonly List<MenuItem> items = new List<MenuItem>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Selected item.
@@ -56,9 +49,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         public List<MenuItem> Items { get { return items; } }
 
-        #endregion
 
-        #region Constructor
 
         protected MenuBase(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
@@ -66,7 +57,6 @@ namespace XNAFinalEngine.UserInterface
             RootMenu = this;
         } // MenuBase
 
-        #endregion
 
     } // MenuBase
 } // XNAFinalEngine.UserInterface

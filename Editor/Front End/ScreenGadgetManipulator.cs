@@ -15,7 +15,6 @@ namespace Editor.FrontEnd
     public class ScreenGadgetManipulator
         : ScreenGadget
     {
-        #region Fields
 
         private Anchor[] m_Anchors = new Anchor[9];
         public bool Selected = false;
@@ -25,9 +24,7 @@ namespace Editor.FrontEnd
 
         private ScreenGadget m_ScreenGadget;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -46,9 +43,7 @@ namespace Editor.FrontEnd
             set { m_ScreenGadget.Name = value; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -218,9 +213,7 @@ namespace Editor.FrontEnd
             m_Anchors[8].Height = m_ScreenGadget.Height;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -263,6 +256,5 @@ namespace Editor.FrontEnd
             m_ScreenGadget.DrawGadget(elapsedTime_);
         }
 
-        #endregion
     }
 }

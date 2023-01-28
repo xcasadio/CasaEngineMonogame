@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,13 +18,10 @@ namespace CasaEngine.Project
     /// </summary>
     public class PackageManager
     {
-        #region Fields
 
         List<Package> m_Packages = new List<Package>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -32,9 +31,7 @@ namespace CasaEngine.Project
             get { return m_Packages.ToArray(); }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -45,9 +42,7 @@ namespace CasaEngine.Project
             projectManager_.ProjectClosed += new EventHandler(OnProjectClosed);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -181,7 +176,6 @@ namespace CasaEngine.Project
 
         }
 
-        #region Add Item
 
         /// <summary>
         /// 
@@ -229,8 +223,6 @@ namespace CasaEngine.Project
             }
         }*/
 
-        #endregion
 
-        #endregion
     }
 }

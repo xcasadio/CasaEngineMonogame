@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +25,6 @@ namespace CasaEngine.Math.Shape2D
     class ShapePolygone
         : Shape2DObject
     {
-        #region Fields
 
 #if EDITOR
         List<Vector2> m_Points = new List<Vector2>();
@@ -33,9 +34,7 @@ namespace CasaEngine.Math.Shape2D
 
         bool m_IsABox = false;
 
-        #endregion
 
-        #region Properties
 
 #if !EDITOR
         /// <summary>
@@ -58,9 +57,7 @@ namespace CasaEngine.Math.Shape2D
             get { return m_IsABox; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -72,11 +69,9 @@ namespace CasaEngine.Math.Shape2D
         /// </summary>
         public ShapePolygone(ShapePolygone o_)
             : base(o_)
-        {}
+        { }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -92,7 +87,7 @@ namespace CasaEngine.Math.Shape2D
             if (version > 2)
             {
                 m_IsABox = bool.Parse(el_.Attributes["isABox"].Value);
-            }            
+            }
 
             XmlElement pointList = (XmlElement)el_.SelectSingleNode("PointList");
 
@@ -193,6 +188,5 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        #endregion
     }
 }

@@ -20,7 +20,6 @@ namespace Editor.Tools.UIScreenEditor
     public partial class UIScreenEditorForm
         : Form, IEditorForm, IExternalTool
     {
-        #region Enum
 
         /// <summary>
         /// 
@@ -31,9 +30,7 @@ namespace Editor.Tools.UIScreenEditor
             CreateControl
         }*/
 
-        #endregion
 
-        #region Fields
 
         bool m_OnUndoRedoManagerAction = false;
         XnaEditorForm m_XnaEditorForm;
@@ -46,9 +43,7 @@ namespace Editor.Tools.UIScreenEditor
         System.Windows.Forms.RadioButton m_DefaultRadioButton;
         Dictionary<string, XNAFinalEngine.UserInterface.Control> m_Controls = new Dictionary<string, XNAFinalEngine.UserInterface.Control>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -76,9 +71,7 @@ namespace Editor.Tools.UIScreenEditor
             set;
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -197,9 +190,7 @@ namespace Editor.Tools.UIScreenEditor
             }
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -235,7 +226,6 @@ namespace Editor.Tools.UIScreenEditor
             //throw new Exception("The method or operation is not implemented.");
         }
 
-        #region Undo/Redo
 
         /// <summary>
         /// 
@@ -314,9 +304,7 @@ namespace Editor.Tools.UIScreenEditor
             //redoToolStripMenuItem.Enabled = m_UndoRedoManager.CanRedo;
         }
 
-        #endregion
 
-        #region Keyboard
 
         /// <summary>
         /// 
@@ -354,9 +342,7 @@ namespace Editor.Tools.UIScreenEditor
             }
         }
 
-        #endregion
 
-        #region Mouse XNA
 
         /// <summary>
         /// 
@@ -449,7 +435,6 @@ namespace Editor.Tools.UIScreenEditor
             }
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -465,6 +450,5 @@ namespace Editor.Tools.UIScreenEditor
             }            
         }
 
-        #endregion
     }
 }

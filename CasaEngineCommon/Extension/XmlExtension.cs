@@ -14,21 +14,13 @@ namespace CasaEngineCommon.Extension
 	/// </summary>
 	static public class XMLExtension
 	{
-		#region Fields
         
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
-		#region Read
 
 		/// <summary>
 		/// 
@@ -152,9 +144,7 @@ namespace CasaEngineCommon.Extension
             p_.Y = int.Parse(xmlEl_.Attributes["y"].Value, CultureInfo.InvariantCulture.NumberFormat);
 		}
 
-		#endregion
 
-		#region Write
 
 		/// <summary>
 		/// 
@@ -433,8 +423,6 @@ namespace CasaEngineCommon.Extension
 			return el;
 		}
 
-		#endregion
 
-		#endregion
 	}
 }

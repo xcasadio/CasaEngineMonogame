@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,15 +11,12 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
     public class BuildResultEventArgs
         : EventArgs
     {
-        #region Fields
 
         string m_SpriteSheetFileName;
         string m_SpriteSheetMapFileName;
         bool m_DetectAnimation;
 
-        #endregion
 
-        #region Property
 
         /// <summary>
         /// 
@@ -45,9 +42,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             get { return m_DetectAnimation; }
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -62,7 +57,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             m_DetectAnimation = detectAnimation_;
         }
 
-        #endregion
 
 
     }

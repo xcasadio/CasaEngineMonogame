@@ -1,5 +1,4 @@
-﻿#region MIT License
-
+﻿
 /*
  * Copyright (c) 2009 Nick Gravelyn (nick@gravelyn.com), Markus Ewald (cygon@CasaEngine.org)
  * 
@@ -22,7 +21,6 @@
  * 
  */
 
-#endregion
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {
@@ -46,7 +44,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 			base.Dispose(disposing);
 		}
 
-		#region Windows Form Designer generated code
 
 		/// <summary>
 		/// Required method for Designer support - do not modify
@@ -363,7 +360,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 
 		}
 
-		#endregion
 
 		private System.Windows.Forms.ListBox listBox1;
 		private System.Windows.Forms.Button removeImageBtn;

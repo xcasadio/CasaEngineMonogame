@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
           
     public enum RadioButtonMode
     {
@@ -23,7 +20,6 @@ namespace XNAFinalEngine.UserInterface
         Manual
     } // RadioButtonMode
 
-    #endregion
 
     /// <summary>
     /// Radio Button.
@@ -32,7 +28,6 @@ namespace XNAFinalEngine.UserInterface
     public class RadioButton : CheckBox
     {
         
-        #region Variables
 
         /// <summary>
         /// Radio Button Mode (auto, manual).
@@ -40,9 +35,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private RadioButtonMode mode = RadioButtonMode.Auto;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Radio Button Mode (auto, manual).
@@ -54,9 +47,7 @@ namespace XNAFinalEngine.UserInterface
             set { mode = value; }
         } // Mode
 
-        #endregion
 
-        #region Constructor
    
         /// <summary>
         /// CheckBox.
@@ -67,9 +58,7 @@ namespace XNAFinalEngine.UserInterface
             
         }
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -77,9 +66,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["RadioButton"]);
         } // InitSkin
 
-        #endregion
 
-        #region On Click
 
         protected override void OnClick(EventArgs e)
         {
@@ -111,7 +98,6 @@ namespace XNAFinalEngine.UserInterface
             base.OnClick(e);
         } // OnClick
 
-        #endregion
 
     } // RadioButton
 } // XNAFinalEngine.UserInterface

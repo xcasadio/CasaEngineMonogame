@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,20 +16,17 @@ namespace CasaEngine.Asset
     /// <summary>
     /// 
     /// </summary>
-    public abstract 
+    public abstract
 #if EDITOR
     partial
 #endif
-    class Asset 
+    class Asset
         : Disposable, ISaveLoad
     {
-        #region Events
 
         public event EventHandler Disposed;
 
-        #endregion
 
-        #region Fields
 
         // A simple but effective way of having unique ids.
         // We can have 18.446.744.073.709.551.616 game object creations before the system "collapse". Almost infinite in practice. 
@@ -39,9 +38,7 @@ namespace CasaEngine.Asset
         // The asset name.
         private string name;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Identification number. Every asset has a unique ID.
@@ -72,9 +69,7 @@ namespace CasaEngine.Asset
             }
         } // Name
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -88,19 +83,16 @@ namespace CasaEngine.Asset
             Engine.Instance.AssetContentManager.AddAsset(this);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// Useful when the XNA device is disposed.
         /// </summary>
-        internal virtual void OnDeviceReset(GraphicsDevice device_) 
+        internal virtual void OnDeviceReset(GraphicsDevice device_)
         {
             //override
         }
 
-        #region Load
 
         /// <summary>
         /// 
@@ -122,8 +114,6 @@ namespace CasaEngine.Asset
 
         }
 
-        #endregion
 
-        #endregion
     }
 }

@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,16 +9,13 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
 
     /// <summary>
     /// Specifies how an image is positioned within a control.
@@ -30,7 +26,6 @@ namespace XNAFinalEngine.UserInterface
         PushButton
     } // ButtonMode
 
-    #endregion
 
     /// <summary>
     /// Button.
@@ -38,7 +33,6 @@ namespace XNAFinalEngine.UserInterface
     public class Button : ButtonBase
     {
 
-        #region Variables
 
         /// <summary>
         /// Represents an image on a button.
@@ -60,9 +54,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private bool pushed;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Represents an image on a button.
@@ -108,16 +100,12 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Pushed
 
-        #endregion
 
-        #region Events
-            
+
         public event EventHandler GlyphChanged;
 
-        #endregion
 
-        #region Constructor
-        
+
         /// <summary>
         /// Button.
         /// </summary>
@@ -127,9 +115,7 @@ namespace XNAFinalEngine.UserInterface
             SetDefaultSize(72, 24);
         } // Button
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -137,9 +123,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["Button"]);
         } // InitSkin
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -151,9 +135,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -193,18 +175,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region On Glyph Changed
 
         private void OnGlyphChanged(EventArgs e)
         {
             if (GlyphChanged != null) GlyphChanged.Invoke(this, e);
         } // OnGlyphChanged
 
-        #endregion
 
-        #region On Click
 
         protected override void OnClick(EventArgs e)
         {
@@ -224,7 +202,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnClick
 
-        #endregion
 
     } // Button
 } // XNAFinalEngine.UserInterface

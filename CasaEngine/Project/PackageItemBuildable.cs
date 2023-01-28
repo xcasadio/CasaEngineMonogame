@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,14 +13,11 @@ namespace CasaEngine.Project
     public class PackageItemBuildable
         : PackageItem
     {
-        #region Fields
 
         private Type m_Type;
         private string m_XnbName;
 
-        #endregion
 
-        #region Properties
 
         public PackageItemBuildable(Package package_, int id_, string name_, string xnbName_, Type type_)
             : base(package_, id_, name_)
@@ -27,9 +26,7 @@ namespace CasaEngine.Project
             m_Type = type_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -39,6 +36,5 @@ namespace CasaEngine.Project
             return Engine.Instance.Game.Content.Load<T>(m_XnbName);
         }
 
-        #endregion
     }
 }

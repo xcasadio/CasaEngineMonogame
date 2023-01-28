@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2013, Schneider, José Ignacio.
 All rights reserved.
@@ -25,13 +24,12 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using System.Threading;
-#endregion
 
 namespace XNAFinalEngine.Helpers
 {
@@ -53,25 +51,22 @@ namespace XNAFinalEngine.Helpers
     public class MultiThreadingTask<T>
     {
 
-        #region Variables
 
         // The task.
         private readonly Action<T> task;
 
         // This are the synchronization elements.
         private readonly ManualResetEvent[] taskDone, waitForWork;
-        
+
         // The threads.
         private readonly List<Thread> threads;
-        
+
         // Task parameters.
         private readonly T[] parameters;
-        
+
         private readonly int[] processorAffinity;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Obtain the number of logical cores available for multithreading.
@@ -98,9 +93,7 @@ namespace XNAFinalEngine.Helpers
             }
         } // MultiThreadingTask
 
-        #endregion
 
-        #region Task Manager
 
         /// <summary>
         /// A thread could not be restarted. 
@@ -109,12 +102,12 @@ namespace XNAFinalEngine.Helpers
         private void TaskManager(object parameter)
         {
             int index = (int)parameter;
-            
+
             Thread.CurrentThread.IsBackground = true; // To destroy it when the application exits.
-            #if XBOX 
+#if XBOX
                 // http://msdn.microsoft.com/en-us/library/microsoft.xna.net_cf.system.threading.thread.setprocessoraffinity.aspx
                 Thread.CurrentThread.SetProcessorAffinity(processorAffinity[index]);
-            #endif
+#endif
 
             while (true)
             {
@@ -125,9 +118,7 @@ namespace XNAFinalEngine.Helpers
             }
         } // TaskManager
 
-        #endregion
 
-        #region Start
 
         /// <summary>
         ///  Start again the task.
@@ -138,9 +129,7 @@ namespace XNAFinalEngine.Helpers
             waitForWork[taskNumber].Set();
         } // Start
 
-        #endregion
 
-        #region Wait For Task Completition
 
         /// <summary>
         /// Call this if you need to wait for all tasks to be completed.
@@ -163,7 +152,6 @@ namespace XNAFinalEngine.Helpers
             taskDone[taskNumber].Reset();
         } // WaitForTaskCompletition
 
-        #endregion
 
     } // MultiThreadingTask
 } // XNAFinalEngine.Helpers

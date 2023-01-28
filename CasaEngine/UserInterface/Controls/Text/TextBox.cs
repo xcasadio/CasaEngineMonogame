@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,25 +9,23 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.GamerServices;
+
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Asset;
 
 using Keyboard = XNAFinalEngine.Input.Keyboard;
 using XNAFinalEngine.Assets;
 using CasaEngine.Asset.Fonts;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
 
     public enum TextBoxMode
     {
@@ -37,7 +34,6 @@ namespace XNAFinalEngine.UserInterface
         Multiline
     } // TextBoxMode
 
-    #endregion
 
     /// <summary>
     /// Text Box.
@@ -45,7 +41,6 @@ namespace XNAFinalEngine.UserInterface
     public class TextBox : ClipControl
     {
 
-        #region Structs
 
         /// <summary>
         /// Text Selection.
@@ -69,7 +64,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 get
                 {
-                    if (start > end && start != -1 && end != -1) 
+                    if (start > end && start != -1 && end != -1)
                         return end;
                     return start;
                 }
@@ -83,7 +78,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 get
                 {
-                    if (end < start && start != -1 && end != -1) 
+                    if (end < start && start != -1 && end != -1)
                         return start;
                     return end;
                 }
@@ -122,9 +117,7 @@ namespace XNAFinalEngine.UserInterface
             } // Clear
         } // Selection
 
-        #endregion
 
-        #region Variables
 
         /// <summary>
         /// Cursor's position.
@@ -162,7 +155,7 @@ namespace XNAFinalEngine.UserInterface
         /// Text Box Mode (Normal, Password, Multiline).
         /// </summary>
         private TextBoxMode mode = TextBoxMode.Normal;
-        
+
         /// <summary>
         /// Text is read only?
         /// </summary>
@@ -191,11 +184,8 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private string initialText;
 
-        #endregion
 
-        #region Properties
 
-        #region Position
 
         /// <summary>
         /// Cursor's X position.
@@ -208,7 +198,7 @@ namespace XNAFinalEngine.UserInterface
                 positionX = value;
                 if (positionX < 0)
                     positionX = 0;
-                if (positionX > lines[PositionY].Length) 
+                if (positionX > lines[PositionY].Length)
                     positionX = lines[PositionY].Length;
             }
         } // positionX
@@ -223,9 +213,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 positionY = value;
 
-                if (positionY < 0) 
+                if (positionY < 0)
                     positionY = 0;
-                if (positionY > lines.Count - 1) 
+                if (positionY > lines.Count - 1)
                     positionY = lines.Count - 1;
                 if (positionX > lines[PositionY].Length)
                     positionX = lines[PositionY].Length;
@@ -245,7 +235,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Position
 
-        #endregion
 
         /// <summary>
         ///  Scrollbar Type (None, Vertical, Horizontal, Both).
@@ -316,7 +305,6 @@ namespace XNAFinalEngine.UserInterface
             set { drawBorders = value; if (ClientArea != null) ClientArea.Invalidate(); }
         } // DrawBorders
 
-        #region Selection
 
         /// <summary>
         /// Selected Text.
@@ -397,7 +385,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SelectionLength
 
-        #endregion
 
         /// <summary>
         /// Text.
@@ -424,9 +411,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Text
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Text Box.
@@ -457,9 +442,7 @@ namespace XNAFinalEngine.UserInterface
             };
         } // TextBox
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
@@ -477,16 +460,14 @@ namespace XNAFinalEngine.UserInterface
             base.InitSkin();
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["TextBox"]);
 
-            #if (WINDOWS)
-                Cursor = UserInterfaceManager.Skin.Cursors["Text"].Cursor;
-            #endif
+#if (WINDOWS)
+            Cursor = UserInterfaceManager.Skin.Cursors["Text"].Cursor;
+#endif
 
             font = (SkinInformation.Layers["Control"].Text != null) ? SkinInformation.Layers["Control"].Text.Font.Font : null;
         } // InitSkin
 
-        #endregion
-        
-        #region Draw
+
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -635,7 +616,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ClientArea_Draw
 
-                private void DrawSelection(Rectangle rect)
+        private void DrawSelection(Rectangle rect)
         {
             if (!selection.IsEmpty)
             {
@@ -682,9 +663,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawSelection
 
-        #endregion
 
-        #region Process Scrolling
 
         private int GetStringWidth(string text, int count)
         {
@@ -721,9 +700,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ProcessScrolling
 
-        #endregion
 
-        #region Update
 
         protected internal override void Update(float elapsedTime_)
         {
@@ -742,9 +719,7 @@ namespace XNAFinalEngine.UserInterface
             if (showCursorTemp != showCursor) ClientArea.Invalidate();
         } // Update
 
-        #endregion
 
-        #region Auxilliary Methods
 
         /// <summary>
         /// Find previous word from current position.
@@ -756,7 +731,7 @@ namespace XNAFinalEngine.UserInterface
             int p = Position - 1;
             if (p < 0) p = 0;
             if (p >= text.Length) p = text.Length - 1;
-            
+
             for (int i = p; i >= 0; i--)
             {
                 if (char.IsLetterOrDigit(text[i]))
@@ -879,9 +854,7 @@ namespace XNAFinalEngine.UserInterface
             return GetPos(px, py);
         }
 
-        #endregion
 
-        #region On Mouse Down
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -900,9 +873,7 @@ namespace XNAFinalEngine.UserInterface
             ClientArea.Invalidate();
         } // OnMouseDown
 
-        #endregion
 
-        #region On Mouse Move
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
@@ -920,9 +891,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnMouseMove
 
-        #endregion
 
-        #region On Mouse Up
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
@@ -934,14 +903,12 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnMouseUp
 
-        #endregion
 
-        #region On Key Press
 
         protected override void OnKeyPress(KeyEventArgs e)
         {
             flashTime = 0;
-            
+
             if (!e.Handled)
             {
                 if (e.Key == Keys.Enter && mode != TextBoxMode.Multiline && !readOnly)
@@ -1142,10 +1109,9 @@ namespace XNAFinalEngine.UserInterface
                     selection.End = Position;
                 }
 
-                #region Copy Paste
 
                 // Windows only because it uses the Clipboard class. Of course this could be implemented manually in the XBOX 360 if you want it.
-                #if (WINDOWS)
+#if (WINDOWS)
                 if (e.Control && e.Key == Keys.C && mode != TextBoxMode.Password)
                 {
                     System.Windows.Forms.Clipboard.Clear();
@@ -1170,9 +1136,8 @@ namespace XNAFinalEngine.UserInterface
                         selection.Clear();
                     }
                 }
-                #endif
+#endif
 
-                #endregion
 
                 if ((!e.Shift && !e.Control) || Text.Length <= 0)
                 {
@@ -1193,28 +1158,24 @@ namespace XNAFinalEngine.UserInterface
             base.OnKeyPress(e);
         } // OnKeyPress
 
-        #endregion
 
-        #region Handle Guide
 
         private void HandleGuide(PlayerIndex pi)
         {
-            if (!Guide.IsVisible)
-            {
-                Guide.BeginShowKeyboardInput(pi, "Enter Text", "", Text, GetText, pi.ToString());
-            }
+            //if (!Guide.IsVisible)
+            //{
+            //    Guide.BeginShowKeyboardInput(pi, "Enter Text", "", Text, GetText, pi.ToString());
+            //}
         } // HandleGuide
 
         private void GetText(IAsyncResult result)
         {
-            string res = Guide.EndShowKeyboardInput(result);
-            Text = res != null ? res : "";
-            Position = text.Length;
+            //string res = Guide.EndShowKeyboardInput(result);
+            //Text = res != null ? res : "";
+            //Position = text.Length;
         } // GetText
 
-        #endregion
 
-        #region Setup Scroll Bars
 
         private void SetupScrollBars()
         {
@@ -1252,9 +1213,7 @@ namespace XNAFinalEngine.UserInterface
             if (horizontalScrollBar != null) horizontalScrollBar.PageSize = charsDrawn;
         } // SetupScrollBars
 
-        #endregion
 
-        #region Adjust Margins
 
         protected override void AdjustMargins()
         {
@@ -1280,9 +1239,7 @@ namespace XNAFinalEngine.UserInterface
             base.AdjustMargins();
         } // AdjustMargins
 
-        #endregion
 
-        #region On Resize
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -1291,9 +1248,7 @@ namespace XNAFinalEngine.UserInterface
             SetupScrollBars();
         } // OnResize
 
-        #endregion
 
-        #region Select All
 
         public virtual void SelectAll()
         {
@@ -1304,9 +1259,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SelectAll
 
-        #endregion
 
-        #region Split Lines
 
         private List<string> SplitLines(string text)
         {
@@ -1330,18 +1283,14 @@ namespace XNAFinalEngine.UserInterface
             return lines;
         } // SplitLines
 
-        #endregion
 
-        #region Scrollbar Value Changed
 
         void ScrollBarValueChanged(object sender, EventArgs e)
         {
             ClientArea.Invalidate();
         } // scrollBarValueChanged
 
-        #endregion
 
-        #region On Focus Lost, Gained
 
         /// <summary>
         /// If the control lost focus then...
@@ -1367,7 +1316,6 @@ namespace XNAFinalEngine.UserInterface
             base.OnFocusGained();
         } // OnFocusGained
 
-        #endregion
 
     } // TextBox
 } // XNAFinalEngine.UserInterface

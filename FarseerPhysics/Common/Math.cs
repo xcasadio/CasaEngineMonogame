@@ -279,7 +279,6 @@ namespace FarseerPhysics.Common
             return (value >= min && value <= max);
         }
 
-        #region Nested type: FloatConverter
 
         [StructLayout(LayoutKind.Explicit)]
         private struct FloatConverter
@@ -290,7 +289,6 @@ namespace FarseerPhysics.Common
             public int i;
         }
 
-        #endregion
     }
 
     /// <summary>

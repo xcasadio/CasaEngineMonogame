@@ -19,15 +19,12 @@ namespace Editor.Game
     class MyOwnEditorGame
         : Microsoft.Xna.Framework.Game
     {
-        #region Fields
 
         public Form AttachedForm;
         private Microsoft.Xna.Framework.GraphicsDeviceManager m_GraphicsDeviceManager;
         private Form GameForm;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -37,9 +34,7 @@ namespace Editor.Game
             get { return m_GraphicsDeviceManager; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Create components
@@ -64,9 +59,7 @@ namespace Editor.Game
             this.Exiting += new EventHandler<EventArgs>(EditorGame_Exiting);
         }
 
-        #endregion
 
-        #region Event
 
         /// <summary>
         /// 
@@ -130,7 +123,7 @@ namespace Editor.Game
                 {
                     DisposeCallback();
                 }
-            }            
+            }
         }
 
         /// <summary>
@@ -142,12 +135,10 @@ namespace Editor.Game
                 && AttachedForm.IsDisposed == false)
             {
                 AttachedForm.Dispose();
-            }            
+            }
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -189,7 +180,7 @@ namespace Editor.Game
             else
             {
                 LocationCallback();
-            }            
+            }
         }
 
         /// <summary>
@@ -226,7 +217,7 @@ namespace Editor.Game
         /// <param name="gameTime"></param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
 
             base.Draw(gameTime);
         }
@@ -254,11 +245,11 @@ namespace Editor.Game
             {
                 SetFormEnabledCallback c = new SetFormEnabledCallback(FormEnabledCallback);
                 this.AttachedForm.Invoke(c);
-            }            
+            }
 
             base.BeginRun();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -267,6 +258,5 @@ namespace Editor.Game
             this.AttachedForm.Enabled = true;
         }
 
-        #endregion
     }
 }

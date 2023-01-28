@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,11 +25,8 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -41,13 +37,10 @@ namespace XNAFinalEngine.UserInterface
     public class PanelCollapsible : ClipControl
     {
 
-        #region Variables
 
         private readonly TreeButton treeButton;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Panel Collapsible.
@@ -107,9 +100,7 @@ namespace XNAFinalEngine.UserInterface
             treeButton.Checked = false;
         } // PanelCollapsible
 
-        #endregion
 
-        #region Add and Remove
 
         public override void Add(Control control, bool client)
         {
@@ -129,9 +120,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Remove
 
-        #endregion
 
-        #region Draw Control
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -141,7 +130,6 @@ namespace XNAFinalEngine.UserInterface
             // We only want to render the children.
         } // DrawControl
 
-        #endregion
 
     } // PanelCollapsible
 } // XNAFinalEngine.UserInterface

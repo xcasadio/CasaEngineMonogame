@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,12 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -26,7 +25,6 @@ namespace XNAFinalEngine.UserInterface
     public class ScrollBar : Control
     {
 
-        #region Variables
 
         private int range = 100;
         private int value;
@@ -45,9 +43,7 @@ namespace XNAFinalEngine.UserInterface
         private readonly string skinMinus = "ScrollBar.ArrowUp";
         private readonly string skinPlus = "ScrollBar.ArrowDown";
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Value.
@@ -60,12 +56,12 @@ namespace XNAFinalEngine.UserInterface
                 if (this.value != value)
                 {
                     this.value = value;
-                    if (this.value < 0) 
+                    if (this.value < 0)
                         this.value = 0;
-                    if (this.value > range - pageSize) 
+                    if (this.value > range - pageSize)
                         this.value = range - pageSize;
                     Invalidate();
-                    if (!Suspended) 
+                    if (!Suspended)
                         OnValueChanged(new EventArgs());
                 }
             }
@@ -123,18 +119,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // StepSize
 
-        #endregion
 
-        #region Events
 
         public event EventHandler ValueChanged;
         public event EventHandler RangeChanged;
         public event EventHandler StepSizeChanged;
         public event EventHandler PageSizeChanged;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Scrollbar.
@@ -145,7 +137,7 @@ namespace XNAFinalEngine.UserInterface
         {
             this.orientation = orientation;
             CanFocus = false;
-            
+
             if (orientation == Orientation.Horizontal)
             {
                 skinButton = "ScrollBar.ButtonHorz";
@@ -175,7 +167,6 @@ namespace XNAFinalEngine.UserInterface
                 Height = 64;
             }
 
-            #region Buttons
 
             buttonMinus = new Button(UserInterfaceManager)
             {
@@ -203,13 +194,10 @@ namespace XNAFinalEngine.UserInterface
             buttonPlus.MousePress += ArrowPress;
             Add(buttonPlus);
 
-            #endregion
 
         } // ScrollBar
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
@@ -246,9 +234,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ScrollBar"]);
         } // InitSkin
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -263,9 +249,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -278,9 +262,7 @@ namespace XNAFinalEngine.UserInterface
             UserInterfaceManager.Renderer.DrawLayer(bg, rect, Color.White, bg.States.Enabled.Index);
         } // DrawControl
 
-        #endregion
 
-        #region Arrow Press
 
         void ArrowPress(object sender, MouseEventArgs e)
         {
@@ -299,9 +281,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ArrowPress
 
-        #endregion
 
-        #region Recalculate Parameters
 
         /// <summary>
         /// Recalculate some parameters.
@@ -361,9 +341,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // RecalculateParameters
 
-        #endregion
-        
-        #region Button Slider Move
+
 
         private void ButtonSliderMove(object sender, MoveEventArgs e)
         {
@@ -398,9 +376,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ButtonSliderMove
 
-        #endregion
 
-        #region On Mouse Up and Down
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
@@ -449,9 +425,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnMouseDown
 
-        #endregion
 
-        #region OnResize, OnValueChanged, OnRangeChanged, OnPageSizeChanged, OnStepSizeChanged
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -480,7 +454,6 @@ namespace XNAFinalEngine.UserInterface
             if (StepSizeChanged != null) StepSizeChanged.Invoke(this, e);
         } // OnStepSizeChanged
 
-        #endregion
 
     } // ScrollBar
 } // XNAFinalEngine.UserInterface

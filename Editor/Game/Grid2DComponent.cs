@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,28 +15,23 @@ namespace Editor.Game
     public class Grid2DComponent
         : CasaEngine.Game.DrawableGameComponent
     {
-        #region Fields
 
         private Line2DRenderer m_Line2DRenderer;
         private SpriteBatch m_SpriteBatch;
-        private Color m_ColorLine = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+        private Microsoft.Xna.Framework.Color m_ColorLine = new Microsoft.Xna.Framework.Color(1.0f, 1.0f, 1.0f, 0.5f);
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
         /// </summary>
-        public Color ColorLine
+        public Microsoft.Xna.Framework.Color ColorLine
         {
             get { return m_ColorLine; }
             set { m_ColorLine = value; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -48,9 +43,7 @@ namespace Editor.Game
             game_.Components.Add(this);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -91,7 +84,7 @@ namespace Editor.Game
             int dx = (int)((float)GraphicsDevice.Viewport.Width / 50.0f) + 2;
             int dy = (int)((float)GraphicsDevice.Viewport.Height / 50.0f) + 2;
 
-            for (int x=0; x < dx; x++)
+            for (int x = 0; x < dx; x++)
             {
                 for (int y = 0; y < dy; y++)
                 {
@@ -103,6 +96,5 @@ namespace Editor.Game
             m_SpriteBatch.End();
         }
 
-        #endregion
     }
 }

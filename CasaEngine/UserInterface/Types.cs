@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,16 +9,14 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
-#endregion
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
 
     public enum Message
     {
@@ -124,9 +121,7 @@ namespace XNAFinalEngine.UserInterface
         Fit,
     } // SizeMode
 
-    #endregion
 
-    #region Structs
 
     public struct Margins
     {
@@ -168,9 +163,8 @@ namespace XNAFinalEngine.UserInterface
             Width = width;
             Height = height;
         } // Size
-        
+
     } // Size
 
-    #endregion
 
 } // XNAFinalEngine.UserInterface

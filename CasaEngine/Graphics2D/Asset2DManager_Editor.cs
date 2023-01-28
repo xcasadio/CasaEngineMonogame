@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,12 +14,11 @@ using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.Graphics2D
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public partial class Asset2DManager
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    public partial class Asset2DManager
+    {
 
         static private readonly uint m_Version = 1;
 
@@ -28,43 +29,36 @@ namespace CasaEngine.Graphics2D
         public event EventHandler<Asset2DEventArg> SpriteRemoved;
         public event EventHandler<Asset2DRenamedEventArg> SpriteRenamed;
 
-		#endregion
 
-		#region Properties
 
-		#endregion
 
-		#region Constructors
 
-		#endregion
 
-		#region Methods
 
-        #region Sprite2D
 
         /// <summary>
 		/// 
 		/// </summary>
 		/// <returns></returns>
 		public string[] GetAllSprite2DName()
-		{
-			List<string> res = new List<string>();
+        {
+            List<string> res = new List<string>();
 
-			/*foreach(KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
+            /*foreach(KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
 			{
 				res.Add(pair.Value.Name);
 			}*/
 
-			return res.ToArray();
-		}
+            return res.ToArray();
+        }
 
         /// <summary>
 		/// 
 		/// </summary>
 		/// <param name="name_"></param>
 		public void DeleteSprite2DByName(string name_)
-		{
-			/*foreach (KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
+        {
+            /*foreach (KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
 			{
 				if (pair.Value.Name.Equals(name_) == true)
 				{
@@ -77,17 +71,17 @@ namespace CasaEngine.Graphics2D
             {
                 SpriteRemoved.Invoke(this, new Asset2DEventArg(name_));
             }*/
-		}
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sprite2DName_"></param>
-		/// <param name="newName_"></param>
-		/// <returns></returns>
-		public bool RenameSprite2D(string sprite2DName_, string newName_)
-		{
-			/*foreach (KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sprite2DName_"></param>
+        /// <param name="newName_"></param>
+        /// <returns></returns>
+        public bool RenameSprite2D(string sprite2DName_, string newName_)
+        {
+            /*foreach (KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
 			{
 				if (pair.Value.Name.Equals(sprite2DName_) == true)
 				{
@@ -104,16 +98,16 @@ namespace CasaEngine.Graphics2D
 			}*/
 
             return false;
-		}
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name_"></param>
-		/// <returns>true if the name is unsused, else returns false</returns>
-		public bool IsValidSprite2DName(string name_)
-		{
-			/*foreach (KeyValuePair<uint, Sprite2D> pair in  m_Sprite2DList)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name_"></param>
+        /// <returns>true if the name is unsused, else returns false</returns>
+        public bool IsValidSprite2DName(string name_)
+        {
+            /*foreach (KeyValuePair<uint, Sprite2D> pair in  m_Sprite2DList)
 			{
 				if (pair.Value.Name.Equals(name_) == true)
 				{
@@ -121,8 +115,8 @@ namespace CasaEngine.Graphics2D
 				}
 			}*/
 
-			return true;
-		}
+            return true;
+        }
 
         /// <summary>
         /// 
@@ -148,32 +142,30 @@ namespace CasaEngine.Graphics2D
             }
         }
 
-        #endregion
 
-        #region Animation2D
 
         /// <summary>
 		/// 
 		/// </summary>
 		/// <returns></returns>
 		public string[] GetAllAnimation2DName()
-		{
-			List<string> res = new List<string>();
+        {
+            List<string> res = new List<string>();
 
-			foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
-			{
-				res.Add(pair.Value.Name);
-			}
+            foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
+            {
+                res.Add(pair.Value.Name);
+            }
 
-			return res.ToArray();
-		}
+            return res.ToArray();
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name_"></param>
-		/// <returns></returns>
-		/*public Animation2D GetAnimation2DByName(string name_)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name_"></param>
+        /// <returns></returns>
+        /*public Animation2D GetAnimation2DByName(string name_)
 		{
 			foreach (KeyValuePair<string, Animation2D> pair in m_Animation2DList)
 			{
@@ -186,48 +178,48 @@ namespace CasaEngine.Graphics2D
 			return null;
 		}*/
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name_"></param>
-		/// <returns>true if the name is unsused, else returns false</returns>
-		public bool IsValidAnimation2DName(string name_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name_"></param>
+        /// <returns>true if the name is unsused, else returns false</returns>
+        public bool IsValidAnimation2DName(string name_)
+        {
             string name = name_.ToLower();
 
-			foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
-			{
+            foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
+            {
                 if (pair.Value.Name.ToLower().Equals(name) == true)
-				{
-					return false;
-				}
-			}
+                {
+                    return false;
+                }
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="anim2DName_"></param>
-		/// <param name="newName_"></param>
-		public bool RenameAnimation2D(string anim2DName_, string newName_)
-		{
-			Animation2D tmp = GetAnimation2DByName(anim2DName_);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="anim2DName_"></param>
+        /// <param name="newName_"></param>
+        public bool RenameAnimation2D(string anim2DName_, string newName_)
+        {
+            Animation2D tmp = GetAnimation2DByName(anim2DName_);
 
-			if (tmp == null)
-			{
-				throw new ArgumentException("Asset2DManager.RenameAnimation2D() : animation named " + anim2DName_ + "doesn't exist.");
-			}
+            if (tmp == null)
+            {
+                throw new ArgumentException("Asset2DManager.RenameAnimation2D() : animation named " + anim2DName_ + "doesn't exist.");
+            }
 
-			if (IsValidAnimation2DName(newName_) == false)
-			{
+            if (IsValidAnimation2DName(newName_) == false)
+            {
                 return false;
                 //throw new ArgumentException("Asset2DManager.RenameAnimation2D() : animation named " + newName_ + " already exist.");
-			}
+            }
 
-			tmp.Name = newName_;
-			m_Animation2DList[tmp.ID] = tmp;
+            tmp.Name = newName_;
+            m_Animation2DList[tmp.ID] = tmp;
 
             if (AnimationRenamed != null)
             {
@@ -235,75 +227,74 @@ namespace CasaEngine.Graphics2D
             }
 
             return true;
-		}
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name_"></param>
-		public void DeleteAnimation2DByName(string name_)
-		{
-			foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
-			{
-				if (pair.Value.Name.Equals(name_) == true)
-				{
-					m_Animation2DList.Remove(pair.Key);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name_"></param>
+        public void DeleteAnimation2DByName(string name_)
+        {
+            foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
+            {
+                if (pair.Value.Name.Equals(name_) == true)
+                {
+                    m_Animation2DList.Remove(pair.Key);
 
                     if (AnimationRemoved != null)
                     {
                         AnimationRemoved.Invoke(this, new Asset2DEventArg(name_));
                     }
 
-					break;
-				}
-			}
-		}
+                    break;
+                }
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="id_"></param>
-		public void DeleteAnimation2DByID(int id_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id_"></param>
+        public void DeleteAnimation2DByID(int id_)
+        {
             string name = m_Animation2DList[id_].Name;
-			m_Animation2DList.Remove(id_);
+            m_Animation2DList.Remove(id_);
 
             if (AnimationRemoved != null)
             {
                 AnimationRemoved.Invoke(this, new Asset2DEventArg(name));
             }
-		}
+        }
 
-        #endregion		
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_"></param>
         public void Save(XmlElement el_, SaveOption option_)
-		{
-			el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
+        {
+            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
 
-			XmlElement sprite2DListNode = el_.OwnerDocument.CreateElement("Sprite2DList");
-			el_.AppendChild(sprite2DListNode);
+            XmlElement sprite2DListNode = el_.OwnerDocument.CreateElement("Sprite2DList");
+            el_.AppendChild(sprite2DListNode);
 
-			foreach (KeyValuePair<int, Sprite2D> pair in m_Sprite2DList)
-			{
-				XmlElement spriteNode = el_.OwnerDocument.CreateElement("Sprite2D");
-				sprite2DListNode.AppendChild(spriteNode);
+            foreach (KeyValuePair<int, Sprite2D> pair in m_Sprite2DList)
+            {
+                XmlElement spriteNode = el_.OwnerDocument.CreateElement("Sprite2D");
+                sprite2DListNode.AppendChild(spriteNode);
                 pair.Value.Save(spriteNode, option_);
-			}
+            }
 
-			XmlElement anim2DListNode = el_.OwnerDocument.CreateElement("Animation2DList");
-			el_.AppendChild(anim2DListNode);
+            XmlElement anim2DListNode = el_.OwnerDocument.CreateElement("Animation2DList");
+            el_.AppendChild(anim2DListNode);
 
-			foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
-			{
-				XmlElement animNode = el_.OwnerDocument.CreateElement("Animation2D");
-				anim2DListNode.AppendChild(animNode);
-				pair.Value.Save(animNode, option_);
-			}
-		}
+            foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
+            {
+                XmlElement animNode = el_.OwnerDocument.CreateElement("Animation2D");
+                anim2DListNode.AppendChild(animNode);
+                pair.Value.Save(animNode, option_);
+            }
+        }
 
         /// <summary>
         /// 
@@ -327,15 +318,14 @@ namespace CasaEngine.Graphics2D
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void Clear()
-		{
-			m_Animation2DList.Clear();
-			m_Sprite2DList.Clear();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Clear()
+        {
+            m_Animation2DList.Clear();
+            m_Sprite2DList.Clear();
+        }
 
-		#endregion
-	}
+    }
 }

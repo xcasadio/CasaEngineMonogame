@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,14 +16,11 @@ namespace Editor.Tools.Font
     public partial class FontPreviewForm
         : Form, IEditorForm, IExternalTool
     {
-        #region Fields
 
         XnaEditorForm m_XnaEditorForm;
         FontPreviewEditorComponent m_FontPreviewEditorComponent;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -42,9 +39,7 @@ namespace Editor.Tools.Font
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -61,11 +56,8 @@ namespace Editor.Tools.Font
             m_XnaEditorForm.StartGame();
         }
 
-        #endregion
 
-        #region Methods
 
-        #region IExternalTool
 
         /// <summary>
         /// 
@@ -85,8 +77,6 @@ namespace Editor.Tools.Font
             }
         }
 
-        #endregion
 
-        #endregion
     }
 }

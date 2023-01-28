@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,10 +9,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
@@ -23,13 +22,11 @@ using XNAFinalEngine.Helpers;
 using Keyboard = XNAFinalEngine.Input.Keyboard;
 using Mouse = XNAFinalEngine.Input.Mouse;
 using CasaEngine.Game;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
-    
+
     public enum MouseButton
     {
         None = 0,
@@ -40,12 +37,10 @@ namespace XNAFinalEngine.UserInterface
         XButton2
     } // MouseButton
 
-    #endregion
 
     public class Input
     {
 
-        #region Classes
 
         private class InputKey
         {
@@ -60,25 +55,19 @@ namespace XNAFinalEngine.UserInterface
             public bool Pressed;
         } // InputMouseButton
 
-        #endregion
 
-        #region Constants
 
         private const int repeatDelay = 500;
         private const int repeatRate = 50;
 
-        #endregion
 
-        #region Variables
 
         private readonly List<InputKey> keys = new List<InputKey>();
         private readonly List<InputMouseButton> mouseButtons = new List<InputMouseButton>();
         private Rectangle m_GameWindowClientBounds;
 
-        #endregion
 
-        #region Events
-	        
+
         public event KeyEventHandler KeyDown;
         public event KeyEventHandler KeyPress;
         public event KeyEventHandler KeyUp;
@@ -88,9 +77,7 @@ namespace XNAFinalEngine.UserInterface
         public event MouseEventHandler MouseUp;
         public event MouseEventHandler MouseMove;
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Initialice the user interface input system.
@@ -99,27 +86,25 @@ namespace XNAFinalEngine.UserInterface
         {
             m_GameWindowClientBounds = gameWindowClientBounds_;
 
-            #if (WINDOWS)
-                foreach (string keyName in Enum.GetNames(typeof(Keys)))
-                {
-                    InputKey key = new InputKey { Key = (Keys)Enum.Parse(typeof(Keys), keyName) };
-                    keys.Add(key);
-                }
+#if (WINDOWS)
+            foreach (string keyName in Enum.GetNames(typeof(Keys)))
+            {
+                InputKey key = new InputKey { Key = (Keys)Enum.Parse(typeof(Keys), keyName) };
+                keys.Add(key);
+            }
 
-                foreach (string mouseButtonName in Enum.GetNames(typeof(MouseButton)))
+            foreach (string mouseButtonName in Enum.GetNames(typeof(MouseButton)))
+            {
+                InputMouseButton mouseButton = new InputMouseButton
                 {
-                    InputMouseButton mouseButton = new InputMouseButton
-                    {
-                        Button = (MouseButton)Enum.Parse(typeof(MouseButton), mouseButtonName)
-                    };
-                    mouseButtons.Add(mouseButton);
-                }
-            #endif
+                    Button = (MouseButton)Enum.Parse(typeof(MouseButton), mouseButtonName)
+                };
+                mouseButtons.Add(mouseButton);
+            }
+#endif
         } // InputSystem
 
-        #endregion
 
-        #region Update
 
         /// <summary>
         /// Update.
@@ -127,15 +112,13 @@ namespace XNAFinalEngine.UserInterface
         /// <param name="elapsedTime_"></param>
         public virtual void Update(float elapsedTime_)
         {
-            #if (WINDOWS)
-                UpdateMouse();
-                UpdateKeys(elapsedTime_);
-            #endif
+#if (WINDOWS)
+            UpdateMouse();
+            UpdateKeys(elapsedTime_);
+#endif
         } // Update
 
-        #endregion
 
-        #region Update Keyboard
 
         /// <summary>
         /// Update keyboard.
@@ -145,19 +128,19 @@ namespace XNAFinalEngine.UserInterface
         {
             Keyboard.Update();
 
-            KeyEventArgs e = new KeyEventArgs { Caps = (((ushort) GetKeyState(0x14)) & 0xffff) != 0 };
+            KeyEventArgs e = new KeyEventArgs { Caps = (((ushort)GetKeyState(0x14)) & 0xffff) != 0 };
 
             foreach (Keys key in Keyboard.State.GetPressedKeys())
             {
-                if      (key == Keys.LeftAlt     || key == Keys.RightAlt)     e.Alt = true;
-                else if (key == Keys.LeftShift   || key == Keys.RightShift)   e.Shift = true;
+                if (key == Keys.LeftAlt || key == Keys.RightAlt) e.Alt = true;
+                else if (key == Keys.LeftShift || key == Keys.RightShift) e.Shift = true;
                 else if (key == Keys.LeftControl || key == Keys.RightControl) e.Control = true;
             }
 
             foreach (InputKey key in keys)
             {
-                if (key.Key == Keys.LeftAlt     || key.Key == Keys.RightAlt   ||
-                    key.Key == Keys.LeftShift   || key.Key == Keys.RightShift ||
+                if (key.Key == Keys.LeftAlt || key.Key == Keys.RightAlt ||
+                    key.Key == Keys.LeftShift || key.Key == Keys.RightShift ||
                     key.Key == Keys.LeftControl || key.Key == Keys.RightControl)
                 {
                     continue;
@@ -173,7 +156,7 @@ namespace XNAFinalEngine.UserInterface
                     key.Pressed = true;
                     e.Key = key.Key;
 
-                    if (KeyDown  != null) KeyDown.Invoke(this, e);
+                    if (KeyDown != null) KeyDown.Invoke(this, e);
                     if (KeyPress != null) KeyPress.Invoke(this, e);
                 }
                 else if ((!pressed) && (key.Pressed))
@@ -193,13 +176,11 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
         } // UpdateKeys
-        
+
         [DllImport("user32.dll")]
         internal static extern short GetKeyState(int key);
 
-        #endregion
 
-        #region Update Mouse
 
         /// <summary>
         /// Update mouse.
@@ -213,11 +194,11 @@ namespace XNAFinalEngine.UserInterface
                 MouseEventArgs e = new MouseEventArgs();
 
                 MouseButton btn = MouseButton.None;
-                if      (Mouse.State.LeftButton   == ButtonState.Pressed) btn = MouseButton.Left;
-                else if (Mouse.State.RightButton  == ButtonState.Pressed) btn = MouseButton.Right;
+                if (Mouse.State.LeftButton == ButtonState.Pressed) btn = MouseButton.Left;
+                else if (Mouse.State.RightButton == ButtonState.Pressed) btn = MouseButton.Right;
                 else if (Mouse.State.MiddleButton == ButtonState.Pressed) btn = MouseButton.Middle;
-                else if (Mouse.State.XButton1     == ButtonState.Pressed) btn = MouseButton.XButton1;
-                else if (Mouse.State.XButton2     == ButtonState.Pressed) btn = MouseButton.XButton2;
+                else if (Mouse.State.XButton1 == ButtonState.Pressed) btn = MouseButton.XButton1;
+                else if (Mouse.State.XButton2 == ButtonState.Pressed) btn = MouseButton.XButton2;
 
                 BuildMouseEvent(btn, ref e, m_GameWindowClientBounds);
                 if (MouseMove != null)
@@ -236,9 +217,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 ButtonState bs = ButtonState.Released;
 
-                if      (btn.Button == MouseButton.Left)     bs = Mouse.State.LeftButton;
-                else if (btn.Button == MouseButton.Right)    bs = Mouse.State.RightButton;
-                else if (btn.Button == MouseButton.Middle)   bs = Mouse.State.MiddleButton;
+                if (btn.Button == MouseButton.Left) bs = Mouse.State.LeftButton;
+                else if (btn.Button == MouseButton.Right) bs = Mouse.State.RightButton;
+                else if (btn.Button == MouseButton.Middle) bs = Mouse.State.MiddleButton;
                 else if (btn.Button == MouseButton.XButton1) bs = Mouse.State.XButton1;
                 else if (btn.Button == MouseButton.XButton2) bs = Mouse.State.XButton2;
                 else continue;
@@ -275,7 +256,7 @@ namespace XNAFinalEngine.UserInterface
 
             if (e.Position.X < 0) e.Position.X = 0;
             if (e.Position.Y < 0) e.Position.Y = 0;
-            if (e.Position.X >= screen.Width)  e.Position.X = screen.Width - 1;
+            if (e.Position.X >= screen.Width) e.Position.X = screen.Width - 1;
             if (e.Position.Y >= screen.Height) e.Position.Y = screen.Height - 1;
         } // AdjustPosition
 
@@ -293,7 +274,6 @@ namespace XNAFinalEngine.UserInterface
             e.Difference = new Point(e.Position.X - pos.X, e.Position.Y - pos.Y);
         } // BuildMouseEvent
 
-        #endregion
 
     } // Input
 } // XNAFinalEngine.UserInterface

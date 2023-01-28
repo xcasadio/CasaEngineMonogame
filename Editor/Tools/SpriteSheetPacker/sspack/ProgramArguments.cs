@@ -1,5 +1,4 @@
-﻿#region MIT License
-
+﻿
 /*
  * Copyright (c) 2009-2010 Nick Gravelyn (nick@gravelyn.com), Markus Ewald (cygon@CasaEngine.org)
  * 
@@ -22,7 +21,6 @@
  * 
  */
 
-#endregion
 
 using System;
 using System.Collections;
@@ -77,7 +75,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 		}
 	}
 
-	#region Command Line Argument Parsing
 
 	/* Command Line Argument Parser
 *    ----------------------------
@@ -1512,5 +1509,4 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 		private ErrorReporter reporter;
 	}
 
-	#endregion
 }

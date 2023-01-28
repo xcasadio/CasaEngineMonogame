@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,15 +9,17 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Asset.Fonts;
-#endregion
+
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -26,19 +27,14 @@ namespace XNAFinalEngine.UserInterface
     public class TabPage : Container
     {
 
-        #region Variables
-              
+
         private Rectangle headerRectangle = Rectangle.Empty;
 
-        #endregion
 
-        #region Properties
-                    
+
         protected internal Rectangle HeaderRectangle { get { return headerRectangle; } }
 
-        #endregion
 
-        #region Constructor
 
         public TabPage(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
@@ -48,9 +44,7 @@ namespace XNAFinalEngine.UserInterface
             CanFocus = false;
         } // TabPage
 
-        #endregion
 
-        #region Calculate Rectangle
 
         protected internal void CalculateRectangle(Rectangle prev, Font font, Margins margins, Point offset, bool first)
         {
@@ -61,9 +55,7 @@ namespace XNAFinalEngine.UserInterface
             headerRectangle = new Rectangle(prev.Right + offset.X, prev.Top, size, prev.Height);
         } // CalculateRectangle
 
-        #endregion
 
-        #region Adjust Margins
 
         /// <summary>
         /// Adjust the controls margin.
@@ -78,22 +70,18 @@ namespace XNAFinalEngine.UserInterface
             base.AdjustMargins();
         } // AdjustMargins
 
-        #endregion
 
     } // TabPage
 
     public class TabControl : Container
     {
 
-        #region Variables
-              
+
         private readonly List<TabPage> tabPages = new List<TabPage>();
         private int selectedIndex;
         private int hoveredIndex = -1;
 
-        #endregion
 
-        #region Properties
 
         public TabPage[] TabPages { get { return tabPages.ToArray(); } }
 
@@ -133,15 +121,11 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SelectedPage
 
-        #endregion
 
-        #region Events
 
         public event EventHandler PageChanged;
 
-        #endregion
 
-        #region Constructor
 
         public TabControl(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
@@ -149,9 +133,7 @@ namespace XNAFinalEngine.UserInterface
             CanFocus = false;
         } // TabControl
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -163,9 +145,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -175,7 +155,7 @@ namespace XNAFinalEngine.UserInterface
             SkinLayer l1 = SkinInformation.Layers["Control"];
             SkinLayer l2 = SkinInformation.Layers["Header"];
             Color col = Color != UndefinedColor ? Color : Color.White;
-            
+
             Rectangle r1 = new Rectangle(rect.Left, rect.Top + l1.OffsetY, rect.Width, rect.Height - l1.OffsetY);
             if (tabPages.Count <= 0)
             {
@@ -227,9 +207,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region Add or Remove Page
 
         public virtual TabPage AddPage(string text)
         {
@@ -238,7 +216,7 @@ namespace XNAFinalEngine.UserInterface
 
             return p;
         } // AddPage
-   
+
         public virtual TabPage AddPage()
         {
             TabPage page = new TabPage(UserInterfaceManager)
@@ -258,7 +236,7 @@ namespace XNAFinalEngine.UserInterface
 
             return page;
         } // AddPage
-   
+
         public virtual void RemovePage(TabPage page, bool dispose)
         {
             tabPages.Remove(page);
@@ -268,15 +246,13 @@ namespace XNAFinalEngine.UserInterface
             }
             SelectedIndex = 0;
         } // RemovePage
-         
+
         public virtual void RemovePage(TabPage page)
         {
             RemovePage(page, true);
         } // RemovePage
 
-        #endregion
 
-        #region OnMouseDown, OnMouseMove, OnPageChanged
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -296,7 +272,7 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
         } // OnMouseDown
-   
+
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
@@ -327,7 +303,6 @@ namespace XNAFinalEngine.UserInterface
             if (PageChanged != null) PageChanged.Invoke(this, e);
         } // OnPageChanged
 
-        #endregion
 
     } // TabControl
 } //  XNAFinalEngine.UserInterface

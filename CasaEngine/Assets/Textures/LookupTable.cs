@@ -1,20 +1,18 @@
 ﻿
-#region License
 /*
  Based in the work of Serge.R (deus.verus@gmail.com)
  http://www.messy-mind.net/2008/fast-gpu-color-transforms
  Modify by: Schneider, José Ignacio
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using CasaEngine.Game;
-#endregion
 
 namespace CasaEngine.Asset
 {
@@ -48,7 +46,6 @@ namespace CasaEngine.Asset
     {
         static private readonly string AssetContentManagerCategoryName = "temp";
 
-        #region Properties
 
         /// <summary>
         /// Gets GraphicsDevice
@@ -64,7 +61,7 @@ namespace CasaEngine.Asset
         /// Side size.
         /// </summary>
         public int Size { get; private set; }
-        
+
         /// <summary>
         ///  A list with all texture' filenames on the lookup table directory.
         /// </summary>
@@ -74,9 +71,7 @@ namespace CasaEngine.Asset
         /// </remarks>
         public static string[] Filenames { get; private set; }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Loads lookup table from image file.
@@ -113,9 +108,7 @@ namespace CasaEngine.Asset
             Filename = "";
         } // LookupTable
 
-        #endregion
 
-        #region Create
 
         /// <summary>
         /// Creates the lookup table.
@@ -138,13 +131,9 @@ namespace CasaEngine.Asset
             Engine.Instance.AssetContentManager.Unload(AssetContentManagerCategoryName);
         } // Create
 
-        #endregion
 
-        #region Static Constructor
 
-        #endregion
 
-        #region Identity
 
         /// <summary>
         /// Gives an identity lookup table.
@@ -181,9 +170,7 @@ namespace CasaEngine.Asset
             return lookupTableTexture;
         } // IdentityTexture
 
-        #endregion
 
-        #region Lookup Table To Texture
 
         /// <summary>
         /// Gives a 2D representation of a lookup table.
@@ -210,9 +197,7 @@ namespace CasaEngine.Asset
             return new Texture(lookupTable2DTexture) { Name = lookupTable.Name + "-Texture" };
         } // LookupTextureToTexture
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -224,9 +209,7 @@ namespace CasaEngine.Asset
             Resource.Dispose();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Recreate Resource
 
         /// <summary>
         /// Useful when the XNA device is disposed.
@@ -243,7 +226,6 @@ namespace CasaEngine.Asset
             GraphicsDevice = device_;
         } // RecreateResource
 
-        #endregion
 
     } // LookupTable
 } // CasaEngine.Asset

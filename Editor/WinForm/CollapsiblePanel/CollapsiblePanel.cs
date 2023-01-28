@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -15,7 +15,6 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
     public partial class CollapsiblePanel : Panel
     {
 
-        #region "Private members"
 
         private bool collapse = false;
         private int originalHight = 0;
@@ -31,10 +30,8 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         private RectangleF toolTipRectangle = new RectangleF();
         private bool useToolTip = false;
 
-        #endregion 
 
 
-        #region "Public Properties"
 
         [Browsable(false)]
         public new Color BackColor
@@ -217,7 +214,6 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             }
         }
 
-        #endregion 
 
 
         public CollapsiblePanel()

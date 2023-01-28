@@ -23,7 +23,7 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using FarseerPhysics.Collision;
@@ -675,7 +675,6 @@ namespace FarseerPhysics.Dynamics
             }
         }
 
-        #region IDisposable Members
 
         public bool IsDisposed { get; set; }
 
@@ -690,7 +689,6 @@ namespace FarseerPhysics.Dynamics
             }
         }
 
-        #endregion
 
         /// <summary>
         /// Resets the dynamics of this body.

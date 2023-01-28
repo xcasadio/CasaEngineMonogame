@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,41 +25,37 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.IO;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
-#endregion
 
 namespace CasaEngine.Asset
 {
 
-	/// <summary>
-	/// LDR or HDR Cube Maps.
-	/// HDR can be stored in the RGBM format.
-	/// </summary>
+    /// <summary>
+    /// LDR or HDR Cube Maps.
+    /// HDR can be stored in the RGBM format.
+    /// </summary>
     public class TextureCube : Asset
     {
 
-        #region Variables
-                
+
         // XNA Texture.
         protected Microsoft.Xna.Framework.Graphics.TextureCube xnaTextureCube;
 
         // Simple and small textures filled with a constant color.
         private static TextureCube blackTexture, whiteTexture;
 
-        #endregion
 
-        #region Properties
 
-	    /// <summary>
-	    /// XNA Texture.
-	    /// </summary>
-	    public virtual Microsoft.Xna.Framework.Graphics.TextureCube Resource { get { return xnaTextureCube; } }
+        /// <summary>
+        /// XNA Texture.
+        /// </summary>
+        public virtual Microsoft.Xna.Framework.Graphics.TextureCube Resource { get { return xnaTextureCube; } }
 
         /// <summary>
         /// The size of this texture resource, in pixels.
@@ -86,7 +81,6 @@ namespace CasaEngine.Asset
         /// </remarks>
         public static string[] Filenames { get; private set; }
 
-        #region Simple Texture
 
         /// <summary>
         /// Returns a small cube texture filled with a black constant color.
@@ -118,21 +112,18 @@ namespace CasaEngine.Asset
             }
         } // WhiteTexture
 
-        #endregion
-    
-        #endregion
 
-        #region Constructor
 
-	    /// <summary>
-	    /// Create cube map from given filename.
-	    /// </summary>
-	    /// <param name="filename">Set filename, must be relative and be a valid file in the textures cube directory.</param>
-	    public TextureCube(string filename)
-		{
+
+        /// <summary>
+        /// Create cube map from given filename.
+        /// </summary>
+        /// <param name="filename">Set filename, must be relative and be a valid file in the textures cube directory.</param>
+        public TextureCube(string filename)
+        {
             Name = filename;
-		    IsRgbm = false;
-	        RgbmMaxRange = 50;
+            IsRgbm = false;
+            RgbmMaxRange = 50;
             Filename = Engine.Instance.ProjectManager.ProjectPath + filename;
             if (File.Exists(Filename) == false)
             {
@@ -152,13 +143,11 @@ namespace CasaEngine.Asset
             {
                 throw new InvalidOperationException("Failed to load cube map: " + filename, e);
             }
-		} // TextureCube
+        } // TextureCube
 
         protected TextureCube() { }
 
-		#endregion
 
-        #region Recreate Resource
 
         /// <summary>
         /// Useful when the XNA device is disposed.
@@ -168,7 +157,6 @@ namespace CasaEngine.Asset
             xnaTextureCube = Engine.Instance.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, device_);
         } // RecreateResource
 
-        #endregion
 
     } // TextureCube
 } // CasaEngine.Asset

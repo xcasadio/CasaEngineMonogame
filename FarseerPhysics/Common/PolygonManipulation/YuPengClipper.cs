@@ -454,7 +454,6 @@ namespace FarseerPhysics.Common.PolygonManipulation
             return (vec2 - vec1).LengthSquared() <= ClipperEpsilonSquared;
         }
 
-        #region Nested type: Edge
 
         /// <summary>Specifies an Edge. Edges are used to represent simplicies in simplical chains</summary>
         private sealed class Edge
@@ -508,6 +507,5 @@ namespace FarseerPhysics.Common.PolygonManipulation
             }
         }
 
-        #endregion
     }
 }

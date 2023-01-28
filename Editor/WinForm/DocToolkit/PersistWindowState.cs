@@ -1,11 +1,9 @@
-#region Using directives
 
 using System;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Drawing;
 
-#endregion
 
 namespace Editor.WinForm.DocToolkit
 {
@@ -31,7 +29,6 @@ namespace Editor.WinForm.DocToolkit
     /// </summary>
     public class PersistWindowState
     {
-        #region Members
 
         private Form ownerForm;          // reference to owner form
         private string registryPath;       // path in Registry where state information is kept
@@ -50,9 +47,7 @@ namespace Editor.WinForm.DocToolkit
         // is loaded next time in minimal state.
         private bool allowSaveMinimized = false;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Initialization
@@ -90,9 +85,7 @@ namespace Editor.WinForm.DocToolkit
             normalHeight = ownerForm.Height;
         }
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// AllowSaveMinimized property (default value false) 
@@ -109,9 +102,7 @@ namespace Editor.WinForm.DocToolkit
             }
         }
 
-        #endregion
 
-        #region Event Handlers
 
 
         /// <summary>
@@ -198,7 +189,6 @@ namespace Editor.WinForm.DocToolkit
             }
         }
 
-        #endregion
 
     }
 }

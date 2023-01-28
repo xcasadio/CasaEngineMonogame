@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,18 +9,16 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
-    
-    #region Enumerator
+
 
     public enum ScaleColor
     {
@@ -34,7 +31,6 @@ namespace XNAFinalEngine.UserInterface
         Default,
     } // ScaleColor
 
-    #endregion
 
     /// <summary>
     /// Track Bar (for sliders)
@@ -42,7 +38,6 @@ namespace XNAFinalEngine.UserInterface
     public class TrackBar : Control
     {
 
-        #region Variables
 
         /// <summary>
         /// Current value. Ranges always between 0 to 100.
@@ -53,7 +48,7 @@ namespace XNAFinalEngine.UserInterface
         /// Step size, this value is expressed in percentages.
         /// </summary>
         private int stepSize = 1;
-        
+
         /// <summary>
         /// /// <summary>
         /// Page size, this value is expressed in percentages.
@@ -86,9 +81,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private float maximumValue = 100;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Minimum value that can has the slider.
@@ -122,23 +115,23 @@ namespace XNAFinalEngine.UserInterface
         /// If out of range rescale. In other words the maximum or minimum value changes.
         /// </summary>
         public virtual bool IfOutOfRangeRescale { get; set; }
-        
+
         /// <summary>
         /// Indicates if the value can be out of range.
         /// </summary>
         public virtual bool ValueCanBeOutOfRange { get; set; }
-        
+
         private float InternalValue
         {
             get { return internalValue; }
             set
-            {   
+            {
                 if (internalValue != value)
                 {
                     internalValue = value;
                     if (!ValueCanBeOutOfRange) // Then, we need to check that the internal value is between 0 and 100.
                     {
-                        if (internalValue < 0)   internalValue = 0;
+                        if (internalValue < 0) internalValue = 0;
                         if (internalValue > 100) internalValue = 100;
                     }
                     else if (IfOutOfRangeRescale) // Is posible that we need to rescale. In other words the maximum or minimum value changes.
@@ -169,14 +162,14 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                return CalculateRealValue(internalValue); 
+                return CalculateRealValue(internalValue);
             }
             set
             {
                 InternalValue = CalculateInternalValue(value);
             }
         } // Value
- 
+
         /// <summary>
         /// Page size, this value is expressed in percentages.
         /// </summary>
@@ -194,7 +187,7 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
         } // PageSize
-   
+
         /// <summary>
         /// Step size, this value is expressed in percentages.
         /// </summary>
@@ -230,10 +223,8 @@ namespace XNAFinalEngine.UserInterface
             set { drawScale = value; }
         } // DrawScale
 
-        #endregion
 
-        #region Events
-         
+
         public event EventHandler ValueChanged;
         public event EventHandler RangeChanged;
         public event EventHandler StepSizeChanged;
@@ -242,9 +233,7 @@ namespace XNAFinalEngine.UserInterface
         public event MouseEventHandler SliderUp;
         public event MouseEventHandler SliderPress;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Track Bar (for sliders)
@@ -266,14 +255,12 @@ namespace XNAFinalEngine.UserInterface
                 Movable = true
             };
 
-            buttonSlider.MouseDown  += delegate { OnMouseDown(new MouseEventArgs()); };
+            buttonSlider.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
             buttonSlider.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
-            buttonSlider.MouseUp    += delegate { OnMouseUp(new MouseEventArgs()); };
+            buttonSlider.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
         } // TrackBar
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
@@ -289,9 +276,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["TrackBar"]);
         } // InitSkin
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -309,9 +294,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -319,7 +302,7 @@ namespace XNAFinalEngine.UserInterface
         protected override void DrawControl(Rectangle rect)
         {
             RecalculateParameters();
-            
+
             SkinLayer p = SkinInformation.Layers["Control"];
             SkinLayer l = SkinInformation.Layers["ScaleOrange"];
 
@@ -330,7 +313,7 @@ namespace XNAFinalEngine.UserInterface
             float px = ((float)internalValue / (float)100);
             int w = (int)Math.Ceiling(px * (rect.Width - p.ContentMargins.Horizontal - buttonSlider.Width)) + 2;
 
-            if (w < l.SizingMargins.Vertical) 
+            if (w < l.SizingMargins.Vertical)
                 w = l.SizingMargins.Vertical;
             if (w > rect.Width - p.ContentMargins.Horizontal)
                 w = rect.Width - p.ContentMargins.Horizontal;
@@ -351,9 +334,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region Transform Value
 
         /// <summary>
         /// Calculate real value from an internal value.
@@ -371,9 +352,7 @@ namespace XNAFinalEngine.UserInterface
             return (value - minimumValue) * 100f / (maximumValue - minimumValue);
         } // CalculateInternalValue
 
-        #endregion
 
-        #region Event
 
         private void ButtonSlider_Move(object sender, MoveEventArgs e)
         {
@@ -381,7 +360,7 @@ namespace XNAFinalEngine.UserInterface
             int size = buttonSlider.Width;
             int w = Width - p.ContentMargins.Horizontal - size;
             int pos = e.Left;
-            
+
             if (pos < p.ContentMargins.Left) pos = p.ContentMargins.Left;
             if (pos > w + p.ContentMargins.Left) pos = w + p.ContentMargins.Left;
 
@@ -397,23 +376,21 @@ namespace XNAFinalEngine.UserInterface
 
         void ButtonSlider_KeyPress(object sender, KeyEventArgs e)
         {
-            if (e.Key == Keys.Left || e.Key == Keys.Down) 
+            if (e.Key == Keys.Left || e.Key == Keys.Down)
                 InternalValue -= stepSize;
             else if (e.Key == Keys.Right || e.Key == Keys.Up)
                 InternalValue += stepSize;
-            else if (e.Key == Keys.PageDown) 
+            else if (e.Key == Keys.PageDown)
                 InternalValue -= pageSize;
-            else if (e.Key == Keys.PageUp) 
+            else if (e.Key == Keys.PageUp)
                 InternalValue += pageSize;
-            else if (e.Key == Keys.Home) 
+            else if (e.Key == Keys.Home)
                 InternalValue = 0;
-            else if (e.Key == Keys.End) 
+            else if (e.Key == Keys.End)
                 InternalValue = 100;
         } // ButtonSlider_KeyPress
 
-        #endregion
 
-        #region Recalculate Parameters
 
         /// <summary>
         /// Recalculate some parameters, like button size, slider position, etc.
@@ -439,19 +416,17 @@ namespace XNAFinalEngine.UserInterface
 
                 float px = (float)100 / (float)w;
                 int pos = p.ContentMargins.Left + (int)(Math.Ceiling(internalValue / (float)px));
-                
-                if (pos < p.ContentMargins.Left) 
+
+                if (pos < p.ContentMargins.Left)
                     pos = p.ContentMargins.Left;
-                if (pos > w + p.ContentMargins.Left) 
+                if (pos > w + p.ContentMargins.Left)
                     pos = w + p.ContentMargins.Left;
 
                 buttonSlider.SetPosition(pos, 0);
             }
         } // RecalculateParameters
 
-        #endregion
-        
-        #region On Event
+
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -490,23 +465,22 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnRangeChanged(EventArgs e)
         {
-            if (RangeChanged != null) 
+            if (RangeChanged != null)
                 RangeChanged.Invoke(this, e);
         } // OnRangeChanged
 
         protected virtual void OnPageSizeChanged(EventArgs e)
         {
-            if (PageSizeChanged != null) 
+            if (PageSizeChanged != null)
                 PageSizeChanged.Invoke(this, e);
         } // OnPageSizeChanged
 
         protected virtual void OnStepSizeChanged(EventArgs e)
         {
-            if (StepSizeChanged != null) 
+            if (StepSizeChanged != null)
                 StepSizeChanged.Invoke(this, e);
         } // OnStepSizeChanged
 
-        #endregion
 
     } // TrackBar
 } // XNAFinalEngine.UserInterface

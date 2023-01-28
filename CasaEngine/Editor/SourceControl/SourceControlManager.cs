@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +18,6 @@ namespace CasaEngine.SourceControl
     /// </summary>
     public class SourceControlManager
     {
-        #region Fields
 
         static private SourceControlManager m_Instance;
         private const int m_Version = 1;
@@ -24,11 +25,8 @@ namespace CasaEngine.SourceControl
         private ISourceControl m_SourceControl;
         private Dictionary<string, Dictionary<SourceControlKeyWord, string>> m_FilesStatus = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
 
-        #endregion
 
-        #region Properties
 
-        #region Data Source Control
 
         /// <summary>
         /// Gets/Sets
@@ -80,7 +78,6 @@ namespace CasaEngine.SourceControl
             set;
         }
 
-        #endregion
 
         /// <summary>
         /// Gets
@@ -104,7 +101,7 @@ namespace CasaEngine.SourceControl
         /// </summary>
         static public SourceControlManager Instance
         {
-            get 
+            get
             {
                 if (m_Instance == null)
                 {
@@ -115,13 +112,11 @@ namespace CasaEngine.SourceControl
                     m_Instance.Workspace = "Workspace";
                 }
 
-                return m_Instance; 
+                return m_Instance;
             }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -130,9 +125,7 @@ namespace CasaEngine.SourceControl
         {
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -167,7 +160,7 @@ namespace CasaEngine.SourceControl
                 catch (System.Exception e)
                 {
                     LogManager.Instance.WriteException(e, false);
-                }               
+                }
             }
         }
 
@@ -189,7 +182,7 @@ namespace CasaEngine.SourceControl
                 Workspace = ini.GetValue("Config", "Workspace");
                 Password = ini.GetValue("Config", "Password");
                 CWD = ini.GetValue("Config", "Directory");
-            }            
+            }
         }
 
         /// <summary>
@@ -207,6 +200,5 @@ namespace CasaEngine.SourceControl
             ini.Save(Path.Combine(path_, m_File));
         }
 
-        #endregion
     }
 }

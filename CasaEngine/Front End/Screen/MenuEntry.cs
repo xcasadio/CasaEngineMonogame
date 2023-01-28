@@ -1,20 +1,18 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // MenuEntry.cs
 //
 // XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
 using CasaEngine.CoreSystems.Game;
-#endregion
 
 namespace CasaEngine.FrontEnd.Screen
 {
@@ -26,7 +24,6 @@ namespace CasaEngine.FrontEnd.Screen
     /// </summary>
     public class MenuEntry
     {
-        #region Fields
 
         /// <summary>
         /// The text rendered for this entry.
@@ -41,11 +38,9 @@ namespace CasaEngine.FrontEnd.Screen
         /// </remarks>
         float selectionFade;
 
-		Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent m_Renderer2DComponent = null;
 
-        #endregion
 
-        #region Properties
 
 
         /// <summary>
@@ -58,9 +53,7 @@ namespace CasaEngine.FrontEnd.Screen
         }
 
 
-        #endregion
 
-        #region Events
 
 
         /// <summary>
@@ -79,9 +72,7 @@ namespace CasaEngine.FrontEnd.Screen
         }
 
 
-        #endregion
 
-        #region Initialization
 
 
         /// <summary>
@@ -91,24 +82,22 @@ namespace CasaEngine.FrontEnd.Screen
         {
             this.text = text;
 
-			m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
 
-        #endregion
 
-        #region Update and Draw
 
         /// <summary>
         /// Updates the menu entry.
         /// </summary>
         public virtual void Update(MenuScreen screen, bool isSelected,
-													  float elapsedTime_)
+                                                      float elapsedTime_)
         {
             // When the menu selection changes, entries gradually fade between
             // their selected and deselected appearance, rather than instantly
             // popping to the new state.
-			float fadeSpeed = elapsedTime_ * 4.0f;//(float)gameTime.ElapsedGameTime.TotalSeconds * 4;
+            float fadeSpeed = elapsedTime_ * 4.0f;//(float)gameTime.ElapsedGameTime.TotalSeconds * 4;
 
             if (isSelected)
                 selectionFade = System.Math.Min(selectionFade + fadeSpeed, 1);
@@ -121,34 +110,34 @@ namespace CasaEngine.FrontEnd.Screen
         /// Draws the menu entry. This can be overridden to customize the appearance.
         /// </summary>
         public virtual void Draw(MenuScreen screen, Vector2 position,
-								 bool isSelected, float elapsedTime_)
+                                 bool isSelected, float elapsedTime_)
         {
             // Draw the selected entry in yellow, otherwise white.
             Color color = isSelected ? Color.Yellow : Color.White;
-            
+
             // Pulsate the size of the selected menu entry.
             //double time = gameTime.TotalGameTime.TotalSeconds;
-			float time = elapsedTime_;
-            
+            float time = elapsedTime_;
+
             float pulsate = CasaEngineCommon.Helper.MathHelper.Sin(time * 6) + 1;
-            
+
             float scale = 1 + pulsate * 0.05f * selectionFade;
 
             // Modify the alpha to fade text out during transitions.
             color = new Color(color.R, color.G, color.B, screen.TransitionAlpha);
 
             // Draw text, centered on the middle of each line.
-			ScreenManagerComponent screenManager = screen.ScreenManagerComponent;
+            ScreenManagerComponent screenManager = screen.ScreenManagerComponent;
             SpriteBatch spriteBatch = Engine.Instance.SpriteBatch;
             SpriteFont font = Engine.Instance.DefaultSpriteFont;
 
             Vector2 origin = new Vector2(0, font.LineSpacing / 2);
 
-			position = Vector2.Subtract(position, origin);
+            position = Vector2.Subtract(position, origin);
 
             //spriteBatch.DrawString(font, text, position, color, 0,
             //                       origin, scale, SpriteEffects.None, 0);
-			m_Renderer2DComponent.AddText2D(font, text, position, 0.0f, new Vector2(scale), color, 0.99f);
+            m_Renderer2DComponent.AddText2D(font, text, position, 0.0f, new Vector2(scale), color, 0.99f);
         }
 
         /// <summary>
@@ -159,6 +148,5 @@ namespace CasaEngine.FrontEnd.Screen
             return Engine.Instance.DefaultSpriteFont.LineSpacing;
         }
 
-        #endregion
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,21 +17,14 @@ namespace CasaEngine.FrontEnd.Screen
     /// </summary>
     public partial class ScreenManager
     {
-        #region Fields
 
         static private readonly int m_Version = 1;
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -142,6 +137,5 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        #endregion
     }
 }

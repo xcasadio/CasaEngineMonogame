@@ -17,13 +17,15 @@ using Editor.UndoRedo;
 using System.ComponentModel;
 using CasaEngine.Editor.Manipulation;
 using CasaEngine.Assets.Graphics2D;
+using Color = Microsoft.Xna.Framework.Color;
+using Point = Microsoft.Xna.Framework.Point;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Editor.Game
 {
     public class Sprite2DEditorComponent
         : CasaEngine.Game.DrawableGameComponent
     {
-        #region Enumeration EditionMode
 
         /// <summary>
         /// 
@@ -35,9 +37,7 @@ namespace Editor.Game
             Socket
         }
 
-        #endregion
 
-        #region Fields
 
         /// <summary>
         /// Copy of the original Sprite2D which will be edited.
@@ -52,8 +52,8 @@ namespace Editor.Game
         string m_ObjectPath;
 
         MouseWindowed m_Mouse;
-        Point m_MouseLeftDownPosition = new Point();
-        Point m_MouseRightDownPosition = new Point();
+        Point m_MouseLeftDownPosition = new Microsoft.Xna.Framework.Point();
+        Point m_MouseRightDownPosition = new Microsoft.Xna.Framework.Point();
         bool m_MouseLeftDown = false;
         bool m_MouseRightDown = false;
 
@@ -67,9 +67,7 @@ namespace Editor.Game
         //used to manipulate point (hotspot, socket, ...)
         Anchor m_Anchor;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -77,14 +75,14 @@ namespace Editor.Game
         public EditonMode Mode
         {
             get { return m_Mode; }
-            set 
-            { 
+            set
+            {
                 m_Mode = value;
                 int w = 11, h = 11;
 
                 if (m_Mode == EditonMode.HotSpot)
                 {
-                    CreateAnchor((int)m_SpritePosition.X, (int)m_SpritePosition.Y);                    
+                    CreateAnchor((int)m_SpritePosition.X, (int)m_SpritePosition.Y);
                 }
                 else if (m_Mode == EditonMode.Socket)
                 {
@@ -186,7 +184,7 @@ namespace Editor.Game
                     {
                         m_Anchor = null;
                     }
-                }                
+                }
             }
         }
 
@@ -215,9 +213,7 @@ namespace Editor.Game
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -231,11 +227,8 @@ namespace Editor.Game
             m_Zoom = Vector2.One;
         }
 
-        #endregion
 
-        #region Methods
 
-        #region GameComponent
 
         /// <summary>
         /// 
@@ -296,13 +289,13 @@ namespace Editor.Game
 
                 //if (Mode == EditonMode.Collision)
                 //{
-                    if (m_CurrentShape2DManipulator != null
-                    && m_CurrentSprite2D != null)
-                    {
-                        m_CurrentShape2DManipulator.Offset = new Vector2(
-                            m_SpritePosition.X - m_CurrentSprite2D.HotSpot.X,
-                            m_SpritePosition.Y - m_CurrentSprite2D.HotSpot.Y);
-                    }  
+                if (m_CurrentShape2DManipulator != null
+                && m_CurrentSprite2D != null)
+                {
+                    m_CurrentShape2DManipulator.Offset = new Vector2(
+                        m_SpritePosition.X - m_CurrentSprite2D.HotSpot.X,
+                        m_SpritePosition.Y - m_CurrentSprite2D.HotSpot.Y);
+                }
                 //}                              
             }
 
@@ -314,7 +307,7 @@ namespace Editor.Game
             }
 
             m_MouseLeftDown = m_Mouse.LeftButton;
-            
+
             //Right
             if (m_Mouse.RightButton == true)
             {
@@ -372,8 +365,8 @@ namespace Editor.Game
                     BlendState.NonPremultiplied, //AlphaBlend need texture to be compiled with some options
                     SamplerState.LinearClamp,
                     DepthStencilState.None,
-                    RasterizerState.CullCounterClockwise);   
-                
+                    RasterizerState.CullCounterClockwise);
+
                 m_SpriteBatch.Draw(m_CurrentSprite2D.Texture2D, m_SpritePosition, rect, Color.White,
                     0.0f, hotspot, m_Zoom, SpriteEffects.None, 0.5f);
 
@@ -396,14 +389,13 @@ namespace Editor.Game
                 {
                     m_Anchor.Draw(m_Line2DRenderer, m_SpriteBatch, Color.Green);
                 }
-                
+
                 m_SpriteBatch.End();
             }
 
             base.Draw(gameTime);
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -542,7 +534,7 @@ namespace Editor.Game
         /// <returns></returns>
         public bool IsSprite2DChange()
         {
-            if (m_CurrentSprite2D!= null)
+            if (m_CurrentSprite2D != null)
             {
                 return !(m_CurrentSprite2D.CompareTo(m_OriginalSPrite2D));
             }
@@ -586,7 +578,6 @@ namespace Editor.Game
             Game.Control.Cursor = c_;
         }
 
-        #region Point manipulation
 
         /// <summary>
         /// 
@@ -612,7 +603,7 @@ namespace Editor.Game
 
             if (m_Mode == EditonMode.HotSpot)
             {
-                command = new UndoRedoHotSpotCommand(m_CurrentSprite2D.HotSpot);            
+                command = new UndoRedoHotSpotCommand(m_CurrentSprite2D.HotSpot);
             }
             else if (m_Mode == EditonMode.Socket)
             {
@@ -622,7 +613,7 @@ namespace Editor.Game
             if (command != null)
             {
                 UndoRedoManager.Add(command, this);
-            }            
+            }
         }
 
         /// <summary>
@@ -639,7 +630,7 @@ namespace Editor.Game
                     m_CurrentSprite2D.HotSpot = new Point(m_CurrentSprite2D.HotSpot.X + e.OffsetX, m_CurrentSprite2D.HotSpot.Y + e.OffsetY);
                     m_SpritePosition.X += e.OffsetX;
                     m_SpritePosition.Y += e.OffsetY;
-                }                
+                }
             }
             else if (m_Mode == EditonMode.Socket)
             {
@@ -664,8 +655,6 @@ namespace Editor.Game
             OnCursorChanged(Cursors.SizeAll, EventArgs.Empty);
         }
 
-        #endregion
 
-        #endregion
     }
 }

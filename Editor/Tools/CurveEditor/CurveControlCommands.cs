@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.Text;
 
@@ -23,7 +23,6 @@ namespace Editor.Tools.CurveEditor
             this.newSelection = newSelection;
         }
 
-        #region ICommand Members
 
         public void Execute()
         {
@@ -35,7 +34,6 @@ namespace Editor.Tools.CurveEditor
             curve.ApplySelection(oldSelection, false);
         }
 
-        #endregion
 
         EditCurve curve;
         EditCurveKeySelection oldSelection;
@@ -69,7 +67,6 @@ namespace Editor.Tools.CurveEditor
             keys.Add(addKey.Clone());
         }
 
-        #region ICommand Members
 
         public void Execute()
         {
@@ -87,9 +84,7 @@ namespace Editor.Tools.CurveEditor
                 AddKeys();
         }
 
-        #endregion
 
-        #region Private Methods
         private void AddKeys()
         {
             foreach (EditCurveKey savedKey in keys)
@@ -126,7 +121,6 @@ namespace Editor.Tools.CurveEditor
             if ( selection != null )
                 curve.ApplySelection(selection, false);
         }
-        #endregion
 
         EditCurve curve;
         EditCurveKeySelection selection;
@@ -148,7 +142,6 @@ namespace Editor.Tools.CurveEditor
             this.newKeyValues = newKeyValues;
         }
 
-        #region ICommand Members
 
         public void Execute()
         {
@@ -160,7 +153,6 @@ namespace Editor.Tools.CurveEditor
             curve.ApplyKeyValues(oldKeyValues);
         }
 
-        #endregion
 
         EditCurve curve;
         ICollection<EditCurveKey> oldKeyValues;
@@ -183,7 +175,6 @@ namespace Editor.Tools.CurveEditor
             this.newState = (EditCurveState)newState.Clone();
         }
 
-        #region ICommand Members
 
         public void Execute()
         {
@@ -195,7 +186,6 @@ namespace Editor.Tools.CurveEditor
             curve.ApplyState(oldState);
         }
 
-        #endregion
 
         EditCurve curve;
         EditCurveState newState;

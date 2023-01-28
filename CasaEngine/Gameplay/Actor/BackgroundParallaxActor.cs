@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,15 +14,10 @@ namespace CasaEngine.Gameplay.Actor
     public class BackgroundParallaxActor
         : BackgroundActor
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -31,15 +28,12 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        #endregion
 
-        #region Methods
 
         public override BaseObject Clone()
         {
             throw new NotImplementedException();
         }
 
-        #endregion
     }
 }

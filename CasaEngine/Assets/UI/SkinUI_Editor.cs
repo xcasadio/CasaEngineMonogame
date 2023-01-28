@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,15 +14,10 @@ namespace CasaEngine.Assets.UI
 {
     public partial class SkinUI
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -30,9 +27,7 @@ namespace CasaEngine.Assets.UI
 
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -66,6 +61,5 @@ namespace CasaEngine.Assets.UI
             throw new Exception("The method or operation is not implemented.");
         }
 
-        #endregion       
     }
 }

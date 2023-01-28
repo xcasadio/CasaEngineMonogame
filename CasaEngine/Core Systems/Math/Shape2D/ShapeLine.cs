@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,13 +24,10 @@ namespace CasaEngine.Math.Shape2D
     class ShapeLine
         : Shape2DObject
     {
-        #region Fields
 
         Point m_Start, m_End;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -39,8 +38,8 @@ namespace CasaEngine.Math.Shape2D
         public Point Start
         {
             get { return m_Start; }
-            set 
-            { 
+            set
+            {
                 m_Start = value;
 #if EDITOR
                 NotifyPropertyChanged("Start");
@@ -57,8 +56,8 @@ namespace CasaEngine.Math.Shape2D
         public Point End
         {
             get { return m_End; }
-            set 
-            { 
+            set
+            {
                 m_End = value;
 #if EDITOR
                 NotifyPropertyChanged("End");
@@ -66,9 +65,7 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -80,11 +77,9 @@ namespace CasaEngine.Math.Shape2D
         /// </summary>
         public ShapeLine(ShapeLine o_)
             : base(o_)
-        {}
+        { }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -147,6 +142,5 @@ namespace CasaEngine.Math.Shape2D
             m_End.Y -= y;
         }
 
-        #endregion
     }
 }

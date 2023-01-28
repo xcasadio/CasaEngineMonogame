@@ -1,20 +1,18 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // Screen.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 using System;
+
+
 using Microsoft.Xna.Framework;
 using CasaEngine.Graphics2D;
 using System.Xml;
 using System.IO;
 using CasaEngineCommon.Design;
-#endregion
 
 namespace CasaEngine.FrontEnd.Screen
 {

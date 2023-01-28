@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 
@@ -74,7 +74,6 @@ namespace Poly2Tri.Triangulation.Util
             }
         }
 
-        #region IEnumerable<T> Members
 
         public IEnumerator<T> GetEnumerator()
         {
@@ -86,7 +85,6 @@ namespace Poly2Tri.Triangulation.Util
             return GetEnumerator();
         }
 
-        #endregion
 
         public bool Contains(T value)
         {

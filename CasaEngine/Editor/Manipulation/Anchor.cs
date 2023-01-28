@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,9 +18,8 @@ namespace CasaEngine.Editor.Manipulation
     /// </summary>
     public class Anchor
     {
-        #region Fields
 
-        private Vector2 m_Position;        
+        private Vector2 m_Position;
         private Vector2 mouseStart;
         private bool m_MousePressed = false;
         private List<Anchor> m_Anchors = new List<Anchor>();
@@ -30,9 +31,7 @@ namespace CasaEngine.Editor.Manipulation
         private bool m_IsOver = false;
         private bool m_shiftPressed = false, controlPressed = false;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -101,7 +100,7 @@ namespace CasaEngine.Editor.Manipulation
         /// </summary>
         public bool CanManipulate
         {
-            get 
+            get
             {
                 foreach (Anchor a in m_Anchors)
                 {
@@ -174,9 +173,7 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -200,9 +197,7 @@ namespace CasaEngine.Editor.Manipulation
             Offset = Vector2.Zero;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -272,7 +267,7 @@ namespace CasaEngine.Editor.Manipulation
                 }
                 else
                 {
-                    InvokeCursorChanged(CursorOver);                 
+                    InvokeCursorChanged(CursorOver);
                 }
             }
             else
@@ -296,8 +291,8 @@ namespace CasaEngine.Editor.Manipulation
                     InvokeCursorChanged(Cursors.Default);
                     m_shiftPressed = false;
                 }
-                
-                if(controlKeyPressed_
+
+                if (controlKeyPressed_
                     && controlPressed == false)
                 {
                     InvokeCursorChanged(CursorOverControlPressed);
@@ -423,6 +418,5 @@ namespace CasaEngine.Editor.Manipulation
             return IsInside((int)v_.X, (int)v_.Y);
         }
 
-        #endregion
     }
 }

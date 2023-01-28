@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,13 +9,13 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Linq;
 #if (!XBOX)
-    using System.Windows.Forms;
+using System.Windows.Forms;
 #endif
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -24,7 +23,6 @@ using Microsoft.Xna.Framework.Input;
 using CasaEngine.Asset;
 using CasaEngine.Game;
 using CasaEngine.Input;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -37,7 +35,6 @@ namespace XNAFinalEngine.UserInterface
     public class UserInterfaceManager
     {
 
-        #region Script Class
 
         /// <summary>
         /// Used to call the UI's update and render methods in the correct order without explicit calls. 
@@ -77,9 +74,7 @@ namespace XNAFinalEngine.UserInterface
 
         } // ScripUserInterface
         */
-        #endregion
 
-        #region Structs
 
         private struct ControlStates
         {
@@ -88,21 +83,19 @@ namespace XNAFinalEngine.UserInterface
             public Control Over;
         } // ControlStates
 
-        #endregion
 
-        #region Variables
 
-        #if (!XBOX)
-            /// <summary>
-            /// Current cursor.
-            /// </summary>
-            private CasaEngine.Asset.Cursors.Cursor cursor;
+#if (!XBOX)
+        /// <summary>
+        /// Current cursor.
+        /// </summary>
+        private CasaEngine.Asset.Cursors.Cursor cursor;
 
-            /// <summary>
-            /// Returns the form of the game runs in.
-            /// </summary>
-            private Form window;
-        #endif
+        /// <summary>
+        /// Returns the form of the game runs in.
+        /// </summary>
+        private Form window;
+#endif
 
         // Main render target, when the UI will be render.
         private RenderTarget renderTarget;
@@ -120,39 +113,37 @@ namespace XNAFinalEngine.UserInterface
         // Used to generate the resize event.
         private int oldScreenWidth, oldScreenHeight;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the GraphicsDevice
         /// </summary>
         public GraphicsDevice GraphicsDevice { get; private set; }
 
-        #if (!XBOX)
-            
-            /// <summary>
-            /// Gets or sets an application cursor.
-            /// </summary>
-            public CasaEngine.Asset.Cursors.Cursor Cursor
+#if (!XBOX)
+
+        /// <summary>
+        /// Gets or sets an application cursor.
+        /// </summary>
+        public CasaEngine.Asset.Cursors.Cursor Cursor
+        {
+            get { return cursor; }
+            set
             {
-                get { return cursor; }
-                set
+                cursor = value;
+
+                if (window.InvokeRequired == true)
                 {
-                    cursor = value;
-
-                    if (window.InvokeRequired == true)
-                    {
-                        window.Invoke(new Action(() => window.Cursor = value.Resource));
-                    }
-                    else
-                    {
-                        window.Cursor = value.Resource;
-                    }
+                    window.Invoke(new Action(() => window.Cursor = value.Resource));
                 }
-            } // Cursor
+                else
+                {
+                    window.Cursor = value.Resource;
+                }
+            }
+        } // Cursor
 
-        #endif
+#endif
 
         /// <summary>
         /// Gets Skin
@@ -169,7 +160,6 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         internal CasaEngine.CoreSystems.Screen Screen { get; private set; }
 
-        #region Visible
 
         /// <summary>
         /// Are the controls visible?
@@ -180,8 +170,7 @@ namespace XNAFinalEngine.UserInterface
         /// Enable or Disable Input.
         /// </summary>
         public bool InputEnabled { get; set; }
-        
-        #endregion
+
 
         /// <summary>
         /// Returns InputSystem instance responsible for managing user input.
@@ -295,10 +284,8 @@ namespace XNAFinalEngine.UserInterface
         /// User Interface Content Manager.
         /// </summary>
         //internal AssetContentManager UserInterfaceContentManager { get; private set; }
-        
-        #endregion
 
-        #region Events
+
 
         /// <summary>
         /// Occurs when the GraphicsDevice settings are changed.
@@ -325,9 +312,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         public event ResizeEventHandler WindowResize;
 
-        #endregion
 
-        #region Initialize
 
         /// <summary>
         /// Initializes the User Interface Manager.
@@ -354,15 +339,15 @@ namespace XNAFinalEngine.UserInterface
                 ToolTipDelay = 500;
                 AutoUnfocus = true;
                 ToolTipsEnabled = true;
-            
-                #if (WINDOWS)
-                    MenuDelay = SystemInformation.MenuShowDelay;
-                    DoubleClickTime = SystemInformation.DoubleClickTime;
-                    window = (Form)System.Windows.Forms.Control.FromHandle(formHandle_);
-                    window.FormClosing += FormClosing;
-                #endif
 
-                RootControls  = new ControlsList();
+#if (WINDOWS)
+                MenuDelay = SystemInformation.MenuShowDelay;
+                DoubleClickTime = SystemInformation.DoubleClickTime;
+                window = (Form)System.Windows.Forms.Control.FromHandle(formHandle_);
+                window.FormClosing += FormClosing;
+#endif
+
+                RootControls = new ControlsList();
                 OrderList = new ControlsList();
 
                 graphicsDevice_.DeviceReset += OnDeviceReset;
@@ -373,13 +358,13 @@ namespace XNAFinalEngine.UserInterface
 
                 // Input events
                 InputSystem = new Input(gameWindowClientBounds_);
-                InputSystem.MouseDown  += MouseDownProcess;
-                InputSystem.MouseUp    += MouseUpProcess;
+                InputSystem.MouseDown += MouseDownProcess;
+                InputSystem.MouseUp += MouseUpProcess;
                 InputSystem.MousePress += MousePressProcess;
-                InputSystem.MouseMove  += MouseMoveProcess;
-                InputSystem.KeyDown    += KeyDownProcess;
-                InputSystem.KeyUp      += KeyUpProcess;
-                InputSystem.KeyPress   += KeyPressProcess;
+                InputSystem.MouseMove += MouseMoveProcess;
+                InputSystem.KeyDown += KeyDownProcess;
+                InputSystem.KeyUp += KeyUpProcess;
+                InputSystem.KeyPress += KeyPressProcess;
 
                 // Final render target.
                 /*AssetContentManager userContentManager = AssetContentManager.CurrentContentManager;
@@ -419,9 +404,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Initialize
 
-        #endregion
 
-        #region On Device Reset
 
         /// <summary>
         /// If the device is recreated then the controls have to be invalidated so that they redraw.
@@ -432,9 +415,7 @@ namespace XNAFinalEngine.UserInterface
                 DeviceReset.Invoke(sender, new EventArgs());
         } // OnPrepareGraphicsDevice
 
-        #endregion
 
-        #region On Screen Size Changed
 
         /// <summary>
         /// Raised when the window size changes.
@@ -449,33 +430,29 @@ namespace XNAFinalEngine.UserInterface
             oldScreenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
         } // OnScreenSizeChanged
 
-        #endregion
 
-        #region Form Closing
 
-        #if (WINDOWS)
+#if (WINDOWS)
 
-            /// <summary>
-            /// If the form is closing
-            /// </summary>
-            private void FormClosing(object sender, FormClosingEventArgs e)
+        /// <summary>
+        /// If the form is closing
+        /// </summary>
+        private void FormClosing(object sender, FormClosingEventArgs e)
+        {
+            bool ret = false;
+
+            WindowClosingEventArgs ex = new WindowClosingEventArgs();
+            if (WindowClosing != null)
             {
-                bool ret = false;
+                WindowClosing.Invoke(null, ex);
+                ret = ex.Cancel;
+            }
+            e.Cancel = ret;
+        } // FormClosing
 
-                WindowClosingEventArgs ex = new WindowClosingEventArgs();
-                if (WindowClosing != null)
-                {   
-                    WindowClosing.Invoke(null, ex);
-                    ret = ex.Cancel;
-                }
-                e.Cancel = ret;
-            } // FormClosing
+#endif
 
-        #endif
 
-        #endregion
-
-        #region Dispose Controls
 
         /// <summary>
         /// Dispose all controls added to the manager and its child controls.
@@ -498,34 +475,32 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DisposeControls
 
-        #endregion
-        
-        #region Set Skin
+
 
         /// <summary>
         /// Sets a new UserInterfaceManager.Skin.
         /// </summary>
         public void SetSkin(string skinName)
         {
-            if (SkinChanging != null) 
+            if (SkinChanging != null)
                 SkinChanging.Invoke(new EventArgs());
-            
+
             Skin.LoadSkin(GraphicsDevice, skinName);
 
-            #if (!XBOX)
-                if (Skin.Cursors["Default"] != null)
-                {
-                    Cursor = Skin.Cursors["Default"].Cursor;
-                }
-            #endif
-            
+#if (!XBOX)
+            if (Skin.Cursors["Default"] != null)
+            {
+                Cursor = Skin.Cursors["Default"].Cursor;
+            }
+#endif
+
             // Initializing skins for every control created, even not visible or not added to the manager or another control.
             foreach (Control control in Control.ControlList)
             {
                 control.InitSkin();
             }
-            
-            if (SkinChanged != null) 
+
+            if (SkinChanged != null)
                 SkinChanged.Invoke(new EventArgs());
 
             //  Initializing all controls created, even not visible or not added to the manager or another control.
@@ -535,9 +510,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SetSkin
 
-        #endregion
 
-        #region Bring to front or back
 
         /// <summary>
         /// Brings the control to the front (z-order).
@@ -603,9 +576,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SendToBack
 
-        #endregion
 
-        #region Update
 
         /// <summary>
         /// Update.
@@ -656,9 +627,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SortLevel
 
-        #endregion
 
-        #region Add or Remove
 
         /// <summary>
         /// Adds a control to the manager.
@@ -671,11 +640,11 @@ namespace XNAFinalEngine.UserInterface
                 // If the control father is the manager...
                 if (!RootControls.Contains(control))
                 {
-                    if (control.Parent != null) 
+                    if (control.Parent != null)
                         control.Parent.Remove(control);
                     RootControls.Add(control);
                     control.Parent = null;
-                    if (focusedControl == null) 
+                    if (focusedControl == null)
                         control.Focused = true;
                     WindowResize += control.OnParentResize;
                 }
@@ -690,7 +659,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (control != null)
             {
-                if (control.Focused) 
+                if (control.Focused)
                     control.Focused = false;
                 RootControls.Remove(control);
                 // Remove event
@@ -698,9 +667,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Remove
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Renders all controls added to the manager to a render target.
@@ -721,11 +688,11 @@ namespace XNAFinalEngine.UserInterface
                 //renderTarget.Clear(Color.Transparent);
                 GraphicsDevice.Clear(ClearOptions.Target, Color.Transparent, 1.0f, 0);
 
-                    //GameInfo.Instance.Game.GraphicsDevice.Clear(Color.Transparent);
-                    foreach (Control control in RootControls)
-                    {
-                        control.DrawControlOntoMainTexture();
-                    }
+                //GameInfo.Instance.Game.GraphicsDevice.Clear(Color.Transparent);
+                foreach (Control control in RootControls)
+                {
+                    control.DrawControlOntoMainTexture();
+                }
                 renderTarget.DisableRenderTarget();
             }
         } // DrawToTexture
@@ -745,9 +712,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawTextureToScreen
 
-        #endregion
-        
-        #region Input
+
 
         private bool CheckParent(Control control, Point pos)
         {
@@ -786,7 +751,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private bool CheckOrder(Control control, Point pos)
         {
-            if (!CheckPosition(control, pos)) 
+            if (!CheckPosition(control, pos))
                 return false;
 
             for (int i = OrderList.Count - 1; i > OrderList.IndexOf(control); i--)
@@ -833,7 +798,7 @@ namespace XNAFinalEngine.UserInterface
 
             do
             {
-                if (i < OrderList.Count - 1) 
+                if (i < OrderList.Count - 1)
                     i++;
                 else
                     i = 0;
@@ -1150,9 +1115,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // KeyPressProcess
 
-        #endregion
 
-        #region Is Over Controls
 
         /// <summary>
         /// True is the control is on this position and the other controls on this position are parents of this control.
@@ -1167,7 +1130,7 @@ namespace XNAFinalEngine.UserInterface
             for (int i = OrderList.Count - 1; i > OrderList.IndexOf(control); i--)
             {
                 Control c = OrderList[i];
-                
+
                 if (!c.Passive && CheckPosition(c, pos) && CheckParent(c, pos))
                 {
                     return false;
@@ -1176,9 +1139,7 @@ namespace XNAFinalEngine.UserInterface
             return true;
         } // IsOverThisControl
 
-        #endregion
 
-        #region Invalidate
 
         /// <summary>
         /// Invalidate all controls
@@ -1191,7 +1152,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Invalidate
 
-        #endregion
 
     } // UserInterfaceManager
 } // // XNAFinalEngine.UserInterface

@@ -20,7 +20,6 @@
             base.Dispose(disposing);
         }
 
-        #region Code généré par le Concepteur Windows Form
 
         /// <summary>
         /// Méthode requise pour la prise en charge du concepteur - ne modifiez pas
@@ -626,7 +625,6 @@
 
         }
 
-        #endregion
 
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;

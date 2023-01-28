@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,16 +18,13 @@ namespace CasaEngine.AI
     [Serializable]
     public abstract class BaseEntity
     {
-        #region Constants
 
         /// <summary>
         /// Indicates that an entity is not registered and it doesn´t have an ID assigned
         /// </summary>
         public const int EntityNotRegistered = -1;
 
-        #endregion
 
-        #region Fields
 
         /// <summary>
         /// The unique ID of the entity. It´s used to access the entity when needed.
@@ -37,9 +36,7 @@ namespace CasaEngine.AI
         /// </summary>
         protected internal bool remove;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the entity ID. Only the EntityManager can set the ID for the entity.
@@ -71,9 +68,7 @@ namespace CasaEngine.AI
             set { remove = value; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Default Constructor. Registers the entity in the EntityManager
@@ -84,9 +79,7 @@ namespace CasaEngine.AI
             //EntityManager.Instance.AddEntity(this);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// Updates the entity
@@ -101,6 +94,5 @@ namespace CasaEngine.AI
         protected virtual void Destroy()
         { }
 
-        #endregion
     }
 }

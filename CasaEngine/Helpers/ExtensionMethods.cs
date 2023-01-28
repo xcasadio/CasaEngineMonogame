@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -30,15 +29,14 @@ Authors: Digital Jellyfish Design Ltd (http://forums.create.msdn.com/forums/p/16
 String extension methods based on the class StringHelper.cs from RacingGame. License: Microsoft_Permissive_License
   
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace XNAFinalEngine.Helpers
 {
@@ -48,9 +46,8 @@ namespace XNAFinalEngine.Helpers
     public static class ExtensionMethods
     {
 
-        #region List
 
-        #if (XBOX)
+#if (XBOX)
 
         /// <summary> 
         /// Removes all elements from the List that match the conditions defined by the specified predicate. 
@@ -97,23 +94,21 @@ namespace XNAFinalEngine.Helpers
             return false;
         } // Exists
 
-        #endif
+#endif
 
-        #endregion
 
-        #region String Builder
 
         private static readonly char[] digits = new[] { '9', '8', '7', '6', '5', '4', '3', '2', '1', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
         public static StringBuilder ClearXbox(this StringBuilder stringBuilder)
         {
-            #if XBOX 
+#if XBOX
                 if (stringBuilder.Length > 0)
                     stringBuilder.Length = 0;
                     //Text.Remove(0, Text.Length - 1); // Clear is not supported in XBOX.
-            #else
-                stringBuilder.Clear();
-            #endif
+#else
+            stringBuilder.Clear();
+#endif
             return stringBuilder;
         }
 
@@ -144,11 +139,8 @@ namespace XNAFinalEngine.Helpers
             return stringBuilder;
         } // AppendWithoutGarbage
 
-        #endregion
 
-        #region String
 
-        #region Is Numeric Float
 
         /// <summary>
         /// Is numeric float
@@ -223,9 +215,7 @@ namespace XNAFinalEngine.Helpers
             return retVal;
         } // IsNumericFloat
 
-        #endregion
 
-        #region Is Numeric Int
 
         /// <summary>
         /// Check if string is numeric integer. A decimal point is not accepted.
@@ -253,9 +243,7 @@ namespace XNAFinalEngine.Helpers
             return true;
         } // IsNumericInt
 
-        #endregion
 
-        #region Allow Only One Decimal Point
 
         /// <summary>
         /// Allow only one decimal point, used for IsNumericFloat.
@@ -294,7 +282,6 @@ namespace XNAFinalEngine.Helpers
                 string[] splittedByDecimalSeperator = str.Split(
                     numberFormat.CurrencyDecimalSeparator.ToCharArray());
 
-                #region Invert the digits for modulo check
                 //   ==> 1.000 -> 000.1  ==> only after 3 digits 
                 char[] firstSplittedInChars = splittedByDecimalSeperator[0].ToCharArray();
                 int arrayLength = firstSplittedInChars.Length;
@@ -304,7 +291,6 @@ namespace XNAFinalEngine.Helpers
                     firstSplittedInCharsInverted[i] =
                         firstSplittedInChars[arrayLength - 1 - i];
                 } // for (int)
-                #endregion
 
                 // group seperators are only allowed between 3 digits -> 1.000.000
                 for (int i = 0; i < arrayLength; i++)
@@ -322,10 +308,8 @@ namespace XNAFinalEngine.Helpers
             return true;
         } // AllowOnlyOneDecimalPoint
 
-        #endregion
 
-        #region Plus One
-        
+
         /// <summary>
         /// Return the string plus one.
         /// </summary>
@@ -345,11 +329,8 @@ namespace XNAFinalEngine.Helpers
             return name + "1";
         } // PlusOne
 
-        #endregion
 
-        #endregion
 
-        #region Quaternion
 
         /// <summary>
         /// In a 2D grid, returns the angle to a specified point from the +X axis.
@@ -431,7 +412,6 @@ namespace XNAFinalEngine.Helpers
             return new Vector3(rotationaxes.Y, rotationaxes.X, rotationaxes.Z);
         } // GetYawPitchRoll
 
-        #endregion
 
     } // ExtensionMethods
 } // XNAFinalEngineBase.Helpers

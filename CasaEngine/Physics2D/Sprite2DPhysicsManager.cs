@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,16 +21,13 @@ namespace CasaEngine.Physics2D
     /// </summary>
     public sealed class Sprite2DPhysicsManager
     {
-        #region Fields
 
         private static Sprite2DPhysicsManager m_Instance;
         private HashSet<Sprite2D> m_PhysicToAddInWorld = new HashSet<Sprite2D>();
 
         private Vector2 m_Vector2Tmp = new Vector2();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -46,15 +45,10 @@ namespace CasaEngine.Physics2D
             }
         }
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
-        #endregion
 
         /// <summary>
         /// 
@@ -99,7 +93,6 @@ namespace CasaEngine.Physics2D
             return itemAccesor;
         }*/
 
-        #region Pool
 
         // Pool for this type of components.
         /*private static readonly Pool<Fixture> componentPool = new Pool<Fixture>(20);
@@ -109,7 +102,6 @@ namespace CasaEngine.Physics2D
         /// </summary>
         internal static Pool<Fixture> ComponentPool { get { return componentPool; } }*/
 
-        #endregion
 
         /// <summary>
         /// 
@@ -196,6 +188,6 @@ namespace CasaEngine.Physics2D
         private static BodyDef CreateBodyDef(ResourcePool<BodyDef> pool)
         {
             return new BodyDef();
-        }*/     
+        }*/
     }
 }

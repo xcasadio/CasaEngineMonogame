@@ -1,11 +1,9 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // CurveControl.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
 //-----------------------------------------------------------------------------
 // CurveControl.cs
@@ -13,8 +11,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#region Using Statements
-using System;
+
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -22,7 +19,6 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
-#endregion
 
 
 
@@ -30,14 +26,11 @@ namespace Editor.Tools.CurveEditor
 {
     public partial class CurveControl : UserControl
     {
-        #region Constants
         const float MinSelectSize = 16;
         const float TangentManipulatorLength = 50.0f;
         const float CurvePenWidth = 1.0f;
         const float MaximumCurveKeyEntry = (float)0x4000007F;
-        #endregion
 
-        #region Properties
         [Category("Curve Control")]
         [Description("Turn on or off menu in Curve Control.")]
         [DefaultValue(true)]
@@ -109,9 +102,7 @@ namespace Editor.Tools.CurveEditor
         [Browsable(false)]
         public EditCurveCollection Curves { get { return curves; } }
 
-        #endregion
 
-        #region Constructor
         public CurveControl()
         {
             curves = new EditCurveCollection();
@@ -164,9 +155,7 @@ namespace Editor.Tools.CurveEditor
 
             SelectCursorShape();
         }
-        #endregion
 
-        #region Public Methods
         public void BeginUpdate()
         {
             batchUpdating = true;
@@ -186,9 +175,7 @@ namespace Editor.Tools.CurveEditor
         {
             FrameSelection(true);
         }
-        #endregion
 
-        #region Event Handling
         private void curveView_Paint(object sender, PaintEventArgs e)
         {
             DrawAll(e.Graphics);
@@ -589,9 +576,7 @@ namespace Editor.Tools.CurveEditor
         {
             RequestRender();
         }
-        #endregion
 
-        #region Render
         /// <summary>
         /// Draw Line with clipping.
         /// </summary>
@@ -952,9 +937,7 @@ namespace Editor.Tools.CurveEditor
             }
         }
 
-        #endregion
 
-        #region Private methods
 
         private void SelectCursorShape()
         {
@@ -1216,14 +1199,10 @@ namespace Editor.Tools.CurveEditor
 
             return item.Tag.ToString();
         }
-        #endregion
 
-        #region Properties wrapper members
         private System.Drawing.Color selectingBoxColor = System.Drawing.Color.FromArgb(80, 0, 200, 128);
         private System.Drawing.Color selectingBoxBorderColor = System.Drawing.Color.Black;
-        #endregion
 
-        #region Private Members
         enum EditMode
         {
             None,
@@ -1293,6 +1272,5 @@ namespace Editor.Tools.CurveEditor
             new PointF[] { new PointF(), new PointF(), new PointF() };
 
 
-        #endregion
     }
 }

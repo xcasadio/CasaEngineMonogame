@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,18 +25,16 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 
 using Microsoft.Xna.Framework.Input;
+
+
 //using XNAFinalEngine.EngineCore;
-#endregion
 
 namespace XNAFinalEngine.Input
 {
 
-    #region Enumerates
 
     public enum InputDevices
     {
@@ -62,9 +59,7 @@ namespace XNAFinalEngine.Input
         Triggers,
     } // AnalogAxes
 
-    #endregion
 
-    #region Key Button
 
     /// <summary>
     /// This structure represent a key or a button of a device.
@@ -79,7 +74,6 @@ namespace XNAFinalEngine.Input
         // 0 = no key or button, 1 = keyboard, 2 = gamepad, 3 = mouse.
         public InputDevices InputDevice;
 
-        #region Constructors
 
         public KeyButton(Keys key)
         {
@@ -108,9 +102,7 @@ namespace XNAFinalEngine.Input
             MouseButton = mouseButton;
         } // KeyButton
 
-        #endregion
 
-        #region Pressed
 
         /// <summary>
         /// True if the key or button was pressed.
@@ -139,19 +131,16 @@ namespace XNAFinalEngine.Input
             return Mouse.ButtonPressed(MouseButton);
         } // Pressed
 
-        #endregion
 
     } // KeyButton
 
-    #endregion
 
-	/// <summary>
+    /// <summary>
     /// Manager for input devices.
-	/// </summary>
-	internal class InputManager
-    {   
-        
-        #region Initialize
+    /// </summary>
+    internal class InputManager
+    {
+
 
         /// <summary>
         /// Initialize Input Devices.
@@ -161,9 +150,7 @@ namespace XNAFinalEngine.Input
             //Wiimote.InitWiimotes();
         } // Initialize
 
-        #endregion
 
-        #region Unload
 
         /// <summary>
         /// Unload Input Devices.
@@ -176,15 +163,13 @@ namespace XNAFinalEngine.Input
             Wiimote.PlayerFour.Disconnect();*/
         } // UnloadInputDevices
 
-        #endregion
 
-        #region Update
 
         /// <summary>
         ///  Will catch all new states for keyboard, mouse, gamepads, and Wiimotes.
 		/// </summary>
         internal static void Update(float elapsedTime_)
-		{
+        {
             //if (EngineManager.IsApplicationActive)
             {
                 GamePad.PlayerOne.Update();
@@ -192,14 +177,14 @@ namespace XNAFinalEngine.Input
                 GamePad.PlayerThree.Update();
                 GamePad.PlayerFour.Update();
                 Keyboard.Update();
-                #if (!XBOX)
-                    Mouse.Update();
-                    // Wiimote support was deprecated but probably still works.
-                    /*Wiimote.PlayerOne.Update();
-                    Wiimote.PlayerTwo.Update();
-                    Wiimote.PlayerThree.Update();
-                    Wiimote.PlayerFour.Update();*/
-                #endif
+#if (!XBOX)
+                Mouse.Update();
+                // Wiimote support was deprecated but probably still works.
+                /*Wiimote.PlayerOne.Update();
+                Wiimote.PlayerTwo.Update();
+                Wiimote.PlayerThree.Update();
+                Wiimote.PlayerFour.Update();*/
+#endif
 
                 foreach (var axis in Axis.Axes)
                 {
@@ -210,9 +195,8 @@ namespace XNAFinalEngine.Input
                     button.Update();
                 }
             }
-		} // Update
+        } // Update
 
-		#endregion
 
     } // InputManager
 } // XNAFinalEngine.Input

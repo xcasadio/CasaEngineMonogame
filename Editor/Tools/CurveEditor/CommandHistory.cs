@@ -1,11 +1,9 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // CommandHistory.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
 //-----------------------------------------------------------------------------
 // CommandHistory.cs
@@ -13,15 +11,13 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#region Using Statements
-using System;
+
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Text;
 
-#endregion
 
 
 
@@ -33,7 +29,6 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public class CommandHistory
     {
-        #region Properties
         /// <summary>
         /// Changed event that fired when command history changed.
         /// </summary>
@@ -48,9 +43,7 @@ namespace Editor.Tools.CurveEditor
         /// It returns true if it can process redo; otherwise it returns false.
         /// </summary>
         public bool CanRedo { get { return commands.CanRedo; } }
-        #endregion
 
-        #region Public Methods
 
         /// <summary>
         /// Make sure CommandHistory added as a service to given site.
@@ -190,9 +183,7 @@ namespace Editor.Tools.CurveEditor
             recordingCommands = null;
         }
 
-        #endregion
 
-        #region Private Members
 
         /// <summary>
         /// Main CommandQueue.
@@ -215,9 +206,7 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         static CommandHistory staticCommandHistory = null;
 
-        #endregion
 
-        #region Debug Code
         [Conditional("DEBUG")]
         static void DebugPrintCommand(string prefix, ICommand command)
         {
@@ -240,6 +229,5 @@ namespace Editor.Tools.CurveEditor
         {
             DebugPrintCommand(prefix, commands[commands.Index + offset]);
         }
-        #endregion
     }
 }

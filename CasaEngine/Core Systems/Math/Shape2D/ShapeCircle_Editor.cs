@@ -1,4 +1,8 @@
 ﻿using System;
+
+
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +12,7 @@ using CasaEngineCommon.Extension;
 using System.IO;
 using CasaEngineCommon.Design;
 
+
 namespace CasaEngine.Math.Shape2D
 {
     /// <summary>
@@ -15,15 +20,10 @@ namespace CasaEngine.Math.Shape2D
     /// </summary>
     public partial class ShapeCircle
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -37,9 +37,7 @@ namespace CasaEngine.Math.Shape2D
             m_Radius = radius_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -89,6 +87,5 @@ namespace CasaEngine.Math.Shape2D
             return "Circle - " + Location.ToString() + " - " + m_Radius;
         }
 
-        #endregion
     }
 }

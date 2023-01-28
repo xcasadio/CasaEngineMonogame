@@ -35,7 +35,7 @@
 //   Eliminate Add/RemoveNode ?
 //   Comments comments and more comments!
 
-using System;
+
 using System.Text;
 
 namespace Poly2Tri.Triangulation.Delaunay.Sweep

@@ -9,13 +9,10 @@ namespace Editor.Game
 {
     public class MouseWindowed
     {
-        #region Fields
 
         System.Windows.Forms.Control m_Control;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -90,9 +87,7 @@ namespace Editor.Game
             private set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -119,9 +114,7 @@ namespace Editor.Game
             m_Control.Focus();
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -238,6 +231,5 @@ namespace Editor.Game
             throw new NotImplementedException();
         }*/
 
-        #endregion
     }
 }

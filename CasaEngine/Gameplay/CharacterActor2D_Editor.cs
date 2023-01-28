@@ -1,10 +1,12 @@
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.GamerServices;
+
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
@@ -27,19 +29,12 @@ namespace CasaEngine.Gameplay
     /// </summary>
     public partial class CharacterActor2D
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructor
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -92,7 +87,7 @@ namespace CasaEngine.Gameplay
             foreach (KeyValuePair<int, Animation2D> pair in m_Animations)
             {
                 bw_.Write(pair.Key);
-                bw_.Write(pair.Value.Name);          
+                bw_.Write(pair.Value.Name);
             }
         }
 
@@ -116,8 +111,8 @@ namespace CasaEngine.Gameplay
                 {
                     m_Animations.Add(index_, anim);
                     m_AnimationListToLoad.Add(index_, anim.Name);
-                }    
-            }    
+                }
+            }
         }
 
         /// <summary>
@@ -159,7 +154,7 @@ namespace CasaEngine.Gameplay
                 //return m_Animations[index_].Name;
                 return m_AnimationListToLoad[index_];
             }
-            
+
             return null;
         }
 
@@ -179,7 +174,7 @@ namespace CasaEngine.Gameplay
 
             return res;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -190,6 +185,5 @@ namespace CasaEngine.Gameplay
             throw new NotImplementedException();
         }
 
-        #endregion
     }
 }

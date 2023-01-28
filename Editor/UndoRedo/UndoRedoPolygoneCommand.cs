@@ -12,19 +12,14 @@ namespace Editor.UndoRedo
     class UndoRedoPolygoneCommand
         : ICommand
     {
-        #region Fields
 
         Vector2 m_Point;
         int m_Index;
         bool m_IsAdd;
 
-		#endregion
 
-		#region Properties
 
-		#endregion
 
-		#region Constructor
 
 		/// <summary>
 		/// 
@@ -39,9 +34,7 @@ namespace Editor.UndoRedo
             m_IsAdd = add_;
 		}
 
-		#endregion
 
-		#region ICommand Members
 
 		/// <summary>
 		/// 
@@ -87,6 +80,5 @@ namespace Editor.UndoRedo
             }
 		}
 
-		#endregion
     }
 }

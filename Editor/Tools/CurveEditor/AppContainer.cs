@@ -1,11 +1,9 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // AppContainer.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
 //-----------------------------------------------------------------------------
 // AppContainer.cs
@@ -13,14 +11,12 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#region Using Statements
-using System;
+
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Collections.Generic;
 using System.Text;
 
-#endregion
 
 
 

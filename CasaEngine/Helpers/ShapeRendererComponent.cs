@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,7 +31,6 @@ namespace CasaEngine.Helper
             public Color Color;
         }
 
-        #region Fields
 
         static public bool DisplayCollisions = true;
         static public bool DisplayPhysics = false;
@@ -43,9 +44,7 @@ namespace CasaEngine.Helper
         private Stack<DisplayCollisionData> m_FreeDisplayCollisionData = new Stack<DisplayCollisionData>();
         private Vector2 vector2D1 = new Vector2();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -55,9 +54,7 @@ namespace CasaEngine.Helper
             get { return m_ShapeRenderer; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -80,9 +77,7 @@ namespace CasaEngine.Helper
             DrawOrder = (int)ComponentDrawOrder.DebugPhysics;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -202,7 +197,7 @@ namespace CasaEngine.Helper
                     p.Points.CopyTo(vec, 0);
 #endif
 
-                    for (int i=0; i<vec.Length; i++)
+                    for (int i = 0; i < vec.Length; i++)
                     {
                         vec[i] = Vector2.Add(vec[i], vector2D1);
                     }
@@ -230,8 +225,7 @@ namespace CasaEngine.Helper
             }
         }
 
-        #endregion
-       
+
         /// <summary>
         /// 
         /// </summary>
@@ -258,7 +252,7 @@ namespace CasaEngine.Helper
             // L/R/B/T
             //m_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(lower.X, upper.X, lower.Y, upper.Y, -1, 1);
             float ww = (float)tw / 2.0f;
-            float hh = (float)th / 2.0f;            
+            float hh = (float)th / 2.0f;
 
             //pour jeux utilisant le spritebatch (screen coordinate)
             m_ProjectionMatrix = Matrix.CreateOrthographicOffCenter(

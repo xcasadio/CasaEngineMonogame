@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,20 +12,15 @@ namespace CasaEngineCommon.Logger
 	public class FileLogger
 		: ILog
 	{
-		#region Fields
 
 		StreamWriter m_Stream = null;
         private readonly string m_Debug = "[DEBUG] : ";
 		private readonly string m_Warning = "Warning : ";
 		private readonly string m_Error = "Error : ";
 
-		#endregion // Fields
 
-		#region Properties
 
-		#endregion // Properties
 
-		#region Constructors
 
 		/// <summary>
 		/// 
@@ -37,9 +32,7 @@ namespace CasaEngineCommon.Logger
 			m_Stream.AutoFlush = true;
 		}
 
-		#endregion // Constructors
 
-		#region Methods
 
 		/// <summary>
 		/// 
@@ -115,6 +108,5 @@ namespace CasaEngineCommon.Logger
 			Write(m_Error + msg_ + Environment.NewLine);
 		}
 
-		#endregion // Methods
 	}
 }

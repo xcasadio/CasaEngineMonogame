@@ -85,7 +85,6 @@ namespace Poly2Tri.Triangulation.Polygon
             get { return _holes; }
         }
 
-        #region Triangulatable Members
 
         public TriangulationMode TriangulationMode
         {
@@ -160,7 +159,6 @@ namespace Poly2Tri.Triangulation.Polygon
             }
         }
 
-        #endregion
 
         public void AddSteinerPoint(TriangulationPoint point)
         {

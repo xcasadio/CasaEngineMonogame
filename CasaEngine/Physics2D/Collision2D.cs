@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +18,6 @@ namespace CasaEngine.Math.Collision
     /// </summary>
     static public class Collision2D
     {
-        #region Fields
 
         //to avoid GC
         static Manifold manifold = new Manifold();
@@ -24,9 +25,7 @@ namespace CasaEngine.Math.Collision
         static CircleShape circleShape1 = new CircleShape(1.0f, 1.0f), circleShape2 = new CircleShape(1.0f, 1.0f);
         static PolygonShape polygonShape1 = new PolygonShape(1.0f), polygonShape2 = new PolygonShape(1.0f);
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -59,7 +58,7 @@ namespace CasaEngine.Math.Collision
             {
                 polygonShape2.Set(new Vertices(p2.Points));
             }
-            
+
             transformA.Set(pos1, 0.0f);
             transformB.Set(pos2, 0.0f);
 
@@ -89,7 +88,7 @@ namespace CasaEngine.Math.Collision
             polygonShape1.Set(v);
             transformA.Set(pos1, 0.0f);
 
-            polygonShape2.SetAsBox(r2.Width / 2, r2.Height / 2);            
+            polygonShape2.SetAsBox(r2.Width / 2, r2.Height / 2);
             transformB.Set(pos2, 0.0f);
 
             FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref manifold, polygonShape1, ref transformA, circleShape2, ref transformB);
@@ -102,7 +101,7 @@ namespace CasaEngine.Math.Collision
 
             return false;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -128,7 +127,7 @@ namespace CasaEngine.Math.Collision
 
             return false;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -142,7 +141,7 @@ namespace CasaEngine.Math.Collision
             throw new NotImplementedException();
             return true;
         }
-       
+
         /// <summary>
         /// 
         /// </summary>
@@ -183,6 +182,5 @@ namespace CasaEngine.Math.Collision
             return false;
         }
 
-        #endregion
     }
 }

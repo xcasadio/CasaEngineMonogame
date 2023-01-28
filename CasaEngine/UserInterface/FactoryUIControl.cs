@@ -1,10 +1,13 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using XNAFinalEngine.UserInterface;
 using System.Xml;
 using CasaEngineCommon.Design;
+using Control = XNAFinalEngine.UserInterface.Control;
 
 namespace CasaEngine.UserInterface
 {

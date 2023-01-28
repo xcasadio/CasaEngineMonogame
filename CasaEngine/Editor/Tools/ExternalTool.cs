@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +13,8 @@ namespace CasaEngine.Editor.Tools
     /// </summary>
     public class ExternalTool
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -26,9 +25,7 @@ namespace CasaEngine.Editor.Tools
             private set;
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -44,12 +41,9 @@ namespace CasaEngine.Editor.Tools
             Window = form_;
         }
 
-        #endregion
-
-        #region Methods
 
 
 
-        #endregion
+
     }
 }

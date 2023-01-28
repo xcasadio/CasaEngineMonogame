@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,20 +18,17 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
     /// <summary>
     /// 
     /// </summary>
-    public 
+    public
 #if EDITOR
     partial
 #endif
     class ScreenGadgetButton
         : ScreenGadget
     {
-        #region Fields
 
         //public event EventHandler Click;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -49,9 +48,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -62,9 +59,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -145,10 +140,9 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 Image = Engine.Instance.Asset2DManager.GetSprite2DByID(spriteID);
                 Engine.Instance.Asset2DManager.AddSprite2DToLoadingList(Image);
             }
-            
-            SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el_.SelectSingleNode("SizeImage").InnerText);     
+
+            SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el_.SelectSingleNode("SizeImage").InnerText);
         }
 
-        #endregion
     }
 }

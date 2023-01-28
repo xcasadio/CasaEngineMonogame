@@ -29,7 +29,6 @@ namespace CasaEngineCommon.Pool
     public class Pool<T> where T : new()
     {
 
-        #region Accesor
 
         public class Accessor
         {
@@ -45,9 +44,7 @@ namespace CasaEngineCommon.Pool
             internal Accessor() { }
         } // Accessor
 
-        #endregion
 
-        #region Variables
 
         /// <summary>
         /// The list of accessors or keys to access the pool elements
@@ -63,9 +60,7 @@ namespace CasaEngineCommon.Pool
         /// </remarks>
         public T[] Elements;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the number of active elements in the pool.
@@ -92,9 +87,7 @@ namespace CasaEngineCommon.Pool
         /// <remarks>Important: the value type is replicated in the stack.</remarks>
         public T this[Accessor accessor] { get { return Elements[accessor.Index]; } }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// A pool of elements T.
@@ -118,9 +111,7 @@ namespace CasaEngineCommon.Pool
             }
         } // Pool
 
-        #endregion
 
-        #region Fetch
 
         /// <summary>
         /// Marks an element for using it and return its corresponded accessor.
@@ -136,9 +127,7 @@ namespace CasaEngineCommon.Pool
             return accessors[Count - 1];
         } // Fetch
 
-        #endregion
 
-        #region Resize Pool
 
         /// <summary>
         /// Resize the pool.
@@ -175,9 +164,7 @@ namespace CasaEngineCommon.Pool
             accessors = newAccessors;
         } // ResizePool
 
-        #endregion
 
-        #region Release
 
         /// <summary>
         /// Set the pool element to available.
@@ -204,9 +191,7 @@ namespace CasaEngineCommon.Pool
             Count--;
         } // Release
 
-        #endregion
 
-        #region Swap
 
         /// <summary>
         /// Swap elements.
@@ -226,7 +211,6 @@ namespace CasaEngineCommon.Pool
             accessors[j] = lastActiveAccessor;
         } // Swap
 
-        #endregion
 
     } // Pool
 }

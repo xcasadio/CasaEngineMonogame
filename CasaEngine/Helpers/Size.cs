@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,13 +25,13 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
-using CasaEngine.CoreSystems;
 
-#endregion
+
+using CasaEngine.CoreSystems;
+using Screen = CasaEngine.CoreSystems.Screen;
+
 
 namespace XNAFinalEngine.Helpers
 {
@@ -43,7 +42,6 @@ namespace XNAFinalEngine.Helpers
     public struct Size
     {
 
-        #region Enumerates
 
         /// <summary>
         /// Some effect works in different sizes but relative to the screen size.
@@ -55,16 +53,12 @@ namespace XNAFinalEngine.Helpers
             FullSize,
         } // TextureSize
 
-        #endregion
 
-        #region Variables
 
         private int width, height;
         private Screen m_Screen;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets or sets the horizontal component of this Size structure.
@@ -80,7 +74,7 @@ namespace XNAFinalEngine.Helpers
                 if (this == QuarterScreen || this == SplitQuarterScreen)
                     return m_Screen.Width / 4;
                 return width;
-            } 
+            }
             set
             {
                 if (value < 0)
@@ -88,7 +82,7 @@ namespace XNAFinalEngine.Helpers
                 width = value;
             }
         } // Width
-                
+
         /// <summary>
         /// Gets or sets the vertical component of this Size structure.
         /// </summary>
@@ -118,9 +112,7 @@ namespace XNAFinalEngine.Helpers
             }
         } // Height
 
-        #endregion
 
-        #region Predefined Values
 
         /// <summary>Full screen size.</summary>
         /// <remarks>This size will be updated with screen size changes.</remarks>
@@ -158,16 +150,14 @@ namespace XNAFinalEngine.Helpers
         /// <summary>2048 x 2048</summary>
         public Size Square2048X2048 { get { return new Size(2048, 2048, m_Screen); } }
 
-        #endregion
-        
-        #region Constructor
+
 
         /// <summary>
         /// Stores an ordered pair of integers, which specify a Height and Width.
         /// </summary>
         public Size(int width, int height, Screen screen_)
         {
-            if (width < 0 )
+            if (width < 0)
                 throw new ArgumentOutOfRangeException("width", "Width has to be greater than or equal to zero.");
             if (height < 0)
                 throw new ArgumentOutOfRangeException("height", "Height has to be greater than or equal to zero.");
@@ -177,10 +167,8 @@ namespace XNAFinalEngine.Helpers
             m_Screen = screen_;
         } // Size
 
-        #endregion
 
-        #region Equal
-        
+
         public static bool operator ==(Size x, Size y)
         {
             return x.width == y.width && x.height == y.height;
@@ -200,10 +188,8 @@ namespace XNAFinalEngine.Helpers
         {
             return width.GetHashCode() ^ height.GetHashCode();
         } // GetHashCode
-        
-        #endregion
 
-        #region Half Size
+
 
         /// <summary>
         /// Returns a size of half dimensions.
@@ -223,9 +209,7 @@ namespace XNAFinalEngine.Helpers
             return new Size(Width / 2, Height / 2, m_Screen);
         } // HalfSize
 
-        #endregion
 
-        #region Make Relative If Posible
 
         /// <summary>
         /// If this size value correspond to a relative screen size (like full screen) make it relative.
@@ -247,7 +231,6 @@ namespace XNAFinalEngine.Helpers
             // If not stay the same.
         } // MakeRelativeIfPosible
 
-        #endregion
 
     } // Size 
 } // XNAFinalEngine.Helpers

@@ -1,30 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Gameplay.Actor.Event;
-using CasaEngine.Design.Event;
-using Editor.Sprite2DEditor.Event;
+﻿using CasaEngine.Gameplay.Actor.Event;
 
 namespace Editor.Sprite2DEditor.Event
 {
     /// <summary>
     /// 
     /// </summary>
-    public partial class AnimationEventForm 
-        : Form
+    public partial class AnimationEventForm : Form
     {
-        #region Fields
 
         private EventActor m_Event;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -34,9 +20,7 @@ namespace Editor.Sprite2DEditor.Event
             get { return m_Event; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -56,9 +40,7 @@ namespace Editor.Sprite2DEditor.Event
             }
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -82,7 +64,7 @@ namespace Editor.Sprite2DEditor.Event
             switch (type_)
             {
                 case EventActorType.PlaySound:
-                    panelEvent.Controls.Add(new AnimationSoundEventControl(m_Event));
+                    //panelEvent.Controls.Add(new AnimationSoundEventControl(m_Event));
                     break;
 
                 case EventActorType.SpawnActor:
@@ -102,10 +84,8 @@ namespace Editor.Sprite2DEditor.Event
         /// <param name="e"></param>
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            AnimationEventBaseControl c = (AnimationEventBaseControl)panelEvent.Controls[0];
-            m_Event = c.EventActor;
+            //AnimationEventBaseControl c = (AnimationEventBaseControl)panelEvent.Controls[0];
+            //m_Event = c.EventActor;
         }
-
-        #endregion
     }
 }

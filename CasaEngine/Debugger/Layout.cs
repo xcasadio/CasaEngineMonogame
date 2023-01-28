@@ -1,20 +1,17 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // Layout.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 
 using System;
+
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-#endregion
 
 namespace CasaEngine.Debugger
 {
@@ -83,7 +80,6 @@ namespace CasaEngine.Debugger
     /// </remarks>
     public struct Layout
     {
-        #region Fields
 
         /// <summary>
         /// Gets/Sets client area.
@@ -95,9 +91,7 @@ namespace CasaEngine.Debugger
         /// </summary>
         public Rectangle SafeArea;
 
-        #endregion
 
-        #region Initialization
 
         /// <summary>
         /// Construct layout object by specify both client area and safe area.
@@ -131,7 +125,6 @@ namespace CasaEngine.Debugger
             SafeArea = viewport.TitleSafeArea;
         }
 
-        #endregion
 
         /// <summary>
         /// Layouting specified region

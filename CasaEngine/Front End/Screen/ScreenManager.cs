@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,19 +20,12 @@ namespace CasaEngine.FrontEnd.Screen
     {
         List<UIScreen> m_Screens = new List<UIScreen>();
 
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -51,6 +46,5 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        #endregion
     }
 }

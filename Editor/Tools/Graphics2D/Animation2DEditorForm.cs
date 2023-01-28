@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -29,7 +29,6 @@ namespace Editor.Tools.Graphics2D
     public partial class Animation2DEditorForm
         : Form, IEditorForm, IExternalTool
     {
-        #region Fields
 
         XnaEditorForm m_XnaEditorForm;
         UndoRedoManager m_UndoRedoManager;
@@ -37,9 +36,7 @@ namespace Editor.Tools.Graphics2D
 
         private System.Windows.Forms.Control[] m_ListViewSubControls;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -49,9 +46,7 @@ namespace Editor.Tools.Graphics2D
             get { return panelXna; }
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -77,11 +72,8 @@ namespace Editor.Tools.Graphics2D
             listViewFrame.SubItemEndEditing += new Editor.WinForm.SubItemEndEditingEventHandler(listViewFrame_SubItemEndEditing);
         }
 
-        #endregion
 
-        #region Methods
 
-        #region ListViewFrame
 
         /// <summary>
         /// 
@@ -160,9 +152,7 @@ namespace Editor.Tools.Graphics2D
             }
         }
 
-        #endregion
 
-        #region Undo/Redo
 
         /// <summary>
         /// 
@@ -240,9 +230,7 @@ namespace Editor.Tools.Graphics2D
             redoToolStripMenuItem.Enabled = m_UndoRedoManager.CanRedo;
         }
 
-        #endregion
 
-        #region Event
 
         /// <summary>
         /// 
@@ -259,7 +247,6 @@ namespace Editor.Tools.Graphics2D
 									};
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -678,9 +665,7 @@ namespace Editor.Tools.Graphics2D
             hScrollBarCurrentFrame.Scroll += new System.Windows.Forms.ScrollEventHandler(hScrollBarCurrentFrame_Scroll);
         }
 
-        #endregion
 
-        #region IExternalTool Membres
 
         /// <summary>
         /// 
@@ -724,6 +709,5 @@ namespace Editor.Tools.Graphics2D
             propertyGridSprite2D.Invoke(new Action(() => propertyGridSprite2D.SelectedObject = m_Animation2DComponent.CurrentAnimation));
         }
 
-        #endregion
     }
 }

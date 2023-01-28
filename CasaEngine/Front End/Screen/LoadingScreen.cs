@@ -1,13 +1,13 @@
-﻿#region Using Statements
-
+﻿
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
 using CasaEngine.CoreSystems.Game;
 
-#endregion
 
 namespace CasaEngine.FrontEnd.Screen
 {
@@ -25,21 +25,18 @@ namespace CasaEngine.FrontEnd.Screen
     ///   next screen, which may take a long time to load its data. The loading
     ///   screen will be the only thing displayed while this load is taking place.
     /// </summary>
-    public class LoadingScreen 
-		: Screen
+    public class LoadingScreen
+        : Screen
     {
-        #region Fields
 
         bool loadingIsSlow;
         bool otherScreensAreGone;
 
         Screen[] screensToLoad;
 
-		Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent m_Renderer2DComponent = null;
 
-        #endregion
 
-        #region Initialization
 
         /// <summary>
         /// The constructor is private: loading screens should
@@ -47,14 +44,14 @@ namespace CasaEngine.FrontEnd.Screen
         /// </summary>
 		private LoadingScreen(ScreenManagerComponent screenManager, bool loadingIsSlow,
                               Screen[] screensToLoad)
-			: base("LoadingScreen")
+            : base("LoadingScreen")
         {
             this.loadingIsSlow = loadingIsSlow;
             this.screensToLoad = screensToLoad;
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
 
-			m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
         /// <summary>
@@ -76,9 +73,7 @@ namespace CasaEngine.FrontEnd.Screen
             screenManager.AddScreen(loadingScreen, controllingPlayer);
         }
 
-        #endregion
 
-        #region Update and Draw
 
         /// <summary>
         /// Updates the loading screen.
@@ -86,19 +81,19 @@ namespace CasaEngine.FrontEnd.Screen
         public override void Update(float elapsedTime_, bool otherScreenHasFocus,
                                                        bool coveredByOtherScreen)
         {
-			base.Update(elapsedTime_, otherScreenHasFocus, coveredByOtherScreen);
+            base.Update(elapsedTime_, otherScreenHasFocus, coveredByOtherScreen);
 
             // If all the previous screens have finished transitioning
             // off, it is time to actually perform the load.
             if (otherScreensAreGone)
             {
-				ScreenManagerComponent.RemoveScreen(this);
+                ScreenManagerComponent.RemoveScreen(this);
 
                 foreach (Screen screen in screensToLoad)
                 {
                     if (screen != null)
                     {
-						ScreenManagerComponent.AddScreen(screen, ControllingPlayer);
+                        ScreenManagerComponent.AddScreen(screen, ControllingPlayer);
                     }
                 }
 
@@ -133,12 +128,12 @@ namespace CasaEngine.FrontEnd.Screen
             // to bother drawing the message.
             if (loadingIsSlow)
             {
-				const string message = "Loading...";
+                const string message = "Loading...";
 
                 // Center the text in the viewport.
                 Viewport viewport = Engine.Instance.GraphicsDeviceManager.GraphicsDevice.Viewport;
                 Vector2 viewportSize = new Vector2(viewport.Width, viewport.Height);
-				Vector2 textSize = Engine.Instance.DefaultSpriteFont.MeasureString(message);
+                Vector2 textSize = Engine.Instance.DefaultSpriteFont.MeasureString(message);
                 Vector2 textPosition = (viewportSize - textSize) / 2;
 
                 Color color = new Color(255, 255, 255, TransitionAlpha);
@@ -147,10 +142,9 @@ namespace CasaEngine.FrontEnd.Screen
                 /*spriteBatch.Begin();
                 spriteBatch.DrawString(font, message, textPosition, color);
                 spriteBatch.End();*/
-				m_Renderer2DComponent.AddText2D(Engine.Instance.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
+                m_Renderer2DComponent.AddText2D(Engine.Instance.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
             }
         }
 
-        #endregion
     }
 }

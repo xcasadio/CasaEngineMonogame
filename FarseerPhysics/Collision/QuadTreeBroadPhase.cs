@@ -27,7 +27,6 @@ public class QuadTreeBroadPhase : IBroadPhase
         _pairBuffer = new List<Pair>();
     }
 
-    #region IBroadPhase Members
 
     ///<summary>
     /// The number of proxies
@@ -181,7 +180,6 @@ public class QuadTreeBroadPhase : IBroadPhase
         _quadTree.RayCast(TransformRayCallback(callback), ref input);
     }
 
-    #endregion
 
     private AABB Fatten(ref AABB aabb)
     {

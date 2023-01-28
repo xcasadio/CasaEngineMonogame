@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +17,6 @@ namespace CasaEngine.World
     /// </summary>
     public class WorldInfo
     {
-        #region Fields
 
         private World m_World = null;
         //private TimeSpan m_StartTime;
@@ -27,9 +28,7 @@ namespace CasaEngine.World
         public int BotKilled;
         public int Score;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -66,13 +65,9 @@ namespace CasaEngine.World
             internal set;
         }
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -118,6 +113,5 @@ namespace CasaEngine.World
             return res;
         }
 
-        #endregion
     }
 }

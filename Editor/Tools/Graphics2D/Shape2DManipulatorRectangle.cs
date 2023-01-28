@@ -8,6 +8,7 @@ using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System.Windows.Forms;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace Editor.Tools.Graphics2D
 {

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,14 +19,11 @@ namespace CasaEngine.Gameplay.Actor
     public abstract class Actor2D
          : BaseObject, CasaEngineCommon.Design.IUpdateable
     {
-        #region Fields
 
         //protected Body m_Body;
         private Vector2 m_Position = new Vector2();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -44,9 +43,7 @@ namespace CasaEngine.Gameplay.Actor
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -68,11 +65,8 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        #endregion
 
-        #region Methods
 
-        #endregion
 
         public override BaseObject Clone()
         {

@@ -1,5 +1,4 @@
-﻿#region CPL License
-/*
+﻿/*
 Nuclex Framework
 Copyright (C) 2002-2010 Nuclex Development Labs
 
@@ -16,7 +15,6 @@ IBM Common Public License for more details.
 You should have received a copy of the IBM Common Public
 License along with this library
 */
-#endregion
 
 #if UNITTEST
 
@@ -31,7 +29,6 @@ namespace CasaEngine.Factory {
   [TestFixture]
   public class PrototypeFactoryTest {
 
-    #region interface IProduct
 
     /// <summary>Interface used for the product in the unit test</summary>
     private interface IProduct {
@@ -39,9 +36,7 @@ namespace CasaEngine.Factory {
       int Value { get; }
     }
 
-    #endregion // interface IProduct
 
-    #region class ConcretePrototype
 
     /// <summary>
     ///   Class derived from the abstract base to serve as concrete product for
@@ -81,7 +76,6 @@ namespace CasaEngine.Factory {
 
     }
 
-    #endregion // class ConcretePrototype
 
     /// <summary>
     ///   Tests whether the prototype-based factory behaves correctly by creating

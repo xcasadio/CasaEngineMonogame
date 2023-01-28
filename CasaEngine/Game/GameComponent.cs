@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,9 +8,9 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Game
 {
-    public class GameComponent 
-        : IGameComponent, 
-        IUpdateable, 
+    public class GameComponent
+        : IGameComponent,
+        IUpdateable,
         IDisposable
     {
         private bool enabled = true;

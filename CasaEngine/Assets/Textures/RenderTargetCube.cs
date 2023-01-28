@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2013, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,16 +25,15 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
 
-#endregion
 
 namespace CasaEngine.Asset
 {
@@ -49,7 +47,6 @@ namespace CasaEngine.Asset
     public sealed class RenderTargetCube : TextureCube
     {
 
-        #region Variables
 
         // XNA Render target.
         private Microsoft.Xna.Framework.Graphics.RenderTargetCube renderTarget;
@@ -59,13 +56,11 @@ namespace CasaEngine.Asset
 
         // Indicates if this render target is currently used and if its information has to be preserved.
         private bool looked;
-        
+
         // Remember the last render targets we set. We can enable up to four render targets at once.
         private static RenderTargetCube currentRenderTarget;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Return the render target texture. In XNA 4.0 the render target it's a texture.
@@ -105,9 +100,7 @@ namespace CasaEngine.Asset
         /// </summary>
         public static RenderTargetCube CurrentRenderTarget { get { return currentRenderTarget; } }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Creates a render target for render to textures. Use size type constructor for screen relative sizes.
@@ -149,9 +142,7 @@ namespace CasaEngine.Asset
             Create();
         } // RenderTarget
 
-        #endregion
 
-        #region Create
 
         /// <summary>
         /// Creates render target.
@@ -174,9 +165,7 @@ namespace CasaEngine.Asset
             }
         } // Create
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -187,9 +176,7 @@ namespace CasaEngine.Asset
             renderTarget.Dispose();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Recreate Resource
 
         /// <summary>
         /// Useful when the XNA device is disposed.
@@ -199,9 +186,7 @@ namespace CasaEngine.Asset
             Create();
         } // RecreateResource
 
-        #endregion
 
-        #region Enable Render Target
 
         /// <summary>
         /// Set render target for render.
@@ -214,17 +199,15 @@ namespace CasaEngine.Asset
             currentRenderTarget = this;
             alreadyResolved = false;
         } // EnableRenderTarget
-        
-        #endregion
 
-        #region Clear
+
 
         /// <summary>
         /// Clear render target.
         /// This method will only work if the render target was set before with SetRenderTarget.
         /// </summary>
         public void Clear(Color clearColor)
-        {            
+        {
             if (currentRenderTarget != this)
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
             if (DepthFormat == DepthFormat.None)
@@ -240,15 +223,13 @@ namespace CasaEngine.Asset
         /// This is the same as calling Clear from the first render target.
         /// </summary>
         public static void ClearCurrentRenderTargets(Color clearColor)
-        {            
+        {
             if (currentRenderTarget == null)
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
             currentRenderTarget.Clear(clearColor);
         } // Clear
 
-        #endregion
 
-        #region Disable Render Target
 
         /// <summary>
         /// Resolve render target.
@@ -277,9 +258,7 @@ namespace CasaEngine.Asset
             Engine.Instance.Game.GraphicsDevice.SetRenderTarget(null);
         } // DisableCurrentRenderTargets
 
-        #endregion
-        
-        #region Pool
+
 
         // A pool of all render targets.
         private static readonly List<RenderTargetCube> renderTargets = new List<RenderTargetCube>(0);
@@ -339,7 +318,6 @@ namespace CasaEngine.Asset
             renderTargets.Clear();
         } // ClearRenderTargetPool
 
-        #endregion
-        
+
     } // RenderTargetCube
 } // CasaEngine.Asset

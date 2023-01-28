@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,19 +18,12 @@ namespace CasaEngine.Gameplay.Actor.Event
     /// </summary>
     public partial class PlaySoundEvent
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -52,6 +47,5 @@ namespace CasaEngine.Gameplay.Actor.Event
             bw_.Write(m_AssetName);
         }
 
-        #endregion
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,16 +12,13 @@ namespace CasaEngineCommon.Config
     /// </summary>
     public class IniFile
     {
-        #region Fields
 
         private Hashtable Sections = new Hashtable();
         private string sFileName;
 
         private const string newline = "\r\n";
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Empty ini file
@@ -40,9 +37,7 @@ namespace CasaEngineCommon.Config
                 Load(fileName);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// Ajoute une section [section] au fichier ini
@@ -206,7 +201,6 @@ namespace CasaEngineCommon.Config
             str.Close();
         }
 
-        #endregion
 
         /// <summary>
         ///   Structure de donnée des sections

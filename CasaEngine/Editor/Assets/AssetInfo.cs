@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +24,7 @@ namespace CasaEngine.Editor.Assets
     {
         static private int FreeID = 0;
 
-        public int ID; 
+        public int ID;
         public string Name;
         public string FileName;
         public AssetType Type;
@@ -55,9 +57,9 @@ namespace CasaEngine.Editor.Assets
         {
             if (obj is AssetInfo)
             {
-                AssetInfo a = (AssetInfo) obj;
-                return a.Name.Equals(Name) 
-                    && a.Type.Equals(Type) 
+                AssetInfo a = (AssetInfo)obj;
+                return a.Name.Equals(Name)
+                    && a.Type.Equals(Type)
                     && a.FileName.Equals(FileName);
             }
 

@@ -20,7 +20,6 @@ namespace CasaEngineCommon.Logger
             None
         }
 
-		#region Fields
 
         static private LogManager m_Instance = null; 
 
@@ -32,9 +31,7 @@ namespace CasaEngineCommon.Logger
         private LogVerbosity m_Verbosity = LogVerbosity.Normal;
 #endif
 
-		#endregion
 
-		#region Properties
 
         /// <summary>
         /// Gets
@@ -60,13 +57,9 @@ namespace CasaEngineCommon.Logger
             set { m_Verbosity = value; }
         }
 
-		#endregion
 
-		#region Constructors
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// 
@@ -221,6 +214,5 @@ namespace CasaEngineCommon.Logger
             WriteLineError(strBldr.ToString());
 		}
 
-		#endregion
 	}
 }

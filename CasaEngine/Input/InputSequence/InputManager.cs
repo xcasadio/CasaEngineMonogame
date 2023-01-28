@@ -1,25 +1,24 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // InputManager.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework;
-#endregion
+
 
 namespace CasaEngine.Input
 {
-	/// <summary>
-	/// 
-	/// </summary>
+    /// <summary>
+    /// 
+    /// </summary>
     public partial class InputManager
     {
         /// <summary>
@@ -80,7 +79,7 @@ namespace CasaEngine.Input
         //public readonly TimeSpan MergeInputTime = TimeSpan.FromMilliseconds(100);
         public readonly float MergeInputTime = 0.1f;
 
-		/*public InputConfigurations m_InputConfigurations = new InputConfigurations();
+        /*public InputConfigurations m_InputConfigurations = new InputConfigurations();
 		public string m_CurrentInputConfig;
 
         public PlayerIndex PlayerIndex { get; private set; }
@@ -290,7 +289,7 @@ namespace CasaEngine.Input
                     Dictionary<int, KeyState> tmp = new Dictionary<int, KeyState>();
 
                     foreach (KeyState k2 in keysState_)
-                    {                        
+                    {
                         i = 0;
                         found = false;
 
@@ -305,7 +304,7 @@ namespace CasaEngine.Input
                                     && k2.State == ButtonState.Pressed
                                     /*&& verif released == false*/)
                                 {
-                                    tmp.Add(i, k1);                                    
+                                    tmp.Add(i, k1);
                                     KeyState ks = new KeyState();
                                     ks.Key = k1.Key;
                                     ks.State = k1.State;
@@ -361,7 +360,7 @@ namespace CasaEngine.Input
                             {
                                 m_Buffer[last].KeysState.Remove(pair.Value);
                             }
-                        }                        
+                        }
                     }
 
                     //Check empty buffer (can append if held button is detected)

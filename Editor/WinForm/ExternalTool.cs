@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +13,6 @@ namespace Editor.WinForm
 	/*public abstract class ExternalTool
         : IExternalTool
 	{
-		#region Fields
 
         static public SaveProjectDelegate SaveProject = null;
 
@@ -21,9 +20,7 @@ namespace Editor.WinForm
 
         private EditorForm m_Form = null;
 
-		#endregion
 
-		#region Properties
 
         /// <summary>
         /// Gets
@@ -44,13 +41,9 @@ namespace Editor.WinForm
             }
         }
 
-		#endregion
 
-		#region Constructors
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// 
@@ -70,7 +63,6 @@ namespace Editor.WinForm
 			Close();
 		}
 
-		#region ExternalTool Members
 
 		/// <summary>
 		/// 
@@ -123,8 +115,6 @@ namespace Editor.WinForm
 		/// <returns></returns>
 		public abstract string GetMenuToolName();
 
-		#endregion
 
-		#endregion
 	}*/
 }

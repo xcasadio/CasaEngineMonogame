@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2013, Schneider, José Ignacio.
 All rights reserved.
@@ -25,11 +24,10 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
-#endregion
+
+
 
 namespace XNAFinalEngine.Helpers
 {
@@ -49,7 +47,6 @@ namespace XNAFinalEngine.Helpers
     public static class ProcessorsInformation
     {
 
-        #region Properties
 
         /// <summary>
         /// The number of processors availables. 
@@ -61,26 +58,23 @@ namespace XNAFinalEngine.Helpers
         /// The desired affinity of the Xbox 360 hardware threads. This not include the application thread.
         /// </summary>
         public static int[] ProcessorsAffinity { get; private set; }
-        
-        #endregion
 
-        #region Constructor
+
 
         /// <summary>
         /// Obtain the number of logical cores available for multithreading.
         /// </summary>
         static ProcessorsInformation()
         {
-            #if XBOX 
+#if XBOX
                 // http://msdn.microsoft.com/en-us/library/microsoft.xna.net_cf.system.threading.thread.setprocessoraffinity.aspx
                 AvailableProcessors = 3;
                 ProcessorsAffinity = new [] { 3, 4, 5 };
-            #else
-                AvailableProcessors = Environment.ProcessorCount - 1; // Minus the application thread.
-            #endif
+#else
+            AvailableProcessors = Environment.ProcessorCount - 1; // Minus the application thread.
+#endif
         } // ProcessorsInformation
 
-        #endregion
 
     } // ProcessorsInformation
 } // XNAFinalEngine.Helpers

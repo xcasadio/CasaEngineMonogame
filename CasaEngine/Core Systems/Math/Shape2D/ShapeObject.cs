@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,16 +24,13 @@ namespace CasaEngine.Math.Shape2D
         : INotifyPropertyChanged
 #endif
     {
-        #region Fields
 
         private Shape2DType m_Type;
         private Point m_Location = Point.Zero;
         private float m_Rotation = 0.0f;
         private int m_Flag = 0;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -53,8 +52,8 @@ namespace CasaEngine.Math.Shape2D
         public int Flag
         {
             get { return m_Flag; }
-            set 
-            { 
+            set
+            {
                 m_Flag = value;
 #if EDITOR
                 NotifyPropertyChanged("Flag");
@@ -71,8 +70,8 @@ namespace CasaEngine.Math.Shape2D
         public Point Location
         {
             get { return m_Location; }
-            set 
-            { 
+            set
+            {
                 m_Location = value;
 #if EDITOR
                 NotifyPropertyChanged("Location");
@@ -89,8 +88,8 @@ namespace CasaEngine.Math.Shape2D
         public float Rotation
         {
             get { return m_Rotation; }
-            set 
-            { 
+            set
+            {
                 m_Rotation = value;
 #if EDITOR
                 NotifyPropertyChanged("Rotation");
@@ -98,9 +97,7 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -117,11 +114,8 @@ namespace CasaEngine.Math.Shape2D
             CopyFrom(o_);
         }
 
-        #endregion
 
-        #region Methods
 
-        #region Load
 
         /// <summary>
         /// 
@@ -178,7 +172,6 @@ namespace CasaEngine.Math.Shape2D
             m_Flag = int.Parse(el_.Attributes["flag"].Value);
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -216,6 +209,5 @@ namespace CasaEngine.Math.Shape2D
 
         }
 
-        #endregion
     }
 }

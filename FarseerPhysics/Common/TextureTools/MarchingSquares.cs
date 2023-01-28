@@ -263,7 +263,6 @@ namespace FarseerPhysics.Common
             return verticesList;
         }
 
-        #region Private Methods
 
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -474,11 +473,8 @@ namespace FarseerPhysics.Common
             }
         }
 
-        #endregion
 
-        #region CxFastList from nape physics
 
-        #region Nested type: CxFastList
 
         /// <summary>
         /// Designed as a complete port of CxFastList from CxStd.
@@ -730,9 +726,7 @@ namespace FarseerPhysics.Common
             }
         }
 
-        #endregion
 
-        #region Nested type: CxFastListNode
 
         internal class CxFastListNode<T>
         {
@@ -755,13 +749,9 @@ namespace FarseerPhysics.Common
             }
         }
 
-        #endregion
 
-        #endregion
 
-        #region Internal Stuff
 
-        #region Nested type: GeomPoly
 
         internal class GeomPoly
         {
@@ -775,9 +765,7 @@ namespace FarseerPhysics.Common
             }
         }
 
-        #endregion
 
-        #region Nested type: GeomPolyVal
 
         private class GeomPolyVal
         {
@@ -793,8 +781,6 @@ namespace FarseerPhysics.Common
             }
         }
 
-        #endregion
 
-        #endregion
     }
 }

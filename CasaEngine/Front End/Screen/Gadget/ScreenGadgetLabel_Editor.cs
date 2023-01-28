@@ -1,5 +1,7 @@
 ﻿
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,17 +16,12 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
     /// </summary>
     public partial class ScreenGadgetLabel
     {
-        #region Fields
 
         public static int num = 0;
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -36,10 +33,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             Height = 80;
         }
 
-        #endregion
 
-        #region Methods
 
-        #endregion
     }
 }

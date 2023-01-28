@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using CasaEngine.Asset;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -26,7 +23,6 @@ namespace XNAFinalEngine.UserInterface
     public class ImageBox : Control
     {
 
-        #region Variables
 
         /// <summary>
         /// Texture.
@@ -44,9 +40,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private Rectangle sourceRectangle = Rectangle.Empty;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Texture.
@@ -73,17 +67,17 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (texture != null)
                 {
-                    int left   = value.Left;
-                    int top    = value.Top;
-                    int width  = value.Width;
+                    int left = value.Left;
+                    int top = value.Top;
+                    int width = value.Width;
                     int height = value.Height;
 
                     if (left < 0) left = 0;
-                    if (top < 0)  top = 0;
-                    if (width  > texture.Width)  width = texture.Width;
+                    if (top < 0) top = 0;
+                    if (width > texture.Width) width = texture.Width;
                     if (height > texture.Height) height = texture.Height;
-                    if (left + width  > texture.Width)  width  = (texture.Width  - left);
-                    if (top  + height > texture.Height) height = (texture.Height - top);
+                    if (left + width > texture.Width) width = (texture.Width - left);
+                    if (top + height > texture.Height) height = (texture.Height - top);
 
                     sourceRectangle = new Rectangle(left, top, width, height);
                 }
@@ -112,7 +106,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (value == SizeMode.Auto && texture != null)
                 {
-                    Width  = texture.Width;
+                    Width = texture.Width;
                     Height = texture.Height;
                 }
                 sizeMode = value;
@@ -121,16 +115,12 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SizeMode
 
-        #endregion
 
-        #region Events
 
         public event EventHandler ImageChanged;
         public event EventHandler SizeModeChanged;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Image Box.
@@ -143,9 +133,7 @@ namespace XNAFinalEngine.UserInterface
             SetDefaultSize(50, 50);
         } // ImageBox
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -158,9 +146,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -179,7 +165,7 @@ namespace XNAFinalEngine.UserInterface
                         UserInterfaceManager.Renderer.Draw(texture.Resource, rect, sourceRectangle, Color);
                         break;
                     case SizeMode.Centered:
-                        int x = (rect.Width  / 2) - (texture.Width  / 2);
+                        int x = (rect.Width / 2) - (texture.Width / 2);
                         int y = (rect.Height / 2) - (texture.Height / 2);
                         UserInterfaceManager.Renderer.Draw(texture.Resource, x, y, sourceRectangle, Color);
                         break;
@@ -202,9 +188,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region On Image Changed, On Size Mode Changed
 
         protected virtual void OnImageChanged(EventArgs e)
         {
@@ -216,7 +200,6 @@ namespace XNAFinalEngine.UserInterface
             if (SizeModeChanged != null) SizeModeChanged.Invoke(this, e);
         } // OnSizeModeChanged
 
-        #endregion
 
     } // ImageBox
 } // XNAFinalEngine.UserInterface

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,15 +18,10 @@ namespace CasaEngine.Math.Shape2D
     public partial class ShapeLine
         : Shape2DObject
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -36,9 +33,7 @@ namespace CasaEngine.Math.Shape2D
             m_End = end_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -94,6 +89,5 @@ namespace CasaEngine.Math.Shape2D
             return "Line - " + m_Start.ToString() + " - " + m_End.ToString();
         }
 
-        #endregion
     }
 }

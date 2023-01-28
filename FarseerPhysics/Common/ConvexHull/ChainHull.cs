@@ -110,7 +110,6 @@ namespace FarseerPhysics.Common.ConvexHull
             return res;
         }
 
-        #region Nested type: PointComparer
 
         public class PointComparer : Comparer<Vector2>
         {
@@ -121,6 +120,5 @@ namespace FarseerPhysics.Common.ConvexHull
             }
         }
 
-        #endregion
     }
 }

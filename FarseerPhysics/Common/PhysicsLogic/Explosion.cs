@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using FarseerPhysics.Collision;
@@ -21,7 +21,6 @@ namespace FarseerPhysics.Common.PhysicsLogic
     /// </summary>
     internal class RayDataComparer : IComparer<float>
     {
-        #region IComparer<float> Members
 
         int IComparer<float>.Compare(float a, float b)
         {
@@ -33,7 +32,6 @@ namespace FarseerPhysics.Common.PhysicsLogic
             return 0;
         }
 
-        #endregion
     }
 
     /* Methodology:

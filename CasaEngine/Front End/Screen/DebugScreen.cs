@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,16 +16,13 @@ namespace CasaEngine.FrontEnd.Screen
     public class DebugScreen
         : Screen
     {
-        #region Fields
 
         int selectedEntry = 0;
-		string menuTitle;
+        string menuTitle;
 
-		Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent m_Renderer2DComponent = null;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
 		/// 
@@ -31,18 +30,17 @@ namespace CasaEngine.FrontEnd.Screen
 		/// <param name="menuTitle"></param>
 		/// <param name="menuName_"></param>
         public DebugScreen(string menuTitle, string menuName_)
-			: base(menuName_)
-		{
-			this.menuTitle = menuTitle;
+            : base(menuName_)
+        {
+            this.menuTitle = menuTitle;
 
-			TransitionOnTime = TimeSpan.FromSeconds(0.5);
-			TransitionOffTime = TimeSpan.FromSeconds(0.5);
+            TransitionOnTime = TimeSpan.FromSeconds(0.5);
+            TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-			m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
-		}
+            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+        }
 
-        #endregion
     }
 
-    
+
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,19 +10,18 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Graphics2D.Tile
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public abstract
+    /// <summary>
+    /// 
+    /// </summary>
+    public abstract
 #if EDITOR
-	partial
+    partial
 #endif
-	class TileLayer
-	{
-		#region Fields
+    class TileLayer
+    {
 
         private GraphicsDeviceManager m_Graphics;
-		/*private Renderer2DComponent m_Renderer2DComponent = null;*/
+        /*private Renderer2DComponent m_Renderer2DComponent = null;*/
 
         private Vector2 worldOffset;
         protected bool visibilityChanged;
@@ -34,14 +35,12 @@ namespace CasaEngine.Graphics2D.Tile
         private Vector2 displaySize;
         private Color layerColor = Color.White;
 
-        #endregion
 
-		#region Properties
 
-		/// <summary>
-		/// Gets/Sets(Editor only)
-		/// </summary>
-		/*public Renderer2DComponent Renderer2DComponent
+        /// <summary>
+        /// Gets/Sets(Editor only)
+        /// </summary>
+        /*public Renderer2DComponent Renderer2DComponent
 		{
 #if EDITOR
 			protected 
@@ -52,113 +51,111 @@ namespace CasaEngine.Graphics2D.Tile
 #endif
 		}*/
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		protected Vector2 DisplaySize
-		{
-			get { return displaySize; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        protected Vector2 DisplaySize
+        {
+            get { return displaySize; }
+        }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		protected Matrix RotationMatrix
-		{
-			get { return rotationMatrix; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        protected Matrix RotationMatrix
+        {
+            get { return rotationMatrix; }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public Vector2 CameraPosition
-		{
-			set
-			{
-				cameraPositionValue = value;
-				visibilityChanged = true;
-			}
-			get
-			{
-				return cameraPositionValue;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector2 CameraPosition
+        {
+            set
+            {
+                cameraPositionValue = value;
+                visibilityChanged = true;
+            }
+            get
+            {
+                return cameraPositionValue;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public float CameraRotation
-		{
-			set
-			{
-				rotationValue = value;
-				rotationMatrix = Matrix.CreateRotationZ(rotationValue);
-				visibilityChanged = true;
-			}
-			get
-			{
-				return rotationValue;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public float CameraRotation
+        {
+            set
+            {
+                rotationValue = value;
+                rotationMatrix = Matrix.CreateRotationZ(rotationValue);
+                visibilityChanged = true;
+            }
+            get
+            {
+                return rotationValue;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public float CameraZoom
-		{
-			set
-			{
-				zoomValue = value;
-				visibilityChanged = true;
-			}
-			get
-			{
-				return zoomValue;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public float CameraZoom
+        {
+            set
+            {
+                zoomValue = value;
+                visibilityChanged = true;
+            }
+            get
+            {
+                return zoomValue;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public Color Color
-		{
-			set
-			{
-				layerColor = value;
-			}
-			get
-			{
-				return layerColor;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public Color Color
+        {
+            set
+            {
+                layerColor = value;
+            }
+            get
+            {
+                return layerColor;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public Vector2 WorldOffset
-		{
-			set
-			{
-				worldOffset = value;
-				visibilityChanged = true;
-			}
-			get
-			{
-				return worldOffset;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector2 WorldOffset
+        {
+            set
+            {
+                worldOffset = value;
+                visibilityChanged = true;
+            }
+            get
+            {
+                return worldOffset;
+            }
+        }
 
-		#endregion
 
-        #region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="offset"></param>
-		/// <param name="graphicsComponent"></param>
-		/// <param name="Renderer2DComponent_"></param>
-		public TileLayer(Vector2 offset, GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="graphicsComponent"></param>
+        /// <param name="Renderer2DComponent_"></param>
+        public TileLayer(Vector2 offset, GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
         {
 #if !EDITOR
             if (graphicsComponent == null)
@@ -167,15 +164,15 @@ namespace CasaEngine.Graphics2D.Tile
             }
 #endif
 
-			/*if (Renderer2DComponent_ == null)
+            /*if (Renderer2DComponent_ == null)
 			{
 				throw new ArgumentException("TileLayer() : Renderer2DComponent is null");
-			}*/			
+			}*/
 
             m_Graphics = graphicsComponent;
-			/*m_Renderer2DComponent = Renderer2DComponent_;*/
+            /*m_Renderer2DComponent = Renderer2DComponent_;*/
 
-			InitializeGraphics();
+            InitializeGraphics();
 
             worldOffset = offset;
 
@@ -184,40 +181,36 @@ namespace CasaEngine.Graphics2D.Tile
             CameraPosition = Vector2.Zero;
         }
 
-		#endregion
 
-		#region Initialization
 
-		/// <summary>
-		/// 
-		/// </summary>
-		private void InitializeGraphics()
-		{
-			m_Graphics.DeviceReset +=
-				new EventHandler<EventArgs>(OnGraphicsComponentDeviceReset);
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitializeGraphics()
+        {
+            m_Graphics.DeviceReset +=
+                new EventHandler<EventArgs>(OnGraphicsComponentDeviceReset);
 
-			OnGraphicsComponentDeviceReset(this, new EventArgs());
-		}
+            OnGraphicsComponentDeviceReset(this, new EventArgs());
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void OnGraphicsComponentDeviceReset(object sender, EventArgs e)
         {
-            displaySize.X = 
+            displaySize.X =
                 m_Graphics.GraphicsDevice.PresentationParameters.BackBufferWidth;
-            
-            displaySize.Y = 
+
+            displaySize.Y =
                 m_Graphics.GraphicsDevice.PresentationParameters.BackBufferHeight;
-            
+
             visibilityChanged = true;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// This function determines which tiles are visible on the screen,
@@ -228,23 +221,23 @@ namespace CasaEngine.Graphics2D.Tile
             visibilityChanged = false;
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void Update()
-		{
-			if (visibilityChanged) DetermineVisibility();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Update()
+        {
+            if (visibilityChanged) DetermineVisibility();
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="batch"></param>
-		protected abstract void DrawTiles(SpriteBatch batch);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="batch"></param>
+        protected abstract void DrawTiles(SpriteBatch batch);
 
-		/// <summary>
-		/// 
-		/// </summary>
+        /// <summary>
+        /// 
+        /// </summary>
         public void Draw(SpriteBatch batch)
         {
             DrawTiles(batch);
@@ -252,6 +245,5 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        #endregion
-	}
+    }
 }

@@ -17,12 +17,10 @@ namespace Editor.World
     public partial class WorldEditorForm
         : DockContent, IEditorForm
     {
-        #region Fields
 
         XnaEditorForm m_XnaEditorForm;
         UndoRedoManager m_UndoRedoManager;
 
-        #endregion
 
         /// <summary>
         /// 
@@ -60,7 +58,6 @@ namespace Editor.World
             m_XnaEditorForm.StartGame();
         }
 
-        #region Undo/Redo
 
         /// <summary>
         /// 
@@ -138,6 +135,5 @@ namespace Editor.World
             redoToolStripMenuItem.Enabled = m_UndoRedoManager.CanRedo;*/
         }
 
-        #endregion
     }
 }

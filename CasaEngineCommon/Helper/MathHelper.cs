@@ -12,7 +12,6 @@ namespace CasaEngineCommon.Helper
     /// </summary>
     public static class MathHelper
 	{
-		#region Ray
 
 		// CalculateCursorRay Calculates a world space ray starting at the camera's
 		// "eye" and pointing in the direction of the cursor. Viewport.Unproject is used
@@ -233,7 +232,6 @@ namespace CasaEngineCommon.Helper
 			result = rayDistance;
 		}
 
-		#endregion
 
 		/// <summary>
         /// Interpolates between two values using a cubic equation.

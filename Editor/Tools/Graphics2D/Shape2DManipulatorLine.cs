@@ -9,6 +9,8 @@ using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
 using System.Windows.Forms;
 using Editor.UndoRedo;
+using Color = Microsoft.Xna.Framework.Color;
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace Editor.Tools.Graphics2D
 {

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +25,6 @@ namespace CasaEngine.Editor.Assets
     /// </summary>
     public class AssetManager
     {
-        #region Fields
 
         static private readonly uint m_Version = 1;
 
@@ -37,9 +38,7 @@ namespace CasaEngine.Editor.Assets
         private FileSystemWatcher m_FileWatcher;
         private List<string> m_AssetToCopy = new List<string>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -49,9 +48,7 @@ namespace CasaEngine.Editor.Assets
             get { return m_Assets.ToArray(); }
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -67,9 +64,7 @@ namespace CasaEngine.Editor.Assets
             m_FileWatcher.Created += new FileSystemEventHandler(m_FileWatcher_Created);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -84,7 +79,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        #region Build
 
         /// <summary>
         /// 
@@ -195,15 +189,15 @@ namespace CasaEngine.Editor.Assets
 #endif
             }
 
-            foreach(string file in m_AssetToCopy)
+            foreach (string file in m_AssetToCopy)
             {
                 File.Copy(
-                    file, 
+                    file,
                     /*GameInfo.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.XNBDirPath + Path.DirectorySeparatorChar + Path.GetFileName(file)*/
-                    Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file), 
+                    Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file),
                     true);
             }
-            
+
             m_AssetToCopy.Clear();
             m_ContentBuilder.Clear();
 
@@ -418,13 +412,11 @@ namespace CasaEngine.Editor.Assets
 
                 default:
                     throw new ArgumentException("No processor for asset undefined type");
-                //return null;
+                    //return null;
             }
         }
 
-        #endregion
 
-        #region Assets
 
         /// <summary>
         /// 
@@ -576,7 +568,7 @@ namespace CasaEngine.Editor.Assets
                     && info.Type == type_)
                 {
                     DeleteAsset(info);
-                }                
+                }
             }
         }
 
@@ -639,12 +631,12 @@ namespace CasaEngine.Editor.Assets
                     else
                     {
                         SourceControlManager.Instance.SourceControl.MarkFileForDelete(fileName_);
-                    }                    
+                    }
                 }
                 else
                 {
                     File.Delete(fileName_);
-                }               
+                }
             }
             else
             {
@@ -672,9 +664,7 @@ namespace CasaEngine.Editor.Assets
             return res.ToArray();
         }
 
-        #endregion
 
-        #region Load/Save
 
         /// <summary>
         /// 
@@ -701,7 +691,7 @@ namespace CasaEngine.Editor.Assets
 
                 foreach (AssetBuildParam param in info.Params)
                 {
-                    XmlElement buildNode = el_.OwnerDocument.CreateElement("BuildParameter");                    
+                    XmlElement buildNode = el_.OwnerDocument.CreateElement("BuildParameter");
                     param.Save(buildNode);
                     paramNodes.AppendChild(buildNode);
                 }
@@ -714,7 +704,7 @@ namespace CasaEngine.Editor.Assets
             {
 #endif
 
-                SaveAssetBuildInfo();
+            SaveAssetBuildInfo();
 
 #if !DEBUG
             }
@@ -737,7 +727,7 @@ namespace CasaEngine.Editor.Assets
             m_Assets.Clear();
 
             foreach (XmlNode node in el_.SelectNodes(ProjectManager.NodeAssetName))
-            {                
+            {
                 AssetInfo info = new AssetInfo(
                     0,
                     node.Attributes["name"].Value,
@@ -784,19 +774,19 @@ namespace CasaEngine.Editor.Assets
                 }*/
 
                 m_AssetBuildInfo.Clear();
-                
+
 #if !DEBUG
                 try
                 {
 #endif
 
-                    LoadAssetBuildInfo();
+                LoadAssetBuildInfo();
 
 #if !DEBUG
                 }
                 catch { }
 #endif
-            }    
+            }
 
             return true;
         }
@@ -832,7 +822,7 @@ namespace CasaEngine.Editor.Assets
                 }
 
                 m_AssetBuildInfo.Add(info);
-            }            
+            }
         }
 
         /// <summary>
@@ -844,44 +834,44 @@ namespace CasaEngine.Editor.Assets
             try
             {
 #endif
-                string buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
-                
-                if (Directory.Exists(Path.GetDirectoryName(buildFile)) == false)
+            string buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
+
+            if (Directory.Exists(Path.GetDirectoryName(buildFile)) == false)
+            {
+                try
                 {
-                    try
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(buildFile));
-                    }
-                    catch (Exception e)
-                    {
-                        LogManager.Instance.WriteException(e);
-                        return;
-                    }                    
+                    Directory.CreateDirectory(Path.GetDirectoryName(buildFile));
                 }
-
-                XmlDocument xmlDoc = new XmlDocument();
-                XmlElement elRoot = xmlDoc.AddRootNode("AssetBuildInfo");
-
-                foreach (AssetBuildInfo info in m_AssetBuildInfo)
+                catch (Exception e)
                 {
-                    XmlElement node = xmlDoc.CreateElement("BuildInfo");
-                    elRoot.AppendChild(node);
-
-                    xmlDoc.AddAttribute(node, "id", info.ID.ToString());
-                    xmlDoc.AddAttribute(node, "date", info.ModificationTime.ToString());
-
-                    XmlElement paramNodes = xmlDoc.CreateElement("BuildParameterList");
-                    node.AppendChild(paramNodes);
-
-                    foreach (AssetBuildParam param in info.Params)
-                    {
-                        XmlElement buildNode = xmlDoc.CreateElement("BuildParameter");
-                        param.Save(buildNode);
-                        paramNodes.AppendChild(buildNode);
-                    }
+                    LogManager.Instance.WriteException(e);
+                    return;
                 }
+            }
 
-                xmlDoc.Save(buildFile);
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlElement elRoot = xmlDoc.AddRootNode("AssetBuildInfo");
+
+            foreach (AssetBuildInfo info in m_AssetBuildInfo)
+            {
+                XmlElement node = xmlDoc.CreateElement("BuildInfo");
+                elRoot.AppendChild(node);
+
+                xmlDoc.AddAttribute(node, "id", info.ID.ToString());
+                xmlDoc.AddAttribute(node, "date", info.ModificationTime.ToString());
+
+                XmlElement paramNodes = xmlDoc.CreateElement("BuildParameterList");
+                node.AppendChild(paramNodes);
+
+                foreach (AssetBuildParam param in info.Params)
+                {
+                    XmlElement buildNode = xmlDoc.CreateElement("BuildParameter");
+                    param.Save(buildNode);
+                    paramNodes.AppendChild(buildNode);
+                }
+            }
+
+            xmlDoc.Save(buildFile);
 #if !DEBUG
             }
             catch (System.Exception e)
@@ -891,7 +881,6 @@ namespace CasaEngine.Editor.Assets
 #endif
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -927,6 +916,5 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        #endregion
     }
 }

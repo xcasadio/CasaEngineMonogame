@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2011, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -27,12 +26,11 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace XNAFinalEngine.Helpers
 {
@@ -56,15 +54,12 @@ namespace XNAFinalEngine.Helpers
     public class Curve3D
     {
 
-        #region Variables
 
         private Curve curveX = new Curve();
         private Curve curveY = new Curve();
         private Curve curveZ = new Curve();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// The PreLoop and PostLoop types determine how the curve will interpret positions before the first key or after the last key.
@@ -109,9 +104,7 @@ namespace XNAFinalEngine.Helpers
         /// </summary>
         public bool IsClose { get; private set; }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Curve 3D. Assumes that the firts point it's allways 0.
@@ -122,9 +115,7 @@ namespace XNAFinalEngine.Helpers
             CurveTotalTime = 0;
         } // Curve3D
 
-        #endregion
 
-        #region Add Point
 
         /// <summary>
         /// Add a point to the curve. Assumes that the firts point it's allways 0.
@@ -147,9 +138,7 @@ namespace XNAFinalEngine.Helpers
             AddPoint(point, time, Matrix.Identity);
         } // AddPoint
 
-        #endregion
 
-        #region Close
 
         /// <summary>
         /// Close the curve
@@ -165,9 +154,7 @@ namespace XNAFinalEngine.Helpers
             }
         } // Close
 
-        #endregion
 
-        #region Get point
 
         /// <summary>
         /// Get point
@@ -176,10 +163,8 @@ namespace XNAFinalEngine.Helpers
         {
             return new Vector3(curveX.Evaluate(time), curveY.Evaluate(time), curveZ.Evaluate(time));
         } // GetPoint
-        
-        #endregion
 
-        #region Reparametrize
+
 
         /// <summary>
         /// Reparametrize a curve.
@@ -203,9 +188,7 @@ namespace XNAFinalEngine.Helpers
             BuildTangents();
         } // Reparametrize
 
-        #endregion
 
-        #region Set Tangents
 
         /// <summary>
         /// Build tangents. The tangents of the CurveKeys control the shape of the Curve.
@@ -279,7 +262,7 @@ namespace XNAFinalEngine.Helpers
                 dv = prev.Value - next.Value;
             else
                 dv = next.Value - prev.Value;
-                
+
             if (Math.Abs(dv) < float.Epsilon)
             {
                 cur.TangentIn = 0;
@@ -293,9 +276,7 @@ namespace XNAFinalEngine.Helpers
             }
         } // SetCurveKeyTangent
 
-        #endregion
 
-        #region Circle (static)
 
         /// <summary>
         /// Circle
@@ -323,9 +304,7 @@ namespace XNAFinalEngine.Helpers
             return Circle(Matrix.Identity, radius, 50);
         } // Circle
 
-        #endregion
 
-        #region Polygon (static)
 
         /// <summary>
         /// Polygon.
@@ -366,9 +345,7 @@ namespace XNAFinalEngine.Helpers
             return Polygon(Matrix.Identity, sideLength, sides, buildTangents);
         } // Polygon
 
-        #endregion
 
-        #region Hexagon (static)
 
         /// <summary>
         /// Hexagon.
@@ -416,7 +393,6 @@ namespace XNAFinalEngine.Helpers
             return Hexagon(Matrix.Identity, sideLength, buildTangents);
         } // Hexagon
 
-        #endregion
 
     } // Curve3D
 } // XNAFinalEngine.Helpers

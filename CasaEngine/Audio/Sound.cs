@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,14 +15,11 @@ namespace CasaEngine.Audio
     public class Sound
         : BaseObject
     {
-        #region Fields
 
         SoundEffect m_SoundEffect;
         SoundEffectInstance m_SoundEffectInstance;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -31,9 +30,7 @@ namespace CasaEngine.Audio
             set { m_SoundEffectInstance = value; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -49,9 +46,7 @@ namespace CasaEngine.Audio
             m_SoundEffect = soundEffect_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -75,6 +70,5 @@ namespace CasaEngine.Audio
             throw new Exception("The method or operation is not implemented.");
         }
 
-        #endregion
     }
 }

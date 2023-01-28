@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +18,7 @@ using FarseerPhysics.Dynamics.Joints;
 using FarseerPhysics.Controllers;
 using System.Diagnostics;
 
+
 namespace CasaEngine.Helper
 {
     /// <summary>
@@ -26,10 +29,9 @@ namespace CasaEngine.Helper
     /// A debug view shows you what happens inside the physics engine. You can view
     /// bodies, joints, fixtures and more.
     /// </summary>
-    public class ShapeRenderer 
+    public class ShapeRenderer
         : DebugView, IDisposable
     {
-        #region Fields
 
         //Drawing
         private PrimitiveBatch _primitiveBatch;
@@ -87,13 +89,9 @@ namespace CasaEngine.Helper
         public const int CircleSegments = 32;
 #endif
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -116,7 +114,7 @@ namespace CasaEngine.Helper
                 EnableOrDisableFlag(DebugViewFlags.Controllers);            
                 EnableOrDisableFlag(DebugViewFlags.CenterOfMass);
                 EnableOrDisableFlag(DebugViewFlags.AABB);*/
-            }           
+            }
 
             DefaultShapeColor = Color.White;
             SleepingShapeColor = Color.LightGray;
@@ -125,9 +123,7 @@ namespace CasaEngine.Helper
             Settings.EnableDiagnostics = true;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -164,7 +160,6 @@ namespace CasaEngine.Helper
             _primitiveBatch.End();
         }
 
-        #region IDisposable Members
 
         /// <summary>
         /// 
@@ -174,7 +169,6 @@ namespace CasaEngine.Helper
             World.ContactManager.PreSolve -= PreSolve;
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -968,9 +962,7 @@ namespace CasaEngine.Helper
             _localView = Matrix.Identity;
         }
 
-        #endregion
 
-        #region Nested type: ContactPoint
 
         /// <summary>
         /// 
@@ -982,9 +974,7 @@ namespace CasaEngine.Helper
             public PointState State;
         }
 
-        #endregion
 
-        #region Nested type: StringData
 
         /// <summary>
         /// 
@@ -1006,6 +996,5 @@ namespace CasaEngine.Helper
             }
         }
 
-        #endregion
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +18,8 @@ using CasaEngineCommon.Design;
 using CasaEngine.Game;
 using CasaEngine.Gameplay.Actor.Object;
 
+
+
 #if EDITOR
 using System.ComponentModel;
 using CasaEngine.Editor.Assets;
@@ -24,25 +28,24 @@ using CasaEngine.Project;
 
 namespace CasaEngine.Assets.Graphics2D
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public
+    /// <summary>
+    /// 
+    /// </summary>
+    public
 #if EDITOR
-	partial
+    partial
 #endif
-	class Sprite2D
+    class Sprite2D
         : BaseObject
 #if EDITOR
          , INotifyPropertyChanged, IAssetable
 #endif
-	{
-		#region Fields
+    {
 
-		//constant
-		private Texture2D m_Texture2D = null;
-		private Rectangle m_PositionInTexture = new Rectangle();
-		private Point m_Origin = Point.Zero;
+        //constant
+        private Texture2D m_Texture2D = null;
+        private Rectangle m_PositionInTexture = new Rectangle();
+        private Point m_Origin = Point.Zero;
 
 #if EDITOR
         private List<Shape2DObject> m_Collisions = new List<Shape2DObject>();
@@ -54,21 +57,19 @@ namespace CasaEngine.Assets.Graphics2D
 
         private List<string> m_AssetFileNames = new List<string>();
 
-		#endregion
 
-		#region Properties
 
-		/// <summary>
-		/// Gets texture 2D
-		/// </summary>
+        /// <summary>
+        /// Gets texture 2D
+        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
-		public Texture2D Texture2D
-		{
-			get { return m_Texture2D; }
-			internal set 
-            { 
+        public Texture2D Texture2D
+        {
+            get { return m_Texture2D; }
+            internal set
+            {
                 m_Texture2D = value;
 
 #if EDITOR                
@@ -78,104 +79,100 @@ namespace CasaEngine.Assets.Graphics2D
                 }
 #endif
             }
-		}
+        }
 
-		/// <summary>
-		/// Gets/Sets position in texture
-		/// </summary>
+        /// <summary>
+        /// Gets/Sets position in texture
+        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
-		public Rectangle PositionInTexture
-		{
-			get { return m_PositionInTexture; }
-			set 
-			{ 
-				m_PositionInTexture = value;
+        public Rectangle PositionInTexture
+        {
+            get { return m_PositionInTexture; }
+            set
+            {
+                m_PositionInTexture = value;
 #if EDITOR
-				NotifyPropertyChanged("PositionInTexture");
+                NotifyPropertyChanged("PositionInTexture");
 #endif
-			}
-		}
+            }
+        }
 
-		/// <summary>
-		/// Gets/Sets(editor) HotSpot
-		/// </summary>
+        /// <summary>
+        /// Gets/Sets(editor) HotSpot
+        /// </summary>
 #if EDITOR
         [Category("Sprite")]
 #endif
-		public Point HotSpot
-		{
-			get { return m_Origin; }
-			set 
-			{
-				//if (value != this.m_Origin)
-				{
-					this.m_Origin = value;
+        public Point HotSpot
+        {
+            get { return m_Origin; }
+            set
+            {
+                //if (value != this.m_Origin)
+                {
+                    this.m_Origin = value;
 #if EDITOR
-					NotifyPropertyChanged("HotSpot");
+                    NotifyPropertyChanged("HotSpot");
 #endif
-				}
-			}
-		}
+                }
+            }
+        }
 
-		/// <summary>
-		/// Gets collision rectangle
-		/// </summary>
+        /// <summary>
+        /// Gets collision rectangle
+        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
-		public Shape2DObject[] Collisions
-		{
-			get 
-            { 
+        public Shape2DObject[] Collisions
+        {
+            get
+            {
 #if EDITOR
                 return m_Collisions.ToArray();
 #else
                 return m_Collisions;
 #endif
             }
-		}
+        }
 
-		#endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
         /// </summary>
         internal Sprite2D() { }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="tex_"></param>
-		public Sprite2D(Texture2D tex_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tex_"></param>
+        public Sprite2D(Texture2D tex_)
+        {
             Texture2D = tex_;
-		}
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="node_"></param>
-		public Sprite2D(XmlElement node_, SaveOption option_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node_"></param>
+        public Sprite2D(XmlElement node_, SaveOption option_)
+        {
             Load(node_, option_);
-		}
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sprite_"></param>
-		public Sprite2D(Sprite2D sprite_)
-		{
-			CopyFrom(sprite_);
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sprite_"></param>
+        public Sprite2D(Sprite2D sprite_)
+        {
+            CopyFrom(sprite_);
+        }
 
-		#endregion
 
-		#region Methods
 
         /// <summary>
         /// 
@@ -186,24 +183,24 @@ namespace CasaEngine.Assets.Graphics2D
             return new Sprite2D(this);
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sprite_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sprite_"></param>
 #if EDITOR
         public
 #else
 		internal
 #endif
         void CopyFrom(Sprite2D sprite_)
-		{
+        {
             if (sprite_ == null)
             {
                 throw new ArgumentNullException("Sprite2D.Copy() : Sprite2D is null");
             }
 
 #if EDITOR
-			m_Collisions.Clear();
+            m_Collisions.Clear();
 
             foreach (Shape2DObject o in sprite_.m_Collisions)
             {
@@ -223,19 +220,18 @@ namespace CasaEngine.Assets.Graphics2D
 
             this.m_Origin = sprite_.m_Origin;
             this.m_AssetFileNames.AddRange(sprite_.m_AssetFileNames);
-			this.m_PositionInTexture = sprite_.m_PositionInTexture;
+            this.m_PositionInTexture = sprite_.m_PositionInTexture;
 
             base.CopyFrom(sprite_);
-		}
+        }
 
-        #region Load
 
         /// <summary>
 		/// 
 		/// </summary>
 		/// <param name="node_"></param>
         public override void Load(XmlElement node_, SaveOption option_)
-		{
+        {
             base.Load(node_, option_);
 
             XmlNode rootNode = node_.SelectSingleNode("Sprite2D");
@@ -251,16 +247,16 @@ namespace CasaEngine.Assets.Graphics2D
                 foreach (XmlNode child in rootNode.SelectNodes("AssetFiles/AssetFileName"))
                 {
                     m_AssetFileNames.Add(child.InnerText);
-                }                
+                }
             }
-            
+
             ((XmlElement)rootNode.SelectSingleNode("PositionInTexture")).Read(ref m_PositionInTexture);
             ((XmlElement)rootNode.SelectSingleNode("HotSpot")).Read(ref m_Origin);
 
             XmlNode collisionNode = rootNode.SelectSingleNode("CollisionList");
 
 #if EDITOR
-			m_Collisions.Clear();
+            m_Collisions.Clear();
 
             foreach (XmlNode node in collisionNode.ChildNodes)
             {
@@ -292,7 +288,7 @@ namespace CasaEngine.Assets.Graphics2D
                 ((XmlElement)node.SelectSingleNode("Position")).Read(ref position);
                 m_Sockets.Add(node.SelectSingleNode("Name").InnerText, position);
             }
-		}
+        }
 
         /// <summary>
         /// 
@@ -305,11 +301,11 @@ namespace CasaEngine.Assets.Graphics2D
             throw new NotImplementedException();
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void UnloadTexture()
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        public void UnloadTexture()
+        {
 #if !EDITOR
 			if (m_Texture2D == null)
 			{
@@ -317,11 +313,10 @@ namespace CasaEngine.Assets.Graphics2D
 			}
 #endif
 
-			//m_Texture2D.Dispose();
-			m_Texture2D = null;
-		}
+            //m_Texture2D.Dispose();
+            m_Texture2D = null;
+        }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -338,18 +333,18 @@ namespace CasaEngine.Assets.Graphics2D
 		/// </summary>
 		/// <param name="game_"></param>
         public void LoadTexture(ContentManager content_)
-		{
+        {
             if (m_Texture2D != null
                 && m_Texture2D.IsDisposed == false)
             {
                 return;
             }
 
-            string assetFile = System.IO.Path.GetDirectoryName(m_AssetFileNames[0]) + System.IO.Path.DirectorySeparatorChar + 
+            string assetFile = System.IO.Path.GetDirectoryName(m_AssetFileNames[0]) + System.IO.Path.DirectorySeparatorChar +
                 System.IO.Path.GetFileNameWithoutExtension(m_AssetFileNames[0]);
 
             m_Texture2D = content_.Load<Texture2D>(assetFile);
-		}
+        }
 
         /// <summary>
         /// 
@@ -358,7 +353,7 @@ namespace CasaEngine.Assets.Graphics2D
         public void LoadTextureFile(GraphicsDevice device_)
         {
             string assetFile;
-            
+
 #if EDITOR
             assetFile = Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
                 ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + m_AssetFileNames[0];
@@ -376,6 +371,5 @@ namespace CasaEngine.Assets.Graphics2D
             m_Texture2D = Texture2D.FromStream(device_, File.OpenRead(assetFile));
         }
 
-		#endregion
-	}
+    }
 }

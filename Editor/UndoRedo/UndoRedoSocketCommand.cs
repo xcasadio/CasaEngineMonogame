@@ -11,18 +11,13 @@ namespace Editor.UndoRedo
     class UndoRedoSocketCommand
         : ICommand
     {
-        #region Fields
 
         KeyValuePair<string, Vector2> m_Object;
         int m_Index;
 
-		#endregion
 
-		#region Properties
 
-		#endregion
 
-		#region Constructor
 
 		/// <summary>
 		/// 
@@ -35,9 +30,7 @@ namespace Editor.UndoRedo
             m_Index = index_;
 		}
 
-		#endregion
 
-		#region ICommand Members
 
 		/// <summary>
 		/// 
@@ -63,6 +56,5 @@ namespace Editor.UndoRedo
             Execute(arg1_);
 		}
 
-		#endregion
     }
 }

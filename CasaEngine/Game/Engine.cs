@@ -1,7 +1,8 @@
 ﻿
-#region Using Directives
 
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,23 +27,21 @@ using CasaEngine.Editor.Assets;
 
 #endif
 
-#endregion
 
 namespace CasaEngine.Game
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class Engine
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    public class Engine
+    {
 
         static readonly private Engine ms_Engine = new Engine();
 
         private Microsoft.Xna.Framework.Game m_Game;
-		private Asset2DManager m_Asset2DManager;        
-		private SpriteFont m_DefaultSpriteFont;
-		private SpriteBatch m_SpriteBatch;
+        private Asset2DManager m_Asset2DManager;
+        private SpriteFont m_DefaultSpriteFont;
+        private SpriteBatch m_SpriteBatch;
         private ProjectConfig m_ProjectConfig;
         private ObjectRegistry m_ObjectRegistry;
         private ProjectManager m_ProjectManager;
@@ -60,11 +59,9 @@ namespace CasaEngine.Game
         private List<string> m_Errors = new List<string>();
 		private List<string> m_Warnings = new List<string>();
 		private string[] m_Arguments = null;*/
-        
-		
-		#endregion
 
-		#region Properties
+
+
 
         /// <summary>
         /// Gets
@@ -78,18 +75,18 @@ namespace CasaEngine.Game
         /// 
         /// </summary>
         internal bool ResetDevice
-        { 
-            get; 
-            set; 
+        {
+            get;
+            set;
         }
 
         /// <summary>
 		/// Gets
 		/// </summary>
 		public GraphicsDeviceManager GraphicsDeviceManager
-		{
-			get { return (GraphicsDeviceManager)GameHelper.GetService<IGraphicsDeviceManager>(m_Game); }
-		}
+        {
+            get { return (GraphicsDeviceManager)GameHelper.GetService<IGraphicsDeviceManager>(m_Game); }
+        }
 
         /// <summary>
         /// Gets
@@ -108,29 +105,29 @@ namespace CasaEngine.Game
             internal set;
         }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public Asset2DManager Asset2DManager
-		{
-			get { return m_Asset2DManager; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public Asset2DManager Asset2DManager
+        {
+            get { return m_Asset2DManager; }
+        }
 
         /// <summary>
 		/// Gets
 		/// </summary>
 		public ProjectConfig ProjectConfig
-		{
-			get { return m_ProjectConfig; }
-		}
+        {
+            get { return m_ProjectConfig; }
+        }
 
         /// <summary>
 		/// Gets
 		/// </summary>
         public ProjectManager ProjectManager
-		{
+        {
             get { return m_ProjectManager; }
-		}
+        }
 
         /// <summary>
         /// Gets
@@ -160,7 +157,6 @@ namespace CasaEngine.Game
             get { return m_UIManager; }
         }
 
-        #region Multi Sample Quality
 
         /// <summary>
         /// System Multi Sample Quality.
@@ -169,35 +165,34 @@ namespace CasaEngine.Game
         /// </summary>
         public int MultiSampleQuality { get; set; }
 
-        #endregion
 
-		/// <summary>
-		/// Gets/Sets Game
-		/// </summary>
-		public Microsoft.Xna.Framework.Game Game
-		{
-			get { return m_Game; }
-			set 
-			{
-				if (m_Game != null)
-				{
-					throw new InvalidOperationException("GameInfo.Instance.Game : Game is already set!");
-				}
+        /// <summary>
+        /// Gets/Sets Game
+        /// </summary>
+        public Microsoft.Xna.Framework.Game Game
+        {
+            get { return m_Game; }
+            set
+            {
+                if (m_Game != null)
+                {
+                    throw new InvalidOperationException("GameInfo.Instance.Game : Game is already set!");
+                }
 
-				m_Game = value;
-			}
-		}
+                m_Game = value;
+            }
+        }
 
 #if !FINAL
 
-		/// <summary>
-		/// Gets/Sets
-		/// </summary>
-		public SpriteFont DefaultSpriteFont
-		{
-			get { return m_DefaultSpriteFont; }
-			set { m_DefaultSpriteFont = value; }
-		}
+        /// <summary>
+        /// Gets/Sets
+        /// </summary>
+        public SpriteFont DefaultSpriteFont
+        {
+            get { return m_DefaultSpriteFont; }
+            set { m_DefaultSpriteFont = value; }
+        }
 
 #endif
 
@@ -207,12 +202,12 @@ namespace CasaEngine.Game
 		/// Gets/Sets
 		/// </summary>
 		public BasicEffect BasicEffect
-		{
-			get { return m_Effect; }
-			set { m_Effect = value; }
-		}
+        {
+            get { return m_Effect; }
+            set { m_Effect = value; }
+        }
 
-                /// <summary>
+        /// <summary>
         /// Gets
         /// </summary>
         public AssetManager AssetManager
@@ -227,17 +222,17 @@ namespace CasaEngine.Game
         {
             get { return m_ExternalToolManager; }
         }
-	
+
 #endif
 
         /// <summary>
-		/// Gets/Sets
-		/// </summary>
-		public SpriteBatch SpriteBatch
-		{
-			get { return m_SpriteBatch; }
-			set { m_SpriteBatch = value; }
-		}
+        /// Gets/Sets
+        /// </summary>
+        public SpriteBatch SpriteBatch
+        {
+            get { return m_SpriteBatch; }
+            set { m_SpriteBatch = value; }
+        }
 
         /// <summary>
         /// Gets
@@ -247,9 +242,9 @@ namespace CasaEngine.Game
             get { return m_ObjectRegistry; }
         }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
+        /// <summary>
+        /// Gets
+        /// </summary>
         /*public List<string> Errors
         {
             get { return m_Errors; }
@@ -272,9 +267,7 @@ namespace CasaEngine.Game
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -301,10 +294,7 @@ namespace CasaEngine.Game
 #endif
         }
 
-        #endregion
 
-        #region Methods
 
-        #endregion
     }
 }

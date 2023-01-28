@@ -9,7 +9,6 @@ namespace FarseerPhysics.Factories
     /// </summary>
     public static class JointFactory
     {
-        #region Revolute Joint
 
         /// <summary>
         /// Creates a revolute joint.
@@ -56,9 +55,7 @@ namespace FarseerPhysics.Factories
             return fixedRevoluteJoint;
         }
 
-        #endregion
 
-        #region Weld Joint
 
         /// <summary>
         /// Creates a weld joint
@@ -97,9 +94,7 @@ namespace FarseerPhysics.Factories
             return weldJoint;
         }
 
-        #endregion
 
-        #region Prismatic Joint
 
         /// <summary>
         /// Creates a prsimatic joint
@@ -141,9 +136,7 @@ namespace FarseerPhysics.Factories
             return joint;
         }
 
-        #endregion
 
-        #region Line Joint
 
         /// <summary>
         /// Creates a line joint
@@ -175,9 +168,7 @@ namespace FarseerPhysics.Factories
             return joint;
         }
 
-        #endregion
 
-        #region Angle Joint
 
         /// <summary>
         /// Creates an angle joint.
@@ -208,9 +199,7 @@ namespace FarseerPhysics.Factories
             return angleJoint;
         }
 
-        #endregion
 
-        #region Distance Joint
 
         public static DistanceJoint CreateDistanceJoint(World world, Body bodyA, Body bodyB, Vector2 anchorA,
                                                         Vector2 anchorB)
@@ -228,9 +217,7 @@ namespace FarseerPhysics.Factories
             return distanceJoint;
         }
 
-        #endregion
 
-        #region Friction Joint
 
         public static FrictionJoint CreateFrictionJoint(World world, Body bodyA, Body bodyB, Vector2 anchorA,
                                                         Vector2 anchorB)
@@ -247,9 +234,7 @@ namespace FarseerPhysics.Factories
             return frictionJoint;
         }
 
-        #endregion
 
-        #region Gear Joint
 
         public static GearJoint CreateGearJoint(World world, Joint jointA, Joint jointB, float ratio)
         {
@@ -258,9 +243,7 @@ namespace FarseerPhysics.Factories
             return gearJoint;
         }
 
-        #endregion
 
-        #region Pulley Joint
 
         public static PulleyJoint CreatePulleyJoint(World world, Body bodyA, Body bodyB, Vector2 groundAnchorA,
                                                     Vector2 groundAnchorB, Vector2 anchorA, Vector2 anchorB, float ratio)
@@ -271,9 +254,7 @@ namespace FarseerPhysics.Factories
             return pulleyJoint;
         }
 
-        #endregion
 
-        #region Slider Joint
 
         public static SliderJoint CreateSliderJoint(World world, Body bodyA, Body bodyB, Vector2 anchorA,
                                                     Vector2 anchorB, float minLength, float maxLength)
@@ -283,6 +264,5 @@ namespace FarseerPhysics.Factories
             return sliderJoint;
         }
 
-        #endregion
     }
 }

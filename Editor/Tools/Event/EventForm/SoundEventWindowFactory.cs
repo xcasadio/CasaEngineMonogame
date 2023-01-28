@@ -14,7 +14,6 @@ namespace Editor.Tools.Event.EventForm
         : IEventWindowFactory
     {
 
-        #region IEventWindowFactory Membres
 
         /// <summary>
         /// 
@@ -26,6 +25,5 @@ namespace Editor.Tools.Event.EventForm
             return new AnimationSoundEventForm(event_);
         }
 
-        #endregion
     }
 }

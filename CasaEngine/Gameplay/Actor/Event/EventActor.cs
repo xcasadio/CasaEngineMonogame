@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,18 +17,15 @@ namespace CasaEngine.Gameplay.Actor.Event
     /// </summary>
     public abstract
 #if EDITOR
-    partial 
+    partial
 #endif
     class EventActor
         : IEvent, ISaveLoad
     {
-        #region Fields
 
         private EventActorType m_EventActorType;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -36,9 +35,7 @@ namespace CasaEngine.Gameplay.Actor.Event
             get { return m_EventActorType; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -56,12 +53,10 @@ namespace CasaEngine.Gameplay.Actor.Event
         /// <param name="option_"></param>
         protected EventActor(XmlElement el_, SaveOption option_)
         {
-            Load( el_, option_);
+            Load(el_, option_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -80,7 +75,7 @@ namespace CasaEngine.Gameplay.Actor.Event
         /// <param name="option_"></param>
         public virtual void Load(XmlElement el_, SaveOption option_)
         {
-            m_EventActorType = (EventActorType) Enum.Parse(typeof(EventActorType), el_.Attributes["type"].Value);
+            m_EventActorType = (EventActorType)Enum.Parse(typeof(EventActorType), el_.Attributes["type"].Value);
         }
 
         /// <summary>
@@ -93,6 +88,5 @@ namespace CasaEngine.Gameplay.Actor.Event
             m_EventActorType = (EventActorType)Enum.Parse(typeof(EventActorType), br_.ReadString());
         }
 
-        #endregion
     }
 }

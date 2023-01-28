@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 
 using CasaEngine.Game;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -26,16 +22,13 @@ namespace XNAFinalEngine.UserInterface
     public class ExitDialog : Dialog
     {
 
-        #region Variables
               
         private readonly Button buttonYes;
         private readonly Button buttonNo;
         private readonly Label labelMessage;
         private readonly ImageBox imageIcon;
 
-        #endregion
 
-        #region Constructor
     
         /// <summary>
         /// Exit Dialog.
@@ -97,7 +90,6 @@ namespace XNAFinalEngine.UserInterface
             DefaultControl = buttonNo;
         } // ExitDialog
 
-        #endregion
 
     } // ExitDialog
 } // XNAFinalEngine.UserInterface

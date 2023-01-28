@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,10 +9,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Microsoft.Xna.Framework;
@@ -24,12 +23,12 @@ using CasaEngine.Game;
 using CasaEngine.Asset.Cursors;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Asset.Fonts;
-#endregion
+using Cursor = CasaEngine.Asset.Cursors.Cursor;
+
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Structs
 
     /// <summary>
     /// Skin element states.
@@ -72,14 +71,11 @@ namespace XNAFinalEngine.UserInterface
         public Color Color;
     } // LayerOverlays
 
-    #endregion
 
-    #region SkinList
 
     public class SkinList<T> : List<T>
     {
 
-        #region Indexers
 
         public T this[string index]
         {
@@ -110,9 +106,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // this
 
-        #endregion
 
-        #region Constructors
 
         public SkinList() { }
 
@@ -130,18 +124,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SkinList
 
-        #endregion
 
     } // SkinList
 
-    #endregion
 
-    #region SkinBase
 
     public class SkinBase
     {
 
-        #region Variables
 
         /// <summary>
         /// Name.
@@ -152,9 +142,7 @@ namespace XNAFinalEngine.UserInterface
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         public SkinBase() { }
 
@@ -166,18 +154,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SkinBase
 
-        #endregion
 
     } // SkinBase
 
-    #endregion
 
-    #region SkinLayer
 
     public class SkinLayer : SkinBase
     {
 
-        #region Variables
 
         public SkinImage Image
         {
@@ -252,9 +236,7 @@ namespace XNAFinalEngine.UserInterface
         }
 
 
-        #endregion
 
-        #region Constructors
 
         public SkinLayer()
         {
@@ -303,18 +285,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SkinLayer
 
-        #endregion
 
     } // SkinLayer
 
-    #endregion
 
-    #region SkinText
 
     public class SkinText : SkinBase
     {
 
-        #region Variables
 
         /// <summary>
         /// Associated font.
@@ -364,13 +342,11 @@ namespace XNAFinalEngine.UserInterface
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         public SkinText()
         {
-            SkinStates<Color>  colors = new SkinStates<Color>();
+            SkinStates<Color> colors = new SkinStates<Color>();
             colors.Enabled = Color.White;
             colors.Pressed = Color.White;
             colors.Focused = Color.White;
@@ -391,18 +367,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SkinText
 
-        #endregion
 
     } // SkinText
 
-    #endregion
 
-    #region SkinFont
 
     public class SkinFont : SkinBase
     {
 
-        #region Variables
 
         /// <summary>
         /// Asset.
@@ -418,10 +390,8 @@ namespace XNAFinalEngine.UserInterface
             set;
         }
 
-        #endregion
 
-        #region Properties
-        
+
         public int Height
         {
             get
@@ -434,9 +404,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Height
 
-        #endregion
 
-        #region Constructors
 
         public SkinFont() { }
 
@@ -449,18 +417,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SkinFont
 
-        #endregion
 
     } // SkinFont
 
-    #endregion
 
-    #region SkinImage
 
     public class SkinImage : SkinBase
     {
 
-        #region Variables
 
         /// <summary>
         /// Asset.
@@ -476,10 +440,8 @@ namespace XNAFinalEngine.UserInterface
             set;
         }
 
-        #endregion
 
-        #region Constructors
-        
+
         public SkinImage() { }
 
         public SkinImage(SkinImage source) : base(source)
@@ -488,44 +450,38 @@ namespace XNAFinalEngine.UserInterface
             Filename = source.Filename;
         } // SkinImage
 
-        #endregion
 
     } // SkinImage
 
-    #endregion
 
-    #region SkinCursor
 
-    #if (WINDOWS)
+#if (WINDOWS)
 
-        public class SkinCursor : SkinBase
+    public class SkinCursor : SkinBase
+    {
+
+        /// <summary>
+        /// Asset.
+        /// </summary>
+        public Cursor Cursor;
+
+        /// <summary>
+        /// Asset filename.
+        /// </summary>
+        public string Filename
         {
+            get;
+            set;
+        }
+    } // SkinCursor
 
-            /// <summary>
-            /// Asset.
-            /// </summary>
-            public Cursor Cursor;
+#endif
 
-            /// <summary>
-            /// Asset filename.
-            /// </summary>
-            public string Filename
-            {
-                get;
-                set;
-            }
-        } // SkinCursor
 
-    #endif
-
-    #endregion
-
-    #region SkinControl
 
     public class SkinControlInformation : SkinBase
     {
 
-        #region Variables
 
         public Size DefaultSize
         {
@@ -569,9 +525,7 @@ namespace XNAFinalEngine.UserInterface
             private set;
         }
 
-        #endregion
 
-        #region Constructors
 
         public SkinControlInformation()
         {
@@ -590,19 +544,15 @@ namespace XNAFinalEngine.UserInterface
             Attributes = new SkinList<SkinAttribute>(source.Attributes);
         } // SkinControl
 
-        #endregion
 
     } // SkinControl
 
-    #endregion
 
-    #region SkinAttribute
 
     public class SkinAttribute : SkinBase
     {
 
-        #region Variables
-        
+
         /// <summary>
         /// Value.
         /// </summary>
@@ -611,10 +561,8 @@ namespace XNAFinalEngine.UserInterface
             get;
             set;
         }
-        
-        #endregion
 
-        #region Contructors
+
 
         public SkinAttribute() { }
 
@@ -623,13 +571,10 @@ namespace XNAFinalEngine.UserInterface
             Value = source.Value;
         } // SkinAttribute
 
-        #endregion
 
     } // SkinAttribute
 
-    #endregion
 
-    #region Skin
 
     /// <summary>
     /// Manage the skin content (mouse cursors, elements' images, fonts, and skin's parameters)
@@ -638,7 +583,6 @@ namespace XNAFinalEngine.UserInterface
     public class Skin
     {
 
-        #region Variables
 
         /// <summary>
         /// Skin XML document.
@@ -654,16 +598,14 @@ namespace XNAFinalEngine.UserInterface
         /// Skin content manager.
         /// </summary>
         private static readonly string skinContentManagerCategory = "UserInterfaceSkin";
-        
-        #endregion
 
-        #region Properties
+
 
         /// <summary>
         /// Current skin name.
         /// </summary>
         public string CurrentSkinName { get; private set; }
-       
+
         /// <summary>
         /// Skin information for controls.
         /// </summary>
@@ -674,21 +616,19 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         public SkinList<SkinFont> Fonts { get; private set; }
 
-        #if (WINDOWS)
-            /// <summary>
-            /// Skin information for cursors.
-            /// </summary>
-            public SkinList<SkinCursor> Cursors { get; private set; }
-        #endif
+#if (WINDOWS)
+        /// <summary>
+        /// Skin information for cursors.
+        /// </summary>
+        public SkinList<SkinCursor> Cursors { get; private set; }
+#endif
 
         /// <summary>
         /// Skin information for images.
         /// </summary>
         public SkinList<SkinImage> Images { get; private set; }
 
-        #endregion
 
-        #region Load Skin
 
         /// <summary>
         /// Manage the skin content (mouse cursors, elements' images, fonts, and skin's parameters)
@@ -699,14 +639,13 @@ namespace XNAFinalEngine.UserInterface
 
             //AssetContentManager userContentManager = AssetContentManager.CurrentContentManager;
 
-            #region Unload previous skin
-            
+
             Controls = new SkinList<SkinControlInformation>();
             Fonts = new SkinList<SkinFont>();
             Images = new SkinList<SkinImage>();
-            #if (WINDOWS)
-                Cursors = new SkinList<SkinCursor>();
-            #endif
+#if (WINDOWS)
+            Cursors = new SkinList<SkinCursor>();
+#endif
 
             /*if (skinContentManager == null)
                 skinContentManager = new AssetContentManager { Name = "Skin Content Manager", Hidden = true };
@@ -718,13 +657,11 @@ namespace XNAFinalEngine.UserInterface
             }*/
             Engine.Instance.AssetContentManager.Unload(skinContentManagerCategory);
 
-            #endregion
 
-            #region Load Description File
 
             string fullPath = "Skin" + Path.DirectorySeparatorChar + skinName;
-            skinDescription = new Document(fullPath  + Path.DirectorySeparatorChar + "Description");
-            
+            skinDescription = new Document(fullPath + Path.DirectorySeparatorChar + "Description");
+
             // Read XML data.
             if (skinDescription.Resource.Element("Skin") != null)
             {
@@ -732,9 +669,9 @@ namespace XNAFinalEngine.UserInterface
                 {
                     LoadImagesDescription();
                     LoadFontsDescription();
-                    #if (WINDOWS)
-                        LoadCursorsDescription();
-                    #endif
+#if (WINDOWS)
+                    LoadCursorsDescription();
+#endif
                     LoadControlsDescription();
                 }
                 catch (Exception e)
@@ -747,9 +684,7 @@ namespace XNAFinalEngine.UserInterface
                 throw new Exception("Failed to load skin: " + skinName + ". Skin tag doesn't exist.");
             }
 
-            #endregion
 
-            #region Load Resources
 
             try
             {
@@ -759,17 +694,17 @@ namespace XNAFinalEngine.UserInterface
                     skinFont.Font.LoadTexture("", graphicsDevice_);
                     //skinFont.Font = new CasaEngine.Asset.Fonts.Font(graphicsDevice_, fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename);
                 }
-                #if (WINDOWS)
-                    foreach (SkinCursor skinCursor in Cursors)
-                    {
-                        skinCursor.Cursor = new Cursor(graphicsDevice_,
-                            Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
-                            fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur");
-                    }
-                #endif
+#if (WINDOWS)
+                foreach (SkinCursor skinCursor in Cursors)
+                {
+                    skinCursor.Cursor = new Cursor(graphicsDevice_,
+                        Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
+                        fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur");
+                }
+#endif
                 foreach (SkinImage skinImage in Images)
                 {
-                    skinImage.Texture = new CasaEngine.Asset.Texture(graphicsDevice_, 
+                    skinImage.Texture = new CasaEngine.Asset.Texture(graphicsDevice_,
                         fullPath + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar + skinImage.Filename + ".png");
                 }
                 foreach (SkinControlInformation skinControl in Controls)
@@ -793,13 +728,10 @@ namespace XNAFinalEngine.UserInterface
                 throw new Exception("Failed to load skin: " + skinName + ".", e);
             }
 
-            #endregion
 
         } // LoadSkin
 
-        #endregion
 
-        #region Load Controls
 
         /// <summary>
         /// Load the skin information of every control.
@@ -869,9 +801,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // LoadControls
 
-        #endregion
 
-        #region Load Layers
 
         /// <summary>
         /// Load layers information.
@@ -881,7 +811,7 @@ namespace XNAFinalEngine.UserInterface
             string name = ReadAttribute(layerNode, "Name", null, true);
             bool over = ReadAttribute(layerNode, "Override", false, false);
             SkinLayer skinLayer = skinControl.Layers[name];
-                
+
             bool inherent = true;
             if (skinLayer == null)
             {
@@ -904,7 +834,7 @@ namespace XNAFinalEngine.UserInterface
             skinLayer.Name = name;
             ReadAttribute(ref name, inherent, layerNode, "Image", "Control", false);
             skinLayer.Image.Name = name;
-            ReadAttribute(ref integer, inherent, layerNode, "Width",  0, false);
+            ReadAttribute(ref integer, inherent, layerNode, "Width", 0, false);
             skinLayer.Width = integer;
             ReadAttribute(ref integer, inherent, layerNode, "Height", 0, false);
             skinLayer.Height = integer;
@@ -917,7 +847,7 @@ namespace XNAFinalEngine.UserInterface
             skinLayer.OffsetX = integer;
             ReadAttribute(ref integer, inherent, layerNode, "OffsetY", 0, false);
             skinLayer.OffsetY = integer;
-            
+
             ReadAttribute(ref margin.Left, inherent, layerNode.Element("SizingMargins"), "Left", 0, false);
             ReadAttribute(ref margin.Top, inherent, layerNode.Element("SizingMargins"), "Top", 0, false);
             ReadAttribute(ref margin.Right, inherent, layerNode.Element("SizingMargins"), "Right", 0, false);
@@ -930,7 +860,6 @@ namespace XNAFinalEngine.UserInterface
             ReadAttribute(ref margin.Bottom, inherent, layerNode.Element("ContentMargins"), "Bottom", 0, false);
             skinLayer.ContentMargins = margin;
 
-            #region States
 
             if (layerNode.Element("States") != null)
             {
@@ -947,7 +876,7 @@ namespace XNAFinalEngine.UserInterface
                 states.Focused.Index = integer;
                 ReadAttribute(ref states.Disabled.Index, inherent, layerNode.Element("States").Element("Disabled"), "Index", di, false);
                 states.Disabled.Index = integer;
-                
+
                 ReadAttribute(ref color, inherent, layerNode.Element("States").Element("Enabled"), "Color", Color.White, false);
                 states.Enabled.Color = color;
                 Color dc = skinLayer.States.Enabled.Color;
@@ -959,7 +888,7 @@ namespace XNAFinalEngine.UserInterface
                 states.Focused.Color = color;
                 ReadAttribute(ref color, inherent, layerNode.Element("States").Element("Disabled"), "Color", dc, false);
                 states.Disabled.Color = color;
-                
+
                 ReadAttribute(ref boolean, inherent, layerNode.Element("States").Element("Enabled"), "Overlay", false, false);
                 states.Enabled.Overlay = boolean;
                 bool dv = skinLayer.States.Enabled.Overlay;
@@ -975,9 +904,7 @@ namespace XNAFinalEngine.UserInterface
                 skinLayer.States = states;
             }
 
-            #endregion
 
-            #region Overlays
 
             if (layerNode.Element("Overlays") != null)
             {
@@ -1010,9 +937,7 @@ namespace XNAFinalEngine.UserInterface
                 skinLayer.Overlays = overlay;
             }
 
-            #endregion
 
-            #region Text
 
             if (layerNode.Element("Text") != null)
             {
@@ -1036,9 +961,7 @@ namespace XNAFinalEngine.UserInterface
                 skinLayer.Text = skinText;
             }
 
-            #endregion
 
-            #region Attributes
 
             if (layerNode.Element("Attributes") != null)
             {
@@ -1051,29 +974,25 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
 
-            #endregion
 
             if (!inherent)
                 skinControl.Layers.Add(skinLayer);
         } // LoadLayer
 
-        #region Load Colors
 
         private void LoadColors(bool inherited, XElement e, ref SkinStates<Color> colors)
         {
             if (e != null)
             {
-                ReadAttribute(ref colors.Enabled,  inherited, e.Element("Colors").Element("Enabled"),  "Color", Color.White,    false);
-                ReadAttribute(ref colors.Hovered,  inherited, e.Element("Colors").Element("Hovered"),  "Color", colors.Enabled, false);
-                ReadAttribute(ref colors.Pressed,  inherited, e.Element("Colors").Element("Pressed"),  "Color", colors.Enabled, false);
-                ReadAttribute(ref colors.Focused,  inherited, e.Element("Colors").Element("Focused"),  "Color", colors.Enabled, false);
+                ReadAttribute(ref colors.Enabled, inherited, e.Element("Colors").Element("Enabled"), "Color", Color.White, false);
+                ReadAttribute(ref colors.Hovered, inherited, e.Element("Colors").Element("Hovered"), "Color", colors.Enabled, false);
+                ReadAttribute(ref colors.Pressed, inherited, e.Element("Colors").Element("Pressed"), "Color", colors.Enabled, false);
+                ReadAttribute(ref colors.Focused, inherited, e.Element("Colors").Element("Focused"), "Color", colors.Enabled, false);
                 ReadAttribute(ref colors.Disabled, inherited, e.Element("Colors").Element("Disabled"), "Color", colors.Enabled, false);
             }
         } // LoadColors
 
-        #endregion
 
-        #region Load Layer Attributes
 
         /// <summary>
         /// Load Layer Attributes
@@ -1094,16 +1013,13 @@ namespace XNAFinalEngine.UserInterface
             ReadAttribute(ref name, inherent, e, "Value", null, true);
             skinAttribute.Value = name;
 
-            if (!inherent) 
+            if (!inherent)
                 skinLayer.Attributes.Add(skinAttribute);
 
         } // LoadLayerAttribute
 
-        #endregion
 
-        #endregion
 
-        #region Load Fonts
 
         /// <summary>
         /// Load fonts information.
@@ -1124,34 +1040,30 @@ namespace XNAFinalEngine.UserInterface
             }
         } // LoadFonts
 
-        #endregion
 
-        #region Load Cursors
 
-        #if (WINDOWS)
-            /// <summary>
-            /// Load cursors information.
-            /// </summary>
-            private void LoadCursorsDescription()
+#if (WINDOWS)
+        /// <summary>
+        /// Load cursors information.
+        /// </summary>
+        private void LoadCursorsDescription()
+        {
+            if (skinDescription.Resource.Element("Skin").Element("Cursors") == null)
+                return;
+
+            foreach (var cursor in skinDescription.Resource.Element("Skin").Element("Cursors").Elements())
             {
-                if (skinDescription.Resource.Element("Skin").Element("Cursors") == null)
-                    return;
-
-                foreach (var cursor in skinDescription.Resource.Element("Skin").Element("Cursors").Elements())
+                SkinCursor skinCursor = new SkinCursor
                 {
-                    SkinCursor skinCursor = new SkinCursor
-                    {
-                        Name = ReadAttribute(cursor, "Name", null, true),
-                        Filename = ReadAttribute(cursor, "Asset", null, true)
-                    };
-                    Cursors.Add(skinCursor);
-                }
-            } // LoadCursors
-        #endif
+                    Name = ReadAttribute(cursor, "Name", null, true),
+                    Filename = ReadAttribute(cursor, "Asset", null, true)
+                };
+                Cursors.Add(skinCursor);
+            }
+        } // LoadCursors
+#endif
 
-        #endregion
 
-        #region Load Images
 
         /// <summary>
         /// Load images information.
@@ -1172,9 +1084,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // LoadImages
 
-        #endregion
 
-        #region Read Attribute
 
         private string ReadAttribute(XElement element, string attributeName, string defval, bool needed)
         {
@@ -1240,10 +1150,8 @@ namespace XNAFinalEngine.UserInterface
             retval = Utilities.ParseColor(tmp);
         } // ReadAttributeColor
 
-        #endregion
 
     } // Skin
 
-    #endregion
 
 } // XNAFinalEngine.UserInterface

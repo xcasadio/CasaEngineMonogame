@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,54 +25,51 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#endregion
+
 
 namespace XNAFinalEngine.Input
 {
 
-	/// <summary>
+    /// <summary>
     /// XInput Gamepad.
     /// Allows to work up to four different gamepad.
     /// XInput, an API controllers introduced with the launch of the Xbox 360. It has the advantage over DirectInput of significantly easier programmability.
     /// XInput is compatible with DirectX 9 and up.
     /// http://en.wikipedia.org/wiki/DirectInput
     /// </summary>
-	public class GamePad
-	{
+    public class GamePad
+    {
 
-		#region Variables
 
-		// Gamepad state, set every frame in the update method.
-		private GamePadState currentState, previousState;
+        // Gamepad state, set every frame in the update method.
+        private GamePadState currentState, previousState;
 
         // The id number of the gamepad.
         private readonly PlayerIndex playerIndex;
 
-		#endregion
 
-		#region Properties
 
-		/// <summary>
-		/// The current gamepad state.
-		/// </summary>
-		public GamePadState CurrentState { get { return currentState; } }
+        /// <summary>
+        /// The current gamepad state.
+        /// </summary>
+        public GamePadState CurrentState { get { return currentState; } }
 
         /// <summary>
         /// The previous mouse state.
         /// </summary>
         public GamePadState PreviousState { get { return previousState; } }
 
-		/// <summary>
-		/// Is the gamepad connected?
-		/// </summary>
-		public bool IsConnected { get { return currentState.IsConnected; } }
+        /// <summary>
+        /// Is the gamepad connected?
+        /// </summary>
+        public bool IsConnected { get { return currentState.IsConnected; } }
 
         /// <summary>
         /// Retrieves the capabilities of this game pad.
@@ -95,13 +91,12 @@ namespace XNAFinalEngine.Input
         /// None: The values of each stick are not processed and are returned as "raw" values. This is best if you intend to implement your own dead zone processing.
         /// </summary>
         public GamePadDeadZone DeadZone { get; set; }
-        
-        #region Back, Start, Big Button
+
 
         /// <summary>
         /// Gamepad start button pressed.
-		/// </summary>
-		public bool StartPressed { get { return currentState.Buttons.Start == ButtonState.Pressed; } }
+        /// </summary>
+        public bool StartPressed { get { return currentState.Buttons.Start == ButtonState.Pressed; } }
 
         /// <summary>
         /// Gamepad back button pressed.
@@ -112,7 +107,7 @@ namespace XNAFinalEngine.Input
         /// Gamepad big button pressed.
         /// </summary>
         public bool BigButtonPressed { get { return currentState.Buttons.BigButton == ButtonState.Pressed; } }
-        
+
         /// <summary>
         /// Gamepad start button just pressed.
         /// </summary>
@@ -128,53 +123,49 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public bool BigButtonJustPressed { get { return currentState.Buttons.BigButton == ButtonState.Pressed && previousState.Buttons.BigButton == ButtonState.Released; } }
 
-        #endregion
 
-        #region A, B, X, Y
 
         /// <summary>
 		/// Gamepad A button pressed.
 		/// </summary>
 		public bool APressed { get { return currentState.Buttons.A == ButtonState.Pressed; } }
 
-		/// <summary>
+        /// <summary>
         /// Gamepad B button pressed.
-		/// </summary>
-		public bool BPressed { get { return currentState.Buttons.B == ButtonState.Pressed; } }
+        /// </summary>
+        public bool BPressed { get { return currentState.Buttons.B == ButtonState.Pressed; } }
 
-		/// <summary>
+        /// <summary>
         /// Gamepad X button pressed.
-		/// </summary>
-		public bool XPressed { get { return currentState.Buttons.X == ButtonState.Pressed; } }
+        /// </summary>
+        public bool XPressed { get { return currentState.Buttons.X == ButtonState.Pressed; } }
 
-		/// <summary>
+        /// <summary>
         /// Gamepad Y button pressed.
-		/// </summary>
-		public bool YPressed { get { return currentState.Buttons.Y == ButtonState.Pressed; } }
-        
+        /// </summary>
+        public bool YPressed { get { return currentState.Buttons.Y == ButtonState.Pressed; } }
+
         /// <summary>
         /// Gamepad A button just pressed.
-		/// </summary>
-		public bool AJustPressed { get { return currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released; } }
+        /// </summary>
+        public bool AJustPressed { get { return currentState.Buttons.A == ButtonState.Pressed && previousState.Buttons.A == ButtonState.Released; } }
 
-		/// <summary>
+        /// <summary>
         /// Gamepad B button just pressed.
-		/// </summary>
-		public bool BJustPressed { get { return currentState.Buttons.B == ButtonState.Pressed && previousState.Buttons.B == ButtonState.Released; } }
-		
-		/// <summary>
+        /// </summary>
+        public bool BJustPressed { get { return currentState.Buttons.B == ButtonState.Pressed && previousState.Buttons.B == ButtonState.Released; } }
+
+        /// <summary>
         /// Gamepad X button just pressed.
-		/// </summary>
-		public bool XJustPressed { get { return currentState.Buttons.X == ButtonState.Pressed && previousState.Buttons.X == ButtonState.Released; } }
+        /// </summary>
+        public bool XJustPressed { get { return currentState.Buttons.X == ButtonState.Pressed && previousState.Buttons.X == ButtonState.Released; } }
 
-		/// <summary>
+        /// <summary>
         /// Gamepad Y button just pressed.
-		/// </summary>
-		public bool YJustPressed { get { return currentState.Buttons.Y == ButtonState.Pressed && previousState.Buttons.Y == ButtonState.Released; } }
+        /// </summary>
+        public bool YJustPressed { get { return currentState.Buttons.Y == ButtonState.Pressed && previousState.Buttons.Y == ButtonState.Released; } }
 
-        #endregion
 
-        #region D Pad
 
         /// <summary>
         /// Gamepad DPad left pressed.
@@ -216,9 +207,7 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public bool DPadDownJustPressed { get { return currentState.DPad.Down == ButtonState.Pressed && previousState.DPad.Down == ButtonState.Released; } }
 
-        #endregion
-        
-        #region Thumb Sticks
+
 
         /// <summary>
         /// Gamepad left thumb stick X movement.
@@ -260,9 +249,7 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public bool RightStickJustPressed { get { return currentState.Buttons.RightStick == ButtonState.Pressed && previousState.Buttons.RightStick == ButtonState.Released; } }
 
-        #endregion
 
-        #region LT LB RT RB
 
         /// <summary>
         /// Gamepad Left Button pressed (LB)
@@ -294,11 +281,8 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public float RightTrigger { get { return currentState.Triggers.Right; } }
 
-        #endregion
-        
-        #endregion
 
-        #region Constructor
+
 
         /// <summary>
         /// Init the xinput gamepad of this player index.
@@ -310,9 +294,7 @@ namespace XNAFinalEngine.Input
             DeadZone = GamePadDeadZone.IndependentAxes;
         } // GamePad
 
-        #endregion
 
-        #region Button Pressed and Just Pressed
 
         /// <summary>
         /// Button just pressed.
@@ -324,9 +306,7 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public bool ButtonPressed(Buttons button) { return currentState.IsButtonDown(button); }
 
-        #endregion
 
-        #region Set Vibration
 
         /// <summary>
         /// Sets the vibration motor speeds on an Xbox 360 Controller.
@@ -337,36 +317,29 @@ namespace XNAFinalEngine.Input
             Microsoft.Xna.Framework.Input.GamePad.SetVibration(playerIndex, leftMotor, rightMotor);
         } // SetVibration
 
-        #endregion
-        
-        #region Update
+
 
         /// <summary>
-		/// Update.
+        /// Update.
         /// If the gamepad is not connected the operation won't trow exception, the state will be empty. 
-		/// </summary>
-		internal void Update()
-		{
-			previousState = currentState;
+        /// </summary>
+        internal void Update()
+        {
+            previousState = currentState;
             currentState = Microsoft.Xna.Framework.Input.GamePad.GetState(playerIndex, DeadZone);
-		} // Update
+        } // Update
 
-		#endregion
 
-        #region Static
 
-        #region Variables
 
         // The four possible gamepads.
-        private readonly static GamePad PlayerOneGamePad   = new GamePad(PlayerIndex.One),
-                                        PlayerTwoGamePad   = new GamePad(PlayerIndex.Two),
+        private readonly static GamePad PlayerOneGamePad = new GamePad(PlayerIndex.One),
+                                        PlayerTwoGamePad = new GamePad(PlayerIndex.Two),
                                         PlayerThreeGamePad = new GamePad(PlayerIndex.Three),
-                                        PlayerFourGamePad  = new GamePad(PlayerIndex.Four);
+                                        PlayerFourGamePad = new GamePad(PlayerIndex.Four);
 
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// GamePad assigned to player one. 
@@ -399,13 +372,11 @@ namespace XNAFinalEngine.Input
                 case 1: return PlayerTwoGamePad;
                 case 2: return PlayerThreeGamePad;
                 case 3: return PlayerFourGamePad;
-                default : throw new ArgumentOutOfRangeException("playerIndex", "GamePad: The number has to be between 0 and 3.");
+                default: throw new ArgumentOutOfRangeException("playerIndex", "GamePad: The number has to be between 0 and 3.");
             }
         } // Player
 
-        #endregion
 
-        #endregion
 
     } // GamePad
 } // XNAFinalEngine.Input

@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2013, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,10 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -39,22 +38,23 @@ using CasaEngine.Game;
 using System.Xml;
 using CasaEngineCommon.Design;
 using CasaEngine.CoreSystems;
-#endregion
+
+using Screen = CasaEngine.CoreSystems.Screen;
+using Size = XNAFinalEngine.Helpers.Size;
 
 namespace CasaEngine.Asset
 {
 
-	/// <summary>
-	/// Base class for textures.
+    /// <summary>
+    /// Base class for textures.
     /// Important: Try to dispose only the textures created without the content manager.
     /// If you dispose a texture and then you try to load again using the same content managed an exception will be raised.
     /// In this cases use the Unload method from the Content Manager instead.
-	/// </summary>
+    /// </summary>
     public class Texture : Asset
     {
 
-        #region Variables
-                
+
         /// <summary>
         /// XNA Texture.
         /// </summary>
@@ -64,31 +64,28 @@ namespace CasaEngine.Asset
         private SamplerState preferedSamplerState = SamplerState.AnisotropicWrap;
 
         // Simple and small textures filled with a constant color.
-	    private static Texture blackTexture, greyTexture, whiteTexture;
+        private static Texture blackTexture, greyTexture, whiteTexture;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the GraphicsDevice
         /// </summary>
         public GraphicsDevice GraphicsDevice { get; private set; }
 
-        #region Resource
 
         /// <summary>
         /// XNA Texture.
         /// </summary>
         public virtual Texture2D Resource
-        { 
+        {
             get
             {
                 // Textures and render targets have a different treatment because textures could be set,
                 // because both are persistent shader parameters, and because they could be created without using content managers.
                 // For that reason the nullified resources could be accessed.
                 //if (xnaTexture != null && xnaTexture.IsDisposed)
-                    //xnaTexture = null;
+                //xnaTexture = null;
                 return xnaTexture;
             }
             // This is only allowed for videos. 
@@ -103,22 +100,18 @@ namespace CasaEngine.Asset
             }
         } // Resource
 
-        #endregion
 
-        #region Preferred Sampler State
 
         /// <summary>
         /// Some shaders allow us to choose how to sample the texture data.
         /// </summary>
         public virtual SamplerState PreferredSamplerState
-	    {
-	        get { return preferedSamplerState; }
-	        set { preferedSamplerState = value; }
-	    } // PreferredSamplerState
+        {
+            get { return preferedSamplerState; }
+            set { preferedSamplerState = value; }
+        } // PreferredSamplerState
 
-	    #endregion
 
-        #region Size
 
         /// <summary>
         /// Texture's width.
@@ -141,11 +134,8 @@ namespace CasaEngine.Asset
         /// </summary>
         public Size Size { get; protected set; }
 
-        #endregion
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Empty texture. 
@@ -156,7 +146,7 @@ namespace CasaEngine.Asset
             Name = "Empty Texture";
         } // Texture
 
-	    /// <summary>
+        /// <summary>
         /// Texture from XNA asset.
         /// </summary>
         public Texture(Texture2D xnaTexture)
@@ -167,9 +157,9 @@ namespace CasaEngine.Asset
             Size = new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
         } // Texture
 
-		/// <summary>
-		/// Load texture.
-		/// </summary>
+        /// <summary>
+        /// Load texture.
+        /// </summary>
         /// <param name="filename">The filename must be relative and be a valid file in the textures directory.</param>
         public Texture(GraphicsDevice graphicsDevice_, string filename)
         {
@@ -194,13 +184,10 @@ namespace CasaEngine.Asset
             {
                 throw new InvalidOperationException("Failed to load texture: " + filename, e);
             }
-		} // Texture
+        } // Texture
 
-		#endregion
 
-        #region Methods
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -212,9 +199,7 @@ namespace CasaEngine.Asset
                 Resource.Dispose();
         } // DisposeManagedResources
 
-	    #endregion
 
-        #region Recreate Resource
 
         /// <summary>
         /// Useful when the XNA device is disposed.
@@ -231,9 +216,7 @@ namespace CasaEngine.Asset
             GraphicsDevice = device_;
         } // RecreateResource
 
-        #endregion
 
-        #region Load
 
         /// <summary>
         /// 
@@ -255,9 +238,7 @@ namespace CasaEngine.Asset
 
         }
 
-        #endregion
 
-        #endregion
 
     } // Texture
 } // CasaEngine.Asset

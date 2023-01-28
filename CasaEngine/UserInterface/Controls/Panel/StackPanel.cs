@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,11 +9,8 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -23,13 +19,10 @@ namespace XNAFinalEngine.UserInterface
     /// </summary>
     public class StackPanel : Container
     {
-        #region Variables
 
         private Orientation m_Orientation;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -40,9 +33,7 @@ namespace XNAFinalEngine.UserInterface
             set { m_Orientation = value; }
         }
 
-        #endregion
 
-        #region Constructor
 
         public StackPanel(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
@@ -51,9 +42,7 @@ namespace XNAFinalEngine.UserInterface
             Color = Color.Transparent;
         } // StackPanel
 
-        #endregion
 
-        #region Calculate Layout
 
         private void CalculateLayout()
         {
@@ -84,9 +73,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // CalculateLayout
 
-        #endregion
 
-        #region On Resize
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -94,7 +81,6 @@ namespace XNAFinalEngine.UserInterface
             base.OnResize(e);
         } // OnResize
 
-        #endregion
 
     } // StackPanel
 } //  XNAFinalEngine.UserInterface

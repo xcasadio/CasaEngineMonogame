@@ -1,9 +1,7 @@
-#region Using Directives
 
 using System;
 using System.Collections.Generic;
 
-#endregion
 
 namespace CasaEngineCommon.Collection
 {
@@ -19,7 +17,6 @@ namespace CasaEngineCommon.Collection
 	/// <typeparam name="T">The type of the elements in the priority queue</typeparam>
 	public class UniquePriorityQueue<T> : PriorityQueue<T>
 	{
-		#region Constructors
 
 		/// <summary>
 		/// Default constructor. Uses the default comparer for the elements in the unique priority queue
@@ -45,9 +42,7 @@ namespace CasaEngineCommon.Collection
 		/// <param name="capacity">The initial capacity of the queue</param>
 		public UniquePriorityQueue(IComparer<T> comparer, int capacity) : base(comparer, capacity) {}
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// Enqueues an element in the priority queue if it wasn´t enqueued yet
@@ -64,6 +59,5 @@ namespace CasaEngineCommon.Collection
 			return base.Enqueue(element);
 		}
 
-		#endregion
 	}
 }

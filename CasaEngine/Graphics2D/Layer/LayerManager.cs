@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,21 +12,14 @@ namespace CasaEngine.Graphics2D.Layer
     /// </summary>
     public class LayerManager
     {
-        #region Fields
 
         List<Layer> m_LayerList = new List<Layer>();
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// Add layer to the front
@@ -55,6 +50,5 @@ namespace CasaEngine.Graphics2D.Layer
             }
         }
 
-        #endregion
     }
 }

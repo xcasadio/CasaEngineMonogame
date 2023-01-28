@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,7 +9,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -21,7 +19,6 @@ namespace XNAFinalEngine.UserInterface
     public abstract class ModalContainer : Container
     {
 
-        #region Variables
 
         // It stores the previous modal when this modal is activated.
         private ModalContainer lastModal;
@@ -29,9 +26,7 @@ namespace XNAFinalEngine.UserInterface
         // Default value.
         private ModalResult modalResult = ModalResult.None;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Is visible?
@@ -62,16 +57,12 @@ namespace XNAFinalEngine.UserInterface
             set { modalResult = value; }
         } // ModalResult
 
-        #endregion
 
-        #region Events
 
         public event WindowClosingEventHandler Closing;
         public event WindowClosedEventHandler  Closed;
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -83,9 +74,7 @@ namespace XNAFinalEngine.UserInterface
 
         }
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -98,9 +87,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Show Modal
 
         /// <summary>
         /// Show this container in modal mode.
@@ -117,9 +104,7 @@ namespace XNAFinalEngine.UserInterface
             UserInterfaceManager.InputSystem.KeyDown += InputKeyDown;
         } // ShowModal
 
-        #endregion
 
-        #region Close
 
         /// <summary>
         /// Close
@@ -159,9 +144,7 @@ namespace XNAFinalEngine.UserInterface
             Close();
         } // Close
 
-        #endregion
 
-        #region On Closing, On Closed
 
         protected virtual void OnClosing(WindowClosingEventArgs e)
         {
@@ -175,9 +158,7 @@ namespace XNAFinalEngine.UserInterface
                 Closed.Invoke(this, e);
         } // OnClosed
 
-        #endregion
 
-        #region Input KeyDown
 
         /// <summary>
         /// If it's modal then with escape can be closed.
@@ -190,7 +171,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // InputKeyDown
 
-        #endregion
 
     } // ModalContainer
 } // XNAFinalEngine.UserInterface

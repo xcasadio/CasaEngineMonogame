@@ -14,6 +14,7 @@ using CasaEngineCommon.Logger;
 using System.Collections.Concurrent;
 using Editor.UndoRedo;
 using Editor.Game;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace Editor.Tools.Graphics2D
 {
@@ -84,7 +85,7 @@ namespace Editor.Tools.Graphics2D
         public Shape2DObject Shape2DObject
         {
             get { return m_Shape2DObject; }
-            set 
+            set
             {
                 lock (SyncRoot)
                 {

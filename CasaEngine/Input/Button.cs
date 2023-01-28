@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,26 +25,24 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using XNAFinalEngine.Helpers;
-#endregion
 
 namespace XNAFinalEngine.Input
 {
 
-	/// <summary>
+    /// <summary>
     /// Virtual button serve two purposes:
     /// * They allow you to reference your inputs by button name in scripting.
     /// * They allow the players of your game to customize the controls to their liking.
-	/// </summary>
-	public class Button : Disposable
+    /// </summary>
+    public class Button : Disposable
     {
 
-        #region Enumerates
 
         /// <summary>
         /// Indicates the behavior of the axis.
@@ -62,31 +59,27 @@ namespace XNAFinalEngine.Input
             AnalogInput,
         } // AxisBehaviors
 
-        #endregion
 
-        #region Variables
 
-	    // Indicates if the virtual buttons was pressed.
-	    private bool pressed;
-        
-	    // Indicates if the virtual buttons was pressed in this frame but not in the previous.
-	    private bool pressedPreviousFrame;
+        // Indicates if the virtual buttons was pressed.
+        private bool pressed;
 
-        #endregion
+        // Indicates if the virtual buttons was pressed in this frame but not in the previous.
+        private bool pressedPreviousFrame;
 
-        #region Properties
+
 
         /// <summary>
         /// The list of all axes.
         /// </summary>
         public static List<Button> Buttons { get; set; }
-       
-	    /// <summary>
+
+        /// <summary>
         /// The string that refers to the axis.
         /// </summary>
         public string Name { get; set; }
 
-	    /// <summary>
+        /// <summary>
         /// Use Key / Button for any kind of buttons or use Analog Movement for mouse delta, scrollwheels and gamepad sticks and triggers.
         /// </summary>
         public ButtonBehaviors ButtonBehavior { get; set; }
@@ -116,14 +109,12 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public float DeadZone { get; set; }
 
-	    /// <summary>
-	    /// Which gamepad should be used. By default (0) this is set to retrieve the input from all gamepads.
-	    /// </summary>
-	    public int GamePadNumber { get; set; }
+        /// <summary>
+        /// Which gamepad should be used. By default (0) this is set to retrieve the input from all gamepads.
+        /// </summary>
+        public int GamePadNumber { get; set; }
 
-        #endregion
 
-        #region Constructor
 
         public Button()
         {
@@ -136,9 +127,7 @@ namespace XNAFinalEngine.Input
             Buttons = new List<Button>();
         } // Button
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -148,9 +137,7 @@ namespace XNAFinalEngine.Input
             Buttons.Remove(this);
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Update
 
         /// <summary>
         /// Update.
@@ -158,8 +145,7 @@ namespace XNAFinalEngine.Input
         internal void Update()
         {
             pressedPreviousFrame = pressed;
-            
-            #region Digital
+
 
             if (ButtonBehavior == ButtonBehaviors.DigitalInput)
             {
@@ -167,15 +153,12 @@ namespace XNAFinalEngine.Input
                 pressed = KeyButton.Pressed(GamePadNumber) || AlternativeKeyButton.Pressed(GamePadNumber);
             }
 
-            #endregion
 
-            #region Analog
 
             else if (ButtonBehavior == ButtonBehaviors.AnalogInput)
             {
                 float valueRaw = 0;
-                
-                #region Raw values for mouse
+
 
                 if (AnalogAxis == AnalogAxes.MouseX)
                 {
@@ -190,9 +173,7 @@ namespace XNAFinalEngine.Input
                     valueRaw = Mouse.WheelDelta;
                 }
 
-                #endregion
 
-                #region Raw values for game pad
 
                 else if (AnalogAxis == AnalogAxes.LeftStickX)
                 {
@@ -260,7 +241,6 @@ namespace XNAFinalEngine.Input
                     }
                 }
 
-                #endregion
 
                 // Invert if necessary.
                 if (Invert)
@@ -269,13 +249,10 @@ namespace XNAFinalEngine.Input
                 pressed = valueRaw > DeadZone;
             }
 
-            #endregion
 
         } // Update
 
-        #endregion
 
-        #region Pressed and Just Pressed
 
         /// <summary>
         /// Returns if the virtual button identified by buttonName was pressed.
@@ -319,7 +296,6 @@ namespace XNAFinalEngine.Input
             return foundPressed && !foundPressedPreviousFrame;
         } // JustPressed
 
-        #endregion
-        
+
     } // Button
 } // XNAFinalEngine.Input

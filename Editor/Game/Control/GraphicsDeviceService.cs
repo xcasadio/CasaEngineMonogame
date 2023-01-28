@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +17,6 @@ namespace Editor.Game.Control
     /// </summary>
     class GraphicsDeviceService : IGraphicsDeviceService
     {
-        #region Fields
 
 
         // Singleton device service instance.
@@ -28,7 +27,6 @@ namespace Editor.Game.Control
         static int referenceCount;
 
 
-        #endregion
 
 
         /// <summary>

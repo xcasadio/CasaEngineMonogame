@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,52 +13,48 @@ using CasaEngineCommon.Design;
 using XNAFinalEngine.UserInterface;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.UserInterface;
+using Control = XNAFinalEngine.UserInterface.Control;
 
 namespace CasaEngine.FrontEnd.Screen
 {
     /// <summary>
     /// 
     /// </summary>
-    public 
+    public
 #if EDITOR
     partial
 #endif
     class UIScreen
         : Screen
     {
-        #region Fields
 
         List<Control> m_Controls = new List<Control>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
         /// </summary>
         public Control[] Gagdets
         {
-            get 
-            { 
-                return m_Controls.ToArray(); 
+            get
+            {
+                return m_Controls.ToArray();
             }
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="name_"></param>
         public UIScreen(string name_)
-			: base(name_)
-		{
-			TransitionOnTime = TimeSpan.FromSeconds(0.5);
-			TransitionOffTime = TimeSpan.FromSeconds(0.5);
-		}
+            : base(name_)
+        {
+            TransitionOnTime = TimeSpan.FromSeconds(0.5);
+            TransitionOffTime = TimeSpan.FromSeconds(0.5);
+        }
 
         /// <summary>
         /// 
@@ -70,9 +68,7 @@ namespace CasaEngine.FrontEnd.Screen
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
         }
 
-        #endregion
 
-        #region Screen Methods
 
         /// <summary>
         /// Load graphics content for the screen.
@@ -124,7 +120,6 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -193,7 +188,7 @@ namespace CasaEngine.FrontEnd.Screen
                     for (int i = 0; i < m_Controls.Count; i++)
                     {
                         //res &= e.m_Controls[i].Compare(m_Controls[i]);
-                   }
+                    }
                 }
             }
             else

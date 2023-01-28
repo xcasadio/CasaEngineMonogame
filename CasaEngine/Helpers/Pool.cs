@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,11 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
-#endregion
+
+
 
 namespace XNAFinalEngine.Helpers
 {
@@ -58,7 +56,6 @@ namespace XNAFinalEngine.Helpers
     public class Pool<T> where T : new()
     {
 
-        #region Accesor
 
         public class Accessor
         {
@@ -74,9 +71,7 @@ namespace XNAFinalEngine.Helpers
             internal Accessor() { }
         } // Accessor
 
-        #endregion
 
-        #region Variables
 
         /// <summary>
         /// The list of accessors or keys to access the pool elements
@@ -92,9 +87,7 @@ namespace XNAFinalEngine.Helpers
         /// </remarks>
         public T[] Elements;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the number of active elements in the pool.
@@ -107,23 +100,21 @@ namespace XNAFinalEngine.Helpers
         public int Capacity
         {
             get { return Elements.Length; }
-            set 
+            set
             {
                 if (value < Count)
                     throw new ArgumentOutOfRangeException("value", "Pool: new size has to be bigger than active elements.");
                 ResizePool(value);
             }
         } // Capacity
-        
+
         /// <summary>
         /// Return the element indexed by the accessor.
         /// </summary>
         /// <remarks>Important: the value type is replicated in the stack.</remarks>
         public T this[Accessor accessor] { get { return Elements[accessor.Index]; } }
-        
-        #endregion
 
-        #region Constructor
+
 
         /// <summary>
         /// A pool of elements T.
@@ -147,9 +138,7 @@ namespace XNAFinalEngine.Helpers
             }
         } // Pool
 
-        #endregion
 
-        #region Fetch
 
         /// <summary>
         /// Marks an element for using it and return its corresponded accessor.
@@ -165,9 +154,7 @@ namespace XNAFinalEngine.Helpers
             return accessors[Count - 1];
         } // Fetch
 
-        #endregion
 
-        #region Resize Pool
 
         /// <summary>
         /// Resize the pool.
@@ -204,9 +191,7 @@ namespace XNAFinalEngine.Helpers
             accessors = newAccessors;
         } // ResizePool
 
-        #endregion
 
-        #region Release
 
         /// <summary>
         /// Set the pool element to available.
@@ -233,9 +218,7 @@ namespace XNAFinalEngine.Helpers
             Count--;
         } // Release
 
-        #endregion
 
-        #region Swap
 
         /// <summary>
         /// Swap elements.
@@ -255,7 +238,6 @@ namespace XNAFinalEngine.Helpers
             accessors[j] = lastActiveAccessor;
         } // Swap
 
-        #endregion
 
     } // Pool
 } // XNAFinalEngine.Helpers

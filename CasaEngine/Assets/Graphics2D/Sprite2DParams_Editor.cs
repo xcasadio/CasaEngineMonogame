@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,13 +18,10 @@ namespace CasaEngine.Assets.Graphics2D
     public partial class Sprite2DParams
         : ISaveLoad
     {
-        #region Fields
 
         private object m_Tag;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -32,9 +31,7 @@ namespace CasaEngine.Assets.Graphics2D
             get { return m_Tag; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -48,9 +45,7 @@ namespace CasaEngine.Assets.Graphics2D
             m_Tag = tag_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -72,6 +67,5 @@ namespace CasaEngine.Assets.Graphics2D
             throw new NotImplementedException();
         }
 
-        #endregion
     }
 }

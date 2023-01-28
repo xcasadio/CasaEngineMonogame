@@ -133,13 +133,10 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             }
         }
 
-        #region Fields
 
         private List<SpriteSheetBuild> m_SpriteSheet = new List<SpriteSheetBuild>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -166,13 +163,9 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             get { return m_SpriteSheet; }
         }
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -306,6 +299,5 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             return true;
         }
 
-        #endregion
     }
 }

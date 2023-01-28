@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,11 +12,8 @@ namespace CasaEngine.Particle
     /// </summary>
     public class Particle
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Remove the particle?
@@ -25,13 +24,9 @@ namespace CasaEngine.Particle
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -41,6 +36,5 @@ namespace CasaEngine.Particle
             Remove = false;
         }
 
-        #endregion
     }
 }

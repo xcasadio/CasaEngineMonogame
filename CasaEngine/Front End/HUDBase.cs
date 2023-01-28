@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,14 +17,11 @@ namespace CasaEngine.Gameplay
     /// </summary>
     public abstract class HUDBase
     {
-        #region Fields
 
         CharacterActor2D m_Character;
         Renderer2DComponent m_Renderer2DComponent;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -40,9 +39,7 @@ namespace CasaEngine.Gameplay
             get { return m_Character; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -67,9 +64,7 @@ namespace CasaEngine.Gameplay
 #endif
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -113,10 +108,9 @@ namespace CasaEngine.Gameplay
             m_Renderer2DComponent.AddText2D(
                 Engine.Instance.DefaultSpriteFont,
                 "Score : " + GameInfo.Instance.WorldInfo.Score,
-                new Vector2((float)viewport.Width / 2.0f, 10.0f), 
-                0.0f, Vector2.One, Color.White, 0.0f);            
+                new Vector2((float)viewport.Width / 2.0f, 10.0f),
+                0.0f, Vector2.One, Color.White, 0.0f);
         }
 
-        #endregion
     }
 }

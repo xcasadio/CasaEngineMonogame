@@ -20,7 +20,6 @@
             base.Dispose(disposing);
         }
 
-        #region Code généré par le Concepteur de composants
 
         /// <summary> 
         /// Méthode requise pour la prise en charge du concepteur - ne modifiez pas 
@@ -32,6 +31,5 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         }
 
-        #endregion
     }
 }

@@ -41,7 +41,6 @@ namespace Poly2Tri.Triangulation.Sets
             Points = new List<TriangulationPoint>(points);
         }
 
-        #region Triangulatable Members
 
         public IList<TriangulationPoint> Points { get; private set; }
         public IList<DelaunayTriangle> Triangles { get; private set; }
@@ -79,6 +78,5 @@ namespace Poly2Tri.Triangulation.Sets
             tcx.Points.AddRange(Points);
         }
 
-        #endregion
     }
 }

@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,14 +9,12 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.CoreSystems;
 
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -28,7 +25,6 @@ namespace XNAFinalEngine.UserInterface
     public class ToolTip : Control
     {
 
-        #region Properties
 
         /// <summary>
         /// Gets or sets a value that indicates whether the control is rendered.
@@ -58,10 +54,8 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Visible
 
-        #endregion
 
-        #region Constructor
-       
+
         /// <summary>
         /// Tool Tip
         /// </summary>
@@ -73,9 +67,7 @@ namespace XNAFinalEngine.UserInterface
             Passive = true;
         } // ToolTip
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -83,9 +75,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = UserInterfaceManager.Skin.Controls["ToolTip"];
         } // InitSkin
 
-        #endregion
-        
-        #region Draw
+
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -96,7 +86,6 @@ namespace XNAFinalEngine.UserInterface
             UserInterfaceManager.Renderer.DrawString(this, SkinInformation.Layers[0], Text, rect, true);
         } // DrawControl
 
-        #endregion
 
     } // ToolTip
 } // XNAFinalEngine.UserInterface

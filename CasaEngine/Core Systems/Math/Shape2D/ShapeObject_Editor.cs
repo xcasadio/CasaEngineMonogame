@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +17,6 @@ namespace CasaEngine.Math.Shape2D
     /// </summary>
     public partial class Shape2DObject
     {
-        #region Fields
 
         private static readonly int m_Version = 1;
 
@@ -27,9 +28,7 @@ namespace CasaEngine.Math.Shape2D
         public bool PropertyChangedActivated = true;
         private object m_Tag;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -41,9 +40,7 @@ namespace CasaEngine.Math.Shape2D
             set { m_Tag = value; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -54,9 +51,7 @@ namespace CasaEngine.Math.Shape2D
             m_Type = type_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -148,6 +143,5 @@ namespace CasaEngine.Math.Shape2D
         }
 
 
-        #endregion
     }
 }

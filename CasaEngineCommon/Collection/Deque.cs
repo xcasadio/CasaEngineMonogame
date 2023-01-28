@@ -1,11 +1,9 @@
-#region Credits
 
 // This class is based on the work of Leslie Sanford which was made 
 // available at The Code Project:
 // http://www.codeproject.com/csharp/deque.asp
 // It has been modified slightly for use within the Engine
 
-#region Original License
 
 /* Copyright (c) 2006 Leslie Sanford
  * 
@@ -28,20 +26,16 @@
  * THE SOFTWARE.
  */
 
-#endregion
 
-#region Original Author Contact
 
 /*
  * Leslie Sanford
  * Email: jabberdabber@hotmail.com
  */
 
-#endregion
 
-#endregion
 
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -60,7 +54,6 @@ namespace CasaEngineCommon.Collection
     /// </summary>
     public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
     {
-        #region Node Class
 
         // Represents a node in the deque.
         [Serializable()]
@@ -110,9 +103,7 @@ namespace CasaEngineCommon.Collection
             }
         }
 
-        #endregion
 
-        #region Enumerator Class
 
         [Serializable()]
         private class Enumerator : IEnumerator<T>
@@ -137,11 +128,9 @@ namespace CasaEngineCommon.Collection
                 this.version = owner.version;
             }
 
-            #region IEnumerator Members
 
             public void Reset()
             {
-                #region Require
 
                 if (disposed)
                 {
@@ -153,7 +142,6 @@ namespace CasaEngineCommon.Collection
                         "The Deque was modified after the enumerator was created.");
                 }
 
-                #endregion
 
                 currentNode = owner.front;
                 moveResult = false;
@@ -163,7 +151,6 @@ namespace CasaEngineCommon.Collection
             {
                 get
                 {
-                    #region Require
 
                     if (disposed)
                     {
@@ -176,7 +163,6 @@ namespace CasaEngineCommon.Collection
                             "element of the Deque or after the last element.");
                     }
 
-                    #endregion
 
                     return current;
                 }
@@ -184,7 +170,6 @@ namespace CasaEngineCommon.Collection
 
             public bool MoveNext()
             {
-                #region Require
 
                 if (disposed)
                 {
@@ -196,7 +181,6 @@ namespace CasaEngineCommon.Collection
                         "The Deque was modified after the enumerator was created.");
                 }
 
-                #endregion
 
                 if (currentNode != null)
                 {
@@ -213,15 +197,12 @@ namespace CasaEngineCommon.Collection
                 return moveResult;
             }
 
-            #endregion
 
-            #region IEnumerator<T> Members
 
             T IEnumerator<T>.Current
             {
                 get
                 {
-                    #region Require
 
                     if (disposed)
                     {
@@ -234,29 +215,22 @@ namespace CasaEngineCommon.Collection
                             "element of the Deque or after the last element.");
                     }
 
-                    #endregion
 
                     return current;
                 }
             }
 
-            #endregion
 
-            #region IDisposable Members
 
             public void Dispose()
             {
                 disposed = true;
             }
 
-            #endregion
         }
 
-        #endregion
 
-        #region Deque Members
 
-        #region Fields
 
         // The node at the front of the deque.
         private Node front = null;
@@ -270,9 +244,7 @@ namespace CasaEngineCommon.Collection
         // The version of the deque.
         private long version = 0;
 
-        #endregion
 
-        #region Construction
 
         /// <summary>
         /// Initializes a new instance of the Deque class.
@@ -290,14 +262,12 @@ namespace CasaEngineCommon.Collection
         /// </param>
         public Deque(IEnumerable<T> collection)
         {
-            #region Check Requirements
 
             if (collection == null)
             {
                 throw new ArgumentNullException("collection");
             }
 
-            #endregion
 
             foreach (T item in collection)
             {
@@ -305,9 +275,7 @@ namespace CasaEngineCommon.Collection
             }
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// Removes all objects from the Deque.
@@ -432,14 +400,12 @@ namespace CasaEngineCommon.Collection
         /// </exception>
         public virtual T PopFront()
         {
-            #region Check Requirements
 
             if (Count == 0)
             {
                 throw new InvalidOperationException("Deque is empty.");
             }
 
-            #endregion
 
             // Get the object at the front of the deque.
             T item = front.Value;
@@ -479,14 +445,12 @@ namespace CasaEngineCommon.Collection
         /// </exception>
         public virtual T PopBack()
         {
-            #region Check Requirements
 
             if (Count == 0)
             {
                 throw new InvalidOperationException("Deque is empty.");
             }
 
-            #endregion
 
             // Get the object at the back of the deque.
             T item = back.Value;
@@ -527,14 +491,12 @@ namespace CasaEngineCommon.Collection
         /// </exception>
         public virtual T PeekFront()
         {
-            #region Check Requirements
 
             if (Count == 0)
             {
                 throw new InvalidOperationException("Deque is empty.");
             }
 
-            #endregion
 
             return front.Value;
         }
@@ -550,14 +512,12 @@ namespace CasaEngineCommon.Collection
         /// </exception>
         public virtual T PeekBack()
         {
-            #region Check Requirements
 
             if (Count == 0)
             {
                 throw new InvalidOperationException("Deque is empty.");
             }
 
-            #endregion
 
             return back.Value;
         }
@@ -582,11 +542,8 @@ namespace CasaEngineCommon.Collection
             return array;
         }
 
-        #endregion
 
-        #endregion
 
-        #region ICollection Members
 
         /// <summary>
         /// Gets a value indicating whether access to the Deque is synchronized 
@@ -624,7 +581,6 @@ namespace CasaEngineCommon.Collection
         /// </param>
         public virtual void CopyTo(Array array, int index)
         {
-            #region Check Requirements
 
             if (array == null)
             {
@@ -652,7 +608,6 @@ namespace CasaEngineCommon.Collection
                     "destination array.");
             }
 
-            #endregion
 
             int i = index;
 
@@ -674,9 +629,7 @@ namespace CasaEngineCommon.Collection
             }
         }
 
-        #endregion
 
-        #region IEnumerable Members
 
         /// <summary>
         /// Returns an enumerator that can iterate through the Deque.
@@ -689,9 +642,7 @@ namespace CasaEngineCommon.Collection
             return new Enumerator(this);
         }
 
-        #endregion
 
-        #region ICloneable Members
 
         /// <summary>
         /// Creates a shallow copy of the Deque.
@@ -708,9 +659,7 @@ namespace CasaEngineCommon.Collection
             return clone;
         }
 
-        #endregion
 
-        #region IEnumerable<T> Members
 
         /// <summary>
         /// Return a generic Enumerator to Enumerate over the Deque
@@ -720,6 +669,5 @@ namespace CasaEngineCommon.Collection
             return new Enumerator(this);
         }
 
-        #endregion
     }
 }

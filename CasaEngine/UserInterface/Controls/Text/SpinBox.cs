@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,18 +9,14 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
 
     public enum SpinBoxMode
     {
@@ -29,12 +24,10 @@ namespace XNAFinalEngine.UserInterface
         List
     } // SpinBoxMode
 
-    #endregion
 
     public class SpinBox : TextBox
     {
 
-        #region Variables
 
         private readonly Button btnUp;
         private readonly Button btnDown;
@@ -44,9 +37,7 @@ namespace XNAFinalEngine.UserInterface
         private int rounding = 2;
         private int itemIndex = -1;
 
-        #endregion
 
-        #region Properties
 
         public new virtual SpinBoxMode Mode
         {
@@ -121,9 +112,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Rounding
 
-        #endregion
 
-        #region Constructor
 
         public SpinBox(UserInterfaceManager userInterfaceManager_, SpinBoxMode mode)
             : base(userInterfaceManager_)
@@ -146,9 +135,7 @@ namespace XNAFinalEngine.UserInterface
             Add(btnDown, false);
         } // SpinBox
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
@@ -178,9 +165,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["SpinBox"]);
         } // InitSkin
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -200,9 +185,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region Shift Index
 
         private void ShiftIndex(bool direction)
         {
@@ -239,9 +222,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ShiftIndex
 
-        #endregion
 
-        #region Button Mouse Press
 
         private void Button_MousePress(object sender, MouseEventArgs e)
         {
@@ -252,9 +233,7 @@ namespace XNAFinalEngine.UserInterface
                 ShiftIndex(false);
         } // Button_MousePress
 
-        #endregion
 
-        #region OnResize, OnKeyPress
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -291,7 +270,6 @@ namespace XNAFinalEngine.UserInterface
             base.OnKeyPress(e);
         } // OnKeyPress
 
-        #endregion
 
     } // SpinBox
 } // XNAFinalEngine.UserInterface

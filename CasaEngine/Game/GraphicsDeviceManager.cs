@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,13 +11,10 @@ namespace CasaEngine.Game
 {
     public class GraphicsDeviceManager : IGraphicsDeviceManager, IDisposable, IGraphicsDeviceService
     {
-        #region Constants
         public static readonly int DefaultBackBufferWidth = 800;
         public static readonly int DefaultBackBufferHeight = 480;
         private const string RuntimeProfileResourceName = "Microsoft.Xna.Framework.RuntimeProfile";
-        #endregion
 
-        #region Private
         private CustomGame game;
         private GraphicsDevice graphicsDevice;
         private int backBufferWidth = DefaultBackBufferWidth;
@@ -29,18 +28,14 @@ namespace CasaEngine.Game
 
         private bool needReset = false;
 
-        #endregion
 
-        #region Events
         public event EventHandler<EventArgs> Disposed;
         public event EventHandler<EventArgs> DeviceCreated;
         public event EventHandler<EventArgs> DeviceDisposing;
         public event EventHandler<EventArgs> DeviceReset;
         public event EventHandler<EventArgs> DeviceResetting;
         public event EventHandler<PreparingDeviceSettingsEventArgs> PreparingDeviceSettings;
-        #endregion
 
-        #region Public
         public GraphicsDevice GraphicsDevice
         {
             get { return this.graphicsDevice; }
@@ -125,7 +120,7 @@ namespace CasaEngine.Game
                 return synchronizeWithVerticalRetrace;
             }
             set
-            {                
+            {
                 synchronizeWithVerticalRetrace = value;
                 throw new NotImplementedException();
             }
@@ -145,9 +140,7 @@ namespace CasaEngine.Game
             get { throw new NotImplementedException(); }
             set { throw new NotImplementedException(); }
         }
-        #endregion
 
-        #region Constructor
         public GraphicsDeviceManager(CustomGame game)
         {
             if (game == null)
@@ -166,16 +159,12 @@ namespace CasaEngine.Game
             //game.Control.ScreenDeviceNameChanged += Window_ScreenDeviceNameChanged;
             //game.Control.OrientationChanged += Window_OrientationChanged;
         }
-        #endregion
 
-        #region BeginDraw
         public bool BeginDraw()
         {
             return true;
         }
-        #endregion
 
-        #region CreateDevice
         public void CreateDevice()
         {
             ApplyChanges();
@@ -204,16 +193,12 @@ namespace CasaEngine.Game
 
             OnDeviceCreated(this, EventArgs.Empty);
         }
-        #endregion
 
-        #region EndDraw
         public void EndDraw()
         {
             this.graphicsDevice.Present();
         }
-        #endregion
 
-        #region ApplyChanges
         public void ApplyChanges()
         {
             GraphicsDeviceInformation graphicsDeviceInformation = FindBestDevice(true);
@@ -245,16 +230,12 @@ namespace CasaEngine.Game
 
             this.currentGraphicsDeviceInformation = graphicsDeviceInformation;
         }
-        #endregion
 
-        #region ToggleFullScreen
         public void ToggleFullScreen()
         {
             throw new NotImplementedException();
         }
-        #endregion
 
-        #region Dispose
         public void Dispose()
         {
             Dispose(true);
@@ -278,9 +259,7 @@ namespace CasaEngine.Game
                     Disposed(this, EventArgs.Empty);
             }
         }
-        #endregion
 
-        #region FindBestDevice
         protected GraphicsDeviceInformation FindBestDevice(bool anySuitableDevice)
         {
             //TODO: implement FindBestDevice
@@ -288,29 +267,29 @@ namespace CasaEngine.Game
             GraphicsDeviceInformation deviceInformation = new GraphicsDeviceInformation();
 
             deviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
-
-            deviceInformation.PresentationParameters.DeviceWindowHandle = game.ControlHandle;
-            deviceInformation.PresentationParameters.BackBufferFormat = backBufferFormat;
-            deviceInformation.PresentationParameters.BackBufferWidth = backBufferWidth;
-            deviceInformation.PresentationParameters.BackBufferHeight = backBufferHeight;
-            deviceInformation.PresentationParameters.DepthStencilFormat = depthStencilFormat;
-            deviceInformation.PresentationParameters.IsFullScreen = false;
-            deviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24;//DepthFormat.Depth24Stencil8;
-            deviceInformation.PresentationParameters.DisplayOrientation = DisplayOrientation.Default;
-            deviceInformation.PresentationParameters.MultiSampleCount = 0;
-            deviceInformation.PresentationParameters.PresentationInterval = PresentInterval.Two;
-            deviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
+            if (deviceInformation.PresentationParameters != null)
+            {
+                deviceInformation.PresentationParameters.BackBufferWidth = backBufferWidth;
+                deviceInformation.PresentationParameters.DeviceWindowHandle = game.ControlHandle;
+                deviceInformation.PresentationParameters.BackBufferFormat = backBufferFormat;
+                deviceInformation.PresentationParameters.BackBufferWidth = backBufferWidth;
+                deviceInformation.PresentationParameters.BackBufferHeight = backBufferHeight;
+                deviceInformation.PresentationParameters.DepthStencilFormat = depthStencilFormat;
+                deviceInformation.PresentationParameters.IsFullScreen = false;
+                deviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24;//DepthFormat.Depth24Stencil8;
+                deviceInformation.PresentationParameters.DisplayOrientation = DisplayOrientation.Default;
+                deviceInformation.PresentationParameters.MultiSampleCount = 0;
+                deviceInformation.PresentationParameters.PresentationInterval = PresentInterval.Two;
+                deviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
+            }
 
             return deviceInformation;
         }
-        #endregion
 
-        #region CanResetDevice
         protected virtual bool CanResetDevice(GraphicsDeviceInformation newDeviceInfo)
         {
             return GraphicsDevice.GraphicsProfile == newDeviceInfo.GraphicsProfile;
         }
-        #endregion
 
         protected virtual void RankDevices(List<GraphicsDeviceInformation> foundDevices)
         {
@@ -366,12 +345,10 @@ namespace CasaEngine.Game
             RaiseEventIfNotNull(PreparingDeviceSettings, sender, args);
         }
 
-        #region RaiseEventIfNotNull
         private void RaiseEventIfNotNull<T>(EventHandler<T> handler, object sender, T args) where T : EventArgs
         {
             if (handler != null)
                 handler(sender, args);
         }
-        #endregion
     }
 }

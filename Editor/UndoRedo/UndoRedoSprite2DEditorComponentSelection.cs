@@ -15,17 +15,12 @@ namespace Editor.UndoRedo
     public class UndoRedoListControlSelection 
         : ICommand
     {
-        #region Fields
 
         int m_Selectedindex;
 
-		#endregion
 
-		#region Properties
 
-		#endregion
 
-		#region Constructor
 
 		/// <summary>
 		/// 
@@ -36,9 +31,7 @@ namespace Editor.UndoRedo
             m_Selectedindex = index_;
 		}
 
-		#endregion
 
-		#region ICommand Members
 
         delegate void DelegateCallback(ListControl c_);
 
@@ -91,6 +84,5 @@ namespace Editor.UndoRedo
             return "Selection " + m_Selectedindex;
         }
 
-		#endregion
     }
 }

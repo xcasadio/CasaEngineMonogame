@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,15 +14,10 @@ namespace CasaEngine.Gameplay.Actor
     public class LightActor2D
         : Actor2D
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -31,9 +28,7 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        #endregion
 
-        #region Methods
 
         public override BaseObject Clone()
         {
@@ -52,6 +47,5 @@ namespace CasaEngine.Gameplay.Actor
         }
 #endif
 
-        #endregion
     }
 }

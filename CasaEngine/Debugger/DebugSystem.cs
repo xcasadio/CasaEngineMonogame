@@ -1,11 +1,9 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // DebugSystem.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
 /*
  * To get started with the GameDebugTools, go to your main game class, override the Initialize method and add the
@@ -76,13 +74,6 @@ namespace CasaEngine.Debugger
         /// </summary>
         public TimeRuler TimeRuler { get; private set; }
 
-#if !WINDOWS_PHONE
-        /// <summary>
-        /// Gets the RemoteDebugCommand for the system.
-        /// </summary>
-        public RemoteDebugCommand RemoteDebugCommand { get; private set; }
-#endif
-
         /// <summary>
         /// Initializes the DebugSystem and adds all components to the game's Components collection.
         /// </summary>
@@ -110,11 +101,6 @@ namespace CasaEngine.Debugger
 
             singletonInstance.TimeRuler = new TimeRuler(game);
             game.Components.Add(singletonInstance.TimeRuler);
-
-#if !WINDOWS_PHONE
-            singletonInstance.RemoteDebugCommand = new RemoteDebugCommand(game);
-            game.Components.Add(singletonInstance.RemoteDebugCommand);
-#endif
 
             return singletonInstance;
         }

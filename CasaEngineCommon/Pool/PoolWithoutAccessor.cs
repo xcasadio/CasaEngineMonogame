@@ -32,7 +32,6 @@ namespace CasaEngineCommon.Pool
     public class PoolWithoutAccessor<T> where T : new()
     {
 
-        #region Variables
 
         /// <summary>
         /// The elements.
@@ -43,9 +42,7 @@ namespace CasaEngineCommon.Pool
         /// </remarks>
         public T[] Elements;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the number of active elements in the pool.
@@ -66,9 +63,7 @@ namespace CasaEngineCommon.Pool
             }
         } // Capacity
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// A pool of elements T.
@@ -86,9 +81,7 @@ namespace CasaEngineCommon.Pool
             }
         } // Pool
 
-        #endregion
 
-        #region Fetch
 
         /// <summary>
         /// Marks an element for using it and return its corresponded accessor.
@@ -104,9 +97,7 @@ namespace CasaEngineCommon.Pool
             return Elements[Count - 1];
         } // Fetch
 
-        #endregion
 
-        #region Resize Pool
 
         /// <summary>
         /// Resize the pool.
@@ -130,9 +121,7 @@ namespace CasaEngineCommon.Pool
             Elements = newElements;
         } // ResizePool
 
-        #endregion
 
-        #region Release
 
         /// <summary>
         /// Set the pool element to available.
@@ -157,7 +146,6 @@ namespace CasaEngineCommon.Pool
             Count--;
         } // Release
 
-        #endregion
 
     } // Pool
 }

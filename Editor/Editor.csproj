@@ -1,696 +1,90 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{223CE39C-656E-4193-960B-0E9F1E36DDA8}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Editor</RootNamespace>
-    <AssemblyName>Editor</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug UnitTest|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug UnitTest\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;UNITTEST</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
-    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WeifenLuo.WinFormsUI.Docking">
-      <HintPath>..\ThirdParties\DockPanel\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AboutForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AboutForm.Designer.cs">
-      <DependentUpon>AboutForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ActionGraphForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ActionGraphForm.Designer.cs">
-      <DependentUpon>ActionGraphForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="BugReportForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="BugReportForm.Designer.cs">
-      <DependentUpon>BugReportForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="BuildAssetForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="BuildAssetForm.Designer.cs">
-      <DependentUpon>BuildAssetForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ContentBrowserForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ContentBrowserForm.Designer.cs">
-      <DependentUpon>ContentBrowserForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Debugger\DebugHelper.cs" />
-    <Compile Include="Debugger\DisplayExceptionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Debugger\DisplayExceptionForm.Designer.cs">
-      <DependentUpon>DisplayExceptionForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="EditorInfo.cs" />
-    <Compile Include="Game\Animation2DEditorComponent.cs" />
-    <Compile Include="Game\Control\GraphicsDeviceControl.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Game\Control\GraphicsDeviceService.cs" />
-    <Compile Include="Game\CustomGameEditor.cs" />
-    <Compile Include="Game\MouseWindowed.cs" />
-    <Compile Include="Game\MyOwnEditorGame.cs" />
-    <Compile Include="Game\Grid2DComponent.cs" />
-    <Compile Include="Tools\Event\IAnimationEventBaseWindow.cs" />
-    <Compile Include="Tools\Event\EventForm\AnimationSoundEventForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Event\EventForm\AnimationSoundEventForm.Designer.cs">
-      <DependentUpon>AnimationSoundEventForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\Event\EventForm\SoundEventWindowFactory.cs" />
-    <Compile Include="Tools\Event\IEventWindowFactory.cs" />
-    <Compile Include="Tools\Font\AddFontForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Font\AddFontForm.Designer.cs">
-      <DependentUpon>AddFontForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\Font\FontPreviewEditorComponent.cs" />
-    <Compile Include="Tools\Font\FontPreviewForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Font\FontPreviewForm.Designer.cs">
-      <DependentUpon>FontPreviewForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\SkinUIEditor\SkinUIEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\SkinUIEditor\SkinUIEditorForm.Designer.cs">
-      <DependentUpon>SkinUIEditorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\UIScreenEditor\UIScreenEditorComponent.cs" />
-    <Compile Include="Front End\ScreenGadgetManipulator.cs" />
-    <Compile Include="Game\Sprite2DEditorComponent.cs" />
-    <Compile Include="Helper\ImageHelper.cs" />
-    <Compile Include="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Map\MapEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Map\MapEditorForm.Designer.cs">
-      <DependentUpon>MapEditorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="PackageEditor\PackageBrowserDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="PackageEditor\PackageBrowserDialog.Designer.cs">
-      <DependentUpon>PackageBrowserDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\Audio\AddSoundForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Audio\AddSoundForm.Designer.cs">
-      <DependentUpon>AddSoundForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\Graphics2D\AddSpriteAndAnimForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Graphics2D\AddSpriteAndAnimForm.Designer.cs">
-      <DependentUpon>AddSpriteAndAnimForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\UIScreenEditor\UIScreenDesigner.cs" />
-    <Compile Include="Tools\UIScreenEditor\UIScreenEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\UIScreenEditor\UIScreenEditorForm.Designer.cs">
-      <DependentUpon>UIScreenEditorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UndoRedo\UndoRedoAddDeleteSocketCommand.cs" />
-    <Compile Include="UndoRedo\UndoRedoHotSpotCommand.cs" />
-    <Compile Include="UndoRedo\UndoRedoSocketCommand.cs" />
-    <Compile Include="WinForm\CollapsiblePanel\CollapsiblePanel.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="WinForm\CollapsiblePanel\CollapsiblePanel.designer.cs">
-      <DependentUpon>CollapsiblePanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WinForm\CollapsiblePanel\CollapsiblePanelActionList.cs" />
-    <Compile Include="WinForm\CollapsiblePanel\CollapsiblePanelDesigner.cs" />
-    <Compile Include="WinForm\CollapsiblePanel\DropDownPanel.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="WinForm\StackPanel.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="WinForm\StackPanel.Designer.cs">
-      <DependentUpon>StackPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="World\WorldEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="World\WorldEditorForm.Designer.cs">
-      <DependentUpon>WorldEditorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SoundEditor\SoundEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SoundEditor\SoundEditorForm.Designer.cs">
-      <DependentUpon>SoundEditorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SourceControl\SourceControlIcon.cs" />
-    <Compile Include="SourceControl\SourceControlConnectionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SourceControl\SourceControlConnectionForm.designer.cs">
-      <DependentUpon>SourceControlConnectionForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\Event\AnimationListEventForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Event\AnimationListEventForm.Designer.cs">
-      <DependentUpon>AnimationListEventForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetTask.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetTaskForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetTaskForm.Designer.cs">
-      <DependentUpon>SpriteSheetTaskForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetTaskListForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetTaskListForm.Designer.cs">
-      <DependentUpon>SpriteSheetTaskListForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetTaskManager.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Builder.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\LockBitmap.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\SpriteSheetBuildInfo.cs" />
-    <Compile Include="SubMainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SubMainForm.Designer.cs">
-      <DependentUpon>SubMainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\CurveEditor\AppContainer.cs" />
-    <Compile Include="Tools\CurveEditor\CommandCollection.cs" />
-    <Compile Include="Tools\CurveEditor\CommandHistory.cs" />
-    <Compile Include="Tools\CurveEditor\CommonState.cs" />
-    <Compile Include="Tools\CurveEditor\CurveControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Tools\CurveEditor\CurveControl.designer.cs">
-      <DependentUpon>CurveControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\CurveEditor\CurveControlCommands.cs" />
-    <Compile Include="Tools\CurveEditor\CurveControlResources.Designer.cs" />
-    <Compile Include="Tools\CurveEditor\EditCurve.cs" />
-    <Compile Include="Tools\CurveEditor\EditCurveCollection.cs" />
-    <Compile Include="Tools\CurveEditor\EditCurveKey.cs" />
-    <Compile Include="Tools\CurveEditor\EditCurveKeyCollection.cs" />
-    <Compile Include="Tools\CurveEditor\EditCurveKeySelection.cs" />
-    <Compile Include="Tools\CurveEditor\EditCurveState.cs" />
-    <Compile Include="Tools\CurveEditor\Enumerations.cs" />
-    <Compile Include="Tools\CurveEditor\GridControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Tools\CurveEditor\GridControl.Designer.cs">
-      <DependentUpon>GridControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\CurveEditor\ICommand.cs" />
-    <Compile Include="Tools\CurveEditor\NativeMethods.cs" />
-    <Compile Include="Tools\Graphics2D\Animation2DEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Graphics2D\Animation2DEditorForm.Designer.cs">
-      <DependentUpon>Animation2DEditorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\Graphics2D\Shape2DManipulatorCircle.cs" />
-    <Compile Include="Tools\Graphics2D\Shape2DManipulator.cs" />
-    <Compile Include="Tools\Graphics2D\Shape2DManipulatorLine.cs" />
-    <Compile Include="Tools\Graphics2D\Shape2DManipulatorPolygone.cs" />
-    <Compile Include="Tools\Graphics2D\Shape2DManipulatorRectangle.cs" />
-    <Compile Include="Tools\Graphics2D\Sprite2DEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Graphics2D\Sprite2DEditorForm.Designer.cs">
-      <DependentUpon>Sprite2DEditorForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\IEditorForm.cs" />
-    <Compile Include="Tools\XnaEditorForm.cs" />
-    <Compile Include="UndoRedo\UndoRedoAddCollisionCommand.cs" />
-    <Compile Include="UndoRedo\UndoRedoPolygoneCommand.cs" />
-    <Compile Include="UndoRedo\UndoRedoPropertyValueChangedCommand.cs" />
-    <Compile Include="UndoRedo\UndoRedoShape2DObjectCommand.cs" />
-    <Compile Include="UndoRedo\UndoRedoSprite2DEditorComponentSelection.cs" />
-    <Compile Include="WinForm\BgWorkerForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForm\BgWorkerForm.Designer.cs">
-      <DependentUpon>BgWorkerForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Log\LogForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Log\LogForm.Designer.cs">
-      <DependentUpon>LogForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WinForm\ConflicForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForm\ConflicForm.Designer.cs">
-      <DependentUpon>ConflicForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WinForm\DocToolkit\DocManager.cs" />
-    <Compile Include="WinForm\DocToolkit\DragDropManager.cs" />
-    <Compile Include="WinForm\DocToolkit\MruManager.cs" />
-    <Compile Include="WinForm\DocToolkit\PersistWindowState.cs" />
-    <Compile Include="WinForm\EditorForm.cs" />
-    <Compile Include="WinForm\ExternalTool.cs" />
-    <Compile Include="WinForm\GraphicsExtension.cs" />
-    <Compile Include="WinForm\InputBox.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForm\InputBox.designer.cs">
-      <DependentUpon>InputBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WinForm\InputComboBox.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForm\InputComboBox.designer.cs">
-      <DependentUpon>InputComboBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WinForm\InputMultipleSelection.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForm\InputMultipleSelection.designer.cs">
-      <DependentUpon>InputMultipleSelection.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WinForm\InputRtfForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForm\InputRtfForm.designer.cs">
-      <DependentUpon>InputRtfForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WinForm\ListViewEx.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="WinForm\ObserverControlData.cs" />
-    <Compile Include="WinForm\ProgressBarForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForm\ProgressBarForm.Designer.cs">
-      <DependentUpon>ProgressBarForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Log\LogEditor.cs" />
-    <Compile Include="EditorMainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="EditorMainForm.Designer.cs">
-      <DependentUpon>EditorMainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="ProjectConfigForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ProjectConfigForm.designer.cs">
-      <DependentUpon>ProjectConfigForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tools\Graphics2D\DelayFrameOperationForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\Graphics2D\DelayFrameOperationForm.designer.cs">
-      <DependentUpon>DelayFrameOperationForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\BuildResultEventArgs.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetPackerForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\SpriteSheetPackerForm.designer.cs">
-      <DependentUpon>SpriteSheetPackerForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Constants.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Exporters\BmpImageExporter.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Exporters\Exporters.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Exporters\IImageExporter.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Exporters\IMapExporter.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Exporters\JpegImageExporter.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Exporters\PngImageExporter.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Exporters\TxtMapExporter.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Packing\ImagePacker.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Packing\MiscHelper.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\Program.cs" />
-    <Compile Include="Tools\SpriteSheetPacker\sspack\ProgramArguments.cs" />
-    <Compile Include="World\WorldObjectForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="World\WorldObjectForm.Designer.cs">
-      <DependentUpon>WorldObjectForm.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="AboutForm.resx">
-      <DependentUpon>AboutForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ActionGraphForm.resx">
-      <DependentUpon>ActionGraphForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="BugReportForm.resx">
-      <DependentUpon>BugReportForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="BuildAssetForm.resx">
-      <DependentUpon>BuildAssetForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ContentBrowserForm.resx">
-      <DependentUpon>ContentBrowserForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Debugger\DisplayExceptionForm.resx">
-      <DependentUpon>DisplayExceptionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Map\MapEditorForm.resx">
-      <DependentUpon>MapEditorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="PackageEditor\PackageBrowserDialog.resx">
-      <DependentUpon>PackageBrowserDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Audio\AddSoundForm.resx">
-      <DependentUpon>AddSoundForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Event\EventForm\AnimationSoundEventForm.resx">
-      <DependentUpon>AnimationSoundEventForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Font\AddFontForm.resx">
-      <DependentUpon>AddFontForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Font\FontPreviewForm.resx">
-      <DependentUpon>FontPreviewForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Graphics2D\AddSpriteAndAnimForm.resx">
-      <DependentUpon>AddSpriteAndAnimForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\SkinUIEditor\SkinUIEditorForm.resx">
-      <DependentUpon>SkinUIEditorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\UIScreenEditor\UIScreenEditorForm.resx">
-      <DependentUpon>UIScreenEditorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\CollapsiblePanel\CollapsiblePanel.resx">
-      <DependentUpon>CollapsiblePanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="World\WorldEditorForm.resx">
-      <DependentUpon>WorldEditorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SoundEditor\SoundEditorForm.resx">
-      <DependentUpon>SoundEditorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SourceControl\SourceControlConnectionForm.resx">
-      <DependentUpon>SourceControlConnectionForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Event\AnimationListEventForm.resx">
-      <DependentUpon>AnimationListEventForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\SpriteSheetPacker\SpriteSheetTaskForm.resx">
-      <DependentUpon>SpriteSheetTaskForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\SpriteSheetPacker\SpriteSheetTaskListForm.resx">
-      <DependentUpon>SpriteSheetTaskListForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SubMainForm.resx">
-      <DependentUpon>SubMainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\CurveEditor\CurveControl.resx">
-      <DependentUpon>CurveControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\CurveEditor\CurveControlResources.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\CurveEditor\GridControl.resx">
-      <DependentUpon>GridControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Graphics2D\Animation2DEditorForm.resx">
-      <DependentUpon>Animation2DEditorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\Graphics2D\Sprite2DEditorForm.resx">
-      <DependentUpon>Sprite2DEditorForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\BgWorkerForm.resx">
-      <DependentUpon>BgWorkerForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Log\LogForm.resx">
-      <DependentUpon>LogForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\ConflicForm.resx">
-      <DependentUpon>ConflicForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\InputBox.resx">
-      <DependentUpon>InputBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\InputComboBox.resx">
-      <DependentUpon>InputComboBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\InputMultipleSelection.resx">
-      <DependentUpon>InputMultipleSelection.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\InputRtfForm.resx">
-      <DependentUpon>InputRtfForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\ListViewEx.resx">
-      <DependentUpon>ListViewEx.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WinForm\ProgressBarForm.resx">
-      <DependentUpon>ProgressBarForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="EditorMainForm.resx">
-      <DependentUpon>EditorMainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProjectConfigForm.resx">
-      <DependentUpon>ProjectConfigForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <EmbeddedResource Include="Tools\Graphics2D\DelayFrameOperationForm.resx">
-      <DependentUpon>DelayFrameOperationForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tools\SpriteSheetPacker\SpriteSheetPackerForm.resx">
-      <DependentUpon>SpriteSheetPackerForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="World\WorldObjectForm.resx">
-      <DependentUpon>WorldObjectForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <None Include="app.config" />
-    <Compile Include="EditorMainForm.Test.cs">
-      <DependentUpon>EditorMainForm.cs</DependentUpon>
-    </Compile>
-    <None Include="Editor_doc.rtf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Compile Include="ProjectConfigForm.Test.cs">
-      <DependentUpon>ProjectConfigForm.cs</DependentUpon>
-    </Compile>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <None Include="Tools\SpriteSheetPacker\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Tools\SpriteSheetPacker\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
-      <Visible>False</Visible>
-      <ProductName>Windows Installer 3.1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\icon_circle_add_16x16.png" />
-    <None Include="Resources\icon_polygone_add_16x16.png" />
-    <None Include="Resources\icon_rectangle_add_16x16.png" />
-    <None Include="Resources\icon_line_add_16x16.png" />
-    <Content Include="ReleaseNote.txt" />
-    <Content Include="Resources\AddKeyImage.png" />
-    <Content Include="Resources\collapse.gif" />
-    <Content Include="Resources\collapse_hightlight.gif" />
-    <Content Include="Resources\cursor_add.png" />
-    <Content Include="Resources\cursor_delete.png" />
-    <Content Include="Resources\expand.gif" />
-    <Content Include="Resources\expand_highlight.gif" />
-    <Content Include="Resources\icon_animation_128x128.png" />
-    <Content Include="Resources\icon_information_128x128.png" />
-    <Content Include="Resources\icon_marion_128x128.png" />
-    <Content Include="Resources\icon_object_128x128.png" />
-    <Content Include="Resources\icon_object_sound_132x132.png" />
-    <Content Include="Resources\icon_screen_128x128.png" />
-    <Content Include="Resources\MoveImage.png" />
-    <Content Include="Resources\MoveKeyImage.png" />
-    <Content Include="Resources\p4v_file_add.png" />
-    <Content Include="Resources\p4v_file_add_other_ws.png" />
-    <Content Include="Resources\p4v_file_branch.png" />
-    <Content Include="Resources\p4v_file_delete.png" />
-    <Content Include="Resources\p4v_file_deleted.png" />
-    <Content Include="Resources\p4v_file_delete_other.png" />
-    <Content Include="Resources\p4v_file_differs.png" />
-    <Content Include="Resources\p4v_file_edit_head.png" />
-    <Content Include="Resources\p4v_file_edit_other.png" />
-    <Content Include="Resources\p4v_file_import.png" />
-    <Content Include="Resources\p4v_file_integ.png" />
-    <Content Include="Resources\p4v_file_lock.png" />
-    <Content Include="Resources\p4v_file_lock_other.png" />
-    <Content Include="Resources\p4v_file_needs_resolve.png" />
-    <Content Include="Resources\p4v_file_notmapped.png" />
-    <Content Include="Resources\p4v_file_notsync.png" />
-    <Content Include="Resources\p4v_file_sync.png" />
-    <Content Include="Resources\p4v_file_txt.png" />
-    <Content Include="Resources\p4v_file_ws.png" />
-    <Content Include="Resources\p4v_folderdepot.png" />
-    <Content Include="Resources\p4v_folderlocal.png" />
-    <Content Include="Resources\p4v_folderworkspace.png" />
-    <Content Include="Resources\p4v_move.png" />
-    <Content Include="Resources\p4v_move_target.png" />
-    <Content Include="Resources\p4v_symlink.png" />
-    <Content Include="Resources\PanImage.png" />
-    <Content Include="Resources\SelectImage.png" />
-    <Content Include="Resources\shelved-file.png" />
-    <Content Include="Resources\ZoomImage.png" />
-    <Content Include="TODO.txt" />
-    <Content Include="WinForm\TODO.txt" />
-    <Content Include="Resources\icon_arrowDown_16x16.png" />
-    <Content Include="Resources\icon_arrowUp_16x16.png" />
-    <Content Include="Resources\icon_edit_16x16.gif" />
-    <Content Include="Resources\icon_first_16x16.png" />
-    <Content Include="Resources\icon_last_16x16.png" />
-    <Content Include="Resources\icon_Minus_16x16.png" />
-    <Content Include="Resources\icon_pause_16x16.png" />
-    <Content Include="Resources\icon_play_16x16.png" />
-    <Content Include="Resources\icon_Plus_16x16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CasaEngineCommon\CasaEngineCommon.Editor.csproj">
-      <Project>{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}</Project>
-      <Name>CasaEngineCommon.Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj">
-      <Project>{36D16292-D92F-4087-8BE7-A09AD6D5AC05}</Project>
-      <Name>CasaEngine.Editor</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<OutputType>WinExe</OutputType>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+		<DefineConstants>TRACE;DEBUG;WINDOWS;EDITOR</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+		<DefineConstants>TRACE;WINDOWS;EDITOR</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="DockPanelSuite" Version="3.1.0" />
+	  <PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\CasaEngineCommon\CasaEngineCommon.Editor.csproj" />
+		<ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="FNA">
+	    <HintPath>..\ThirdParties\FNA\Release\FNA.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<Resource Include="Resources\icon_circle_add_16x16.png" />
+		<Resource Include="Resources\icon_polygone_add_16x16.png" />
+		<Resource Include="Resources\icon_rectangle_add_16x16.png" />
+		<Resource Include="Resources\icon_line_add_16x16.png" />
+		<Resource Include="ReleaseNote.txt" />
+		<Resource Include="Resources\AddKeyImage.png" />
+		<Resource Include="Resources\collapse.gif" />
+		<Resource Include="Resources\collapse_hightlight.gif" />
+		<Resource Include="Resources\cursor_add.png" />
+		<Resource Include="Resources\cursor_delete.png" />
+		<Resource Include="Resources\expand.gif" />
+		<Resource Include="Resources\expand_highlight.gif" />
+		<Resource Include="Resources\icon_animation_128x128.png" />
+		<Resource Include="Resources\icon_information_128x128.png" />
+		<Resource Include="Resources\icon_marion_128x128.png" />
+		<Resource Include="Resources\icon_object_128x128.png" />
+		<Resource Include="Resources\icon_object_sound_132x132.png" />
+		<Resource Include="Resources\icon_screen_128x128.png" />
+		<Resource Include="Resources\MoveImage.png" />
+		<Resource Include="Resources\MoveKeyImage.png" />
+		<Resource Include="Resources\p4v_file_add.png" />
+		<Resource Include="Resources\p4v_file_add_other_ws.png" />
+		<Resource Include="Resources\p4v_file_branch.png" />
+		<Resource Include="Resources\p4v_file_delete.png" />
+		<Resource Include="Resources\p4v_file_deleted.png" />
+		<Resource Include="Resources\p4v_file_delete_other.png" />
+		<Resource Include="Resources\p4v_file_differs.png" />
+		<Resource Include="Resources\p4v_file_edit_head.png" />
+		<Resource Include="Resources\p4v_file_edit_other.png" />
+		<Resource Include="Resources\p4v_file_import.png" />
+		<Resource Include="Resources\p4v_file_integ.png" />
+		<Resource Include="Resources\p4v_file_lock.png" />
+		<Resource Include="Resources\p4v_file_lock_other.png" />
+		<Resource Include="Resources\p4v_file_needs_resolve.png" />
+		<Resource Include="Resources\p4v_file_notmapped.png" />
+		<Resource Include="Resources\p4v_file_notsync.png" />
+		<Resource Include="Resources\p4v_file_sync.png" />
+		<Resource Include="Resources\p4v_file_txt.png" />
+		<Resource Include="Resources\p4v_file_ws.png" />
+		<Resource Include="Resources\p4v_folderdepot.png" />
+		<Resource Include="Resources\p4v_folderlocal.png" />
+		<Resource Include="Resources\p4v_folderworkspace.png" />
+		<Resource Include="Resources\p4v_move.png" />
+		<Resource Include="Resources\p4v_move_target.png" />
+		<Resource Include="Resources\p4v_symlink.png" />
+		<Resource Include="Resources\PanImage.png" />
+		<Resource Include="Resources\SelectImage.png" />
+		<Resource Include="Resources\shelved-file.png" />
+		<Resource Include="Resources\ZoomImage.png" />
+		<Resource Include="TODO.txt" />
+		<Resource Include="WinForm\TODO.txt" />
+		<Resource Include="Resources\icon_arrowDown_16x16.png" />
+		<Resource Include="Resources\icon_arrowUp_16x16.png" />
+		<Resource Include="Resources\icon_edit_16x16.gif" />
+		<Resource Include="Resources\icon_first_16x16.png" />
+		<Resource Include="Resources\icon_last_16x16.png" />
+		<Resource Include="Resources\icon_Minus_16x16.png" />
+		<Resource Include="Resources\icon_pause_16x16.png" />
+		<Resource Include="Resources\icon_play_16x16.png" />
+		<Resource Include="Resources\icon_Plus_16x16.png" />
+	</ItemGroup>
 </Project>

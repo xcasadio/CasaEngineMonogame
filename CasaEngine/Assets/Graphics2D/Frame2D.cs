@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,13 +14,13 @@ using CasaEngine.Gameplay.Actor.Event;
 
 namespace CasaEngine.Assets.Graphics2D
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public struct Frame2D
-	{
-		public int spriteID;
-		public float time;
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct Frame2D
+    {
+        public int spriteID;
+        public float time;
 
 #if EDITOR
         public List<EventActor> Events;
@@ -84,5 +86,5 @@ namespace CasaEngine.Assets.Graphics2D
             return true;
         }
 #endif
-	}
+    }
 }

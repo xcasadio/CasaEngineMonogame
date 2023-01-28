@@ -11,7 +11,6 @@ namespace Editor.WinForm
 	/// </summary>
 	public class ObserverControlData
 	{
-		#region Fields
 
 		Control[] m_Controls = null;
 		Dictionary<Control, object> m_ControlDatas = new Dictionary<Control, object>();
@@ -21,9 +20,7 @@ namespace Editor.WinForm
 
 		public event EventHandler StateChanged;
 
-		#endregion
 
-		#region Properties
 
 		/// <summary>
 		/// Gets
@@ -44,9 +41,7 @@ namespace Editor.WinForm
 			}
 		}
 
-		#endregion
 
-		#region Constructors
 
 		/// <summary>
 		/// 
@@ -64,9 +59,7 @@ namespace Editor.WinForm
 			Initialize();
 		}
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// 
@@ -231,6 +224,5 @@ namespace Editor.WinForm
 			}
 		}
 
-		#endregion
 	}
 }

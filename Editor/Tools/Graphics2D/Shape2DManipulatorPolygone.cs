@@ -12,6 +12,8 @@ using Editor.UndoRedo;
 using Microsoft.Xna.Framework.Input;
 using System.IO;
 using CasaEngineCommon.Logger;
+using Color = Microsoft.Xna.Framework.Color;
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace Editor.Tools.Graphics2D
 {
@@ -26,11 +28,11 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         public CasaEngine.Math.Shape2D.ShapePolygone ShapePolygone
         {
-            get 
-            { 
-                return (ShapePolygone)base.Shape2DObject; 
+            get
+            {
+                return (ShapePolygone)base.Shape2DObject;
             }
-            internal set 
+            internal set
             {
                 base.Shape2DObject = value;
             }
@@ -99,7 +101,7 @@ namespace Editor.Tools.Graphics2D
                 ShapePolygone.ModifyPoint(index,
                                 new Vector2(ShapePolygone.PointList[index].X + e.OffsetX,
                                     ShapePolygone.PointList[index].Y + e.OffsetY));
-            }            
+            }
         }
 
         /// <summary>
@@ -139,7 +141,7 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         /// <param name="mouseState_"></param>
         public override void Update(MouseState mouseState_, bool shiftPressed_, bool controlPressed_)
-        {            
+        {
             base.Update(mouseState_, shiftPressed_, controlPressed_);
 
             if (mouseState_.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
@@ -215,7 +217,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="line2DRenderer_"></param>
         /// <param name="spriteBatch_"></param>
         public override void Draw(Line2DRenderer line2DRenderer_, SpriteBatch spriteBatch_)
-        {            
+        {
             Vector2 position = Offset;
             Vector2[] points;
 

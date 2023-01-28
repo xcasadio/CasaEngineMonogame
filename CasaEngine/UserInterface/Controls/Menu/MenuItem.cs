@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -27,7 +23,6 @@ namespace XNAFinalEngine.UserInterface
     public class MenuItem
     {
 
-        #region Variables
 
         // Default values.
         private bool enabled = true;
@@ -35,9 +30,7 @@ namespace XNAFinalEngine.UserInterface
         // Children Items.
         private List<MenuItem> items = new List<MenuItem>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Showing text.
@@ -71,9 +64,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         public List<MenuItem> Items { get { return items; } set { items = value; } }
 
-        #endregion
 
-        #region Events
 
         /// <summary>
         ///  Was the menu item clicked.
@@ -85,9 +76,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         public event EventHandler Selected;
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Menu Item.
@@ -101,9 +90,7 @@ namespace XNAFinalEngine.UserInterface
             SeparationLine = separated;
         } // MenuItem
 
-        #endregion
 
-        #region Raise Events
         
         internal void OnClick(EventArgs e)
         {
@@ -117,7 +104,6 @@ namespace XNAFinalEngine.UserInterface
                 Selected.Invoke(this, e);
         } // OnSelected
 
-        #endregion
 
     } // MenuItem
 } // XNAFinalEngine.UserInterface

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,11 +18,8 @@ namespace CasaEngine.Project
     /// </summary>
     public class Package
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -98,9 +97,7 @@ namespace CasaEngine.Project
             }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -115,11 +112,8 @@ namespace CasaEngine.Project
             Children = new List<Package>();
         }
 
-        #endregion
 
-        #region Methods
 
-        #region Item
 
         /// <summary>
         /// 
@@ -128,7 +122,7 @@ namespace CasaEngine.Project
         /// <param name="subDirectory_"></param>
         public void AddItem(PackageItem item_, string subDirectory_ = "")
         {
-            Items.Add(item_);        
+            Items.Add(item_);
         }
 
         /// <summary>
@@ -149,11 +143,8 @@ namespace CasaEngine.Project
             return null;
         }
 
-        #endregion
 
-        #region Save/Load
 
-        #region XML
 
         /// <summary>
         /// 
@@ -200,9 +191,7 @@ namespace CasaEngine.Project
             PackageFileName = file_;
         }
 
-        #endregion
 
-        #region Binary
 
         /// <summary>
         /// 
@@ -238,10 +227,7 @@ namespace CasaEngine.Project
             PackageFileName = file_;
         }
 
-        #endregion
 
-        #endregion
 
-        #endregion
     }
 }

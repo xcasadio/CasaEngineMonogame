@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,16 +14,13 @@ namespace Editor.Sprite2DEditor.Event
     /// <summary>
     /// 
     /// </summary>
-    public partial class AnimationListEventForm 
+    public partial class AnimationListEventForm
         : Form
     {
-        #region Fields
 
         private List<EventActor> m_Events;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -33,9 +30,7 @@ namespace Editor.Sprite2DEditor.Event
             get { return m_Events; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -54,9 +49,7 @@ namespace Editor.Sprite2DEditor.Event
             listBoxEvent.Items.AddRange(m_Events.ToArray());
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -93,7 +86,7 @@ namespace Editor.Sprite2DEditor.Event
             if (listBoxEvent.SelectedIndex != -1)
             {
                 m_Events.RemoveAt(listBoxEvent.SelectedIndex);
-                listBoxEvent.Items.RemoveAt(listBoxEvent.SelectedIndex);                
+                listBoxEvent.Items.RemoveAt(listBoxEvent.SelectedIndex);
             }
         }
 
@@ -115,6 +108,5 @@ namespace Editor.Sprite2DEditor.Event
             }
         }
 
-        #endregion
     }
 }

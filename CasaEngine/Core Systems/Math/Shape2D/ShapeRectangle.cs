@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,13 +25,10 @@ namespace CasaEngine.Math.Shape2D
     class ShapeRectangle
         : Shape2DObject
     {
-        #region Fields
 
         int m_Width, m_Height;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -40,8 +39,8 @@ namespace CasaEngine.Math.Shape2D
         public int Width
         {
             get { return m_Width; }
-            set 
-            { 
+            set
+            {
                 m_Width = value;
 #if EDITOR
                 NotifyPropertyChanged("Width");
@@ -59,7 +58,7 @@ namespace CasaEngine.Math.Shape2D
         {
             get { return m_Height; }
             set
-            { 
+            {
                 m_Height = value;
 #if EDITOR
                 NotifyPropertyChanged("Height");
@@ -67,9 +66,7 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -81,11 +78,9 @@ namespace CasaEngine.Math.Shape2D
         /// </summary>
         public ShapeRectangle(ShapeRectangle o_)
             : base(o_)
-        {}
+        { }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -97,7 +92,7 @@ namespace CasaEngine.Math.Shape2D
             base.Load(el_, option_);
 
             m_Width = int.Parse(el_.Attributes["width"].Value);
-            m_Height = int.Parse(el_.Attributes["height"].Value); 
+            m_Height = int.Parse(el_.Attributes["height"].Value);
         }
 
         /// <summary>
@@ -125,6 +120,5 @@ namespace CasaEngine.Math.Shape2D
             m_Height = ((ShapeRectangle)ob_).m_Height;
         }
 
-        #endregion
     }
 }

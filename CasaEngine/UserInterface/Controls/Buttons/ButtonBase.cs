@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -26,7 +22,6 @@ namespace XNAFinalEngine.UserInterface
     public abstract class ButtonBase : Control
     {
 
-        #region Properties
 
         /// <summary>
         /// Gets a value indicating current state of the control.
@@ -49,9 +44,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlState
 
-        #endregion
 
-        #region Constructor
 
         protected ButtonBase(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
@@ -60,9 +53,7 @@ namespace XNAFinalEngine.UserInterface
             DoubleClicks = false;
         } // ButtonBase
 
-        #endregion
 
-        #region On click
 
         protected override void OnClick(EventArgs e)
         {
@@ -73,7 +64,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnClick
 
-        #endregion
 
     } // ButtonBase
 } // XNAFinalEngine.UserInterface

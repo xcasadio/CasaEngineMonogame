@@ -1,19 +1,15 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // Vector3Helper.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-#endregion
 
 namespace CasaEngineCommon.Helper
 {
@@ -22,7 +18,6 @@ namespace CasaEngineCommon.Helper
     /// </summary>
     public static class Vector3Helper
     {
-        #region GetAngleBetweenVectors
         /// <summary>
         /// Return angle between two vectors. Used for visibility testing and
         /// for checking angles between vectors for the road sign generation.
@@ -129,9 +124,7 @@ namespace CasaEngineCommon.Helper
 			return Quaternion.CreateFromAxisAngle(axis_, GetAngleBetweenVectors(axis_, vec1_, vec2_));
 		}
 
-        #endregion
 
-        #region DistanceToLine
         /// <summary>
         /// Distance from our point to the line described by linePos1 and linePos2.
         /// </summary>
@@ -148,9 +141,7 @@ namespace CasaEngineCommon.Helper
             Vector3 pointVec = linePos1 - point;
             return Vector3.Cross(lineVec, pointVec).Length() / lineVec.Length();
         }
-        #endregion
 
-        #region SignedDistanceToPlane
         /// <summary>
         /// Signed distance to plane
         /// </summary>
@@ -164,9 +155,7 @@ namespace CasaEngineCommon.Helper
             Vector3 pointVec = planePosition - point;
             return Vector3.Dot(planeNormal, pointVec);
         }
-        #endregion
 
-		#region Truncate
 
 		/// <summary>
 		/// Truncates a vector
@@ -200,6 +189,5 @@ namespace CasaEngineCommon.Helper
 			}
 		}
 
-		#endregion
 	}
 }

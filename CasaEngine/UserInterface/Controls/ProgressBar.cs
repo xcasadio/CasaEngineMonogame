@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,18 +9,19 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
 
-#endregion
+
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    #region Enumerators
 
     public enum ProgressBarMode
     {
@@ -29,21 +29,19 @@ namespace XNAFinalEngine.UserInterface
         Infinite
     } // ProgressBarMode
 
-    #endregion
-    
+
     /// <summary>
     /// Progress Bar.
     /// </summary>
     public class ProgressBar : Control
     {
 
-        #region Variables
-        
+
         /// <summary>
         /// Range
         /// </summary>
         private int range = 100;
-        
+
         /// <summary>
         /// Current value.
         /// </summary>
@@ -66,9 +64,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private int sign = 1;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Current value (in porcentage).
@@ -148,17 +144,13 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Range
 
-        #endregion
 
-        #region Events
 
         public event EventHandler ValueChanged;
         public event EventHandler RangeChanged;
         public event EventHandler ModeChanged;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Progress Bar.
@@ -174,9 +166,7 @@ namespace XNAFinalEngine.UserInterface
             CanFocus = false;
         } // ProgressBar
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -190,9 +180,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -232,9 +220,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region Update
 
         protected internal override void Update(float elapsedTime_)
         {
@@ -262,9 +248,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Update
 
-        #endregion
 
-        #region OnValueChanged, OnRangeChanged, OnModeChanged
 
         protected virtual void OnValueChanged(EventArgs e)
         {
@@ -281,7 +265,6 @@ namespace XNAFinalEngine.UserInterface
             if (ModeChanged != null) ModeChanged.Invoke(this, e);
         } // OnModeChanged
 
-        #endregion
 
     } // ProgressBar
 } // XNAFinalEngine.UserInterface

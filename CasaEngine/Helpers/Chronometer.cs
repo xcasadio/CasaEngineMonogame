@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2011, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,13 +25,12 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System.Collections.Generic;
 using System;
 
-#endregion
+
+
 
 namespace XNAFinalEngine.Helpers
 {
@@ -48,7 +46,6 @@ namespace XNAFinalEngine.Helpers
     public class Chronometer : Disposable
     {
 
-        #region Enumerates
 
         /// <summary>
         /// The chronometer could work in update time or frame time.
@@ -65,18 +62,14 @@ namespace XNAFinalEngine.Helpers
             FrameTime,
         } // TimeSpaceEnum
 
-        #endregion
 
-        #region Variables
 
         /// <summary>
         /// The current chronometers in use by the aplication.
         /// </summary>
         private static readonly List<Chronometer> chronometers = new List<Chronometer>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Elapsed time in seconds.
@@ -94,9 +87,7 @@ namespace XNAFinalEngine.Helpers
         /// <value>Default: update time.</value>
         public TimeSpaceEnum TimeSpace { get; private set; }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Chronometer in seconds, starts in pause.
@@ -111,9 +102,7 @@ namespace XNAFinalEngine.Helpers
             chronometers.Add(this);
         } // Chronometer
 
-        #endregion
 
-        #region Change State
 
         /// <summary>
         /// Resume chronometer.
@@ -131,9 +120,7 @@ namespace XNAFinalEngine.Helpers
             Paused = true;
         } // Pause
 
-        #endregion
 
-        #region Reset
 
         /// <summary>
         /// Reset counter. The state doesn't change.
@@ -143,9 +130,7 @@ namespace XNAFinalEngine.Helpers
             ElapsedTime = 0;
         } // Reset
 
-        #endregion
 
-        #region Update
 
         /// <summary>
         /// Update.
@@ -162,9 +147,7 @@ namespace XNAFinalEngine.Helpers
             }*/
         } // Update
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose Managed Resources.
@@ -174,9 +157,7 @@ namespace XNAFinalEngine.Helpers
             chronometers.Remove(this);
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Static Managment (for all chronometers)
 
         /// <summary>
         /// Pause all chronometers.
@@ -185,7 +166,7 @@ namespace XNAFinalEngine.Helpers
         {
             foreach (Chronometer chronometer in chronometers)
             {
-                 chronometer.Pause();
+                chronometer.Pause();
             }
         } // PauseAllChronometers
 
@@ -224,7 +205,6 @@ namespace XNAFinalEngine.Helpers
             }
         } // UpdateFrameTimeChronometers
 
-        #endregion
-        
+
     } // Chronometer
 } // XNAFinalEngine.Helpers

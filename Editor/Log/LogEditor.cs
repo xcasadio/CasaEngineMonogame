@@ -14,20 +14,15 @@ namespace Editor.Log
     public class LogEditor
         : ILog
     {
-        #region Fields
 
         private RichTextBox m_TextBox;
         private readonly string m_Debug = "[Debug] : ";
         private readonly string m_Warning = "Warning : ";
         private readonly string m_Error = "Error : ";
 
-        #endregion // Fields
 
-        #region Properties
 
-        #endregion // Properties
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -43,9 +38,7 @@ namespace Editor.Log
             m_TextBox = textBox_;
         }
 
-        #endregion // Constructors
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -163,6 +156,5 @@ namespace Editor.Log
             Write(m_Error + msg_ + Environment.NewLine, System.Drawing.Color.Red);
         }
 
-        #endregion // Methods
     }
 }

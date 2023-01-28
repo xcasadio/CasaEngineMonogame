@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,7 +9,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -21,7 +19,6 @@ namespace XNAFinalEngine.UserInterface
     public class StatusBar : Control
     {
 
-        #region Constructor
     
         /// <summary>
         /// Status Bar. It's just a container.
@@ -36,9 +33,7 @@ namespace XNAFinalEngine.UserInterface
             CanFocus = false;
         } // StatusBar
 
-        #endregion
 
-        #region Init Skin
 
         protected internal override void InitSkin()
         {
@@ -46,7 +41,6 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["StatusBar"]);
         } // InitSkin
 
-        #endregion
 
     } // StatusBar
 } // XNAFinalEngine.UserInterface

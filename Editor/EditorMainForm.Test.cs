@@ -1,6 +1,6 @@
 ﻿#if UNITTEST
 
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +15,6 @@ namespace Editor
     {
         string m_ProjectPathToDelete;
 
-        #region UnitTest Initialization
 
         /// <summary>
         /// 
@@ -46,7 +45,6 @@ namespace Editor
             }
         }
 
-        #endregion
 
         [Test]
         public void CreateNewProjectAndSave()

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +9,7 @@ using CasaEngine.Gameplay.Actor.Object;
 using System.Xml;
 using System.IO;
 using CasaEngineCommon.Design;
+using Size = XNAFinalEngine.UserInterface.Size;
 
 #if EDITOR
 using System.ComponentModel;
@@ -18,23 +21,20 @@ namespace CasaEngine.Assets.UI
     /// <summary>
     /// 
     /// </summary>
-    public 
+    public
 #if EDITOR
     partial
 #endif
     class SkinUI
         : BaseObject
     {
-        #region Fields
 
-        SkinList<SkinControlInformation> m_Controls = new SkinList<SkinControlInformation>();        
-        SkinList<SkinImage> m_Images = new SkinList<SkinImage>();        
+        SkinList<SkinControlInformation> m_Controls = new SkinList<SkinControlInformation>();
+        SkinList<SkinImage> m_Images = new SkinList<SkinImage>();
         SkinList<SkinFont> m_Fonts = new SkinList<SkinFont>();
         SkinList<SkinCursor> m_Cursors = new SkinList<SkinCursor>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -80,9 +80,7 @@ namespace CasaEngine.Assets.UI
             get { return m_Cursors; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -94,9 +92,7 @@ namespace CasaEngine.Assets.UI
             Load(el_, option_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -137,12 +133,12 @@ namespace CasaEngine.Assets.UI
                     skinControl = new SkinControlInformation();
 
                 // Load general information
-                string name = "";node = controlNode.SelectSingleNode("DefaultSize");
+                string name = ""; node = controlNode.SelectSingleNode("DefaultSize");
                 ReadAttribute(ref name, inherit, controlNode, "Name", null, true);
                 skinControl.Name = name;
 
                 node = controlNode.SelectSingleNode("DefaultSize");
-                size = new Size();                
+                size = new Size();
                 ReadAttribute(ref size.Width, inherit, node, "Width", 0, false);
                 ReadAttribute(ref size.Height, inherit, node, "Height", 0, false);
                 skinControl.DefaultSize = size;
@@ -182,7 +178,7 @@ namespace CasaEngine.Assets.UI
                     }
                 }
                 Controls.Add(skinControl);
-            }            
+            }
 
             foreach (XmlNode controlNode in el_.SelectNodes("Skin/Fonts/Font"))
             {
@@ -277,7 +273,6 @@ namespace CasaEngine.Assets.UI
             ReadAttribute(ref margin.Bottom, inherent, node, "Bottom", 0, false);
             skinLayer.ContentMargins = margin;
 
-            #region States
 
             node = layerNode.SelectSingleNode("States");
             if (node != null)
@@ -323,9 +318,7 @@ namespace CasaEngine.Assets.UI
                 skinLayer.States = states;
             }
 
-            #endregion
 
-            #region Overlays
 
             node = layerNode.SelectSingleNode("Overlays");
             if (node != null)
@@ -359,9 +352,7 @@ namespace CasaEngine.Assets.UI
                 skinLayer.Overlays = overlay;
             }
 
-            #endregion
 
-            #region Text
 
             node = layerNode.SelectSingleNode("Text");
             if (node != null)
@@ -386,22 +377,18 @@ namespace CasaEngine.Assets.UI
                 skinLayer.Text = skinText;
             }
 
-            #endregion
 
-            #region Attributes
 
             foreach (XmlNode attribute in layerNode.SelectNodes("Attributes/Attribute"))
             {
                 LoadLayerAttribute(skinLayer, attribute);
             }
 
-            #endregion
 
             if (!inherent)
                 skinControl.Layers.Add(skinLayer);
         } // LoadLayer
 
-        #region Load Colors
 
         private void LoadColors(bool inherited, XmlNode e, ref SkinStates<Color> colors)
         {
@@ -415,9 +402,7 @@ namespace CasaEngine.Assets.UI
             }
         } // LoadColors
 
-        #endregion
 
-        #region Load Layer Attributes
 
         /// <summary>
         /// Load Layer Attributes
@@ -443,9 +428,7 @@ namespace CasaEngine.Assets.UI
 
         } // LoadLayerAttribute
 
-        #endregion
 
-        #region Read Attribute
 
         private string ReadAttribute(XmlNode element, string attributeName, string defval, bool needed)
         {
@@ -511,7 +494,6 @@ namespace CasaEngine.Assets.UI
             retval = Utilities.ParseColor(tmp);
         } // ReadAttributeColor
 
-        #endregion
 
         /// <summary>
         /// 
@@ -532,6 +514,5 @@ namespace CasaEngine.Assets.UI
             throw new Exception("The method or operation is not implemented.");
         }
 
-        #endregion
     }
 }

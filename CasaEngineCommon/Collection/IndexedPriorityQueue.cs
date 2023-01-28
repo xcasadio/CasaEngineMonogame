@@ -1,9 +1,7 @@
-#region Using Directives
 
 using System;
 using System.Collections.Generic;
 
-#endregion
 
 namespace CasaEngineCommon.Collection
 {
@@ -18,7 +16,6 @@ namespace CasaEngineCommon.Collection
 	/// <typeparam name="T">The type of the indexed elements</typeparam>
 	public class IndexedPriorityQueue<T> : PriorityQueue<int>
 	{
-		#region Fields
 
 		/// <summary>
 		/// The elements indexed
@@ -36,9 +33,7 @@ namespace CasaEngineCommon.Collection
 		/// </summary>
 		protected List<int> reversedIndexes;
 
-		#endregion
 
-		#region Constructors
 
 		/// <summary>
 		/// Default constructor. Uses the default comparer for the elements in the indexed priority queue
@@ -80,9 +75,7 @@ namespace CasaEngineCommon.Collection
 			this.indexComparer = indexComparer;
 		}
 
-		#endregion
 
-		#region Properties
 
 		/// <summary>
 		/// Gets or sets the indexed elements list
@@ -100,9 +93,7 @@ namespace CasaEngineCommon.Collection
 			}
 		}
 
-		#endregion
 
-		#region IPriorityQueue<T> Members
 
 		/// <summary>
 		/// Push an object onto the PQ
@@ -180,9 +171,7 @@ namespace CasaEngineCommon.Collection
 			return result;
 		}
 
-		#endregion
 
-		#region Helper Methods
 
 		/// <summary>
 		/// Swaps two elements and the indexed elements
@@ -210,9 +199,7 @@ namespace CasaEngineCommon.Collection
 			return indexComparer.Compare(indexedElements[heapElements[i]], indexedElements[heapElements[j]]);
 		}
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// Indicates the indexed priority queue that we have changed the value of the indexed element i,
@@ -224,6 +211,5 @@ namespace CasaEngineCommon.Collection
 			this.Update(reversedIndexes[i]);
 		}
 
-		#endregion
 	}
 }

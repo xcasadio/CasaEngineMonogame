@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,14 +9,15 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#endregion
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -28,8 +28,7 @@ namespace XNAFinalEngine.UserInterface
     public class ListBox : Control
     {
 
-        #region Variables
-        
+
         private List<object> items = new List<object>();
         private readonly ScrollBar scrollBarVertical;
         private readonly ClipBox pane;
@@ -38,9 +37,7 @@ namespace XNAFinalEngine.UserInterface
         private int itemsCount;
         private bool hideSelection = true;
 
-        #endregion
 
-        #region Properties
 
         public virtual List<object> Items
         {
@@ -56,7 +53,7 @@ namespace XNAFinalEngine.UserInterface
                 if (hotTrack != value)
                 {
                     hotTrack = value;
-                    if (!Suspended) 
+                    if (!Suspended)
                         OnHotTrackChanged(new EventArgs());
                 }
             }
@@ -96,17 +93,13 @@ namespace XNAFinalEngine.UserInterface
             }
         } // HideSelection
 
-        #endregion
 
-        #region Events
 
         public event EventHandler HotTrackChanged;
         public event EventHandler ItemIndexChanged;
         public event EventHandler HideSelectionChanged;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Display a list of items.
@@ -120,8 +113,8 @@ namespace XNAFinalEngine.UserInterface
 
             scrollBarVertical = new ScrollBar(UserInterfaceManager, Orientation.Vertical)
             {
-                Parent = this, 
-                Range = 1, 
+                Parent = this,
+                Range = 1,
                 PageSize = 1,
                 StepSize = 10
             };
@@ -147,9 +140,7 @@ namespace XNAFinalEngine.UserInterface
             Passive = false;
         } // ListBox
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -163,13 +154,11 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Auto Height
 
         public virtual void AutoHeight(int maxItems)
         {
-            if (items != null && items.Count < maxItems) 
+            if (items != null && items.Count < maxItems)
                 maxItems = items.Count;
             if (items == null || items.Count == maxItems)
             {
@@ -197,9 +186,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // AutoHeight
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -215,7 +202,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (items != null && items.Count > 0)
             {
-                SkinText  fontLayer = SkinInformation.Layers["Control"].Text;
+                SkinText fontLayer = SkinInformation.Layers["Control"].Text;
                 SkinLayer selectedLayer = SkinInformation.Layers["ListBox.Selection"];
                 int fontHeight = (int)fontLayer.Font.Font.MeasureString(items[0].ToString()).Y;
                 int v = (scrollBarVertical.Value / 10);
@@ -252,9 +239,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawPane
 
-        #endregion
 
-        #region Update
 
         protected internal override void Update(float elapsedTime_)
         {
@@ -281,9 +266,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Update
 
-        #endregion
 
-        #region Track Item
 
         /// <summary>
         /// This method select the element that is under the mouse pointer (if any).
@@ -297,9 +280,9 @@ namespace XNAFinalEngine.UserInterface
                 int scrollbarValue = scrollBarVertical.Value;
                 if (!scrollBarVertical.Visible)
                     scrollbarValue = 0;
-                
+
                 int lowerBound = (int)Math.Floor((float)scrollbarValue / 10f);
-                int upperBound = (int) Math.Ceiling((float) (scrollbarValue + scrollBarVertical.PageSize)/10f);
+                int upperBound = (int)Math.Ceiling((float)(scrollbarValue + scrollBarVertical.PageSize) / 10f);
                 // Last page is special.
                 if (upperBound > itemsCount)
                 {
@@ -310,16 +293,14 @@ namespace XNAFinalEngine.UserInterface
                 }
                 // Calculate current item (without considering bounds or out of range)
                 int i = (int)Math.Floor(lowerBound + ((float)y / fontHeight));
-                
+
                 if (i >= 0 && i < Items.Count && i >= lowerBound && i < upperBound)
                     ItemIndex = i;
                 Focused = true;
             }
         } // TrackItem
 
-        #endregion
 
-        #region Items Changed
 
         private void ItemsChanged()
         {
@@ -341,9 +322,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ItemsChanged
 
-        #endregion
 
-        #region Scroll To
 
         public virtual void ScrollTo(int index)
         {
@@ -358,9 +337,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ScrollTo
 
-        #endregion
 
-        #region On Events
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -409,9 +386,9 @@ namespace XNAFinalEngine.UserInterface
                 itemIndex = items.Count - 1;
             }
 
-            if (itemIndex < 0) 
+            if (itemIndex < 0)
                 itemIndex = 0;
-            else if (itemIndex >= Items.Count) 
+            else if (itemIndex >= Items.Count)
                 itemIndex = Items.Count - 1;
 
             ItemIndex = itemIndex;
@@ -424,7 +401,7 @@ namespace XNAFinalEngine.UserInterface
             base.OnResize(e);
             ItemsChanged();
         } // OnResize
-        
+
         protected virtual void OnItemIndexChanged(EventArgs e)
         {
             if (ItemIndexChanged != null) ItemIndexChanged.Invoke(this, e);
@@ -440,7 +417,6 @@ namespace XNAFinalEngine.UserInterface
             if (HideSelectionChanged != null) HideSelectionChanged.Invoke(this, e);
         } // OnHideSelectionChanged
 
-        #endregion
 
     } // ListBox
 } // XNAFinalEngine.UserInterface

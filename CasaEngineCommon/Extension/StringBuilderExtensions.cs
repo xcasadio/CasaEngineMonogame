@@ -1,20 +1,16 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // StringBuilderExtensions.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 
 using System;
 using System.Globalization;
 using System.Text;
 using CasaEngineCommon.Helper;
 
-#endregion
 
 namespace CasaEngineCommon.Extension
 {
@@ -57,7 +53,6 @@ namespace CasaEngineCommon.Extension
     /// </remarks>
     public static class StringBuilderExtensions
     {
-        #region Fields
 
         /// <summary>
         /// Cache for NumberGroupSizes of NumberFormat class.
@@ -70,7 +65,6 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         static char[] numberString = new char[32];
 
-        #endregion
 
         /// <summary>
         /// Convert integer to string and add to string builder.

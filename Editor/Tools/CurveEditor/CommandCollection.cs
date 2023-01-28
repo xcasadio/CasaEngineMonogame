@@ -1,11 +1,9 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // CommandCollection.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
 //-----------------------------------------------------------------------------
 // CommandCollection.cs
@@ -13,12 +11,10 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#region Using Statements
-using System;
+
 using System.Collections.Generic;
 using System.Text;
 
-#endregion
 
 
 
@@ -31,7 +27,6 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public class CommandCollection : ICommand, ICollection<ICommand>
     {
-        #region Properties
         /// <summary>
         /// It returns true if it can process undo; otherwise it returns false.
         /// </summary>
@@ -58,9 +53,7 @@ namespace Editor.Tools.CurveEditor
         /// <param name="index">The zero-based index of the element to get.</param>
         /// <returns>The element at the specfied index.</</returns>
         public ICommand this[int index] { get { return commands[index]; } }
-        #endregion
 
-        #region Public Methods
 
         /// <summary>
         /// Add command to queue.
@@ -96,7 +89,6 @@ namespace Editor.Tools.CurveEditor
             return true;
         }
 
-        #region ICommand Members
         public void Execute()
         {
             // Execute all commands.
@@ -110,11 +102,8 @@ namespace Editor.Tools.CurveEditor
             for (int i = commands.Count - 1; i >= 0; --i)
                 commands[i].Unexecute();
         }
-        #endregion
 
-        #endregion
 
-        #region Protected members
 
         /// <summary>
         /// For store commands.
@@ -126,9 +115,7 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         int commandIndex;
 
-        #endregion
 
-        #region ICollection<ICommand> Members
 
         public void Clear()
         {
@@ -156,24 +143,19 @@ namespace Editor.Tools.CurveEditor
             throw new NotImplementedException();
         }
 
-        #endregion
 
-        #region IEnumerable<ICommand> Members
 
         public IEnumerator<ICommand> GetEnumerator()
         {
             return commands.GetEnumerator();
         }
 
-        #endregion
 
-        #region IEnumerable Members
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return commands.GetEnumerator();
         }
 
-        #endregion
     }
 }

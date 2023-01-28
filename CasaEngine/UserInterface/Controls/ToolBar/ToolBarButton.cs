@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,7 +9,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -21,7 +19,6 @@ namespace XNAFinalEngine.UserInterface
     public class ToolBarButton : Button
     {
 
-        #region Constructor
 
         /// <summary>
         /// Tool Bar Button.
@@ -33,9 +30,7 @@ namespace XNAFinalEngine.UserInterface
             Text = "";
         }
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -43,7 +38,6 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ToolBarButton"]);
         } // InitSkin
 
-        #endregion
 
     } // ToolBarButton
 } // XNAFinalEngine.UserInterface

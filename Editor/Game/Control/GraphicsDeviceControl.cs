@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +9,7 @@ namespace Editor.Game.Control
     // System.Drawing and the XNA Framework both define Color and Rectangle
     // types. To avoid conflicts, we specify exactly which ones to use.
     using Color = System.Drawing.Color;
-    using Rectangle = Microsoft.Xna.Framework.Rectangle;
+
     using System.Drawing;
     using Microsoft.Xna.Framework.Graphics;
     using System.Windows.Forms;
@@ -20,18 +20,15 @@ namespace Editor.Game.Control
     /// a Windows Form. Derived classes can override the Initialize and Draw
     /// methods to add their own drawing code.
     /// </summary>
-    abstract public class GraphicsDeviceControl 
+    abstract public class GraphicsDeviceControl
         : Control
     {
-        #region Fields
 
         // However many GraphicsDeviceControl instances you have, they all share
         // the same underlying GraphicsDevice, managed by this helper service.
         GraphicsDeviceService graphicsDeviceService;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets a GraphicsDevice that can be used to draw onto this control.
@@ -53,9 +50,7 @@ namespace Editor.Game.Control
 
         GameServiceContainer services = new GameServiceContainer();
 
-        #endregion
 
-        #region Initialization
 
         /// <summary>
         /// Initializes the control.
@@ -95,9 +90,7 @@ namespace Editor.Game.Control
         }
 
 
-        #endregion
 
-        #region Paint
 
 
         /// <summary>
@@ -174,7 +167,7 @@ namespace Editor.Game.Control
         {
             try
             {
-                Rectangle sourceRectangle = new Rectangle(0, 0, ClientSize.Width,
+                Microsoft.Xna.Framework.Rectangle sourceRectangle = new Microsoft.Xna.Framework.Rectangle(0, 0, ClientSize.Width,
                                                                 ClientSize.Height);
 
                 GraphicsDevice.Present(sourceRectangle, null, this.Handle);
@@ -269,9 +262,7 @@ namespace Editor.Game.Control
         }
 
 
-        #endregion
 
-        #region Abstract Methods
 
 
         /// <summary>
@@ -286,6 +277,5 @@ namespace Editor.Game.Control
         protected abstract void Draw();
 
 
-        #endregion
     }
 }

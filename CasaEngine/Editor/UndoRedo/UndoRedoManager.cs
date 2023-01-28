@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +19,6 @@ namespace CasaEngine.Editor.UndoRedo
             public ICommand command;
         }
 
-        #region Fields
 
         Stack<UndoRedoParam> m_Undo = new Stack<UndoRedoParam>();
         Stack<UndoRedoParam> m_Redo = new Stack<UndoRedoParam>();
@@ -25,13 +26,9 @@ namespace CasaEngine.Editor.UndoRedo
         public event EventHandler UndoRedoCommandAdded;
         public event EventHandler EventCommandDone;
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Gets if can undo
@@ -49,9 +46,7 @@ namespace CasaEngine.Editor.UndoRedo
             get { return m_Redo.Count == 0 ? false : true; }
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -157,6 +152,5 @@ namespace CasaEngine.Editor.UndoRedo
             }
         }
 
-        #endregion
     }
 }

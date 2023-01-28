@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -34,7 +34,6 @@ namespace Editor
     public partial class ContentBrowserForm 
         : DockContent
     {
-        #region Static
 
         static private List<string> m_CustomObjectNames;
 
@@ -47,7 +46,6 @@ namespace Editor
             m_CustomObjectNames = new List<string>(collec_);
         }
 
-        #endregion
 
         private BackgroundWorker m_BackgroundWorker;
         private int m_Percent, m_PercentTotal;
@@ -391,7 +389,6 @@ namespace Editor
             
         }
 
-        #region Sprite2D
 
         /// <summary>
         /// 
@@ -413,9 +410,7 @@ namespace Editor
             }
         }
 
-        #endregion
 
-        #region ListView
 
         //delegate void SetAddItemInControlCallback(string spriteSheetName_);
 
@@ -479,9 +474,7 @@ namespace Editor
             //listViewItems.Invalidate();
         }
 
-        #endregion
 
-        #region TreeView
 
         /// <summary>
         /// 
@@ -585,9 +578,7 @@ namespace Editor
             }
         }
 
-        #endregion
 
-        #region ContextMenuStrip
 
         /// <summary>
         /// 
@@ -662,7 +653,6 @@ namespace Editor
             form.Dispose();
         }
 
-        #region AddSprite
 
         /// <summary>
         /// 
@@ -926,9 +916,7 @@ namespace Editor
             }
         }
 
-        #endregion
 
-        #region UI
 
         /// <summary>
         /// 
@@ -1002,15 +990,11 @@ namespace Editor
             form.Dispose();
         }
 
-        #endregion
-
-        #endregion
-
-        #region Tags
 
 
 
-        #endregion
+
+
 
         /// <summary>
         /// 
@@ -1045,7 +1029,6 @@ namespace Editor
             }
         }
 
-        #region Rename object
 
         /// <summary>
         /// 
@@ -1119,9 +1102,7 @@ namespace Editor
             }            
         }
 
-        #endregion
 
-        #region Drag n Drop
 
         /// <summary>
         /// 
@@ -1276,7 +1257,6 @@ namespace Editor
             }
         }
 
-        #endregion        
 
         /// <summary>
         /// 
@@ -1315,7 +1295,6 @@ namespace Editor
             }
         }
 
-        #region Font
 
         /// <summary>
         /// 
@@ -1372,6 +1351,5 @@ namespace Editor
             }
         }
 
-        #endregion
     }
 }

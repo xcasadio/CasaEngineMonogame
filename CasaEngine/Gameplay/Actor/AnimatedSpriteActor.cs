@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,22 +22,27 @@ namespace CasaEngine.Gameplay.Actor
     /// <summary>
     /// 
     /// </summary>
-    public 
-#if EDITOR
-    partial
-#endif
-    class AnimatedSpriteActor
-        : Actor2D, IRenderable
+    public class AnimatedSpriteActor : Actor2D, IRenderable
     {
-        #region Fields
+
+#if EDITOR
+        public override bool CompareTo(BaseObject other_)
+        {
+            if (other_ is AnimatedSpriteActor)
+            {
+                AnimatedSpriteActor asa = (AnimatedSpriteActor)other_;
+                //asa.m_Animations
+            }
+
+            return false;
+        }
+#endif
 
         private Dictionary<int, Animation2D> m_Animations = new Dictionary<int, Animation2D>();
         private Animation2DPlayer m_Animation2DPlayer;
         private Renderer2DComponent m_Renderer2DComponent;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -72,9 +79,7 @@ namespace CasaEngine.Gameplay.Actor
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -95,9 +100,7 @@ namespace CasaEngine.Gameplay.Actor
             //return new 
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -185,7 +188,7 @@ namespace CasaEngine.Gameplay.Actor
         public void LoadAnimation(int index_, string anim2DName_)
         {
             m_Animations.Add(
-                index_, 
+                index_,
                 (Animation2D)Engine.Instance.ObjectManager.GetObjectByPath(anim2DName_));
 
             foreach (var frame in m_Animations[index_].GetFrames())
@@ -207,6 +210,5 @@ namespace CasaEngine.Gameplay.Actor
             m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
-        #endregion
     }
 }

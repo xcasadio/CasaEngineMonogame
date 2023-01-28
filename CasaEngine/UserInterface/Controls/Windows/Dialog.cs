@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -26,7 +24,6 @@ namespace XNAFinalEngine.UserInterface
     public class Dialog : Window
     {
 
-        #region Properties
 
         /// <summary>
         /// Top panel. 
@@ -49,10 +46,8 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         public Label Description { get; private set; }
 
-        #endregion
 
-        #region Constructor
-  
+
         /// <summary>
         /// Dialog window. It has a top panel (with description and caption) and a bottom panel.
         /// </summary>
@@ -99,14 +94,12 @@ namespace XNAFinalEngine.UserInterface
             BottomPanel.Top = ClientHeight - BottomPanel.Height;
         } // Dialog
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
             base.Init();
-            
+
             SkinLayer lc = new SkinLayer(Caption.SkinInformation.Layers[0]);
             SkinStates<Color> skinColor = lc.Text.Colors;
             lc.Text.Font.Font = UserInterfaceManager.Skin.Fonts[UserInterfaceManager.Skin.Controls["Dialog"].Layers["TopPanel"].Attributes["CaptFont"].Value].Font;
@@ -143,7 +136,6 @@ namespace XNAFinalEngine.UserInterface
             return (BevelStyle)Enum.Parse(typeof(BevelStyle), str, true);
         } // ParseBevelStyle
 
-        #endregion
 
     } // Dialog
 } // XNAFinalEngine.UserInterface

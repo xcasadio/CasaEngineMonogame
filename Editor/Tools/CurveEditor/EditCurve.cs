@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
@@ -14,7 +14,6 @@ using System.Xml;
 using System.Drawing;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Intermediate;
 
 namespace Editor.Tools.CurveEditor
 {
@@ -23,7 +22,6 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public class EditCurve
     {
-        #region Properties
         /// <summary>
         /// Sets/Gets Control that owns this EditCurve.
         /// </summary>
@@ -76,7 +74,8 @@ namespace Editor.Tools.CurveEditor
         public CurveLoopType PostLoop
         {
             get { return OriginalCurve.PostLoop; }
-            set {
+            set
+            {
                 state.PostLoop = OriginalCurve.PostLoop = value;
                 FireStateChangeEvent();
             }
@@ -114,9 +113,7 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public event EventHandler StateChanged;
 
-        #endregion
 
-        #region Constructors
         public EditCurve(string name, System.Drawing.Color curveColor, CommandHistory commandHistory)
         {
             originalCurve = new Curve();
@@ -143,14 +140,12 @@ namespace Editor.Tools.CurveEditor
 
             this.commandHistory = commandHistory;
         }
-        #endregion
 
         public override string ToString()
         {
             return state.Name;
         }
 
-        #region Public Methods
 
         /// <summary>
         /// Evaluate this curve at given position.
@@ -297,7 +292,7 @@ namespace Editor.Tools.CurveEditor
         {
             // Re-create selected keys and store selection information from
             // new selection.
-            selectedKeys.Clear();;
+            selectedKeys.Clear(); ;
             foreach (long id in newSelection.Keys)
             {
                 EditCurveKey key = keys.GetValue(id);
@@ -311,13 +306,13 @@ namespace Editor.Tools.CurveEditor
                 if (!newSelection.ContainsKey(id))
                 {
                     EditCurveKey key;
-                    if ( keys.TryGetValue(id, out key))
+                    if (keys.TryGetValue(id, out key))
                         key.Selection = EditCurveSelections.None;
                 }
             }
 
             // Invoke selection change event.
-            if ( generateCommand == true && !newSelection.Equals(selection) &&
+            if (generateCommand == true && !newSelection.Equals(selection) &&
                 commandHistory != null)
                 commandHistory.Add(new SelectCommand(this, newSelection, selection));
 
@@ -425,7 +420,7 @@ namespace Editor.Tools.CurveEditor
         /// <summary>
         /// Updated specified key values.
         /// </summary>
-        public void UpdateKey( long keyId, float newPosition, float newValue)
+        public void UpdateKey(long keyId, float newPosition, float newValue)
         {
             if (!Editable || !Visible) return;
 
@@ -437,7 +432,7 @@ namespace Editor.Tools.CurveEditor
 
             // Move key position.
             keys.RemoveAt(oldIdx);    // remove key from curve once.
-            key.OriginalKey = new CurveKey( newPosition, newValue,
+            key.OriginalKey = new CurveKey(newPosition, newValue,
                                         key.TangentIn, key.TangentOut, key.Continuity);
 
             // Then store updated node back to the curve.
@@ -582,7 +577,7 @@ namespace Editor.Tools.CurveEditor
         /// <param name="idx"></param>
         public void ComputeTangents(int keyIndex)
         {
-            if (keyIndex < 0 || keyIndex >keys.Count ||keyIndex > Int32.MaxValue - 2)
+            if (keyIndex < 0 || keyIndex > keys.Count || keyIndex > Int32.MaxValue - 2)
                 throw new ArgumentOutOfRangeException("keyIndex");
 
             // Compute neighbors tangents too.
@@ -680,12 +675,12 @@ namespace Editor.Tools.CurveEditor
                                             System.Drawing.Color color, CommandHistory commandHistory)
         {
             EditCurve editCurve = null;
-            using (XmlReader xr = XmlReader.Create(filename))
-            {
-                Curve curve = IntermediateSerializer.Deserialize<Curve>(xr,
-                                                    Path.GetDirectoryName(filename));
-                editCurve = new EditCurve(name, color, curve, commandHistory);
-            }
+            //using (XmlReader xr = XmlReader.Create(filename))
+            //{
+            //    Curve curve = IntermediateSerializer.Deserialize<Curve>(xr,
+            //                                        Path.GetDirectoryName(filename));
+            //    editCurve = new EditCurve(name, color, curve, commandHistory);
+            //}
 
             return editCurve;
         }
@@ -696,17 +691,15 @@ namespace Editor.Tools.CurveEditor
         /// <param name="filename"></param>
         public void Save(string filename)
         {
-            using (XmlWriter xw = XmlWriter.Create(filename))
-            {
-                IntermediateSerializer.Serialize(xw, originalCurve,
-                                            Path.GetDirectoryName(filename));
-                dirty = false;
-            }
+            //using (XmlWriter xw = XmlWriter.Create(filename))
+            //{
+            //    IntermediateSerializer.Serialize(xw, originalCurve,
+            //                                Path.GetDirectoryName(filename));
+            //    dirty = false;
+            //}
         }
 
-        #endregion
 
-        #region Private methods
         /// <summary>
         /// Mark modified key.
         /// </summary>
@@ -768,14 +761,10 @@ namespace Editor.Tools.CurveEditor
                 throw new InvalidOperationException(String.Format(
                     "You have to call BeginUpdate before call {0}", operationName));
         }
-        #endregion
 
-        #region Private Constants
         const float MinTangentAngle = -89.99999f;
         const float MaxTangentAngle = +89.99999f;
-        #endregion
 
-        #region Properties wrap members
 
         private Control owner;
         private long id;
@@ -786,9 +775,7 @@ namespace Editor.Tools.CurveEditor
         private bool visible = true;
         private bool dirty = false;
 
-        #endregion
 
-        #region Private members
 
         private CommandHistory commandHistory;
 
@@ -803,7 +790,6 @@ namespace Editor.Tools.CurveEditor
 
         private bool inUpdating;
 
-        #endregion
 
     }
 

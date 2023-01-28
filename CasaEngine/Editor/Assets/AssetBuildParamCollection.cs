@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +15,6 @@ namespace CasaEngine.Editor.Assets
     public class AssetBuildParamCollection
         : CollectionBase, ICustomTypeDescriptor
     {
-        #region collection impl
 
         /// <summary>
         /// Adds an employee object to the collection
@@ -44,10 +45,8 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        #endregion
 
         // Implementation of interface ICustomTypeDescriptor 
-        #region ICustomTypeDescriptor impl
 
         public String GetClassName()
         {
@@ -131,7 +130,6 @@ namespace CasaEngine.Editor.Assets
             return pds;
         }
 
-        #endregion
 
         static public int Compare(AssetBuildParamCollection c1_, AssetBuildParamCollection c2_)
         {

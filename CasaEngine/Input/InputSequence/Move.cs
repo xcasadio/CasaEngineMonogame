@@ -1,14 +1,13 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // Move.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 using System;
+
+
 using System.Xml;
 using CasaEngine;
 using CasaEngineCommon.Extension;
@@ -16,7 +15,7 @@ using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using System.IO;
 using CasaEngineCommon.Design;
-#endregion
+
 
 namespace CasaEngine.Input
 {
@@ -30,9 +29,9 @@ namespace CasaEngine.Input
 
         // The sequence of button presses required to activate this move.
         //public Buttons[] Sequence;
-		//public int[] Sequence;
+        //public int[] Sequence;
 #if EDITOR
-        public List<List<InputManager.KeyState>> Sequence = new List<List<InputManager.KeyState>>(); 
+        public List<List<InputManager.KeyState>> Sequence = new List<List<InputManager.KeyState>>();
 #else
         public InputManager.KeyState[][] Sequence; 
 #endif
@@ -41,34 +40,34 @@ namespace CasaEngine.Input
         // be reused as a component of longer moves.
         public bool IsSubMove;
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="sequence"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="sequence"></param>
         public Move(string name)
         {
             Name = name;
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
-		/// <param name="option_"></param>
-		public Move(XmlElement el_, SaveOption option_)
-		{
-			Load(el_, option_);
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_"></param>
+        /// <param name="option_"></param>
+        public Move(XmlElement el_, SaveOption option_)
+        {
+            Load(el_, option_);
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
-		/// <param name="option_"></param>
-		public void Load(XmlElement el_, SaveOption option_)
-		{
-			Name = el_.Attributes["name"].Value;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_"></param>
+        /// <param name="option_"></param>
+        public void Load(XmlElement el_, SaveOption option_)
+        {
+            Name = el_.Attributes["name"].Value;
 
             XmlNodeList nodes = el_.SelectSingleNode("SequenceList").ChildNodes;
 
@@ -77,7 +76,7 @@ namespace CasaEngine.Input
 #endif
 
             for (int i = 0; i < nodes.Count; i++)
-			{
+            {
                 XmlNodeList seqNodes = nodes[i].SelectNodes("Button");
 #if EDITOR
                 Sequence.Add(new List<InputManager.KeyState>());
@@ -100,8 +99,8 @@ namespace CasaEngine.Input
                     Sequence[i][j].Time = float.Parse(seqNodes[j].Attributes["time"].Value);
 #endif
                 }
-			}
-		}
+            }
+        }
 
 #if EDITOR
 
@@ -111,14 +110,14 @@ namespace CasaEngine.Input
 		/// <param name="el_"></param>
 		/// <param name="option_"></param>
 		public void Save(XmlElement el_, SaveOption option_)
-		{
-			el_.OwnerDocument.AddAttribute(el_, "name", Name);
+        {
+            el_.OwnerDocument.AddAttribute(el_, "name", Name);
 
-			XmlElement seq = el_.OwnerDocument.CreateElement("SequenceList");
-			el_.AppendChild(seq);
+            XmlElement seq = el_.OwnerDocument.CreateElement("SequenceList");
+            el_.AppendChild(seq);
 
             foreach (List<InputManager.KeyState> tab in Sequence)
-			{
+            {
                 XmlElement s = el_.OwnerDocument.CreateElement("Sequence");
                 seq.AppendChild(s);
 
@@ -130,8 +129,8 @@ namespace CasaEngine.Input
                     but.OwnerDocument.AddAttribute(but, "time", k.Time.ToString());
                     s.AppendChild(but);
                 }
-			}
-		}
+            }
+        }
 
         /// <summary>
         /// 

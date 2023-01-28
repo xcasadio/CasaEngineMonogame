@@ -1,20 +1,18 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // InputState.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
+
+
 using CasaEngine.Game;
 using CasaEngine.Input;
 using CasaEngine.CoreSystems.Game;
-#endregion
 
 namespace CasaEngine.FrontEnd.Screen
 {
@@ -26,13 +24,10 @@ namespace CasaEngine.FrontEnd.Screen
     /// </summary>
     public class InputState
     {
-        #region Fields
 
-		InputComponent m_InputComponent = null;
+        InputComponent m_InputComponent = null;
 
-        #endregion
 
-        #region Initialization
 
 
         /// <summary>
@@ -40,18 +35,16 @@ namespace CasaEngine.FrontEnd.Screen
         /// </summary>
         public InputState()
         {
-			m_InputComponent = GameHelper.GetGameComponent<InputComponent>(Engine.Instance.Game);
+            m_InputComponent = GameHelper.GetGameComponent<InputComponent>(Engine.Instance.Game);
 
-			if (m_InputComponent == null)
-			{
-				throw new NullReferenceException("InputState() : InputComponent is null");
-			}
+            if (m_InputComponent == null)
+            {
+                throw new NullReferenceException("InputState() : InputComponent is null");
+            }
         }
 
 
-        #endregion
 
-        #region Public Methods
 
         /// <summary>
         /// Helper for checking if a key was newly pressed during this update. The
@@ -67,7 +60,7 @@ namespace CasaEngine.FrontEnd.Screen
                 // Read input from the specified player.
                 playerIndex = controllingPlayer.Value;
 
-				return m_InputComponent.IsKeyJustPressed(key);
+                return m_InputComponent.IsKeyJustPressed(key);
             }
             else
             {
@@ -76,7 +69,7 @@ namespace CasaEngine.FrontEnd.Screen
                         IsNewKeyPress(key, PlayerIndex.Two, out playerIndex) ||
                         IsNewKeyPress(key, PlayerIndex.Three, out playerIndex) ||
                         IsNewKeyPress(key, PlayerIndex.Four, out playerIndex));
-				//return m_InputComponent.KeyboardKeyJustPressed(key);
+                //return m_InputComponent.KeyboardKeyJustPressed(key);
             }
         }
 
@@ -94,14 +87,14 @@ namespace CasaEngine.FrontEnd.Screen
             {
                 // Read input from the specified player.
                 playerIndex = controllingPlayer.Value;
-				if (GamePad.GetCapabilities(playerIndex).IsConnected == true)
-				{
-					return m_InputComponent.IsButtonJustPressed(playerIndex, button);
-				}
+                if (GamePad.GetCapabilities(playerIndex).IsConnected == true)
+                {
+                    return m_InputComponent.IsButtonJustPressed(playerIndex, button);
+                }
 
-				return false;
-            }            
-        
+                return false;
+            }
+
             // Accept input from any player.
             return (IsNewButtonPress(button, PlayerIndex.One, out playerIndex) ||
                     IsNewButtonPress(button, PlayerIndex.Two, out playerIndex) ||
@@ -186,6 +179,5 @@ namespace CasaEngine.FrontEnd.Screen
         }
 
 
-        #endregion
     }
 }

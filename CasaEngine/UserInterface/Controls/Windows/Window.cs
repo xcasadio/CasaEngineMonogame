@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,15 +9,12 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.CoreSystems;
 using CasaEngine.Asset.Fonts;
 
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -29,7 +25,6 @@ namespace XNAFinalEngine.UserInterface
     public class Window : ModalContainer
     {
 
-        #region Constants
 
         private const string skinWindow = "Window";
         private const string layerWindow = "Control";
@@ -44,9 +39,7 @@ namespace XNAFinalEngine.UserInterface
         private const string skinShadow = "Window.Shadow";
         private const string layerShadow = "Control";
 
-        #endregion
 
-        #region Variables
 
         /// <summary>
         /// Close Button.
@@ -84,9 +77,7 @@ namespace XNAFinalEngine.UserInterface
         private byte dragAlpha = 200;
         private byte oldAlpha  = 255;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Top-left icon.
@@ -169,9 +160,7 @@ namespace XNAFinalEngine.UserInterface
             set { dragAlpha = value; }
         } // DragAlpha
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Window
@@ -204,9 +193,7 @@ namespace XNAFinalEngine.UserInterface
             oldAlpha = Alpha;
         } // Window
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
@@ -235,9 +222,7 @@ namespace XNAFinalEngine.UserInterface
             CheckLayer(UserInterfaceManager.Skin.Controls[skinShadow], layerShadow);
         } // InitSkin
 
-        #endregion
 
-        #region On Events
 
         /// <summary>
         /// When the button skin changed.
@@ -255,9 +240,7 @@ namespace XNAFinalEngine.UserInterface
             Close(ModalResult = ModalResult.Cancel);
         } // ButtonClose_Click
 
-        #endregion
 
-        #region Draw and Render
 
         /// <summary>
         /// Render the control to the main render target.
@@ -265,7 +248,6 @@ namespace XNAFinalEngine.UserInterface
         internal override void DrawControlOntoMainTexture()
         {
 
-            #region Shadow
 
             if (Visible && Shadow)
             {
@@ -286,7 +268,6 @@ namespace XNAFinalEngine.UserInterface
                 UserInterfaceManager.Renderer.End();
             }
 
-            #endregion
 
             base.DrawControlOntoMainTexture();
         } // Render
@@ -381,9 +362,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region Center Window
 
         /// <summary>
         /// Center of the main window.
@@ -394,9 +373,7 @@ namespace XNAFinalEngine.UserInterface
             Top = (UserInterfaceManager.Screen.Height - Height) / 2;
         } // Center
 
-        #endregion
 
-        #region On Resize, On Move Begin, On Move End, On Double Click
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -434,9 +411,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnDoubleClick
 
-        #endregion
 
-        #region Adjust Margins
 
         /// <summary>
         /// Adjust the controls margin.
@@ -471,9 +446,7 @@ namespace XNAFinalEngine.UserInterface
             base.AdjustMargins();
         } // AdjustMargins
 
-        #endregion
 
-        #region Set Movable Area
 
         private void SetMovableArea()
         {
@@ -487,7 +460,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SetMovableArea
 
-        #endregion
 
     } // Window
 } // XNAFinalEngine.UserInterface

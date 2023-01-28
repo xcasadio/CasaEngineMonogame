@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,7 +27,6 @@ namespace CasaEngine.Game
     {
         static private bool m_IsAssetContentManagerInitialized = false;
 
-        #region Private Members
 
         private IGraphicsDeviceManager graphicsDeviceManager;
         private IGraphicsDeviceService graphicsDeviceService;
@@ -56,17 +57,13 @@ namespace CasaEngine.Game
         private volatile bool m_NeedResize = false;
         private DateTime m_NeedResizeLastTime = DateTime.MinValue;
 
-        #endregion
 
-        #region Events
         public event EventHandler<EventArgs> Activated;
         public event EventHandler<EventArgs> Deactivated;
         public event EventHandler<EventArgs> Disposed;
         public event EventHandler<EventArgs> Exiting;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -83,7 +80,6 @@ namespace CasaEngine.Game
             private set;
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -124,7 +120,7 @@ namespace CasaEngine.Game
                 Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
                 Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(System.Windows.Forms.Cursor), new CursorLoader());
                 m_IsAssetContentManagerInitialized = true;
-            }            
+            }
         }
 
         /// <summary>
@@ -431,7 +427,6 @@ namespace CasaEngine.Game
             return (bool)(mi.Invoke(ctl, new object[] { 2 }));
         }
 
-        #region Public Properties
         public GameServiceContainer Services
         {
             get
@@ -522,7 +517,6 @@ namespace CasaEngine.Game
             private set;
         }
 
-        #endregion
 
         internal bool IsActiveIgnoringGuide
         {
@@ -566,7 +560,6 @@ namespace CasaEngine.Game
             throw new NotImplementedException();
         }
 
-        #region Event Handling
         protected virtual void OnActivated(Object sender, EventArgs args)
         {
             RaiseIfNotNull(this.Activated, sender, args);
@@ -611,6 +604,5 @@ namespace CasaEngine.Game
             }
         }
 
-        #endregion
     }
 }

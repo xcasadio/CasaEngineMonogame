@@ -23,7 +23,7 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using FarseerPhysics.Collision;
@@ -483,7 +483,6 @@ namespace FarseerPhysics.Dynamics.Contacts
             Reset(null, 0, null, 0);
         }
 
-        #region Nested type: ContactType
 
         private enum ContactType
         {
@@ -497,6 +496,5 @@ namespace FarseerPhysics.Dynamics.Contacts
             LoopAndCircle,
         }
 
-        #endregion
     }
 }

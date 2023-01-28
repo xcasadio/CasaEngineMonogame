@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,18 +15,13 @@ namespace CasaEngine.Particle
     public class ParticleAnimation2D
         : Particle
     {
-        #region Fields
 
         Animation2DPlayer m_Animation2DPlayer;
         //Animation2D m_Animation2D;
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -48,10 +45,7 @@ namespace CasaEngine.Particle
             Remove = true;
         }
 
-        #endregion
 
-        #region Methods
 
-        #endregion
     }
 }

@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2011, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,7 +25,6 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.Helpers
 {
@@ -37,13 +35,10 @@ namespace XNAFinalEngine.Helpers
     public struct RectangleF
     {
 
-        #region Variables
 
         private float x, y, width, height;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets or sets the x-coordinate of the upper-left corner of this RectangleF structure.
@@ -65,9 +60,7 @@ namespace XNAFinalEngine.Helpers
         /// </summary>
         public float Height { get { return height; } set { height = value; } }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Stores a set of four floating-point numbers that represent the location and size of a rectangle.
@@ -80,9 +73,7 @@ namespace XNAFinalEngine.Helpers
             this.height = height;
         } // RectangleF
 
-        #endregion
 
-        #region Equal
 
         public static bool operator ==(RectangleF x, RectangleF y)
         {
@@ -104,7 +95,6 @@ namespace XNAFinalEngine.Helpers
             return width.GetHashCode() ^ height.GetHashCode();
         } // GetHashCode
 
-        #endregion
 
     } // RectangleF 
 } // XNAFinalEngine.Helpers

@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,11 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
-#endregion
+
+
 
 namespace XNAFinalEngine.Helpers
 {
@@ -60,8 +58,7 @@ namespace XNAFinalEngine.Helpers
     /// <typeparam name="T">Valid for value or reference type</typeparam>
     public class PoolWithoutAccessor<T> where T : new()
     {
-        
-        #region Variables
+
 
         /// <summary>
         /// The elements.
@@ -72,9 +69,7 @@ namespace XNAFinalEngine.Helpers
         /// </remarks>
         public T[] Elements;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the number of active elements in the pool.
@@ -87,17 +82,15 @@ namespace XNAFinalEngine.Helpers
         public int Capacity
         {
             get { return Elements.Length; }
-            set 
+            set
             {
                 if (value < Count)
                     throw new ArgumentOutOfRangeException("value", "Pool: new size has to be bigger than active elements.");
                 ResizePool(value);
             }
         } // Capacity
-        
-        #endregion
 
-        #region Constructor
+
 
         /// <summary>
         /// A pool of elements T.
@@ -115,9 +108,7 @@ namespace XNAFinalEngine.Helpers
             }
         } // Pool
 
-        #endregion
 
-        #region Fetch
 
         /// <summary>
         /// Marks an element for using it and return its corresponded accessor.
@@ -133,9 +124,7 @@ namespace XNAFinalEngine.Helpers
             return Elements[Count - 1];
         } // Fetch
 
-        #endregion
 
-        #region Resize Pool
 
         /// <summary>
         /// Resize the pool.
@@ -159,9 +148,7 @@ namespace XNAFinalEngine.Helpers
             Elements = newElements;
         } // ResizePool
 
-        #endregion
 
-        #region Release
 
         /// <summary>
         /// Set the pool element to available.
@@ -186,7 +173,6 @@ namespace XNAFinalEngine.Helpers
             Count--;
         } // Release
 
-        #endregion
 
     } // Pool
 } // XNAFinalEngine.Helpers

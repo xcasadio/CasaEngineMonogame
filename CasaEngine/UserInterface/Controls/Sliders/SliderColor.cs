@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,15 +25,14 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.CoreSystems;
 
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -45,7 +43,6 @@ namespace XNAFinalEngine.UserInterface
     public class SliderColor : Control
     {
 
-        #region Variables
 
         private readonly TextBox textBoxR, textBoxG, textBoxB;
         private readonly TrackBar sliderR, sliderG, sliderB;
@@ -58,17 +55,13 @@ namespace XNAFinalEngine.UserInterface
 
         private ColorPickerDialog colorPickerDialog;
 
-        #endregion
 
-        #region Events
 
         public event MouseEventHandler SliderDown;
         public event MouseEventHandler SliderUp;
         public event MouseEventHandler SliderPress;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Slider for numeric values.
@@ -90,7 +83,6 @@ namespace XNAFinalEngine.UserInterface
             };
             TextChanged += delegate { label.Text = Text; };
 
-            #region Square Color
 
             // Square color
             Control squareColor = new Panel(UserInterfaceManager)
@@ -109,20 +101,19 @@ namespace XNAFinalEngine.UserInterface
                                     {
                                         colorPickerDialog = new ColorPickerDialog(UserInterfaceManager, Color);
                                         UserInterfaceManager.Add(colorPickerDialog);
-                                        colorPickerDialog.SquareColorDown  += OnSliderDown;
-                                        colorPickerDialog.SquareColorUp    += OnSliderUp;
+                                        colorPickerDialog.SquareColorDown += OnSliderDown;
+                                        colorPickerDialog.SquareColorUp += OnSliderUp;
                                         colorPickerDialog.SquareColorPress += OnSliderPress;
 
                                         colorPickerDialog.Closed += delegate
                                         {
                                             Focused = true;
-                                            colorPickerDialog.SquareColorDown  -= OnSliderDown;
-                                            colorPickerDialog.SquareColorUp    -= OnSliderUp;
+                                            colorPickerDialog.SquareColorDown -= OnSliderDown;
+                                            colorPickerDialog.SquareColorUp -= OnSliderUp;
                                             colorPickerDialog.SquareColorPress -= OnSliderPress;
                                         };
-                                        
-                                        #region Color Picker Position
-                                        
+
+
                                         int left = squareColor.ControlLeftAbsoluteCoordinate;
                                         if (left + colorPickerDialog.Width > UserInterfaceManager.Screen.Width)
                                             left -= colorPickerDialog.Width;
@@ -130,8 +121,7 @@ namespace XNAFinalEngine.UserInterface
                                         if (top + colorPickerDialog.Height > UserInterfaceManager.Screen.Height)
                                             top -= colorPickerDialog.Height + squareColor.Height;
                                         colorPickerDialog.SetPosition(left, top);
-                                        
-                                        #endregion
+
 
                                         colorPickerDialog.ColorChanged += delegate
                                         {
@@ -139,9 +129,7 @@ namespace XNAFinalEngine.UserInterface
                                         };
                                     };
 
-            #endregion
 
-            #region R
 
             textBoxR = new TextBox(UserInterfaceManager)
             {
@@ -181,7 +169,7 @@ namespace XNAFinalEngine.UserInterface
                                         }
                                         updatingRGB = false;
                                     };
-            textBoxR.KeyDown += delegate(object sender, KeyEventArgs e)
+            textBoxR.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -214,9 +202,7 @@ namespace XNAFinalEngine.UserInterface
                 updatingRGB = false;
             };
 
-            #endregion
 
-            #region G
 
             textBoxG = new TextBox(UserInterfaceManager)
             {
@@ -256,7 +242,7 @@ namespace XNAFinalEngine.UserInterface
                                             }
                                             updatingRGB = false;
                                         };
-            textBoxG.KeyDown += delegate(object sender, KeyEventArgs e)
+            textBoxG.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -289,9 +275,7 @@ namespace XNAFinalEngine.UserInterface
                 updatingRGB = false;
             };
 
-            #endregion
 
-            #region B
 
             textBoxB = new TextBox(UserInterfaceManager)
             {
@@ -331,7 +315,7 @@ namespace XNAFinalEngine.UserInterface
                                         }
                                         updatingRGB = false;
                                     };
-            textBoxB.KeyDown += delegate(object sender, KeyEventArgs e)
+            textBoxB.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -364,14 +348,13 @@ namespace XNAFinalEngine.UserInterface
                 updatingRGB = false;
             };
 
-            #endregion
 
             ColorChanged += delegate
             {
                 updatingColor = true;
-                    squareColor.Color = Color;
-                    if (!updatingRGB)
-                        UpdateRGBFromColor();
+                squareColor.Color = Color;
+                if (!updatingRGB)
+                    UpdateRGBFromColor();
                 updatingColor = false;
                 if (colorPickerDialog != null && !colorPickerDialog.IsDisposed && colorPickerDialog.Color != Color)
                     colorPickerDialog.Color = Color;
@@ -380,21 +363,19 @@ namespace XNAFinalEngine.UserInterface
             // To init all values with a color
             Color = Color.Gray;
 
-            sliderR.SliderDown  += OnSliderDown;
-            sliderR.SliderUp    += OnSliderUp;
+            sliderR.SliderDown += OnSliderDown;
+            sliderR.SliderUp += OnSliderUp;
             sliderR.SliderPress += OnSliderPress;
-            sliderG.SliderDown  += OnSliderDown;
-            sliderG.SliderUp    += OnSliderUp;
+            sliderG.SliderDown += OnSliderDown;
+            sliderG.SliderUp += OnSliderUp;
             sliderG.SliderPress += OnSliderPress;
-            sliderB.SliderDown  += OnSliderDown;
-            sliderB.SliderUp    += OnSliderUp;
+            sliderB.SliderDown += OnSliderDown;
+            sliderB.SliderUp += OnSliderUp;
             sliderB.SliderPress += OnSliderPress;
 
         } // SliderColor
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -408,9 +389,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Update Values
 
         /// <summary>
         /// Update Color from the R G B sliders values.
@@ -430,18 +409,14 @@ namespace XNAFinalEngine.UserInterface
             sliderB.Value = Color.B / 255f;
         } // UpdateRGBFromColor
 
-        #endregion
 
-        #region Draw Control
 
         protected override void DrawControl(Rectangle rect)
         {
             // Only the children will be rendered.
         } // DrawControl
 
-        #endregion
 
-        #region On Events
 
         protected virtual void OnSliderDown(object obj, MouseEventArgs e)
         {
@@ -461,7 +436,6 @@ namespace XNAFinalEngine.UserInterface
                 SliderPress(this, e);
         } // OnSliderPress
 
-        #endregion
 
     } // SliderColor
 } // XNAFinalEngine.UserInterface

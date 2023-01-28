@@ -1,15 +1,14 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // DebugCommandUI.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -20,11 +19,11 @@ using CasaEngine.Graphics2D;
 using CasaEngine.Helper;
 using CasaEngine.Gameplay;
 using CasaEngine.CoreSystems.Game;
+
 #if EDITOR
 //using CasaEngine.Editor.GameComponent;
 #endif
 
-#endregion
 
 namespace CasaEngine.Debugger
 {
@@ -43,11 +42,10 @@ namespace CasaEngine.Debugger
     /// 3) Open/Close Debug window by Tab key.
     /// </remarks>
     public class DebugCommandUI
-        : Microsoft.Xna.Framework.DrawableGameComponent, 
-        IDebugCommandHost, 
+        : Microsoft.Xna.Framework.DrawableGameComponent,
+        IDebugCommandHost,
         IGameComponentResizable
     {
-        #region Constants
 
         /// <summary>
         /// Maximum lines that shows in Debug command window.
@@ -69,25 +67,23 @@ namespace CasaEngine.Debugger
         /// </summary>
         public const string DefaultPrompt = "CMD>";
 
-        #endregion
 
-        #region Properties
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetVisible
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetVisible
+        {
+            get { return true; }
+        }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetEnable
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetEnable
+        {
+            get { return true; }
+        }
 
         /// <summary>
         /// Gets/Sets Prompt string.
@@ -99,9 +95,7 @@ namespace CasaEngine.Debugger
         /// </summary>
         public bool Focused { get { return state != State.Closed; } }
 
-        #endregion
 
-        #region Fields
 
         // Command window states.
         enum State
@@ -166,11 +160,10 @@ namespace CasaEngine.Debugger
         // Selecting command history index.
         private int commandHistoryIndex;
 
-		private Renderer2DComponent m_Renderer2DComponent = null;
+        private Renderer2DComponent m_Renderer2DComponent = null;
 
-		private Color m_BackgroundColor = new Color(0, 0, 0, 200);
+        private Color m_BackgroundColor = new Color(0, 0, 0, 200);
 
-        #region variables for keyboard input handling.
 
         // Previous frame keyboard state.
         private KeyboardState prevKeyState;
@@ -187,15 +180,11 @@ namespace CasaEngine.Debugger
         // Key repeat duration in seconds after the first key press.
         private float keyRepeatDuration = 0.03f;
 
-        #endregion
 
-        #endregion
 
-		#region Methods
 
-		#region Initialization
 
-		/// <summary>
+        /// <summary>
         /// Constructor
         /// </summary>
         public DebugCommandUI(Microsoft.Xna.Framework.Game game)
@@ -213,7 +202,7 @@ namespace CasaEngine.Debugger
 
             // Help command displays registered command information.
             RegisterCommand("help", "Show Command helps",
-                delegate(IDebugCommandHost host, string command, IList<string> args)
+                delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
                     int maxLen = 0;
                     foreach (CommandInfo cmd in commandTable.Values)
@@ -229,21 +218,21 @@ namespace CasaEngine.Debugger
 
             // Clear screen command
             RegisterCommand("cls", "Clear Screen",
-                delegate(IDebugCommandHost host, string command, IList<string> args)
+                delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
                     lines.Clear();
                 });
 
             // Echo command
             RegisterCommand("echo", "Display Messages",
-                delegate(IDebugCommandHost host, string command, IList<string> args)
+                delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
                     Echo(command.Substring(5));
                 });
 
             // DisplayCollisions command
             RegisterCommand("displayCollisions", "Display Collisions of each sprite. Argument 'on'/'off'",
-                delegate(IDebugCommandHost host, string command, IList<string> args)
+                delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
                     bool error = false;
                     bool state = false;
@@ -267,7 +256,7 @@ namespace CasaEngine.Debugger
                     {
                         error = true;
                     }
-                
+
                     if (error == true)
                     {
                         EchoError("Please use DisplayCollisions with one argument : 'on' or 'off'");
@@ -276,12 +265,12 @@ namespace CasaEngine.Debugger
                     {
                         ShapeRendererComponent.DisplayCollisions = state;
                     }
-                
+
                 });
 
             // AnimationSpeed command
             RegisterCommand("AnimationSpeed", "Speed of animations.",
-            delegate(IDebugCommandHost host, string command, IList<string> args)
+            delegate (IDebugCommandHost host, string command, IList<string> args)
             {
                 bool ok = true;
                 float value = 1.0f;
@@ -305,7 +294,7 @@ namespace CasaEngine.Debugger
 
             // Character2DActor Display Debug Information command
             RegisterCommand("DisplayCharacterDebugInformation", "Display Debug Information from character.",
-            delegate(IDebugCommandHost host, string command, IList<string> args)
+            delegate (IDebugCommandHost host, string command, IList<string> args)
             {
                 bool error = false;
                 bool state = false;
@@ -338,10 +327,10 @@ namespace CasaEngine.Debugger
                 {
                     CharacterActor2D.DisplayDebugInformation = state;
                 }
-            });            
+            });
 
-			UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
-			DrawOrder = (int)ComponentDrawOrder.DebugManager;
+            UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
+            DrawOrder = (int)ComponentDrawOrder.DebugManager;
         }
 
         /// <summary>
@@ -358,26 +347,24 @@ namespace CasaEngine.Debugger
             base.Initialize();
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		protected override void LoadContent()
-		{
-			m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void LoadContent()
+        {
+            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
 
-			if (m_Renderer2DComponent == null)
-			{
-				throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2DComponent is null");
-			}
+            if (m_Renderer2DComponent == null)
+            {
+                throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2DComponent is null");
+            }
 
-			base.LoadContent();
-		}
+            base.LoadContent();
+        }
 
-        #endregion
 
-		#region IDebugCommandHostinterface implemenration
 
-		public void RegisterCommand(
+        public void RegisterCommand(
             string command, string description, DebugCommandExecute callback)
         {
             string lowerCommand = command.ToLower();
@@ -500,9 +487,7 @@ namespace CasaEngine.Debugger
             executioners.Pop();
         }
 
-        #endregion
 
-        #region Update and Draw
 
         /// <summary>
         /// Show Debug Command window.
@@ -528,10 +513,10 @@ namespace CasaEngine.Debugger
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="gameTime"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameTime"></param>
         public override void Update(GameTime gameTime)
         {
             KeyboardState keyState = Keyboard.GetState();
@@ -642,7 +627,7 @@ namespace CasaEngine.Debugger
                                 cursorIndex = commandLine.Length;
                             }
                             break;
-						case Keys.Escape: //OemQuotes
+                        case Keys.Escape: //OemQuotes
                             Hide();
                             break;
                     }
@@ -686,7 +671,7 @@ namespace CasaEngine.Debugger
             if (state == State.Closed)
                 return;
 
-			SpriteFont font = Engine.Instance.DefaultSpriteFont;
+            SpriteFont font = Engine.Instance.DefaultSpriteFont;
             Texture2D whiteTexture = debugManager.WhiteTexture;
             float depth = 0.0f;
 
@@ -730,8 +715,8 @@ namespace CasaEngine.Debugger
             Vector2 cursorPos = pos + font.MeasureString(leftPart);
             cursorPos.Y = pos.Y;
 
-           // spriteBatch.DrawString(font,
-                //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
+            // spriteBatch.DrawString(font,
+            //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
             m_Renderer2DComponent.AddText2D(font, String.Format("{0}{1}", Prompt, commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
             //spriteBatch.DrawString(font, Cursor, cursorPos, Color.White);
             m_Renderer2DComponent.AddText2D(font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
@@ -739,16 +724,14 @@ namespace CasaEngine.Debugger
             //spriteBatch.End();
         }
 
-        #endregion
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void OnResize()
-		{
-			
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public void OnResize()
+        {
 
-		#endregion
-	}
+        }
+
+    }
 }

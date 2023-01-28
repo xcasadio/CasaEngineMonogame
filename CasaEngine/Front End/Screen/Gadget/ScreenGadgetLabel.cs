@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,15 +21,10 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
     class ScreenGadgetLabel
         : ScreenGadget
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -38,9 +35,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -72,6 +67,5 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 0.0f);
         }
 
-        #endregion
     }
 }

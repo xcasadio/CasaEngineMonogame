@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -21,7 +21,6 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public partial class GridControl : UserControl
     {
-        #region Constants
         const double MinGridSize = 50.0f;    // (pixel)
         const double MinGridScale = 1e-5;    //
         const double MaxGridScale = 1e3;
@@ -30,9 +29,7 @@ namespace Editor.Tools.CurveEditor
 
         const float GridTextLeftMargin = 2.0f;
         const float GridTextBottomMargin = 2.0f;
-        #endregion
 
-        #region Properties
 
         [Category("Grid Control")]
         [Description("Turn on/off the grid.")]
@@ -85,7 +82,6 @@ namespace Editor.Tools.CurveEditor
         [Browsable(false)]
         public double ScaleY { get { return gridScale[1]; } }
 
-        #endregion
 
         public GridControl()
         {
@@ -105,7 +101,6 @@ namespace Editor.Tools.CurveEditor
             CalcGridSpans();
         }
 
-        #region Public Methods
 
         public Vector2 ToPixelCoordinate( float position, float value )
         {
@@ -277,9 +272,7 @@ namespace Editor.Tools.CurveEditor
 
         }
 
-        #endregion
 
-        #region Private Methods
 
         private void Zoom(double dx, double dy)
         {
@@ -359,18 +352,14 @@ namespace Editor.Tools.CurveEditor
             invGridScale[1] = 1.0 / gridScale[1];
         }
 
-        #endregion
 
-        #region Propertie wrapper members
 
         private System.Drawing.Color gridTextColor = System.Drawing.Color.Black;
         private System.Drawing.Color gridLineColor = System.Drawing.Color.FromArgb(200, 205, 211);
         private System.Drawing.Color gridBoldLineColor = System.Drawing.Color.FromArgb(100, 102, 106);
         private bool gridVisible = true;
 
-        #endregion
 
-        #region Private Members
 
         // Grid ralated params.
         private double[]    gridSpans       = {0.1,0.1};
@@ -386,7 +375,6 @@ namespace Editor.Tools.CurveEditor
 
         private Vector2 viewSize = new Vector2();
 
-        #endregion
 
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 
@@ -6,7 +6,6 @@ namespace FarseerPhysics.Controllers
 {
     public abstract class AbstractForceController : Controller
     {
-        #region DecayModes enum
 
         /// <summary>
         /// Modes for Decay. Actual Decay must be implemented in inheriting 
@@ -21,9 +20,7 @@ namespace FarseerPhysics.Controllers
             Curve
         }
 
-        #endregion
 
-        #region ForceTypes enum
 
         /// <summary>
         /// Forcetypes are used in the decay math to properly get the distance.
@@ -36,9 +33,7 @@ namespace FarseerPhysics.Controllers
             Area
         }
 
-        #endregion
 
-        #region TimingModes enum
 
         /// <summary>
         /// Timing Modes
@@ -55,7 +50,6 @@ namespace FarseerPhysics.Controllers
             Curve
         }
 
-        #endregion
 
         /// <summary>
         /// Curve to be used for Decay in Curve mode

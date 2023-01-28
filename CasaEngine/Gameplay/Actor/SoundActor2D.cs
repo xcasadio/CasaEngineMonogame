@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,18 +15,13 @@ namespace CasaEngine.Gameplay.Actor
     public class SoundActor2D
         : Actor2D
     {
-        #region Fields
 
         //SoundEffect 
         //SoundEffectInstance
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -35,9 +32,7 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -47,7 +42,7 @@ namespace CasaEngine.Gameplay.Actor
         {
             throw new NotImplementedException();
         }
-        
+
 #if EDITOR
         /// <summary>
         /// 
@@ -60,6 +55,5 @@ namespace CasaEngine.Gameplay.Actor
         }
 #endif
 
-        #endregion
     }
 }

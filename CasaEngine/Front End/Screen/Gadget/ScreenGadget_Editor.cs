@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,17 +19,12 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
     /// </summary>
     public partial class ScreenGadget
     {
-        #region Fields
 
         static private readonly int m_Version = 1;
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -41,9 +38,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             Font = Engine.Instance.DefaultSpriteFont;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -55,7 +50,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             XmlElement node;
 
             el_.OwnerDocument.AddAttribute(el_, "type", GetType().Name);
-            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString()); 
+            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
 
             node = el_.OwnerDocument.CreateElementWithText("AutoSize", AutoSize.ToString());
             el_.AppendChild(node);
@@ -103,6 +98,5 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             bw_.Write(Text);
         }
 
-        #endregion
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,14 +22,11 @@ namespace CasaEngine.Assets.Graphics2D
     class Sprite2DParams
         : ISaveLoad
     {
-        #region Fields
 
         private Shape2DObject m_Shape2DObject;
         private Sprite2DParamsType m_Type;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -45,9 +44,7 @@ namespace CasaEngine.Assets.Graphics2D
             get { return m_Type; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -60,9 +57,7 @@ namespace CasaEngine.Assets.Graphics2D
             m_Shape2DObject = ob_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -84,6 +79,5 @@ namespace CasaEngine.Assets.Graphics2D
             throw new NotImplementedException();
         }
 
-        #endregion
     }
 }

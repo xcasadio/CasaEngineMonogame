@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,8 +50,8 @@ namespace Editor.Game
         protected override void LoadContent()
         {
             base.LoadContent();
-            UIManager.Initialize(m_GraphicsDeviceManager.GraphicsDevice, GameWindowHandle, 
-                new Rectangle(0, 0, GameWindow.ClientSize.Width, GameWindow.ClientSize.Height));
+            UIManager.Initialize(m_GraphicsDeviceManager.GraphicsDevice, GameWindowHandle,
+                new Microsoft.Xna.Framework.Rectangle(0, 0, GameWindow.ClientSize.Width, GameWindow.ClientSize.Height));
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Editor.Game
         protected override void Draw(GameTime gameTime)
         {
             UIManager.PreRenderControls();
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
             base.Draw(gameTime);
             UIManager.RenderUserInterfaceToScreen();
         }

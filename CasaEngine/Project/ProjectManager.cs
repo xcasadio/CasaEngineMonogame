@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,41 +16,36 @@ namespace CasaEngine.Project
     /// <summary>
     /// 
     /// </summary>
-    public 
+    public
 #if EDITOR
     partial
 #endif
     class ProjectManager
     {
-        #region Fields
 
-        #region XML
 
-        static public readonly string NodeRootName              = "Project";
-        static public readonly string NodeWorldListName         = "WorldList";
-        static public readonly string NodeWorldName             = "World";
-        static public readonly string NodeScreenListName        = "ScreenList";
-        static public readonly string NodeScreenName            = "Screen";
-        static public readonly string NodeAsset2DName           = "Asset2D";
-        static public readonly string NodeSprite2DListName      = "Sprite2DList";
-        static public readonly string NodeSprite2DName          = "Sprite2D";
-        static public readonly string NodeAnimation2DListName   = "Animation2DList";
-        static public readonly string NodeAnimation2DName       = "Animation2D";
-        static public readonly string NodeAsset3DName           = "Asset3D";
-        static public readonly string NodeAnimation3DListName   = "Animation3DList";
-        static public readonly string NodeAnimation3DName       = "Animation3D";
-        static public readonly string NodeAssetListName         = "AssetList";
-        static public readonly string NodeAssetName             = "Asset";
-        static public readonly string NodeObjectRegistryName    = "ObjectRegistry";
-        static public readonly string NodeObjectListName        = "Objects";
-        static public readonly string NodeObjectName            = "Object";
-        static public readonly string NodeConfigName            = "Config";
+        static public readonly string NodeRootName = "Project";
+        static public readonly string NodeWorldListName = "WorldList";
+        static public readonly string NodeWorldName = "World";
+        static public readonly string NodeScreenListName = "ScreenList";
+        static public readonly string NodeScreenName = "Screen";
+        static public readonly string NodeAsset2DName = "Asset2D";
+        static public readonly string NodeSprite2DListName = "Sprite2DList";
+        static public readonly string NodeSprite2DName = "Sprite2D";
+        static public readonly string NodeAnimation2DListName = "Animation2DList";
+        static public readonly string NodeAnimation2DName = "Animation2D";
+        static public readonly string NodeAsset3DName = "Asset3D";
+        static public readonly string NodeAnimation3DListName = "Animation3DList";
+        static public readonly string NodeAnimation3DName = "Animation3D";
+        static public readonly string NodeAssetListName = "AssetList";
+        static public readonly string NodeAssetName = "Asset";
+        static public readonly string NodeObjectRegistryName = "ObjectRegistry";
+        static public readonly string NodeObjectListName = "Objects";
+        static public readonly string NodeObjectName = "Object";
+        static public readonly string NodeConfigName = "Config";
 
-        #endregion
 
-        #endregion
 
-        #region Directory
 
         //Dir name
         //static public readonly string AnimationDirName = "Animation";
@@ -78,27 +75,24 @@ namespace CasaEngine.Project
         static public readonly string ConfigDirPath = "Config";
         //static public readonly string PackageDirPath = "Packages";
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the project full path (ends with directory separator)
         /// </summary>
         public string ProjectPath
         {
-            get 
-            { 
+            get
+            {
 #if EDITOR
-                return Path.GetDirectoryName(ProjectFileOpened); 
+                return Path.GetDirectoryName(ProjectFileOpened);
 #else
                 return Environment.CurrentDirectory;
-#endif                
-                
+#endif
+
             }
         }
 
-        #endregion
 
         /// <summary>
         /// Load project from file
@@ -108,7 +102,7 @@ namespace CasaEngine.Project
         {
 #if EDITOR
             Clear();
-            ProjectFileOpened = fileName_;            
+            ProjectFileOpened = fileName_;
 #endif
 
             XmlDocument xmlDoc = new XmlDocument();

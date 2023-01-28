@@ -1117,7 +1117,6 @@ namespace FarseerPhysics.Common
         }
     }
 
-    #region XMLFragment
 
     public class XMLFragmentAttribute
     {
@@ -1449,5 +1448,4 @@ namespace FarseerPhysics.Common
         }
     }
 
-    #endregion
 }

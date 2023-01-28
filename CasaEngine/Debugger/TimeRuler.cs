@@ -1,15 +1,14 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // TimeRuler.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 
 using System;
+
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -25,7 +24,6 @@ using CasaEngine.CoreSystems.Game;
 //using CasaEngine.Editor.GameComponent;
 #endif
 
-#endregion
 
 namespace CasaEngine.Debugger
 {
@@ -70,7 +68,6 @@ namespace CasaEngine.Debugger
     public class TimeRuler
         : Microsoft.Xna.Framework.DrawableGameComponent, IGameComponentResizable
     {
-        #region Constants
 
         /// <summary>
         /// Max bar count.
@@ -112,25 +109,23 @@ namespace CasaEngine.Debugger
         /// </summary>
         const int AutoAdjustDelay = 30;
 
-        #endregion
 
-        #region Properties
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetVisible
-		{
-			get { return false; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetVisible
+        {
+            get { return false; }
+        }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetEnable
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetEnable
+        {
+            get { return true; }
+        }
 
         /// <summary>
         /// Gets/Set log display or no.
@@ -152,9 +147,7 @@ namespace CasaEngine.Debugger
         /// </summary>
         public int Width { get; set; }
 
-        #endregion
 
-        #region Fields
 
 #if TRACE
 
@@ -279,31 +272,29 @@ namespace CasaEngine.Debugger
         // TimerRuler draw position.
         Vector2 position;
 
-		Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent m_Renderer2DComponent = null;
 
-		Color m_BackgroundColor = new Color(0, 0, 0, 128);
+        Color m_BackgroundColor = new Color(0, 0, 0, 128);
 
-        #endregion
 
-        #region Initialization
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="game"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="game"></param>
         public TimeRuler(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
             // Add this as a service.
             Game.Services.AddService(typeof(TimeRuler), this);
 
-			UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
-			DrawOrder = (int)ComponentDrawOrder.DebugManager;
+            UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
+            DrawOrder = (int)ComponentDrawOrder.DebugManager;
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
+        /// <summary>
+        /// 
+        /// </summary>
         public override void Initialize()
         {
 #if TRACE
@@ -337,19 +328,19 @@ namespace CasaEngine.Debugger
             base.Initialize();
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void LoadContent()
         {
-			m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
+            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
 
-			if (m_Renderer2DComponent == null)
-			{
-				throw new InvalidOperationException("TimeRuler.LoadContent() : Renderer2DComponent is null");
-			}
+            if (m_Renderer2DComponent == null)
+            {
+                throw new InvalidOperationException("TimeRuler.LoadContent() : Renderer2DComponent is null");
+            }
 
-			OnResize();
+            OnResize();
 
             base.LoadContent();
         }
@@ -425,21 +416,19 @@ namespace CasaEngine.Debugger
         }
 #endif
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void OnResize()
-		{
-			Width = (int)(GraphicsDevice.Viewport.Width * 0.8f);
+        /// <summary>
+        /// 
+        /// </summary>
+        public void OnResize()
+        {
+            Width = (int)(GraphicsDevice.Viewport.Width * 0.8f);
 
-			Layout layout = new Layout(GraphicsDevice.Viewport);
-			position = layout.Place(new Vector2(Width, BarHeight),
-													0, 0.01f, Alignment.BottomCenter);
-		}
+            Layout layout = new Layout(GraphicsDevice.Viewport);
+            position = layout.Place(new Vector2(Width, BarHeight),
+                                                    0, 0.01f, Alignment.BottomCenter);
+        }
 
-        #endregion
 
-        #region Measuring methods
 
         /// <summary>
         /// Start new frame.
@@ -715,25 +704,23 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        #endregion
 
-        #region Draw
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="gameTime"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
             Draw(position, Width);
             base.Draw(gameTime);
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="position"></param>
-		/// <param name="width"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="width"></param>
         [Conditional("TRACE")]
         public void Draw(Vector2 position, int width)
         {
@@ -892,6 +879,5 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        #endregion
     }
 }

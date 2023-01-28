@@ -30,7 +30,6 @@ namespace Editor.Tools.Graphics2D
     public partial class Sprite2DEditorForm 
         : Form, IEditorForm, IExternalTool
     {
-        #region Fields
 
         XnaEditorForm m_XnaEditorForm;
         Sprite2DEditorComponent m_Sprite2DComponent;
@@ -39,9 +38,7 @@ namespace Editor.Tools.Graphics2D
         int m_TabSelectedIndex = -1;
         bool m_OnUndoRedoManagerAction = false;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -76,9 +73,7 @@ namespace Editor.Tools.Graphics2D
             get { return m_Sprite2DComponent.CurrentSprite2D; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -103,11 +98,8 @@ namespace Editor.Tools.Graphics2D
             this.Text = "Sprite2D Editor";
         }
 
-        #endregion
 
-        #region Methods
 
-        #region Collision
 
         /// <summary>
         /// 
@@ -272,9 +264,7 @@ namespace Editor.Tools.Graphics2D
             m_Sprite2DComponent.CurrentCollisonIndex = m_LastCollisonIndex;
         }
 
-        #endregion
 
-        #region Add/Remove collision
 
         /// <summary>
         /// 
@@ -485,9 +475,7 @@ namespace Editor.Tools.Graphics2D
             }
         }
 
-        #endregion
 
-        #region Undo/Redo
 
         /// <summary>
         /// 
@@ -566,9 +554,7 @@ namespace Editor.Tools.Graphics2D
             redoToolStripMenuItem.Enabled = m_UndoRedoManager.CanRedo;
         }
 
-        #endregion
 
-        #region Cut/Copy/Paste
 
         /// <summary>
         /// 
@@ -628,9 +614,7 @@ namespace Editor.Tools.Graphics2D
             }
         }
 
-        #endregion Cut/Copy/Paste
 
-        #region Keyboard
 
         /// <summary>
         /// 
@@ -668,9 +652,7 @@ namespace Editor.Tools.Graphics2D
             }
         }
 
-        #endregion
 
-        #region Sockets
 
         /// <summary>
         /// 
@@ -757,7 +739,6 @@ namespace Editor.Tools.Graphics2D
             m_UndoRedoManager.Add(c, m_Sprite2DComponent.CurrentSprite2D);
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -769,7 +750,6 @@ namespace Editor.Tools.Graphics2D
             CheckSpriteChanges();
         }
 
-        #region Sprite
 
         /// <summary>
         /// 
@@ -826,7 +806,6 @@ namespace Editor.Tools.Graphics2D
             m_UndoRedoManager.Add(c, e.ChangedItem.Parent.Value);
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -904,9 +883,7 @@ namespace Editor.Tools.Graphics2D
             }            
         }
 
-        #endregion
 
-        #region IExternalTool Membres
 
         /// <summary>
         /// 
@@ -943,6 +920,5 @@ namespace Editor.Tools.Graphics2D
             }            
         }
 
-        #endregion
     }
 }

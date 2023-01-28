@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
@@ -20,7 +20,6 @@ namespace Editor.Tools.CurveEditor
     public class EditCurveKeySelection : Dictionary<long, EditCurveSelections>,
                                             IEquatable<EditCurveKeySelection>
     {
-        #region Constructors.
 
         /// <summary>
         /// Create new instance of EditCurveKeySelection from EditCurve.
@@ -46,9 +45,7 @@ namespace Editor.Tools.CurveEditor
         {
         }
 
-        #endregion
 
-        #region Equality override methods.
         public override bool Equals(object obj)
         {
             bool isSame = false;
@@ -80,7 +77,6 @@ namespace Editor.Tools.CurveEditor
 
             return true;
         }
-        #endregion
 
         /// <summary>
         /// Add CurveKey to selection.

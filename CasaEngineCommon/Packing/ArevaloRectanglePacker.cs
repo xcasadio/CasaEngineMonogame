@@ -1,4 +1,3 @@
-#region CPL License
 /*
 Nuclex Framework
 Copyright (C) 2002-2011 Nuclex Development Labs
@@ -16,9 +15,8 @@ IBM Common Public License for more details.
 You should have received a copy of the IBM Common Public
 License along with this library
 */
-#endregion
 
-using System;
+
 using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
@@ -73,7 +71,6 @@ namespace CasaEngineCommon.Packing
     public class ArevaloRectanglePacker : RectanglePacker
     {
 
-        #region class AnchorRankComparer
 
         /// <summary>Compares the 'rank' of anchoring points</summary>
         /// <remarks>
@@ -102,7 +99,6 @@ namespace CasaEngineCommon.Packing
 
         }
 
-        #endregion
 
         /// <summary>Initializes a new rectangle packer</summary>
         /// <param name="packingAreaWidth">Maximum width of the packing area</param>

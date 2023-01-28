@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
@@ -25,12 +27,9 @@ namespace CasaEngine.Asset.Fonts
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        #region Properties
 
-        
-        #endregion
 
-        #region Constructors
+
 
         /// <summary>
         /// 
@@ -42,9 +41,7 @@ namespace CasaEngine.Asset.Fonts
             ImportFromFile(fileName_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -135,7 +132,6 @@ namespace CasaEngine.Asset.Fonts
             throw new Exception("The method or operation is not implemented.");
         }
 
-        #region IAssetable
 
         /// <summary>
         /// 
@@ -145,8 +141,6 @@ namespace CasaEngine.Asset.Fonts
             get { return m_TexturesFileNames; }
         }
 
-        #endregion
 
-        #endregion
     }
 }

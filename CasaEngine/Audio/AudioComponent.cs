@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +15,6 @@ namespace CasaEngine.Audio
     public class AudioComponent
         : Microsoft.Xna.Framework.GameComponent
     {
-        #region Fields
 
         // The listener describes the ear which is hearing 3D sounds.
         // This is usually set to match the camera.
@@ -32,12 +33,11 @@ namespace CasaEngine.Audio
         // Store all the sound effects that are available to be played.
         Dictionary<string, SoundEffect> soundEffects = new Dictionary<string, SoundEffect>();
 
-        
+
         // Keep track of all the 3D sounds that are currently playing.
         List<ActiveSound> activeSounds = new List<ActiveSound>();
 
 
-        #endregion
 
         /// <summary>
         /// 
@@ -108,7 +108,7 @@ namespace CasaEngine.Audio
             }
         }
 
-        
+
         /// <summary>
         /// Updates the state of the 3D audio system.
         /// </summary>

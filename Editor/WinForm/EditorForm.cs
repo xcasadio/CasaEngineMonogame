@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,15 +15,12 @@ namespace Editor.WinForm
     /*public class EditorForm
         : Form
     {
-        #region Fields
 
         public ExternalTool.SaveProjectDelegate SaveProject;
         private string m_IniFileName = string.Empty;
         private InputRtfForm m_DocForm = null;
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Use for form designer
@@ -42,9 +39,7 @@ namespace Editor.WinForm
             this.Load += new EventHandler(EditorForm_Load);
         }       
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -137,6 +132,5 @@ namespace Editor.WinForm
             m_DocForm.Show();
         }
 
-        #endregion
     }*/
 }

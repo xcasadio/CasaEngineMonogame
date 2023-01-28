@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,7 +52,6 @@ namespace CasaEngine.Editor.Builder
         List<string> errors = new List<string>();
 
 
-        #region ILogger Members
 
 
         /// <summary>
@@ -77,6 +78,5 @@ namespace CasaEngine.Editor.Builder
         LoggerVerbosity verbosity = LoggerVerbosity.Normal;
 
 
-        #endregion
     }
 }

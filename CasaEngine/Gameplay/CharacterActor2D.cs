@@ -1,4 +1,6 @@
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
@@ -27,7 +29,7 @@ namespace CasaEngine.Gameplay
     /// <summary>
     /// 
     /// </summary>
-    public 
+    public
 #if EDITOR
     partial
 #endif
@@ -36,7 +38,6 @@ namespace CasaEngine.Gameplay
     {
         static public bool DisplayDebugInformation = true;
 
-        #region Fields
 
         private TeamInfo m_TeamInfo;
 
@@ -78,9 +79,7 @@ namespace CasaEngine.Gameplay
         //for debugging : to delete
         Texture2D m_WhiteTexture;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -106,7 +105,7 @@ namespace CasaEngine.Gameplay
         public float ZOrder
         {
             get;
-            set; 
+            set;
         }
 
         /// <summary>
@@ -259,7 +258,7 @@ namespace CasaEngine.Gameplay
         public CharacterActor2DOrientation Orientation
         {
             get { return m_Orientation; }
-            set 
+            set
             {
                 if (m_Orientation != value
                     && value != 0)
@@ -284,7 +283,7 @@ namespace CasaEngine.Gameplay
         /// </summary>
         public new Vector2 Position
         {
-            get 
+            get
             {
                 if (m_Body == null)
                 {
@@ -305,7 +304,7 @@ namespace CasaEngine.Gameplay
         {
             get { return m_InitialPosition; }
             set { m_InitialPosition = value; }
-        }        
+        }
 
         /// <summary>
         /// Gets
@@ -360,15 +359,13 @@ namespace CasaEngine.Gameplay
             {
                 m_Animation2DPlayer.OnEndAnimationReached += value;
             }
-            remove 
-            { 
-                m_Animation2DPlayer.OnEndAnimationReached -= value; 
+            remove
+            {
+                m_Animation2DPlayer.OnEndAnimationReached -= value;
             }
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -398,9 +395,7 @@ namespace CasaEngine.Gameplay
             Initialize();
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -431,23 +426,23 @@ namespace CasaEngine.Gameplay
             Speed = f.Speed;
             SpeedOffSet = f.SpeedOffSet;
             HPMax = f.HPMax;
-            MPMax = f.MPMax;            
+            MPMax = f.MPMax;
             Strength = f.Strength;
             Defense = f.Defense;
             HP = HPMax;
             MP = MPMax;
-            
+
             m_Animations = new Dictionary<int, Animation2D>();
-            
+
             foreach (KeyValuePair<int, Animation2D> pair in f.m_Animations)
             {
-                m_Animations.Add(pair.Key, (Animation2D)pair.Value.Clone());                
+                m_Animations.Add(pair.Key, (Animation2D)pair.Value.Clone());
             }
 
             foreach (var pair in f.m_AnimationListToLoad)
             {
                 m_AnimationListToLoad.Add(pair.Key, pair.Value);
-            }            
+            }
         }
 
         /// <summary>
@@ -534,7 +529,7 @@ namespace CasaEngine.Gameplay
         {
             //if (m_Controller != null)
             //{
-                m_Controller.Initialize();
+            m_Controller.Initialize();
             //}
         }
 
@@ -599,9 +594,9 @@ namespace CasaEngine.Gameplay
         {
             //if (m_Controller != null)
             //{
-                m_Controller.Update(elapsedTime_);
+            m_Controller.Update(elapsedTime_);
             //}
-            
+
             MoveCharacter(elapsedTime_);
             m_Animation2DPlayer.Update(elapsedTime_);
         }
@@ -613,7 +608,7 @@ namespace CasaEngine.Gameplay
         public void Draw(float elapsedTime_)
         {
             m_Renderer2DComponent.AddSprite2D(
-                m_Animation2DPlayer.CurrentAnimation.CurrentSpriteId, 
+                m_Animation2DPlayer.CurrentAnimation.CurrentSpriteId,
                 Position, 0.0f, Vector2.One, Color.White,
                 1 - Position.Y / Engine.Instance.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects);
@@ -652,7 +647,7 @@ namespace CasaEngine.Gameplay
                 if (rr != Vector2.Zero)
                 {
                     rr.Normalize();
-                }                
+                }
                 m_Renderer2DComponent.AddLine2D(Position, Position + rr * 80.0f, Color.Blue);
 
                 //for debugging State
@@ -686,7 +681,7 @@ namespace CasaEngine.Gameplay
             base.Load(el_, opt_);
 
             XmlElement statusNode = (XmlElement)el_.SelectSingleNode("Status");
-            
+
             Speed = float.Parse(statusNode.Attributes["speed"].Value);
             Strength = int.Parse(statusNode.Attributes["strength"].Value);
             Defense = int.Parse(statusNode.Attributes["defense"].Value);
@@ -704,7 +699,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        #region Movement
 
         /// <summary>
         /// 
@@ -755,12 +749,10 @@ namespace CasaEngine.Gameplay
             else
             {
                 m_Body.LinearVelocity = m_Velocity;
-            }            
+            }
         }
 
-        #endregion
 
-        #region Gameplay
 
         /// <summary>
         /// 
@@ -862,18 +854,15 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        #endregion
 
-        #endregion
 
-        #region IAttackable Membres
 
         /// <summary>
         /// 
         /// </summary>
         public Shape2DObject[] Shape2DObjectList
         {
-            get 
+            get
             {
                 Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectByID(m_Animation2DPlayer.CurrentAnimation.CurrentSpriteId);
 
@@ -920,7 +909,7 @@ namespace CasaEngine.Gameplay
                         }
 
                         res[i] = g;
-                    }                   
+                    }
                 }
 
                 return res;
@@ -950,9 +939,7 @@ namespace CasaEngine.Gameplay
             m_AlreadyAttacked.Clear();
         }
 
-        #endregion
 
-        #region IMessageable Membres
 
         /// <summary>
         /// 
@@ -983,9 +970,7 @@ namespace CasaEngine.Gameplay
             return true;
         }
 
-        #endregion
 
-        #region Helper Methods
 
         /// <summary>
         /// 
@@ -1017,6 +1002,5 @@ namespace CasaEngine.Gameplay
             return dir;
         }
 
-        #endregion
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,14 +14,16 @@ using CasaEngineCommon.Logger;
 using CasaEngine.CoreSystems.Game;
 using CasaEngine.Assets.Graphics2D;
 
+
+
 namespace CasaEngine.Graphics2D
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class Renderer2DComponent
+    /// <summary>
+    /// 
+    /// </summary>
+    public class Renderer2DComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
-	{
+    {
         /// <summary>
         /// Use to remember how to draw sprite
         /// And to avoid GC
@@ -47,7 +51,7 @@ namespace CasaEngine.Graphics2D
             public string Text;
             public SpriteFont SpriteFont;
             public Vector2 Position;
-            public float Rotation;            
+            public float Rotation;
             public Point Origin;
             public Vector2 Scale;
             public Color Color;
@@ -67,7 +71,6 @@ namespace CasaEngine.Graphics2D
             public Rectangle ScissorRectangle;
         }
 
-		#region Fields
 
         static public bool DrawDebug = false;
 
@@ -83,14 +86,12 @@ namespace CasaEngine.Graphics2D
         //used to create a resource pool
         Stack<Line2DDisplayData> m_ListFreeLine2DDisplayData = new Stack<Line2DDisplayData>(50);
 
-		//List<RoundLine> m_RoundLines = new List<RoundLine>();		
-		//RoundLineManager m_RoundLineManager = null;
+        //List<RoundLine> m_RoundLines = new List<RoundLine>();		
+        //RoundLineManager m_RoundLineManager = null;
 
         Line2DRenderer m_Line2DRenderer = new Line2DRenderer();
 
-		#endregion
 
-		#region Properties
 
         /// <summary>
         /// 
@@ -103,53 +104,48 @@ namespace CasaEngine.Graphics2D
 
 #if EDITOR
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetVisible
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetVisible
+        {
+            get { return true; }
+        }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetEnable
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetEnable
+        {
+            get { return true; }
+        }
 
 #endif
 
-		#endregion
 
-		#region Constructor
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="game_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="game_"></param>
         public Renderer2DComponent(Microsoft.Xna.Framework.Game game_)
-			: base(game_)
-		{
-			if (game_ == null)
-			{
-				throw new ArgumentNullException("Renderer2DComponent() : Game is null");
-			}
+            : base(game_)
+        {
+            if (game_ == null)
+            {
+                throw new ArgumentNullException("Renderer2DComponent() : Game is null");
+            }
 
-			game_.Components.Add(this);
+            game_.Components.Add(this);
 
-			//m_RoundLineManager = new RoundLineManager();
+            //m_RoundLineManager = new RoundLineManager();
 
-			UpdateOrder = (int)ComponentUpdateOrder.Renderer2DComponent;
-			DrawOrder = (int)ComponentDrawOrder.Renderer2DComponent;
-		}
+            UpdateOrder = (int)ComponentUpdateOrder.Renderer2DComponent;
+            DrawOrder = (int)ComponentDrawOrder.Renderer2DComponent;
+        }
 
-		#endregion
 
-		#region Methods
 
-		#region GameComponent Methods
 
         /// <summary>
         /// 
@@ -160,86 +156,86 @@ namespace CasaEngine.Graphics2D
             m_Line2DRenderer.Init(this.GraphicsDevice);
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="disposing"></param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing == true)
-			{
-				lock (this)
-				{
-					// Remove self from the service container.
-					GameHelper.RemoveGameComponent<Renderer2DComponent>(this.Game);
-				}
-			}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing == true)
+            {
+                lock (this)
+                {
+                    // Remove self from the service container.
+                    GameHelper.RemoveGameComponent<Renderer2DComponent>(this.Game);
+                }
+            }
 
-			base.Dispose(disposing);
-		}
+            base.Dispose(disposing);
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="gameTime"></param>
-		public override void Update(GameTime gameTime)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameTime"></param>
+        public override void Update(GameTime gameTime)
+        {
             Clear();
-			base.Update(gameTime);
-		}
+            base.Update(gameTime);
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="gameTime"></param>
-		public override void Draw(GameTime gameTime)
-		{
-			if (m_ListSprite2D.Count == 0 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameTime"></param>
+        public override void Draw(GameTime gameTime)
+        {
+            if (m_ListSprite2D.Count == 0
                 && m_ListText2D.Count == 0
                 && m_ListLine2D.Count == 0)
-			{
-				return;
-			}
+            {
+                return;
+            }
 
             //RasterizerState r = new RasterizerState() { ScissorTestEnable = true };
             //GraphicsDevice.RasterizerState = r;
 
             Vector2 tmpVec2 = Vector2.Zero;
-			Vector2 hotspot = Vector2.Zero;
+            Vector2 hotspot = Vector2.Zero;
 
             SpriteBatch.Begin(
                 SpriteSortMode.BackToFront,
                 BlendState.NonPremultiplied, //AlphaBlend need texture to be compiled with some options
                 SamplerState.LinearWrap,
                 DepthStencilState.None,
-                RasterizerState.CullCounterClockwise);                
+                RasterizerState.CullCounterClockwise);
 
-			//sprite2D
-			foreach (SpriteDisplayData sprite in m_ListSprite2D)
-			{
-				switch (sprite.SpriteEffect)
-				{
-					case SpriteEffects.None:
-						hotspot.X = sprite.Origin.X;
+            //sprite2D
+            foreach (SpriteDisplayData sprite in m_ListSprite2D)
+            {
+                switch (sprite.SpriteEffect)
+                {
+                    case SpriteEffects.None:
+                        hotspot.X = sprite.Origin.X;
                         hotspot.Y = sprite.Origin.Y;
-						break;
+                        break;
 
-					case SpriteEffects.FlipHorizontally:
+                    case SpriteEffects.FlipHorizontally:
                         hotspot.X = sprite.PositionInTexture.Width - sprite.Origin.X;
                         hotspot.Y = sprite.Origin.Y;
-						break;
+                        break;
 
-					case SpriteEffects.FlipVertically:
+                    case SpriteEffects.FlipVertically:
 
-						break;
-				}
+                        break;
+                }
 
                 if (DrawDebug == true)
                 {
                     DrawCross(sprite.Position, 6, Color.Violet);
                 }
 
-				Rectangle? rect = sprite.PositionInTexture;
+                Rectangle? rect = sprite.PositionInTexture;
 
                 /*Rectangle temp = new Rectangle();
                 temp.X = (int)(sprite.Position.X - hotspot.X);
@@ -276,20 +272,20 @@ namespace CasaEngine.Graphics2D
                 //GraphicsDevice.ScissorRectangle = sprite.ScissorRectangle;
 
                 SpriteBatch.Draw(sprite.Texture2D, sprite.Position, rect, sprite.Color,
-					0.0f, hotspot, sprite.Scale, sprite.SpriteEffect, sprite.ZOrder);
-			}
+                    0.0f, hotspot, sprite.Scale, sprite.SpriteEffect, sprite.ZOrder);
+            }
 
-			//Text2D
-			foreach (Text2DDisplayData text2D in m_ListText2D)
-			{
+            //Text2D
+            foreach (Text2DDisplayData text2D in m_ListText2D)
+            {
                 tmpVec2.X = (int)text2D.Position.X;
                 tmpVec2.Y = (int)text2D.Position.Y;
 
                 //GraphicsDevice.ScissorRectangle = text2D.ScissorRectangle;
 
                 SpriteBatch.DrawString(text2D.SpriteFont, text2D.Text, tmpVec2, text2D.Color,
-					0.0f, Vector2.Zero, text2D.Scale, text2D.SpriteEffect, text2D.ZOrder);
-			}
+                    0.0f, Vector2.Zero, text2D.Scale, text2D.SpriteEffect, text2D.ZOrder);
+            }
 
             //Line2D
             foreach (Line2DDisplayData line2D in m_ListLine2D)
@@ -299,17 +295,15 @@ namespace CasaEngine.Graphics2D
 
             SpriteBatch.End();
 
-			//RoundLine
-			//m_RoundLineManager.Draw(m_RoundLines, 1.0f, Color.Red, GameInfo);
+            //RoundLine
+            //m_RoundLineManager.Draw(m_RoundLines, 1.0f, Color.Red, GameInfo);
 
             //GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-			base.Draw(gameTime);
-		}
+            base.Draw(gameTime);
+        }
 
-		#endregion // GameComponent Methods
 
-		#region Sprite2D
 
         /// <summary>
         /// 
@@ -392,27 +386,27 @@ namespace CasaEngine.Graphics2D
             AddSprite2D(tex_, src_, origin, pos_, rot_, scale_, color_, ZOrder_, effects_, GraphicsDevice.ScissorRectangle);
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="tex_"></param>
-		/// <param name="pos_"></param>
-		/// <param name="rot_"></param>
-		/// <param name="scale_"></param>
-		/// <param name="color_"></param>
-		/// <param name="ZOrder_"></param>
-		public void AddSprite2D(Texture2D tex_, Rectangle src_, Point origin, Vector2 pos_, float rot_, 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tex_"></param>
+        /// <param name="pos_"></param>
+        /// <param name="rot_"></param>
+        /// <param name="scale_"></param>
+        /// <param name="color_"></param>
+        /// <param name="ZOrder_"></param>
+        public void AddSprite2D(Texture2D tex_, Rectangle src_, Point origin, Vector2 pos_, float rot_,
             Vector2 scale_, Color color_, float ZOrder_, SpriteEffects effects_, Rectangle scissorRectangle_)
-		{
-			if (tex_ == null)
-			{
-				throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is null");
-			}
+        {
+            if (tex_ == null)
+            {
+                throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is null");
+            }
 
-			if (tex_.IsDisposed == true)
-			{
-				throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is disposed");
-			}
+            if (tex_.IsDisposed == true)
+            {
+                throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is disposed");
+            }
 
             SpriteDisplayData sprite = GetSpriteDisplayData();
             sprite.Texture2D = tex_;
@@ -426,18 +420,16 @@ namespace CasaEngine.Graphics2D
             sprite.Origin = origin;
             sprite.ScissorRectangle = scissorRectangle_;
 
-			m_ListSprite2D.Add(sprite);
-		}
+            m_ListSprite2D.Add(sprite);
+        }
 
-		#endregion // Sprite2D
 
-		#region Text2D
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text2D_"></param>
-		/*public void AddText2D(PoolItem<Text2D> text2D_)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text2D_"></param>
+        /*public void AddText2D(PoolItem<Text2D> text2D_)
 		{
 			if (text2D_ == null)
 			{
@@ -467,28 +459,28 @@ namespace CasaEngine.Graphics2D
             AddText2D(font_, text_, pos_, rot_, scale_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="font_"></param>
-		/// <param name="text_"></param>
-		/// <param name="pos_"></param>
-		/// <param name="rot_"></param>
-		/// <param name="scale_"></param>
-		/// <param name="color_"></param>
-		/// <param name="ZOrder_"></param>
-		/// <param name="scissorRectangle_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="font_"></param>
+        /// <param name="text_"></param>
+        /// <param name="pos_"></param>
+        /// <param name="rot_"></param>
+        /// <param name="scale_"></param>
+        /// <param name="color_"></param>
+        /// <param name="ZOrder_"></param>
+        /// <param name="scissorRectangle_"></param>
         public void AddText2D(SpriteFont font_, string text_, Vector2 pos_, float rot_, Vector2 scale_, Color color_, float ZOrder_, Rectangle scissorRectangle_)
-		{
-			if (font_ == null)
-			{
-				throw new ArgumentException("Graphic2DComponent.AddText2D() : SpriteFont is null");
-			}
+        {
+            if (font_ == null)
+            {
+                throw new ArgumentException("Graphic2DComponent.AddText2D() : SpriteFont is null");
+            }
 
-			if (string.IsNullOrEmpty(text_) == true)
-			{
-				throw new ArgumentException("Graphic2DComponent.AddText2D() : text is null");
-			}
+            if (string.IsNullOrEmpty(text_) == true)
+            {
+                throw new ArgumentException("Graphic2DComponent.AddText2D() : text is null");
+            }
 
             Text2DDisplayData text2D = GetText2DDisplayData();
             text2D.SpriteFont = font_;
@@ -500,12 +492,10 @@ namespace CasaEngine.Graphics2D
             text2D.ZOrder = ZOrder_;
             text2D.ScissorRectangle = scissorRectangle_;
 
-			m_ListText2D.Add(text2D);
-		}
+            m_ListText2D.Add(text2D);
+        }
 
-		#endregion // Text2D
 
-		#region Line2D
 
         /// <summary>
         /// 
@@ -601,9 +591,7 @@ namespace CasaEngine.Graphics2D
             AddLine2D(x_, y_ + height_, x_ + width_, y_ + height_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
         }
 
-		#endregion // Line2D
 
-        #region Debug
 
         /// <summary>
         /// 
@@ -617,9 +605,7 @@ namespace CasaEngine.Graphics2D
             AddLine2D(pos_.X, pos_.Y - size_, pos_.X, pos_.Y + size_, color_, 0.0f);
         }
 
-        #endregion
 
-        #region Resource Pool
 
         /// <summary>
         /// 
@@ -663,13 +649,12 @@ namespace CasaEngine.Graphics2D
             return new Line2DDisplayData();
         }
 
-		#endregion // Line2D
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void Clear()
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Clear()
+        {
             foreach (SpriteDisplayData sprite in m_ListSprite2D)
             {
                 m_ListFreeSpriteDisplayData.Push(sprite);
@@ -690,8 +675,7 @@ namespace CasaEngine.Graphics2D
             }
 
             m_ListLine2D.Clear();
-		}
+        }
 
-		#endregion // Methods
-	}
+    }
 }

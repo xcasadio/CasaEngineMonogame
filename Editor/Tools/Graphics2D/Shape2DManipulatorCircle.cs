@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System.Windows.Forms;
 using Editor.UndoRedo;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace Editor.Tools.Graphics2D
 {
@@ -20,9 +21,9 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         public CasaEngine.Math.Shape2D.ShapeCircle ShapeCircle
         {
-            get 
-            { 
-                return (ShapeCircle)base.Shape2DObject; 
+            get
+            {
+                return (ShapeCircle)base.Shape2DObject;
             }
             internal set
             {
@@ -101,7 +102,7 @@ namespace Editor.Tools.Graphics2D
 
             for (int i = 0; i < 31; i++)
             {
-                v1 = new Vector2(position.X +ShapeCircle.Radius * (float)Math.Cos(step * (double)i),
+                v1 = new Vector2(position.X + ShapeCircle.Radius * (float)Math.Cos(step * (double)i),
                     position.Y + ShapeCircle.Radius * (float)Math.Sin(step * (double)i));
                 v2 = new Vector2(position.X + ShapeCircle.Radius * (float)Math.Cos(step * ((double)i + 1.0)),
                     position.Y + ShapeCircle.Radius * (float)Math.Sin(step * ((double)i + 1.0)));

@@ -16,7 +16,6 @@ namespace Editor.WinForm
 	public partial class InputBox 
 		: System.Windows.Forms.Form
 	{
-		#region Enum
 
 		public enum TextType
 		{
@@ -26,9 +25,7 @@ namespace Editor.WinForm
 			Mail
 		}
 
-		#endregion
 
-		#region Fields
 
 		private TextType m_TextType = TextType.Normal;
 		private Color m_TextColor = Color.Black;
@@ -39,9 +36,7 @@ namespace Editor.WinForm
 		private int m_ToolTipDuration = 2000;
 		private bool m_CheckSelectionStartActive = true;
 
-		#endregion
 
-		#region Properties
 
 		/// <summary>
 		/// Gets/Sets
@@ -139,9 +134,7 @@ namespace Editor.WinForm
             set { label.Text = value; }
         }
 
-		#endregion
 
-		#region Constructors
 
 		/// <summary>
 		/// 
@@ -181,9 +174,7 @@ namespace Editor.WinForm
 			m_CustomEvent = textChanged_;
 		}
 
-		#endregion
 
-		#region Methods
 
 		/// <summary>
 		/// 
@@ -345,7 +336,6 @@ namespace Editor.WinForm
 			}
 		}
 
-		#endregion
 
 		private void richTextBox_KeyPress(object sender, KeyPressEventArgs e)
 		{

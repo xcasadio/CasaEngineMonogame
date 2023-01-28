@@ -23,7 +23,7 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using System;
+
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 
@@ -34,7 +34,6 @@ namespace FarseerPhysics.Collision
         public int ProxyIdA;
         public int ProxyIdB;
 
-        #region IComparable<Pair> Members
 
         public int CompareTo(Pair other)
         {
@@ -57,7 +56,6 @@ namespace FarseerPhysics.Collision
             return 1;
         }
 
-        #endregion
     }
 
     /// <summary>
@@ -90,7 +88,6 @@ namespace FarseerPhysics.Collision
             _moveBuffer = new int[_moveCapacity];
         }
 
-        #region IBroadPhase Members
 
         /// <summary>
         /// Get the number of proxies.
@@ -260,7 +257,6 @@ namespace FarseerPhysics.Collision
             BufferMove(proxyId);
         }
 
-        #endregion
 
         /// <summary>
         /// Compute the height of the embedded tree.

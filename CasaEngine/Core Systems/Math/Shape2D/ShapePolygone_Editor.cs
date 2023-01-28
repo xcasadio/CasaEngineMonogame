@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,14 +21,11 @@ namespace CasaEngine.Math.Shape2D
     public partial class ShapePolygone
         : Shape2DObject
     {
-        #region Fields
 
         public event EventHandler OnPointAdded;
         public event EventHandler OnPointDeleted;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -50,9 +49,7 @@ namespace CasaEngine.Math.Shape2D
             get { return m_Points.ToArray(); }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -65,9 +62,7 @@ namespace CasaEngine.Math.Shape2D
             m_Points.Add(p3_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -274,7 +269,7 @@ namespace CasaEngine.Math.Shape2D
             {
                 XmlElement point = el_.OwnerDocument.CreateElement("Point", p);
                 pointList.AppendChild(point);
-            }            
+            }
         }
 
         /// <summary>
@@ -306,6 +301,5 @@ namespace CasaEngine.Math.Shape2D
             return "Polygone";
         }
 
-        #endregion
     }
 }

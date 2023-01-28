@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,11 +9,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -31,7 +28,6 @@ namespace XNAFinalEngine.UserInterface
     public class Container : ClipControl
     {
 
-        #region Variables
 
         // Controls
         private readonly ScrollBar scrollBarVertical;
@@ -46,9 +42,7 @@ namespace XNAFinalEngine.UserInterface
         // The control that has inmediate focus. For example a button for closing a dialog.
         private Control defaultControl;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Scroll Bar Value.
@@ -59,7 +53,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 ScrollBarValue scrollBarValue = new ScrollBarValue
                 {
-                    Vertical   = scrollBarVertical.Value,
+                    Vertical = scrollBarVertical.Value,
                     Horizontal = scrollBarHorizontal.Value
                 };
                 return scrollBarValue;
@@ -177,9 +171,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // StatusBar
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Containter.
@@ -216,9 +208,7 @@ namespace XNAFinalEngine.UserInterface
             AdjustMargins();
         } // Container
 
-        #endregion
-        
-        #region Adjust Margins
+
 
         /// <summary>
         /// Adjust the controls margin.
@@ -286,31 +276,27 @@ namespace XNAFinalEngine.UserInterface
             base.AdjustMargins();
         } // AdjustMargins
 
-        #endregion
 
-        #region Position Scroll Bars
 
         private void PositionScrollBars()
         {
             if (scrollBarVertical != null) // The null check is for property assigment in the new sentence.
             {
-                scrollBarVertical.Left     = ClientLeft + ClientWidth + 1;
-                scrollBarVertical.Top      = ClientTop + 1;
-                scrollBarVertical.Height   = ClientArea.Height - ((scrollBarHorizontal.Visible) ? 0 : 2);
-                scrollBarVertical.Range    = ClientArea.VirtualHeight;
+                scrollBarVertical.Left = ClientLeft + ClientWidth + 1;
+                scrollBarVertical.Top = ClientTop + 1;
+                scrollBarVertical.Height = ClientArea.Height - ((scrollBarHorizontal.Visible) ? 0 : 2);
+                scrollBarVertical.Range = ClientArea.VirtualHeight;
                 scrollBarVertical.PageSize = ClientArea.ClientHeight;
-                
-                scrollBarHorizontal.Left     = ClientLeft + 1;
-                scrollBarHorizontal.Top      = ClientTop + ClientHeight + 1;
-                scrollBarHorizontal.Width    = ClientArea.Width - ((scrollBarVertical.Visible) ? 0 : 2);
-                scrollBarHorizontal.Range    = ClientArea.VirtualWidth;
+
+                scrollBarHorizontal.Left = ClientLeft + 1;
+                scrollBarHorizontal.Top = ClientTop + ClientHeight + 1;
+                scrollBarHorizontal.Width = ClientArea.Width - ((scrollBarVertical.Visible) ? 0 : 2);
+                scrollBarHorizontal.Range = ClientArea.VirtualWidth;
                 scrollBarHorizontal.PageSize = ClientArea.ClientWidth;
             }
         } // PositionScrollBars
 
-        #endregion
 
-        #region On Events
 
         private void Bars_Resize(object sender, ResizeEventArgs e)
         {
@@ -322,9 +308,7 @@ namespace XNAFinalEngine.UserInterface
             CalculateScrolling();
         } // ScrollBarValueChanged
 
-        #endregion
 
-        #region Invalidate
 
         /// <summary>
         /// Invalidate it and its parents.
@@ -335,9 +319,7 @@ namespace XNAFinalEngine.UserInterface
             CalculateScrolling();
         } // Invalidate
 
-        #endregion
 
-        #region Calculate Scrolling
 
         internal void CalculateScrolling()
         {
@@ -349,11 +331,10 @@ namespace XNAFinalEngine.UserInterface
             if (AutoScroll)
             {
 
-                #region Vertical
 
                 bool scrollBarVisible = scrollBarVertical.Visible;
                 scrollBarVertical.Visible = ClientArea.VirtualHeight > ClientArea.ClientHeight;
-                if (ClientArea.VirtualHeight <= ClientArea.ClientHeight) 
+                if (ClientArea.VirtualHeight <= ClientArea.ClientHeight)
                     scrollBarVertical.Value = 0;
 
                 // If visibility changes...
@@ -379,9 +360,7 @@ namespace XNAFinalEngine.UserInterface
                     childControl.Invalidate();
                 }
 
-                #endregion
-                
-                #region Horizontal
+
 
                 scrollBarVisible = scrollBarHorizontal.Visible;
                 scrollBarHorizontal.Visible = ClientArea.VirtualWidth > ClientArea.ClientWidth;
@@ -409,15 +388,12 @@ namespace XNAFinalEngine.UserInterface
                     childControl.Invalidate();
                 }
 
-                #endregion
-                
+
             }
             adjustingScrolling = false;
         } // CalculateScrolling
 
-        #endregion
 
-        #region Scroll To
 
         public virtual void ScrollTo(Control control)
         {
@@ -442,9 +418,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ScrollTo         
 
-        #endregion
 
-        #region Raise Events
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -470,7 +444,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnSkinChanged
 
-        #endregion
 
     } // Container
 } // XNAFinalEngine.UserInterface

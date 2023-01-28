@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,13 +25,12 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using System;
+
+
 using Microsoft.Xna.Framework.Input;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -42,16 +40,13 @@ namespace XNAFinalEngine.UserInterface
     /// </summary>
     public class SliderNumeric : Control
     {
-        
-        #region Variables
+
 
         // Controls
         private readonly TextBox textBox;
         private readonly TrackBar slider;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Minimum value that can has the slider.
@@ -116,9 +111,7 @@ namespace XNAFinalEngine.UserInterface
             set { slider.StepSize = value; }
         } // StepSize
 
-        #endregion
 
-        #region Events
 
         public event EventHandler ValueChanged;
         public event EventHandler RangeChanged;
@@ -128,9 +121,7 @@ namespace XNAFinalEngine.UserInterface
         public event MouseEventHandler SliderUp;
         public event MouseEventHandler SliderPress;
 
-        #endregion
-        
-        #region Constructor
+
 
         /// <summary>
         /// Slider for numeric values.
@@ -170,10 +161,9 @@ namespace XNAFinalEngine.UserInterface
                 Anchor = Anchors.Left | Anchors.Right | Anchors.Top,
             };
 
-            #region Events
 
             slider.ValueChanged += delegate { textBox.Text = Math.Round(slider.Value, 3).ToString(); };
-            textBox.KeyDown += delegate(object sender, KeyEventArgs e)
+            textBox.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -200,22 +190,19 @@ namespace XNAFinalEngine.UserInterface
                 }
             };
             textBox.Text = Math.Round(slider.Value, 3).ToString();
-            
-            #endregion
 
-            slider.ValueChanged    += OnValueChanged;
-            slider.RangeChanged    += OnRangeChanged;
+
+            slider.ValueChanged += OnValueChanged;
+            slider.RangeChanged += OnRangeChanged;
             slider.StepSizeChanged += OnStepSizeChanged;
             slider.PageSizeChanged += OnPageSizeChanged;
-            slider.SliderDown      += OnSliderDown;
-            slider.SliderUp        += OnSliderUp;
-            slider.SliderPress     += OnSliderPress;
+            slider.SliderDown += OnSliderDown;
+            slider.SliderUp += OnSliderUp;
+            slider.SliderPress += OnSliderPress;
 
         } // SliderNumeric
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -233,18 +220,14 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         protected override void DrawControl(Rectangle rect)
         {
             // Only the children will be rendered.
         } // DrawControl
 
-        #endregion
 
-        #region On Events
 
         protected virtual void OnSliderDown(object obj, MouseEventArgs e)
         {
@@ -266,29 +249,28 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnValueChanged(object obj, EventArgs e)
         {
-            if (ValueChanged != null) 
+            if (ValueChanged != null)
                 ValueChanged(this, e);
         } // OnValueChanged
 
         protected virtual void OnRangeChanged(object obj, EventArgs e)
         {
-            if (RangeChanged != null) 
+            if (RangeChanged != null)
                 RangeChanged(this, e);
         } // OnRangeChanged
 
         protected virtual void OnPageSizeChanged(object obj, EventArgs e)
         {
-            if (PageSizeChanged != null) 
+            if (PageSizeChanged != null)
                 PageSizeChanged(this, e);
         } // OnPageSizeChanged
 
         protected virtual void OnStepSizeChanged(object obj, EventArgs e)
         {
-            if (StepSizeChanged != null) 
+            if (StepSizeChanged != null)
                 StepSizeChanged(this, e);
         } // OnStepSizeChanged
 
-        #endregion
 
     } // SliderNumeric
 } // XNAFinalEngine.UserInterface

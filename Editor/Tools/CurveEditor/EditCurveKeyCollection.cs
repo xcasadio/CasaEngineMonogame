@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.Text;
 
@@ -20,7 +20,6 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public class EditCurveKeyCollection : ICollection<EditCurveKey>
     {
-        #region Constructors.
 
         /// <summary>
         /// Create new instance of EditCurveKeyCollection from Curve instance.
@@ -41,9 +40,7 @@ namespace Editor.Tools.CurveEditor
             }
         }
 
-        #endregion
 
-        #region IList<EditCurveKey> like Members
 
         /// <summary>
         /// Determines the index of a specfied CurveKey in the EditCurveKeyCollection.
@@ -111,9 +108,7 @@ namespace Editor.Tools.CurveEditor
             }
         }
 
-        #endregion
 
-        #region ICollection<EditCurveKey> Members
 
         /// <summary>
         /// Add an item to the EditCurveKeyCollection
@@ -208,9 +203,7 @@ namespace Editor.Tools.CurveEditor
             return keys.Remove(item) && result;
         }
 
-        #endregion
 
-        #region IEnumerable<EditCurveKey> Members
 
         /// <summary>
         /// Returns an enumerator that iterates through the EditCurveKeyCollection. 
@@ -222,9 +215,7 @@ namespace Editor.Tools.CurveEditor
             return keys.GetEnumerator();
         }
 
-        #endregion
 
-        #region IEnumerable Members
 
         /// <summary>
         /// Returns an enumerator that iterates through the EditCurveKeyCollection. 
@@ -234,7 +225,6 @@ namespace Editor.Tools.CurveEditor
         {
             return ((System.Collections.IEnumerable)keys).GetEnumerator();
         }
-        #endregion
 
         /// <summary>
         /// Tries to look up a EditCurveKey by id.
@@ -263,7 +253,6 @@ namespace Editor.Tools.CurveEditor
             return newKeys;
         }
 
-        #region Private methods.
 
         /// <summary>
         /// Private default construction.
@@ -272,9 +261,7 @@ namespace Editor.Tools.CurveEditor
         {
         }
 
-        #endregion
 
-        #region Private members.
 
         /// <summary>
         /// Owner of this collection
@@ -292,6 +279,5 @@ namespace Editor.Tools.CurveEditor
         private Dictionary<long, EditCurveKey> idToKeyMap =
                                                 new Dictionary<long, EditCurveKey>();
 
-        #endregion
     }
 }

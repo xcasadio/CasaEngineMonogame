@@ -1,7 +1,8 @@
 ﻿
-#region Using Directives
 
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,118 +11,110 @@ using System.Xml;
 using CasaEngine;
 using CasaEngineCommon.Design;
 
-#endregion
 
 namespace CasaEngine.Design.Event
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public abstract 
+    /// <summary>
+    /// 
+    /// </summary>
+    public abstract
 #if EDITOR
-	partial
+    partial
 #endif
-	class Trigger
-	{
-		#region Fields
+    class Trigger
+    {
 
         private List<TriggerEvent> m_Events = new List<TriggerEvent>();
-		private bool m_Activated = false;
-		private int m_IterationMax = 1;
-		private int m_Iteration = 0;
+        private bool m_Activated = false;
+        private int m_IterationMax = 1;
+        private int m_Iteration = 0;
 
-		#endregion
 
-		#region Properties
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool Activated
-		{
-			get { return m_Activated; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool Activated
+        {
+            get { return m_Activated; }
+        }
 
-		/// <summary>
-		/// Gets/Sets
-		/// </summary>
-		public int IterationMax
-		{
-			get { return m_IterationMax; }
-			set { m_IterationMax = value; }
-		}
+        /// <summary>
+        /// Gets/Sets
+        /// </summary>
+        public int IterationMax
+        {
+            get { return m_IterationMax; }
+            set { m_IterationMax = value; }
+        }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
+        /// <summary>
+        /// Gets
+        /// </summary>
 #if EDITOR
-		public
+        public
 #else
 		protected
 #endif
         List<TriggerEvent> Events
-		{
-			get { return m_Events; }
-		}
+        {
+            get { return m_Events; }
+        }
 
-		#endregion
 
-		#region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public Trigger() 
-		{
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public Trigger()
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="event_"></param>
-		public Trigger(int iteration_)
-		{
-			m_IterationMax = iteration_;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="event_"></param>
+        public Trigger(int iteration_)
+        {
+            m_IterationMax = iteration_;
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
-		/// <param name="option_"></param>
-		public Trigger(XmlElement el_, SaveOption option_)
-		{
-			Load(el_, option_);
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_"></param>
+        /// <param name="option_"></param>
+        public Trigger(XmlElement el_, SaveOption option_)
+        {
+            Load(el_, option_);
+        }
 
-		#endregion
 
-		#region Methods
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
-		/// <param name="option_"></param>
-		public virtual void Load(XmlElement el_, SaveOption option_)
-		{
-			uint loadedVersion = uint.Parse(el_.Attributes["version"].Value);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_"></param>
+        /// <param name="option_"></param>
+        public virtual void Load(XmlElement el_, SaveOption option_)
+        {
+            uint loadedVersion = uint.Parse(el_.Attributes["version"].Value);
 
-			foreach (XmlNode node in el_.SelectSingleNode("EventList").ChildNodes)
-			{
-				string assemblyFullName = node.Attributes["assemblyName"].Value;
-				string typeFullName = node.Attributes["fullName"].Value;
+            foreach (XmlNode node in el_.SelectSingleNode("EventList").ChildNodes)
+            {
+                string assemblyFullName = node.Attributes["assemblyName"].Value;
+                string typeFullName = node.Attributes["fullName"].Value;
 
-				Type t = Type.GetType(typeFullName);
+                Type t = Type.GetType(typeFullName);
                 TriggerEvent ev = (TriggerEvent)Activator.CreateInstance(t
 #if EDITOR
-				, new object[] { el_, option_ }
+                , new object[] { el_, option_ }
 #endif
-				);
+                );
 
-				m_Events.Add(ev);
-			}
-		}
+                m_Events.Add(ev);
+            }
+        }
 
         /// <summary>
         /// 
@@ -133,48 +126,47 @@ namespace CasaEngine.Design.Event
 
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="elapsedTime_"></param>
-		public abstract bool Activate(float TotalElapsedTime_);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="elapsedTime_"></param>
+        public abstract bool Activate(float TotalElapsedTime_);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="event_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="event_"></param>
         public void AddEvent(TriggerEvent event_)
-		{
-			m_Events.Add(event_);
-		}
+        {
+            m_Events.Add(event_);
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="TotalElapsedTime_"></param>
-		public void Update(float TotalElapsedTime_)
-		{
-			if (Activate(TotalElapsedTime_) == true && (m_Iteration < m_IterationMax || m_IterationMax == -1))
-			{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="TotalElapsedTime_"></param>
+        public void Update(float TotalElapsedTime_)
+        {
+            if (Activate(TotalElapsedTime_) == true && (m_Iteration < m_IterationMax || m_IterationMax == -1))
+            {
                 foreach (TriggerEvent ev in m_Events.ToArray())
-				{
-					ev.Do();
-				}
-				
-				m_Activated = true;
-				m_Iteration++;
-			}
-		}
+                {
+                    ev.Do();
+                }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void Reset()
-		{
-			m_Iteration = 0;
-			m_Activated = false;
-		}
+                m_Activated = true;
+                m_Iteration++;
+            }
+        }
 
-		#endregion
-	}
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Reset()
+        {
+            m_Iteration = 0;
+            m_Activated = false;
+        }
+
+    }
 }

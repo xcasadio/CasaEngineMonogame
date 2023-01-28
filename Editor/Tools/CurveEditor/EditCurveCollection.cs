@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -44,7 +44,6 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public event EventHandler Changed;
 
-        #region Overrided methods
 
         protected override void RemoveItem(int index)
         {
@@ -92,7 +91,6 @@ namespace Editor.Tools.CurveEditor
 
             base.SetItem(index, item);
         }
-        #endregion
 
     }
 }

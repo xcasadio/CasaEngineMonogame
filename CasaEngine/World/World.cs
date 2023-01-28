@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +19,6 @@ namespace CasaEngine.World
     /// </summary>
     public class World
     {
-        #region Fields
 
         private List<Actor2D> m_Actors = new List<Actor2D>(30);
         private List<Actor2D> m_ActorsToAdd = new List<Actor2D>();
@@ -29,9 +30,7 @@ namespace CasaEngine.World
         public event EventHandler LoadingContent;
         public event EventHandler Starting;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -58,9 +57,7 @@ namespace CasaEngine.World
             set { m_HUD = value; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -70,14 +67,11 @@ namespace CasaEngine.World
             if (usePhysics == true)
             {
                 m_PhysicWorld = new FarseerPhysics.Dynamics.World(GameInfo.Instance.WorldInfo.WorldGravity);
-            }            
+            }
         }
 
-        #endregion
 
-        #region Methods
 
-        #region Objects
 
         /// <summary>
         /// Use only when the world is not running else use PushObject
@@ -97,7 +91,6 @@ namespace CasaEngine.World
             m_ActorsToAdd.Add(actor2D_);
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -200,7 +193,7 @@ namespace CasaEngine.World
                 if (a is IRenderable)
                 {
                     ((IRenderable)a).Draw(elapsedTime_);
-                }                
+                }
             }
 
             if (m_HUD != null)
@@ -209,6 +202,5 @@ namespace CasaEngine.World
             }
         }
 
-        #endregion
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +16,6 @@ namespace CasaEngine.Asset
     class CursorLoader
         : IAssetLoader
     {
-        #region IAssetLoader Membres
 
         [DllImport("User32.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
         private static extern IntPtr LoadCursorFromFile(String str);
@@ -44,6 +45,5 @@ namespace CasaEngine.Asset
             return curs;
         }
 
-        #endregion
     }
 }

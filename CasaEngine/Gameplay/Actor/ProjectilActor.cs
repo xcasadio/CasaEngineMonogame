@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,7 +29,6 @@ namespace CasaEngine.Gameplay.Actor
     public class ProjectilActor
         : AnimatedSpriteActor, IAttackable
     {
-        #region Fields
 
         private Body m_Body;
         private List<Shape2DObject> m_Shape2DObjectList = new List<Shape2DObject>();
@@ -41,16 +42,14 @@ namespace CasaEngine.Gameplay.Actor
         //distance Max
         Vector3 m_Start;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
         /// </summary>
-        public Shape2DObject[] Shape2DObjectList 
-        { 
-            get { return m_Shape2DObjectList.ToArray(); } 
+        public Shape2DObject[] Shape2DObjectList
+        {
+            get { return m_Shape2DObjectList.ToArray(); }
         }
 
         /// <summary>
@@ -91,9 +90,7 @@ namespace CasaEngine.Gameplay.Actor
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -113,9 +110,7 @@ namespace CasaEngine.Gameplay.Actor
             CopyFrom(src_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -249,6 +244,5 @@ namespace CasaEngine.Gameplay.Actor
             m_Body.SetTransform(ref position, rot);
         }
 
-        #endregion
     }
 }

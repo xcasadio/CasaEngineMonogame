@@ -1,5 +1,4 @@
-﻿#region MIT License
-
+﻿
 /*
  * Copyright (c) 2009-2010 Nick Gravelyn (nick@gravelyn.com), Markus Ewald (cygon@CasaEngine.org)
  * 
@@ -22,7 +21,6 @@
  * 
  */
 
-#endregion
 
 using System.IO;
 

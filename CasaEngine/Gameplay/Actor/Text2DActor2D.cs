@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +10,7 @@ using CasaEngine.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using CasaEngine.CoreSystems.Game;
+using CasaEngine.Gameplay.Actor.Object;
 
 namespace CasaEngine.Gameplay.Actor
 {
@@ -17,7 +20,6 @@ namespace CasaEngine.Gameplay.Actor
     public class Text2DActor2D
         : Actor2D
     {
-        #region Fields
 
         private Text2DBehaviour m_Text2DBehaviour;
         private Renderer2DComponent m_Renderer2DComponent;
@@ -30,9 +32,7 @@ namespace CasaEngine.Gameplay.Actor
         public float ZOrder = 0.0f;
         public SpriteEffects SpriteEffect = SpriteEffects.None;
 
-        #endregion
 
-        #region Properties        
 
         /// <summary>
         /// Gets/Sets
@@ -52,9 +52,7 @@ namespace CasaEngine.Gameplay.Actor
             set { m_Text2DBehaviour = value; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -64,9 +62,7 @@ namespace CasaEngine.Gameplay.Actor
             m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -86,6 +82,9 @@ namespace CasaEngine.Gameplay.Actor
             m_Renderer2DComponent.AddText2D(SpriteFont, Text, Position, Rotation, Scale, Color, ZOrder);
         }
 
-        #endregion
+        public override bool CompareTo(BaseObject other_)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

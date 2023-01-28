@@ -1,4 +1,3 @@
-#region CPL License
 /*
 Nuclex Framework
 Copyright (C) 2002-2011 Nuclex Development Labs
@@ -16,9 +15,8 @@ IBM Common Public License for more details.
 You should have received a copy of the IBM Common Public
 License along with this library
 */
-#endregion
 
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -48,7 +46,6 @@ namespace CasaEngineCommon.Packing {
   /// </remarks>
   public class CygonRectanglePacker : RectanglePacker {
 
-    #region class SliceStartComparer
 
     /// <summary>Compares the starting position of height slices</summary>
     private class SliceStartComparer : IComparer<Point> {
@@ -66,7 +63,6 @@ namespace CasaEngineCommon.Packing {
 
     }
 
-    #endregion
 
     /// <summary>Initializes a new rectangle packer</summary>
     /// <param name="packingAreaWidth">Maximum width of the packing area</param>

@@ -38,7 +38,7 @@
 //     Bundling everything into an AoS mess?
 //     Hardcode them all as ABC ?
 
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Poly2Tri.Triangulation.Delaunay.Sweep;

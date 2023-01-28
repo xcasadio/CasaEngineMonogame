@@ -1,6 +1,5 @@
-#region Using directives
 
-using System;
+
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
@@ -10,13 +9,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Win32;
 using System.Security;
 
-#endregion
 
 // Using: in the end of this file.
 
 namespace Editor.WinForm.DocToolkit
 {
-    #region Class DocManager
 
     /// <summary>
     /// Document manager. Makes file-related operations:
@@ -30,7 +27,6 @@ namespace Editor.WinForm.DocToolkit
     public class DocManager
     {
 
-        #region Events
 
         public event SaveEventHandler SaveEvent;
         public event LoadEventHandler LoadEvent;
@@ -38,9 +34,7 @@ namespace Editor.WinForm.DocToolkit
         public event EventHandler ClearEvent;
         public event EventHandler DocChangedEvent;
 
-        #endregion
 
-        #region Members
 
         private string fileName = "";
         private bool dirty = false;
@@ -54,9 +48,7 @@ namespace Editor.WinForm.DocToolkit
         private const string registryValue = "Path";
         private string fileDlgInitDir = "";         // file dialog initial directory
 
-        #endregion
 
-        #region Enum
 
         /// <summary>
         /// Enumeration used for Save function
@@ -67,9 +59,7 @@ namespace Editor.WinForm.DocToolkit
             SaveAs
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Initialization
@@ -105,9 +95,7 @@ namespace Editor.WinForm.DocToolkit
             }
         }
 
-        #endregion
 
-        #region Public functions and Properties
 
         /// <summary>
         /// Dirty property (true when document has unsaved changes).
@@ -420,9 +408,7 @@ namespace Editor.WinForm.DocToolkit
             return true;
         }
 
-        #endregion
 
-        #region Other Functions
 
 
         /// <summary>
@@ -523,21 +509,16 @@ namespace Editor.WinForm.DocToolkit
             return s == null || s.Length == 0;
         }
 
-        #endregion
 
     }
 
-    #endregion
 
-    #region Delegates
 
     public delegate void SaveEventHandler(object sender, SerializationEventArgs e);
     public delegate void LoadEventHandler(object sender, SerializationEventArgs e);
     public delegate void OpenFileEventHandler(object sender, OpenFileEventArgs e);
 
-    #endregion
 
-    #region Class SerializationEventArgs
 
     /// <summary>
     /// Serialization event arguments.
@@ -596,9 +577,7 @@ namespace Editor.WinForm.DocToolkit
         }
     }
 
-    #endregion
 
-    #region Class OpenFileEventArgs
 
     /// <summary>
     /// Open file event arguments.
@@ -633,9 +612,7 @@ namespace Editor.WinForm.DocToolkit
         }
     }
 
-    #endregion
 
-    #region class DocManagerData
 
     /// <summary>
     /// Class used for DocManager class initialization
@@ -718,10 +695,8 @@ namespace Editor.WinForm.DocToolkit
         }
     };
 
-    #endregion
 }
 
-#region Using
 
 /*
 Using:
@@ -919,4 +894,3 @@ private DocManager docManager;
         }
 */
 
-#endregion

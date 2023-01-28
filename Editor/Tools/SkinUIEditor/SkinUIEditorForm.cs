@@ -36,7 +36,6 @@ namespace Editor.Tools.SkinUIEditor
             m_XnaEditorForm.StartGame();
         }
 
-        #region IEditorForm Membres
 
         /// <summary>
         /// 
@@ -46,9 +45,7 @@ namespace Editor.Tools.SkinUIEditor
             get { return panelXNA; }
         }
 
-        #endregion
 
-        #region IExternalTool Membres
 
         /// <summary>
         /// 
@@ -78,6 +75,5 @@ namespace Editor.Tools.SkinUIEditor
             }
         }
 
-        #endregion
     }
 }

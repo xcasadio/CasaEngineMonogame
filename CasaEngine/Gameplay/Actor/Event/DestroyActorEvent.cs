@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,15 +13,10 @@ namespace CasaEngine.Gameplay.Actor.Event
     public class DestroyActorEvent
         : EventActor
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -30,9 +27,7 @@ namespace CasaEngine.Gameplay.Actor.Event
 
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -50,6 +45,5 @@ namespace CasaEngine.Gameplay.Actor.Event
             throw new NotImplementedException();
         }
 
-        #endregion
     }
 }

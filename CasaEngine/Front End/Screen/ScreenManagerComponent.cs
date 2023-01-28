@@ -1,15 +1,14 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // ScreenManagerComponent.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 
 using System;
+
+
 using System.Diagnostics;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
@@ -22,7 +21,6 @@ using CasaEngine.Math;
 using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Helper;
 
-#endregion
 
 namespace CasaEngine.FrontEnd.Screen
 {
@@ -35,7 +33,6 @@ namespace CasaEngine.FrontEnd.Screen
     public class ScreenManagerComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        #region Fields
 
         List<Screen> screens = new List<Screen>();
         List<Screen> screensToUpdate = new List<Screen>();
@@ -50,27 +47,25 @@ namespace CasaEngine.FrontEnd.Screen
 
         bool traceEnabled;
 
-		Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent m_Renderer2DComponent = null;
 
-        #endregion
 
-        #region Properties
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetVisible
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetVisible
+        {
+            get { return true; }
+        }
 
-		/// <summary>
-		/// Gets
-		/// </summary>
-		public bool CanSetEnable
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Gets
+        /// </summary>
+        public bool CanSetEnable
+        {
+            get { return true; }
+        }
 
         /// <summary>
         /// If true, the manager prints out a list of all the screens
@@ -83,46 +78,42 @@ namespace CasaEngine.FrontEnd.Screen
             set { traceEnabled = value; }
         }
 
-        #endregion
 
-		#region Constructor
 
-		/// <summary>
-		/// Constructs a new screen manager component.
-		/// </summary>
-		public ScreenManagerComponent(Microsoft.Xna.Framework.Game game)
-			: base(game)
-		{
-			if (game == null)
-			{
-				throw new ArgumentException("ScreenManagerComponent : Game is null");
-			}
+        /// <summary>
+        /// Constructs a new screen manager component.
+        /// </summary>
+        public ScreenManagerComponent(Microsoft.Xna.Framework.Game game)
+            : base(game)
+        {
+            if (game == null)
+            {
+                throw new ArgumentException("ScreenManagerComponent : Game is null");
+            }
 
-			game.Components.Add(this);
+            game.Components.Add(this);
 
-			UpdateOrder = (int)ComponentUpdateOrder.ScreenManagerComponent;
-			DrawOrder = (int)ComponentDrawOrder.ScreenManagerComponent;
-		}
+            UpdateOrder = (int)ComponentUpdateOrder.ScreenManagerComponent;
+            DrawOrder = (int)ComponentDrawOrder.ScreenManagerComponent;
+        }
 
-		#endregion
 
-		#region Initialization
 
         /// <summary>
         /// Initializes the screen manager component.
         /// </summary>
         public override void Initialize()
         {
-			m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
 
-			if (m_Renderer2DComponent == null)
-			{
-				throw new NullReferenceException("Renderer2DComponent is null");
-			}
+            if (m_Renderer2DComponent == null)
+            {
+                throw new NullReferenceException("Renderer2DComponent is null");
+            }
 
             isInitialized = true;
 
-			base.Initialize();
+            base.Initialize();
         }
 
         /// <summary>
@@ -133,11 +124,11 @@ namespace CasaEngine.FrontEnd.Screen
             // Load content belonging to the screen manager.
             ContentManager content = Game.Content;
 
-//#if !EDITOR
-			blankTexture = new Texture2D(GraphicsDevice, 1, 1);
-			Color[] whitePixels = new Color[] { new Color(0, 0, 0, 0) };
-			blankTexture.SetData<Color>(whitePixels);
-//#endif
+            //#if !EDITOR
+            blankTexture = new Texture2D(GraphicsDevice, 1, 1);
+            Color[] whitePixels = new Color[] { new Color(0, 0, 0, 0) };
+            blankTexture.SetData<Color>(whitePixels);
+            //#endif
 
             // Tell each of the screens to load their content.
             foreach (Screen screen in screens)
@@ -164,16 +155,14 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        #endregion
 
-        #region Update and Draw
 
         /// <summary>
         /// Allows each screen to run logic.
         /// </summary>
         public override void Update(GameTime gameTime)
         {
-			float elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            float elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
 
             // Make a copy of the master screen list, to avoid confusion if
             // the process of updating one screen adds or removes others.
@@ -194,8 +183,8 @@ namespace CasaEngine.FrontEnd.Screen
                 screensToUpdate.RemoveAt(screensToUpdate.Count - 1);
 
                 // Update the screen.
-				//GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenUpdate(screen, elpasedTime, otherScreenHasFocus, coveredByOtherScreen);
-				screen.Update(elpasedTime, otherScreenHasFocus, coveredByOtherScreen);
+                //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenUpdate(screen, elpasedTime, otherScreenHasFocus, coveredByOtherScreen);
+                screen.Update(elpasedTime, otherScreenHasFocus, coveredByOtherScreen);
 
                 if (screen.ScreenState == ScreenState.TransitionOn ||
                     screen.ScreenState == ScreenState.Active)
@@ -239,27 +228,25 @@ namespace CasaEngine.FrontEnd.Screen
         /// </summary>
         public override void Draw(GameTime gameTime)
         {
-			float elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            float elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
 
             foreach (Screen screen in screens)
             {
                 if (screen.ScreenState == ScreenState.Hidden)
                     continue;
 
-				//GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenDraw(screen);
-				screen.Draw(elpasedTime);
+                //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenDraw(screen);
+                screen.Draw(elpasedTime);
             }
         }
 
-        #endregion
 
-        #region Public Methods
 
 #if EDITOR
-		/// <summary>
-		/// 
-		/// </summary>
-		/*public void LoadStaticAsset(AssetManager assetManager_)
+        /// <summary>
+        /// 
+        /// </summary>
+        /*public void LoadStaticAsset(AssetManager assetManager_)
 		{
 			if (blankTexture != null)
 			{
@@ -289,7 +276,7 @@ namespace CasaEngine.FrontEnd.Screen
                 screen.LoadContent(m_Renderer2DComponent);
             }
 
-			//GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenInitialized(screen);
+            //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenInitialized(screen);
             screens.Add(screen);
         }
 
@@ -312,19 +299,19 @@ namespace CasaEngine.FrontEnd.Screen
         }
 
 #if EDITOR
-		/// <summary>
-		/// 
-		/// </summary>
-		public void ClearScreen()
-		{
-			foreach (Screen screen in screens)
-			{
-				screen.UnloadContent();
-			}
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ClearScreen()
+        {
+            foreach (Screen screen in screens)
+            {
+                screen.UnloadContent();
+            }
 
-			screens.Clear();
-			screensToUpdate.Clear();
-		}
+            screens.Clear();
+            screensToUpdate.Clear();
+        }
 #endif
 
         /// <summary>
@@ -333,9 +320,9 @@ namespace CasaEngine.FrontEnd.Screen
         /// or removed using the AddScreen and RemoveScreen methods.
         /// </summary>
 		public Screen[] GetScreens()
-		{
-			return screens.ToArray();
-		}
+        {
+            return screens.ToArray();
+        }
 
         /// <summary>
         /// Helper draws a translucent black fullscreen sprite, used for fading
@@ -345,12 +332,11 @@ namespace CasaEngine.FrontEnd.Screen
         {
             Viewport viewport = this.GraphicsDevice.Viewport;
 
-			m_Renderer2DComponent.AddSprite2D(blankTexture,  
-								new Rectangle(0, 0, viewport.Width, viewport.Height),
+            m_Renderer2DComponent.AddSprite2D(blankTexture,
+                                new Rectangle(0, 0, viewport.Width, viewport.Height),
                                 Point.Zero, Vector2.Zero, 0.0f, Vector2.One,
-								new Color(0, 0, 0, (byte)alpha), 0.99f, SpriteEffects.None);
+                                new Color(0, 0, 0, (byte)alpha), 0.99f, SpriteEffects.None);
         }
-		
-        #endregion
+
     }
 }

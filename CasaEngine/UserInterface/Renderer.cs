@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,17 +9,18 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
 using CasaEngine.Asset.Fonts;
-#endregion
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -31,7 +31,6 @@ namespace XNAFinalEngine.UserInterface
     /// </summary>
     internal class Renderer
     {
-        #region Variables
 
         /// <summary>
         /// User interface sprite batch.
@@ -43,9 +42,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private RasterizerState rasterizerState;
 
-        #endregion
 
-        #region Initialize
 
         /// <summary>
         /// User Interface's elements UserInterfaceManager.Renderer.
@@ -59,7 +56,7 @@ namespace XNAFinalEngine.UserInterface
                 spriteBatch.Dispose();
             }
             spriteBatch = new SpriteBatch(graphicsDevice_);
-            
+
             // The scissor test is very important, so a custom rasterizer state is created.
             rasterizerState = new RasterizerState
             {
@@ -72,9 +69,7 @@ namespace XNAFinalEngine.UserInterface
             };
         } // Initialize
 
-        #endregion
 
-        #region Begin
 
         /// <summary>
         /// Begin the user interface rendering.
@@ -88,9 +83,7 @@ namespace XNAFinalEngine.UserInterface
                               rasterizerState);
         } // Begin
 
-        #endregion
 
-        #region End
 
         /// <summary>
         /// End user interface rendering.
@@ -100,9 +93,7 @@ namespace XNAFinalEngine.UserInterface
             spriteBatch.End();
         } // End
 
-        #endregion
 
-        #region Draw Texture
 
         public void Draw(Texture2D texture, Rectangle destination, Color color)
         {
@@ -133,9 +124,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Draw
 
-        #endregion
-        
-        #region Draw String
+
 
         public void DrawString(Font font, string text, int left, int top, Color color)
         {
@@ -183,7 +172,6 @@ namespace XNAFinalEngine.UserInterface
                     rect = new Rectangle(rect.Left + m.Left, rect.Top + m.Top, rect.Width - m.Horizontal, rect.Height - m.Vertical);
                 }
 
-                #region Resolve Text Color
 
                 Color color;
                 if (state == ControlState.Hovered && (layer.States.Hovered.Index != -1))
@@ -207,12 +195,11 @@ namespace XNAFinalEngine.UserInterface
                     color = layer.Text.Colors.Enabled;
                 }
 
-                #endregion
 
                 if (!string.IsNullOrEmpty(text))
                 {
                     SkinText font = layer.Text;
-                    if (control.TextColor != Control.UndefinedColor && control.ControlState != ControlState.Disabled) 
+                    if (control.TextColor != Control.UndefinedColor && control.ControlState != ControlState.Disabled)
                         color = control.TextColor;
                     DrawString(font.Font.Font, text, rect, color, font.Alignment, font.OffsetX + ox, font.OffsetY + oy, ellipsis);
                 }
@@ -301,16 +288,14 @@ namespace XNAFinalEngine.UserInterface
             return (int)Math.Ceiling((size1 / 2) - (size2 / 2));
         } // GetTextCenter
 
-        #endregion
 
-        #region Draw Layer
 
         public void DrawLayer(SkinLayer layer, Rectangle rect, Color color, int index)
         {
             Size imageSize = new Size(layer.Image.Texture.Width, layer.Image.Texture.Height);
             Size partSize = new Size(layer.Width, layer.Height);
 
-            Draw(layer.Image.Texture.Resource, GetDestinationArea(rect, layer.SizingMargins, Alignment.TopLeft),      GetSourceArea(imageSize, partSize, layer.SizingMargins, Alignment.TopLeft, index), color);
+            Draw(layer.Image.Texture.Resource, GetDestinationArea(rect, layer.SizingMargins, Alignment.TopLeft), GetSourceArea(imageSize, partSize, layer.SizingMargins, Alignment.TopLeft, index), color);
             Draw(layer.Image.Texture.Resource, GetDestinationArea(rect, layer.SizingMargins, Alignment.TopCenter), GetSourceArea(imageSize, partSize, layer.SizingMargins, Alignment.TopCenter, index), color);
             Draw(layer.Image.Texture.Resource, GetDestinationArea(rect, layer.SizingMargins, Alignment.TopRight), GetSourceArea(imageSize, partSize, layer.SizingMargins, Alignment.TopRight, index), color);
             Draw(layer.Image.Texture.Resource, GetDestinationArea(rect, layer.SizingMargins, Alignment.MiddleLeft), GetSourceArea(imageSize, partSize, layer.SizingMargins, Alignment.MiddleLeft, index), color);
@@ -389,7 +374,7 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
 
-            if (control.Color != Control.UndefinedColor) 
+            if (control.Color != Control.UndefinedColor)
                 color = control.Color * (control.Color.A / 255f);
             DrawLayer(layer, rect, color, index);
 
@@ -587,9 +572,7 @@ namespace XNAFinalEngine.UserInterface
             return rect;
         } // GetDestinationArea
 
-        #endregion
 
-        #region Draw Glyph
 
         public void DrawGlyph(Glyph glyph, Rectangle rect)
         {
@@ -622,7 +605,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawGlyph
 
-        #endregion
 
     } // Renderer
 } // XNAFinalEngine.UserInterface

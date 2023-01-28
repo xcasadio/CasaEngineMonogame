@@ -1,5 +1,4 @@
-﻿#region MIT License
-
+﻿
 /*
  * Copyright (c) 2009 Nick Gravelyn (nick@gravelyn.com), Markus Ewald (cygon@CasaEngine.org)
  * 
@@ -22,7 +21,6 @@
  * 
  */
 
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -40,7 +38,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {
 	public partial class SpriteSheetPackerForm : Form
     {
-        #region Fields
 
         static private readonly Stopwatch stopWatch = new Stopwatch();
         static private readonly string tmpDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Editor.Sprite2DEditor.SpriteSheetPacker");
@@ -58,9 +55,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 
         private EventHandler m_OnBuildFinished;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -119,9 +114,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             private set;
         }
 
-        #endregion
 
-        #region Construtors
 
         /// <summary>
         /// 
@@ -181,9 +174,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             }
         }
 
-        #endregion
 
-        #region Methods
 
         // configures our image save dialog to take into account all loaded image exporters
         public void GenerateImageSaveDialog()
@@ -713,6 +704,5 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        #endregion
 	}
 }

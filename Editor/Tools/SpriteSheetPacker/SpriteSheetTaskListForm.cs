@@ -16,7 +16,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {
     public partial class SpriteSheetTaskListForm : Form
     {
-        #region Fields
 
         private MruManager m_MruManager;
         private const string m_RegistryPath = "Software\\Studio_XC\\CasaEngine2DEditor\\SpriteSheetTaskList";
@@ -29,9 +28,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 
         private BackgroundWorker m_BackgroundWorker;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -48,9 +45,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -80,11 +75,8 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 #endif
         }
 
-        #endregion
 
-        #region Methods
 
-        #region Static
 
         /// <summary>
         /// 
@@ -94,7 +86,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             m_FileOpened = string.Empty;
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -418,7 +409,6 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             }
         }
 
-        #endregion
 
         private void toolStripMenuItemNew_Click(object sender, EventArgs e)
         {

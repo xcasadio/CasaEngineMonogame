@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,232 +8,216 @@ using System.Text;
 
 namespace CasaEngine.AI.Probability
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	class Pattern
-		: IEquatable<Pattern>
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    class Pattern
+        : IEquatable<Pattern>
+    {
 
-		int[] m_Pattern;
-		
-		#endregion
+        int[] m_Pattern;
 
-		#region Fields
 
-		#endregion
 
-		#region Methods
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="pattern_"></param>
-		public Pattern(int[] pattern_)
-		{
-			m_Pattern = pattern_;
-		}
 
-		#region IEquatable<Pattern> Members
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pattern_"></param>
+        public Pattern(int[] pattern_)
+        {
+            m_Pattern = pattern_;
+        }
 
-		/// <summary>
-		/// Checks whether two pattern are equal disregarding the order of the elements
-		/// </summary>
-		/// <param name="other"></param>
-		/// <returns></returns>
-		public bool Equals(Pattern other)
-		{
-			for (int i = 0; i < m_Pattern.Length; i++)
-			{
-				if (other.m_Pattern[i] != m_Pattern[i])
-				{
-					return false;
-				}
-			}
 
-			return true;
-		}
+        /// <summary>
+        /// Checks whether two pattern are equal disregarding the order of the elements
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public bool Equals(Pattern other)
+        {
+            for (int i = 0; i < m_Pattern.Length; i++)
+            {
+                if (other.m_Pattern[i] != m_Pattern[i])
+                {
+                    return false;
+                }
+            }
 
-		#endregion
+            return true;
+        }
 
-		#endregion
-	}
 
-	/// <summary>
-	/// 
-	/// </summary>
-	public class Bayesian
-	{
-		#region Fields
+    }
 
-		int nbActions, nbPossibilities;
-		Dictionary<Pattern, int[]> m_Probabilities = new Dictionary<Pattern, int[]>();
-		List<Pattern> m_ListPattern = new List<Pattern>();
+    /// <summary>
+    /// 
+    /// </summary>
+    public class Bayesian
+    {
 
-		#endregion
+        int nbActions, nbPossibilities;
+        Dictionary<Pattern, int[]> m_Probabilities = new Dictionary<Pattern, int[]>();
+        List<Pattern> m_ListPattern = new List<Pattern>();
 
-		#region Properties
 
-		#endregion
 
-		#region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <remarks>Bug si nbPossibilities_ > 2</remarks>
-		/// <param name="nbAction_"></param>
-		/// <param name="data_"></param>
-		public Bayesian(int nbAction_, int nbPossibilities_)
-		{
-			nbActions = nbAction_;
-			nbPossibilities = nbPossibilities_;
 
-			BuildProbabilities();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>Bug si nbPossibilities_ > 2</remarks>
+        /// <param name="nbAction_"></param>
+        /// <param name="data_"></param>
+        public Bayesian(int nbAction_, int nbPossibilities_)
+        {
+            nbActions = nbAction_;
+            nbPossibilities = nbPossibilities_;
 
-		#endregion
+            BuildProbabilities();
+        }
 
-		#region Methods
 
-		/// <summary>
-		/// 
-		/// </summary>
-		private void BuildProbabilities()
-		{
-			List<int[]> list = new List<int[]>();
-			int[] pattern = new int[nbPossibilities];
-			int[] proba = new int[nbActions+1];
 
-			for (int i = 0; i < nbActions+1; i++)
-			{
-				proba[i] = 0;
-			}
+        /// <summary>
+        /// 
+        /// </summary>
+        private void BuildProbabilities()
+        {
+            List<int[]> list = new List<int[]>();
+            int[] pattern = new int[nbPossibilities];
+            int[] proba = new int[nbActions + 1];
 
-			for (int i = 0; i < nbPossibilities; i++)
-			{
-				pattern[i] = 0;
-			}
+            for (int i = 0; i < nbActions + 1; i++)
+            {
+                proba[i] = 0;
+            }
 
-			CreatePattern(ref list, pattern, 1);
+            for (int i = 0; i < nbPossibilities; i++)
+            {
+                pattern[i] = 0;
+            }
 
-			foreach (int[] a in list)
-			{
-				Pattern p = new Pattern(a);
-				m_ListPattern.Add(p);
-				m_Probabilities.Add(p, proba.ToArray());
-			}
-		}
+            CreatePattern(ref list, pattern, 1);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="listPattern"></param>
-		/// <param name="pattern_"></param>
-		private void CreatePattern(ref List<int[]> listPattern, int[] pattern_, int pos_)
-		{
-			int p;
+            foreach (int[] a in list)
+            {
+                Pattern p = new Pattern(a);
+                m_ListPattern.Add(p);
+                m_Probabilities.Add(p, proba.ToArray());
+            }
+        }
 
-			listPattern.Add(pattern_.ToArray());
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="listPattern"></param>
+        /// <param name="pattern_"></param>
+        private void CreatePattern(ref List<int[]> listPattern, int[] pattern_, int pos_)
+        {
+            int p;
 
-			for (p = 0; p < pos_; p++)
-			{
-				//TODO : quand p > 0 remettre a zero
-				if (pattern_[p] < nbActions - 1)
-				{
-					pattern_[p]++;
-					break;
-				}
-			}
+            listPattern.Add(pattern_.ToArray());
 
-			//change
-			if ( p >= pos_ )
-			{
-				pattern_[pos_]++;
+            for (p = 0; p < pos_; p++)
+            {
+                //TODO : quand p > 0 remettre a zero
+                if (pattern_[p] < nbActions - 1)
+                {
+                    pattern_[p]++;
+                    break;
+                }
+            }
 
-				for (int i = 0; i < pos_; i++)
-				{
-					pattern_[i] = 0;
-				}
+            //change
+            if (p >= pos_)
+            {
+                pattern_[pos_]++;
 
-				if (pattern_[pos_] > nbActions - 1)
-				{
-					pattern_[pos_] = 0;
-					pos_++;
+                for (int i = 0; i < pos_; i++)
+                {
+                    pattern_[i] = 0;
+                }
 
-					if (pos_ >= nbPossibilities)
-					{
-						return;
-					}
+                if (pattern_[pos_] > nbActions - 1)
+                {
+                    pattern_[pos_] = 0;
+                    pos_++;
 
-					pattern_[pos_]++;
-				}
-			}
+                    if (pos_ >= nbPossibilities)
+                    {
+                        return;
+                    }
 
-			CreatePattern(ref listPattern, pattern_, pos_);
-		}
+                    pattern_[pos_]++;
+                }
+            }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="currentPattern_"></param>
-		/// <returns></returns>
-		public int ComputeProbabilities(int[] currentPattern_)
-		{
-			Pattern pattern = GetPattern(currentPattern_);
+            CreatePattern(ref listPattern, pattern_, pos_);
+        }
 
-			int[] proba = m_Probabilities[pattern];
-			int action = 0;
-			double max = float.MinValue, x;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentPattern_"></param>
+        /// <returns></returns>
+        public int ComputeProbabilities(int[] currentPattern_)
+        {
+            Pattern pattern = GetPattern(currentPattern_);
 
-			for (int i=0; i<nbActions; i++)
-			{
-				x = (double)proba[i] / (double)proba[nbActions];
-				if (max < x)
-				{
-					max = x;
-					action = i;
-				}
-			}
+            int[] proba = m_Probabilities[pattern];
+            int action = 0;
+            double max = float.MinValue, x;
 
-			return action;
-		}
+            for (int i = 0; i < nbActions; i++)
+            {
+                x = (double)proba[i] / (double)proba[nbActions];
+                if (max < x)
+                {
+                    max = x;
+                    action = i;
+                }
+            }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="currentPattern_"></param>
-		/// <param name="action_"></param>
-		/// <returns></returns>
-		public void UpdateProbabilities(int[] currentPattern_, int action_)
-		{
-			Pattern pattern = GetPattern(currentPattern_);
+            return action;
+        }
 
-			m_Probabilities[pattern][nbActions]++;
-			m_Probabilities[pattern][action_]++;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentPattern_"></param>
+        /// <param name="action_"></param>
+        /// <returns></returns>
+        public void UpdateProbabilities(int[] currentPattern_, int action_)
+        {
+            Pattern pattern = GetPattern(currentPattern_);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="currentPattern_"></param>
-		/// <returns></returns>
-		Pattern GetPattern(int[] currentPattern_)
-		{
-			Pattern pattern = new Pattern(currentPattern_);
+            m_Probabilities[pattern][nbActions]++;
+            m_Probabilities[pattern][action_]++;
+        }
 
-			foreach (Pattern p in m_ListPattern)
-			{
-				if (p.Equals(pattern))
-				{
-					return p;
-				}
-			}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentPattern_"></param>
+        /// <returns></returns>
+        Pattern GetPattern(int[] currentPattern_)
+        {
+            Pattern pattern = new Pattern(currentPattern_);
 
-			throw new ArgumentException("Bayesian.GetPattern() : Can't find Pattern");
-		}
+            foreach (Pattern p in m_ListPattern)
+            {
+                if (p.Equals(pattern))
+                {
+                    return p;
+                }
+            }
 
-		#endregion
-	}
+            throw new ArgumentException("Bayesian.GetPattern() : Can't find Pattern");
+        }
+
+    }
 }

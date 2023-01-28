@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,10 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -38,7 +37,6 @@ using Microsoft.Xna.Framework.Input;
 //using XNAFinalEngine.Graphics;
 using XNAFinalEngine.Helpers;
 using CasaEngine.CoreSystems;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -48,9 +46,8 @@ namespace XNAFinalEngine.UserInterface
     /// </summary>
     public class ColorPickerDialog : Dialog
     {
-        
-        #region Constants
-        
+
+
         // Square color lenght.
         const int squareColorlenght = 132;
 
@@ -59,9 +56,7 @@ namespace XNAFinalEngine.UserInterface
         private const int squareColorLeft = 5;
         private const int squareColorTop = 5;
 
-        #endregion
 
-        #region Variables
 
         private bool updatingColorSquareAndIntensityBar;
 
@@ -76,7 +71,7 @@ namespace XNAFinalEngine.UserInterface
 
         // The first position in the color palette when this sub control is changing its value (left mouse pressed and not released).
         private Point positionBeginningMovement;
-        
+
         // The control is updating the values. 
         // When a sub control updates one value of another control we don't want that the updated control update the values of the first one.
         private bool update = true;
@@ -89,17 +84,15 @@ namespace XNAFinalEngine.UserInterface
 
         // If the control is in screen picking mode.
         private bool isPicking;
-        
+
         // Controls.
         private readonly Button buttonPick;
         private readonly Button buttonClose;
         private readonly Control squareColorPalette;
         private readonly TextBox textBoxRed, textBoxGreen, textBoxBlue;
         private readonly Control intensityLevelBar, background;
-        
-        #endregion
 
-        #region Properties
+
 
         /// <summary>
         /// Gets or sets the color for the control.
@@ -115,17 +108,13 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Color
 
-        #endregion
 
-        #region Events
 
         public event MouseEventHandler SquareColorDown;
         public event MouseEventHandler SquareColorUp;
         public event MouseEventHandler SquareColorPress;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Color picker dialog.
@@ -143,8 +132,7 @@ namespace XNAFinalEngine.UserInterface
             Movable = false;
             StayOnTop = true;
             AutoScroll = false;
-           
-            #region Background
+
 
             // The background object is invisible, it serves input actions.
             background = new Control(UserInterfaceManager)
@@ -158,34 +146,32 @@ namespace XNAFinalEngine.UserInterface
             };
             UserInterfaceManager.Add(background);
             // If we click outside the window close it.
-            background.MouseDown += delegate(object sender, MouseEventArgs e)
+            background.MouseDown += delegate (object sender, MouseEventArgs e)
                                          {
                                              if (e.Button == MouseButton.Left)
                                              {
                                                  if (isPicking)
                                                  {
-                                                    // If you want to use the user interface outside my engine you will need to change 
-                                                    // only the following two lines (I presume the compiler it is telling this right now)
-                                                    // Create an event in the dialog called like "PickRequested"
-                                                    // In the color slider you will need to have the same event (to propagate this)
-                                                    // And then you read the event and do whatever you need to do.
-                                                    // The editor should read this event and not the other way around.
-                                                    throw new NotImplementedException("ColorPickerDialog()");
-                                                    /*EditorManager.colorPickerNeedsToPick = true;
-                                                    EditorManager.colorPickerDialog = this;*/
-                                                    isPicking = false;
-                                                    // The background control takes the first place (z order), now it needs to be in second.
-                                                    background.StayOnTop = false;  // We need to change this so that the main control can take first place.
-                                                    BringToFront();
+                                                     // If you want to use the user interface outside my engine you will need to change 
+                                                     // only the following two lines (I presume the compiler it is telling this right now)
+                                                     // Create an event in the dialog called like "PickRequested"
+                                                     // In the color slider you will need to have the same event (to propagate this)
+                                                     // And then you read the event and do whatever you need to do.
+                                                     // The editor should read this event and not the other way around.
+                                                     throw new NotImplementedException("ColorPickerDialog()");
+                                                     /*EditorManager.colorPickerNeedsToPick = true;
+                                                     EditorManager.colorPickerDialog = this;*/
+                                                     isPicking = false;
+                                                     // The background control takes the first place (z order), now it needs to be in second.
+                                                     background.StayOnTop = false;  // We need to change this so that the main control can take first place.
+                                                     BringToFront();
                                                  }
                                                  else
                                                      Close();
                                              }
                                          };
 
-            #endregion
 
-            #region Buttons
 
             // Button pick
             buttonPick = new Button(UserInterfaceManager)
@@ -218,9 +204,7 @@ namespace XNAFinalEngine.UserInterface
             };
             DefaultControl = buttonClose;
 
-            #endregion
 
-            #region Square color palette
 
             // Square color
             squareColorPalette = new Control(UserInterfaceManager)
@@ -233,10 +217,8 @@ namespace XNAFinalEngine.UserInterface
                 Movable = true, // To implement a roboust color picker when you can move the mouse outside the color palette limits.
             };
             Add(squareColorPalette);
-            
-            #endregion
 
-            #region Intensity level bar
+
 
             // Intensity level bar
             intensityLevelBar = new Control(UserInterfaceManager)
@@ -250,9 +232,7 @@ namespace XNAFinalEngine.UserInterface
             };
             Add(intensityLevelBar);
 
-            #endregion
 
-            #region R G B Text Boxes
 
             // R
             var labelRed = new Label(UserInterfaceManager)
@@ -308,29 +288,24 @@ namespace XNAFinalEngine.UserInterface
 
             UpdateRGBFromColor();
 
-            #endregion
 
             background.BringToFront();
             oldColor = _oldColor;
             Color = oldColor;
             positionSquareColor = PositionFromColor(Color);
 
-            #region Events
 
-            squareColorPalette.MouseDown  += delegate { OnMouseDown(new MouseEventArgs()); };
+            squareColorPalette.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
             squareColorPalette.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
-            squareColorPalette.MouseUp    += delegate { OnMouseUp(new MouseEventArgs()); };
-            intensityLevelBar.MouseDown   += delegate { OnMouseDown(new MouseEventArgs()); };
-            intensityLevelBar.MousePress  += delegate { OnMousePress(new MouseEventArgs()); };
-            intensityLevelBar.MouseUp     += delegate { OnMouseUp(new MouseEventArgs()); };
+            squareColorPalette.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
+            intensityLevelBar.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
+            intensityLevelBar.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
+            intensityLevelBar.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
 
-            #endregion
 
         } // ColorPickerDialog
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -344,18 +319,15 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
             base.Init();
 
-            #region Square Color
 
             // When the user clicks in the square color control
-            squareColorPalette.MouseDown += delegate(object sender, MouseEventArgs e)
+            squareColorPalette.MouseDown += delegate (object sender, MouseEventArgs e)
             {
                 updatingColorSquareAndIntensityBar = true;
                 Color = ColorFromPositionWithIntensity(e.Position);
@@ -364,7 +336,7 @@ namespace XNAFinalEngine.UserInterface
                 updatingColorSquareAndIntensityBar = false;
             };
             // When the user clicks and without releasing it he moves the mouse.
-            squareColorPalette.Move += delegate(object sender, MoveEventArgs e)
+            squareColorPalette.Move += delegate (object sender, MoveEventArgs e)
             {
                 if (update)
                 {
@@ -390,7 +362,7 @@ namespace XNAFinalEngine.UserInterface
                 squareColorPalette.Top = 5;
                 update = true;
             };
-            squareColorPalette.KeyPress += delegate(object sender, KeyEventArgs e)
+            squareColorPalette.KeyPress += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Escape)
                 {
@@ -398,12 +370,10 @@ namespace XNAFinalEngine.UserInterface
                 }
             };
 
-            #endregion
 
-            #region Intensity Level
-            
+
             // Intensity Level
-            intensityLevelBar.MouseDown += delegate(object sender, MouseEventArgs e)
+            intensityLevelBar.MouseDown += delegate (object sender, MouseEventArgs e)
             {
                 updatingColorSquareAndIntensityBar = true;
                 intensityLevel = 1 - (e.Position.Y / (float)squareColorlenght);
@@ -411,7 +381,7 @@ namespace XNAFinalEngine.UserInterface
                 Color = ColorFromPositionWithIntensity(positionSquareColor);
                 updatingColorSquareAndIntensityBar = false;
             };
-            intensityLevelBar.Move += delegate(object sender, MoveEventArgs e)
+            intensityLevelBar.Move += delegate (object sender, MoveEventArgs e)
             {
                 if (update)
                 {
@@ -433,19 +403,17 @@ namespace XNAFinalEngine.UserInterface
                 intensityLevelBar.Top = 5;
                 update = true;
             };
-            intensityLevelBar.KeyPress += delegate(object sender, KeyEventArgs e)
+            intensityLevelBar.KeyPress += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Escape)
                 {
                     Close();
                 }
             };
-            
-            #endregion
 
-            #region R
 
-            textBoxRed.KeyDown += delegate(object sender, KeyEventArgs e)
+
+            textBoxRed.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -480,11 +448,9 @@ namespace XNAFinalEngine.UserInterface
                 }
             };
 
-            #endregion
 
-            #region G
 
-            textBoxGreen.KeyDown += delegate(object sender, KeyEventArgs e)
+            textBoxGreen.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -519,11 +485,9 @@ namespace XNAFinalEngine.UserInterface
                 }
             };
 
-            #endregion
 
-            #region B
 
-            textBoxBlue.KeyDown += delegate(object sender, KeyEventArgs e)
+            textBoxBlue.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -558,15 +522,12 @@ namespace XNAFinalEngine.UserInterface
                 }
             };
 
-            #endregion
 
             Focused = true;
 
         } // Init
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -578,7 +539,6 @@ namespace XNAFinalEngine.UserInterface
             throw new NotImplementedException("ColorPickerDialog.DrawControl()");
             /*LineManager.Begin2D(PrimitiveType.LineList);
 
-            #region Render Square Color
 
             // Initial color (left top corner)
             Color color = new Color(255, 0, 0, 255);
@@ -618,7 +578,6 @@ namespace XNAFinalEngine.UserInterface
                 LineManager.AddVertex(new Vector2(i + position.X, position.Y + 132), MultiplyColorByFloat(new Color(255, 255, 255), intensityLevel));
             }
 
-            #endregion
 
             // Square color pointer
             float colorPointerScale;
@@ -639,9 +598,7 @@ namespace XNAFinalEngine.UserInterface
             LineManager.End();*/
         } // DrawControl
 
-        #endregion
 
-        #region Update Values
 
         /// <summary>
         /// Update Color from the R G B sliders values.
@@ -662,9 +619,7 @@ namespace XNAFinalEngine.UserInterface
             textBoxBlue.Text = Math.Round(Color.B / 255f, 3).ToString();
         } // UpdateRGBFromColor
 
-        #endregion
 
-        #region Color From Position
 
         /// <summary>
         /// Return the color from the position in the square color.
@@ -733,9 +688,7 @@ namespace XNAFinalEngine.UserInterface
             return color;
         } // ColorFromPosition
 
-        #endregion
 
-        #region Position From Color
 
         /// <summary>
         /// Return a square color position from a given color.
@@ -755,10 +708,10 @@ namespace XNAFinalEngine.UserInterface
             }
             else if (color.R >= color.G && color.R >= color.B)
             {
-                intensityLevel = color.R/255f;
+                intensityLevel = color.R / 255f;
                 if (color.G >= color.B)                                                         // Red to Yellow
                 {
-                    percentage = (((color.G - color.B) / 255f) / ((color.R - color.B) / 255f)); 
+                    percentage = (((color.G - color.B) / 255f) / ((color.R - color.B) / 255f));
                     position.X = (int)(percentage * (squareColorlenght / 6));
                     position.Y = (int)(color.B / intensityLevel / 255f * squareColorlenght);
                 }
@@ -776,7 +729,7 @@ namespace XNAFinalEngine.UserInterface
                 {
                     percentage = (((color.R - color.B) / 255f) / ((color.G - color.B) / 255f));
                     position.X = (int)(squareColorlenght / 3f - (percentage * (squareColorlenght / 6f)));
-                    position.Y = (int)(color.B/ intensityLevel / 255f * squareColorlenght);
+                    position.Y = (int)(color.B / intensityLevel / 255f * squareColorlenght);
                 }
                 else                                                                            // green to cyan
                 {
@@ -804,9 +757,7 @@ namespace XNAFinalEngine.UserInterface
             return position;
         } // PositionFromColor
 
-        #endregion
 
-        #region Multiply Color By Float
 
         /// <summary>
         /// Multiply a color by a float.
@@ -820,9 +771,7 @@ namespace XNAFinalEngine.UserInterface
             return result;
         } // MultiplyColorByFloat
 
-        #endregion
 
-        #region Close
 
         /// <summary>
         /// Close
@@ -834,9 +783,7 @@ namespace XNAFinalEngine.UserInterface
             background.Dispose();
         } // Close
 
-        #endregion
 
-        #region On Event
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -872,7 +819,6 @@ namespace XNAFinalEngine.UserInterface
             base.OnColorChanged(e);
         } // OnColorChanged
 
-        #endregion
-        
+
     } // ColorPickerDialog
 } // XNAFinalEngine.UserInterface

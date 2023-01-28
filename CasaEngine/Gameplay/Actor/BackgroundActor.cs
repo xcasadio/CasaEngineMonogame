@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,11 +16,8 @@ namespace CasaEngine.Gameplay.Actor
     public class BackgroundActor
         : Actor2D, IRenderable
     {
-        #region Fields
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -47,9 +46,7 @@ namespace CasaEngine.Gameplay.Actor
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -60,9 +57,7 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -103,6 +98,5 @@ namespace CasaEngine.Gameplay.Actor
             throw new NotImplementedException();
         }
 
-        #endregion
     }
 }

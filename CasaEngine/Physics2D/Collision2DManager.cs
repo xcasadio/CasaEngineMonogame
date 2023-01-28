@@ -1,5 +1,7 @@
 ﻿
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +13,7 @@ using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay;
 using CasaEngine.Gameplay.Design;
 
+
 namespace CasaEngine.Physics2D
 {
     /// <summary>
@@ -18,7 +21,6 @@ namespace CasaEngine.Physics2D
     /// </summary>
     public class Collision2DManager
     {
-        #region Fields
 
         static private Collision2DManager m_Instance = null;
 
@@ -28,14 +30,12 @@ namespace CasaEngine.Physics2D
         private HitInfo m_HitInfo = new HitInfo();
 
         //to avoid GC
-        private Vector2 
-            v1 = new Vector2(), 
-            v2 = new Vector2(), 
+        private Vector2
+            v1 = new Vector2(),
+            v2 = new Vector2(),
             contactPoint = new Vector2();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -53,14 +53,10 @@ namespace CasaEngine.Physics2D
             }
         }
 
-        #endregion
-
-        #region Constructors
 
 
-        #endregion
 
-        #region Methods
+
 
         /// <summary>
         /// 
@@ -68,7 +64,7 @@ namespace CasaEngine.Physics2D
         /// <param name="object_"></param>
         public void RegisterObject(IAttackable object_)
         {
-            m_Objects.Add(object_);            
+            m_Objects.Add(object_);
         }
 
         /// <summary>
@@ -87,7 +83,7 @@ namespace CasaEngine.Physics2D
         {
             Shape2DObject g1, g2;
 
-            for (int i=0; i < m_Objects.Count; i++)
+            for (int i = 0; i < m_Objects.Count; i++)
             {
                 Shape2DObject[] g1List = m_Objects[i].Shape2DObjectList;
 
@@ -100,7 +96,7 @@ namespace CasaEngine.Physics2D
                 {
                     g1 = g1List[a];
 
-                    for (int j=i+1; j < m_Objects.Count; j++)
+                    for (int j = i + 1; j < m_Objects.Count; j++)
                     {
                         Shape2DObject[] g2List = m_Objects[j].Shape2DObjectList;
 
@@ -240,7 +236,7 @@ namespace CasaEngine.Physics2D
                                         throw new InvalidOperationException();
                                 }
                             }
-                        }                        
+                        }
                     }
                 }
             }
@@ -273,6 +269,5 @@ namespace CasaEngine.Physics2D
             attacker_.HandleMessage(m_Message2);
         }
 
-        #endregion
     }
 }

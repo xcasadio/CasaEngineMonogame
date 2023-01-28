@@ -7,7 +7,6 @@ namespace FarseerPhysics.Common
 {
     // User contribution from Sickbattery aka David Reschke :).
 
-    #region ToDo: Create a new file for each ...
     /// <summary>
     /// The detection type affects the resulting polygon data.
     /// </summary>
@@ -67,7 +66,6 @@ namespace FarseerPhysics.Common
             }
         }
     }
-    #endregion
 
     /// <summary>
     /// 
@@ -99,7 +97,6 @@ namespace FarseerPhysics.Common
 
         private Matrix _transform = Matrix.Identity;
 
-        #region Properties
         /// <summary>
         /// Get or set the polygon detection type.
         /// </summary>
@@ -176,9 +173,7 @@ namespace FarseerPhysics.Common
                 }
             }
         }
-        #endregion
 
-        #region Constructors
         public TextureConverter()
         {
             Initialize(null, null, null, null, null, null, null, null);
@@ -203,9 +198,7 @@ namespace FarseerPhysics.Common
             Initialize(data, width, alphaTolerance, hullTolerance, holeDetection,
                 multipartDetection, pixelOffsetOptimization, transform);
         }
-        #endregion
 
-        #region Initialization
         private void Initialize(uint[] data, int? width, byte? alphaTolerance,
             float? hullTolerance, bool? holeDetection, bool? multipartDetection,
             bool? pixelOffsetOptimization, Matrix? transform)
@@ -249,7 +242,6 @@ namespace FarseerPhysics.Common
             else
                 Transform = Matrix.Identity;
         }
-        #endregion
 
         /// <summary>
         /// 
@@ -346,7 +338,6 @@ namespace FarseerPhysics.Common
 
         public List<DetectedVertices> DetectVertices()
         {
-            #region Check TextureConverter setup.
 
             if (_data == null)
                 throw new Exception(
@@ -366,7 +357,6 @@ namespace FarseerPhysics.Common
                 throw new Exception(
                     "'_width' has an invalid value. You have to use SetTextureData(uint[] data, int width) before calling this method.");
 
-            #endregion
 
 
             List<DetectedVertices> detectedPolygons = new List<DetectedVertices>();
@@ -505,7 +495,6 @@ namespace FarseerPhysics.Common
                 detectedPolygons[i].Transform(_transform);
         }
 
-        #region Data[] functions
         private int _tempIsSolidX;
         private int _tempIsSolidY;
         public bool IsSolid(ref Vector2 v)
@@ -542,7 +531,6 @@ namespace FarseerPhysics.Common
         {
             return (coord.X >= 0f && coord.X < _width && coord.Y >= 0f && coord.Y < _height);
         }
-        #endregion
 
         /// <summary>
         /// Function to search for an entrance point of a hole in a polygon. It searches the polygon from top to bottom between the polygon edges.
@@ -1008,7 +996,6 @@ namespace FarseerPhysics.Common
 
             Vector2 current = Vector2.Zero;
 
-            #region Entrance check
 
             // Get the entrance point. //todo: alle möglichkeiten testen
             if (entrance == Vector2.Zero || !InBounds(ref entrance))
@@ -1045,7 +1032,6 @@ namespace FarseerPhysics.Common
                 }
             }
 
-            #endregion
 
             if (entranceFound)
             {

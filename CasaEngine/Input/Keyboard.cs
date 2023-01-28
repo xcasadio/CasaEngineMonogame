@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,32 +25,27 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework.Input;
-#endregion
+
 
 namespace XNAFinalEngine.Input
 {
 
-	/// <summary>
-	/// Keyboard.
-	/// </summary>
-	public static class Keyboard
-	{
+    /// <summary>
+    /// Keyboard.
+    /// </summary>
+    public static class Keyboard
+    {
 
-		#region Variables
-        
-		// The current keyboard state.
-		private static KeyboardState currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-        
+
+        // The current keyboard state.
+        private static KeyboardState currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+
         // The previous keyboard state.
         private static KeyboardState previousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 
-		#endregion
 
-        #region Properties
 
         /// <summary>
         /// The current keyboard state.
@@ -63,9 +57,7 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public static KeyboardState PreviousState { get { return previousState; } }
 
-        #endregion
 
-        #region Key Pressed and Just Pressed
 
         /// <summary>
         /// Key just pressed.
@@ -77,41 +69,37 @@ namespace XNAFinalEngine.Input
         /// </summary>
         public static bool KeyPressed(Keys key) { return currentState.IsKeyDown(key); }
 
-        #endregion
 
-        #region Is Special Key
 
         /// <summary>
         /// All keys except A-Z, 0-9 and `-\[];',./= (and space) are special keys.
         //  With shift pressed this also results in this keys:
         /// </summary>
         public static bool IsSpecialKey(Keys key)
-		{
-			// ~_|{}:"<>? !@#$%^&*().
-			int keyNum = (int)key;
-			if ((keyNum >= (int)Keys.A  && keyNum <= (int)Keys.Z)  ||
-				(keyNum >= (int)Keys.D0 && keyNum <= (int)Keys.D9) ||
-				key == Keys.Space ||            // space
-				key == Keys.OemTilde ||         // `~
-				key == Keys.OemMinus ||         // -_
-				key == Keys.OemPipe ||          // \|
-				key == Keys.OemOpenBrackets ||  // [{
-				key == Keys.OemCloseBrackets || // ]}
-				key == Keys.OemSemicolon ||     // ;:
-				key == Keys.OemQuotes ||        // '"
-				key == Keys.OemComma ||         // ,<
-				key == Keys.OemPeriod ||        // .>
-				key == Keys.OemQuestion ||      // /?
-				key == Keys.OemPlus)            // =+
-				return false;
+        {
+            // ~_|{}:"<>? !@#$%^&*().
+            int keyNum = (int)key;
+            if ((keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z) ||
+                (keyNum >= (int)Keys.D0 && keyNum <= (int)Keys.D9) ||
+                key == Keys.Space ||            // space
+                key == Keys.OemTilde ||         // `~
+                key == Keys.OemMinus ||         // -_
+                key == Keys.OemPipe ||          // \|
+                key == Keys.OemOpenBrackets ||  // [{
+                key == Keys.OemCloseBrackets || // ]}
+                key == Keys.OemSemicolon ||     // ;:
+                key == Keys.OemQuotes ||        // '"
+                key == Keys.OemComma ||         // ,<
+                key == Keys.OemPeriod ||        // .>
+                key == Keys.OemQuestion ||      // /?
+                key == Keys.OemPlus)            // =+
+                return false;
 
-			// Else it is a special key.
-			return true;
+            // Else it is a special key.
+            return true;
         } // IsSpecialKey
 
-        #endregion
 
-        #region Key to String
 
         /// <summary>
 		/// Key to string helper conversion method.
@@ -122,10 +110,10 @@ namespace XNAFinalEngine.Input
         {
             bool uppercase = (caps && !shift) || (!caps && shift);
 
-            int keyNum = (int) key;
-            if (keyNum >= (int) Keys.A && keyNum <= (int) Keys.Z)
+            int keyNum = (int)key;
+            if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z)
             {
-                if (uppercase) 
+                if (uppercase)
                     return key.ToString();
                 else
                     return key.ToString().ToLower();
@@ -143,16 +131,16 @@ namespace XNAFinalEngine.Input
                 case Keys.D8: return shift ? "*" : "8";
                 case Keys.D9: return shift ? "(" : "9";
                 case Keys.D0: return shift ? ")" : "0";
-                case Keys.OemTilde:         return shift ? "~" : "`";
-                case Keys.OemMinus:         return shift ? "_" : "-";
-                case Keys.OemPipe:          return shift ? "|" : "\\";
-                case Keys.OemOpenBrackets:  return shift ? "{" : "[";
+                case Keys.OemTilde: return shift ? "~" : "`";
+                case Keys.OemMinus: return shift ? "_" : "-";
+                case Keys.OemPipe: return shift ? "|" : "\\";
+                case Keys.OemOpenBrackets: return shift ? "{" : "[";
                 case Keys.OemCloseBrackets: return shift ? "}" : "]";
-                case Keys.OemSemicolon:     return shift ? ":" : ";";
-                case Keys.OemQuotes:        return shift ? "\"" : "\\";
-                case Keys.OemComma:         return shift ? "<" : ".";
-                case Keys.OemPeriod:        return shift ? ">" : ",";
-                case Keys.OemQuestion:      return shift ? "?" : "/";
+                case Keys.OemSemicolon: return shift ? ":" : ";";
+                case Keys.OemQuotes: return shift ? "\"" : "\\";
+                case Keys.OemComma: return shift ? "<" : ".";
+                case Keys.OemPeriod: return shift ? ">" : ",";
+                case Keys.OemQuestion: return shift ? "?" : "/";
                 case Keys.OemPlus: return shift ? "+" : "=";
                 case Keys.NumPad0: return shift ? "" : "0";
                 case Keys.NumPad1: return shift ? "" : "1";
@@ -164,28 +152,25 @@ namespace XNAFinalEngine.Input
                 case Keys.NumPad7: return shift ? "" : "7";
                 case Keys.NumPad8: return shift ? "" : "8";
                 case Keys.NumPad9: return shift ? "" : "9";
-                case Keys.Divide:   return "/";
+                case Keys.Divide: return "/";
                 case Keys.Multiply: return "*";
-                case Keys.Subtract: return  "-";
-                case Keys.Add:      return "+";
+                case Keys.Subtract: return "-";
+                case Keys.Add: return "+";
                 default: return "";
             }
-		} // KeyToString
+        } // KeyToString
 
-        #endregion
-        
-        #region Update
-        
+
+
         /// <summary>
-		/// Update keyboard.
-		/// </summary>
-		internal static void Update()
-		{
+        /// Update keyboard.
+        /// </summary>
+        internal static void Update()
+        {
             previousState = currentState;
-            currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();            
-		} // Update
-		
-        #endregion
+            currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        } // Update
+
 
     } // Keyboard
 } // XNAFinalEngine.Input

@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,13 +14,12 @@ using CasaEngine.Graphics2D;
 
 namespace CasaEngine.Editor.Tools
 {
-	/// <summary>
-	/// Handle all <see cref="ExternTool"/>
-	/// </summary>
-	public class ExternalToolManager
-	{
-		#region Fields
-        
+    /// <summary>
+    /// Handle all <see cref="ExternTool"/>
+    /// </summary>
+    public class ExternalToolManager
+    {
+
         Dictionary<string, Type> m_CustomObjects = new Dictionary<string, Type>();
         Dictionary<string, Type> m_CustomEditorsTemplate = new Dictionary<string, Type>();
         Dictionary<Type, IExternalTool> m_CustomEditors = new Dictionary<Type, IExternalTool>();
@@ -26,17 +27,11 @@ namespace CasaEngine.Editor.Tools
 
         public event EventHandler EventExternalToolChanged;
 
-		#endregion
 
-		#region Properties
 
-		#endregion
 
-		#region Constructors
 
-		#endregion
 
-		#region Methods
 
         /// <summary>
         /// Load all external tools in the project
@@ -53,15 +48,15 @@ namespace CasaEngine.Editor.Tools
             string fullPath = Engine.Instance.ProjectManager.ProjectPath;
             fullPath += Path.DirectorySeparatorChar + ProjectManager.ExternalToolsDirPath;
 
-            AppDomain.CurrentDomain.SetupInformation.PrivateBinPath =  fullPath;
+            //AppDomain.CurrentDomain.SetupInformation.PrivateBiAnPath = fullPath;
 
             Assembly assembly;
             string msg = string.Empty;
 
             foreach (string file in Directory.GetFiles(fullPath, "*.dll"))
-            {                
+            {
                 assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(file));
-                
+
                 try
                 {
                     foreach (Type t in assembly.GetTypes())
@@ -72,7 +67,7 @@ namespace CasaEngine.Editor.Tools
                             {
                                 m_CustomObjects.Add(t.ToString(), t);
                                 break;
-                            }                            
+                            }
                         }
 
                         foreach (object attribute in t.GetCustomAttributes(true))
@@ -105,7 +100,7 @@ namespace CasaEngine.Editor.Tools
             if (EventExternalToolChanged != null)
             {
                 EventExternalToolChanged.Invoke(this, EventArgs.Empty);
-            }            
+            }
         }
 
         /// <summary>
@@ -134,11 +129,11 @@ namespace CasaEngine.Editor.Tools
             return res.ToArray();
         }
 
-		/// <summary>
-		/// Get all tool names
-		/// </summary>
-		/// <returns></returns>
-		/*public string[] GetAllToolNames()
+        /// <summary>
+        /// Get all tool names
+        /// </summary>
+        /// <returns></returns>
+        /*public string[] GetAllToolNames()
 		{
 			List<string> res = new List<string>();
 
@@ -160,11 +155,11 @@ namespace CasaEngine.Editor.Tools
             return (BaseObject)m_CustomObjects[name_].Assembly.CreateInstance(m_CustomObjects[name_].FullName);
         }
 
-		/// <summary>
-		/// Run a tool
-		/// </summary>
-		/// <param name="name_"></param>
-		/*public void RunTool(System.Windows.Forms.Form parent, string name_)
+        /// <summary>
+        /// Run a tool
+        /// </summary>
+        /// <param name="name_"></param>
+        /*public void RunTool(System.Windows.Forms.Form parent, string name_)
 		{
             if (m_Tools.ContainsKey(name_) == true)
             {
@@ -184,8 +179,8 @@ namespace CasaEngine.Editor.Tools
 		}*/
 
         /// <summary>
-		/// Clear
-		/// </summary>
+        /// Clear
+        /// </summary>
         public void Clear()
         {
             CloseAllSubEditor();
@@ -195,7 +190,6 @@ namespace CasaEngine.Editor.Tools
             m_CustomObjectAssembly.Clear();
         }
 
-        #region Sub Editor
 
         /// <summary>
         /// 
@@ -268,12 +262,10 @@ namespace CasaEngine.Editor.Tools
                     && p.Value.ExternalTool.Window.IsDisposed == false)
                 {
                     p.Value.ExternalTool.Window.Close();
-                }                
+                }
             }
         }
 
-        #endregion
 
-        #endregion
     }
 }

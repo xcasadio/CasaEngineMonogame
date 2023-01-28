@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2010, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,12 +25,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -42,14 +38,11 @@ namespace XNAFinalEngine.UserInterface
     public class AssetWindow : Window
     {
 
-        #region Variables
 
         private string assetName;
         private readonly TextBox nameTextBox;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// The name of the asset type.
@@ -81,15 +74,11 @@ namespace XNAFinalEngine.UserInterface
             get { return AssetName + " : " + AssetType; }
         } // Text
 
-        #endregion
 
-        #region Events
 
         public event EventHandler AssetNameChanged;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Window with a name text box.
@@ -126,9 +115,7 @@ namespace XNAFinalEngine.UserInterface
             };
         } // AssetWindow
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -140,9 +127,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
         
-        #region Raise Event
 
         protected virtual void OnAssetNameChanged(EventArgs e)
         {
@@ -150,7 +135,6 @@ namespace XNAFinalEngine.UserInterface
                 AssetNameChanged.Invoke(this, e);
         } // OnAssetNameChanged
 
-        #endregion
 
     } // AssetWindow
 } // XNAFinalEngine.UserInterface

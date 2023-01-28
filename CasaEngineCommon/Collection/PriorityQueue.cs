@@ -1,4 +1,3 @@
-#region Using Directives
 
 using System;
 using System.Collections;
@@ -6,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-#endregion
 
 namespace CasaEngineCommon.Collection
 {
@@ -20,7 +18,6 @@ namespace CasaEngineCommon.Collection
 	/// <typeparam name="T">The type of the elements in the priority queue</typeparam>
 	public class PriorityQueue<T> : IPriorityQueue<T>
 	{
-		#region Fields
 
 		/// <summary>
 		/// The elements in the heap
@@ -32,9 +29,7 @@ namespace CasaEngineCommon.Collection
 		/// </summary>
 		protected IComparer<T> comparer;
 
-		#endregion
 
-		#region Contructors
 
 		/// <summary>
 		/// Default constructor. Uses the default comparer for the elements in the priority queue
@@ -67,9 +62,7 @@ namespace CasaEngineCommon.Collection
 			heapElements.Capacity = capacity;
 		}
 
-		#endregion
 
-		#region IPriorityQueue<T> Members
 
 		/// <summary>
 		/// Push an object onto the PQ
@@ -157,9 +150,7 @@ namespace CasaEngineCommon.Collection
 			return default(T);
 		}
 
-		#endregion
 
-		#region Helper Methods
 
 		/// <summary>
 		/// Swaps two elements
@@ -239,9 +230,7 @@ namespace CasaEngineCommon.Collection
 			} while (true);
 		}
 
-		#endregion
 
-		#region IEnumerable<T> Members
 
 		/// <summary>
 		/// Returns an enumerator that iterates the priority queue
@@ -252,9 +241,7 @@ namespace CasaEngineCommon.Collection
 			return heapElements.GetEnumerator();
 		}
 
-		#endregion
 
-		#region IEnumerable Members
 
 		/// <summary>
 		/// Not implemented
@@ -265,9 +252,7 @@ namespace CasaEngineCommon.Collection
 			throw new NotSupportedException("You can´t iterate through the elements of a priority queue using a non-generic enumerator");
 		}
 
-		#endregion
 
-		#region ICollection<T> Members
 
 		/// <summary>
 		/// Number of elements in the heap
@@ -338,9 +323,7 @@ namespace CasaEngineCommon.Collection
 			throw new NotSupportedException("You should use the method Dequeue to eliminate elements from a priority queue");
 		}
 
-		#endregion
 
-		#region IList<T> Members
 
 		/// <summary>
 		/// Searches for the element in the heap
@@ -390,9 +373,7 @@ namespace CasaEngineCommon.Collection
 			}
 		}
 
-		#endregion
 
-		#region ICloneable Members
 
 		/// <summary>
 		/// Creates a clone from this object
@@ -420,6 +401,5 @@ namespace CasaEngineCommon.Collection
 			}
 		}
 
-		#endregion
 	}
 }

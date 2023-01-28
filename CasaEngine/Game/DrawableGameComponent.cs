@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,27 +9,23 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Game
 {
-    public class DrawableGameComponent 
+    public class DrawableGameComponent
         : GameComponent, IDrawable
     {
-        #region Private Members
         private bool isInitialized;
         private IGraphicsDeviceService device;
         private int drawOrder;
         private bool visible = true;
 
-        #endregion
 
-        #region Events
         public event EventHandler<EventArgs> DrawOrderChanged;
         public event EventHandler<EventArgs> VisibleChanged;
 
-        #endregion
 
         public DrawableGameComponent(CustomGame game)
             : base(game)
         {
-            
+
         }
 
         public GraphicsDevice GraphicsDevice
@@ -122,7 +120,7 @@ namespace CasaEngine.Game
 
         protected virtual void LoadContent()
         {
-            
+
         }
 
         protected virtual void UnloadContent()

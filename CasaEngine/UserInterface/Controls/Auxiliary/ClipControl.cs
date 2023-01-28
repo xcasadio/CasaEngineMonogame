@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,7 +9,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -18,7 +16,6 @@ namespace XNAFinalEngine.UserInterface
     public class ClipControl : Control
     {
 
-        #region Properties
 
         /// <summary>
         /// Gives the upper position inside the control that does not have any child control.
@@ -74,9 +71,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ClientMargins
 
-        #endregion
 
-        #region Constructor
 
         public ClipControl(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
@@ -94,9 +89,7 @@ namespace XNAFinalEngine.UserInterface
             base.Add(ClientArea);
         } // ClipControl
 
-        #endregion
 
-        #region Add and Remove
 
         public virtual void Add(Control control, bool client)
         {
@@ -117,9 +110,7 @@ namespace XNAFinalEngine.UserInterface
             ClientArea.Remove(control);
         } // Remove
         
-        #endregion
 
-        #region Remove Controls From Client Area
 
         /// <summary>
         /// Remove all controls from client area.
@@ -140,9 +131,7 @@ namespace XNAFinalEngine.UserInterface
             Invalidate();
         } // RemoveControlsFromClientArea
 
-        #endregion
 
-        #region On Resize
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -157,9 +146,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnResize
 
-        #endregion
 
-        #region Adjust Height From Children
 
         /// <summary>
         /// Adjust the height to the available position inside the control.
@@ -169,9 +156,7 @@ namespace XNAFinalEngine.UserInterface
             Height = AvailablePositionInsideControl + ClientMargins.Top + ClientMargins.Bottom + 6;
         } // AdjustHeightFromChildren
 
-        #endregion
 
-        #region Adjust Margins
 
         /// <summary>
         /// Adjust the controls margin.
@@ -181,7 +166,6 @@ namespace XNAFinalEngine.UserInterface
             // Overrite it!!
         } // AdjustMargins
 
-        #endregion
 
     } // ClipControl
 } // XNAFinalEngine.UserInterface

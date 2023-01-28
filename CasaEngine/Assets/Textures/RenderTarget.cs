@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,10 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -37,7 +36,7 @@ using Microsoft.Xna.Framework.Graphics;
 using XNAFinalEngine.Helpers;
 using CasaEngine.Game;
 using CasaEngine.CoreSystems;
-#endregion
+using Size = XNAFinalEngine.Helpers.Size;
 
 namespace CasaEngine.Asset
 {
@@ -47,7 +46,6 @@ namespace CasaEngine.Asset
     public sealed class RenderTarget : Texture
     {
 
-        #region Structs
 
         /// <summary>
         /// This structure is used to set multiple render targets without generating garbage in the process.
@@ -58,7 +56,6 @@ namespace CasaEngine.Asset
             internal Microsoft.Xna.Framework.Graphics.RenderTargetBinding[] InternalBinding;
             public RenderTarget[] RenderTargets;
 
-            #region Equal
 
             public static bool operator ==(RenderTargetBinding x, RenderTargetBinding y)
             {
@@ -74,20 +71,17 @@ namespace CasaEngine.Asset
             {
                 return obj is RenderTargetBinding && this == (RenderTargetBinding)obj;
             } // Equals
-            
+
             public override int GetHashCode()
             {
                 return InternalBinding.GetHashCode() ^ InternalBinding.GetHashCode();
             } // GetHashCode
 
-            #endregion
 
         } // RenderTargetBinding
 
-        #endregion
 
-        #region Enumerates
-        
+
         /// <summary>
         /// Antialiasing Type.
         /// </summary>
@@ -119,9 +113,7 @@ namespace CasaEngine.Asset
             SixtySamples
         } // AntialiasingType
 
-        #endregion
-        
-        #region Variables
+
 
         // XNA Render target.
         // Why don't use the derived xnaTexture? Good question. I don't remember why I do it.
@@ -132,7 +124,7 @@ namespace CasaEngine.Asset
 
         // Indicates if this render target is currently used and if its information has to be preserved.
         private bool looked;
-        
+
         // Remember the last render targets we set. We can enable up to four render targets at once.
         private static readonly RenderTarget[] currentRenderTarget = new RenderTarget[4];
 
@@ -141,9 +133,7 @@ namespace CasaEngine.Asset
         /// </summary>
         private RenderTargetBinding? renderTargetBinding;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Return the render target texture. In XNA 4.0 the render target it's a texture.
@@ -183,9 +173,7 @@ namespace CasaEngine.Asset
         /// </summary>
         public static RenderTarget[] CurrentRenderTarget { get { return currentRenderTarget; } }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Creates a render target for render to textures. Use size type constructor for screen relative sizes.
@@ -194,8 +182,8 @@ namespace CasaEngine.Asset
         /// <param name="_surfaceFormat">Surface format</param>
         /// <param name="_depthFormat">Depth Format</param>
         /// <param name="antialiasingType">Multi sampling type: System value or no antialiasing.</param>
-        public RenderTarget(GraphicsDevice graphicsDevice_,Size size, 
-            SurfaceFormat _surfaceFormat, DepthFormat _depthFormat, 
+        public RenderTarget(GraphicsDevice graphicsDevice_, Size size,
+            SurfaceFormat _surfaceFormat, DepthFormat _depthFormat,
             AntialiasingType antialiasingType = AntialiasingType.NoAntialiasing, bool mipMap = false)
             : base(graphicsDevice_)
         {
@@ -220,10 +208,10 @@ namespace CasaEngine.Asset
         /// <param name="antialiasingType">Multi sampling type: System value or no antialiasing.</param>
         public RenderTarget(
             GraphicsDevice graphicsDevice_,
-            Size size, 
-            SurfaceFormat _surfaceFormat = SurfaceFormat.Color, 
-            bool _hasDepthBuffer = true, 
-            AntialiasingType antialiasingType = AntialiasingType.NoAntialiasing, 
+            Size size,
+            SurfaceFormat _surfaceFormat = SurfaceFormat.Color,
+            bool _hasDepthBuffer = true,
+            AntialiasingType antialiasingType = AntialiasingType.NoAntialiasing,
             bool mipMap = false)
             : base(graphicsDevice_)
         {
@@ -239,9 +227,7 @@ namespace CasaEngine.Asset
             GraphicsDevice.DeviceReset += OnScreenSizeChanged;
         } // RenderTarget
 
-        #endregion
 
-        #region Create
 
         /// <summary>
         /// Creates render target.
@@ -255,7 +241,7 @@ namespace CasaEngine.Asset
                 // I use RenderTargetUsage.PlatformContents to be little more performance friendly with PC.
                 // But I assume that the system works in DiscardContents mode so that an XBOX 360 implementation works.
                 // What I lose, mostly nothing, because I made my own ZBuffer texture and the stencil buffer is deleted no matter what I do.
-                renderTarget = new RenderTarget2D(GraphicsDevice, Width, Height, MipMap, SurfaceFormat, 
+                renderTarget = new RenderTarget2D(GraphicsDevice, Width, Height, MipMap, SurfaceFormat,
                     DepthFormat, CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
                 alreadyResolved = true;
             }
@@ -265,9 +251,7 @@ namespace CasaEngine.Asset
             }
         } // Create
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -279,9 +263,7 @@ namespace CasaEngine.Asset
             renderTarget.Dispose();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region On Screen Size Changed
 
         /// <summary>
         /// In older versions of XNA, when a Device was lost you had to manually recreate some resources.
@@ -299,9 +281,7 @@ namespace CasaEngine.Asset
             }
         } // OnScreenSizeChanged
 
-        #endregion
 
-        #region Recreate Resource
 
         /// <summary>
         /// Useful when the XNA device is disposed.
@@ -314,15 +294,13 @@ namespace CasaEngine.Asset
             {
                 for (int i = 0; i < renderTargetBinding.Value.InternalBinding.Length; i++)
                 {
-                    renderTargetBinding.Value.InternalBinding[i] = 
+                    renderTargetBinding.Value.InternalBinding[i] =
                         new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTargetBinding.Value.RenderTargets[i].renderTarget);
                 }
             }
         } // RecreateResource
 
-        #endregion
-        
-        #region Calculate MultiSample Quality
+
 
         /// <summary>
         /// Calculate multiSample quality.
@@ -348,9 +326,7 @@ namespace CasaEngine.Asset
             }
         } // CalculateMultiSampleQuality
 
-        #endregion
 
-        #region Enable Render Target
 
         /// <summary>
         /// Set render target for render.
@@ -389,17 +365,15 @@ namespace CasaEngine.Asset
                 throw new InvalidOperationException("Render Target. Unable to bind the render targets.", e);
             }
         } // EnableRenderTargets
-        
-        #endregion
 
-        #region Clear
+
 
         /// <summary>
         /// Clear render target.
         /// This method will only work if the render target was set before with SetRenderTarget.
         /// </summary>
         public void Clear(Color clearColor)
-        {            
+        {
             if (currentRenderTarget[0] != this)
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
             if (DepthFormat == DepthFormat.None)
@@ -415,15 +389,13 @@ namespace CasaEngine.Asset
         /// This is the same as calling Clear from the first render target.
         /// </summary>
         public static void ClearCurrentRenderTargets(Color clearColor)
-        {            
+        {
             if (currentRenderTarget[0] == null)
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
             currentRenderTarget[0].Clear(clearColor);
         } // Clear
 
-        #endregion
 
-        #region Disable Render Target
 
         /// <summary>
         /// Resolve render target.
@@ -438,7 +410,7 @@ namespace CasaEngine.Asset
             }
             if (currentRenderTarget[1] != null)
                 throw new InvalidOperationException("Render Target: There are multiple render targets enabled. Use RenderTarget.BackToBackBuffer instead.");
-            
+
             alreadyResolved = true;
             currentRenderTarget[0] = null;
             GraphicsDevice.SetRenderTarget(null);
@@ -458,9 +430,7 @@ namespace CasaEngine.Asset
             graphicsDevice_.SetRenderTarget(null);
         } // DisableCurrentRenderTargets
 
-        #endregion
 
-        #region Binding
 
         /// <summary>
         /// Bind render targets so that they could be set together without generate garbage in the process.
@@ -488,13 +458,13 @@ namespace CasaEngine.Asset
         {
             RenderTargetBinding renderTargetsBinding = new RenderTargetBinding
             {
-                InternalBinding = new[] 
+                InternalBinding = new[]
                 {
                     new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget1.renderTarget),
                     new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget2.renderTarget),
                     new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget3.renderTarget),
                 },
-                RenderTargets = new[] {renderTarget1, renderTarget2, renderTarget3}
+                RenderTargets = new[] { renderTarget1, renderTarget2, renderTarget3 }
             };
             renderTarget1.renderTargetBinding = renderTargetsBinding;
             renderTarget2.renderTargetBinding = renderTargetsBinding;
@@ -525,9 +495,7 @@ namespace CasaEngine.Asset
             return renderTargetsBinding;
         } // BindRenderTargets
 
-        #endregion
 
-        #region Pool
 
         // A pool of all render targets.
         private static readonly List<RenderTarget> renderTargets = new List<RenderTarget>(0);
@@ -587,9 +555,7 @@ namespace CasaEngine.Asset
             renderTargets.Clear();
         } // ClearRenderTargetPool
 
-        #endregion
 
-        #region Multiple Render Target Pool
 
         // A pool of all multiple render targets.
         private static readonly List<RenderTargetBinding> multipleRenderTargets = new List<RenderTargetBinding>(0);
@@ -685,7 +651,6 @@ namespace CasaEngine.Asset
             multipleRenderTargets.Clear();
         } // ClearMultpleRenderTargetPool
 
-        #endregion
 
     } // RenderTarget
 } // CasaEngine.Asset

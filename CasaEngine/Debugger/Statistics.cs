@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,14 +20,11 @@ namespace CasaEngine.Debugger
     public static class Statistics
     {
 
-        #region Variables
 
         private static float framePerSecondTimeHelper;
         private static int frameCountThisSecond, drawCallThisSecond, trianglesDrawnThisSecond;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// The number of triangles processed in the current frame.
@@ -69,9 +68,7 @@ namespace CasaEngine.Debugger
         /// </remarks>
         public static long ManagedMemoryUsed { get { return GC.GetTotalMemory(false); } }
 
-        #endregion
 
-        #region Init Statistcis
 
         /// <summary>
         /// Init the statistics. Call it after the first garbage collection.
@@ -81,9 +78,7 @@ namespace CasaEngine.Debugger
             GarbageCollector.CreateWeakReference();
         } // InitStatistics
 
-        #endregion
 
-        #region Reset Frame Statistics
 
         /// <summary>
         /// Reset to 0 the values that are measured frame by frame.
@@ -115,7 +110,6 @@ namespace CasaEngine.Debugger
             DrawCalls = 0;
         } // ReserFrameStatistics
 
-        #endregion
 
     } // Statistics
 }

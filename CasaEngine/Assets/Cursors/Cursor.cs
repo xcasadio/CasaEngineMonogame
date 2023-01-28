@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +19,6 @@ namespace CasaEngine.Asset.Cursors
     /// </summary>
     public class Cursor : Asset
     {
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -29,9 +30,7 @@ namespace CasaEngine.Asset.Cursors
         /// </summary>
         public System.Windows.Forms.Cursor Resource { get; private set; }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Load a cursor.
@@ -60,9 +59,7 @@ namespace CasaEngine.Asset.Cursors
             }
         } // Cursor
 
-        #endregion
 
-        #region Recreate Resource
 
         /// <summary>
         /// Useful when the XNA device is disposed.
@@ -73,9 +70,7 @@ namespace CasaEngine.Asset.Cursors
                 Resource = Engine.Instance.AssetContentManager.Load<System.Windows.Forms.Cursor>(Filename, GraphicsDevice);
         } // RecreateResource
 
-        #endregion
 
-        #region Load
 
         /// <summary>
         /// 
@@ -97,7 +92,6 @@ namespace CasaEngine.Asset.Cursors
 
         }
 
-        #endregion
 
     } // Cursor
 #endif

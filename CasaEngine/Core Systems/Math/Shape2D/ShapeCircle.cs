@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,20 +19,17 @@ namespace CasaEngine.Math.Shape2D
     /// <summary>
     /// 
     /// </summary>
-    public 
+    public
 #if EDITOR
     partial
 #endif
     class ShapeCircle
         : Shape2DObject
     {
-        #region Fields
 
         int m_Radius;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets
@@ -42,7 +41,7 @@ namespace CasaEngine.Math.Shape2D
         {
             get { return m_Radius; }
             set
-            { 
+            {
                 m_Radius = value;
 #if EDITOR
                 NotifyPropertyChanged("Radius");
@@ -50,9 +49,7 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -64,11 +61,9 @@ namespace CasaEngine.Math.Shape2D
         /// </summary>
         public ShapeCircle(ShapeCircle o_)
             : base(o_)
-        {}
+        { }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -105,9 +100,7 @@ namespace CasaEngine.Math.Shape2D
             m_Radius = ((ShapeCircle)ob_).m_Radius;
         }
 
-        #endregion
 
-        #region Pool
 
         // Pool for this type of components.
         /*private static readonly Pool<ShapeCircle> componentPool = new Pool<ShapeCircle>(20);
@@ -117,6 +110,5 @@ namespace CasaEngine.Math.Shape2D
         /// </summary>
         internal static Pool<ShapeCircle> ComponentPool { get { return componentPool; } }*/
 
-        #endregion
     }
 }

@@ -1,5 +1,4 @@
-﻿#region CPL License
-/*
+﻿/*
 Nuclex Framework
 Copyright (C) 2002-2010 Nuclex Development Labs
 
@@ -16,9 +15,8 @@ IBM Common Public License for more details.
 You should have received a copy of the IBM Common Public
 License along with this library
 */
-#endregion
 
-using System;
+
 using System.Collections.Generic;
 
 namespace CasaEngineCommon.Factory

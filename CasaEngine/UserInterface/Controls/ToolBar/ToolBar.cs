@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,7 +9,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -21,13 +19,10 @@ namespace XNAFinalEngine.UserInterface
     public class ToolBar : Control
     {
 
-        #region Variables
              
         private int row;
 
-        #endregion
 
-        #region Properties
 
         public virtual int Row
         {
@@ -42,9 +37,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual bool FullRow { get; set; }
 
-        #endregion
 
-        #region Constructor
 
         public ToolBar(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
@@ -57,9 +50,7 @@ namespace XNAFinalEngine.UserInterface
             CanFocus = false;
         } // ToolBar
 
-        #endregion
 
-        #region Init Skin
 
         protected internal override void InitSkin()
         {
@@ -67,7 +58,6 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ToolBar"]);
         } // InitSkin
 
-        #endregion
 
     } // ToolBar
 } // XNAFinalEngine.UserInterface

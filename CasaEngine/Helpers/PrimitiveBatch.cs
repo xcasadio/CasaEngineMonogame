@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +9,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Helper
 {
-    public class PrimitiveBatch 
+    public class PrimitiveBatch
         : IDisposable
     {
         private const int DefaultBufferSize = 500;
@@ -56,7 +58,6 @@ namespace CasaEngine.Helper
             _basicEffect.VertexColorEnabled = true;
         }
 
-        #region IDisposable Members
 
         public void Dispose()
         {
@@ -64,7 +65,6 @@ namespace CasaEngine.Helper
             GC.SuppressFinalize(this);
         }
 
-        #endregion
 
         public void SetProjection(ref Matrix projection)
         {

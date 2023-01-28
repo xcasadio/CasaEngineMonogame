@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,18 +12,21 @@ using CasaEngine.Math;
 using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Helper;
 
+
+
+
+
 namespace CasaEngine.Input
 {
-	/// <summary>
-	/// Handle Input (PC/XBox360)
-	/// </summary>
-	public class InputComponent :
+    /// <summary>
+    /// Handle Input (PC/XBox360)
+    /// </summary>
+    public class InputComponent :
         Microsoft.Xna.Framework.GameComponent
-	{
-		#region Fields
+    {
 
 #if !XBOX360
-		/// <summary>
+        /// <summary>
         /// Mouse state, set every frame in the Update method.
         /// </summary>
         private MouseState mouseState, mouseStateLastFrame;
@@ -56,9 +61,9 @@ namespace CasaEngine.Input
         /// GamePad state, set every frame in the Update method.
         /// </summary>
         private GamePadState[] gamePadState = new GamePadState[4];
-		private GamePadState[] gamePadStateLastFrame = new GamePadState[4];
-		private GamePadDeadZone[] gamePadDeadZoneMode = new GamePadDeadZone[4];
-		private GamePadCapabilities[] gamePadCapabilities = new GamePadCapabilities[4];
+        private GamePadState[] gamePadStateLastFrame = new GamePadState[4];
+        private GamePadDeadZone[] gamePadDeadZoneMode = new GamePadDeadZone[4];
+        private GamePadCapabilities[] gamePadCapabilities = new GamePadCapabilities[4];
 
         /// <summary>
         /// Player Index to defined the gamepad choosen
@@ -75,7 +80,7 @@ namespace CasaEngine.Input
 #endif
 
 #if EDITOR
-		public static int ms_MouseWheel = 0;
+        public static int ms_MouseWheel = 0;
 #endif
 
         /// <summary>
@@ -84,23 +89,21 @@ namespace CasaEngine.Input
         /// </summary>
         private Point startDraggingPos;
 
-		/// <summary>
-		/// dead zone for thumbstick
-		/// </summary>
-		public readonly float DEADZONE = 0.2f;
+        /// <summary>
+        /// dead zone for thumbstick
+        /// </summary>
+        public readonly float DEADZONE = 0.2f;
 
-		/// <summary>
-		/// 
-		/// </summary>
-		//InputConfigurations m_InputConfigurations = new InputConfigurations();
+        /// <summary>
+        /// 
+        /// </summary>
+        //InputConfigurations m_InputConfigurations = new InputConfigurations();
         ButtonConfiguration m_ButtonConfiguration;
         InputManager.KeyState[] m_KeysState;
 
         InputManager[] m_InputManager;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -110,9 +113,7 @@ namespace CasaEngine.Input
             get { return m_KeysState; }
         }
 
-        #endregion
 
-        #region Mouse Properties
         /// <summary>
         /// Was a mouse detected? Returns true if the user moves the mouse.
         /// On the Xbox 360 there will be no mouse movement and theirfore we
@@ -364,11 +365,9 @@ namespace CasaEngine.Input
                 (int)System.Math.Round(rect.Y * heightFactor),
                 (int)System.Math.Round(rect.Right * widthFactor),
                 (int)System.Math.Round(rect.Bottom * heightFactor)));*/
-			return false;
+            return false;
         }
-        #endregion
 
-        #region Keyboard Properties
         /// <summary>
         /// Keyboard
         /// </summary>
@@ -381,20 +380,20 @@ namespace CasaEngine.Input
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public void ResetKeyboard()
-		{
-			//keyboardState = Keyboard.GetState();
-			//keysPressedLastFrame.Clear();
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ResetKeyboard()
+        {
+            //keyboardState = Keyboard.GetState();
+            //keysPressedLastFrame.Clear();
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public bool IsSpecialKey(Keys key)
         {
             // All keys except A-Z, 0-9 and `-\[];',./= (and space) are special keys.
@@ -535,7 +534,7 @@ namespace CasaEngine.Input
         /// <returns></returns>
         public bool IsKeyJustPressed(Keys key_)
         {
-            return keyboardState.IsKeyDown(key_) 
+            return keyboardState.IsKeyDown(key_)
                 && keyboardPreviousState.IsKeyDown(key_) == false;
         }
 
@@ -571,51 +570,48 @@ namespace CasaEngine.Input
                 && keyboardPreviousState.IsKeyDown(key_);
         }
 
-        #endregion
 
-		#region GamePad Methods
-		/// <summary>
-		/// Game Pad State
-		/// </summary>
-		/// <param name="index_">Player Index</param>
-		/// <returns>GamePadState</returns>
-		public GamePadState GamePadState( PlayerIndex index_ )
-		{
-			return gamePadState[ (int) index_ ];
-		}
+        /// <summary>
+        /// Game Pad State
+        /// </summary>
+        /// <param name="index_">Player Index</param>
+        /// <returns>GamePadState</returns>
+        public GamePadState GamePadState(PlayerIndex index_)
+        {
+            return gamePadState[(int)index_];
+        }
 
-		/// <summary>
-		/// GamePad Capabilities
-		/// </summary>
-		/// <param name="index_">Player Index</param>
-		/// <returns>GamePadCapabilities</returns>
-		public GamePadCapabilities GamePadCapabilities( PlayerIndex index_ )
-		{
-			gamePadCapabilities[ (int) index_ ] = GamePad.GetCapabilities(index_);
-			return gamePadCapabilities[ (int) index_ ];
-		}
+        /// <summary>
+        /// GamePad Capabilities
+        /// </summary>
+        /// <param name="index_">Player Index</param>
+        /// <returns>GamePadCapabilities</returns>
+        public GamePadCapabilities GamePadCapabilities(PlayerIndex index_)
+        {
+            gamePadCapabilities[(int)index_] = GamePad.GetCapabilities(index_);
+            return gamePadCapabilities[(int)index_];
+        }
 
-		/// <summary>
-		/// Set the Mode of Dead Zone to the GamePad specified by index_
-		/// </summary>
-		/// <param name="index_">Player Index</param>
-		/// <param name="mode_">GamePad Dead Zone</param>
-		public void GamePadDeadZoneMode( PlayerIndex index_, GamePadDeadZone mode_)
-		{
-			gamePadDeadZoneMode[ (int) index_ ] = mode_;
-		}
+        /// <summary>
+        /// Set the Mode of Dead Zone to the GamePad specified by index_
+        /// </summary>
+        /// <param name="index_">Player Index</param>
+        /// <param name="mode_">GamePad Dead Zone</param>
+        public void GamePadDeadZoneMode(PlayerIndex index_, GamePadDeadZone mode_)
+        {
+            gamePadDeadZoneMode[(int)index_] = mode_;
+        }
 
-		/// <summary>
-		/// Is game pad connected
-		/// </summary>
-		/// <param name="index_">Player Index</param>
-		/// <returns>Bool</returns>
-		public bool IsGamePadConnected( PlayerIndex index_ )
-		{
-			return gamePadState[ (int) index_ ].IsConnected;
-		}
+        /// <summary>
+        /// Is game pad connected
+        /// </summary>
+        /// <param name="index_">Player Index</param>
+        /// <returns>Bool</returns>
+        public bool IsGamePadConnected(PlayerIndex index_)
+        {
+            return gamePadState[(int)index_].IsConnected;
+        }
 
-        #region Buttons Just Pressed
 
         /// <summary>
         /// Game pad non directional button just pressed
@@ -785,9 +781,7 @@ namespace CasaEngine.Input
                 gamePadStateLastFrame[(int)index_].DPad.Up == ButtonState.Released);
         }
 
-        #endregion
 
-        #region Buttons Pressed
 
         /// <summary>
         /// 
@@ -921,9 +915,7 @@ namespace CasaEngine.Input
                 gamePadState[(int)index_].ThumbSticks.Left.Y <= -0.75f;
         }
 
-        #endregion
 
-        #region Buttons Released
 
         /// <summary>
         /// 
@@ -1082,9 +1074,7 @@ namespace CasaEngine.Input
                 gamePadStateLastFrame[(int)index_].DPad.Left == ButtonState.Pressed);
         }
 
-        #endregion
-        
-        #region Buttons Held
+
 
         /// <summary>
         /// 
@@ -1244,28 +1234,25 @@ namespace CasaEngine.Input
                 gamePadStateLastFrame[(int)index_].DPad.Up == ButtonState.Pressed);
         }
 
-		#endregion
-		
-		#endregion
 
-		#region InputConfigurations
 
-		/// <summary>
-		/// 
-		/// </summary>
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="buttonConfiguration_"></param>
         public void SetCurrentConfiguration(ButtonConfiguration buttonConfiguration_)
-		{
+        {
             m_ButtonConfiguration = buttonConfiguration_;
             m_KeysState = new InputManager.KeyState[m_ButtonConfiguration.ButtonCount];
-		}
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="index_"></param>
-		/// <param name="code_"></param>
-		/*public bool InputConfigButtonJustPressed(PlayerIndex index_, int code_)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index_"></param>
+        /// <param name="code_"></param>
+        /*public bool InputConfigButtonJustPressed(PlayerIndex index_, int code_)
 		{
 			Buttons but = m_InputConfigurations.GetConfig(m_CurrentInputConfigurationName).GetButton(code_);
 
@@ -1278,25 +1265,23 @@ namespace CasaEngine.Input
 			return res;
 		}*/
 
-		#endregion
 
-		#region Constructor
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="game_"></param>
         public InputComponent(Microsoft.Xna.Framework.Game game_)
-			: base(game_)
-		{
-			if (game_ == null)
-			{
-				throw new ArgumentNullException("game");
-			}
+            : base(game_)
+        {
+            if (game_ == null)
+            {
+                throw new ArgumentNullException("game");
+            }
 
-			Game.Components.Add(this);
+            Game.Components.Add(this);
 
-			UpdateOrder = (int) ComponentUpdateOrder.Input;
+            UpdateOrder = (int)ComponentUpdateOrder.Input;
 
             m_InputManager = new InputManager[4];
 
@@ -1314,42 +1299,38 @@ namespace CasaEngine.Input
             m_ButtonConfiguration.AddButton(1, map);
 
             SetCurrentConfiguration(m_ButtonConfiguration);
-		}
+        }
 
-        #endregion
 
-        #region GameComponent Methods
 
         /// <summary>
         /// 
         /// </summary>
         public override void Initialize()
-		{
-			base.Initialize();
-		}
+        {
+            base.Initialize();
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="disposing"></param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing == true)
-			{
-				lock (this)
-				{
-					// Remove self from the service container.
-					GameHelper.RemoveGameComponent<InputComponent>(this.Game);
-				}
-			}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing == true)
+            {
+                lock (this)
+                {
+                    // Remove self from the service container.
+                    GameHelper.RemoveGameComponent<InputComponent>(this.Game);
+                }
+            }
 
-			base.Dispose(disposing);
-		}
+            base.Dispose(disposing);
+        }
 
-		#endregion
 
-		#region Update
-		/// <summary>
+        /// <summary>
         /// Update, called from BaseGame.Update().
         /// Will catch all new states for keyboard, mouse and the gamepad.
         /// </summary>
@@ -1367,33 +1348,33 @@ namespace CasaEngine.Input
             lastMouseXMovement += mouseState.X - mouseStateLastFrame.X;
             lastMouseYMovement += mouseState.Y - mouseStateLastFrame.Y;
 
-			if (System.Math.Abs(lastMouseXMovement) < 1.0f)
-			{
-				lastMouseXMovement = 0.0f;
-				mouseXMovement = 0.0f;
-			}
-			else
-			{
-				mouseXMovement = lastMouseXMovement / 2.0f;
-				lastMouseXMovement -= lastMouseXMovement / 2.0f;
-			}
+            if (System.Math.Abs(lastMouseXMovement) < 1.0f)
+            {
+                lastMouseXMovement = 0.0f;
+                mouseXMovement = 0.0f;
+            }
+            else
+            {
+                mouseXMovement = lastMouseXMovement / 2.0f;
+                lastMouseXMovement -= lastMouseXMovement / 2.0f;
+            }
 
-			if (System.Math.Abs(lastMouseYMovement) < 1.0f)
-			{
-				lastMouseYMovement = 0.0f;
-				mouseYMovement = 0.0f;
-			}
-			else
-			{
-				mouseYMovement = lastMouseYMovement / 2.0f;
-				lastMouseYMovement -= lastMouseYMovement / 2.0f;
-			}
+            if (System.Math.Abs(lastMouseYMovement) < 1.0f)
+            {
+                lastMouseYMovement = 0.0f;
+                mouseYMovement = 0.0f;
+            }
+            else
+            {
+                mouseYMovement = lastMouseYMovement / 2.0f;
+                lastMouseYMovement -= lastMouseYMovement / 2.0f;
+            }
 
             if (MouseLeftButtonPressed == false)
                 startDraggingPos = MousePos;
 #if EDITOR
-			mouseWheelDelta = ms_MouseWheel / 120;
-			ms_MouseWheel = 0;
+            mouseWheelDelta = ms_MouseWheel / 120;
+            ms_MouseWheel = 0;
 #else
 			//mouseWheelDelta = mouseState.ScrollWheelValue - mouseWheelValue;
 			//mouseWheelValue = mouseState.ScrollWheelValue;
@@ -1429,12 +1410,12 @@ namespace CasaEngine.Input
             keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 
             // And finally catch the XBox Controller input
-			for ( int i = 0; i < 4; i++ )
-			{
-				gamePadStateLastFrame[i] = gamePadState[i];
-				gamePadState[i] =
-					Microsoft.Xna.Framework.Input.GamePad.GetState( (PlayerIndex) i, gamePadDeadZoneMode[i] );
-			}
+            for (int i = 0; i < 4; i++)
+            {
+                gamePadStateLastFrame[i] = gamePadState[i];
+                gamePadState[i] =
+                    Microsoft.Xna.Framework.Input.GamePad.GetState((PlayerIndex)i, gamePadDeadZoneMode[i]);
+            }
 
             // Update all InputManager
             Dictionary<int, ButtonMapper>.Enumerator enumerator = m_ButtonConfiguration.Buttons;
@@ -1464,14 +1445,12 @@ namespace CasaEngine.Input
             {
                 input.Update(m_KeysState,
                     GameTimeHelper.TotalGameTimeToMilliseconds(gameTime_));
-            }            
+            }
 
-			base.Update(gameTime_);
+            base.Update(gameTime_);
         }
 
-        #endregion
 
-        #region InputManager
 
         /// <summary>
         /// 
@@ -1483,6 +1462,5 @@ namespace CasaEngine.Input
             return m_InputManager[(int)index_];
         }
 
-        #endregion
     }
 }

@@ -1,21 +1,19 @@
-#region File Description
 //-----------------------------------------------------------------------------
 // Screen.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 using System;
+
+
 using Microsoft.Xna.Framework;
 using CasaEngine.Graphics2D;
 using System.Xml;
 using CasaEngine.FrontEnd.Screen.Gadget;
 using CasaEngineCommon.Design;
 using CasaEngine.Gameplay.Actor.Object;
-#endregion
 
 namespace CasaEngine.FrontEnd.Screen
 {
@@ -37,13 +35,12 @@ namespace CasaEngine.FrontEnd.Screen
     /// want to quit" message box, and the main game itself are all implemented
     /// as screens.
     /// </summary>
-    public abstract 
+    public abstract
 #if EDITOR
     partial
 #endif
     class Screen : BaseObject
     {
-        #region Fields
 
         bool isPopup = false;
         TimeSpan transitionOnTime = TimeSpan.Zero;
@@ -55,18 +52,16 @@ namespace CasaEngine.FrontEnd.Screen
         ScreenManagerComponent screenManager;
         PlayerIndex? controllingPlayer;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
 		/// Gets
 		/// </summary>
 		public string Name
-		{
-			get;
-			internal set;
-		}
+        {
+            get;
+            internal set;
+        }
 
         /// <summary>
         /// Normally when one screen is brought up over the top of another,
@@ -89,7 +84,7 @@ namespace CasaEngine.FrontEnd.Screen
         {
             get { return transitionOnTime; }
             set { transitionOnTime = value; }
-        }        
+        }
 
         /// <summary>
         /// Indicates how long the screen takes to
@@ -110,7 +105,7 @@ namespace CasaEngine.FrontEnd.Screen
         {
             get { return transitionPosition; }
             set { transitionPosition = value; }
-        }       
+        }
 
         /// <summary>
         /// Gets the current alpha of the screen transition, ranging
@@ -190,18 +185,16 @@ namespace CasaEngine.FrontEnd.Screen
             private set;
         }
 
-        #endregion
 
-		#region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name_"></param>
-		protected Screen(string name_)
-		{
-			Name = name_;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name_"></param>
+        protected Screen(string name_)
+        {
+            Name = name_;
+        }
 
         /// <summary>
         /// 
@@ -213,11 +206,9 @@ namespace CasaEngine.FrontEnd.Screen
             Load(el_, opt_);
         }
 
-		#endregion // Constructors
 
-		#region Initialization
 
-		/// <summary>
+        /// <summary>
         /// Load graphics content for the screen.
         /// </summary>
         public virtual void LoadContent(Renderer2DComponent r_)
@@ -230,19 +221,17 @@ namespace CasaEngine.FrontEnd.Screen
         /// </summary>
         public virtual void UnloadContent() { }
 
-        #endregion
 
-        #region Update and Draw
 
-		/// <summary>
-		/// Allows the screen to run logic, such as updating the transition position.
+        /// <summary>
+        /// Allows the screen to run logic, such as updating the transition position.
         /// Unlike HandleInput, this method is called regardless of whether the screen
         /// is active, hidden, or in the middle of a transition.
-		/// </summary>
-		/// <param name="elapsedTime_"></param>
-		/// <param name="otherScreenHasFocus"></param>
-		/// <param name="coveredByOtherScreen"></param>
-		public virtual void Update(float elapsedTime_, bool otherScreenHasFocus,
+        /// </summary>
+        /// <param name="elapsedTime_"></param>
+        /// <param name="otherScreenHasFocus"></param>
+        /// <param name="coveredByOtherScreen"></param>
+        public virtual void Update(float elapsedTime_, bool otherScreenHasFocus,
                                                       bool coveredByOtherScreen)
         {
             this.otherScreenHasFocus = otherScreenHasFocus;
@@ -255,7 +244,7 @@ namespace CasaEngine.FrontEnd.Screen
                 if (!UpdateTransition(elapsedTime_, transitionOffTime, 1))
                 {
                     // When the transition finishes, remove the screen.
-					ScreenManagerComponent.RemoveScreen(this);
+                    ScreenManagerComponent.RemoveScreen(this);
                 }
             }
             else if (coveredByOtherScreen)
@@ -300,7 +289,7 @@ namespace CasaEngine.FrontEnd.Screen
                 transitionDelta = 1;
             else
                 transitionDelta = elapsedTime_;//(float)(gameTime.ElapsedGameTime.TotalMilliseconds /
-                                          //time.TotalMilliseconds);
+                                               //time.TotalMilliseconds);
 
             // Update the transition position.
             transitionPosition += transitionDelta * direction;
@@ -329,9 +318,7 @@ namespace CasaEngine.FrontEnd.Screen
         /// </summary>
 		public virtual void Draw(float elapsedTime_) { }
 
-        #endregion
 
-        #region Public Methods
 
         /// <summary>
         /// 
@@ -360,7 +347,7 @@ namespace CasaEngine.FrontEnd.Screen
             if (TransitionOffTime == TimeSpan.Zero)
             {
                 // If the screen has a zero transition time, remove it immediately.
-				ScreenManagerComponent.RemoveScreen(this);
+                ScreenManagerComponent.RemoveScreen(this);
             }
             else
             {
@@ -422,6 +409,5 @@ namespace CasaEngine.FrontEnd.Screen
             throw new Exception("The method or operation is not implemented.");
         }
 
-        #endregion
     }
 }

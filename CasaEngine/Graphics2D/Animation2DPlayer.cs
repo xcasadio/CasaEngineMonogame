@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,12 +14,11 @@ using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.Graphics2D
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class Animation2DPlayer
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    public class Animation2DPlayer
+    {
 
 #if !FINAL
         /// <summary>
@@ -29,7 +30,7 @@ namespace CasaEngine.Graphics2D
         private Dictionary<int, Animation2D> m_Animations;
         private Animation2D m_CurrentAnimation = null;
 
-		public event EventHandler OnEndAnimationReached;
+        public event EventHandler OnEndAnimationReached;
         public event EventHandler<Animation2DFrameChangedEventArgs> OnFrameChanged;
 
         /// <summary>
@@ -37,28 +38,24 @@ namespace CasaEngine.Graphics2D
         /// </summary>
         private int m_CurrentAnimationIndex = -1;
 
-		#endregion
 
-		#region Properties
 
-		/// <summary>
-		/// Gets current animation
-		/// </summary>
+        /// <summary>
+        /// Gets current animation
+        /// </summary>
         public Animation2D CurrentAnimation
-		{
-			get { return m_CurrentAnimation; }
-		}
+        {
+            get { return m_CurrentAnimation; }
+        }
 
-		#endregion
 
-		#region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="animations_">List of all animation handle by the player</param>
-		public Animation2DPlayer(Dictionary<int, Animation2D> animations_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="animations_">List of all animation handle by the player</param>
+        public Animation2DPlayer(Dictionary<int, Animation2D> animations_)
+        {
             m_Animations = animations_;
 
             foreach (KeyValuePair<int, Animation2D> pair in animations_)
@@ -66,11 +63,9 @@ namespace CasaEngine.Graphics2D
                 pair.Value.OnFrameChanged += new EventHandler<Animation2DFrameChangedEventArgs>(FrameChanging);
                 pair.Value.OnEndAnimationReached += new EventHandler(EventHandler_OnEndAnimationReached);
             }
-		}    
+        }
 
-		#endregion
 
-		#region Methods
 
         /// <summary>
         /// Call when a new frame index is reached from the current animation
@@ -92,25 +87,25 @@ namespace CasaEngine.Graphics2D
         /// <param name="e"></param>
         private void EventHandler_OnEndAnimationReached(object sender, EventArgs e)
         {
- 	        if (OnEndAnimationReached != null)
+            if (OnEndAnimationReached != null)
             {
                 OnEndAnimationReached.Invoke(sender, e);
             }
-        } 
+        }
 
         /// <summary>
         /// set the animation by id
         /// Change animation only if different with the current animation and call Animation2D.ResetTime()
         /// </summary>
         /// <param name="id_"></param>
-		public void SetCurrentAnimationByID(int id_)
+        public void SetCurrentAnimationByID(int id_)
         {
             if (m_CurrentAnimationIndex != id_)
             {
                 m_CurrentAnimationIndex = id_;
                 m_CurrentAnimation = m_Animations[id_];
                 m_CurrentAnimation.ResetTime();
-            }            
+            }
         }
 
         /// <summary>
@@ -135,7 +130,7 @@ namespace CasaEngine.Graphics2D
                 m_CurrentAnimation = m_Animations[index];
                 m_CurrentAnimation.ResetTime();
             }
-        }        
+        }
 
         /// <summary>
         /// Update animation time
@@ -151,6 +146,5 @@ namespace CasaEngine.Graphics2D
 #endif
         }
 
-		#endregion
-	}
+    }
 }

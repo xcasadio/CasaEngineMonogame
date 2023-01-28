@@ -1,7 +1,8 @@
 ﻿
-#region Using Directives
 
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,57 +12,49 @@ using CasaEngine;
 using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
 
-#endregion
 
 namespace CasaEngine.Design.Event
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public abstract partial class Trigger
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    public abstract partial class Trigger
+    {
 
         private static readonly uint m_Version = 1;
 
-		#endregion
 
-		#region Properties
 
-		#endregion
 
-		#region Constructors
 
-		#endregion
 
-		#region Methods
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
-		/// <param name="option_"></param>
-		public virtual void Save(XmlElement el_, SaveOption option_)
-		{
-			XmlElement node;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_"></param>
+        /// <param name="option_"></param>
+        public virtual void Save(XmlElement el_, SaveOption option_)
+        {
+            XmlElement node;
 
-			el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
+            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
 
-			XmlElement eventListnode = el_.OwnerDocument.CreateElement("EventList");
-			el_.AppendChild(eventListnode);
+            XmlElement eventListnode = el_.OwnerDocument.CreateElement("EventList");
+            el_.AppendChild(eventListnode);
 
             foreach (TriggerEvent ev in m_Events)
-			{
-				node = el_.OwnerDocument.CreateElement("Event");
-				eventListnode.AppendChild(node);
+            {
+                node = el_.OwnerDocument.CreateElement("Event");
+                eventListnode.AppendChild(node);
 
-				Type t = ev.GetType();
-				el_.OwnerDocument.AddAttribute(el_, "assemblyName", t.Assembly.FullName);
-				//el_.OwnerDocument.AddAttribute(el_, "manifestModuleFullName", t.Assembly.ManifestModule.FullName);
-				el_.OwnerDocument.AddAttribute(el_, "fullName", t.FullName);
-				ev.Save(node, option_);
-			}
-		}
+                Type t = ev.GetType();
+                el_.OwnerDocument.AddAttribute(el_, "assemblyName", t.Assembly.FullName);
+                //el_.OwnerDocument.AddAttribute(el_, "manifestModuleFullName", t.Assembly.ManifestModule.FullName);
+                el_.OwnerDocument.AddAttribute(el_, "fullName", t.FullName);
+                ev.Save(node, option_);
+            }
+        }
 
         /// <summary>
         /// 
@@ -83,16 +76,15 @@ namespace CasaEngine.Design.Event
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="event_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="event_"></param>
         public void RemoveEvent(TriggerEvent event_)
-		{
-			m_Events.Remove(event_);
-		}
+        {
+            m_Events.Remove(event_);
+        }
 
 
-		#endregion
-	}
+    }
 }

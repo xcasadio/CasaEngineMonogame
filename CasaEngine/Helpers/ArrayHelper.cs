@@ -1,5 +1,4 @@
 ﻿
-#region License
 /*
 Copyright (c) 2008-2011, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,18 +25,14 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace XNAFinalEngine.Helpers
 {
     public class ArrayHelper
     {
 
-        #region Matrix
 
         /// <summary>
         /// Test if two matrix arrays have the same values.
@@ -61,9 +56,7 @@ namespace XNAFinalEngine.Helpers
             return true;
         } // Equals
 
-        #endregion
 
-        #region Vector2
 
         /// <summary>
         /// Test if two Vector2 arrays have the same values.
@@ -87,9 +80,7 @@ namespace XNAFinalEngine.Helpers
             return true;
         } // Equals
 
-        #endregion
 
-        #region Vector3
 
         /// <summary>
         /// Test if two Vector3 arrays have the same values.
@@ -113,9 +104,7 @@ namespace XNAFinalEngine.Helpers
             return true;
         } // Equals
 
-        #endregion
 
-        #region Vector4
 
         /// <summary>
         /// Test if two Vector4 arrays have the same values.
@@ -139,7 +128,6 @@ namespace XNAFinalEngine.Helpers
             return true;
         } // Equals
 
-        #endregion
 
     } // ArrayHelper
 } // XNAFinalEngine.Helpers

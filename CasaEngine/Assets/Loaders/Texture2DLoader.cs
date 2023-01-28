@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +12,6 @@ namespace CasaEngine.Asset
     class Texture2DLoader
         : IAssetLoader
     {
-        #region IAssetLoader Membres
 
         /// <summary>
         /// 
@@ -23,6 +24,5 @@ namespace CasaEngine.Asset
             return Texture2D.FromStream(device_, new FileStream(fileName_, FileMode.Open));
         }
 
-        #endregion
     }
 }

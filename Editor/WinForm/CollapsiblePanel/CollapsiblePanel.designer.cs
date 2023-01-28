@@ -20,7 +20,6 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             base.Dispose(disposing);
         }
 
-        #region Component Designer generated code
 
         /// <summary> 
         /// Required method for Designer support - do not modify 
@@ -98,7 +97,6 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
         }
 
-        #endregion
 
         private System.Windows.Forms.Panel pnlHeader;
         private System.Windows.Forms.PictureBox pictureBoxExpandCollapse;

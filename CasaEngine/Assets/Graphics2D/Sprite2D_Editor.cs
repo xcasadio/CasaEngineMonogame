@@ -1,7 +1,8 @@
 ﻿
-#region Using Directives
 
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,55 +17,46 @@ using CasaEngine;
 using CasaEngineCommon.Design;
 using CasaEngine.Gameplay.Actor.Object;
 
-#endregion
 
 namespace CasaEngine.Assets.Graphics2D
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public partial class Sprite2D
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    public partial class Sprite2D
+    {
 
         static private readonly uint m_Version = 2;
-		public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
-		#endregion
 
-		#region Properties
 
-		/// <summary>
-		/// Gets/Sets Texture file name
-		/// </summary>
-        [Category("Sprite"), 
+        /// <summary>
+        /// Gets/Sets Texture file name
+        /// </summary>
+        [Category("Sprite"),
         ReadOnly(true)]
         public List<string> AssetFileNames
-		{
-			get { return m_AssetFileNames; }
-		}
+        {
+            get { return m_AssetFileNames; }
+        }
 
-		#endregion
 
-		#region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="tex_"></param>
-		/// <param name="assetFileName_"></param>
-		/// <param name="textureFileName_"></param>
-		public Sprite2D(Texture2D tex_, string assetFileName_)
-			: this(tex_)
-		{
-			m_AssetFileNames.Add(assetFileName_);
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tex_"></param>
+        /// <param name="assetFileName_"></param>
+        /// <param name="textureFileName_"></param>
+        public Sprite2D(Texture2D tex_, string assetFileName_)
+            : this(tex_)
+        {
+            m_AssetFileNames.Add(assetFileName_);
+        }
 
-		#endregion
 
-		#region Methods
 
-        #region Socket
 
         /// <summary>
         /// 
@@ -134,9 +126,7 @@ namespace CasaEngine.Assets.Graphics2D
             m_Sockets.Remove(name_);
         }
 
-        #endregion
 
-        #region Collision
 
         /// <summary>
         /// 
@@ -178,7 +168,6 @@ namespace CasaEngine.Assets.Graphics2D
             m_Collisions.RemoveAt(index_);
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -242,21 +231,20 @@ namespace CasaEngine.Assets.Graphics2D
 		/// </summary>
 		/// <param name="info"></param>
 		private void NotifyPropertyChanged(String info)
-		{
-			if (PropertyChanged != null)
-			{
-				PropertyChanged(this, new PropertyChangedEventArgs(info));
-			}
-		}
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(info));
+            }
+        }
 
-        #region Save
 
         /// <summary>
 		/// 
 		/// </summary>
 		/// <param name="el_"></param>
         public override void Save(XmlElement el_, SaveOption option_)
-		{
+        {
             XmlElement node;
 
             base.Save(el_, option_);
@@ -277,15 +265,15 @@ namespace CasaEngine.Assets.Graphics2D
             rootNode.AppendChild(el_.OwnerDocument.CreateElement("PositionInTexture", m_PositionInTexture));
 
             //Collisions
-			XmlElement collNode = el_.OwnerDocument.CreateElement("CollisionList");
+            XmlElement collNode = el_.OwnerDocument.CreateElement("CollisionList");
             rootNode.AppendChild(collNode);
 
-			foreach (Shape2DObject col in m_Collisions)
-			{
+            foreach (Shape2DObject col in m_Collisions)
+            {
                 node = el_.OwnerDocument.CreateElement("Shape");
                 col.Save(node, option_);
                 collNode.AppendChild(node);
-			}
+            }
 
             //Sockets
             XmlElement socketNode = el_.OwnerDocument.CreateElement("SocketList");
@@ -298,7 +286,7 @@ namespace CasaEngine.Assets.Graphics2D
                 node.AppendChild(el_.OwnerDocument.CreateElement("Position", pair.Value));
                 socketNode.AppendChild(node);
             }
-		}
+        }
 
         /// <summary>
         /// 
@@ -336,8 +324,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        #endregion
 
-        #endregion
     }
 }

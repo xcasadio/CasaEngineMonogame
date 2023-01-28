@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,17 +18,12 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
     /// </summary>
     public partial class ScreenGadgetButton
     {
-        #region Fields
 
         public static int num = 0;
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -40,9 +37,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             BackgroundColor = Color.White;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -76,6 +71,5 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             bw_.Write((int)SizeImage);
         }
 
-        #endregion
     }
 }

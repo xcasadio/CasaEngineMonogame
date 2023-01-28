@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,11 +9,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -25,16 +22,13 @@ namespace XNAFinalEngine.UserInterface
     public class CheckBox : ButtonBase
     {
 
-        #region Variables
 
         /// <summary>
         /// Cheked?
         /// </summary>
         private bool isChecked;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Cheked?
@@ -46,21 +40,17 @@ namespace XNAFinalEngine.UserInterface
             {
                 isChecked = value;
                 Invalidate();
-                if (!Suspended) 
+                if (!Suspended)
                     OnCheckedChanged(new EventArgs());
             }
         } // Checked
 
-        #endregion
 
-        #region Events
-                
+
         public event EventHandler CheckedChanged;
 
-        #endregion
 
-        #region Constructor
-   
+
         /// <summary>
         /// CheckBox.
         /// </summary>
@@ -73,9 +63,7 @@ namespace XNAFinalEngine.UserInterface
             Height = 16;
         } // CheckBox
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -83,9 +71,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["CheckBox"]);
         } // InitSkin
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -97,9 +83,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -121,9 +105,7 @@ namespace XNAFinalEngine.UserInterface
             UserInterfaceManager.Renderer.DrawString(this, layer, Text, rc, false, 0, 0);
         } // DrawControl
 
-        #endregion
 
-        #region On Click
 
         protected override void OnClick(EventArgs e)
         {
@@ -136,17 +118,14 @@ namespace XNAFinalEngine.UserInterface
             base.OnClick(e);
         } // OnClick
 
-        #endregion
 
-        #region On Checked Changed
 
         protected virtual void OnCheckedChanged(EventArgs e)
         {
-            if (CheckedChanged != null) 
+            if (CheckedChanged != null)
                 CheckedChanged.Invoke(this, e);
         } // OnCheckedChanged
 
-        #endregion
 
     } // CheckBox
 } // XNAFinalEngine.UserInterface

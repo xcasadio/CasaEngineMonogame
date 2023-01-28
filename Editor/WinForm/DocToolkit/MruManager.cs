@@ -1,4 +1,3 @@
-#region Using directives
 
 using System;
 using System.Windows.Forms;
@@ -11,7 +10,6 @@ using System.Runtime.InteropServices;
 using System.Globalization;
 using System.Security;
 
-#endregion
 
 namespace Editor.WinForm.DocToolkit
 {
@@ -24,7 +22,6 @@ namespace Editor.WinForm.DocToolkit
     /// </summary>
     public class MruManager
     {
-        #region Members
 
         // Event raised when user selects file from MRU list
         public event MruFileOpenEventHandler MruOpenEvent;
@@ -46,9 +43,7 @@ namespace Editor.WinForm.DocToolkit
 
         private const string regEntryName = "file";  // entry name to keep MRU (file0, file1...)
 
-        #endregion
 
-        #region Windows API
 
         [DllImport("shlwapi.dll", CharSet = CharSet.Auto)]
         private static extern bool PathCompactPathEx(
@@ -57,18 +52,14 @@ namespace Editor.WinForm.DocToolkit
             int cchMax,
             int reserved);
 
-        #endregion
 
-        #region Constructor
 
         public MruManager()
         {
             mruList = new StringList();
         }
 
-        #endregion
 
-		#region Public Properties
 
 		/// <summary>
 		/// Gets the first file name in the list, otherwise return null
@@ -145,9 +136,7 @@ namespace Editor.WinForm.DocToolkit
             }
         }
 
-        #endregion
 
-        #region Public Functions
 
         /// <summary>
         /// Initialization. Call this function in form Load handler.
@@ -229,9 +218,7 @@ namespace Editor.WinForm.DocToolkit
             }
         }
 
-        #endregion
 
-        #region Event Handlers
 
         /// <summary>
         /// Update MRU list when MRU menu item parent is opened
@@ -342,9 +329,7 @@ namespace Editor.WinForm.DocToolkit
         }
 
 
-        #endregion
 
-        #region Private Functions
 
         /// <summary>
         /// Load MRU list from Registry.
@@ -442,7 +427,6 @@ namespace Editor.WinForm.DocToolkit
             }
         }
 
-        #endregion
 
     }
 
@@ -467,7 +451,6 @@ namespace Editor.WinForm.DocToolkit
     }
 }
 
-#region Using
 
 /*******************************************************************************
 
@@ -533,4 +516,3 @@ Using:
 // Owner form OnMRUFileOpen function is called when user selects file
 // from MRU list.
 
-#endregion

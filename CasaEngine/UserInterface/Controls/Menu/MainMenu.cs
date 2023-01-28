@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,12 +9,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -26,14 +22,11 @@ namespace XNAFinalEngine.UserInterface
     public class MainMenu : MenuBase
     {
 
-        #region Variables
 
         private Rectangle[] rectangle;
         private int lastIndex = -1;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Main Menu.
@@ -49,9 +42,7 @@ namespace XNAFinalEngine.UserInterface
             StayOnTop = true;
         } // MainMenu
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -59,9 +50,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["MainMenu"]);
         } // InitSkin
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -108,9 +97,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region On Mouse Move
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
@@ -154,9 +141,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // TrackItem
 
-        #endregion
 
-        #region On Mouse Out
 
         protected override void OnMouseOut(MouseEventArgs e)
         {
@@ -164,9 +149,7 @@ namespace XNAFinalEngine.UserInterface
             OnMouseMove(e);
         } // OnMouseOut
 
-        #endregion
 
-        #region Hide Menu or Sub Menu
 
         private void HideSubMenu()
         {
@@ -192,9 +175,7 @@ namespace XNAFinalEngine.UserInterface
             ItemIndex = -1;
         } // HideMenu
 
-        #endregion
 
-        #region On Click
 
         protected override void OnClick(EventArgs e)
         {
@@ -235,9 +216,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnClick
 
-        #endregion
 
-        #region On Key Press
 
         protected override void OnKeyPress(KeyEventArgs e)
         {
@@ -269,9 +248,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnKeyPress
 
-        #endregion
 
-        #region On Focus Lost and Gained
 
         /// <summary>
         /// If the control gained focus then...
@@ -293,7 +270,6 @@ namespace XNAFinalEngine.UserInterface
                 ItemIndex = -1;
         } // OnFocusLost
 
-        #endregion
 
     } // MainMenu
 } // XNAFinalEngine.UserInterface

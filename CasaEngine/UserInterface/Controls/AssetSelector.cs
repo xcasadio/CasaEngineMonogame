@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2010, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -26,12 +25,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-#endregion
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -41,17 +38,14 @@ namespace XNAFinalEngine.UserInterface
     /// </summary>
     public class AssetSelector : Control
     {
-        
-        #region Variables
+
 
         // Controls.
         private readonly ComboBox comboBox;
         private readonly Button buttonAdd;
         private readonly Button buttonEdit;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Indicates if the internal list box is visible or not.
@@ -89,18 +83,14 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         public bool EditButtonEnabled { get; set; }
 
-        #endregion
 
-        #region Events
 
         public event EventHandler AssetAdded;
         public event EventHandler AssetEdited;
         public event EventHandler MaxItemsChanged;
         public event EventHandler ItemIndexChanged;
 
-        #endregion
-        
-        #region Constructor
+
 
         /// <summary>
         /// Add, edit and change XNA Final Engine Assets.
@@ -142,7 +132,7 @@ namespace XNAFinalEngine.UserInterface
                 Height = 20,
                 ToolTip = { Text = "Edit current asset" },
                 Text = "E",
-                
+
             };
             buttonEdit.Click += delegate { OnAssetEdited(new EventArgs()); };
 
@@ -158,14 +148,12 @@ namespace XNAFinalEngine.UserInterface
 
             buttonEdit.Enabled = comboBox.ItemIndex > 0;
 
-            comboBox.MaxItemsChanged  += delegate { OnMaxItemsChanged(new EventArgs()); };
+            comboBox.MaxItemsChanged += delegate { OnMaxItemsChanged(new EventArgs()); };
             comboBox.ItemIndexChanged += delegate { OnItemIndexChanged(new EventArgs()); };
-            
+
         } // SliderNumeric
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -180,9 +168,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Draw
 
         protected override void DrawControl(Rectangle rect)
         {
@@ -190,9 +176,7 @@ namespace XNAFinalEngine.UserInterface
             // Only the children will be rendered.
         } // DrawControl
 
-        #endregion
 
-        #region Raise events
 
         protected virtual void OnAssetAdded(EventArgs e)
         {
@@ -205,10 +189,10 @@ namespace XNAFinalEngine.UserInterface
             if (AssetEdited != null)
                 AssetEdited.Invoke(this, e);
         } // OnAssetEdited
-        
+
         protected virtual void OnMaxItemsChanged(EventArgs e)
         {
-            if (MaxItemsChanged != null) 
+            if (MaxItemsChanged != null)
                 MaxItemsChanged.Invoke(this, e);
         } // OnMaxItemsChanged
 
@@ -218,7 +202,6 @@ namespace XNAFinalEngine.UserInterface
                 ItemIndexChanged.Invoke(this, e);
         } // OnItemIndexChanged
 
-        #endregion
 
     } // AssetSelector
 } // XNAFinalEngine.UserInterface

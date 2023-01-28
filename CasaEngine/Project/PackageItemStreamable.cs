@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,17 +14,14 @@ namespace CasaEngine.Project
     public class PackageItemStreamable
         : PackageItem
     {
-        #region Fields
 
         private IPackageable m_Item;
-        
+
         private long m_FilePosition; //use for binary loading
         private string m_XmlPath; //use for xml loading
         private Type m_ItemType;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -72,9 +71,7 @@ namespace CasaEngine.Project
             }
         }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -94,9 +91,7 @@ namespace CasaEngine.Project
             m_Item = item_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -129,9 +124,8 @@ namespace CasaEngine.Project
                 throw new InvalidOperationException("PackageItemStreamable : item is not a '" + typeof(T).Name + "' object.");
             }
 
-            return (T) m_Item;
+            return (T)m_Item;
         }
 
-        #endregion
     }
 }

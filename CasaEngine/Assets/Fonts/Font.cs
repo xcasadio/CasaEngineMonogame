@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
@@ -12,6 +14,8 @@ using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Project;
 
+
+
 #if EDITOR
 using System.ComponentModel;
 using CasaEngine.Editor.Assets;
@@ -22,7 +26,7 @@ namespace CasaEngine.Asset.Fonts
     /// <summary>
     /// 
     /// </summary>
-    public 
+    public
 #if EDITOR
     partial
 #endif  
@@ -35,7 +39,6 @@ namespace CasaEngine.Asset.Fonts
         Dictionary<char, FontChar> m_CharsDic;
         List<string> m_TexturesFileNames;
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -46,7 +49,7 @@ namespace CasaEngine.Asset.Fonts
         /// 
         /// </summary>
         public Texture[] Textures
-        { 
+        {
             get;
             internal set;
         }
@@ -103,8 +106,8 @@ namespace CasaEngine.Asset.Fonts
         {
             get;
             set;
-        }  
-        
+        }
+
         /// <summary>
         /// Gets or sets the vertical distance (in pixels) between the base lines of
         /// two consecutive lines of text. Line spacing includes the blank space between
@@ -145,9 +148,7 @@ namespace CasaEngine.Asset.Fonts
             //set { Resource.DefaultCharacter = value; }
         } // DefaultCharacter
 
-        #endregion
 
-        #region Constructors
 
         private Font()
         {
@@ -169,9 +170,7 @@ namespace CasaEngine.Asset.Fonts
             Load(node_, option_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -251,9 +250,7 @@ namespace CasaEngine.Asset.Fonts
             */
         }
 
-        #region BaseObject
 
-        #region Save/Load
 
         /// <summary>
         /// 
@@ -288,8 +285,7 @@ namespace CasaEngine.Asset.Fonts
         {
             throw new Exception("The method or operation is not implemented.");
         }
-        
-        #endregion
+
 
         /// <summary>
         /// 
@@ -323,9 +319,7 @@ namespace CasaEngine.Asset.Fonts
             throw new Exception("The method or operation is not implemented.");
         }
 
-        #endregion
 
-        #endregion
     }
 
     /// <summary>

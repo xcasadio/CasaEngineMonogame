@@ -210,7 +210,6 @@ namespace Poly2Tri.Triangulation.Delaunay.Sweep
             return new DTSweepConstraint(a, b);
         }
 
-        #region Nested type: DTSweepBasin
 
         public class DTSweepBasin
         {
@@ -221,9 +220,7 @@ namespace Poly2Tri.Triangulation.Delaunay.Sweep
             public double width;
         }
 
-        #endregion
 
-        #region Nested type: DTSweepEdgeEvent
 
         public class DTSweepEdgeEvent
         {
@@ -231,6 +228,5 @@ namespace Poly2Tri.Triangulation.Delaunay.Sweep
             public bool Right;
         }
 
-        #endregion
     }
 }

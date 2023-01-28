@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,10 +16,9 @@ namespace CasaEngine.Editor.Builder
     /// <summary>
     /// 
     /// </summary>
-    public class ContentBuilder 
+    public class ContentBuilder
         : IDisposable
     {
-        #region Fields
 
 
         // What importers or processors should we load?
@@ -62,9 +63,7 @@ namespace CasaEngine.Editor.Builder
         bool isDisposed;
 
         //private ComboItemCollection Importers;
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets the output directory, which will contain the generated .xnb files.
@@ -75,9 +74,7 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        #endregion
 
-        #region Initialization
         /// <summary>
         /// Creates a new content builder.
         /// </summary>
@@ -88,7 +85,7 @@ namespace CasaEngine.Editor.Builder
 
             //Importers = new ComboItemCollection();
             //Seguindo a Ordem: Extensão, Importer, Processor
-            
+
             /*Importers.Add(new ComboItem(".mp3", "Mp3Importer", "SongProcessor"));
             Importers.Add(new ComboItem(".wav", "WavImporter", "SoundEffectProcessor"));
             Importers.Add(new ComboItem(".wma", "WmaImporter", "SongProcessor"));
@@ -137,43 +134,41 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        #endregion
 
-        #region MSBuild
         /// <summary>
         /// Creates a temporary MSBuild content project in memory.
         /// </summary>
         void CreateBuildProject()
         {
-            string projectPath = Path.Combine(buildDirectory, "content.contentproj");
-            string outputPath = Path.Combine(buildDirectory, "bin");
-
-            // Create the build project.
-            projectRootElement = ProjectRootElement.Create(projectPath);
-
-            // Include the standard targets file that defines how to build XNA Framework content.
-            projectRootElement.AddImport("$(MSBuildExtensionsPath)\\Microsoft\\XNA Game Studio\\" +
-                                         "v4.0\\Microsoft.Xna.GameStudio.ContentPipeline.targets");
-
-            buildProject = new Microsoft.Build.Evaluation.Project(projectRootElement);
-
-            buildProject.SetProperty("XnaPlatform", "Windows");
-            buildProject.SetProperty("XnaProfile", "Reach");
-            buildProject.SetProperty("XnaFrameworkVersion", "v4.0");
-            buildProject.SetProperty("Configuration", "Release");
-            buildProject.SetProperty("OutputPath", outputPath);
-
-            // Register any custom importers or processors.
-            foreach (string pipelineAssembly in pipelineAssemblies)
-            {
-                buildProject.AddItem("Reference", pipelineAssembly);
-            }
-
-            // Hook up our custom error logger.
-            errorLogger = new ErrorLogger();
-
-            buildParameters = new BuildParameters(ProjectCollection.GlobalProjectCollection);
-            buildParameters.Loggers = new ILogger[] { errorLogger };
+            //string projectPath = Path.Combine(buildDirectory, "content.contentproj");
+            //string outputPath = Path.Combine(buildDirectory, "bin");
+            //
+            //// Create the build project.
+            //projectRootElement = ProjectRootElement.Create(projectPath);
+            //
+            //// Include the standard targets file that defines how to build XNA Framework content.
+            //projectRootElement.AddImport("$(MSBuildExtensionsPath)\\Microsoft\\XNA Game Studio\\" +
+            //                             "v4.0\\Microsoft.Xna.GameStudio.ContentPipeline.targets");
+            //
+            //buildProject = new Microsoft.Build.Evaluation.Project(projectRootElement);
+            //
+            //buildProject.SetProperty("XnaPlatform", "Windows");
+            //buildProject.SetProperty("XnaProfile", "Reach");
+            //buildProject.SetProperty("XnaFrameworkVersion", "v4.0");
+            //buildProject.SetProperty("Configuration", "Release");
+            //buildProject.SetProperty("OutputPath", outputPath);
+            //
+            //// Register any custom importers or processors.
+            //foreach (string pipelineAssembly in pipelineAssemblies)
+            //{
+            //    buildProject.AddItem("Reference", pipelineAssembly);
+            //}
+            //
+            //// Hook up our custom error logger.
+            //errorLogger = new ErrorLogger();
+            //
+            //buildParameters = new BuildParameters(ProjectCollection.GlobalProjectCollection);
+            //buildParameters.Loggers = new ILogger[] { errorLogger };
         }
 
         /*public void Add(ComboItem item)
@@ -230,7 +225,7 @@ namespace CasaEngine.Editor.Builder
         {
             // Clear any previous errors.
             errorLogger.Errors.Clear();
-            
+
             //BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
             BuildRequestData request = new BuildRequestData(buildProject.CreateProjectInstance(), new string[0]);
             //BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(request);
@@ -253,13 +248,11 @@ namespace CasaEngine.Editor.Builder
         }
 
         private void BuildSubmissionCompleteCallback(BuildSubmission submission)
-        {            
+        {
         }
 
 
-        #endregion
 
-        #region Temp Directories
 
 
         /// <summary>
@@ -357,6 +350,5 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        #endregion
     }
 }

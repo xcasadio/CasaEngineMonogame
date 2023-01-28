@@ -11,19 +11,14 @@ namespace Editor.UndoRedo
     class UndoRedoAddDeleteSocketCommand
         : ICommand
     {
-        #region Fields
 
         string m_Name;
         Vector2 m_Position;
         bool m_Add;
 
-		#endregion
 
-		#region Properties
 
-		#endregion
 
-		#region Constructor
 
 		/// <summary>
 		/// 
@@ -37,9 +32,7 @@ namespace Editor.UndoRedo
             m_Add = add_;
 		}
 
-		#endregion
 
-		#region ICommand Members
 
 		/// <summary>
 		/// 
@@ -83,6 +76,5 @@ namespace Editor.UndoRedo
             }
 		}
 
-		#endregion
     }
 }

@@ -45,7 +45,7 @@
 // Future possibilities
 //   Comments!
 
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using FarseerPhysics.Common.Decomposition.CDT;

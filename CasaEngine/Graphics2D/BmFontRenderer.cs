@@ -1,10 +1,14 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CasaEngine.Asset.Fonts;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
+
 
 namespace CasaEngine.Graphics2D
 {
@@ -103,7 +107,7 @@ namespace CasaEngine.Graphics2D
                         new Vector2(position.X + xOffset, position.Y + yOffset),
                         new Rectangle(c.X, c.Y, c.Width, c.Height),
                         color, rotation, origin, scale, effects, layerDepth);
- 
+
                 position.X += xAdvance;
             } // end for
         }

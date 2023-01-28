@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 
 namespace Editor.Tools.CurveEditor {
-    using System;
+    
     
     
     /// <summary>

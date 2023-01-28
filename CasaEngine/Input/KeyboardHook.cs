@@ -1,5 +1,4 @@
 
-#region License
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -27,15 +26,14 @@ This class was based in the work of Emma Burrows. That work doesn't have a licen
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework.Input;
-using XNAFinalEngine.EngineCore;
-#endregion
+
 
 namespace XNAFinalEngine.Input
 {
@@ -49,16 +47,13 @@ namespace XNAFinalEngine.Input
     public class KeyboardHook : IDisposable
     {
 
-        #region Constants
 
         /// <summary>
         /// Keyboard API constants
         /// </summary>
         private const int keyboardHookId = 13;
 
-        #endregion
 
-        #region Structs
 
         /// <summary>
         /// Structure returned by the hook whenever a key is pressed
@@ -69,9 +64,7 @@ namespace XNAFinalEngine.Input
             public int Flags;
         } // KeyboadHookStruct
 
-        #endregion
 
-        #region Variables
 
         /// <summary>
         /// Variables used in the call to SetWindowsHookEx
@@ -79,13 +72,11 @@ namespace XNAFinalEngine.Input
         private readonly HookHandlerDelegate proc;
         private readonly IntPtr hookId = IntPtr.Zero;
         internal delegate IntPtr HookHandlerDelegate(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam);
-        
+
         private KeyboadHookStruct lastParameter;
 
-        #endregion
 
-        #region Constructors
-        
+
         /// <summary>
         /// Sets up a keyboard hook to trap all keystrokes without passing any to other applications.
         /// It also disables the win key and allows the print screen key to call the screenshot capturer.
@@ -100,9 +91,7 @@ namespace XNAFinalEngine.Input
             }
         } // KeyboardHook
 
-        #endregion
 
-        #region Hook Callback Method
 
         /// <summary>
         /// Processes the key event captured by the hook.
@@ -117,15 +106,15 @@ namespace XNAFinalEngine.Input
                     (lParam.VkCode == 13) ||  // Alt-Enter (does not work properly so I made a fix)
                     lParam.VkCode == 44) // Print Screen
                 {
-                    if (lParam.VkCode == 44)
-                    {
-                        ScreenshotCapturer.MakeScreenshot = true;
-                    }
-                    KeyboardState keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-                    if (keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt))
-                    {
-                        Screen.ToggleFullscreen();
-                    }
+                    //if (lParam.VkCode == 44)
+                    //{
+                    //    ScreenshotCapturer.MakeScreenshot = true;
+                    //}
+                    //KeyboardState keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+                    //if (keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt))
+                    //{
+                    //    Screen.ToggleFullscreen();
+                    //}
 
                     // Store current parameter.
                     lastParameter = lParam;
@@ -139,9 +128,7 @@ namespace XNAFinalEngine.Input
             return NativeMethods.CallNextHookEx(hookId, nCode, wParam, ref lParam);
         } // HookCallback
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Releases the keyboard hook.
@@ -151,9 +138,7 @@ namespace XNAFinalEngine.Input
             NativeMethods.UnhookWindowsHookEx(hookId);
         } // Dispose
 
-        #endregion
 
-        #region Native methods
 
         [ComVisibleAttribute(false), System.Security.SuppressUnmanagedCodeSecurity]
         internal class NativeMethods
@@ -177,7 +162,6 @@ namespace XNAFinalEngine.Input
 
         } // NativeMethods
 
-        #endregion
 
     } // KeyboardHook
 } // XNAFinalEngine.Input

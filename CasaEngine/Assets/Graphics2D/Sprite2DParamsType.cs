@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +24,7 @@ namespace CasaEngine.Assets.Graphics2D
         /// 
         /// </summary>
         CollisionAttack,
-       
+
         /// <summary>
         /// 
         /// </summary>

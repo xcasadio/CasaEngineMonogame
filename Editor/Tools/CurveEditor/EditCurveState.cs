@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,7 +17,6 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public class EditCurveState : IEquatable<EditCurveState>
     {
-        #region Properties
 
         /// <summary>
         /// Gets/Sets Name
@@ -46,9 +45,7 @@ namespace Editor.Tools.CurveEditor
             set { postLoop = value; }
         }
 
-        #endregion
 
-        #region Equatable related override methods.
         public override int GetHashCode()
         {
             return String.IsNullOrEmpty(Name) ? 0 : Name.GetHashCode() +
@@ -74,7 +71,6 @@ namespace Editor.Tools.CurveEditor
                 PostLoop == other.PostLoop);
         }
 
-        #endregion
 
         /// <summary>
         /// Create close of this state.
@@ -89,7 +85,6 @@ namespace Editor.Tools.CurveEditor
             return newState;
         }
 
-        #region Operator override
 
         public static bool operator ==(EditCurveState value1, EditCurveState value2)
         {
@@ -101,15 +96,12 @@ namespace Editor.Tools.CurveEditor
             return !Object.Equals(value1, value2);
         }
 
-        #endregion
 
-        #region Private property members
 
         private string name;
         private CurveLoopType preLoop;
         private CurveLoopType postLoop;
 
-        #endregion
 
     }
 }

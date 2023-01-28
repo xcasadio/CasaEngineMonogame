@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,7 +27,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
     class ScreenGadget
         : ISaveLoad
     {
-        #region Fields
 
         private Texture2D m_WhiteTexture;
 
@@ -43,9 +44,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         private bool m_MouseLeftPressed = false;
         private bool m_MouseOver = false;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -159,8 +158,8 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         public Vector2 Location
         {
             get { return m_Location; }
-            set 
-            { 
+            set
+            {
                 m_Location = value;
                 UpdateBounds();
             }
@@ -173,7 +172,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         {
             get { return m_Width; }
             set
-            { 
+            {
                 m_Width = value;
                 UpdateBounds();
             }
@@ -201,9 +200,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             set;
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -215,9 +212,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             Load(el_, opt_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -282,7 +277,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             else if (mouseOver == true)
             {
                 mouseOver = true;
-                
+
                 if (MouseMove != null)
                 {
                     MouseMove.Invoke(this, EventArgs.Empty);
@@ -310,7 +305,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 #endif
         abstract void DrawGadget(float elapsedTime_);
 
-        #region Load
 
         /// <summary>
         /// 
@@ -324,7 +318,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
             int version = int.Parse(el_.Attributes["version"].Value);
 
-            AutoSize = bool.Parse(el_.SelectSingleNode("AutoSize").InnerText);            
+            AutoSize = bool.Parse(el_.SelectSingleNode("AutoSize").InnerText);
             ((XmlElement)el_.SelectSingleNode("BackgroundColor")).Read(ref c);
             BackgroundColor = c;
             FontName = el_.SelectSingleNode("FontName").InnerText;
@@ -351,7 +345,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             throw new NotImplementedException();
         }
 
-        #endregion
 
         /// <summary>
         /// 
@@ -382,9 +375,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 && Scale == g_.Scale;
         }
 
-        #endregion
 
-        #region Factory
 
         /// <summary>
         /// 
@@ -409,6 +400,5 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             }
         }
 
-        #endregion
     }
 }

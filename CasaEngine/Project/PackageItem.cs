@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,11 +17,8 @@ namespace CasaEngine.Project
     public abstract class PackageItem
         : ISaveLoad
     {
-        #region Fields
-        
-        #endregion
 
-        #region Properties
+
 
         /// <summary>
         /// Gets
@@ -74,9 +73,7 @@ namespace CasaEngine.Project
         /// </summary>
         public DateTime DateTime { get; internal set; }
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -91,16 +88,13 @@ namespace CasaEngine.Project
             FullPath = path_;
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
         /// </summary>
-        public abstract T LoadItem<T>();        
+        public abstract T LoadItem<T>();
 
-        #region ISaveLoad
 
 #if EDITOR
         public void Save(BinaryWriter bw_, SaveOption option_)
@@ -119,11 +113,9 @@ namespace CasaEngine.Project
         }
         public void Load(XmlElement el_, SaveOption option_)
         {
-            
+
         }
 
-        #endregion
 
-        #endregion
     }
 }

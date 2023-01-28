@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,14 +20,13 @@ namespace CasaEngine.Gameplay
     /// <summary>
     /// 
     /// </summary>
-    public sealed 
+    public sealed
 #if EDITOR
     partial
 #endif
     class ObjectManager
         : ISaveLoad
     {
-        #region ObjectContainer
 
         /// <summary>
         /// 
@@ -38,7 +39,6 @@ namespace CasaEngine.Gameplay
             BaseObject m_BaseObject;
             private Type m_ItemType;
 
-            #region Properties
 
             /// <summary>
             /// 
@@ -106,7 +106,7 @@ namespace CasaEngine.Gameplay
             /// </summary>
             internal BaseObject Object
             {
-                get 
+                get
                 {
                     if (m_BaseObject == null)
                     {
@@ -117,15 +117,15 @@ namespace CasaEngine.Gameplay
                             //if (XML)
                             XmlElement el;
                             string projectFile;
-                            
-                            
+
+
 #if EDITOR
                             projectFile = Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
                             projectFile += System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
 #else
                             projectFile = Engine.Instance.AssetContentManager.RootDirectory + System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
 #endif
-                          
+
                             XmlDocument xmlDoc = new XmlDocument();
                             xmlDoc.Load(projectFile);
                             el = (XmlElement)xmlDoc.SelectSingleNode("Root/Object");
@@ -150,10 +150,10 @@ namespace CasaEngine.Gameplay
                         }
                     }
 
-                    return m_BaseObject; 
+                    return m_BaseObject;
                 }
-                set 
-                { 
+                set
+                {
                     m_BaseObject = value;
                     ClassName = m_BaseObject.GetType().FullName;
                 }
@@ -190,7 +190,6 @@ namespace CasaEngine.Gameplay
                 }
             }
 
-            #endregion
 
             /// <summary>
             /// 
@@ -228,7 +227,6 @@ namespace CasaEngine.Gameplay
                 Load(br_, option_);
             }
 
-            #region ISaveLoad
 
             /// <summary>
             /// 
@@ -264,23 +262,16 @@ namespace CasaEngine.Gameplay
                 XPath = "Project/Objects/Object[@id='" + ID + "']";
             }
 
-            #endregion
         }
 
-        #endregion
-        
-        #region Fields
+
 
         //full path, object container
         Dictionary<string, ObjectContainer> m_Objects = new Dictionary<string, ObjectContainer>(100);
 
-        #endregion
 
-        #region Properties
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -290,11 +281,8 @@ namespace CasaEngine.Gameplay
 
         }
 
-        #endregion
 
-        #region Methods
 
-        #region Object
 
         /// <summary>
         /// 
@@ -344,9 +332,7 @@ namespace CasaEngine.Gameplay
             return null;
         }
 
-        #endregion
 
-        #region ISaveLoad
 
         /// <summary>
         /// 
@@ -408,8 +394,6 @@ namespace CasaEngine.Gameplay
             throw new NotImplementedException();
         }
 
-        #endregion
 
-        #endregion
     }
 }

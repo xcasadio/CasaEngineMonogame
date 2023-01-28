@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,11 +9,8 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -25,7 +21,6 @@ namespace XNAFinalEngine.UserInterface
     public class Panel : Container
     {
 
-        #region Variables
 
         private readonly Bevel bevel;
         private BevelStyle bevelStyle = BevelStyle.None;
@@ -33,9 +28,7 @@ namespace XNAFinalEngine.UserInterface
         private int bevelMargin;
         private Color bevelColor = Color.Black;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Bevel Style.
@@ -101,17 +94,13 @@ namespace XNAFinalEngine.UserInterface
             }
         } // BevelColor
 
-        #endregion
 
-        #region Events
 
         public event EventHandler BevelBorderChanged;
         public event EventHandler BevelStyleChanged;
         public event EventHandler BevelMarginChanged;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Panel.
@@ -140,9 +129,7 @@ namespace XNAFinalEngine.UserInterface
             AdjustMargins();
         } // Panel
 
-        #endregion
 
-        #region Init
 
         protected internal override void InitSkin()
         {
@@ -150,9 +137,7 @@ namespace XNAFinalEngine.UserInterface
             SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["Panel"]);
         } // InitSkin
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -166,9 +151,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Adjust Margins
 
         protected override void AdjustMargins()
         {
@@ -199,9 +182,7 @@ namespace XNAFinalEngine.UserInterface
             base.AdjustMargins();
         } // AdjustMargins
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -248,9 +229,7 @@ namespace XNAFinalEngine.UserInterface
             base.DrawControl(new Rectangle(x, y, w, h));
         } // DrawControl
 
-        #endregion
 
-        #region OnBevelBorderChanged, OnBevelStyleChanged, OnBevelMarginChanged
 
         protected virtual void OnBevelBorderChanged(EventArgs e)
         {
@@ -267,7 +246,6 @@ namespace XNAFinalEngine.UserInterface
             if (BevelMarginChanged != null) BevelMarginChanged.Invoke(this, e);
         } // OnBevelMarginChanged
 
-        #endregion
 
     } // Panel
 } // XNAFinalEngine.UserInterface

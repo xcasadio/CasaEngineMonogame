@@ -13,16 +13,12 @@ namespace CasaEngine.Asset
     public abstract partial class Asset 
         : Disposable, ISaveLoad
     {
-        #region Properties
 
         [TypeConverter(typeof(AssetBuildParamCollectionConverter))]
         public AssetBuildParamCollection BuildParams;
         
-        #endregion
 
-        #region Methods
 
-        #region Save
 
         /// <summary>
         /// 
@@ -44,8 +40,6 @@ namespace CasaEngine.Asset
 
         }
 
-        #endregion
 
-        #endregion
     }
 }

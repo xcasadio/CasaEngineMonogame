@@ -1,9 +1,7 @@
-#region Using Directives
 
 using System;
 using System.Collections.Generic;
 
-#endregion
 
 namespace CasaEngineCommon.Collection
 {
@@ -13,7 +11,6 @@ namespace CasaEngineCommon.Collection
 	/// <typeparam name="T">The type of the elements in the priority queue</typeparam>
 	public interface IPriorityQueue<T> : ICollection<T>, IList<T>, ICloneable
 	{
-		#region Methods
 
 		/// <summary>
 		/// Push an object onto the PQ
@@ -34,6 +31,5 @@ namespace CasaEngineCommon.Collection
 		/// <returns>The smallest object</returns>
 		T Peek();
 
-		#endregion
 	}
 }

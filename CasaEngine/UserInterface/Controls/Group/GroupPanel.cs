@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,13 +9,13 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Asset.Fonts;
-#endregion
+
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -27,7 +26,6 @@ namespace XNAFinalEngine.UserInterface
     public class GroupPanel : Container
     {
 
-        #region Constructor
 
         /// <summary>
         /// Group Panel. Group controls with and title a bar.
@@ -41,9 +39,7 @@ namespace XNAFinalEngine.UserInterface
             Height = 64;
         } // GroupPanel
 
-        #endregion
 
-        #region Draw Control
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -62,7 +58,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
     } // GroupPanel
 } // XNAFinalEngine.UserInterface

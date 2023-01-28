@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,9 +15,7 @@ namespace CasaEngine.CoreSystems
     /// </summary>
     public class Screen
     {
-        #region Properties
 
-        #region Resolution
 
         /// <summary>
         /// Screen width.
@@ -27,25 +27,20 @@ namespace CasaEngine.CoreSystems
         /// </summary>        
         public int Height { get { return GraphicsDevice.PresentationParameters.BackBufferHeight; } }
 
-        #endregion
 
         /// <summary>
         /// 
         /// </summary>
         private GraphicsDevice GraphicsDevice { get; set; }
 
-        #endregion
 
-        #region Events
 
         /// <summary>
         /// Raised when the window size changes.
         /// </summary>
         public event EventHandler ScreenSizeChanged;
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -55,9 +50,7 @@ namespace CasaEngine.CoreSystems
             GraphicsDevice = graphicsDevice_;
         }
 
-        #endregion
 
-        #region On Screen Size Changed
 
         /// <summary>
         /// Raised when the window size changes.
@@ -68,7 +61,6 @@ namespace CasaEngine.CoreSystems
                 ScreenSizeChanged(sender, EventArgs.Empty);
         } // OnScreenSizeChanged
 
-        #endregion
 
     } // Screen
 

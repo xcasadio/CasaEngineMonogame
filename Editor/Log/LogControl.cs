@@ -6,13 +6,13 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using ProjetEditor.Log;
 using CasaEngineCommon.Logger;
+using Editor.Log;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace Editor.WinForm.Controls
 {
-    public partial class LogControl 
+    public partial class LogControl
         : Form
     {
         public LogControl()

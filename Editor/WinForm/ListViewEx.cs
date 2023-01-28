@@ -72,7 +72,6 @@ namespace Editor.WinForm
 	///	</summary>
 	public class ListViewEx	: System.Windows.Forms.ListView
 	{
-		#region Interop structs, imports and constants
 		/// <summary>
 		/// MessageHeader for WM_NOTIFY
 		/// </summary>
@@ -107,7 +106,6 @@ namespace Editor.WinForm
 		private const int HDN_BEGINDRAG = (HDN_FIRST-10);
 		private const int HDN_ITEMCHANGINGA = (HDN_FIRST-0);
 		private const int HDN_ITEMCHANGINGW = (HDN_FIRST-20);
-		#endregion
 
 		///	<summary>
 		///	Required designer variable.
@@ -141,7 +139,6 @@ namespace Editor.WinForm
 			base.Dispose( disposing	);
 		}
 
-		#region Component	Designer generated code
 		///	<summary>
 		///	Required method	for	Designer support - do not modify 
 		///	the	contents of	this method	with the code editor.
@@ -150,7 +147,6 @@ namespace Editor.WinForm
 		{
 			components = new System.ComponentModel.Container();
 		}
-	  #endregion
 
 		private bool _doubleClickActivation = false;
 		/// <summary>
@@ -280,7 +276,6 @@ namespace Editor.WinForm
 		}
 
 
-		#region Initialize editing depending of DoubleClickActivation property
 		protected override void OnMouseUp(System.Windows.Forms.MouseEventArgs e)
 		{
 			base.OnMouseUp(e);
@@ -321,9 +316,7 @@ namespace Editor.WinForm
 			}
 		}
 
-		#endregion
 
-		#region In-place editing functions
 		// The control performing the actual editing
 		private Control _editingControl;
 		// The LVI being edited
@@ -457,6 +450,5 @@ namespace Editor.WinForm
 			_editItem = null;
 			_editSubItem = -1;
 		}
-		#endregion
 	}
 }

@@ -1,7 +1,8 @@
 ﻿
-#region Using Directives
 
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,24 +26,20 @@ using CasaEngine.Editor.Assets;
 
 #endif
 
-#endregion
 
 namespace CasaEngine.Game
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class GameInfo
-	{
-		#region Fields
-		
+    /// <summary>
+    /// 
+    /// </summary>
+    public class GameInfo
+    {
+
         static readonly private GameInfo m_GameInfo = new GameInfo();
 
         private WorldInfo m_WorldInfo;
 
-		#endregion
 
-		#region Properties
 
         /// <summary>
         /// Gets
@@ -52,7 +49,6 @@ namespace CasaEngine.Game
             get { return m_GameInfo; }
         }
 
-        #region World
 
         /// <summary>
         /// Gets
@@ -62,9 +58,7 @@ namespace CasaEngine.Game
             get { return m_WorldInfo; }
         }
 
-        #endregion
 
-        #region Gameplay
 
         /// <summary>
         /// 
@@ -84,11 +78,8 @@ namespace CasaEngine.Game
             set;
         }
 
-        #endregion
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -98,10 +89,7 @@ namespace CasaEngine.Game
             m_WorldInfo = new WorldInfo();
         }
 
-        #endregion
 
-        #region Methods
 
-        #endregion
     }
 }

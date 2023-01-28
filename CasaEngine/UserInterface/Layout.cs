@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,15 +9,14 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System;
+
+
 using System.Reflection;
 using System.Xml.Linq;
 using CasaEngine.Asset;
 using XNAFinalEngine.Assets;
-#endregion
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -29,7 +27,6 @@ namespace XNAFinalEngine.UserInterface
     public static class Layout
     {
 
-        #region Load
 
         /// <summary>
         /// Load layout file.
@@ -74,9 +71,7 @@ namespace XNAFinalEngine.UserInterface
             return mainContainer;
         } // Load
 
-        #endregion
 
-        #region Load Control
 
         /// <summary>
         /// Load a control from the xml layout file.
@@ -85,7 +80,7 @@ namespace XNAFinalEngine.UserInterface
         {
             // Create control instance (it doesn't know the type in compiler time)
             Control control = (Control)Activator.CreateInstance(type);
-            
+
             if (parent != null)
                 control.Parent = parent;
 
@@ -116,9 +111,7 @@ namespace XNAFinalEngine.UserInterface
             return control;
         } // LoadControl
 
-        #endregion
 
-        #region Load Property
 
         /// <summary>
         /// Load the properties of a control.
@@ -144,7 +137,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // LoadProperties
 
-        #endregion
 
     } // Layout
 } // XNAFinalEngine.UserInterface

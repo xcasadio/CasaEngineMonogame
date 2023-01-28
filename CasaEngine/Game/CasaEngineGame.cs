@@ -1,10 +1,11 @@
 using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
@@ -25,7 +26,7 @@ namespace CasaEngine.Game
     /// <summary>
     /// Extended Game class to add all components and behaviours to use them.
     /// </summary>
-    public abstract class CasaEngineGame 
+    public abstract class CasaEngineGame
         : Microsoft.Xna.Framework.Game
     {
         private Microsoft.Xna.Framework.GraphicsDeviceManager graphics;
@@ -39,7 +40,6 @@ namespace CasaEngine.Game
         protected string m_ContentPath = string.Empty;
 #endif
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -57,9 +57,7 @@ namespace CasaEngine.Game
             get { return m_ProjectFile; }
         }
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// Create components
@@ -101,7 +99,6 @@ namespace CasaEngine.Game
 #endif
         }
 
-        #endregion
 
         /// <summary>
         /// 

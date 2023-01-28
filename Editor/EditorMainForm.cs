@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -49,7 +49,6 @@ namespace Editor
 
         private InputRtfForm m_GameDocForm = null;
 
-        #region Constructor
 
         /// <summary>
         /// 
@@ -92,9 +91,7 @@ namespace Editor
 #endif
         }
 
-        #endregion
 
-        #region Menu
 
         /// <summary>
         /// 
@@ -329,9 +326,7 @@ namespace Editor
             this.Close();
         }
 
-        #endregion
 
-        #region Project
 
         /// <summary>
         /// 
@@ -522,9 +517,7 @@ namespace Editor
                 "(", Engine.Instance.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
         }
 
-        #endregion
 
-        #region Launch Game
 
         /// <summary>
         /// 
@@ -750,7 +743,6 @@ namespace Editor
             return string.Empty;
         }
 
-        #endregion
 
         /// <summary>
         /// 

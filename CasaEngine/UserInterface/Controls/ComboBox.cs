@@ -1,5 +1,4 @@
 
-#region License
 /*
 
  Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
@@ -10,15 +9,14 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 */
-#endregion
 
-#region Using directives
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.CoreSystems;
 
-#endregion
+
+
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -29,7 +27,6 @@ namespace XNAFinalEngine.UserInterface
     public class ComboBox : TextBox
     {
 
-        #region Variables
 
         private readonly Button buttonDown;
         private readonly List<object> items = new List<object>();
@@ -45,9 +42,7 @@ namespace XNAFinalEngine.UserInterface
         /// </summary>
         private bool drawSelection = true;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Indicates if the internal list box is visible or not.
@@ -64,9 +59,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 base.ReadOnly = value;
                 CaretVisible = !value;
-                #if (WINDOWS)
-                    Cursor = value ? UserInterfaceManager.Skin.Cursors["Default"].Cursor : UserInterfaceManager.Skin.Cursors["Text"].Cursor;
-                #endif
+#if (WINDOWS)
+                Cursor = value ? UserInterfaceManager.Skin.Cursors["Default"].Cursor : UserInterfaceManager.Skin.Cursors["Text"].Cursor;
+#endif
             }
         } // ReadOnly
 
@@ -114,7 +109,7 @@ namespace XNAFinalEngine.UserInterface
                 if (maxItems != value)
                 {
                     maxItems = value;
-                    if (!Suspended) 
+                    if (!Suspended)
                         OnMaxItemsChanged(new EventArgs());
                 }
             }
@@ -137,21 +132,17 @@ namespace XNAFinalEngine.UserInterface
                 {
                     listCombo.ItemIndex = -1;
                 }
-                if (!Suspended) 
+                if (!Suspended)
                     OnItemIndexChanged(new EventArgs());
             }
         } // ItemIndex
 
-        #endregion
 
-        #region Events
 
         public event EventHandler MaxItemsChanged;
         public event EventHandler ItemIndexChanged;
 
-        #endregion
 
-        #region Constructor
 
         /// <summary>
         /// Combo Box
@@ -180,9 +171,7 @@ namespace XNAFinalEngine.UserInterface
             };
         } // ComboBox
 
-        #endregion
 
-        #region Dispose
 
         /// <summary>
         /// Dispose managed resources.
@@ -201,9 +190,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        #endregion
 
-        #region Init
 
         protected internal override void Init()
         {
@@ -215,7 +202,7 @@ namespace XNAFinalEngine.UserInterface
             listCombo.SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ComboBox.ListBox"]);
             buttonDown.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowDown"].Texture)
             {
-                Color = UserInterfaceManager.Skin.Controls["ComboBox.Button"].Layers["Control"].Text.Colors. Enabled,
+                Color = UserInterfaceManager.Skin.Controls["ComboBox.Button"].Layers["Control"].Text.Colors.Enabled,
                 SizeMode = SizeMode.Centered
             };
         } // Init
@@ -228,9 +215,7 @@ namespace XNAFinalEngine.UserInterface
             ReadOnly = ReadOnly; // To init the right cursor
         } // InitSkin
 
-        #endregion
 
-        #region Draw
 
         /// <summary>
         /// Prerender the control into the control's render target.
@@ -250,9 +235,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        #endregion
 
-        #region On Resize
 
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -267,9 +250,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OnResize
 
-        #endregion
 
-        #region List Event
 
         private void ListComboClick(object sender, EventArgs e)
         {
@@ -290,9 +271,7 @@ namespace XNAFinalEngine.UserInterface
             Focused = true;
         } // ListComboClick
 
-        #endregion
 
-        #region Button Down Click
 
         private void ButtonDownClick(object sender, EventArgs e)
         {
@@ -335,9 +314,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ButtonDownClick
 
-        #endregion
 
-        #region Input Mouse Down
 
         private void InputMouseDown(object sender, MouseEventArgs e)
         {
@@ -363,9 +340,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // InputMouseDown
 
-        #endregion
 
-        #region On Event
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
@@ -386,19 +361,17 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnMaxItemsChanged(EventArgs e)
         {
-            if (MaxItemsChanged != null) 
+            if (MaxItemsChanged != null)
                 MaxItemsChanged.Invoke(this, e);
         } // OnMaxItemsChanged
 
         protected virtual void OnItemIndexChanged(EventArgs e)
         {
-            if (ItemIndexChanged != null) 
+            if (ItemIndexChanged != null)
                 ItemIndexChanged.Invoke(this, e);
         } // OnItemIndexChanged
 
-        #endregion
 
-        #region Adjust Margins
 
         protected override void AdjustMargins()
         {
@@ -406,7 +379,6 @@ namespace XNAFinalEngine.UserInterface
             ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, ClientMargins.Right + 16, ClientMargins.Bottom);
         } // AdjustMargins
 
-        #endregion
 
     } // ComboBox
 } // XNAFinalEngine.UserInterface

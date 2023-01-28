@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +19,6 @@ namespace CasaEngine.Project
     /// </summary>
     public class ProjectConfig
     {
-        #region Fields
 
         /// <summary>
         /// Name of the window title
@@ -44,7 +45,6 @@ namespace CasaEngine.Project
 #endif
 
 #if EDITOR
-        #region Data Source Control
 
         /// <summary>
         /// 
@@ -66,14 +66,11 @@ namespace CasaEngine.Project
         /// </summary>
         private string m_DataSrcCtrl_Workspace = string.Empty;
 
-        #endregion
 
         static private readonly uint m_Version = 2;
 #endif
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets/Sets(editor) Window Title
@@ -144,7 +141,7 @@ namespace CasaEngine.Project
             set { m_IsFixedTimeStep = value; }
 #endif
         }
-        
+
         /// <summary>
         /// Gets
         /// </summary>
@@ -161,7 +158,6 @@ namespace CasaEngine.Project
 
 #if !FINAL
 
-        #region Debug
 
         /// <summary>
         /// Gets
@@ -205,13 +201,10 @@ namespace CasaEngine.Project
 #endif
         }
 
-        #endregion
 
 #endif
 
-        #endregion
 
-        #region Constructors
 
         /// <summary>
         /// 
@@ -230,9 +223,7 @@ namespace CasaEngine.Project
             Load(el_, option_);
         }
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -313,6 +304,5 @@ namespace CasaEngine.Project
 
 #endif
 
-        #endregion
     }
 }

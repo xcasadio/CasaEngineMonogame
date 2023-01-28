@@ -15,14 +15,11 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
     /// </summary>
     public class SpriteSheetTaskManager
     {
-        #region Fields
 
         static private int m_Version = 1;
         private List<SpriteSheetTask> m_Tasks = new List<SpriteSheetTask>();
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// Gets
@@ -32,13 +29,9 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             get { return m_Tasks; }
         }
 
-        #endregion
 
-        #region Constructors
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -185,6 +178,5 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             return true;
         }
 
-        #endregion
     }
 }

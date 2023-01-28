@@ -1,7 +1,6 @@
-﻿
-#region Using Directives
+﻿using System;
 
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,48 +14,69 @@ using CasaEngine;
 using CasaEngine.Gameplay.Design;
 using CasaEngineCommon.Design;
 
-#endregion
 
 namespace CasaEngine.Gameplay.Actor.Object
 {
-	/// <summary>
-	/// All objects (game or editor) derives from it
-	/// </summary>
-	public abstract	
-#if EDITOR
-	partial		
-#endif
-	class BaseObject
+    /// <summary>
+    /// All objects (game or editor) derives from it
+    /// </summary>
+    public abstract class BaseObject
         : BaseEntity, ISaveLoad, IActorCloneable
-	{
-		#region Fields
+    {
 
-		#endregion
-
-		#region Properties
-
-		/// <summary>
-		/// Gets if object is temporary (not saved in world)
-		/// Just a copy of an other object
-		/// </summary>
 #if EDITOR
-		[Category("Object"),
-		ReadOnly(true)]
+        static private readonly int m_Version = 1;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_">le noeud qui va contenir les informations de l'objet</param>
+        /// <param name="option_"></param>
+        public virtual void Save(XmlElement el_, SaveOption option_)
+        {
+            XmlElement rootNode = el_.OwnerDocument.CreateElement("BaseObject");
+            el_.AppendChild(rootNode);
+            el_.OwnerDocument.AddAttribute(rootNode, "version", m_Version.ToString());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="el_">le noeud qui va contenir les informations de l'objet</param>
+        /// <param name="option_"></param>
+        public virtual void Save(BinaryWriter bw_, SaveOption option_)
+        {
+            bw_.Write(m_Version);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="other_"></param>
+        public abstract bool CompareTo(BaseObject other_);
 #endif
-		public bool Temporary
-		{
-			get;
-			internal set;
-		}
- 
-		#endregion
 
-		#region Constructor
 
-		/// <summary>
-		/// 
-		/// </summary>
-		protected BaseObject() {}
+        /// <summary>
+        /// Gets if object is temporary (not saved in world)
+        /// Just a copy of an other object
+        /// </summary>
+#if EDITOR
+        [Category("Object"),
+        ReadOnly(true)]
+#endif
+        public bool Temporary
+        {
+            get;
+            internal set;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected BaseObject() { }
 
         /// <summary>
         /// 
@@ -66,9 +86,7 @@ namespace CasaEngine.Gameplay.Actor.Object
             Load(el_, option_);
         }
 
-        #endregion
 
-        #region Method
 
         /// <summary>
         /// 
@@ -96,20 +114,17 @@ namespace CasaEngine.Gameplay.Actor.Object
 		/// </summary>
 		/// <param name="ob_"></param>
 		protected virtual void CopyFrom(BaseObject ob_)
-		{
-			this.Temporary = ob_.Temporary;
-		}
+        {
+            this.Temporary = ob_.Temporary;
+        }
 
-		#endregion
 
-		#region Abstract Methods
 
-		/// <summary>
-		/// Copy
-		/// </summary>
-		/// <returns></returns>
-		public abstract BaseObject Clone();
+        /// <summary>
+        /// Copy
+        /// </summary>
+        /// <returns></returns>
+        public abstract BaseObject Clone();
 
-		#endregion
-	}
+    }
 }

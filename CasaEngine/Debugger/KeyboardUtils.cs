@@ -1,19 +1,17 @@
-﻿#region File Description
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // KeyboardUtils.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-#endregion
 
-#region Using Statements
 
 using System;
+
+
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Input;
 
-#endregion
 
 namespace CasaEngine.Debugger
 {
@@ -22,7 +20,6 @@ namespace CasaEngine.Debugger
     /// </summary>
     public static class KeyboardUtils
     {
-        #region Fields
 
         /// <summary>
         /// Character pair class that holds normal character and character with
@@ -44,7 +41,6 @@ namespace CasaEngine.Debugger
         static private Dictionary<Keys, CharPair> keyMap =
                                                     new Dictionary<Keys, CharPair>();
 
-        #endregion
 
         /// <summary>
         /// Gets a character from key information.
@@ -84,7 +80,6 @@ namespace CasaEngine.Debugger
             return result;
         }
 
-        #region Initialization
 
         static KeyboardUtils()
         {
@@ -158,7 +153,6 @@ namespace CasaEngine.Debugger
             keyMap.Add(key, new CharPair(char1, char2));
         }
 
-        #endregion
 
     }
 

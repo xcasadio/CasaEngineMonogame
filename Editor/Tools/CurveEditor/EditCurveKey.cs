@@ -4,7 +4,7 @@
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
@@ -16,7 +16,6 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public class EditCurveKey : IEquatable<EditCurveKey>
     {
-        #region Properties
 
         /// <summary>
         /// Sets/Gets Id.
@@ -104,9 +103,7 @@ namespace Editor.Tools.CurveEditor
             set { originalKey.Continuity = value; }
         }
 
-        #endregion
 
-        #region Constructors
         public EditCurveKey(long id, CurveKey key)
         {
             Id = id;
@@ -114,7 +111,6 @@ namespace Editor.Tools.CurveEditor
 
             TangentOutType = TangentInType = EditCurveTangent.Smooth;
         }
-        #endregion
 
         /// <summary>
         /// Clone this Key.
@@ -158,7 +154,6 @@ namespace Editor.Tools.CurveEditor
 
         private static long currentId;
 
-        #region Properties wrap members.
 
         public long id;
         private EditCurveSelections selection = EditCurveSelections.None;
@@ -166,7 +161,6 @@ namespace Editor.Tools.CurveEditor
         private EditCurveTangent tangentInType = EditCurveTangent.Smooth;
         private CurveKey originalKey;
 
-        #endregion
 
     }
 }

@@ -1,7 +1,6 @@
 ﻿
-#region Using Directives
 
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +8,6 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-#endregion
 
 namespace CasaEngineCommon.Extension
 {
@@ -19,7 +17,6 @@ namespace CasaEngineCommon.Extension
 	/// </summary>
 	static public class BinaryIOExtension
     {
-        #region Write
 
 		/// <summary>
 		/// 
@@ -140,9 +137,7 @@ namespace CasaEngineCommon.Extension
 			binWriter_.Write(p_.Y);
 		}
 
-        #endregion
 
-        #region Read
 
 		/// <summary>
 		/// 
@@ -287,6 +282,5 @@ namespace CasaEngineCommon.Extension
 			return p;
         }
 
-        #endregion
     }
 }

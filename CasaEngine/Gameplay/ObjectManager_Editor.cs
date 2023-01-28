@@ -1,4 +1,6 @@
 ﻿using System;
+
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +26,6 @@ namespace CasaEngine.Gameplay
     /// </summary>
     partial class ObjectManager
     {
-        #region ObjectData
 
         /// <summary>
         /// Used in GUI (example content browser object list)
@@ -49,9 +50,7 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        #endregion
 
-        #region ObjectContainer
 
         /// <summary>
         /// 
@@ -61,7 +60,6 @@ namespace CasaEngine.Gameplay
             static private int m_Version = 1;
             static private int m_FreeID = 1;
 
-            #region Properties
 
             /// <summary>
             /// 
@@ -72,7 +70,6 @@ namespace CasaEngine.Gameplay
                 internal set;
             }
 
-            #endregion
 
             /// <summary>
             /// 
@@ -98,7 +95,6 @@ namespace CasaEngine.Gameplay
                 MustBeSaved = true;
             }
 
-            #region ISaveLoad
 
             /// <summary>
             /// 
@@ -119,16 +115,16 @@ namespace CasaEngine.Gameplay
             {
                 //if (IsLoaded == true)
                 //{
-                    XmlElement node = el_.OwnerDocument.CreateElement("Object");
-                    el_.AppendChild(node);
+                XmlElement node = el_.OwnerDocument.CreateElement("Object");
+                el_.AppendChild(node);
 
-                    el_.OwnerDocument.AddAttribute(node, "id", ID.ToString());
-                    el_.OwnerDocument.AddAttribute(node, "classname", ClassName);
-                    el_.OwnerDocument.AddAttribute(node, "path", Path);
-                    el_.OwnerDocument.AddAttribute(node, "version", m_Version.ToString());
+                el_.OwnerDocument.AddAttribute(node, "id", ID.ToString());
+                el_.OwnerDocument.AddAttribute(node, "classname", ClassName);
+                el_.OwnerDocument.AddAttribute(node, "path", Path);
+                el_.OwnerDocument.AddAttribute(node, "version", m_Version.ToString());
 
-                    return node;
-                    //m_BaseObject.Save(node, option_);
+                return node;
+                //m_BaseObject.Save(node, option_);
                 //}
                 /*else
                 {
@@ -138,19 +134,14 @@ namespace CasaEngine.Gameplay
                 }*/
             }
 
-            #endregion
 
         } // end class ObjectContainer
 
-        #endregion
-        
-        #region Fields
+
 
         static private int m_Version = 1;
 
-        #endregion
 
-        #region Events
 
         public event EventHandler ObjectAdded;
         public event EventHandler ObjectModified;
@@ -163,9 +154,7 @@ namespace CasaEngine.Gameplay
 
         public event EventHandler AllObjectSaved;
 
-        #endregion
 
-        #region Properties
 
         /// <summary>
         /// 
@@ -190,13 +179,9 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        #endregion
 
-        #region Constructor
 
-        #endregion
 
-        #region Methods
 
         /// <summary>
         /// 
@@ -214,7 +199,6 @@ namespace CasaEngine.Gameplay
             throw new NotImplementedException();
         }
 
-        #region Object
 
         /// <summary>
         /// 
@@ -267,7 +251,7 @@ namespace CasaEngine.Gameplay
             catch (System.Exception e)
             {
                 LogManager.Instance.WriteException(e);
-            }            
+            }
         }
 
         /// <summary>
@@ -316,7 +300,7 @@ namespace CasaEngine.Gameplay
 
                     foreach (string assetFileName in asset.AssetFileNames)
                     {
-                        string assetPath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + 
+                        string assetPath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                             ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + assetFileName;
 
                         if (File.Exists(assetPath) == true)
@@ -324,8 +308,8 @@ namespace CasaEngine.Gameplay
                             File.Delete(assetPath);
 
                             //TODO : Source Control
-                        }                    
-                    }                    
+                        }
+                    }
                 }
 
                 string objFile = GetFileName(objC);
@@ -337,7 +321,7 @@ namespace CasaEngine.Gameplay
                     //TODO : source control
                 }
 
-                m_Objects.Remove(path_);               
+                m_Objects.Remove(path_);
 
                 if (ObjectRemoved != null)
                 {
@@ -347,7 +331,7 @@ namespace CasaEngine.Gameplay
             catch (System.Exception e)
             {
                 LogManager.Instance.WriteException(e);
-            }            
+            }
         }
 
         /// <summary>
@@ -388,7 +372,7 @@ namespace CasaEngine.Gameplay
                 else
                 {
                     //SaveObjectXML(GetFileName(objC), objC, SaveOption.Editor); // save to create the new file                    
-                }                
+                }
 
                 //TODO : source control
 
@@ -400,7 +384,7 @@ namespace CasaEngine.Gameplay
             catch (System.Exception e)
             {
                 LogManager.Instance.WriteException(e);
-            }            
+            }
         }
 
         /// <summary>
@@ -419,7 +403,7 @@ namespace CasaEngine.Gameplay
                 {
                     IAssetable asset = (IAssetable)baseObj;
                     List<string> newAssets = new List<string>();
-                            
+
                     foreach (string fileName in asset.AssetFileNames)
                     {
                         string assetPath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
@@ -432,12 +416,12 @@ namespace CasaEngine.Gameplay
                         }
 
                         File.Move(assetPath, destAssetFile);
-                        newAssets.Add(destAssetFile.Replace(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + 
+                        newAssets.Add(destAssetFile.Replace(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                             ProjectManager.AssetDirPath + Path.DirectorySeparatorChar, ""));
 
                         //TODO : Source Control
                     }
-                 
+
                     asset.AssetFileNames.Clear();
                     asset.AssetFileNames.AddRange(newAssets);
                 }
@@ -462,13 +446,13 @@ namespace CasaEngine.Gameplay
 
                 //move old file
                 if (string.IsNullOrEmpty(oldFile) == false)
-                 {
+                {
                     if (File.Exists(newFile) == true)
                     {
                         File.Delete(newFile);
                     }
 
-                    File.Move(oldFile, newFile);                    
+                    File.Move(oldFile, newFile);
                 }
                 else
                 {
@@ -493,7 +477,7 @@ namespace CasaEngine.Gameplay
             catch (System.Exception e)
             {
                 LogManager.Instance.WriteException(e);
-            }            
+            }
         }
 
         /// <summary>
@@ -563,7 +547,7 @@ namespace CasaEngine.Gameplay
                     break;
 
                 case AssetType.Video:
-                    
+
                     break;
 
                 default:
@@ -575,7 +559,7 @@ namespace CasaEngine.Gameplay
                 if (type.FullName.Equals(pair.Value.ClassName) == true)
                 {
                     res.Add(pair.Key);
-                }                
+                }
             }
 
             return res.ToArray();
@@ -632,9 +616,7 @@ namespace CasaEngine.Gameplay
                         + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + objC_.Path + ext;
         }
 
-        #endregion
 
-        #region ISaveLoad
 
         /// <summary>
         /// 
@@ -845,8 +827,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        #endregion
 
-        #endregion
     }
 }
