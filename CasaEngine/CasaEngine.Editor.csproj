@@ -4,6 +4,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWindowsForms>true</UseWindowsForms>
+		<AssemblyName>CasaEngine</AssemblyName>
+		<RootNamespace>CasaEngine</RootNamespace>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
 		<DefineConstants>TRACE;DEBUG;WINDOWS;EDITOR</DefineConstants>
@@ -21,18 +23,21 @@
 		<DefineConstants>$(DefineConstants)TRACE;EDITOR</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="Microsoft.Build" Version="17.4.0" />
+		<PackageReference Include="Microsoft.Build" Version="17.4.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\CasaEngineCommon\CasaEngineCommon.Editor.csproj" />
 		<ProjectReference Include="..\FarseerPhysics\Farseer Physics XNA.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-		<Reference Include="FNA">
-			<HintPath>..\ThirdParties\FNA\Release\FNA.dll</HintPath>
-		</Reference>
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<Reference Include="P4API">
-		  <HintPath>..\ThirdParties\P4.Net\P4API.dll</HintPath>
+			<HintPath>..\ThirdParties\P4.Net\P4API.dll</HintPath>
 		</Reference>
 	</ItemGroup>
+	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+		<Message Text="Restoring dotnet tools" Importance="High" />
+		<Exec Command="dotnet tool restore" />
+	</Target>
 </Project>

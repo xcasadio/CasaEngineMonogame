@@ -136,7 +136,7 @@ namespace CasaEngine.FrontEnd.Screen
                 Vector2 textSize = Engine.Instance.DefaultSpriteFont.MeasureString(message);
                 Vector2 textPosition = (viewportSize - textSize) / 2;
 
-                Color color = new Color(255, 255, 255, TransitionAlpha);
+                Color color = new Color((byte)255, (byte)255, (byte)255, TransitionAlpha);
 
                 // Draw the text.
                 /*spriteBatch.Begin();

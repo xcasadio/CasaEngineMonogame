@@ -335,7 +335,7 @@ namespace CasaEngine.FrontEnd.Screen
             m_Renderer2DComponent.AddSprite2D(blankTexture,
                                 new Rectangle(0, 0, viewport.Width, viewport.Height),
                                 Point.Zero, Vector2.Zero, 0.0f, Vector2.One,
-                                new Color(0, 0, 0, (byte)alpha), 0.99f, SpriteEffects.None);
+                                new Color(0, 0, 0, alpha), 0.99f, SpriteEffects.None);
         }
 
     }

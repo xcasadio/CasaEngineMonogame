@@ -1,4 +1,4 @@
-﻿
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,15 +33,15 @@ namespace Editor.Game
         /// 
         /// </summary>
         /// <param name="control_"></param>
-        public CustomGameEditor(System.Windows.Forms.Control control_)
-            : base(control_)
+        public CustomGameEditor(System.Windows.Forms.Control control_, IntPtr handle)
+            : base(control_, handle)
         {
             m_GraphicsDeviceManager = new CasaEngine.Game.GraphicsDeviceManager(this);
             m_GraphicsDeviceManager.PreferredBackBufferHeight = control_.Height;
             m_GraphicsDeviceManager.PreferredBackBufferWidth = control_.Width;
 
             m_Grid2DComponent = new Grid2DComponent(this);
-            UIManager = new UserInterfaceManager();
+            //UIManager = new UserInterfaceManager();
         }
 
         /// <summary>
@@ -50,8 +50,7 @@ namespace Editor.Game
         protected override void LoadContent()
         {
             base.LoadContent();
-            UIManager.Initialize(m_GraphicsDeviceManager.GraphicsDevice, GameWindowHandle,
-                new Microsoft.Xna.Framework.Rectangle(0, 0, GameWindow.ClientSize.Width, GameWindow.ClientSize.Height));
+            //UIManager.Initialize(m_GraphicsDeviceManager.GraphicsDevice, GameWindowHandle, new Microsoft.Xna.Framework.Rectangle(0, 0, GameWindow.ClientSize.Width, GameWindow.ClientSize.Height));
         }
 
         /// <summary>
@@ -60,7 +59,7 @@ namespace Editor.Game
         /// <param name="gameTime"></param>
         protected override void Update(GameTime gameTime)
         {
-            UIManager.Update(GameTimeHelper.GameTimeToMilliseconds(gameTime));
+            //UIManager.Update(GameTimeHelper.GameTimeToMilliseconds(gameTime));
             base.Update(gameTime);
         }
 
@@ -70,10 +69,10 @@ namespace Editor.Game
         /// <param name="gameTime"></param>
         protected override void Draw(GameTime gameTime)
         {
-            UIManager.PreRenderControls();
+            //UIManager.PreRenderControls();
             GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
             base.Draw(gameTime);
-            UIManager.RenderUserInterfaceToScreen();
+            //UIManager.RenderUserInterfaceToScreen();
         }
     }
 }

@@ -59,7 +59,7 @@ namespace Editor.Tools
             win.Disposed += new EventHandler(OnFormDisposed);
             win.Activated += new System.EventHandler(this.OnActivated);
             win.Deactivate += new System.EventHandler(this.OnDeactivate);
-            m_Game = new CustomGameEditor(m_Form.XnaPanel);
+            m_Game = new CustomGameEditor(m_Form.XnaPanel, m_Form.XnaPanel.Handle);
 
             m_EventWaitHandle = new AutoResetEvent(true);
         }
@@ -93,7 +93,7 @@ namespace Editor.Tools
         public void StartGame()
         {
             m_ThreadGame = new Thread(
-                new ParameterizedThreadStart(delegate(object g)
+                new ParameterizedThreadStart(delegate (object g)
                 {
                     try
                     {

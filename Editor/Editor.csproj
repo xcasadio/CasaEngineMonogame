@@ -13,17 +13,16 @@
 		<DefineConstants>TRACE;WINDOWS;EDITOR</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="DockPanelSuite" Version="3.1.0" />
-	  <PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.0" />
+		<PackageReference Include="DockPanelSuite" Version="3.1.0" />
+		<PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\CasaEngineCommon\CasaEngineCommon.Editor.csproj" />
 		<ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Reference Include="FNA">
-	    <HintPath>..\ThirdParties\FNA\Release\FNA.dll</HintPath>
-	  </Reference>
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 	</ItemGroup>
 	<ItemGroup>
 		<Resource Include="Resources\icon_circle_add_16x16.png" />

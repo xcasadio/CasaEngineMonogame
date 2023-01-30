@@ -167,10 +167,9 @@ namespace Editor.Game.Control
         {
             try
             {
-                Microsoft.Xna.Framework.Rectangle sourceRectangle = new Microsoft.Xna.Framework.Rectangle(0, 0, ClientSize.Width,
-                                                                ClientSize.Height);
-
-                GraphicsDevice.Present(sourceRectangle, null, this.Handle);
+                //Microsoft.Xna.Framework.Rectangle sourceRectangle = new Microsoft.Xna.Framework.Rectangle(0, 0, ClientSize.Width, ClientSize.Height);
+                //GraphicsDevice.Present(sourceRectangle, null, this.Handle);
+                GraphicsDevice.Present();
             }
             catch
             {
