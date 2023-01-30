@@ -1,11 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Event;
 using CasaEngineCommon.Design;
@@ -13,9 +6,6 @@ using CasaEngine.Gameplay.Actor.Object;
 
 namespace CasaEngine.Assets.Graphics2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class Animation2D
     {
 
@@ -24,23 +14,9 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        /// <summary>
-        /// Gets Frame Count
-        /// </summary>
-        public int FrameCount
-        {
-            get { return m_Frames.Count; }
-        }
+        public int FrameCount => m_Frames.Count;
 
 
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="spriteId_"></param>
-        /// <param name="delay_"></param>
         public void AddFrame(int spriteId_, float delay_, EventActor[] events_)
         {
             Frame2D frame = new Frame2D(spriteId_, delay_);
@@ -56,41 +32,23 @@ namespace CasaEngine.Assets.Graphics2D
             ComputeTotalTime();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="frameIndex_"></param>
-        /// <returns></returns>
         public float GetFrameTime(int frameIndex_)
         {
             return m_Frames[frameIndex_].time;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="totalElapsedTime_"></param>
         public void SetTime(float totalElapsedTime_)
         {
             m_CurrentTime = totalElapsedTime_;
             ComputeCurrentFrame();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
         public void DeleteFrame(int index_)
         {
             m_Frames.RemoveAt(index_);
             ComputeTotalTime();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="frameIndex_"></param>
-        /// <param name="delay_"></param>
         public void SetFrameDelay(int frameIndex_, float delay_)
         {
             Frame2D frame = m_Frames[frameIndex_];
@@ -99,11 +57,6 @@ namespace CasaEngine.Assets.Graphics2D
             ComputeTotalTime();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="frameIndex_"></param>
-        /// <param name="eventList_"></param>
         public void SetFrameEvents(int frameIndex_, List<EventActor> eventList_)
         {
             Frame2D frame = m_Frames[frameIndex_];
@@ -111,30 +64,17 @@ namespace CasaEngine.Assets.Graphics2D
             m_Frames[frameIndex_] = frame;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="frameIndex_"></param>
         public void SetCurrentFrame(int frameIndex_)
         {
             m_CurrentTime = m_Frames[frameIndex_].time;
             m_CurrentFrame = frameIndex_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public int GetCurrentFrameIndex()
         {
             return m_CurrentFrame;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite2DID"></param>
-        /// <param name="frameIndex_"></param>
         public void SetFrameSprite2D(int sprite2DID, int frameIndex_)
         {
             Frame2D frame = m_Frames[frameIndex_];
@@ -142,10 +82,6 @@ namespace CasaEngine.Assets.Graphics2D
             m_Frames[frameIndex_] = frame;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public override void Save(XmlElement el_, SaveOption option_)
         {
             base.Save(el_, option_);
@@ -180,10 +116,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public override void Save(BinaryWriter bw_, SaveOption option_)
         {
             base.Save(bw_, option_);
@@ -206,10 +138,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
         public void MoveFrameForward(int index_)
         {
             if (index_ < m_Frames.Count - 1)
@@ -220,10 +148,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
         public void MoveFrameBackward(int index_)
         {
             if (index_ > 0)
@@ -234,11 +158,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other_"></param>
-        /// <returns></returns>
         public override bool CompareTo(BaseObject other_)
         {
             if (other_ is Animation2D)

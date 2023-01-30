@@ -1,37 +1,12 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
-
-
-
-
 namespace CasaEngine.AI.Messaging
 {
-    /// <summary>
-    /// This class comprares if 2 messages are equal
-    /// </summary>
-    /// <remarks>
-    /// If two messages of the same type go to the same entity from the same entity and their time
-    /// difference is lower or equal than the precision of the comparer , the two messages are equal 
-    /// (used in the message manager to discard similar messages and avoid flowing an entity)
-    ///	</remarks>
     public class MessageComparer : IComparer<Message>
     {
 
-        /// <summary>
-        /// Value that indicates the precision window of dispatch time we are using to compare 2 messages
-        /// </summary>
         protected internal double precision;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="precision">Value that indicates the precision window of dispatch time we are using to compare 2 messages</param>
         public MessageComparer(double precision)
         {
             String message = String.Empty;
@@ -44,12 +19,6 @@ namespace CasaEngine.AI.Messaging
 
 
 
-        /// <summary>
-        /// Validates if the precision value is correct (>= 0)
-        /// </summary>
-        /// <param name="precision">The precision value we want to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidatePrecision(double precision, ref string message)
         {
             if (precision < 0)
@@ -63,12 +32,6 @@ namespace CasaEngine.AI.Messaging
 
 
 
-        /// <summary>
-        /// Compares two messages and returns their relative order
-        /// </summary>
-        /// <param name="x">First message to compare</param>
-        /// <param name="y">Second message to compare</param>
-        /// <returns>1 if x is greater than y, 0 if they are equal, -1 if y is greater than x</returns>
         public int Compare(Message x, Message y)
         {
             //Note to myself: it´s really a good idea to compare the extra info field? Maybe will let pass nearly similar messages...

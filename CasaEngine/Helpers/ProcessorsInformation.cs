@@ -25,45 +25,18 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 
 */
 
-using System;
-
-
-
 namespace XNAFinalEngine.Helpers
 {
-    /// <summary>
-    /// This indicates the available processors and the desired processors' affinity.
-    /// </summary>
-    /// <remarks>
-    /// Threading in XNA Final Engine is fairly simple. 
-    /// Thanks to the data oriented design, the task could be performed in serial mode spreading the work into different cores and therefore avoiding asynchronic updates.
-    /// 
-    /// The game loop asks for the hardware threads available and divides the work in them. 
-    /// In Xbox 360 the engine uses the core 1, 3, 4 and 5; 0 and 2 are used by XNA (or the operative system).
-    /// In PC, there is a hardware thread for each available core. I assume that the cores are not being used;
-    /// however, the core that runs the application makes a little more work than the others to avoid a potential bottleneck,
-    /// moreover, small test performed shows me that this is better for performance. 
-    /// </remarks>
     public static class ProcessorsInformation
     {
 
 
-        /// <summary>
-        /// The number of processors availables. 
-        /// The application thread is not included.
-        /// </summary>
         public static int AvailableProcessors { get; private set; }
 
-        /// <summary>
-        /// The desired affinity of the Xbox 360 hardware threads. This not include the application thread.
-        /// </summary>
         public static int[] ProcessorsAffinity { get; private set; }
 
 
 
-        /// <summary>
-        /// Obtain the number of logical cores available for multithreading.
-        /// </summary>
         static ProcessorsInformation()
         {
 #if XBOX

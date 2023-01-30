@@ -1,37 +1,21 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
-using System;
-
-
-using System.Linq;
-using System.Text;
-
 using CasaEngine.Game;
-using CasaEngine.Math;
 using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Helper;
 
 namespace CasaEngine.Graphics2D
 {
-    /// <summary>
-    /// TODO : use Text2D and Renderer2DComponent
-    /// </summary>
     public class ScreenLogComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-
-        List<LogText> m_LogText = new List<LogText>();
+        readonly List<LogText> m_LogText = new List<LogText>();
         Renderer2DComponent m_Renderer2DComponent = null;
 
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="game_"></param>
         public ScreenLogComponent(Microsoft.Xna.Framework.Game game_)
             : base(game_)
         {
@@ -48,10 +32,6 @@ namespace CasaEngine.Graphics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing == true)
@@ -66,41 +46,21 @@ namespace CasaEngine.Graphics2D
             base.Dispose(disposing);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="text_"></param>
         public void AddText(string text_)
         {
             AddText(text_, Engine.Instance.DefaultSpriteFont, Color.White);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="text_"></param>
-        /// <param name="spriteFont_"></param>
         public void AddText(string text_, SpriteFont spriteFont_)
         {
             AddText(text_, spriteFont_, Color.White);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="text_"></param>
-        /// <param name="spriteFont_"></param>
         public void AddText(string text_, Color color_)
         {
             AddText(text_, Engine.Instance.DefaultSpriteFont, color_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="text_"></param>
-        /// <param name="spriteFont_"></param>
-        /// <param name="color_"></param>
         public void AddText(string text_, SpriteFont spriteFont_, Color color_)
         {
             LogText log = new LogText();
@@ -111,19 +71,12 @@ namespace CasaEngine.Graphics2D
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected override void LoadContent()
         {
             m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
             base.LoadContent();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Update(GameTime gameTime)
         {
             List<LogText> ToDelete = new List<LogText>();
@@ -148,10 +101,6 @@ namespace CasaEngine.Graphics2D
             base.Update(gameTime);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
             if (m_LogText.Count == 0)
@@ -173,9 +122,6 @@ namespace CasaEngine.Graphics2D
 
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     class LogText
     {
         public string text = string.Empty;

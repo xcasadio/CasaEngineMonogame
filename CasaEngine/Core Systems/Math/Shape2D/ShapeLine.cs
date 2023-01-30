@@ -1,11 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 
 #if EDITOR
@@ -14,9 +7,6 @@ using System.ComponentModel;
 
 namespace CasaEngine.Math.Shape2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
  partial
@@ -29,9 +19,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape Line")]
 #endif
@@ -47,9 +34,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape Line")]
 #endif
@@ -67,25 +51,14 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ShapeLine() { }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ShapeLine(ShapeLine o_)
             : base(o_)
         { }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(XmlElement el_, SaveOption option_)
         {
             base.Load(el_, option_);
@@ -95,19 +68,11 @@ namespace CasaEngine.Math.Shape2D
             m_End.Y = int.Parse(el_.Attributes["endY"].Value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override Shape2DObject Clone()
         {
             return new ShapeLine(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ob_"></param>
         public override void CopyFrom(Shape2DObject ob_)
         {
             if (ob_ is ShapeLine == false)
@@ -120,10 +85,6 @@ namespace CasaEngine.Math.Shape2D
             m_End = ((ShapeLine)ob_).m_End;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="x_"></param>
         public override void FlipHorizontally()
         {
             int x = m_End.X - m_Start.X;
@@ -131,10 +92,6 @@ namespace CasaEngine.Math.Shape2D
             m_End.X -= x;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="y_"></param>
         public override void FlipVertically()
         {
             int y = m_End.Y - m_Start.Y;

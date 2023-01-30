@@ -1,16 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Physics2D
+﻿namespace CasaEngine.Physics2D
 {
-    /// <summary>
-    /// -- No more Used
-    /// Engine physics settings
-    /// </summary>
     /*public class PhysicsSettings
     {
         public PhysicsSettings()

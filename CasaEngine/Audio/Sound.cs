@@ -1,41 +1,24 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework.Audio;
 using CasaEngine.Gameplay.Actor.Object;
 
 namespace CasaEngine.Audio
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class Sound
         : BaseObject
     {
-
-        SoundEffect m_SoundEffect;
+        readonly SoundEffect m_SoundEffect;
         SoundEffectInstance m_SoundEffectInstance;
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public SoundEffectInstance SoundEffectInstance
         {
-            get { return m_SoundEffectInstance; }
-            set { m_SoundEffectInstance = value; }
+            get => m_SoundEffectInstance;
+            set => m_SoundEffectInstance = value;
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="soundEffect_"></param>
         public Sound(SoundEffect soundEffect_)
         {
             if (soundEffect_ == null)
@@ -48,9 +31,6 @@ namespace CasaEngine.Audio
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Initialize()
         {
             m_SoundEffectInstance = m_SoundEffect.CreateInstance();

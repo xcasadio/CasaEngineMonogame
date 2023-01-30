@@ -1,15 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Gameplay.Actor.Event
+﻿namespace CasaEngine.Gameplay.Actor.Event
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class DestroyActorEvent
         : EventActor
     {
@@ -18,9 +8,6 @@ namespace CasaEngine.Gameplay.Actor.Event
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public DestroyActorEvent()
             : base(EventActorType.DestroyActor)
         {
@@ -29,17 +16,11 @@ namespace CasaEngine.Gameplay.Actor.Event
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public override void Initialize()
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public override void Do()
         {
             throw new NotImplementedException();

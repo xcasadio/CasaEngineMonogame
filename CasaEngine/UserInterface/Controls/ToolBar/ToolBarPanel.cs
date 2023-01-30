@@ -13,16 +13,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Tool Bar Panel.
-    /// </summary>
     public class ToolBarPanel : Control
     {
 
    
-        /// <summary>
-        /// Tool Bar Panel.
-        /// </summary>
         public ToolBarPanel(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {

@@ -1,38 +1,15 @@
 
-using System;
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 {
-    /// <summary>
-    /// This abstract class represents a mutation algorithm that can be applied in a
-    /// genetic algorithm or evolutionary strategy. This class must provide the means
-    /// of mutating a whole population of chromosomes.
-    /// </summary>
-    /// <typeparam name="T">The genes type. Can be anything</typeparam>
     public abstract class MutationAlgorithm<T>
     {
 
-        /// <summary>
-        /// Probability that the mutation takes place
-        /// </summary>
         protected internal double probability;
 
-        /// <summary>
-        /// Random number generator
-        /// </summary>
         protected internal Random generator;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <remarks>Param values are validated</remarks>
-        /// <param name="probability">The mutation probabilty</param>
-        /// <param name="generator">Random number generator</param>
         protected MutationAlgorithm(double probability, Random generator)
         {
             String message = String.Empty;
@@ -50,20 +27,10 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
 
 
-        /// <summary>
-        /// Applies the mutation operator
-        /// </summary>
-        /// <param name="population">The population we want to mutate</param>
         public abstract void Mutate(Population<T> population);
 
 
 
-        /// <summary>
-        /// Validates if the probability value is correct (in the [0, 1] range)
-        /// </summary>
-        /// <param name="probability">Probability value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateProbability(double probability, ref String message)
         {
             if (probability < 0 || probability > 1)
@@ -75,12 +42,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             return true;
         }
 
-        /// <summary>
-        /// Validates if the generator is correct (not null)
-        /// </summary>
-        /// <param name="generator">Generator value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateGenerator(Random generator, ref String message)
         {
             if (generator == null)

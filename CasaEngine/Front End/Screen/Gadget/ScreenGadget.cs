@@ -1,10 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Xml;
 using CasaEngine.Game;
@@ -12,14 +6,10 @@ using CasaEngine.Graphics2D;
 using CasaEngine.CoreSystems.Game;
 using Microsoft.Xna.Framework.Input;
 using CasaEngineCommon.Extension;
-using System.IO;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.FrontEnd.Screen.Gadget
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public abstract
 #if EDITOR
     partial
@@ -46,118 +36,73 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Rectangle Bounds
         {
             get;
             protected set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        protected Texture2D WhiteTexture
-        {
-            get { return m_WhiteTexture; }
-        }
+        protected Texture2D WhiteTexture => m_WhiteTexture;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Renderer2DComponent Renderer2DComponent
-        {
-            get { return m_Renderer2DComponent; }
-        }
+        public Renderer2DComponent Renderer2DComponent => m_Renderer2DComponent;
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public bool AutoSize
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public bool CanSelect
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int TabIndex
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Color BackgroundColor
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Color FontColor
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public SpriteFont Font
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public string FontName
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public string Text
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public string Name
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Vector2 Location
         {
-            get { return m_Location; }
+            get => m_Location;
             set
             {
                 m_Location = value;
@@ -165,12 +110,9 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Width
         {
-            get { return m_Width; }
+            get => m_Width;
             set
             {
                 m_Width = value;
@@ -178,12 +120,9 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Height
         {
-            get { return m_Height; }
+            get => m_Height;
             set
             {
                 m_Height = value;
@@ -191,9 +130,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Vector2 Scale
         {
             get;
@@ -202,11 +138,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         protected ScreenGadget(XmlElement el_, SaveOption opt_)
         {
             Load(el_, opt_);
@@ -214,10 +145,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="game_"></param>
         public virtual void Initialize(Microsoft.Xna.Framework.Game game_)
         {
             m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(game_);
@@ -231,10 +158,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             //Font = game_.Content.Load<SpriteFont>(FontName);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public virtual void Update(float elapsedTime_)
         {
             int mouseX = Mouse.GetState().X, mouseY = Mouse.GetState().Y;
@@ -285,19 +208,11 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public void Draw(float elapsedTime_)
         {
             DrawGadget(elapsedTime_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
 #if EDITOR
         public // used by ScreenGadgetManipulator
 #else
@@ -306,11 +221,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         abstract void DrawGadget(float elapsedTime_);
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public virtual void Load(XmlElement el_, SaveOption opt_)
         {
             Color c = Color.White;
@@ -335,30 +245,17 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             Text = el_.SelectSingleNode("Text").InnerText;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="opt_"></param>
         public virtual void Load(BinaryReader br_, SaveOption opt_)
         {
             throw new NotImplementedException();
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void UpdateBounds()
         {
             Bounds = new Rectangle((int)Location.X, (int)Location.Y, m_Width, m_Height);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="g_"></param>
-        /// <returns></returns>
         public bool Compare(ScreenGadget g_)
         {
             return m_Width == g_.m_Width
@@ -377,12 +274,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
-        /// <returns></returns>
         static public ScreenGadget LoadScreenGadget(XmlElement el_, SaveOption opt_)
         {
             string typeName = el_.Attributes["typeName"].Value;

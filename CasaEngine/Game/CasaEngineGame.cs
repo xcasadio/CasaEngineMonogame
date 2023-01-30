@@ -1,36 +1,20 @@
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Media;
-
 using CasaEngine.Debugger;
 using CasaEngine.Graphics2D;
-using System.IO;
 using CasaEngine.FrontEnd.Screen;
 using CasaEngine.Input;
-using CasaEngine.Math;
 using CasaEngine.Helper;
 using CasaEngineCommon.Helper;
 using CasaEngine.Asset;
-using CasaEngine.Asset.Fonts;
 
 namespace CasaEngine.Game
 {
-    /// <summary>
-    /// Extended Game class to add all components and behaviours to use them.
-    /// </summary>
     public abstract class CasaEngineGame
         : Microsoft.Xna.Framework.Game
     {
-        private Microsoft.Xna.Framework.GraphicsDeviceManager graphics;
-        private Renderer2DComponent m_Renderer2DComponent;
+        private readonly Microsoft.Xna.Framework.GraphicsDeviceManager graphics;
+        private readonly Renderer2DComponent m_Renderer2DComponent;
         private ScreenManagerComponent m_ScreenManagerComponent;
         private InputComponent m_InputComponent;
         private ShapeRendererComponent m_ShapeRendererComponent;
@@ -41,29 +25,11 @@ namespace CasaEngine.Game
 #endif
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Microsoft.Xna.Framework.GraphicsDeviceManager GraphicsDeviceManager
-        {
-            get { return graphics; }
-        }
+        public Microsoft.Xna.Framework.GraphicsDeviceManager GraphicsDeviceManager => graphics;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public string ProjectFile
-        {
-            get { return m_ProjectFile; }
-        }
+        public string ProjectFile => m_ProjectFile;
 
 
-
-        /// <summary>
-        /// Create components
-        /// Initialize GraphicsDeviceManager
-        /// Read Arguments
-        /// </summary>
         public CasaEngineGame()
         {
             Engine.Instance.Game = this;
@@ -100,11 +66,6 @@ namespace CasaEngine.Game
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
         {
             for (int i = 0; i < GraphicsAdapter.Adapters.Count; i++)
@@ -118,10 +79,6 @@ namespace CasaEngine.Game
             }
         }
 
-        /// <summary>
-        /// Load Project
-        /// Initialize graphics options from project options
-        /// </summary>
         protected override void Initialize()
         {
 #if FINAL
@@ -151,9 +108,6 @@ namespace CasaEngine.Game
             base.Initialize();
         }
 
-        /// <summary>
-        /// Create SpriteBatch
-        /// </summary>
         protected override void LoadContent()
         {
             Engine.Instance.AssetContentManager.Initialize(GraphicsDevice);
@@ -168,9 +122,6 @@ namespace CasaEngine.Game
             m_Renderer2DComponent.SpriteBatch = Engine.Instance.SpriteBatch;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected override void BeginRun()
         {
             //test
@@ -181,10 +132,6 @@ namespace CasaEngine.Game
 
         protected abstract void Update(float elpasedTime_);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         protected override void Update(GameTime gameTime)
         {
             if (Engine.Instance.ResetDevice == true)
@@ -213,10 +160,6 @@ namespace CasaEngine.Game
 
         protected abstract void Draw(float elpasedTime_);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         protected override void Draw(GameTime gameTime)
         {
 #if !FINAL

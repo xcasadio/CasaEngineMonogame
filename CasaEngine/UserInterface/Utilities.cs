@@ -10,16 +10,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-
 namespace XNAFinalEngine.UserInterface
 {
     static class Utilities
     {
 
-        /// <summary>
-        /// Control type name.
-        /// </summary>
         public static string ControlTypeName(Control control)
         {
             string str = control.ToString();

@@ -1,14 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
-using System.Xml;
-using CasaEngineCommon.Extension;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
-using CasaEngineCommon.Pool;
 
 #if EDITOR
 using System.ComponentModel;
@@ -16,9 +7,6 @@ using System.ComponentModel;
 
 namespace CasaEngine.Math.Shape2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -31,9 +19,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape Circle")]
 #endif
@@ -51,44 +36,25 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ShapeCircle() { }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ShapeCircle(ShapeCircle o_)
             : base(o_)
         { }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(XmlElement el_, SaveOption option_)
         {
             base.Load(el_, option_);
             m_Radius = int.Parse(el_.Attributes["radius"].Value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override Shape2DObject Clone()
         {
             return new ShapeCircle(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ob_"></param>
         public override void CopyFrom(Shape2DObject ob_)
         {
             if (ob_ is ShapeCircle == false)
@@ -105,9 +71,6 @@ namespace CasaEngine.Math.Shape2D
         // Pool for this type of components.
         /*private static readonly Pool<ShapeCircle> componentPool = new Pool<ShapeCircle>(20);
 
-        /// <summary>
-        /// Pool for this type of components.
-        /// </summary>
         internal static Pool<ShapeCircle> ComponentPool { get { return componentPool; } }*/
 
     }

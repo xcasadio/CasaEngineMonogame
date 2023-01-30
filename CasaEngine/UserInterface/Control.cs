@@ -10,17 +10,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Asset;
 
 using XNAFinalEngine.Helpers;
-using CasaEngine.Game;
-using CasaEngine.Asset.Cursors;
 using Cursor = CasaEngine.Asset.Cursors.Cursor;
 
 
@@ -29,9 +23,6 @@ namespace XNAFinalEngine.UserInterface
 {
 
 
-    /// <summary>
-    /// Defines type used as a controls collection.
-    /// </summary>
     public class ControlsList : EventedList<Control>
     {
         public ControlsList() { }
@@ -43,16 +34,10 @@ namespace XNAFinalEngine.UserInterface
     } // ControlsList
 
 
-    /// <summary>
-    /// Defines the base class for all controls.
-    /// </summary>    
     public class Control : Disposable
     {
 
 
-        /// <summary>
-        /// Undefined Color.
-        /// </summary>
         public static readonly Color UndefinedColor = new Color(255, 255, 255, 0);
 
 
@@ -180,18 +165,9 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// List of all controls, even if they are not added to the manager or another control.
-        /// </summary>
-        public static ControlsList ControlList { get { return controlList; } }
+        public static ControlsList ControlList => controlList;
 
 
-
-        /// <summary>
-        /// Get the virtual height of this control. 
-        /// I.e. the height that is established by the children controls.
-        /// Sometimes the control is smaller so a scroll bar is needed.
-        /// </summary>
         internal virtual int VirtualHeight
         {
             get
@@ -217,11 +193,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // VirtualHeight
 
-        /// <summary>
-        /// Get the virtual width of this control. 
-        /// I.e. the width that is established by the children controls.
-        /// Sometimes the control is smaller so a scroll bar is needed.
-        /// </summary>
         internal virtual int VirtualWidth
         {
             get
@@ -250,12 +221,9 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Gets or sets the distance, in pixels, between the left edge of the control and the left edge of its parent.
-        /// </summary>
         public virtual int Left
         {
-            get { return left; }
+            get => left;
             set
             {
                 if (left != value)
@@ -271,12 +239,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Left
 
-        /// <summary>
-        /// Gets or sets the distance, in pixels, between the top edge of the control and the top edge of its parent.
-        /// </summary>
         public virtual int Top
         {
-            get { return top; }
+            get => top;
             set
             {
                 if (top != value)
@@ -292,15 +257,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Top
 
-        /// <summary>
-        /// Gets or sets the width of the control.
-        /// </summary>
         public virtual int Width
         {
-            get
-            {
-                return width;
-            }
+            get => width;
             set
             {
                 if (width != value)
@@ -330,15 +289,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Width
 
-        /// <summary>
-        /// Gets or sets the height of the control.
-        /// </summary>
         public virtual int Height
         {
-            get
-            {
-                return height;
-            }
+            get => height;
             set
             {
                 if (height != value)
@@ -369,12 +322,9 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Gets or sets the minimum width in pixels the control can be sized to.
-        /// </summary>
         public virtual int MinimumWidth
         {
-            get { return minimumWidth; }
+            get => minimumWidth;
             set
             {
                 minimumWidth = value;
@@ -387,12 +337,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MinimumWidth
 
-        /// <summary>
-        /// /// Gets or sets the minimum height in pixels the control can be sized to.
-        /// </summary>
         public virtual int MinimumHeight
         {
-            get { return minimumHeight; }
+            get => minimumHeight;
             set
             {
                 minimumHeight = value;
@@ -405,9 +352,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MinimumHeight
 
-        /// <summary>
-        /// /// Gets or sets the maximum width in pixels the control can be sized to.
-        /// </summary>
         public virtual int MaximumWidth
         {
             get
@@ -427,9 +371,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MaximumWidth
 
-        /// <summary>
-        /// Gets or sets the maximum height in pixels the control can be sized to.
-        /// </summary>
         public virtual int MaximumHeight
         {
             get
@@ -451,21 +392,12 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// The horizontal scrolling amount.
-        /// </summary>
         internal virtual int HorizontalScrollingAmount { get; set; }
 
-        /// <summary>
-        /// The vertical scrolling amount.
-        /// </summary>
         internal virtual int VerticalScrollingAmount { get; set; }
 
 
 
-        /// <summary>
-        /// The screen coordinates where the control begins. The margins aren't taken in consideration.
-        /// </summary>
         internal virtual int ControlLeftAbsoluteCoordinate
         {
             get
@@ -478,9 +410,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlLeftAbsoluteCoordinate
 
-        /// <summary>
-        /// The screen coordinates where the control begins. The margins aren't taken in consideration.
-        /// </summary>
         internal virtual int ControlTopAbsoluteCoordinate
         {
             get
@@ -493,10 +422,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlTopAbsoluteCoordinate
 
-        /// <summary>
-        /// The screen coordinates where the control begins. The margins are taken in consideration.
-        /// In this case the width of the control is its width and the size of the margins.
-        /// </summary>
         protected virtual int ControlAndMarginsLeftAbsoluteCoordinate
         {
             get
@@ -507,10 +432,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlAndMarginsLeftAbsoluteCoordinate
 
-        /// <summary>
-        /// The screen coordinates where the control begins. The margins are taken in consideration.
-        /// In this case the height of the control is its height and the size of the margins.
-        /// </summary>
         protected virtual int ControlAndMarginsTopAbsoluteCoordinate
         {
             get
@@ -523,9 +444,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// The width and the size of the left and right margins.
-        /// </summary>
         internal virtual int ControlAndMarginsWidth
         {
             get
@@ -536,9 +454,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlAndMarginsWidth
 
-        /// <summary>
-        /// The height and the size of the bottom and top margins.
-        /// </summary>
         internal virtual int ControlAndMarginsHeight
         {
             get
@@ -551,91 +466,37 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Get and set the control's client margins.
-        /// </summary>
         public virtual Margins ClientMargins { get; set; }
 
-        /// <summary>
-        /// Client Left.
-        /// </summary>
-        public virtual int ClientLeft { get { return ClientMargins.Left; } }
+        public virtual int ClientLeft => ClientMargins.Left;
 
-        /// <summary>
-        /// Client Top..
-        /// </summary>
-        public virtual int ClientTop { get { return ClientMargins.Top; } }
+        public virtual int ClientTop => ClientMargins.Top;
 
-        /// <summary>
-        /// Client Width.
-        /// </summary>
         public virtual int ClientWidth
         {
-            get { return ControlAndMarginsWidth - ClientMargins.Left - ClientMargins.Right; }
-            set { Width = value + ClientMargins.Horizontal - skinControl.OriginMargins.Horizontal; }
+            get => ControlAndMarginsWidth - ClientMargins.Left - ClientMargins.Right;
+            set => Width = value + ClientMargins.Horizontal - skinControl.OriginMargins.Horizontal;
         } // ClientWidth
 
-        /// <summary>
-        /// Client Height.
-        /// </summary>
         public virtual int ClientHeight
         {
-            get { return ControlAndMarginsHeight - ClientMargins.Top - ClientMargins.Bottom; }
-            set { Height = value + ClientMargins.Vertical - skinControl.OriginMargins.Vertical; }
+            get => ControlAndMarginsHeight - ClientMargins.Top - ClientMargins.Bottom;
+            set => Height = value + ClientMargins.Vertical - skinControl.OriginMargins.Vertical;
         } // ClientHeight
 
 
 
-        /// <summary>
-        /// The rectangle that covers only the control dimensions (without its margins).
-        /// </summary>
-        internal virtual Rectangle ControlRectangle
-        {
-            get
-            {
-                return new Rectangle(ControlLeftAbsoluteCoordinate, ControlTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight);
-            }
-        } // ControlRectangle
+        internal virtual Rectangle ControlRectangle => new Rectangle(ControlLeftAbsoluteCoordinate, ControlTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight); // ControlRectangle
 
-        /// <summary>
-        /// The rectangle that covers the control and its margins.
-        /// </summary>
-        protected virtual Rectangle ControlAndMarginsRectangle
-        {
-            get
-            {
-                return new Rectangle(ControlAndMarginsLeftAbsoluteCoordinate, ControlAndMarginsTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight);
-            }
-        } // ControlAndMarginsRectangle
+        protected virtual Rectangle ControlAndMarginsRectangle => new Rectangle(ControlAndMarginsLeftAbsoluteCoordinate, ControlAndMarginsTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight); // ControlAndMarginsRectangle
 
-        /// <summary>
-        /// Client left, top, width and height.
-        /// </summary>
-        protected virtual Rectangle ClientRectangle
-        {
-            get
-            {
-                return new Rectangle(ClientLeft, ClientTop, ClientWidth, ClientHeight);
-            }
-        } // ClientRectangle
+        protected virtual Rectangle ClientRectangle => new Rectangle(ClientLeft, ClientTop, ClientWidth, ClientHeight); // ClientRectangle
 
-        /// <summary>
-        /// The rectangle that covers the control and that begins inside the parent. Left, Top, Width and Height.
-        /// </summary>
-        internal virtual Rectangle ControlRectangleRelativeToParent
-        {
-            get
-            {
-                return new Rectangle(Left, Top, Width, Height);
-            }
-        } // ControlRectangleRelativeToParent
+        internal virtual Rectangle ControlRectangleRelativeToParent => new Rectangle(Left, Top, Width, Height); // ControlRectangleRelativeToParent
 
-        /// <summary>
-        /// Outline Rectangle
-        /// </summary>
         private Rectangle OutlineRectangle
         {
-            get { return outlineRectangle; }
+            get => outlineRectangle;
             set
             {
                 outlineRectangle = value;
@@ -650,14 +511,12 @@ namespace XNAFinalEngine.UserInterface
         } // OutlineRectangle
 
 
-        /// <summary>
-        /// Gets or sets the value indicating the distance from another control. Usable with StackPanel control.
-        /// </summary>
-        internal virtual Margins DefaultDistanceFromAnotherControl { get { return margins; } set { margins = value; } }
+        internal virtual Margins DefaultDistanceFromAnotherControl
+        {
+            get => margins;
+            set => margins = value;
+        }
 
-        /// <summary>
-        /// Set control position without adjusting margins.
-        /// </summary>
         internal void SetPosition(int _left, int _top)
         {
             left = _left;
@@ -666,113 +525,85 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Gets the UserInterfaceManager
-        /// </summary>
         public UserInterfaceManager UserInterfaceManager { get; private set; }
 
 #if (WINDOWS)
-        /// <summary>
-        /// Gets or sets the cursor displaying over the control.
-        /// </summary>
         public Cursor Cursor { get; set; }
 #endif
 
-        /// <summary>
-        /// Gets a list of all child controls.
-        /// </summary>
-        public virtual ControlsList ChildrenControls { get { return childrenControls; } }
+        public virtual ControlsList ChildrenControls => childrenControls;
 
-        /// <summary>
-        /// Gets or sets a rectangular area that reacts on moving the control with the mouse.
-        /// </summary>
-        public virtual Rectangle MovableArea { get { return movableArea; } set { movableArea = value; } }
+        public virtual Rectangle MovableArea
+        {
+            get => movableArea;
+            set => movableArea = value;
+        }
 
-        /// <summary>
-        /// Gets a value indicating whether this control is a child control.
-        /// </summary>
-        public virtual bool IsChild { get { return (parent != null); } }
+        public virtual bool IsChild => (parent != null);
 
-        /// <summary>
-        /// Gets a value indicating whether this control is a parent control.
-        /// </summary>
-        public virtual bool IsParent { get { return (childrenControls != null && childrenControls.Count > 0); } }
+        public virtual bool IsParent => (childrenControls != null && childrenControls.Count > 0);
 
-        /// <summary>
-        /// Gets a value indicating whether this control is a root control.
-        /// </summary>
-        public virtual bool IsRoot { get { return (root == this); } }
+        public virtual bool IsRoot => (root == this);
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control can receive focus when the user press the tab key.
-        /// </summary>
-        public virtual bool CanFocus { get { return canFocus; } set { canFocus = value; } }
+        public virtual bool CanFocus
+        {
+            get => canFocus;
+            set => canFocus = value;
+        }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control is rendered off the parents texture.
-        /// </summary>
         public virtual bool Detached { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this controls can receive user input events.
-        /// </summary>
         public virtual bool Passive { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control can be moved by the mouse.
-        /// </summary>
-        public virtual bool Movable { get { return movable; } set { movable = value; } }
+        public virtual bool Movable
+        {
+            get => movable;
+            set => movable = value;
+        }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control can be resized by the mouse.
-        /// </summary>
-        public virtual bool Resizable { get { return resizable; } set { resizable = value; } }
+        public virtual bool Resizable
+        {
+            get => resizable;
+            set => resizable = value;
+        }
 
-        /// <summary>
-        /// Gets or sets the size of the rectangular borders around the control used for resizing by the mouse.
-        /// </summary>
-        public virtual int ResizerSize { get { return resizerSize; } set { resizerSize = value; } }
+        public virtual int ResizerSize
+        {
+            get => resizerSize;
+            set => resizerSize = value;
+        }
 
-        /// <summary>
-        /// Gets or sets the ContextMenu associated with this control.
-        /// </summary>
         public virtual ContextMenu ContextMenu { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control should process mouse double-clicks.
-        /// </summary>
-        public virtual bool DoubleClicks { get { return doubleClicks; } set { doubleClicks = value; } }
+        public virtual bool DoubleClicks
+        {
+            get => doubleClicks;
+            set => doubleClicks = value;
+        }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control should use outline resizing.
-        /// </summary>
-        public virtual bool OutlineResizing { get { return outlineResizing; } set { outlineResizing = value; } }
+        public virtual bool OutlineResizing
+        {
+            get => outlineResizing;
+            set => outlineResizing = value;
+        }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control should use outline moving.
-        /// </summary>
-        public virtual bool OutlineMoving { get { return outlineMoving; } set { outlineMoving = value; } }
+        public virtual bool OutlineMoving
+        {
+            get => outlineMoving;
+            set => outlineMoving = value;
+        }
 
-        /// <summary>
-        /// Gets or sets the value indicating wheter control is in design mode.
-        /// </summary>
         public virtual bool DesignMode { get; set; }
 
-        /// <summary>
-        /// Gets or sets the value indicating whether the control outline is displayed only for certain edges. 
-        /// </summary>   
         public virtual bool PartialOutline
         {
-            get { return partialOutline; }
-            set { partialOutline = value; }
+            get => partialOutline;
+            set => partialOutline = value;
         } // PartialOutline
 
-        /// <summary>
-        /// Gets or sets the value indicating whether the control is allowed to be brought in the front.
-        /// </summary>
         public virtual bool StayOnBack
         {
-            get { return stayOnBack; }
+            get => stayOnBack;
             set
             {
                 if (value && stayOnTop)
@@ -781,12 +612,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // StayOnBack
 
-        /// <summary>
-        /// Gets or sets the value indicating that the control should stay on top of other controls.
-        /// </summary>
         public virtual bool StayOnTop
         {
-            get { return stayOnTop; }
+            get => stayOnTop;
             set
             {
                 if (value && stayOnBack)
@@ -795,17 +623,11 @@ namespace XNAFinalEngine.UserInterface
             }
         } // StayOnTop
 
-        /// <summary>
-        /// Gets or sets a name of the control.
-        /// </summary>
         public string Name { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control has input focus.
-        /// </summary>
         public virtual bool Focused
         {
-            get { return (UserInterfaceManager.FocusedControl == this); }
+            get => (UserInterfaceManager.FocusedControl == this);
             set
             {
                 Invalidate();
@@ -828,9 +650,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Focused
 
-        /// <summary>
-        /// Gets a value indicating current state of the control.
-        /// </summary>
         public virtual ControlState ControlState
         {
             get
@@ -851,18 +670,12 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlState
 
-        /// <summary>
-        /// Control's tool tip.
-        /// </summary>
         public virtual ToolTip ToolTip
         {
-            get { return toolTip ?? (toolTip = new ToolTip(UserInterfaceManager) { Visible = false }); }
-            set { toolTip = value; }
+            get => toolTip ?? (toolTip = new ToolTip(UserInterfaceManager) { Visible = false });
+            set => toolTip = value;
         } // ToolTip
 
-        /// <summary>
-        /// Is pressed?
-        /// </summary>
         internal protected virtual bool IsPressed
         {
             get
@@ -875,42 +688,27 @@ namespace XNAFinalEngine.UserInterface
             }
         } // IsPressed
 
-        /// <summary>
-        /// Gets an area where is the control supposed to be drawn.
-        /// </summary>
         public Rectangle DrawingRectangle
         {
-            get { return drawingRect; }
-            private set { drawingRect = value; }
+            get => drawingRect;
+            private set => drawingRect = value;
         } // DrawingRect
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this control should receive any events.
-        /// </summary>
         public virtual bool Suspended { get; set; }
 
-        internal protected virtual bool Hovered { get { return hovered; } }
+        internal protected virtual bool Hovered => hovered;
 
-        internal protected virtual bool Inside { get { return inside; } }
+        internal protected virtual bool Inside => inside;
 
-        internal protected virtual bool[] Pressed { get { return pressed; } }
+        internal protected virtual bool[] Pressed => pressed;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this controls is currently being moved.
-        /// </summary>
         protected virtual bool IsMoving { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this controls is currently being resized.
-        /// </summary>
         protected virtual bool IsResizing { get; set; }
 
-        /// <summary>
-        /// Gets or sets the edges of the container to which a control is bound and determines how a control is resized with its parent.
-        /// </summary>
         public virtual Anchors Anchor
         {
-            get { return anchor; }
+            get => anchor;
             set
             {
                 anchor = value;
@@ -919,21 +717,15 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Anchor
 
-        /// <summary>
-        /// Gets or sets the edges of the contol which are allowed for resizing.
-        /// </summary>
         public virtual Anchors ResizeEdge
         {
-            get { return resizeEdge; }
-            set { resizeEdge = value; }
+            get => resizeEdge;
+            set => resizeEdge = value;
         } // ResizeEdge
 
-        /// <summary>
-        /// Gets or sets the skin parameters used for rendering the control.
-        /// </summary>
         internal virtual SkinControlInformation SkinInformation
         {
-            get { return skinControl; }
+            get => skinControl;
             set
             {
                 skinControl = value;
@@ -941,12 +733,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SkinControlInformation
 
-        /// <summary>
-        /// Gets or sets the text associated with this control.
-        /// </summary>
         public virtual string Text
         {
-            get { return text; }
+            get => text;
             set
             {
                 text = value;
@@ -956,12 +745,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Text
 
-        /// <summary>
-        /// Gets or sets the alpha value for this control.
-        /// </summary>
         public virtual byte Alpha
         {
-            get { return alpha; }
+            get => alpha;
             set
             {
                 alpha = value;
@@ -970,12 +756,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Alpha
 
-        /// <summary>
-        /// Gets or sets the background color for the control.
-        /// </summary>
         public virtual Color BackgroundColor
         {
-            get { return backgroundColor; }
+            get => backgroundColor;
             set
             {
                 backgroundColor = value;
@@ -985,12 +768,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // BackgroundColor
 
-        /// <summary>
-        /// Gets or sets the color for the control.
-        /// </summary>
         public virtual Color Color
         {
-            get { return color; }
+            get => color;
             set
             {
                 if (value != color)
@@ -1003,12 +783,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Color
 
-        /// <summary>
-        /// Gets or sets the text color for the control.
-        /// </summary>
         public virtual Color TextColor
         {
-            get { return textColor; }
+            get => textColor;
             set
             {
                 if (value != textColor)
@@ -1020,12 +797,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // TextColor
 
-        /// <summary>
-        /// Gets or sets a value indicating whether the control can respond to user interaction.
-        /// </summary>
         public virtual bool Enabled
         {
-            get { return enabled; }
+            get => enabled;
             set
             {
                 if (Root != null && Root != this && !Root.Enabled && value)
@@ -1041,12 +815,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Enabled
 
-        /// <summary>
-        /// Gets or sets a value that indicates whether the control is rendered.
-        /// </summary>
         public virtual bool Visible
         {
-            get { return (visible && (parent == null || parent.Visible)); }
+            get => (visible && (parent == null || parent.Visible));
             set
             {
                 visible = value;
@@ -1056,12 +827,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Visible
 
-        /// <summary>
-        /// Gets or sets the parent for the control.
-        /// </summary>
         public virtual Control Parent
         {
-            get { return parent; }
+            get => parent;
             set
             {
                 // Remove it from old parent
@@ -1077,12 +845,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Parent
 
-        /// <summary>
-        /// Gets or sets the root for the control.
-        /// </summary>
         public virtual Control Root
         {
-            get { return root; }
+            get => root;
             private set
             {
                 if (root != value)
@@ -1146,9 +911,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Control.
-        /// </summary>
         public Control(UserInterfaceManager userInterfaceManager_)
         {
             UserInterfaceManager = userInterfaceManager_;
@@ -1177,9 +939,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Check that the skin layer exist.
-        /// </summary>
         protected void CheckLayer(SkinControlInformation skinControl, string layer)
         {
             if (skinControl == null || skinControl.Layers == null || skinControl.Layers.Count == 0 || skinControl.Layers[layer] == null)
@@ -1188,18 +947,11 @@ namespace XNAFinalEngine.UserInterface
             }
         } // CheckLayer
 
-        /// <summary>
-        /// Init some parameters of the control. 
-        /// This method needs to be executed after the constructor call because is a virtual method that use information of the derived class.
-        /// </summary>
         protected internal virtual void Init()
         {
             // Override if necessary.
         } // Init
 
-        /// <summary>
-        /// Load skin information for this control.
-        /// </summary>
         protected internal virtual void InitSkin()
         {
             if (UserInterfaceManager.Skin.Controls != null)
@@ -1216,18 +968,12 @@ namespace XNAFinalEngine.UserInterface
             }
         } // InitSkin
 
-        /// <summary>
-        /// Set default size.
-        /// </summary>
         protected void SetDefaultSize(int _width, int _height)
         {
             Width = skinControl.DefaultSize.Width > 0 ? skinControl.DefaultSize.Width : _width;
             Height = skinControl.DefaultSize.Height > 0 ? skinControl.DefaultSize.Height : _height;
         } // SetDefaultSize
 
-        /// <summary>
-        /// Set minimum size.
-        /// </summary>
         protected virtual void SetMinimumSize(int _minimumWidth, int _minimumHeight)
         {
             MinimumWidth = skinControl.MinimumSize.Width > 0 ? skinControl.MinimumSize.Width : _minimumWidth;
@@ -1236,9 +982,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // Remove events.
@@ -1335,9 +1078,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update control
-        /// </summary>
         protected internal virtual void Update(float elapsedTime_)
         {
             ToolTipUpdate();
@@ -1376,9 +1116,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Tool tip update.
-        /// </summary> 
         private void ToolTipUpdate()
         {
             if (UserInterfaceManager.ToolTipsEnabled && toolTip != null && tooltipTimer > 0 &&
@@ -1390,9 +1127,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ToolTipUpdate
 
-        /// <summary>
-        /// When the mouse pointer is over the control...
-        /// </summary>
         private void ToolTipOver()
         {
             if (UserInterfaceManager.ToolTipsEnabled && toolTip != null && tooltipTimer == 0)
@@ -1402,9 +1136,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ToolTipOver
 
-        /// <summary>
-        /// When the mouse pointer is out the control...
-        /// </summary>
         private void ToolTipOut()
         {
             if (UserInterfaceManager.ToolTipsEnabled && toolTip != null)
@@ -1417,10 +1148,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prepare render target and draw this control and its children in the control's render target.
-        /// Later the control will be rendered into screen using this render target.
-        /// </summary>
         internal virtual void PreDrawControlOntoOwnTexture()
         {
             if (visible && invalidated)
@@ -1466,9 +1193,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // PreDrawControlOntoOwnTexture
 
-        /// <summary>
-        /// Render the control in the main render target.
-        /// </summary>
         internal virtual void DrawControlOntoMainTexture()
         {
             // Some controls like the list box left the scissor rectangle in a not useful value. 
@@ -1487,9 +1211,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControlOntoMainTexture
 
-        /// <summary>
-        /// Draw control and its children.
-        /// </summary>
         private void DrawControls(Rectangle rectangle, bool firstDetach)
         {
             UserInterfaceManager.Renderer.Begin();
@@ -1506,9 +1227,6 @@ namespace XNAFinalEngine.UserInterface
             DrawChildControls(firstDetach);
         } // DrawControls
 
-        /// <summary>
-        /// Draw children controls.
-        /// </summary>
         private void DrawChildControls(bool firstDetachedLevel)
         {
             if (childrenControls != null)
@@ -1570,9 +1288,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawChildControls
 
-        /// <summary>
-        /// Draw detached.
-        /// </summary>
         private static void DrawDetached(Control control)
         {
             if (control.ChildrenControls != null)
@@ -1589,9 +1304,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawDetached
 
-        /// <summary>
-        /// Draw Outline.
-        /// </summary>
         private void DrawOutline(bool child)
         {
             if (!OutlineRectangle.IsEmpty)
@@ -1646,9 +1358,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawOutline
 
-        /// <summary>
-        /// Draw control.
-        /// </summary>
         protected virtual void DrawControl(Rectangle rect)
         {
             if (backgroundColor != UndefinedColor && backgroundColor != Color.Transparent)
@@ -1661,9 +1370,6 @@ namespace XNAFinalEngine.UserInterface
                 UserInterfaceManager.Renderer.DrawLayer(this, skinControl.Layers[0], rect);
         } // DrawControl
 
-        /// <summary>
-        /// Get clipping rectangle from control c
-        /// </summary>
         private Rectangle ClippingRectangle(Control c)
         {
             Rectangle rectangle = new Rectangle(c.ControlAndMarginsLeftAbsoluteCoordinate - root.ControlLeftAbsoluteCoordinate,
@@ -1706,9 +1412,6 @@ namespace XNAFinalEngine.UserInterface
             return new Rectangle(x1, y1, fx2, fy2);
         } // ClippingRectangle
 
-        /// <summary>
-        /// Check if a control is detached
-        /// </summary>
         private static bool CheckDetached(Control c)
         {
             Control parent = c.Parent;
@@ -1725,9 +1428,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Add a control as child of this control.
-        /// </summary>
         public virtual void Add(Control control)
         {
             if (control != null)
@@ -1754,9 +1454,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Add
 
-        /// <summary>
-        /// Remove a control as child of this control.
-        /// </summary>
         public virtual void Remove(Control control)
         {
             if (control != null)
@@ -1778,9 +1475,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Remove
 
-        /// <summary>
-        /// Search for a control.
-        /// </summary>
         public virtual bool Contains(Control control, bool recursively = true)
         {
             if (ChildrenControls != null)
@@ -1796,10 +1490,6 @@ namespace XNAFinalEngine.UserInterface
             return false;
         } // Contains
 
-        /// <summary>
-        /// Search for a children control by its name.
-        /// </summary>
-        /// <param name="name">Control's name</param>
         public virtual Control SearchChildControlByName(string name)
         {
             Control ret = null;
@@ -1819,9 +1509,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Invalidate it and its parents.
-        /// </summary>
         public virtual void Invalidate()
         {
             invalidated = true;
@@ -1831,17 +1518,11 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Bring control to front.
-        /// </summary>
         public void BringToFront()
         {
             UserInterfaceManager.BringToFront(this);
         } // BringToFront
 
-        /// <summary>
-        /// Send control to back.
-        /// </summary>
         public void SendToBack()
         {
             UserInterfaceManager.SendToBack(this);
@@ -1849,25 +1530,16 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Show control
-        /// </summary>
         public virtual void Show()
         {
             Visible = true;
         } // Show
 
-        /// <summary>
-        /// Hide control.
-        /// </summary>
         public virtual void Hide()
         {
             Visible = false;
         } // Hide
 
-        /// <summary>
-        /// Refresh control
-        /// </summary>
         public virtual void Refresh()
         {
             OnMove(new MoveEventArgs(left, top, left, top));
@@ -1876,9 +1548,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Send message.
-        /// </summary>
         internal virtual void SendMessage(Message message, EventArgs e)
         {
             switch (message)
@@ -1980,9 +1649,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Mouse Down Process
-        /// </summary>
         private void MouseDownProcess(MouseEventArgs e)
         {
             Invalidate();
@@ -2021,9 +1687,6 @@ namespace XNAFinalEngine.UserInterface
                 OnMouseDown(TransformPosition(e));
         } // MouseDownProcess
 
-        /// <summary>
-        /// Mouse Up Process
-        /// </summary>
         private void MouseUpProcess(MouseEventArgs e)
         {
             Invalidate();
@@ -2062,9 +1725,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MouseUpProcess
 
-        /// <summary>
-        /// Mouse Press Process
-        /// </summary>
         private void MousePressProcess(MouseEventArgs e)
         {
             if (pressed[(int)e.Button] && !IsMoving && !IsResizing)
@@ -2074,9 +1734,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MousePressProcess
 
-        /// <summary>
-        /// Mouse Over Process
-        /// </summary>
         private void MouseOverProcess(MouseEventArgs e)
         {
             Invalidate();
@@ -2092,9 +1749,6 @@ namespace XNAFinalEngine.UserInterface
                 OnMouseOver(e);
         } // MouseOverProcess
 
-        /// <summary>
-        /// Mouse Out Process
-        /// </summary>
         private void MouseOutProcess(MouseEventArgs e)
         {
             Invalidate();
@@ -2109,9 +1763,6 @@ namespace XNAFinalEngine.UserInterface
                 OnMouseOut(e);
         } // MouseOutProcess
 
-        /// <summary>
-        /// Mouse Move Process
-        /// </summary>
         private void MouseMoveProcess(MouseEventArgs e)
         {
             if (CheckPosition(e.Position) && !inside)
@@ -2162,9 +1813,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MouseMoveProcess
 
-        /// <summary>
-        /// Click Process
-        /// </summary>
         private void ClickProcess(EventArgs e)
         {
             long timer = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
@@ -2195,9 +1843,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ClickProcess
 
-        /// <summary>
-        /// Check Position
-        /// </summary>
         private bool CheckPosition(Point pos)
         {
             if ((pos.X >= ControlLeftAbsoluteCoordinate) && (pos.X < ControlLeftAbsoluteCoordinate + Width))
@@ -2210,9 +1855,6 @@ namespace XNAFinalEngine.UserInterface
             return false;
         } // CheckPosition
 
-        /// <summary>
-        /// Check Movable Area
-        /// </summary>
         private bool CheckMovableArea(Point pos)
         {
             if (movable)
@@ -2238,9 +1880,6 @@ namespace XNAFinalEngine.UserInterface
             return false;
         } // CheckMovableArea
 
-        /// <summary>
-        /// Check Resizable Area
-        /// </summary>
         private bool CheckResizableArea(Point pos)
         {
             if (resizable)
@@ -2259,9 +1898,6 @@ namespace XNAFinalEngine.UserInterface
             return false;
         } // CheckResizableArea
 
-        /// <summary>
-        /// Transform Position
-        /// </summary>
         private MouseEventArgs TransformPosition(MouseEventArgs e)
         {
             MouseEventArgs ee = new MouseEventArgs(e.State, e.Button, e.Position) { Difference = e.Difference };
@@ -2288,9 +1924,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SetAnchorMargins
 
-        /// <summary>
-        /// Process anchor on parent resize.
-        /// </summary>
         private void ProcessAnchor(ResizeEventArgs e)
         {
             int parentVirtualWidth, parentVirtualHeight;
@@ -2350,9 +1983,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Perform Resize.
-        /// </summary>
         private void PerformResize(MouseEventArgs e)
         {
             if (resizable && !IsMoving)
@@ -2459,9 +2089,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // PerformResize
 
-        /// <summary>
-        /// Check if the width is beyond its limits. And if that is the case modify the width to the maximum width or the minimum width.
-        /// </summary>
         private int CheckWidth(ref int w)
         {
             int diff = 0;
@@ -2480,9 +2107,6 @@ namespace XNAFinalEngine.UserInterface
             return diff;
         } // CheckWidth
 
-        /// <summary>
-        /// Check if the height is beyond its limits. And if that is the case modify the width to the maximum height or the minimum height.
-        /// </summary>
         private int CheckHeight(ref int h)
         {
             int diff = 0;
@@ -2502,10 +2126,6 @@ namespace XNAFinalEngine.UserInterface
         } // CheckHeight
 
 #if (WINDOWS)
-        /// <summary>
-        /// Get Resize Cursor
-        /// </summary>
-        /// <returns></returns>
         private Cursor ResizeCursor()
         {
             switch (resizeArea)
@@ -2547,9 +2167,6 @@ namespace XNAFinalEngine.UserInterface
         } // ResizeCursor
 #endif
 
-        /// <summary>
-        /// Resize Position.
-        /// </summary>
         private void ResizePosition(MouseEventArgs e)
         {
             int x = e.Position.X - ControlLeftAbsoluteCoordinate;
@@ -2802,12 +2419,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// There is a big problem when there is a call to virtual method in a constructor. 
-        /// In these cases the virtual call needs to be avoided, but a call to a virtual member after a new is ugly and error prone, for that reason this method exist.
-        /// However the calls need to be in the opposite order, because a control creation inside a control creation can raise an exception if
-        /// the virtual method of the latter is called before the former.
-        /// </summary>
         internal static void InitializeNewControls()
         {
             while (newControls.Count > 0)

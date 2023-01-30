@@ -1,21 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Game;
-using System.IO;
+﻿using CasaEngine.Game;
 using CasaEngineCommon.Logger;
 using System.ComponentModel;
-using System.Xml;
 using CasaEngineCommon.Config;
 
 namespace CasaEngine.SourceControl
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class SourceControlManager
     {
 
@@ -28,9 +17,6 @@ namespace CasaEngine.SourceControl
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         [Category("Data Source Control")]
         public string Server
         {
@@ -38,9 +24,6 @@ namespace CasaEngine.SourceControl
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         [Category("Data Source Control")]
         public string User
         {
@@ -48,9 +31,6 @@ namespace CasaEngine.SourceControl
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         [Browsable(false)]
         public string Password
         {
@@ -58,9 +38,6 @@ namespace CasaEngine.SourceControl
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         [Category("Data Source Control")]
         public string Workspace
         {
@@ -68,9 +45,6 @@ namespace CasaEngine.SourceControl
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         [Category("Data Source Control")]
         public string CWD
         {
@@ -79,26 +53,14 @@ namespace CasaEngine.SourceControl
         }
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FilesStatus
-        {
-            get { return m_FilesStatus; }
-        }
+        public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FilesStatus => m_FilesStatus;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ISourceControl SourceControl
         {
-            get { return m_SourceControl; }
-            set { m_SourceControl = value; }
+            get => m_SourceControl;
+            set => m_SourceControl = value;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         static public SourceControlManager Instance
         {
             get
@@ -118,19 +80,12 @@ namespace CasaEngine.SourceControl
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         private SourceControlManager()
         {
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="control_"></param>
         public void Initialize(ISourceControl control_)
         {
             if (control_ == null)
@@ -141,9 +96,6 @@ namespace CasaEngine.SourceControl
             m_SourceControl = control_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void CheckProjectFiles()
         {
             m_FilesStatus.Clear();
@@ -164,10 +116,6 @@ namespace CasaEngine.SourceControl
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
         public void LoadConfig(string path_)
         {
             string filePath = Path.Combine(path_, m_File);
@@ -185,10 +133,6 @@ namespace CasaEngine.SourceControl
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
         public void SaveConfig(string path_)
         {
             IniFile ini = new IniFile();

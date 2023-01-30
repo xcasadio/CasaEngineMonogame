@@ -1,21 +1,11 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using XNAFinalEngine.Helpers;
 using CasaEngine.Game;
 using CasaEngineCommon.Design;
-using System.IO;
 using System.Xml;
 
 namespace CasaEngine.Asset
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public abstract
 #if EDITOR
     partial
@@ -40,26 +30,13 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Identification number. Every asset has a unique ID.
-        /// </summary>
         public long Id { get; private set; }
 
-        /// <summary>
-        /// Asset Filename (if any).
-        /// </summary>
         public string Filename { get; protected set; }
 
-        /// <summary>
-        /// The name of the asset.
-        /// </summary>
-        /// <remarks>
-        /// The name is not unique. 
-        /// Consequently it can be used to identify the asset, use Id instead.
-        /// </remarks>
         public virtual string Name
         {
-            get { return name; }
+            get => name;
             set
             {
                 if (!string.IsNullOrEmpty(value) && name != value)
@@ -71,9 +48,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected Asset()
         {
             // Create a unique ID
@@ -85,30 +59,17 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Useful when the XNA device is disposed.
-        /// </summary>
         internal virtual void OnDeviceReset(GraphicsDevice device_)
         {
             //override
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="option_"></param>
         public virtual void Load(BinaryReader br_, SaveOption option_)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public virtual void Load(XmlElement el_, SaveOption option_)
         {
 

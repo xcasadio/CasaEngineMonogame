@@ -10,10 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-
 namespace XNAFinalEngine.UserInterface
 {
 
@@ -41,8 +37,8 @@ namespace XNAFinalEngine.UserInterface
 
         public new virtual SpinBoxMode Mode
         {
-            get { return mode; }
-            set { mode = value; }
+            get => mode;
+            set => mode = value;
         } // Mode
 
         public override bool ReadOnly
@@ -52,20 +48,17 @@ namespace XNAFinalEngine.UserInterface
             {
                 base.ReadOnly = value;
                 CaretVisible = !value;
-                #if (WINDOWS)
-                    Cursor = value ? UserInterfaceManager.Skin.Cursors["Default"].Cursor : UserInterfaceManager.Skin.Cursors["Text"].Cursor;
-                #endif
+#if (WINDOWS)
+                Cursor = value ? UserInterfaceManager.Skin.Cursors["Default"].Cursor : UserInterfaceManager.Skin.Cursors["Text"].Cursor;
+#endif
             }
         } // ReadOnly
 
-        public virtual List<object> Items
-        {
-            get { return items; }
-        } // Items
+        public virtual List<object> Items => items; // Items
 
         public float Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (this.value != value)
@@ -84,7 +77,7 @@ namespace XNAFinalEngine.UserInterface
 
         public int ItemIndex
         {
-            get { return itemIndex; }
+            get => itemIndex;
             set
             {
                 if (value < 0)
@@ -101,7 +94,7 @@ namespace XNAFinalEngine.UserInterface
 
         public int Rounding
         {
-            get { return rounding; }
+            get => rounding;
             set
             {
                 if (rounding != value)
@@ -167,9 +160,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             base.DrawControl(rect);
@@ -198,9 +188,9 @@ namespace XNAFinalEngine.UserInterface
                     else
                         itemIndex -= 1;
 
-                    if (itemIndex < 0) 
+                    if (itemIndex < 0)
                         itemIndex = 0;
-                    if (itemIndex > items.Count - 1) 
+                    if (itemIndex > items.Count - 1)
                         itemIndex = itemIndex = items.Count - 1;
 
                     Text = items[itemIndex].ToString();
@@ -213,9 +203,9 @@ namespace XNAFinalEngine.UserInterface
                 else
                     value -= Step;
 
-                if (value < Minimum) 
+                if (value < Minimum)
                     value = Minimum;
-                if (value > Maximum) 
+                if (value > Maximum)
                     value = Maximum;
 
                 Text = value.ToString("n" + rounding);
@@ -227,7 +217,7 @@ namespace XNAFinalEngine.UserInterface
         private void Button_MousePress(object sender, MouseEventArgs e)
         {
             Focused = true;
-            if (sender == btnUp) 
+            if (sender == btnUp)
                 ShiftIndex(true);
             else if (sender == btnDown)
                 ShiftIndex(false);

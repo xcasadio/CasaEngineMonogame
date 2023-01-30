@@ -1,19 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
+﻿using System.Xml;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.FrontEnd.Screen.Gadget
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -26,9 +17,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ScreenGadgetLabel(XmlElement el_, SaveOption opt_)
             : base(el_, opt_)
         {
@@ -37,10 +25,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
 #if EDITOR
         public
 #else

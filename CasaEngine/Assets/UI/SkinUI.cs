@@ -1,26 +1,15 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using XNAFinalEngine.UserInterface;
+﻿using XNAFinalEngine.UserInterface;
 using CasaEngine.Gameplay.Actor.Object;
 using System.Xml;
-using System.IO;
 using CasaEngineCommon.Design;
 using Size = XNAFinalEngine.UserInterface.Size;
 
 #if EDITOR
 using System.ComponentModel;
-using Microsoft.Xna.Framework;
 #endif
 
 namespace CasaEngine.Assets.UI
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -28,17 +17,13 @@ namespace CasaEngine.Assets.UI
     class SkinUI
         : BaseObject
     {
-
-        SkinList<SkinControlInformation> m_Controls = new SkinList<SkinControlInformation>();
-        SkinList<SkinImage> m_Images = new SkinList<SkinImage>();
-        SkinList<SkinFont> m_Fonts = new SkinList<SkinFont>();
-        SkinList<SkinCursor> m_Cursors = new SkinList<SkinCursor>();
-
+        readonly SkinList<SkinControlInformation> m_Controls = new SkinList<SkinControlInformation>();
+        readonly SkinList<SkinImage> m_Images = new SkinList<SkinImage>();
+        readonly SkinList<SkinFont> m_Fonts = new SkinList<SkinFont>();
+        readonly SkinList<SkinCursor> m_Cursors = new SkinList<SkinCursor>();
 
 
-        /// <summary>
-        /// 
-        /// </summary>
+
 #if EDITOR
         [Category("Skin")]
 #endif
@@ -47,9 +32,6 @@ namespace CasaEngine.Assets.UI
             get { return m_Controls; }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
 #if EDITOR
         [Category("Skin")]
 #endif
@@ -58,9 +40,6 @@ namespace CasaEngine.Assets.UI
             get { return m_Images; }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
 #if EDITOR
         [Category("Skin")]
 #endif
@@ -69,9 +48,6 @@ namespace CasaEngine.Assets.UI
             get { return m_Fonts; }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
 #if EDITOR
         [Category("Skin")]
 #endif
@@ -82,11 +58,6 @@ namespace CasaEngine.Assets.UI
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public SkinUI(XmlElement el_, SaveOption option_)
         {
             Load(el_, option_);
@@ -94,20 +65,11 @@ namespace CasaEngine.Assets.UI
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override BaseObject Clone()
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(XmlElement el_, SaveOption option_)
         {
             base.Load(el_, option_);
@@ -211,11 +173,6 @@ namespace CasaEngine.Assets.UI
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="skinControl"></param>
-        /// <param name="layerNode"></param>
         private void LoadLayer(SkinControlInformation skinControl, XmlNode layerNode)
         {
             string name = ReadAttribute(layerNode, "Name", null, true);
@@ -404,9 +361,6 @@ namespace CasaEngine.Assets.UI
 
 
 
-        /// <summary>
-        /// Load Layer Attributes
-        /// </summary>
         private void LoadLayerAttribute(SkinLayer skinLayer, XmlNode e)
         {
             string name = ReadAttribute(e, "Name", null, true);
@@ -495,20 +449,11 @@ namespace CasaEngine.Assets.UI
         } // ReadAttributeColor
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="option_"></param>
         public override void Load(BinaryReader br_, SaveOption option_)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ob_"></param>
         protected override void CopyFrom(BaseObject ob_)
         {
             throw new Exception("The method or operation is not implemented.");

@@ -10,23 +10,13 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using CasaEngine.CoreSystems;
 
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Context Menu. (right click over control)
-    /// </summary>
-    /// <remarks>
-    /// Internally the context menu is also used to draw the main menu.
-    /// </remarks>
     public class ContextMenu : MenuBase
     {
 
@@ -36,13 +26,14 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        protected internal Control Sender { get { return sender; } set { sender = value; } }
+        protected internal Control Sender
+        {
+            get => sender;
+            set => sender = value;
+        }
 
 
 
-        /// <summary>
-        /// Context Menu. (right click over control)
-        /// </summary>
         public ContextMenu(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -55,9 +46,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             UserInterfaceManager.InputSystem.MouseDown -= InputMouseDown;
@@ -74,9 +62,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             base.DrawControl(rect);
@@ -216,9 +201,6 @@ namespace XNAFinalEngine.UserInterface
             return height;
         } // LineHeight
 
-        /// <summary>
-        /// Find maximum width from items.
-        /// </summary>
         private int LineWidth()
         {
             int maximumWidth = 0;
@@ -248,9 +230,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Auto Size
-        /// </summary>
         private void AutoSize()
         {
             SkinText font = SkinInformation.Layers["Control"].Text;
@@ -304,9 +283,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update.
-        /// </summary>
         protected internal override void Update(float elapsedTime_)
         {
             base.Update(elapsedTime_);

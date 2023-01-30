@@ -1,10 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Helper
@@ -16,27 +10,22 @@ namespace CasaEngine.Helper
 
         // a basic effect, which contains the shaders that we will use to draw our
         // primitives.
-        private BasicEffect _basicEffect;
+        private readonly BasicEffect _basicEffect;
 
         // the device that we will issue draw calls to.
-        private GraphicsDevice _device;
+        private readonly GraphicsDevice _device;
 
         // hasBegun is flipped to true once Begin is called, and is used to make
         // sure users don't call End before Begin is called.
         private bool _hasBegun;
 
         private bool _isDisposed;
-        private VertexPositionColor[] _lineVertices;
+        private readonly VertexPositionColor[] _lineVertices;
         private int _lineVertsCount;
-        private VertexPositionColor[] _triangleVertices;
+        private readonly VertexPositionColor[] _triangleVertices;
         private int _triangleVertsCount;
 
 
-        /// <summary>
-        /// the constructor creates a new PrimitiveBatch and sets up all of the internals
-        /// that PrimitiveBatch will need.
-        /// </summary>
-        /// <param name="graphicsDevice">The graphics device.</param>
         public PrimitiveBatch(GraphicsDevice graphicsDevice)
             : this(graphicsDevice, DefaultBufferSize)
         {
@@ -83,12 +72,6 @@ namespace CasaEngine.Helper
         }
 
 
-        /// <summary>
-        /// Begin is called to tell the PrimitiveBatch what kind of primitives will be
-        /// drawn, and to prepare the graphics card to render those primitives.
-        /// </summary>
-        /// <param name="projection">The projection.</param>
-        /// <param name="view">The view.</param>
         public void Begin(ref Matrix projection, ref Matrix view, ref Matrix world)
         {
             if (_hasBegun)
@@ -147,11 +130,6 @@ namespace CasaEngine.Helper
         }
 
 
-        /// <summary>
-        /// End is called once all the primitives have been drawn using AddVertex.
-        /// it will call Flush to actually submit the draw call to the graphics card, and
-        /// then tell the basic effect to end.
-        /// </summary>
         public void End()
         {
             if (!_hasBegun)

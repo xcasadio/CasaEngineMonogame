@@ -10,19 +10,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Collections.Generic;
 using System.Xml.Linq;
-using Microsoft.Xna.Framework;
-using CasaEngine.Asset;
 using XNAFinalEngine.Assets;
-using System.IO;
 using CasaEngine.Game;
-using CasaEngine.Asset.Cursors;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset.Fonts;
 using Cursor = CasaEngine.Asset.Cursors.Cursor;
 
 
@@ -30,9 +22,6 @@ namespace XNAFinalEngine.UserInterface
 {
 
 
-    /// <summary>
-    /// Skin element states.
-    /// </summary>
     public struct SkinStates<T>
     {
         public T Enabled;
@@ -52,9 +41,6 @@ namespace XNAFinalEngine.UserInterface
 
     } // SkinStates
 
-    /// <summary>
-    /// Layers states
-    /// </summary>
     public struct LayerStates
     {
         public int Index;
@@ -62,9 +48,6 @@ namespace XNAFinalEngine.UserInterface
         public bool Overlay;
     } // LayerStates
 
-    /// <summary>
-    /// Layer Overlays
-    /// </summary>
     public struct LayerOverlays
     {
         public int Index;
@@ -133,9 +116,6 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        /// <summary>
-        /// Name.
-        /// </summary>
         public string Name
         {
             get;
@@ -294,18 +274,12 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        /// <summary>
-        /// Associated font.
-        /// </summary>
         public SkinFont Font
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Offset from the left.
-        /// </summary>
         public int OffsetX
         {
             get;
@@ -313,9 +287,6 @@ namespace XNAFinalEngine.UserInterface
         }
 
 
-        /// <summary>
-        /// Offset from the bottom.
-        /// </summary>
         public int OffsetY
         {
             get;
@@ -323,9 +294,6 @@ namespace XNAFinalEngine.UserInterface
         }
 
 
-        /// <summary>
-        /// Text alignment.
-        /// </summary>
         public Alignment Alignment
         {
             get;
@@ -333,9 +301,6 @@ namespace XNAFinalEngine.UserInterface
         }
 
 
-        /// <summary>
-        /// Colors when enabled, hovered, pressed, focused, and disabled.
-        /// </summary>
         public SkinStates<Color> Colors
         {
             get;
@@ -376,14 +341,8 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        /// <summary>
-        /// Asset.
-        /// </summary>
         public Font Font;
 
-        /// <summary>
-        /// Asset filename.
-        /// </summary>
         public string Filename
         {
             get;
@@ -426,14 +385,8 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        /// <summary>
-        /// Asset.
-        /// </summary>
         public CasaEngine.Asset.Texture Texture;
 
-        /// <summary>
-        /// Asset filename.
-        /// </summary>
         public string Filename
         {
             get;
@@ -460,14 +413,8 @@ namespace XNAFinalEngine.UserInterface
     public class SkinCursor : SkinBase
     {
 
-        /// <summary>
-        /// Asset.
-        /// </summary>
         public Cursor Cursor;
 
-        /// <summary>
-        /// Asset filename.
-        /// </summary>
         public string Filename
         {
             get;
@@ -553,9 +500,6 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        /// <summary>
-        /// Value.
-        /// </summary>
         public string Value
         {
             get;
@@ -576,63 +520,32 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-    /// <summary>
-    /// Manage the skin content (mouse cursors, elements' images, fonts, and skin's parameters)
-    /// The main task is to load the skin information and skin resources.
-    /// </summary>
     public class Skin
     {
 
 
-        /// <summary>
-        /// Skin XML document.
-        /// </summary>
         private Document skinDescription;
 
-        /// <summary>
-        /// Skin content manager.
-        /// </summary>
         //private AssetContentManager skinContentManager;
 
-        /// <summary>
-        /// Skin content manager.
-        /// </summary>
         private static readonly string skinContentManagerCategory = "UserInterfaceSkin";
 
 
 
-        /// <summary>
-        /// Current skin name.
-        /// </summary>
         public string CurrentSkinName { get; private set; }
 
-        /// <summary>
-        /// Skin information for controls.
-        /// </summary>
         public SkinList<SkinControlInformation> Controls { get; private set; }
 
-        /// <summary>
-        /// Skin information for fonts.
-        /// </summary>
         public SkinList<SkinFont> Fonts { get; private set; }
 
 #if (WINDOWS)
-        /// <summary>
-        /// Skin information for cursors.
-        /// </summary>
         public SkinList<SkinCursor> Cursors { get; private set; }
 #endif
 
-        /// <summary>
-        /// Skin information for images.
-        /// </summary>
         public SkinList<SkinImage> Images { get; private set; }
 
 
 
-        /// <summary>
-        /// Manage the skin content (mouse cursors, elements' images, fonts, and skin's parameters)
-        /// </summary>
         public void LoadSkin(GraphicsDevice graphicsDevice_, string skinName)
         {
             CurrentSkinName = skinName;
@@ -733,9 +646,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Load the skin information of every control.
-        /// </summary>
         private void LoadControlsDescription()
         {
             if (skinDescription.Resource.Element("Skin").Element("Controls") == null)
@@ -803,9 +713,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Load layers information.
-        /// </summary>
         private void LoadLayer(SkinControlInformation skinControl, XElement layerNode)
         {
             string name = ReadAttribute(layerNode, "Name", null, true);
@@ -994,9 +901,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Load Layer Attributes
-        /// </summary>
         private void LoadLayerAttribute(SkinLayer skinLayer, XElement e)
         {
             string name = ReadAttribute(e, "Name", null, true);
@@ -1021,9 +925,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Load fonts information.
-        /// </summary>
         private void LoadFontsDescription()
         {
             if (skinDescription.Resource.Element("Skin").Element("Fonts") == null)
@@ -1043,9 +944,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 #if (WINDOWS)
-        /// <summary>
-        /// Load cursors information.
-        /// </summary>
         private void LoadCursorsDescription()
         {
             if (skinDescription.Resource.Element("Skin").Element("Cursors") == null)
@@ -1065,9 +963,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Load images information.
-        /// </summary>
         private void LoadImagesDescription()
         {
             if (skinDescription.Resource.Element("Skin").Element("Images") == null)

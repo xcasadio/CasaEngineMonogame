@@ -1,41 +1,14 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Game;
-using System.IO;
-using CasaEngineCommon.Design;
-using CasaEngineCommon.Logger;
-using Microsoft.Xna.Framework;
-using CasaEngine.Graphics2D;
-
-namespace CasaEngine.Project
+﻿namespace CasaEngine.Project
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class PackageManager
     {
-
-        List<Package> m_Packages = new List<Package>();
-
-
-
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Package[] Packages
-        {
-            get { return m_Packages.ToArray(); }
-        }
+        readonly List<Package> m_Packages = new List<Package>();
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
+        public Package[] Packages => m_Packages.ToArray();
+
+
         public PackageManager(ProjectManager projectManager_)
         {
             projectManager_.ProjectLoaded += new EventHandler(OnProjectLoaded);
@@ -44,9 +17,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Refresh()
         {
             m_Packages.Clear();
@@ -70,10 +40,6 @@ namespace CasaEngine.Project
             }*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public string FindANewPackageName()
         {
             string ret = "New_Package";
@@ -99,10 +65,6 @@ namespace CasaEngine.Project
             return ret;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_">Package name</param>
         public Package GetOrCreatePackage(string name_)
         {
             Package package = GetPackage(name_);
@@ -115,10 +77,6 @@ namespace CasaEngine.Project
             return package;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_">path : pckName/Subdirectory/FileName</param>
         public Package CreatePackage(string path_)
         {
             Package package = null;
@@ -139,10 +97,6 @@ namespace CasaEngine.Project
             return package;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_">Package name</param>
         public Package GetPackage(string name_)
         {
             foreach (Package p in m_Packages)
@@ -156,33 +110,17 @@ namespace CasaEngine.Project
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void OnProjectLoaded(object sender, EventArgs e)
         {
             Refresh();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void OnProjectClosed(object sender, EventArgs e)
         {
 
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="packageName_"></param>
-        /// <param name="files_"></param>
-        /// <param name="detectAnimation2D_"></param>
         /*public void AddSprites(string packageName_, string[] files_, bool detectAnimation2D_)
         {
             //crop image and copy image in memory

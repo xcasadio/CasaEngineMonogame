@@ -1,20 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Math.Shape2D;
-using CasaEngine;
+﻿using CasaEngine.Math.Shape2D;
 using System.Xml;
-using System.IO;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Assets.Graphics2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -23,34 +12,16 @@ namespace CasaEngine.Assets.Graphics2D
         : ISaveLoad
     {
 
-        private Shape2DObject m_Shape2DObject;
-        private Sprite2DParamsType m_Type;
+        private readonly Shape2DObject m_Shape2DObject;
+        private readonly Sprite2DParamsType m_Type;
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Shape2DObject Shape2DObject
-        {
-            get { return m_Shape2DObject; }
-        }
+        public Shape2DObject Shape2DObject => m_Shape2DObject;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Sprite2DParamsType Type
-        {
-            get { return m_Type; }
-        }
+        public Sprite2DParamsType Type => m_Type;
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type_"></param>
-        /// <param name="ob_"></param>
         public Sprite2DParams(Sprite2DParamsType type_, Shape2DObject ob_)
         {
             m_Type = type_;
@@ -59,21 +30,11 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Load(XmlElement el_, SaveOption option_)
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="bw_"></param>
-        /// <param name="opt_"></param>
         public void Load(BinaryReader br_, SaveOption opt_)
         {
             throw new NotImplementedException();

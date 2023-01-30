@@ -26,73 +26,33 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System.Collections.Generic;
-using System;
-
-
-
-
 namespace XNAFinalEngine.Helpers
 {
 
-    /// <summary>
-    /// Chronometer in seconds, starts in pause.
-    /// They are updated automatically and by default use the engine's game delta time (update time).
-    /// </summary>
-    /// <remarks>
-    /// There are no events in this class because all code executes in a defined order. Events could destroy that order.
-    /// However, you can use events in your own code because that won’t mess with the engine execution path.
-    /// </remarks>
     public class Chronometer : Disposable
     {
 
 
-        /// <summary>
-        /// The chronometer could work in update time or frame time.
-        /// </summary>
         public enum TimeSpaceEnum
         {
-            /// <summary>
-            /// Uses the interval in seconds at which physics and other fixed frame rate updates.
-            /// </summary>
             GameDeltaTime,
-            /// <summary>
-            /// Uses the rendered frame time.
-            /// </summary>
             FrameTime,
         } // TimeSpaceEnum
 
 
 
-        /// <summary>
-        /// The current chronometers in use by the aplication.
-        /// </summary>
         private static readonly List<Chronometer> chronometers = new List<Chronometer>();
 
 
 
-        /// <summary>
-        /// Elapsed time in seconds.
-        /// </summary>
         public double ElapsedTime { get; set; }
 
-        /// <summary>
-        /// It indicates if the chronometer is running or not. Pause is the default state.
-        /// </summary>
         public bool Paused { get; private set; }
 
-        /// <summary>
-        /// Indicates in witch space works (in update time or frame time)
-        /// </summary>
-        /// <value>Default: update time.</value>
         public TimeSpaceEnum TimeSpace { get; private set; }
 
 
 
-        /// <summary>
-        /// Chronometer in seconds, starts in pause.
-        /// </summary>
-        /// <param name="timeSpace">Indicates in witch space works (in update time or frame time). Default: update time.</param>
         public Chronometer(TimeSpaceEnum timeSpace = TimeSpaceEnum.GameDeltaTime)
         {
             ElapsedTime = 0;
@@ -104,17 +64,11 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Resume chronometer.
-        /// </summary>
         public void Start()
         {
             Paused = false;
         } // Start
 
-        /// <summary>
-        /// Pause chronometer.
-        /// </summary>
         public void Pause()
         {
             Paused = true;
@@ -122,9 +76,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Reset counter. The state doesn't change.
-        /// </summary>
         public void Reset()
         {
             ElapsedTime = 0;
@@ -132,9 +83,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Update.
-        /// </summary>
         private void Update()
         {
             throw new NotImplementedException("Chronometer.Update()");
@@ -149,9 +97,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Dispose Managed Resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             chronometers.Remove(this);
@@ -159,9 +104,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Pause all chronometers.
-        /// </summary>
         public static void PauseAllChronometers()
         {
             foreach (Chronometer chronometer in chronometers)
@@ -170,9 +112,6 @@ namespace XNAFinalEngine.Helpers
             }
         } // PauseAllChronometers
 
-        /// <summary>
-        /// Resume all chronometers.
-        /// </summary>
         public static void StartAllChronometers()
         {
             foreach (Chronometer chronometer in chronometers)
@@ -181,9 +120,6 @@ namespace XNAFinalEngine.Helpers
             }
         } // StartAllChronometers
 
-        /// <summary>
-        /// Update the chronometers that work in game delta time space.
-        /// </summary>
         internal static void UpdateGameDeltaTimeChronometers()
         {
             foreach (Chronometer chronometer in chronometers)
@@ -193,9 +129,6 @@ namespace XNAFinalEngine.Helpers
             }
         } // UpdateGameDeltaTimeChronometers
 
-        /// <summary>
-        /// Update the chronometers that work in frame time space.
-        /// </summary>
         internal static void UpdateFrameTimeChronometers()
         {
             foreach (Chronometer chronometer in chronometers)

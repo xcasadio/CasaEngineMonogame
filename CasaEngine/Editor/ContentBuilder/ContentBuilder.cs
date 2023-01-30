@@ -1,21 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
 
 namespace CasaEngine.Editor.Builder
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class ContentBuilder
         : IDisposable
     {
@@ -46,7 +35,7 @@ namespace CasaEngine.Editor.Builder
         Microsoft.Build.Evaluation.Project buildProject;
         ProjectRootElement projectRootElement;
         BuildParameters buildParameters;
-        List<ProjectItem> projectItems = new List<ProjectItem>();
+        readonly List<ProjectItem> projectItems = new List<ProjectItem>();
         ErrorLogger errorLogger;
 
 
@@ -65,19 +54,9 @@ namespace CasaEngine.Editor.Builder
         //private ComboItemCollection Importers;
 
 
-        /// <summary>
-        /// Gets the output directory, which will contain the generated .xnb files.
-        /// </summary>
-        public string OutputDirectory
-        {
-            get { return Path.Combine(buildDirectory, "bin/Content"); }
-        }
+        public string OutputDirectory => Path.Combine(buildDirectory, "bin/Content");
 
 
-
-        /// <summary>
-        /// Creates a new content builder.
-        /// </summary>
         public ContentBuilder()
         {
             CreateTempDirectory();
@@ -100,18 +79,12 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        /// <summary>
-        /// Finalizes the content builder.
-        /// </summary>
         ~ContentBuilder()
         {
             Dispose(false);
         }
 
 
-        /// <summary>
-        /// Disposes the content builder when it is no longer required.
-        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -120,9 +93,6 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        /// <summary>
-        /// Implements the standard .NET IDisposable pattern.
-        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (!isDisposed)
@@ -135,18 +105,13 @@ namespace CasaEngine.Editor.Builder
 
 
 
-        /// <summary>
-        /// Creates a temporary MSBuild content project in memory.
-        /// </summary>
         void CreateBuildProject()
         {
             //string projectPath = Path.Combine(buildDirectory, "content.contentproj");
             //string outputPath = Path.Combine(buildDirectory, "bin");
             //
-            //// Create the build project.
             //projectRootElement = ProjectRootElement.Create(projectPath);
             //
-            //// Include the standard targets file that defines how to build XNA Framework content.
             //projectRootElement.AddImport("$(MSBuildExtensionsPath)\\Microsoft\\XNA Game Studio\\" +
             //                             "v4.0\\Microsoft.Xna.GameStudio.ContentPipeline.targets");
             //
@@ -158,13 +123,11 @@ namespace CasaEngine.Editor.Builder
             //buildProject.SetProperty("Configuration", "Release");
             //buildProject.SetProperty("OutputPath", outputPath);
             //
-            //// Register any custom importers or processors.
             //foreach (string pipelineAssembly in pipelineAssemblies)
             //{
             //    buildProject.AddItem("Reference", pipelineAssembly);
             //}
             //
-            //// Hook up our custom error logger.
             //errorLogger = new ErrorLogger();
             //
             //buildParameters = new BuildParameters(ProjectCollection.GlobalProjectCollection);
@@ -181,12 +144,6 @@ namespace CasaEngine.Editor.Builder
         {
             return this.Add(filename, name, null, null);
         }
-        /// <summary>
-        /// Adds a new content file to the MSBuild project. The importer and
-        /// processor are optional: if you leave the importer null, it will
-        /// be autodetected based on the file extension, and if you leave the
-        /// processor null, data will be passed through without any processing.
-        /// </summary>
         public ProjectItem Add(string filename, string name, string importer, string processor)
         {
             ProjectItem item = buildProject.AddItem("Compile", filename)[0];
@@ -206,9 +163,6 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        /// <summary>
-        /// Removes all content files from the MSBuild project.
-        /// </summary>
         public void Clear()
         {
             buildProject.RemoveItems(projectItems);
@@ -216,11 +170,6 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        /// <summary>
-        /// Builds all the content files which have been added to the project,
-        /// dynamically creating .xnb files in the OutputDirectory.
-        /// Returns an error message if the build fails.
-        /// </summary>
         public string Build()
         {
             // Clear any previous errors.
@@ -255,9 +204,6 @@ namespace CasaEngine.Editor.Builder
 
 
 
-        /// <summary>
-        /// Creates a temporary directory in which to build content.
-        /// </summary>
         void CreateTempDirectory()
         {
             // Start with a standard base name:
@@ -291,9 +237,6 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        /// <summary>
-        /// Deletes our temporary directory when we are finished with it.
-        /// </summary>
         void DeleteTempDirectory()
         {
             Directory.Delete(buildDirectory, true);
@@ -314,17 +257,6 @@ namespace CasaEngine.Editor.Builder
         }
 
 
-        /// <summary>
-        /// Ideally, we want to delete our temp directory when we are finished using
-        /// it. The DeleteTempDirectory method (called by whichever happens first out
-        /// of Dispose or our finalizer) does exactly that. Trouble is, sometimes
-        /// these cleanup methods may never execute. For instance if the program
-        /// crashes, or is halted using the debugger, we never get a chance to do
-        /// our deleting. The next time we start up, this method checks for any temp
-        /// directories that were left over by previous runs which failed to shut
-        /// down cleanly. This makes sure these orphaned directories will not just
-        /// be left lying around forever.
-        /// </summary>
         void PurgeStaleTempDirectories()
         {
             // Check all subdirectories of our base location.

@@ -26,24 +26,13 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
 
 
 namespace CasaEngine.Asset
 {
-    /// <summary>
-    /// Allows to render onto cube textures, this kind of textures are called Cube Render Targets. 
-    /// </summary>
-    /// <remarks>
-    /// The engine design initially excludes cube render targets and because they are used in very specific scenarios
-    /// I decided to ignore some checking like controlling that a 2D render target is not active when the cube render target set and vice versa.
-    /// </remarks>
     public sealed class RenderTargetCube : TextureCube
     {
 
@@ -62,9 +51,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Return the render target texture. In XNA 4.0 the render target it's a texture.
-        /// </summary>
         public override Microsoft.Xna.Framework.Graphics.TextureCube Resource
         {
             get
@@ -75,40 +61,17 @@ namespace CasaEngine.Asset
             }
         } // Resource
 
-        /// <summary>
-        /// Surface Format.
-        /// </summary>
         public SurfaceFormat SurfaceFormat { get; private set; }
 
-        /// <summary>
-        /// Depth Format.
-        /// </summary>
         public DepthFormat DepthFormat { get; private set; }
 
-        /// <summary>
-        /// Multi Sample Quality.
-        /// </summary>
         public RenderTarget.AntialiasingType Antialiasing { get; private set; }
 
-        /// <summary>
-        /// True if a full mipmap chain will be generated.
-        /// </summary>
         public bool MipMap { get; private set; }
 
-        /// <summary>
-        /// Currently active render targets.
-        /// </summary>
-        public static RenderTargetCube CurrentRenderTarget { get { return currentRenderTarget; } }
+        public static RenderTargetCube CurrentRenderTarget => currentRenderTarget;
 
 
-
-        /// <summary>
-        /// Creates a render target for render to textures. Use size type constructor for screen relative sizes.
-        /// </summary>
-        /// <param name="size">Render target size</param>
-        /// <param name="_surfaceFormat">Surface format</param>
-        /// <param name="_depthFormat">Depth Format</param>
-        /// <param name="antialiasingType">Multi sampling type: System value or no antialiasing.</param>
         public RenderTargetCube(int size, SurfaceFormat _surfaceFormat, DepthFormat _depthFormat, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
         {
             Name = "Render Target";
@@ -122,13 +85,6 @@ namespace CasaEngine.Asset
             Create();
         } // RenderTarget
 
-        /// <summary>
-        /// Creates a render target for render to textures. Use size type constructor for screen relative sizes.
-        /// </summary>
-        /// <param name="size">Render target size</param>
-        /// <param name="_surfaceFormat">Surface format</param>
-        /// <param name="_hasDepthBuffer">Has depth buffer?</param>
-        /// <param name="antialiasingType">Multi sampling type: System value or no antialiasing.</param>
         public RenderTargetCube(int size, SurfaceFormat _surfaceFormat = SurfaceFormat.Color, bool _hasDepthBuffer = true, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
         {
             Name = "Render Target";
@@ -144,9 +100,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Creates render target.
-        /// </summary>
         private void Create()
         {
             try
@@ -167,9 +120,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             base.DisposeManagedResources();
@@ -178,9 +128,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Useful when the XNA device is disposed.
-        /// </summary>
         internal override void OnDeviceReset(GraphicsDevice device_)
         {
             Create();
@@ -188,9 +135,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Set render target for render.
-        /// </summary>
         public void EnableRenderTarget(CubeMapFace cubeMapFace)
         {
             if (currentRenderTarget != null)
@@ -202,10 +146,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Clear render target.
-        /// This method will only work if the render target was set before with SetRenderTarget.
-        /// </summary>
         public void Clear(Color clearColor)
         {
             if (currentRenderTarget != this)
@@ -218,10 +158,6 @@ namespace CasaEngine.Asset
                 Engine.Instance.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
         } // Clear
 
-        /// <summary>
-        /// Clear render target.
-        /// This is the same as calling Clear from the first render target.
-        /// </summary>
         public static void ClearCurrentRenderTargets(Color clearColor)
         {
             if (currentRenderTarget == null)
@@ -231,10 +167,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Resolve render target.
-        /// This method will only work if the render target was set before with SetRenderTarget.
-        /// </summary>
         public void DisableRenderTarget()
         {
             // Make sure this render target is currently set!
@@ -247,9 +179,6 @@ namespace CasaEngine.Asset
             Engine.Instance.Game.GraphicsDevice.SetRenderTarget(null);
         } // DisableRenderTarget
 
-        /// <summary>
-        /// Back to back buffer (frame buffer).
-        /// </summary>
         public static void DisableCurrentRenderTargets()
         {
             if (currentRenderTarget != null)
@@ -263,15 +192,6 @@ namespace CasaEngine.Asset
         // A pool of all render targets.
         private static readonly List<RenderTargetCube> renderTargets = new List<RenderTargetCube>(0);
 
-        /// <summary>
-        /// There is a pool of render targets to avoid wasting unnecessary graphic memory.
-        /// The idea is that a render target has also a flag that tell us if the content is still need or not.
-        /// So, when a shader needs a render target it search in the pool for an unused render target with the right characteristics (size, surface format, etc.)
-        /// The problem if someone has to turn the flag false when the render target’s content is unnecessary and this could be somehow ugly. 
-        /// But the graphic pipeline performance is critical, it’s not an area for the user and its complexity was diminished thanks to the new code’s restructuring.
-        /// The pool should be used in the filters, shadow maps and similar shaders. Not everything.
-        /// Use the Release method to return a render target to the pool.
-        /// </summary>
         public static RenderTargetCube Fetch(int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntialiasingType antialiasingType, bool mipMap = false)
         {
             RenderTargetCube renderTarget;
@@ -292,9 +212,6 @@ namespace CasaEngine.Asset
             return renderTarget;
         } // Fetch
 
-        /// <summary>
-        /// Release the render target.
-        /// </summary>
         public static void Release(RenderTargetCube rendertarget)
         {
             if (rendertarget == null)

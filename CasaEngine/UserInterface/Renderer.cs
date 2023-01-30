@@ -10,44 +10,23 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
-using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.Asset.Fonts;
-
 
 
 namespace XNAFinalEngine.UserInterface
 {
-    /// <summary>
-    /// User Interface's elements UserInterfaceManager.Renderer.
-    /// The user interface does not use the XNA Final Engine’s graphic system. Instead it uses its own UserInterfaceManager.Renderer.
-    /// That’s not a big deal, besides the user interface is not performance sensitive (is used mostly for editors) and works very fast (much faster than the original).
-    /// </summary>
     internal class Renderer
     {
 
-        /// <summary>
-        /// User interface sprite batch.
-        /// </summary>
         private SpriteBatch spriteBatch;
 
-        /// <summary>
-        /// Rasterize specific state.
-        /// </summary>
         private RasterizerState rasterizerState;
 
 
 
-        /// <summary>
-        /// User Interface's elements UserInterfaceManager.Renderer.
-        /// </summary>
-        /// <param name="graphicsDevice_"></param>
         internal void Initialize(GraphicsDevice graphicsDevice_)
         {
             // Handle the dipose device sittuation.
@@ -71,9 +50,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Begin the user interface rendering.
-        /// </summary>
         public void Begin()
         {
             spriteBatch.Begin(SpriteSortMode.Immediate,
@@ -85,9 +61,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// End user interface rendering.
-        /// </summary>
         public void End()
         {
             spriteBatch.End();

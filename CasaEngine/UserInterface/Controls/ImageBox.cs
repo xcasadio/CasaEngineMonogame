@@ -10,44 +10,27 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
 using CasaEngine.Asset;
 
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Image Box.
-    /// </summary>
     public class ImageBox : Control
     {
 
 
-        /// <summary>
-        /// Texture.
-        /// </summary>
         private Texture texture;
 
-        /// <summary>
-        /// Size Mode (Normal, Streched, Centered and Auto).
-        /// Auto mode changes the control's width and height to the texture's dimentions.
-        /// </summary>
         private SizeMode sizeMode = SizeMode.Normal;
 
-        /// <summary>
-        /// Allows to cut the texture.
-        /// </summary>
         private Rectangle sourceRectangle = Rectangle.Empty;
 
 
 
-        /// <summary>
-        /// Texture.
-        /// </summary>
         public Texture Texture
         {
-            get { return texture; }
+            get => texture;
             set
             {
                 texture = value;
@@ -57,12 +40,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Texture
 
-        /// <summary>
-        /// Allows to cut the texture.
-        /// </summary>
         public Rectangle SourceRectangle
         {
-            get { return sourceRectangle; }
+            get => sourceRectangle;
             set
             {
                 if (texture != null)
@@ -89,19 +69,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SourceRectangle
 
-        /// <summary>
-        /// Size Mode (Normal, Streched, Fit, Centered and Auto).
-        /// </summary>
-        /// <remarks>
-        /// Normal: It preserves the pixel ratio to 1. If the destination rectangle is smaller than the source rectangle the lower-right part of the texture will be cut.
-        /// Auto: It changes the control's width and height to the texture's dimentions.
-        /// Centered: Same as normal, but the center of the texture is in the same place as the center of the control.
-        /// Stretched: It stretches the texture onto the control.
-        /// Fit: It stretches the texture onto the control but maintaining the texture's aspect ratio.
-        /// </remarks>
         public SizeMode SizeMode
         {
-            get { return sizeMode; }
+            get => sizeMode;
             set
             {
                 if (value == SizeMode.Auto && texture != null)
@@ -122,9 +92,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Image Box.
-        /// </summary>
         public ImageBox(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -135,9 +102,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -148,9 +112,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             if (texture != null)

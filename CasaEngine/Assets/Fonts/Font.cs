@@ -1,19 +1,11 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.IO;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Text;
 using System.Xml;
-using CasaEngine.Game;
 using CasaEngineCommon.Design;
 using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Object;
-using CasaEngine.Project;
-
 
 
 #if EDITOR
@@ -23,9 +15,6 @@ using CasaEngine.Editor.Assets;
 
 namespace CasaEngine.Asset.Fonts
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -36,117 +25,73 @@ namespace CasaEngine.Asset.Fonts
         , INotifyPropertyChanged, IAssetable
 #endif
     {
-        Dictionary<char, FontChar> m_CharsDic;
-        List<string> m_TexturesFileNames;
+        readonly Dictionary<char, FontChar> m_CharsDic;
+        readonly List<string> m_TexturesFileNames;
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public GraphicsDevice GraphicsDevice { get; private set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Texture[] Textures
         {
             get;
             internal set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public bool UseKerning
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public FontInfo Info
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public FontCommon Common
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public List<FontPage> Pages
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public List<FontChar> Chars
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public List<FontKerning> Kernings
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets or sets the vertical distance (in pixels) between the base lines of
-        /// two consecutive lines of text. Line spacing includes the blank space between
-        /// lines as well as the height of the characters.
-        /// </summary>
         //public int LineSpacing { get; set; }
 
-        /// <summary>
-        /// Gets or sets the spacing of the font characters
-        /// </summary>
         //public float Spacing { get; set; }
 
-        /// <summary>
-        /// Gets or sets the vertical distance (in pixels) between the base lines of two consecutive lines of text.
-        /// Line spacing includes the blank space between lines as well as the height of the characters.
-        /// </summary>
         public int LineSpacing
         {
-            get { return Common.LineHeight; }
-            set { Common.LineHeight = value; }
+            get => Common.LineHeight;
+            set => Common.LineHeight = value;
         } // LineSpacing
 
-        /// <summary>
-        /// Gets or sets the spacing of the font characters.
-        /// </summary>
         public int Spacing
         {
-            get { return Info.Spacing.X; }
-            set { Info.Spacing.X = value; }
+            get => Info.Spacing.X;
+            set => Info.Spacing.X = value;
         } // Spacing
 
-        /// <summary>
-        /// Gets or sets the default character for the font.
-        /// </summary>
-        public char? DefaultCharacter
-        {
-            get { return '¤'; }//Resource.DefaultCharacter; }
-            //set { Resource.DefaultCharacter = value; }
-        } // DefaultCharacter
+        public char? DefaultCharacter => '¤'; //Resource.DefaultCharacter; }
+                                              //set { Resource.DefaultCharacter = value; }
+                                              // DefaultCharacter
 
 
 
@@ -159,11 +104,6 @@ namespace CasaEngine.Asset.Fonts
             Kernings = new List<FontKerning>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
-        /// <param name="option_"></param>
         public Font(XmlElement node_, SaveOption option_)
             : this()
         {
@@ -172,21 +112,11 @@ namespace CasaEngine.Asset.Fonts
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="str_"></param>
-        /// <returns></returns>
         public Vector2 MeasureString(StringBuilder str_)
         {
             return MeasureString(str_.ToString());
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
         public Vector2 MeasureString(string text)
         {
             float width = 0.0f;
@@ -206,10 +136,6 @@ namespace CasaEngine.Asset.Fonts
             return new Vector2(width, Common.LineHeight);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="graphicsDevice_"></param>
         public void LoadTexture(string path_, GraphicsDevice graphicsDevice_)
         {
             GraphicsDevice = graphicsDevice_;
@@ -252,11 +178,6 @@ namespace CasaEngine.Asset.Fonts
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Load(XmlElement el_, SaveOption opt_)
         {
             base.Load(el_, opt_);
@@ -287,10 +208,6 @@ namespace CasaEngine.Asset.Fonts
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="c"></param>
         internal FontChar GetFontChar(char c)
         {
             if (m_CharsDic.ContainsKey(c) == true)
@@ -301,19 +218,11 @@ namespace CasaEngine.Asset.Fonts
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ob_"></param>
         protected override void CopyFrom(BaseObject ob_)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override BaseObject Clone()
         {
             throw new Exception("The method or operation is not implemented.");
@@ -322,77 +231,50 @@ namespace CasaEngine.Asset.Fonts
 
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class FontInfo
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public String Face
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Size
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Bold
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Italic
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public String CharSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Unicode
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 StretchHeight
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Smooth
         {
             get;
@@ -400,9 +282,6 @@ namespace CasaEngine.Asset.Fonts
         }
 
         //"aa"
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 SuperSampling
         {
             get;
@@ -451,19 +330,11 @@ namespace CasaEngine.Asset.Fonts
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public FontInfo(XmlNode node_)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public void Load(XmlNode node_)
         {
             //face="Arial" size="32" bold="0" italic="0" charset="" unicode="1" stretchH="100" smooth="1" aa="1" padding="0,0,0,0" spacing="1,1" outline="0"
@@ -476,9 +347,6 @@ namespace CasaEngine.Asset.Fonts
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class FontCommon
     {
         [XmlAttribute("lineHeight")]
@@ -557,10 +425,6 @@ namespace CasaEngine.Asset.Fonts
             Load(node_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public void Load(XmlNode node_)
         {
             // lineHeight="32" base="26" scaleW="512" scaleH="512" pages="1" packed="0" alphaChnl="0" redChnl="4" greenChnl="4" blueChnl="4"
@@ -569,11 +433,6 @@ namespace CasaEngine.Asset.Fonts
             Base = int.Parse(node_.Attributes["base"].Value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
-        /// <param name="option_"></param>
         public void Save(XmlNode node_, SaveOption option_)
         {
             XmlNode fontNode = node_.OwnerDocument.CreateElement("Common");
@@ -584,9 +443,6 @@ namespace CasaEngine.Asset.Fonts
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class FontPage
     {
         [XmlAttribute("id")]
@@ -604,9 +460,6 @@ namespace CasaEngine.Asset.Fonts
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class FontChar
     {
         [XmlAttribute("id")]
@@ -657,55 +510,35 @@ namespace CasaEngine.Asset.Fonts
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 YOffset
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 XAdvance
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Page
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Channel
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public FontChar(XmlNode node_)
         {
             Load(node_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public void Load(XmlNode node_)
         {
             ID = int.Parse(node_.Attributes["id"].Value);
@@ -720,11 +553,6 @@ namespace CasaEngine.Asset.Fonts
             XAdvance = int.Parse(node_.Attributes["xadvance"].Value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
-        /// <param name="option_"></param>
         public void Save(XmlNode node_, SaveOption option_)
         {
             XmlNode charNode = node_.OwnerDocument.CreateElement("Char");
@@ -741,51 +569,31 @@ namespace CasaEngine.Asset.Fonts
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class FontKerning
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 First
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Second
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Int32 Amount
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public FontKerning(XmlNode node_)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public void Load(XmlNode node_)
         {
             First = int.Parse(node_.Attributes["first"].Value);
@@ -793,11 +601,6 @@ namespace CasaEngine.Asset.Fonts
             Amount = int.Parse(node_.Attributes["amount"].Value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
-        /// <param name="option_"></param>
         public void Save(XmlNode node_, SaveOption option_)
         {
             XmlNode kerningNode = node_.OwnerDocument.CreateElement("Kerning");

@@ -1,58 +1,26 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
 using CasaEngine.AI.Graphs;
 
 
 namespace CasaEngine.AI.Pathfinding
 {
-    /// <summary>
-    /// This class represents the width first search algorithm for graphs. This algorithm searches in a graph
-    /// "in levels". It´s a complete and optimal search (should find always the best solution if it exists), but
-    /// it can use quite a lot of time and memory
-    /// </summary>
-    /// <remarks>
-    /// Based on Mat Buckland implementation from his book "Programming Game AI by Example"
-    /// </remarks>
-    /// <typeparam name="T">The type of the nodes</typeparam>
-    /// <typeparam name="K">The type of the edges</typeparam>
     public class WidthFirstSearch<T, K> : GraphSearchAlgorithm<T, K>
         where T : Node
         where K : Edge
     {
 
-        /// <summary>
-        /// List of visited nodes
-        /// </summary>
         protected internal List<Visibility> visited;
 
-        /// <summary>
-        /// Queue of edges the algorithm is going to visit
-        /// </summary>
         protected internal Queue<K> queuedEdges;
 
-        /// <summary>
-        /// The route from the source to the target as a list of node indexes
-        /// </summary>
         protected internal List<int> route;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="graph">The graph where the search will be performed</param>
         public WidthFirstSearch(Graph<T, K> graph) : base(graph)
         { }
 
 
 
-        /// <summary>
-        /// Gets the path found by the search algorithm as a list of node indexes
-        /// </summary>
         public override List<int> PathOfNodes
         {
             get
@@ -78,9 +46,6 @@ namespace CasaEngine.AI.Pathfinding
             }
         }
 
-        /// <summary>
-        /// Gets the path found by the search algorithm as a list of edges
-        /// </summary>
         public override List<K> PathOfEdges
         {
             get
@@ -106,12 +71,6 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        /// <summary>
-        /// Initializes a search
-        /// </summary>
-        /// <param name="source">Source node</param>
-        /// <param name="target">Target node</param>
-        /// <remarks>Calling this method is mandatory when using time-sliced searchs</remarks>
         public override void Initialize(int source, int target)
         {
             K dummy;
@@ -140,10 +99,6 @@ namespace CasaEngine.AI.Pathfinding
             visited[source] = Visibility.Visited;
         }
 
-        /// <summary>
-        /// Searches in a graph
-        /// </summary>
-        /// <returns>The state of the search</returns>
         public override SearchState Search()
         {
             K next;
@@ -178,10 +133,6 @@ namespace CasaEngine.AI.Pathfinding
             return found;
         }
 
-        /// <summary>
-        /// Does one full iteration in the search process. Used in time-sliced searchs
-        /// </summary>
-        /// <returns>The state of the search</returns>
         public override SearchState CycleOnce()
         {
             K next;

@@ -1,8 +1,3 @@
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
 using System.Xml;
 using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay.Actor.Object;
@@ -19,16 +14,12 @@ using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Gameplay.Design;
-using CasaEngine.Design;
 using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.Gameplay
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -44,9 +35,6 @@ namespace CasaEngine.Gameplay
         private CharacterActor2DOrientation m_Orientation = CharacterActor2DOrientation.Right;
         private Vector2 m_Velocity = new Vector2();
 
-        /// <summary>
-        /// Start position
-        /// </summary>
         private Vector2 m_InitialPosition;
         private Vector2 m_Position; //utilisé si pas physique
 
@@ -54,19 +42,19 @@ namespace CasaEngine.Gameplay
         private Controller m_Controller;
 
         // Used to load all animations
-        private Dictionary<int, string> m_AnimationListToLoad = new Dictionary<int, string>();
+        private readonly Dictionary<int, string> m_AnimationListToLoad = new Dictionary<int, string>();
         private Dictionary<int, Animation2D> m_Animations = new Dictionary<int, Animation2D>();
         private Animation2DPlayer m_Animation2DPlayer;
         private int m_NumberOfDirection = 8;
         private int m_AnimationDirectioMask = 0;
-        private Dictionary<int, int> m_AnimationDirectionOffset = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> m_AnimationDirectionOffset = new Dictionary<int, int>();
         private Renderer2DComponent m_Renderer2DComponent;
 
         private Body m_Body;
 
         //use to avoid GC
         private Point m_PointTmp = new Point();
-        private Message m_Message = new Message(-1, -1, (int)MessageType.AnimationChanged, 0.0, null);
+        private readonly Message m_Message = new Message(-1, -1, (int)MessageType.AnimationChanged, 0.0, null);
         private Vector2 m_Vector2 = new Vector2();
 
 #if !FINAL
@@ -74,190 +62,130 @@ namespace CasaEngine.Gameplay
 #endif
 
         //use to attack only one time per attack
-        private List<ICollide2Dable> m_AlreadyAttacked = new List<ICollide2Dable>();
+        private readonly List<ICollide2Dable> m_AlreadyAttacked = new List<ICollide2Dable>();
 
         //for debugging : to delete
         Texture2D m_WhiteTexture;
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public SpriteEffects SpriteEffects
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Depth
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public float ZOrder
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public bool Visible
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public float Speed
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public float SpeedOffSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int HPMax
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int HPMaxOffSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int HP
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int HPOffSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int MPMax
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int MPMaxOffSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int MP
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int MPOffSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Strength
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int StrengthOffSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Defense
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int DefenseOffSet
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets or sets the finite state machine
-        /// </summary>
         public IFiniteStateMachine<CharacterActor2D> StateMachine
         {
-            get { return m_FSM; }
-            set { m_FSM = value as FiniteStateMachine<CharacterActor2D>; }
+            get => m_FSM;
+            set => m_FSM = value as FiniteStateMachine<CharacterActor2D>;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public CharacterActor2DOrientation Orientation
         {
-            get { return m_Orientation; }
+            get => m_Orientation;
             set
             {
                 if (m_Orientation != value
@@ -269,18 +197,12 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public Vector2 Direction
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public new Vector2 Position
         {
             get
@@ -297,98 +219,53 @@ namespace CasaEngine.Gameplay
             /*set { m_Position = value; }*/
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Vector2 InitialPosition
         {
-            get { return m_InitialPosition; }
-            set { m_InitialPosition = value; }
+            get => m_InitialPosition;
+            set => m_InitialPosition = value;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Animation2DPlayer Animation2DPlayer
-        {
-            get { return m_Animation2DPlayer; }
-        }
+        public Animation2DPlayer Animation2DPlayer => m_Animation2DPlayer;
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int ComboNumber
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
-        /// <returns></returns>
         public bool IsPLayer
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public TeamInfo TeamInfo
         {
-            get { return m_TeamInfo; }
-            set { m_TeamInfo = value; }
+            get => m_TeamInfo;
+            set => m_TeamInfo = value;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        protected Controller Controller
-        {
-            get { return m_Controller; }
-        }
+        protected Controller Controller => m_Controller;
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected event EventHandler EndAnimationReached
         {
-            add
-            {
-                m_Animation2DPlayer.OnEndAnimationReached += value;
-            }
-            remove
-            {
-                m_Animation2DPlayer.OnEndAnimationReached -= value;
-            }
+            add => m_Animation2DPlayer.OnEndAnimationReached += value;
+            remove => m_Animation2DPlayer.OnEndAnimationReached -= value;
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         protected CharacterActor2D(XmlElement el_, SaveOption opt_)
             : base(el_, opt_)
         {
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="charac_"></param>
         public CharacterActor2D(CharacterActor2D charac_)
             : this()
         {
             CopyFrom(charac_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public CharacterActor2D()
         {
             Speed = 1.0f;
@@ -397,19 +274,11 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override BaseObject Clone()
         {
             return new CharacterActor2D(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ob_"></param>
         protected override void CopyFrom(BaseObject ob_)
         {
             if (ob_ is CharacterActor2D == false)
@@ -445,18 +314,11 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="controller_"></param>
         public void SetController(Controller controller_)
         {
             m_Controller = controller_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void Initialize()
         {
             m_FSM = new FiniteStateMachine<CharacterActor2D>(this);
@@ -466,10 +328,6 @@ namespace CasaEngine.Gameplay
 #endif
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="physicWorld_"></param>
         public virtual void Initialize(FarseerPhysics.Dynamics.World physicWorld_)
         {
             foreach (var pair in m_AnimationListToLoad)
@@ -522,9 +380,6 @@ namespace CasaEngine.Gameplay
             m_WhiteTexture = (Engine.Instance.Game.Services.GetService(typeof(DebugManager)) as DebugManager).WhiteTexture;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void InitializeController()
         {
             //if (m_Controller != null)
@@ -533,11 +388,6 @@ namespace CasaEngine.Gameplay
             //}
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void OnEndAnimationReached(object sender, EventArgs e)
         {
             m_Message.SenderID = this.ID;
@@ -549,20 +399,11 @@ namespace CasaEngine.Gameplay
             m_Controller.StateMachine.HandleMessage(m_Message);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         /*void OnFrameChanged(object sender, Animation2DFrameChangedEventArgs e)
         {
             
         }*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="physicWorld_"></param>
         private void InitializePhysics(FarseerPhysics.Dynamics.World physicWorld_)
         {
             if (physicWorld_ != null)
@@ -586,10 +427,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public override void Update(float elapsedTime_)
         {
             //if (m_Controller != null)
@@ -601,10 +438,6 @@ namespace CasaEngine.Gameplay
             m_Animation2DPlayer.Update(elapsedTime_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public void Draw(float elapsedTime_)
         {
             m_Renderer2DComponent.AddSprite2D(
@@ -671,11 +504,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Load(XmlElement el_, SaveOption opt_)
         {
             base.Load(el_, opt_);
@@ -700,10 +528,6 @@ namespace CasaEngine.Gameplay
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pos_"></param>
         public void SetPosition(Vector2 pos_)
         {
             if (m_Body == null)
@@ -716,10 +540,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dir_"></param>
         public void Move(ref Vector2 dir_)
         {
             if (dir_ == Vector2.Zero)
@@ -736,10 +556,6 @@ namespace CasaEngine.Gameplay
             m_Velocity = dir_ * (Speed + SpeedOffSet);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         private void MoveCharacter(float elapsedTime_)
         {
             if (m_Body == null)
@@ -754,50 +570,27 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="numberOfDirectionAnimation_"></param>
-        /// <param name="animationDirectioMask_"></param>
         public void SetAnimationParameters(int numberOfDirectionAnimation_, int animationDirectionMask_)
         {
             m_NumberOfDirection = numberOfDirectionAnimation_;
             m_AnimationDirectioMask = animationDirectionMask_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dir_"></param>
-        /// <param name="offset_"></param>
         public void SetAnimationDirectionOffset(CharacterActor2DOrientation dir_, int offset_)
         {
             m_AnimationDirectionOffset[(int)dir_] = offset_;
         }
 
-        /// <summary>
-        /// Set the animation compared to the index and the direction of the character
-        /// See AnimationDirectionMask, CharacterDirection, AnimationIndices, NumberCharacterDriection
-        /// </summary>
-        /// <param name="index_"></param>
         public void SetCurrentAnimation(int index_)
         {
             m_Animation2DPlayer.SetCurrentAnimationByID(index_ * m_NumberOfDirection + GetAnimationDirectionOffset());
         }
 
-        /// <summary>
-        /// Set the animation by name
-        /// </summary>
-        /// <param name="name_"></param>
         public void SetCurrentAnimation(string name_)
         {
             m_Animation2DPlayer.SetCurrentAnimationByName(name_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         private int GetAnimationDirectionOffset()
         {
 #if DEBUG
@@ -806,10 +599,6 @@ namespace CasaEngine.Gameplay
             return m_AnimationDirectionOffset[(int)m_Orientation & m_AnimationDirectioMask];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info_"></param>
         public virtual void Hit(HitInfo info_)
         {
             CharacterActor2D a = (CharacterActor2D)info_.ActorAttacking;
@@ -833,19 +622,11 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="contactPoint_"></param>
         public void AddHitEffect(ref Vector2 contactPoint_)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info_"></param>
         public virtual void IKillSomeone(HitInfo info_)
         {
             if (IsPLayer == true)
@@ -857,9 +638,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Shape2DObject[] Shape2DObjectList
         {
             get
@@ -916,11 +694,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other_"></param>
-        /// <returns></returns>
         public bool CanAttackHim(IAttackable other_)
         {
             if (m_AlreadyAttacked.Contains(other_) == false)
@@ -931,9 +704,6 @@ namespace CasaEngine.Gameplay
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void DoANewAttack()
         {
             m_AlreadyAttacked.Clear();
@@ -941,11 +711,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
         public bool HandleMessage(Message message)
         {
             switch (message.Type)
@@ -972,10 +737,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="v"></param>
         static public CharacterActor2DOrientation GetCharacterDirectionFromVector2(Vector2 v_)
         {
             float deadzone = 0.2f;

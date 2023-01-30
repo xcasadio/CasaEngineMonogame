@@ -5,24 +5,14 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System;
-
 
 using System.Xml;
-using CasaEngine;
 using CasaEngineCommon.Extension;
-using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
-using System.IO;
 using CasaEngineCommon.Design;
 
 
 namespace CasaEngine.Input
 {
-    /// <summary>
-    /// Describes a sequences of buttons which must be pressed to active the move.
-    /// A real game might add a virtual PerformMove() method to this class.
-    /// </summary>
     public class Move
     {
         public string Name;
@@ -40,31 +30,16 @@ namespace CasaEngine.Input
         // be reused as a component of longer moves.
         public bool IsSubMove;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="sequence"></param>
         public Move(string name)
         {
             Name = name;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public Move(XmlElement el_, SaveOption option_)
         {
             Load(el_, option_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Load(XmlElement el_, SaveOption option_)
         {
             Name = el_.Attributes["name"].Value;
@@ -104,12 +79,7 @@ namespace CasaEngine.Input
 
 #if EDITOR
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
-		/// <param name="option_"></param>
-		public void Save(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el_, SaveOption option_)
         {
             el_.OwnerDocument.AddAttribute(el_, "name", Name);
 
@@ -132,11 +102,6 @@ namespace CasaEngine.Input
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="bw_"></param>
-        /// <param name="option_"></param>
         public void Save(BinaryWriter bw_, SaveOption option_)
         {
             bw_.Write(Sequence.Count);
@@ -156,12 +121,6 @@ namespace CasaEngine.Input
 
 #endif
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="i"></param>
-        /// <param name="buttons_"></param>
-        /// <returns></returns>
         public bool Match(int i, InputManager.KeyState[] buttons_)
         {
             int x = 0;

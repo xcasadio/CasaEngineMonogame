@@ -1,23 +1,13 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System.Xml;
 using CasaEngineCommon.Extension;
 using FarseerPhysics.Common.PolygonManipulation;
 using FarseerPhysics.Common;
-using System.IO;
 using CasaEngineCommon.Design;
 using System.ComponentModel;
 
 namespace CasaEngine.Math.Shape2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class ShapePolygone
         : Shape2DObject
     {
@@ -27,9 +17,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
@@ -38,9 +25,6 @@ namespace CasaEngine.Math.Shape2D
             get { return m_Points; }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
@@ -51,9 +35,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ShapePolygone(Vector2 p1_, Vector2 p2_, Vector2 p3_)
             : base(Shape2DType.Polygone)
         {
@@ -64,10 +45,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="p_"></param>
         public void AddPoint(Vector2 p_)
         {
             m_Points.Add(p_);
@@ -78,11 +55,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
-        /// <param name="p_"></param>
         public void AddPoint(int index_, Vector2 p_)
         {
             m_Points.Insert(index_, p_);
@@ -93,11 +65,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
-        /// <param name="p_"></param>
         public void ModifyPoint(int index_, Vector2 p_)
         {
             m_Points[index_] = p_;
@@ -108,10 +75,6 @@ namespace CasaEngine.Math.Shape2D
             }*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="p_"></param>
         public void RemovePoint(Vector2 p_)
         {
             m_Points.Remove(p_);
@@ -122,10 +85,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
         public void RemovePointAt(int index_)
         {
             m_Points.RemoveAt(index_);
@@ -136,9 +95,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void DeleteAllPoints()
         {
             m_Points.Clear();
@@ -149,9 +105,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void VerticesCorrection()
         {
             int i1, i2;
@@ -215,11 +168,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="o_"></param>
-        /// <returns></returns>
         public override bool CompareTo(Shape2DObject o_)
         {
             if (o_ is ShapePolygone)
@@ -250,11 +198,6 @@ namespace CasaEngine.Math.Shape2D
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Save(XmlElement el_, SaveOption option_)
         {
             base.Save(el_, option_);
@@ -272,11 +215,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Save(BinaryWriter bw_, SaveOption option_)
         {
             base.Save(bw_, option_);
@@ -292,10 +230,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override string ToString()
         {
             return "Polygone";

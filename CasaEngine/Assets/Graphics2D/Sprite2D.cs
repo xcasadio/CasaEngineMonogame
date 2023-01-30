@@ -1,19 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using System.IO;
 using CasaEngineCommon.Extension;
 using Microsoft.Xna.Framework.Content;
 using System.Xml;
 using CasaEngine.Math.Shape2D;
-using CasaEngine;
-using FarseerPhysics.Common;
-using FarseerPhysics.Dynamics;
 using CasaEngineCommon.Design;
 using CasaEngine.Game;
 using CasaEngine.Gameplay.Actor.Object;
@@ -28,9 +18,6 @@ using CasaEngine.Project;
 
 namespace CasaEngine.Assets.Graphics2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -48,20 +35,17 @@ namespace CasaEngine.Assets.Graphics2D
         private Point m_Origin = Point.Zero;
 
 #if EDITOR
-        private List<Shape2DObject> m_Collisions = new List<Shape2DObject>();
+        private readonly List<Shape2DObject> m_Collisions = new List<Shape2DObject>();
 #else
         private Shape2DObject[] m_Collisions;
 #endif
 
-        private Dictionary<string, Vector2> m_Sockets = new Dictionary<string, Vector2>();
+        private readonly Dictionary<string, Vector2> m_Sockets = new Dictionary<string, Vector2>();
 
-        private List<string> m_AssetFileNames = new List<string>();
+        private readonly List<string> m_AssetFileNames = new List<string>();
 
 
 
-        /// <summary>
-        /// Gets texture 2D
-        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
@@ -81,9 +65,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// Gets/Sets position in texture
-        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
@@ -99,9 +80,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// Gets/Sets(editor) HotSpot
-        /// </summary>
 #if EDITOR
         [Category("Sprite")]
 #endif
@@ -120,9 +98,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// Gets collision rectangle
-        /// </summary>
 #if EDITOR
         [Browsable(false)]
 #endif
@@ -140,33 +115,18 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         internal Sprite2D() { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="tex_"></param>
         public Sprite2D(Texture2D tex_)
         {
             Texture2D = tex_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node_"></param>
         public Sprite2D(XmlElement node_, SaveOption option_)
         {
             Load(node_, option_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite_"></param>
         public Sprite2D(Sprite2D sprite_)
         {
             CopyFrom(sprite_);
@@ -174,19 +134,11 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override BaseObject Clone()
         {
             return new Sprite2D(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite_"></param>
 #if EDITOR
         public
 #else
@@ -226,10 +178,6 @@ namespace CasaEngine.Assets.Graphics2D
         }
 
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="node_"></param>
         public override void Load(XmlElement node_, SaveOption option_)
         {
             base.Load(node_, option_);
@@ -290,20 +238,12 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="option_"></param>
         public override void Load(BinaryReader br_, SaveOption option_)
         {
             base.Load(br_, option_);
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void UnloadTexture()
         {
 #if !EDITOR
@@ -318,20 +258,11 @@ namespace CasaEngine.Assets.Graphics2D
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns></returns>
         public Vector2 GetSocketByName(string name_)
         {
             return m_Sockets[name_];
         }
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="game_"></param>
         public void LoadTexture(ContentManager content_)
         {
             if (m_Texture2D != null
@@ -346,10 +277,6 @@ namespace CasaEngine.Assets.Graphics2D
             m_Texture2D = content_.Load<Texture2D>(assetFile);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="device_"></param>
         public void LoadTextureFile(GraphicsDevice device_)
         {
             string assetFile;

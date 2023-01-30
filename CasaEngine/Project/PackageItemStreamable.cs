@@ -1,10 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Reflection;
+﻿using System.Reflection;
 using CasaEngineCommon.Design;
 using CasaEngineCommon.Logger;
 using System.Xml;
@@ -18,31 +12,19 @@ namespace CasaEngine.Project
         private IPackageable m_Item;
 
         private long m_FilePosition; //use for binary loading
-        private string m_XmlPath; //use for xml loading
+        private readonly string m_XmlPath; //use for xml loading
         private Type m_ItemType;
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public IPackageable Item
-        {
-            get { return m_Item; }
-        }
+        public IPackageable Item => m_Item;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public string ClassName
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public Type ItemType
         {
             get
@@ -73,15 +55,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="package_"></param>
-        /// <param name="id_"></param>
-        /// <param name="name_"></param>
-        /// <param name="className_"></param>
-        /// <param name="item_"></param>
-        /// <param name="filePosition_"></param>
         public PackageItemStreamable(Package package_, int id_, string name_, string className_, IPackageable item_, long filePosition_ = -1)
             : base(package_, id_, name_)
         {
@@ -93,9 +66,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public override T LoadItem<T>()
         {
             //throw new NotImplementedException();

@@ -10,13 +10,8 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-
 namespace XNAFinalEngine.UserInterface
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class StackPanel : Container
     {
 
@@ -24,13 +19,10 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public XNAFinalEngine.UserInterface.Orientation Orientation
         {
-            get { return m_Orientation; }
-            set { m_Orientation = value; }
+            get => m_Orientation;
+            set => m_Orientation = value;
         }
 
 

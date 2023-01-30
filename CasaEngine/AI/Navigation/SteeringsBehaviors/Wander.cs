@@ -1,7 +1,3 @@
-
-using System;
-
-
 using Microsoft.Xna.Framework;
 
 
@@ -9,79 +5,31 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
-    /// <summary>
-    /// This class represents the wander steering behavior. This behavior calculates a force
-    /// that moves the entity in a random manner, but in a good looking way (like if the entity
-    /// was wandering around the scene)
-    /// </summary>
     public class Wander : SteeringBehavior
     {
 
-        /// <summary>
-        /// The distance to project the wandering circle
-        /// </summary>
         protected internal float distance;
 
-        /// <summary>
-        /// The radius of the wandering circle
-        /// </summary>
         protected internal float radius;
 
-        /// <summary>
-        /// Small noise added to the wander target
-        /// </summary>
         protected internal float jitter;
 
-        /// <summary>
-        /// The target position the entity tries to wander to. This position is constrained in 
-        /// a circle around the entity
-        /// </summary>
         protected internal Vector3 wanderTarget;
 
-        /// <summary>
-        /// Random number generator to create small variations in the movement
-        /// </summary>
         protected internal Random generator;
 
-        /// <summary>
-        /// The force produced by the behavior
-        /// </summary>
         protected internal Vector3 force;
 
-        /// <summary>
-        /// The target position the behavior moves to
-        /// </summary>
         protected internal Vector3 targetPosition;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="name">Name of the behavior, used to identify it</param>
-        /// <param name="owner">The owner entity of the behavior</param>
-        /// <param name="modifier">
-        /// This value can modify the value of the behavior when the total force of all combined
-        /// behaviors is updated
-        /// </param>
         public Wander(String name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
             generator = new Random();
         }
 
-        /// <summary>
-        /// Overloaded constructor
-        /// </summary>
-        /// <param name="name">Name of the behavior, used to identify it</param>
-        /// <param name="owner">The owner entity of the behavior</param>
-        /// <param name="modifier">
-        /// This value can modify the value of the behavior when the total force of all combined
-        /// behaviors is updated
-        /// </param>
-        /// <param name="radius">The radius of the wandering circle</param>
-        /// <param name="distance">The distance to project the wandering circle</param>
-        /// <param name="jitter">Small noise added to the wander target</param>
         public Wander(String name, MovingEntity owner, float modifier, float radius, float distance, float jitter)
             : base(name, owner, modifier)
         {
@@ -103,21 +51,15 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
 
 
-        /// <summary>
-        /// Gets or sets the distance to project the wandering circle
-        /// </summary>
         public float Distance
         {
-            get { return distance; }
-            set { distance = value; }
+            get => distance;
+            set => distance = value;
         }
 
-        /// <summary>
-        /// Gets or sets the radius of the wandering circle
-        /// </summary>
         public float Radius
         {
-            get { return radius; }
+            get => radius;
             set
             {
                 double alfa, beta, theta;
@@ -133,46 +75,20 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             }
         }
 
-        /// <summary>
-        /// Gets or sets a small noise added to the wander target
-        /// </summary>
         public float Jitter
         {
-            get { return jitter; }
-            set { jitter = value; }
+            get => jitter;
+            set => jitter = value;
         }
 
-        /// <summary>
-        /// Gets the force produced by the behavior
-        /// </summary>
-        public Vector3 Force
-        {
-            get { return force; }
-        }
+        public Vector3 Force => force;
 
-        /// <summary>
-        /// Gets the target position the entity tries to wander to.
-        /// </summary>
-        public Vector3 WanderTarget
-        {
-            get { return wanderTarget; }
-        }
+        public Vector3 WanderTarget => wanderTarget;
 
 
-        /// <summary>
-        /// The target position the behavior moves to
-        /// </summary>
-        public Vector3 TargetPosition
-        {
-            get { return targetPosition; }
-        }
+        public Vector3 TargetPosition => targetPosition;
 
 
-
-        /// <summary>
-        /// Calculates the resultant force of this behavior
-        /// </summary>
-        /// <returns>The force vector of this behavior</returns>
         public override Vector3 Calculate()
         {
             Vector3 displacement;

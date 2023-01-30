@@ -12,23 +12,15 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using CasaEngine.CoreSystems;
-
 
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Tool Tip
-    /// </summary>
     public class ToolTip : Control
     {
 
 
-        /// <summary>
-        /// Gets or sets a value that indicates whether the control is rendered.
-        /// </summary>
         public override bool Visible
         {
             set
@@ -56,9 +48,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Tool Tip
-        /// </summary>
         public ToolTip(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -77,9 +66,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             UserInterfaceManager.Renderer.DrawLayer(this, SkinInformation.Layers[0], rect);

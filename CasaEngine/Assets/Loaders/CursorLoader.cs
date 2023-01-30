@@ -1,14 +1,6 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
-using System.Drawing;
+﻿using Microsoft.Xna.Framework.Graphics;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
-using System.Windows.Forms;
 using System.Reflection;
 
 namespace CasaEngine.Asset
@@ -22,12 +14,6 @@ namespace CasaEngine.Asset
 
         // Thanks Hans Passant!
         // http://stackoverflow.com/questions/4305800/using-custom-colored-cursors-in-a-c-windows-application
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <param name="device_"></param>
-        /// <returns></returns>
         public object LoadAsset(string fileName_, GraphicsDevice device_)
         {
             IntPtr handle = LoadCursorFromFile(fileName_);

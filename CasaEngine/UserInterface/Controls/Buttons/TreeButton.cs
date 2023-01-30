@@ -10,32 +10,20 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Tree Button
-    /// </summary>
     public class TreeButton : ButtonBase
     {
 
 
-        /// <summary>
-        /// Cheked?
-        /// </summary>
         private bool isChecked;
 
 
 
-        /// <summary>
-        /// Cheked?
-        /// </summary>
         public virtual bool Checked
         {
-            get { return isChecked; }
+            get => isChecked;
             set
             {
                 isChecked = value;
@@ -51,9 +39,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Tree Button.
-        /// </summary>
         public TreeButton(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -73,9 +58,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -85,9 +67,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             SkinLayer layer = SkinInformation.Layers["Checked"];

@@ -1,24 +1,8 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Graphics2D;
-using FarseerPhysics.Common;
-using CasaEngineCommon.Pool;
-using CasaEngine.Game;
-using Microsoft.Xna.Framework;
-using CasaEngine.Math.Shape2D;
-using FarseerPhysics.Dynamics;
-using FarseerPhysics.Collision.Shapes;
+﻿using Microsoft.Xna.Framework;
 using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.Physics2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public sealed class Sprite2DPhysicsManager
     {
 
@@ -29,9 +13,6 @@ namespace CasaEngine.Physics2D
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         static public Sprite2DPhysicsManager Instance
         {
             get
@@ -50,12 +31,6 @@ namespace CasaEngine.Physics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="g_"></param>
-        /// <param name="body_"></param>
-        /// <returns></returns>
         /*public Pool<Fixture>.Accessor CreateFixtureFromShape2DObject(Shape2DObject g_, Body body_)
         {
             //release
@@ -97,25 +72,14 @@ namespace CasaEngine.Physics2D
         // Pool for this type of components.
         /*private static readonly Pool<Fixture> componentPool = new Pool<Fixture>(20);
 
-        /// <summary>
-        /// Pool for this type of components.
-        /// </summary>
         internal static Pool<Fixture> ComponentPool { get { return componentPool; } }*/
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite2D_"></param>
         /*public void AddSprite2DPhysicsToWorldByID(uint id_)
         {
             m_PhysicToAddInWorld.Add(GameInfo.Instance.Asset2DManager.GetSprite2DByID(id_));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="world_"></param>
         public void AddPhysicsToWorld(FarseerPhysics.Dynamics.World world_)
         {
             foreach (Sprite2D sprite2D in m_PhysicToAddInWorld)
@@ -126,11 +90,6 @@ namespace CasaEngine.Physics2D
             m_PhysicToAddInWorld.Clear();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="world_"></param>
-        /// <param name="sprite2D_"></param>
         private void AddSprite2DPhysicsToWorld(FarseerPhysics.Dynamics.World world_, Sprite2D sprite2D_)
         {
             foreach (Shape2DObject ob in sprite2D_.Collisions)
@@ -142,11 +101,6 @@ namespace CasaEngine.Physics2D
             } 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite2D_"></param>
-        /// <returns></returns>
         private PoolItem<BodyDef> CreateBodyDefFromShape2DObject(Shape2DObject g_)
         {
             PoolItem<BodyDef> p = m_ResourcePool_BodyDef.GetItem();
@@ -157,11 +111,6 @@ namespace CasaEngine.Physics2D
             return p;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="bodyDef_"></param>
-        /// <param name="sprite2D_"></param>
         private void SetBodyDefFromShape2DObject(ref BodyDef bodyDef_, Shape2DObject g_)
         {
             bodyDef_.active = false;
@@ -180,11 +129,6 @@ namespace CasaEngine.Physics2D
             bodyDef_.userData = g_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pool"></param>
-        /// <returns></returns>
         private static BodyDef CreateBodyDef(ResourcePool<BodyDef> pool)
         {
             return new BodyDef();

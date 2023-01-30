@@ -10,18 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-
-using Microsoft.Xna.Framework.Input;
-using CasaEngine.Asset;
-
 using Keyboard = XNAFinalEngine.Input.Keyboard;
-using XNAFinalEngine.Assets;
-using CasaEngine.Asset.Fonts;
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -35,31 +26,16 @@ namespace XNAFinalEngine.UserInterface
     } // TextBoxMode
 
 
-    /// <summary>
-    /// Text Box.
-    /// </summary>
     public class TextBox : ClipControl
     {
 
 
-        /// <summary>
-        /// Text Selection.
-        /// </summary>
         private struct Selection
         {
-            /// <summary>
-            /// Selection start position. Undefined value is -1.
-            /// </summary>
             private int start;
 
-            /// <summary>
-            /// Selection end position. Undefined value is -1.
-            /// </summary>
             private int end;
 
-            /// <summary>
-            /// Selection start position. Undefined value is -1.
-            /// </summary>
             public int Start
             {
                 get
@@ -68,12 +44,9 @@ namespace XNAFinalEngine.UserInterface
                         return end;
                     return start;
                 }
-                set { start = value; }
+                set => start = value;
             } // Start
 
-            /// <summary>
-            /// Selection end position. Undefined value is -1.
-            /// </summary>
             public int End
             {
                 get
@@ -82,24 +55,12 @@ namespace XNAFinalEngine.UserInterface
                         return start;
                     return end;
                 }
-                set { end = value; }
+                set => end = value;
             } // End
 
-            /// <summary>
-            /// Is empty?
-            /// </summary>
-            public bool IsEmpty
-            {
-                get { return Start == -1 && End == -1; }
-            } // IsEmpty
+            public bool IsEmpty => Start == -1 && End == -1; // IsEmpty
 
-            /// <summary>
-            /// Selection Length.
-            /// </summary>
-            public int Length
-            {
-                get { return IsEmpty ? 0 : (End - Start); }
-            } // Length
+            public int Length => IsEmpty ? 0 : (End - Start); // Length
 
             public Selection(int start, int end)
             {
@@ -107,9 +68,6 @@ namespace XNAFinalEngine.UserInterface
                 this.end = end;
             } // Selection
 
-            /// <summary>
-            /// Empty the selection.
-            /// </summary>
             public void Clear()
             {
                 Start = -1;
@@ -119,51 +77,24 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Cursor's position.
-        /// </summary>
         private int positionX;
         private int positionY;
 
-        /// <summary>
-        /// Scrollbar Type.
-        /// </summary>
         private ScrollBarType scrollBarType = ScrollBarType.Both;
 
-        /// <summary>
-        /// Scrollbars.
-        /// </summary>
         private readonly ScrollBar horizontalScrollBar;
         private readonly ScrollBar verticalScrollBar;
 
-        /// <summary>
-        /// Password Character.
-        /// </summary>
         private char passwordCharacter = '•';
 
-        /// <summary>
-        /// Caret navigation or text cursor visible.
-        /// </summary>
         private bool caretVisible = true;
 
-        /// <summary>
-        /// Auto select text when focus is gained. For example when you press the tab key until the control is reached.
-        /// </summary>
         private bool autoSelection = true;
 
-        /// <summary>
-        /// Text Box Mode (Normal, Password, Multiline).
-        /// </summary>
         private TextBoxMode mode = TextBoxMode.Normal;
 
-        /// <summary>
-        /// Text is read only?
-        /// </summary>
         private bool readOnly;
 
-        /// <summary>
-        /// Draw Borders?
-        /// </summary>
         private bool drawBorders = true;
 
         private bool showCursor;
@@ -179,20 +110,14 @@ namespace XNAFinalEngine.UserInterface
         private string text = "";
         private string buffer = "";
 
-        /// <summary>
-        /// The text that the control had when it gained focus.
-        /// </summary>
         private string initialText;
 
 
 
 
-        /// <summary>
-        /// Cursor's X position.
-        /// </summary>
         private int PositionX
         {
-            get { return positionX; }
+            get => positionX;
             set
             {
                 positionX = value;
@@ -203,12 +128,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // positionX
 
-        /// <summary>
-        /// Cursor's Y position.
-        /// </summary>
         private int PositionY
         {
-            get { return positionY; }
+            get => positionY;
             set
             {
                 positionY = value;
@@ -222,12 +144,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // PositionY
 
-        /// <summary>
-        /// Cursor's position.
-        /// </summary>
         private int Position
         {
-            get { return GetPos(PositionX, PositionY); }
+            get => GetPos(PositionX, PositionY);
             set
             {
                 PositionY = GetPosY(value);
@@ -236,12 +155,9 @@ namespace XNAFinalEngine.UserInterface
         } // Position
 
 
-        /// <summary>
-        ///  Scrollbar Type (None, Vertical, Horizontal, Both).
-        /// </summary>
         public virtual ScrollBarType ScrollBars
         {
-            get { return scrollBarType; }
+            get => scrollBarType;
             set
             {
                 scrollBarType = value;
@@ -249,30 +165,21 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ScrollBars
 
-        /// <summary>
-        /// Password Character. Default: •
-        /// </summary>
         public virtual char PasswordCharacter
         {
-            get { return passwordCharacter; }
+            get => passwordCharacter;
             set { passwordCharacter = value; if (ClientArea != null) ClientArea.Invalidate(); }
         } // PasswordCharacter
 
-        /// <summary>
-        /// Caret navigation or text cursor visible.
-        /// </summary>
         public virtual bool CaretVisible
         {
-            get { return caretVisible; }
-            set { caretVisible = value; }
+            get => caretVisible;
+            set => caretVisible = value;
         } // CaretVisible
 
-        /// <summary>
-        /// Text Box Mode (Normal, Password, Multiline).
-        /// </summary>
         public virtual TextBoxMode Mode
         {
-            get { return mode; }
+            get => mode;
             set
             {
                 if (value != TextBoxMode.Multiline)
@@ -287,28 +194,19 @@ namespace XNAFinalEngine.UserInterface
             }
         } // TextBoxMode
 
-        /// <summary>
-        /// Text is read only?
-        /// </summary>
         public virtual bool ReadOnly
         {
-            get { return readOnly; }
-            set { readOnly = value; }
+            get => readOnly;
+            set => readOnly = value;
         } // ReadOnly
 
-        /// <summary>
-        /// Draw Borders?
-        /// </summary>
         public virtual bool DrawBorders
         {
-            get { return drawBorders; }
+            get => drawBorders;
             set { drawBorders = value; if (ClientArea != null) ClientArea.Invalidate(); }
         } // DrawBorders
 
 
-        /// <summary>
-        /// Selected Text.
-        /// </summary>
         public virtual string SelectedText
         {
             get
@@ -321,9 +219,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SelectedText
 
-        /// <summary>
-        /// Selection Start.
-        /// </summary>
         public virtual int SelectionStart
         {
             get
@@ -343,21 +238,15 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SelectionStart
 
-        /// <summary>
-        /// Auto select text when focus is gained. For example when you press the tab key until the control is reached, or when you click the control.
-        /// </summary>
         public virtual bool AutoSelection
         {
-            get { return autoSelection; }
-            set { autoSelection = value; }
+            get => autoSelection;
+            set => autoSelection = value;
         } // AutoSelection
 
-        /// <summary>
-        /// Selection Length.
-        /// </summary>
         public virtual int SelectionLength
         {
-            get { return selection.Length; }
+            get => selection.Length;
             set
             {
                 if (value == 0)
@@ -386,12 +275,9 @@ namespace XNAFinalEngine.UserInterface
         } // SelectionLength
 
 
-        /// <summary>
-        /// Text.
-        /// </summary>
         public override string Text
         {
-            get { return text; }
+            get => text;
             set
             {
                 if (mode != TextBoxMode.Multiline && value != null)
@@ -413,9 +299,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Text Box.
-        /// </summary>
         public TextBox(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -469,9 +352,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             if (drawBorders)
@@ -480,9 +360,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawControl
 
-        /// <summary>
-        /// Determine Pages.
-        /// </summary>
         private void DeterminePages()
         {
             if (ClientArea != null)
@@ -495,9 +372,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DeterminePages
 
-        /// <summary>
-        /// Get Maximum Line.
-        /// </summary>
         private string GetMaxLine()
         {
             int max = 0;
@@ -514,9 +388,6 @@ namespace XNAFinalEngine.UserInterface
             return lines.Count > 0 ? lines[x] : "";
         } // GetMaxLine
 
-        /// <summary>
-        /// Draw the text.
-        /// </summary>
         private void ClientAreaDraw(object sender, DrawEventArgs e)
         {
             Color col = SkinInformation.Layers["Control"].Text.Colors.Enabled;
@@ -721,9 +592,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Find previous word from current position.
-        /// </summary>
         private int FindPreviousWord(string text)
         {
             bool letter = false;
@@ -748,9 +616,6 @@ namespace XNAFinalEngine.UserInterface
             return 0;
         } // FindPreviousWord
 
-        /// <summary>
-        /// Find next word from current position.
-        /// </summary>
         private int FindNextWord(string text)
         {
             bool space = false;
@@ -1292,9 +1157,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// If the control lost focus then...
-        /// </summary>
         protected override void OnFocusLost()
         {
             selection.Clear();
@@ -1302,9 +1164,6 @@ namespace XNAFinalEngine.UserInterface
             base.OnFocusLost();
         } // OnFocusLost
 
-        /// <summary>
-        /// If the control gained focus then...
-        /// </summary>
         protected override void OnFocusGained()
         {
             if (!readOnly && autoSelection

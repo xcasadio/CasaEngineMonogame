@@ -1,38 +1,18 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Xml;
 using CasaEngineCommon.Extension;
-using CasaEngine;
-using System.IO;
 using CasaEngineCommon.Design;
 
 
 namespace CasaEngine.Project
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class ProjectConfig
     {
 
-        /// <summary>
-        /// Name of the window title
-        /// </summary>
         private string m_WindowTitle = "Game name undefined";
 
-        /// <summary>
-        /// Name of the project
-        /// </summary>
         private string m_ProjectName = "No Project Opened";
 
-        /// <summary>
-        /// Name
-        /// </summary>
         private string m_FirstScreenName = string.Empty;
 
         private bool m_AllowUserResizing;
@@ -46,24 +26,12 @@ namespace CasaEngine.Project
 
 #if EDITOR
 
-        /// <summary>
-        /// 
-        /// </summary>
         private string m_DataSrcCtrl_Server = string.Empty;
 
-        /// <summary>
-        /// 
-        /// </summary>
         private string m_DataSrcCtrl_User = string.Empty;
 
-        /// <summary>
-        /// 
-        /// </summary>
         private string m_DataSrcCtrl_Password = string.Empty;
 
-        /// <summary>
-        /// 
-        /// </summary>
         private string m_DataSrcCtrl_Workspace = string.Empty;
 
 
@@ -72,9 +40,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// Gets/Sets(editor) Window Title
-        /// </summary>
 #if EDITOR
         [Category("Project")]
 #endif
@@ -86,9 +51,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// Gets/Sets(editor) ProjectName
-        /// </summary>
 #if EDITOR
         [Category("Project")]
 #endif
@@ -100,9 +62,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Start")]
 #endif
@@ -114,9 +73,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Project")]
 #endif
@@ -128,9 +84,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Project")]
 #endif
@@ -142,9 +95,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Project")]
 #endif
@@ -159,9 +109,6 @@ namespace CasaEngine.Project
 #if !FINAL
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Debug")]
 #endif
@@ -173,9 +120,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Debug")]
 #endif
@@ -187,9 +131,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Debug")]
 #endif
@@ -206,18 +147,11 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>>
         public ProjectConfig()
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public ProjectConfig(XmlElement el_, SaveOption option_)
         {
             Load(el_, option_);
@@ -225,11 +159,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Load(XmlElement el_, SaveOption option_)
         {
             uint version = uint.Parse(el_.Attributes["version"].Value);
@@ -256,11 +185,6 @@ namespace CasaEngine.Project
 
 #if EDITOR
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Save(XmlElement el_, SaveOption option_)
         {
             el_.OwnerDocument.AddAttribute(el_, "name", m_ProjectName);
@@ -281,11 +205,6 @@ namespace CasaEngine.Project
             el_.OwnerDocument.AddAttribute(xmlElt, "debugWidth", m_DebugWidth.ToString());
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Save(BinaryWriter bw_, SaveOption option_)
         {
             bw_.Write(m_Version);

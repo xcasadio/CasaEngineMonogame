@@ -1,56 +1,37 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Audio
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class AudioComponent
         : Microsoft.Xna.Framework.GameComponent
     {
 
         // The listener describes the ear which is hearing 3D sounds.
         // This is usually set to match the camera.
-        public AudioListener Listener
-        {
-            get { return listener; }
-        }
+        public AudioListener Listener => listener;
 
-        AudioListener listener = new AudioListener();
+        readonly AudioListener listener = new AudioListener();
 
 
         // The emitter describes an entity which is making a 3D sound.
-        AudioEmitter emitter = new AudioEmitter();
+        readonly AudioEmitter emitter = new AudioEmitter();
 
 
         // Store all the sound effects that are available to be played.
-        Dictionary<string, SoundEffect> soundEffects = new Dictionary<string, SoundEffect>();
+        readonly Dictionary<string, SoundEffect> soundEffects = new Dictionary<string, SoundEffect>();
 
 
         // Keep track of all the 3D sounds that are currently playing.
-        List<ActiveSound> activeSounds = new List<ActiveSound>();
+        readonly List<ActiveSound> activeSounds = new List<ActiveSound>();
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="game"></param>
         public AudioComponent(Microsoft.Xna.Framework.Game game)
             : base(game)
         { }
 
 
-        /// <summary>
-        /// Initializes the audio manager.
-        /// </summary>
         public override void Initialize()
         {
             // Set the scale for 3D audio so it matches the scale of our game world.
@@ -68,18 +49,11 @@ namespace CasaEngine.Audio
             base.Initialize();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="soundName_"></param>
         public void AddSound(string soundName_)
         {
             soundEffects.Add(soundName_, Game.Content.Load<SoundEffect>(soundName_));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Clear()
         {
             foreach (SoundEffect soundEffect in soundEffects.Values)
@@ -90,9 +64,6 @@ namespace CasaEngine.Audio
             soundEffects.Clear();
         }
 
-        /// <summary>
-        /// Unloads the sound effect data.
-        /// </summary>
         protected override void Dispose(bool disposing)
         {
             try
@@ -109,9 +80,6 @@ namespace CasaEngine.Audio
         }
 
 
-        /// <summary>
-        /// Updates the state of the 3D audio system.
-        /// </summary>
         public override void Update(GameTime gameTime)
         {
             // Loop over all the currently playing 3D sounds.
@@ -142,9 +110,6 @@ namespace CasaEngine.Audio
         }
 
 
-        /// <summary>
-        /// Triggers a new 3D sound.
-        /// </summary>
         public SoundEffectInstance Play3DSound(string soundName, bool isLooped, IAudioEmitter emitter)
         {
             ActiveSound activeSound = new ActiveSound();
@@ -167,9 +132,6 @@ namespace CasaEngine.Audio
         }
 
 
-        /// <summary>
-        /// Updates the position and velocity settings of a 3D sound.
-        /// </summary>
         private void Apply3D(ActiveSound activeSound)
         {
             emitter.Position = activeSound.Emitter.Position;
@@ -181,10 +143,6 @@ namespace CasaEngine.Audio
         }
 
 
-        /// <summary>
-        /// Internal helper class for keeping track of an active 3D sound,
-        /// and remembering which emitter object it is attached to.
-        /// </summary>
         private class ActiveSound
         {
             public SoundEffectInstance Instance;

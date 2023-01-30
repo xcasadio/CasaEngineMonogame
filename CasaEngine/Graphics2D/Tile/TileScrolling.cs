@@ -1,22 +1,11 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using CasaEngine;
-using CasaEngineCommon.Pool;
 using CasaEngine.Assets.Graphics2D;
 
 
 
 namespace CasaEngine.Graphics2D.Tile
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class TileScrolling
         : TileLayer
     {
@@ -29,11 +18,6 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="graphicsComponent"></param>
-        /// <param name="Renderer2DComponent_"></param>
         public TileScrolling(GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
             : base(Vector2.Zero, graphicsComponent/*, Renderer2DComponent_*/)
         {
@@ -41,18 +25,11 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite_"></param>
         public void AddTile(Sprite2D sprite_)
         {
             m_Sprites.Add(sprite_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected override void DetermineVisibility()
         {
             base.DetermineVisibility();
@@ -89,10 +66,6 @@ namespace CasaEngine.Graphics2D.Tile
 			}*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="batch"></param>
         protected override void DrawTiles(SpriteBatch batch)
         {
             foreach (Sprite2D s in m_DisplaySprites)

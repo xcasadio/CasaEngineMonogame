@@ -1,51 +1,24 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Text;
-
-namespace HopField
+﻿namespace HopField
 {
-    /// <summary>
-    /// Reconnaissance de pattern
-    /// </summary>
     class Hopfield
     {
 
-        /// <summary>
-        /// number of units in this net
-        /// </summary>
         int m_NumUnits;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        List<int[]> m_Pattern = new List<int[]>();
+        readonly List<int[]> m_Pattern = new List<int[]>();
 
-        /// <summary>
-        /// output of ith unit 
-        /// </summary>
         int[] m_Output;
 
-        /// <summary>
-        /// threshold of ith unit
-        /// </summary>
         int[] m_Threshold;
 
-        /// <summary>
-        /// connection weights to ith unit
-        /// </summary>
         int[,] m_Weights;
 
 
 
-        /// <summary>
-        /// Gets Output
-        /// </summary>
         public int[] Output
         {
-            get { return m_Output; }
-            private set { m_Output = value; }
+            get => m_Output;
+            private set => m_Output = value;
         }
 
 
@@ -53,10 +26,6 @@ namespace HopField
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="num_"></param>
         public void GenerateNetwork(int num_)
         {
             int i;
@@ -72,10 +41,6 @@ namespace HopField
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pattern_"></param>
         public void AddPattern(int[] pattern_)
         {
             if (pattern_.Length != m_NumUnits)
@@ -86,9 +51,6 @@ namespace HopField
             m_Pattern.Add(pattern_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void CalculateWeights()
         {
             int i, j, n;
@@ -113,10 +75,6 @@ namespace HopField
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="input_"></param>
         public void SetInput(ref int[] input_)
         {
             if (input_.Length != m_NumUnits)
@@ -129,11 +87,6 @@ namespace HopField
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
         private bool PropagateUnit(int i)
         {
             int j;
@@ -162,9 +115,6 @@ namespace HopField
             return Changed;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void PropagateNet()
         {
             int Iteration, IterationOfLastChange;

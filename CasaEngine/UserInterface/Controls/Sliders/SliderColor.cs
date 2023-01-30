@@ -26,20 +26,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using CasaEngine.CoreSystems;
-
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Slider for color values.
-    /// </summary>
     public class SliderColor : Control
     {
 
@@ -63,9 +53,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Slider for numeric values.
-        /// </summary>
         public SliderColor(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -377,9 +364,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -391,17 +375,11 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update Color from the R G B sliders values.
-        /// </summary>
         private void UpdateColorFromRGB()
         {
             Color = new Color(sliderR.Value, sliderG.Value, sliderB.Value);
         } // UpdateColorFromRGB
 
-        /// <summary>
-        /// Update the R G B sliders values with the control color.
-        /// </summary>
         private void UpdateRGBFromColor()
         {
             sliderR.Value = Color.R / 255f;

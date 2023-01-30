@@ -1,28 +1,14 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.IO;
-using System.Xml.Serialization;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System.Text;
-using System.Xml;
-using CasaEngine.Game;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Object;
 
 #if EDITOR
 using System.ComponentModel;
-using CasaEngine.Editor.Assets;
 #endif
 
 namespace CasaEngine.Asset.Fonts
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class Font
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -31,10 +17,6 @@ namespace CasaEngine.Asset.Fonts
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
         public Font(string fileName_)
             : this()
         {
@@ -43,20 +25,11 @@ namespace CasaEngine.Asset.Fonts
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other_"></param>
-        /// <returns></returns>
         public override bool CompareTo(BaseObject other_)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
         private void ImportFromFile(string fileName_)
         {
             XmlDocument xmlDoc = new XmlDocument();
@@ -86,11 +59,6 @@ namespace CasaEngine.Asset.Fonts
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Save(XmlElement el_, SaveOption opt_)
         {
             base.Save(el_, opt_);
@@ -133,14 +101,6 @@ namespace CasaEngine.Asset.Fonts
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<string> AssetFileNames
-        {
-            get { return m_TexturesFileNames; }
-        }
-
-
+        public List<string> AssetFileNames => m_TexturesFileNames;
     }
 }

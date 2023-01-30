@@ -1,10 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Game
@@ -42,7 +36,7 @@ namespace CasaEngine.Game
 
         public int DrawOrder
         {
-            get { return drawOrder; }
+            get => drawOrder;
             set
             {
                 if (drawOrder != value)
@@ -55,7 +49,7 @@ namespace CasaEngine.Game
 
         public bool Visible
         {
-            get { return visible; }
+            get => visible;
             set
             {
                 if (visible != value)

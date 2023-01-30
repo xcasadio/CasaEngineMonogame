@@ -1,8 +1,3 @@
-
-using System;
-
-
-using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 
@@ -11,46 +6,26 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace CasaEngine.AI.Graphs
 {
-    /// <summary>
-    /// This class is the base class for creating edges in a graph. All other edge types should be derived from this one
-    /// </summary>
     [Serializable]
     public class Edge : ICloneable
     {
 
-        /// <summary>
-        /// The edge points to an invalid node
-        /// </summary>
         public const int InvalidNode = -1;
 
 
 
-        /// <summary>
-        /// The start node of the edge
-        /// </summary>
         protected internal int start;
 
-        /// <summary>
-        /// The end node of the edge
-        /// </summary>
         protected internal int end;
 
 
 
-        /// <summary>
-        /// Default constructor. The edge points to Definitions.InvalidNode
-        /// </summary>
         public Edge()
         {
             start = Edge.InvalidNode;
             end = Edge.InvalidNode;
         }
 
-        /// <summary>
-        /// Creates an edge with its start and its end
-        /// </summary>
-        /// <param name="start">Start node of the edge</param>
-        /// <param name="end">End node of the edge</param>
         public Edge(int start, int end)
         {
             String message = String.Empty;
@@ -67,12 +42,9 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        /// <summary>
-        /// Gets or sets the start of the edge
-        /// </summary>
         public int Start
         {
-            get { return start; }
+            get => start;
             set
             {
                 String message = String.Empty;
@@ -84,12 +56,9 @@ namespace CasaEngine.AI.Graphs
             }
         }
 
-        /// <summary>
-        /// Gets or sets the end of the edge
-        /// </summary>
         public int End
         {
-            get { return end; }
+            get => end;
             set
             {
 
@@ -104,12 +73,6 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        /// <summary>
-        /// Validates if the node index value is correct (>= -1)
-        /// </summary>
-        /// <param name="index">The node index value we want to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateNode(int index, ref string message)
         {
             if (index < Edge.InvalidNode)
@@ -123,10 +86,6 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        /// <summary>
-        /// Clones the edge
-        /// </summary>
-        /// <returns>The cloned edge</returns>
         public object Clone()
         {
             MemoryStream memory;

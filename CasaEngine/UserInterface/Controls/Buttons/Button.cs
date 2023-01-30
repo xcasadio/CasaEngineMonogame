@@ -10,16 +10,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
 
-    /// <summary>
-    /// Specifies how an image is positioned within a control.
-    /// </summary>
     public enum ButtonMode
     {
         Normal,
@@ -27,41 +21,23 @@ namespace XNAFinalEngine.UserInterface
     } // ButtonMode
 
 
-    /// <summary>
-    /// Button.
-    /// </summary>
     public class Button : ButtonBase
     {
 
 
-        /// <summary>
-        /// Represents an image on a button.
-        /// </summary>
         private Glyph glyph;
 
-        /// <summary>
-        /// Modal Result (None, Ok, Cancel, Yes, No, Abort, Retry, Ignore)
-        /// </summary>
         private ModalResult modalResult = ModalResult.None;
 
-        /// <summary>
-        /// Button Mode (normal or pushed)
-        /// </summary>
         private ButtonMode mode = ButtonMode.Normal;
 
-        /// <summary>
-        /// Is pushed?
-        /// </summary>
         private bool pushed;
 
 
 
-        /// <summary>
-        /// Represents an image on a button.
-        /// </summary>
         public Glyph Glyph
         {
-            get { return glyph; }
+            get => glyph;
             set
             {
                 glyph = value;
@@ -69,30 +45,21 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Glyph
 
-        /// <summary>
-        /// Modal Result (None, Ok, Cancel, Yes, No, Abort, Retry, Ignore)
-        /// </summary>
         public ModalResult ModalResult
         {
-            get { return modalResult; }
-            set { modalResult = value; }
+            get => modalResult;
+            set => modalResult = value;
         } // ModalResult
 
-        /// <summary>
-        /// Button Mode (normal or pushed)
-        /// </summary>
         public ButtonMode Mode
         {
-            get { return mode; }
-            set { mode = value; }
+            get => mode;
+            set => mode = value;
         } // Mode
 
-        /// <summary>
-        /// Is pushed?
-        /// </summary>
         public bool Pushed
         {
-            get { return pushed; }
+            get => pushed;
             set
             {
                 pushed = value;
@@ -106,9 +73,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Button.
-        /// </summary>
         public Button(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -125,9 +89,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -137,9 +98,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             if (mode == ButtonMode.PushButton && pushed)

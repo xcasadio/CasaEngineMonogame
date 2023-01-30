@@ -1,7 +1,3 @@
-
-using System;
-
-
 using Microsoft.Xna.Framework;
 //using CasaEngine.GameLogic;
 //using CasaEngine.PhysicEngine;
@@ -11,32 +7,15 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
-    /// <summary>
-    /// This class represents the wall avoidance steering behavior. This behavior calculates the force
-    /// needed to avoid crashing into walls or other objects of the scene
-    /// </summary>
     public class WallAvoidance : SteeringBehavior
     {
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="name">Name of the behavior, used to identify it</param>
-        /// <param name="owner">The owner entity of the behavior</param>
-        /// <param name="modifier">
-        /// This value can modify the value of the behavior when the total force of all combined
-        /// behaviors is updated
-        /// </param>
         public WallAvoidance(String name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         { }
 
 
 
-        /// <summary>
-        /// Calculates the resultant force of this behavior
-        /// </summary>
-        /// <returns>The force vector of this behavior</returns>
         public override Vector3 Calculate()
         {
             if (PhysicEngine.Physic == null)

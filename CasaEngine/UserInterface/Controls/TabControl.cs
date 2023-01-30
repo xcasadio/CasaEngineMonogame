@@ -10,16 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset.Fonts;
-
-
-
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -32,8 +22,7 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        protected internal Rectangle HeaderRectangle { get { return headerRectangle; } }
-
+        protected internal Rectangle HeaderRectangle => headerRectangle;
 
 
         public TabPage(UserInterfaceManager userInterfaceManager_)
@@ -57,12 +46,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Adjust the controls margin.
-        /// </summary>
-        /// <remarks>
-        /// This implementation requires that the know margins are set before the base method is called because the base method use this modified information.
-        /// </remarks>
         protected override void AdjustMargins()
         {
             ClientMargins = new Margins(0, 0, 0, 0);
@@ -83,11 +66,11 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public TabPage[] TabPages { get { return tabPages.ToArray(); } }
+        public TabPage[] TabPages => tabPages.ToArray();
 
         public virtual int SelectedIndex
         {
-            get { return selectedIndex; }
+            get => selectedIndex;
             set
             {
                 if (selectedIndex >= 0 && selectedIndex < tabPages.Count && value >= 0 && value < tabPages.Count)
@@ -107,7 +90,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual TabPage SelectedPage
         {
-            get { return tabPages[SelectedIndex]; }
+            get => tabPages[SelectedIndex];
             set
             {
                 for (int i = 0; i < tabPages.Count; i++)
@@ -135,9 +118,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -147,9 +127,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             SkinLayer l1 = SkinInformation.Layers["Control"];

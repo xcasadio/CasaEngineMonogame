@@ -26,15 +26,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Window with a name text box.
-    /// </summary>
     public class AssetWindow : Window
     {
 
@@ -44,17 +38,11 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// The name of the asset type.
-        /// </summary>
         public string AssetType { get; set; }
 
-        /// <summary>
-        /// The name of the asset.
-        /// </summary>
         public string AssetName
         {
-            get { return assetName; }
+            get => assetName;
             set
             {
                 if (assetName != value)
@@ -66,13 +54,7 @@ namespace XNAFinalEngine.UserInterface
             }
         } // AssetName
 
-        /// <summary>
-        /// Window name.
-        /// </summary>
-        public override string Text
-        {
-            get { return AssetName + " : " + AssetType; }
-        } // Text
+        public override string Text => AssetName + " : " + AssetType; // Text
 
 
 
@@ -80,9 +62,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Window with a name text box.
-        /// </summary>
         public AssetWindow(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -104,7 +83,7 @@ namespace XNAFinalEngine.UserInterface
                 Top = 10,
                 Anchor = Anchors.Left | Anchors.Top | Anchors.Right
             };
-            nameTextBox.KeyDown += delegate(object sender, KeyEventArgs e)
+            nameTextBox.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                     AssetName = nameTextBox.Text;
@@ -117,9 +96,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -127,7 +103,7 @@ namespace XNAFinalEngine.UserInterface
             base.DisposeManagedResources();
         } // DisposeManagedResources
 
-        
+
 
         protected virtual void OnAssetNameChanged(EventArgs e)
         {

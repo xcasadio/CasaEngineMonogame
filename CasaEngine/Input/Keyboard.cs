@@ -32,9 +32,6 @@ using Microsoft.Xna.Framework.Input;
 namespace XNAFinalEngine.Input
 {
 
-    /// <summary>
-    /// Keyboard.
-    /// </summary>
     public static class Keyboard
     {
 
@@ -47,34 +44,18 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// The current keyboard state.
-		/// </summary>
-		public static KeyboardState State { get { return currentState; } }
+        public static KeyboardState State => currentState;
 
-        /// <summary>
-        /// The previous keyboard state.
-        /// </summary>
-        public static KeyboardState PreviousState { get { return previousState; } }
+        public static KeyboardState PreviousState => previousState;
 
 
-
-        /// <summary>
-        /// Key just pressed.
-        /// </summary>
         public static bool KeyJustPressed(Keys key) { return currentState.IsKeyDown(key) && !previousState.IsKeyDown(key); }
 
-        /// <summary>
-        /// Key pressed.
-        /// </summary>
         public static bool KeyPressed(Keys key) { return currentState.IsKeyDown(key); }
 
 
 
-        /// <summary>
-        /// All keys except A-Z, 0-9 and `-\[];',./= (and space) are special keys.
         //  With shift pressed this also results in this keys:
-        /// </summary>
         public static bool IsSpecialKey(Keys key)
         {
             // ~_|{}:"<>? !@#$%^&*().
@@ -101,11 +82,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-		/// Key to string helper conversion method.
-		/// If the keys are mapped other than on a default QWERTY keyboard or non English distribution, this method will not work properly.
-		/// Most keyboards will return the same for A-Z and 0-9, but the special keys might be different.
-		/// </summary>
         public static string KeyToString(Keys key, bool shift, bool caps)
         {
             bool uppercase = (caps && !shift) || (!caps && shift);
@@ -162,9 +138,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Update keyboard.
-        /// </summary>
         internal static void Update()
         {
             previousState = currentState;

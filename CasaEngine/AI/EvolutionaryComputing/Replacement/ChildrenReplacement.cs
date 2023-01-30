@@ -1,36 +1,14 @@
 
-using System;
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Replacement
 {
-    /// <summary>
-    /// This class represents the children replacement operator. In this type of replacement, the new
-    /// population is composed by the best children
-    /// </summary>
-    /// <remarks>This type of replacement is used normally in genetic algorithms</remarks>
-    /// <typeparam name="T">The genes type. Can be anything</typeparam>
     public sealed class ChildrenReplacement<T> : ReplacementAlgorithm<T>
     {
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="newPopulationSize">The size of the new population the replacement will generate</param>
-        /// <param name="objective">The objective of the evolution</param>
         public ChildrenReplacement(int newPopulationSize, EvolutionObjective objective)
             : base(newPopulationSize, objective) { }
 
 
 
-        /// <summary>
-        /// Applies the replacement operator
-        /// </summary>
-        /// <param name="parents">The parents population</param>
-        /// <param name="children">The children population</param>
-        /// <returns>The new population that will replace the parents</returns>
         public override Population<T> Replace(Population<T> parents, Population<T> children)
         {
             Population<T> survivors;

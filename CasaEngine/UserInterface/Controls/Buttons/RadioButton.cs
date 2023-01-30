@@ -13,7 +13,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 namespace XNAFinalEngine.UserInterface
 {
 
-          
+
     public enum RadioButtonMode
     {
         Auto,
@@ -21,41 +21,26 @@ namespace XNAFinalEngine.UserInterface
     } // RadioButtonMode
 
 
-    /// <summary>
-    /// Radio Button.
-    /// Default mode: auto. That is the bothers are modified by event in this control.
-    /// </summary>
     public class RadioButton : CheckBox
     {
-        
 
-        /// <summary>
-        /// Radio Button Mode (auto, manual).
-        /// In manual mode the brothers aren't chagend for clicks in this radio button.
-        /// </summary>
+
         private RadioButtonMode mode = RadioButtonMode.Auto;
 
 
 
-        /// <summary>
-        /// Radio Button Mode (auto, manual).
-        /// In manual mode the brothers aren't chagend for clicks in this radio button.
-        /// </summary>
         public RadioButtonMode Mode
         {
-            get { return mode; }
-            set { mode = value; }
+            get => mode;
+            set => mode = value;
         } // Mode
 
 
-   
-        /// <summary>
-        /// CheckBox.
-        /// </summary>
+
         public RadioButton(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
-            
+
         }
 
 
@@ -74,13 +59,13 @@ namespace XNAFinalEngine.UserInterface
 
             if (ex.Button == MouseButton.Left && mode == RadioButtonMode.Auto)
             {
-                if (Parent != null) 
+                if (Parent != null)
                 {
                     foreach (Control control in Parent.ChildrenControls) // Check for brothers.
                     {
                         if (control is RadioButton)
                         {
-                            ((RadioButton) control).Checked = false;
+                            ((RadioButton)control).Checked = false;
                         }
                     }
                 }
@@ -90,7 +75,7 @@ namespace XNAFinalEngine.UserInterface
                     {
                         if (control is RadioButton)
                         {
-                            ((RadioButton) control).Checked = false;
+                            ((RadioButton)control).Checked = false;
                         }
                     }
                 }

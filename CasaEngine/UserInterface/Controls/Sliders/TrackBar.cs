@@ -10,11 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -25,70 +20,35 @@ namespace XNAFinalEngine.UserInterface
         Red,
         Green,
         Blue,
-        /// <summary>
-        ///  Default color: Blue gray.
-        /// </summary>
         Default,
     } // ScaleColor
 
 
-    /// <summary>
-    /// Track Bar (for sliders)
-    /// </summary>
     public class TrackBar : Control
     {
 
 
-        /// <summary>
-        /// Current value. Ranges always between 0 to 100.
-        /// </summary>
         private float internalValue;
 
-        /// <summary>
-        /// Step size, this value is expressed in percentages.
-        /// </summary>
         private int stepSize = 1;
 
-        /// <summary>
-        /// /// <summary>
-        /// Page size, this value is expressed in percentages.
-        /// </summary>
-        /// </summary>
         private int pageSize = 5;
 
-        /// <summary>
-        /// Scale bar color. Default blue.
-        /// </summary>
         private ScaleColor scaleColor = ScaleColor.Default;
 
-        /// <summary>
-        /// Draw scale bar?
-        /// </summary>
         private bool drawScale = true;
 
-        /// <summary>
-        /// Slider button.
-        /// </summary>
         private readonly Button buttonSlider;
 
-        /// <summary>
-        /// Minimum value that can has the slider.
-        /// </summary>
         private float minimumValue;
 
-        /// <summary>
-        /// Maximum value that can has the slider.
-        /// </summary>
         private float maximumValue = 100;
 
 
 
-        /// <summary>
-        /// Minimum value that can has the slider.
-        /// </summary>
         public virtual float MinimumValue
         {
-            get { return minimumValue; }
+            get => minimumValue;
             set
             {
                 minimumValue = value;
@@ -97,12 +57,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MinimumValue
 
-        /// <summary>
-        /// Maximum value that can has the slider.
-        /// </summary>
         public virtual float MaximumValue
         {
-            get { return maximumValue; }
+            get => maximumValue;
             set
             {
                 maximumValue = value;
@@ -111,19 +68,13 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MaximumValue
 
-        /// <summary>
-        /// If out of range rescale. In other words the maximum or minimum value changes.
-        /// </summary>
         public virtual bool IfOutOfRangeRescale { get; set; }
 
-        /// <summary>
-        /// Indicates if the value can be out of range.
-        /// </summary>
         public virtual bool ValueCanBeOutOfRange { get; set; }
 
         private float InternalValue
         {
-            get { return internalValue; }
+            get => internalValue;
             set
             {
                 if (internalValue != value)
@@ -155,27 +106,15 @@ namespace XNAFinalEngine.UserInterface
             }
         } // InternalValue
 
-        /// <summary>
-        /// Current value.
-        /// </summary>
         public virtual float Value
         {
-            get
-            {
-                return CalculateRealValue(internalValue);
-            }
-            set
-            {
-                InternalValue = CalculateInternalValue(value);
-            }
+            get => CalculateRealValue(internalValue);
+            set => InternalValue = CalculateInternalValue(value);
         } // Value
 
-        /// <summary>
-        /// Page size, this value is expressed in percentages.
-        /// </summary>
         public virtual int PageSize
         {
-            get { return pageSize; }
+            get => pageSize;
             set
             {
                 if (pageSize != value)
@@ -188,12 +127,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // PageSize
 
-        /// <summary>
-        /// Step size, this value is expressed in percentages.
-        /// </summary>
         public virtual int StepSize
         {
-            get { return stepSize; }
+            get => stepSize;
             set
             {
                 if (stepSize != value)
@@ -205,22 +141,16 @@ namespace XNAFinalEngine.UserInterface
             }
         } // StepSize
 
-        /// <summary>
-        /// Scale bar color.
-        /// </summary>
         public virtual ScaleColor ScaleBarColor
         {
-            get { return scaleColor; }
-            set { scaleColor = value; }
+            get => scaleColor;
+            set => scaleColor = value;
         } // ScaleBarColor
 
-        /// <summary>
-        /// Draw scale bar?
-        /// </summary>
         public virtual bool DrawScaleBar
         {
-            get { return drawScale; }
-            set { drawScale = value; }
+            get => drawScale;
+            set => drawScale = value;
         } // DrawScale
 
 
@@ -235,9 +165,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Track Bar (for sliders)
-        /// </summary>
         public TrackBar(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -278,9 +205,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -296,9 +220,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             RecalculateParameters();
@@ -336,17 +257,11 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Calculate real value from an internal value.
-        /// </summary>
         private float CalculateRealValue(float value)
         {
             return (value * (maximumValue - minimumValue) / 100f) + minimumValue;
         } // CalculateRealValue
 
-        /// <summary>
-        /// Calculate internal value from a real value.
-        /// </summary>
         private float CalculateInternalValue(float value)
         {
             return (value - minimumValue) * 100f / (maximumValue - minimumValue);
@@ -392,9 +307,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Recalculate some parameters, like button size, slider position, etc.
-        /// </summary>
         private void RecalculateParameters()
         {
             if (buttonSlider != null)

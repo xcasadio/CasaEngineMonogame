@@ -1,17 +1,7 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Content;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
-using System.IO;
 using CasaEngine.Game;
 using CasaEngineCommon.Logger;
-using Microsoft.Xna.Framework;
-using CasaEngine;
 using CasaEngine.Editor.Builder;
 using Microsoft.Build.Evaluation;
 using CasaEngine.SourceControl;
@@ -20,39 +10,26 @@ using CasaEngine.Project;
 
 namespace CasaEngine.Editor.Assets
 {
-    /// <summary>
-    /// Handle all assets and build
-    /// </summary>
     public class AssetManager
     {
 
         static private readonly uint m_Version = 1;
 
-        private ContentBuilder m_ContentBuilder = null;
+        private readonly ContentBuilder m_ContentBuilder = null;
         private ContentBuilder m_ContentBuilderTempFiles = null;
 
-        private List<AssetInfo> m_Assets = new List<AssetInfo>();
-        private List<AssetBuildInfo> m_AssetBuildInfo = new List<AssetBuildInfo>();
+        private readonly List<AssetInfo> m_Assets = new List<AssetInfo>();
+        private readonly List<AssetBuildInfo> m_AssetBuildInfo = new List<AssetBuildInfo>();
 
         //for temporary task
-        private FileSystemWatcher m_FileWatcher;
-        private List<string> m_AssetToCopy = new List<string>();
+        private readonly FileSystemWatcher m_FileWatcher;
+        private readonly List<string> m_AssetToCopy = new List<string>();
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public AssetInfo[] Assets
-        {
-            get { return m_Assets.ToArray(); }
-        }
+        public AssetInfo[] Assets => m_Assets.ToArray();
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetManager()
         {
             m_ContentBuilder = new ContentBuilder();
@@ -66,11 +43,6 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void m_FileWatcher_Created(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType == WatcherChangeTypes.Created)
@@ -80,13 +52,6 @@ namespace CasaEngine.Editor.Assets
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <param name="destPath_"></param>
-        /// <param name="assetType_"></param>
-        /// <returns></returns>
         public void AddAssetToBuild(string fileName_, string assetName_, AssetType assetType_)
         {
             ProjectItem item;
@@ -112,10 +77,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="destPath_"></param>
         public void BuildAll(string destPath_)
         {
             string buildError = m_ContentBuilder.Build();
@@ -144,13 +105,6 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <param name="info_"></param>
-        /// <param name="copy"></param>
-        /// <returns></returns>
         public bool BuildAsset(string fileName_, AssetInfo info_, bool copy = true)
         {
             ProjectItem item;
@@ -208,11 +162,6 @@ namespace CasaEngine.Editor.Assets
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info_"></param>
-        /// <returns></returns>
         public bool RebuildAsset(AssetInfo info_)
         {
             m_Assets.Remove(info_);
@@ -230,10 +179,6 @@ namespace CasaEngine.Editor.Assets
             return BuildAsset(fullpath, info_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info_"></param>
         private void SetBuildSucceed(AssetInfo info_)
         {
             FileInfo fi = new FileInfo(GetAssetFullPath(info_));
@@ -264,11 +209,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info_"></param>
-        /// <returns></returns>
         public bool AssetNeedToBeRebuild(AssetInfo info_)
         {
             FileInfo fi = new FileInfo(GetAssetFullPath(info_));
@@ -291,10 +231,6 @@ namespace CasaEngine.Editor.Assets
             return true;
         }
 
-        /// <summary>
-        /// get the file name of the asset
-        /// </summary>
-        /// <returns></returns>
         public string GetAssetFullPath(AssetInfo info_)
         {
             string fullpath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
@@ -337,21 +273,11 @@ namespace CasaEngine.Editor.Assets
             return fullpath;
         }
 
-        /// <summary>
-        /// get the XNB file name of the asset
-        /// </summary>
-        /// <param name="info_"></param>
-        /// <returns></returns>
         public string GetAssetXNBFullPath(AssetInfo info_)
         {
             return Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info_.Name + ".xnb";
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type_"></param>
-        /// <returns></returns>
         /*private string GetPrefix(AssetType type_)
         {
             switch (type_)
@@ -379,12 +305,6 @@ namespace CasaEngine.Editor.Assets
             throw new ArgumentException("AssetManager.GetPrefix() : wrong AssetType");
         }*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="?"></param>
-        /// <param name="?"></param>
-        /// <returns></returns>
         public string GetProcessorName(AssetType type_)
         {
             switch (type_)
@@ -418,11 +338,6 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns></returns>
         public AssetInfo? GetAssetByName(string name_)
         {
             if (string.IsNullOrEmpty(name_) == true)
@@ -441,16 +356,6 @@ namespace CasaEngine.Editor.Assets
             return null;
         }
 
-        /// <summary>
-        /// Add the asset in the project.
-        /// Copy the original in the project directory.
-        /// Build the asset in xnb format
-        /// </summary>
-        /// <param name="fileName_">Full path of the file to add</param>
-        /// <param name="name_">the asset name</param>
-        /// <param name="type_">Type of the asset</param>
-        /// <param name="assetFileName_">Set the full path in the project directory</param>
-        /// <returns>return true if the asset is correctly built or if asset already exist</returns>
         public bool AddAsset(string fileName_, string name_, AssetType type_, ref string assetFileName_)
         {
             AssetInfo info = new AssetInfo(0, name_, type_, Path.GetFileName(fileName_));
@@ -507,11 +412,6 @@ namespace CasaEngine.Editor.Assets
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type_"></param>
-        /// <returns></returns>
         public string GetPathFromType(AssetType type_)
         {
             string assetFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
@@ -555,11 +455,6 @@ namespace CasaEngine.Editor.Assets
             return assetFile;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <param name="type_"></param>
         public void DeleteAsset(string name_, AssetType type_)
         {
             foreach (AssetInfo info in m_Assets)
@@ -572,29 +467,18 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info_"></param>
         public void DeleteAsset(AssetInfo info_)
         {
             m_Assets.Remove(info_);
             LogManager.Instance.WriteLineDebug("Delete asset " + info_.Name + "(" + info_.FileName + ")");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Clear()
         {
             m_Assets.Clear();
             LogManager.Instance.WriteLineDebug("Asset.Clear()");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
         public void AddFileInSourceControl(string fileName_)
         {
             if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
@@ -603,10 +487,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
         public void DeleteFileInSourceControl(string fileName_)
         {
             if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
@@ -644,11 +524,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type_"></param>
-        /// <returns></returns>
         public string[] GetAllAssetByType(AssetType type_)
         {
             List<string> res = new List<string>();
@@ -666,12 +541,6 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="?"></param>
-        /// <returns></returns>
         public bool Save(XmlElement el_, SaveOption option_)
         {
             el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
@@ -714,12 +583,6 @@ namespace CasaEngine.Editor.Assets
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
-        /// <returns></returns>
         public bool Load(XmlElement el_, SaveOption option_)
         {
             uint version = uint.Parse(el_.Attributes["version"].Value);
@@ -791,9 +654,6 @@ namespace CasaEngine.Editor.Assets
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void LoadAssetBuildInfo()
         {
             string buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
@@ -825,9 +685,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void SaveAssetBuildInfo()
         {
 #if !DEBUG
@@ -882,10 +739,6 @@ namespace CasaEngine.Editor.Assets
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="assetInfo_"></param>
         private void AddBuildParams(ref AssetInfo assetInfo_)
         {
             switch (assetInfo_.Type)

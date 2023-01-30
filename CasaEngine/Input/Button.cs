@@ -26,36 +26,19 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Collections.Generic;
 using XNAFinalEngine.Helpers;
 
 namespace XNAFinalEngine.Input
 {
 
-    /// <summary>
-    /// Virtual button serve two purposes:
-    /// * They allow you to reference your inputs by button name in scripting.
-    /// * They allow the players of your game to customize the controls to their liking.
-    /// </summary>
     public class Button : Disposable
     {
 
 
-        /// <summary>
-        /// Indicates the behavior of the axis.
-        /// </summary>
         public enum ButtonBehaviors
         {
-            /// <summary>
-            /// Use Digital Input for any kind of buttons or keys.
-            /// </summary>
             DigitalInput,
-            /// <summary>
-            /// Use Analog Input for mouse delta, scrollwheels and gamepad sticks and triggers.
-            /// </summary>
             AnalogInput,
         } // AxisBehaviors
 
@@ -69,49 +52,22 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// The list of all axes.
-        /// </summary>
         public static List<Button> Buttons { get; set; }
 
-        /// <summary>
-        /// The string that refers to the axis.
-        /// </summary>
         public string Name { get; set; }
 
-        /// <summary>
-        /// Use Key / Button for any kind of buttons or use Analog Movement for mouse delta, scrollwheels and gamepad sticks and triggers.
-        /// </summary>
         public ButtonBehaviors ButtonBehavior { get; set; }
 
-        /// <summary>
-        /// The axis of a connected device that will control this axis.
-        /// </summary>
         public AnalogAxes AnalogAxis { get; set; }
 
-        /// <summary>
-        /// The button used to push the axis in the negative direction.
-        /// </summary>
         public KeyButton KeyButton { get; set; }
 
-        /// <summary>
-        /// Alternative button used to push the axis in the negative direction.
-        /// </summary>
         public KeyButton AlternativeKeyButton { get; set; }
 
-        /// <summary>
-        /// If enabled, the axis invert its direction.
-        /// </summary>
         public bool Invert { get; set; }
 
-        /// <summary>
-        /// Size of the analog dead zone. All analog device values within this range result map to neutral.
-        /// </summary>
         public float DeadZone { get; set; }
 
-        /// <summary>
-        /// Which gamepad should be used. By default (0) this is set to retrieve the input from all gamepads.
-        /// </summary>
         public int GamePadNumber { get; set; }
 
 
@@ -129,9 +85,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             Buttons.Remove(this);
@@ -139,9 +92,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Update.
-        /// </summary>
         internal void Update()
         {
             pressedPreviousFrame = pressed;
@@ -254,9 +204,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Returns if the virtual button identified by buttonName was pressed.
-        /// </summary>
         public static bool Pressed(string buttonName)
         {
             bool foundValue = false;
@@ -274,9 +221,6 @@ namespace XNAFinalEngine.Input
             return foundValue;
         } // Pressed
 
-        /// <summary>
-        /// Returns if the virtual button identified by buttonName was pressed in this frame but not in the previous.
-        /// </summary>
         public static bool JustPressed(string buttonName)
         {
             bool foundPressed = false;

@@ -1,14 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Text;
-
-namespace CasaEngine.AI.NeuralNets.FeedForward
+﻿namespace CasaEngine.AI.NeuralNets.FeedForward
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class NeuralNetworkLayer
     {
 
@@ -33,220 +24,67 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
 
 
-        /// <summary>
-        /// Get number of node
-        /// </summary>
         public int NumberOfNodes
         {
-            get
-            {
-                return m_NumberOfNodes;
-            }
-            set
-            {
-                m_NumberOfNodes = value;
-            }
+            get => m_NumberOfNodes;
+            set => m_NumberOfNodes = value;
         }
 
-        /// <summary>
-        /// Get number of child node
-        /// </summary>
         public int NumberOfChildNodes
         {
-            get
-            {
-                return m_NumberOfChildNodes;
-            }
-            set
-            {
-                m_NumberOfChildNodes = value;
-            }
+            get => m_NumberOfChildNodes;
+            set => m_NumberOfChildNodes = value;
         }
 
-        /// <summary>
-        /// Get/Set number of parent node
-        /// </summary>
         public int NumberOfParentNodes
         {
-            get
-            {
-                return m_NumberOfParentNodes;
-            }
-            set
-            {
-                m_NumberOfParentNodes = value;
-            }
+            get => m_NumberOfParentNodes;
+            set => m_NumberOfParentNodes = value;
         }
 
-        /// <summary>
-        /// Get Weights
-        /// </summary>
-        public double[,] Weights
-        {
-            get
-            {
-                return m_Weights;
-            }
-        }
+        public double[,] Weights => m_Weights;
 
-        /// <summary>
-        /// Get Weight Changes
-        /// </summary>
-        public double[,] WeightChanges
-        {
-            get
-            {
-                return m_WeightChanges;
-            }
-        }
+        public double[,] WeightChanges => m_WeightChanges;
 
-        /// <summary>
-        /// Get Neuron Values
-        /// </summary>
-        public double[] NeuronValues
-        {
-            get
-            {
-                return m_NeuronValues;
-            }
-        }
+        public double[] NeuronValues => m_NeuronValues;
 
-        /// <summary>
-        /// Get Desired Values
-        /// </summary>
-        public double[] DesiredValues
-        {
-            get
-            {
-                return m_DesiredValues;
-            }
-        }
+        public double[] DesiredValues => m_DesiredValues;
 
-        /// <summary>
-        /// Get Errors
-        /// </summary>
-        public double[] Errors
-        {
-            get
-            {
-                return m_Errors;
-            }
-        }
+        public double[] Errors => m_Errors;
 
-        /// <summary>
-        /// Get Bias Weights
-        /// </summary>
-        public double[] BiasWeights
-        {
-            get
-            {
-                return m_BiasWeights;
-            }
-        }
+        public double[] BiasWeights => m_BiasWeights;
 
-        /// <summary>
-        /// Get Bias Values
-        /// </summary>
-        public double[] BiasValues
-        {
-            get
-            {
-                return m_BiasValues;
-            }
-        }
+        public double[] BiasValues => m_BiasValues;
 
-        /// <summary>
-        /// Get/Set Learning Rate
-        /// </summary>
         public double LearningRate
         {
-            get
-            {
-                return m_LearningRate;
-            }
-            set
-            {
-                m_LearningRate = value;
-            }
+            get => m_LearningRate;
+            set => m_LearningRate = value;
         }
 
-        /// <summary>
-        /// Get/Set Linear Output
-        /// </summary>
         public bool LinearOutput
         {
-            get
-            {
-                return m_LinearOutput;
-            }
-            set
-            {
-                m_LinearOutput = value;
-            }
+            get => m_LinearOutput;
+            set => m_LinearOutput = value;
         }
 
-        /// <summary>
-        /// Get/Set Use Momentum
-        /// </summary>
         public bool UseMomentum
         {
-            get
-            {
-                return m_UseMomentum;
-            }
-            set
-            {
-                m_UseMomentum = value;
-            }
+            get => m_UseMomentum;
+            set => m_UseMomentum = value;
         }
 
-        /// <summary>
-        /// Get/Set Momentum Factor
-        /// </summary>
         public double MomentumFactor
         {
-            get
-            {
-                return m_MomentumFactor;
-            }
-            set
-            {
-                m_MomentumFactor = value;
-            }
+            get => m_MomentumFactor;
+            set => m_MomentumFactor = value;
         }
 
-        /// <summary>
-        /// Get Parent Layer
-        /// </summary>
-        public NeuralNetworkLayer ParentLayer
-        {
-            get
-            {
-                return m_ParentLayer;
-            }
-        }
+        public NeuralNetworkLayer ParentLayer => m_ParentLayer;
 
-        /// <summary>
-        /// Get Child Layer
-        /// </summary>
-        public NeuralNetworkLayer ChildLayer
-        {
-            get
-            {
-                return m_ChildLayer;
-            }
-        }
+        public NeuralNetworkLayer ChildLayer => m_ChildLayer;
 
 
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="NumNodes"></param>
-        /// <param name="parent"></param>
-        /// <param name="child"></param>
         public void Initialize(int NumNodes, NeuralNetworkLayer parent, NeuralNetworkLayer child)
         {
             int i, j;
@@ -301,9 +139,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void CleanUp()
         {
             m_NeuronValues = null;
@@ -317,9 +152,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
             m_BiasWeights = null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void RandomizeWeights()
         {
             int i, j;
@@ -359,9 +191,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void CalculateErrors()
         {
             int i, j;
@@ -396,9 +225,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void AdjustWeights()
         {
             int i, j;
@@ -423,9 +249,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void CalculateNeuronValues()
         {
             int i, j;

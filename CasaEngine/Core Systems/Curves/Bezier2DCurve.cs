@@ -1,60 +1,28 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Math.Curves
 {
-    /// <summary>
-    /// Bezier curve, Causteljau algorithm
-    /// </summary>
     public class Bezier2DCurve
     {
 
-        private List<Vector2> m_ControlPoints = new List<Vector2>();
-        private List<Vector2> m_CurvePoints = new List<Vector2>();
+        private readonly List<Vector2> m_ControlPoints = new List<Vector2>();
+        private readonly List<Vector2> m_CurvePoints = new List<Vector2>();
 
         private float m_Resolution = 0.1f;
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public float Resolution
         {
-            get { return m_Resolution; }
-            set { m_Resolution = value; }
+            get => m_Resolution;
+            set => m_Resolution = value;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public List<Vector2> CurvePoints
-        {
-            get { return m_CurvePoints; }
-        }
+        public List<Vector2> CurvePoints => m_CurvePoints;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public List<Vector2> ControlPoints
-        {
-            get { return m_ControlPoints; }
-        }
+        public List<Vector2> ControlPoints => m_ControlPoints;
 
 
-
-
-
-
-
-        /// <summary>
-        /// Casteljau Algorithm
-        /// </summary>
         public void Compute()
         {
             if (m_ControlPoints.Count == 0)
@@ -73,12 +41,6 @@ namespace CasaEngine.Math.Curves
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ControlPoints_"></param>
-        /// <param name="t_">Between 0 and 1</param>
-        /// <returns></returns>
         static public Vector2 Casteljau(List<Vector2> ControlPoints_, float t_)
         {
             if (t_ > 1.0f || t_ < 0.0f)
@@ -113,11 +75,6 @@ namespace CasaEngine.Math.Curves
             return pointTemp[0];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="percent_">Between 0 and 1</param>
-        /// <returns></returns>
         public Vector2 GetPointFast(float percent_)
         {
             if (percent_ < 0.0f || percent_ > 1.0f)
@@ -133,11 +90,6 @@ namespace CasaEngine.Math.Curves
             return m_CurvePoints[(int)(percent_ * (float)m_CurvePoints.Count)];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="percent_">Between 0 and 1</param>
-        /// <returns></returns>
         public Vector2 GetPoint(float percent_)
         {
             if (percent_ < 0.0f || percent_ > 1.0f)

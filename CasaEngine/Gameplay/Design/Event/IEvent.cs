@@ -1,19 +1,5 @@
-﻿
-
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine;
-
-
-namespace CasaEngine.Design.Event
+﻿namespace CasaEngine.Design.Event
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public interface IEvent
     {
         void Do();

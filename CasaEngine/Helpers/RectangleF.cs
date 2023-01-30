@@ -29,9 +29,6 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 namespace XNAFinalEngine.Helpers
 {
 
-    /// <summary>
-    /// Stores a set of four floating-point numbers that represent the location and size of a rectangle.
-    /// </summary>
     public struct RectangleF
     {
 
@@ -40,31 +37,32 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Gets or sets the x-coordinate of the upper-left corner of this RectangleF structure.
-        /// </summary>
-        public float X { get { return x; } set { x = value; } }
+        public float X
+        {
+            get => x;
+            set => x = value;
+        }
 
-        /// <summary>
-        /// Gets or sets the y-coordinate of the upper-left corner of this RectangleF structure.
-        /// </summary>
-        public float Y { get { return y; } set { y = value; } }
-                
-        /// <summary>
-        /// Gets or sets the width of this RectangleF structure.
-        /// </summary>
-        public float Width { get { return width; } set { width = value; } }
+        public float Y
+        {
+            get => y;
+            set => y = value;
+        }
 
-        /// <summary>
-        /// Gets or sets the height of this RectangleF structure.
-        /// </summary>
-        public float Height { get { return height; } set { height = value; } }
+        public float Width
+        {
+            get => width;
+            set => width = value;
+        }
+
+        public float Height
+        {
+            get => height;
+            set => height = value;
+        }
 
 
 
-        /// <summary>
-        /// Stores a set of four floating-point numbers that represent the location and size of a rectangle.
-        /// </summary>
         public RectangleF(float x, float y, float width, float height)
         {
             this.x = x;

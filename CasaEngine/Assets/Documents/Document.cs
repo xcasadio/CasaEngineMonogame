@@ -26,10 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.IO;
 using System.Xml.Linq;
 using CasaEngine.Asset;
 using CasaEngine.Game;
@@ -40,24 +37,13 @@ using System.Xml;
 namespace XNAFinalEngine.Assets
 {
 
-    /// <summary>
-    /// XML Documents.
-    /// http://msdn.microsoft.com/en-us/library/ms745778.aspx 
-    /// </summary>
     public class Document : Asset
     {
 
-        /// <summary>
-        /// Internal X Document.
-        /// </summary>
         public XDocument Resource { get; private set; }
 
 
 
-        /// <summary>
-        /// Load document.
-        /// </summary>
-        /// <param name="filename">The filename must be relative to the content directory.</param>
         public Document(string filename)
         {
             Name = filename;
@@ -86,9 +72,6 @@ namespace XNAFinalEngine.Assets
 
 
 
-        /// <summary>
-        /// Useful when the XNA device is disposed.
-        /// </summary>
         internal override void OnDeviceReset(GraphicsDevice device_)
         {
             if (Resource == null)
@@ -97,21 +80,11 @@ namespace XNAFinalEngine.Assets
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="option_"></param>
         public override void Load(BinaryReader br_, SaveOption option_)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(XmlElement el_, SaveOption option_)
         {
 

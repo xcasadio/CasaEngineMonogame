@@ -1,10 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Game
 {
@@ -15,7 +9,7 @@ namespace CasaEngine.Game
     {
         private bool enabled = true;
         private int updateOrder;
-        private CustomGame game;
+        private readonly CustomGame game;
 
         public event EventHandler<EventArgs> EnabledChanged;
         public event EventHandler<EventArgs> UpdateOrderChanged;
@@ -23,7 +17,7 @@ namespace CasaEngine.Game
 
         public bool Enabled
         {
-            get { return enabled; }
+            get => enabled;
             set
             {
                 if (enabled != value)
@@ -36,7 +30,7 @@ namespace CasaEngine.Game
 
         public int UpdateOrder
         {
-            get { return updateOrder; }
+            get => updateOrder;
             set
             {
                 if (updateOrder != value)
@@ -47,10 +41,7 @@ namespace CasaEngine.Game
             }
         }
 
-        public CustomGame Game
-        {
-            get { return game; }
-        }
+        public CustomGame Game => game;
 
         public GameComponent(CustomGame game)
         {

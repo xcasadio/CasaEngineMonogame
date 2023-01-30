@@ -10,18 +10,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-
-using XNAFinalEngine.Helpers;
 using Keyboard = XNAFinalEngine.Input.Keyboard;
 using Mouse = XNAFinalEngine.Input.Mouse;
-using CasaEngine.Game;
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -64,7 +57,7 @@ namespace XNAFinalEngine.UserInterface
 
         private readonly List<InputKey> keys = new List<InputKey>();
         private readonly List<InputMouseButton> mouseButtons = new List<InputMouseButton>();
-        private Rectangle m_GameWindowClientBounds;
+        private readonly Rectangle m_GameWindowClientBounds;
 
 
 
@@ -79,9 +72,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Initialice the user interface input system.
-        /// </summary>
         public Input(Rectangle gameWindowClientBounds_)
         {
             m_GameWindowClientBounds = gameWindowClientBounds_;
@@ -106,10 +96,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update.
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public virtual void Update(float elapsedTime_)
         {
 #if (WINDOWS)
@@ -120,10 +106,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update keyboard.
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         private void UpdateKeys(float elapsedTime_)
         {
             Keyboard.Update();
@@ -182,9 +164,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update mouse.
-        /// </summary>
         private void UpdateMouse()
         {
             Mouse.Update();

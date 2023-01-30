@@ -1,34 +1,14 @@
 
-using System;
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Scaling
 {
-    /// <summary>
-    /// This class represents the fitness scaling operator. The new fitness for
-    /// each chromosome is based in his fitness score or the inverse (depending 
-    /// if the objective is to maximize or minimize)
-    /// </summary>
-    /// <typeparam name="T">The genes type. Can be anything</typeparam>
     public sealed class FitnessScaling<T> : ScalingAlgorithm<T>
     {
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="objective">Evolution objective</param>
         public FitnessScaling(EvolutionObjective objective)
             : base(objective) { }
 
 
 
-        /// <summary>
-        /// Applies the scaling operator
-        /// </summary>
-        /// <param name="population">The population we want to scale</param>
-        /// <returns>The scaled mapping of the population</returns>
         public override ScalingMapping<T> Scale(Population<T> population)
         {
             ScalingMapping<T> mapping;

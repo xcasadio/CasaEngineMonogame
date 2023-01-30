@@ -10,14 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset.Fonts;
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -127,9 +119,6 @@ namespace XNAFinalEngine.UserInterface
     } // ConsoleMessageFormats
 
 
-    /// <summary>
-    /// Console.
-    /// </summary>
     public class Console : Container
     {
 
@@ -148,7 +137,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual EventedList<ConsoleMessage> MessageBuffer
         {
-            get { return buffer; }
+            get => buffer;
             set
             {
                 buffer.ItemAdded -= Buffer_ItemAdded;
@@ -159,7 +148,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual ChannelList Channels
         {
-            get { return channels; }
+            get => channels;
             set
             {
                 channels.ItemAdded -= Channels_ItemAdded;
@@ -171,25 +160,25 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual List<byte> ChannelFilter
         {
-            get { return filter; }
-            set { filter = value; }
+            get => filter;
+            set => filter = value;
         } // ChannelFilter
 
         public virtual byte SelectedChannel
         {
-            set { cmbMain.Text = channels[value].Name; }
-            get { return channels[cmbMain.Text].Index; }
+            set => cmbMain.Text = channels[value].Name;
+            get => channels[cmbMain.Text].Index;
         } // SelectedChannel
 
         public virtual ConsoleMessageFormats MessageFormat
         {
-            get { return messageFormat; }
-            set { messageFormat = value; }
+            get => messageFormat;
+            set => messageFormat = value;
         } // MessageFormat
 
         public virtual bool ChannelsVisible
         {
-            get { return channelsVisible; }
+            get => channelsVisible;
             set
             {
                 cmbMain.Visible = channelsVisible = value;
@@ -200,7 +189,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual bool TextBoxVisible
         {
-            get { return textBoxVisible; }
+            get => textBoxVisible;
             set
             {
                 textMain.Visible = textBoxVisible = value;
@@ -215,9 +204,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Console.
-        /// </summary>
         public Console(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -286,9 +272,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -340,9 +323,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ClientArea_Draw
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             int h = textMain.Visible ? (textMain.Height + 1) : 0;

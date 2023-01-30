@@ -1,35 +1,13 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
-
-using CasaEngine.AI.Messaging;
-
-
-
 namespace CasaEngine.AI.Goals
 {
-    /// <summary>
-    /// This class represents a composite goal
-    /// </summary>
-    /// <typeparam name="T">The BaseEntity type capable of handling the goa</typeparam>
     [Serializable]
     public abstract class GoalComposite<T> : Goal<T> where T : BaseEntity
     {
 
-        /// <summary>
-        /// List of subgoals of this goal
-        /// </summary>
         protected internal List<Goal<T>> subGoals;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="owner">The owner of this goal</param>
         public GoalComposite(T owner)
             : base(owner)
         {
@@ -38,39 +16,21 @@ namespace CasaEngine.AI.Goals
 
 
 
-        /// <summary>
-        /// Finishes the goal
-        /// </summary>
-        /// <remarks>Terminates all the subgoals of this goal</remarks>
         public override void Terminate()
         {
             RemoveAllSubgoals();
         }
 
-        /// <summary>
-        /// Inserts a new subgoal at the start of the goal list
-        /// </summary>
-        /// <param name="goal">The new subgoal to insert</param>
         public override void AddFrontSubgoal(Goal<T> goal)
         {
             subGoals.Insert(0, goal);
         }
 
-        /// <summary>
-        /// Queues a new subgoal at the end of the goal list
-        /// </summary>
-        /// <param name="goal">The new subgoal to queue</param>
         public override void AddRearSubgoal(Goal<T> goal)
         {
             subGoals.Add(goal);
         }
 
-        /// <summary>
-        /// Handles messages sent to the goal
-        /// </summary>
-        /// <param name="message">The message sent to the goal</param>
-        /// <returns>True if the goal could manage the message, false otherwise</returns>
-        /// <remarks>By default the composite goal asks its first subgoal to handle the message</remarks>
         public override bool HandleMessage(Message message)
         {
             return ForwardMessage(message);
@@ -78,10 +38,6 @@ namespace CasaEngine.AI.Goals
 
 
 
-        /// <summary>
-        /// Handles the processing of the subgoals of the composite goal
-        /// </summary>
-        /// <returns>The current status of the composite goal based on the status of its subgoals</returns>
         protected GoalProcessingState ProcessSubgoals()
         {
             GoalProcessingState subGoalStatus;
@@ -111,9 +67,6 @@ namespace CasaEngine.AI.Goals
             return GoalProcessingState.Completed;
         }
 
-        /// <summary>
-        /// Terminates all the goals in the subgoal list
-        /// </summary>
         protected void RemoveAllSubgoals()
         {
             for (int i = 0; i < subGoals.Count; i++)
@@ -122,11 +75,6 @@ namespace CasaEngine.AI.Goals
             subGoals.Clear();
         }
 
-        /// <summary>
-        /// Forwards the message to the first subgoal
-        /// </summary>
-        /// <param name="message">The message to handle</param>
-        /// <returns>True if the message was handled, false if otherwise</returns>
         protected bool ForwardMessage(Message message)
         {
             if (subGoals.Count != 0)

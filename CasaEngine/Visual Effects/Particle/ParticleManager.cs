@@ -1,15 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Particle
+﻿namespace CasaEngine.Particle
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class ParticleManager
     {
 
@@ -22,10 +12,6 @@ namespace CasaEngine.Particle
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="particleSystem_"></param>
         public void AddParticleSystem(ParticleSystem particleSystem_)
         {
             m_ParticleSystem.Add(particleSystem_);

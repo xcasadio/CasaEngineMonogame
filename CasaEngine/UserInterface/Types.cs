@@ -10,10 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
@@ -94,30 +90,12 @@ namespace XNAFinalEngine.UserInterface
         All = Left | Top | Right | Bottom
     } // Anchors
 
-    /// <summary>
-    /// Specifies how an image is positioned within a control.
-    /// </summary>
     public enum SizeMode
     {
-        /// <summary>
-        /// It preserves the pixel ratio to 1. If the destination rectangle is smaller than the source rectangle the lower-right part of the texture will be cut.
-        /// </summary>
         Normal,
-        /// <summary>
-        /// It changes the control's width and height to the texture's dimentions. 
-        /// </summary>
         Auto,
-        /// <summary>
-        /// It preserves the pixel ratio to 1, but the center of the texture is in the same place as the center of the control. 
-        /// </summary>
         Centered,
-        /// <summary>
-        /// Stretch the texture onto the control. 
-        /// </summary>
         Stretched,
-        /// <summary>
-        /// Stretch the texture onto the control but maintaining the texture's aspect ratio. 
-        /// </summary>
         Fit,
     } // SizeMode
 
@@ -131,15 +109,9 @@ namespace XNAFinalEngine.UserInterface
         public int Right;
         public int Bottom;
 
-        /// <summary>
-        /// Top + Bottom.
-        /// </summary>
-        public int Vertical { get { return (Top + Bottom); } }
+        public int Vertical => (Top + Bottom);
 
-        /// <summary>
-        /// Left + Right.
-        /// </summary>
-        public int Horizontal { get { return (Left + Right); } }
+        public int Horizontal => (Left + Right);
 
         public Margins(int left, int top, int right, int bottom)
         {
@@ -156,7 +128,7 @@ namespace XNAFinalEngine.UserInterface
         public int Width;
         public int Height;
 
-        public static Size Zero { get { return new Size(0, 0); } }
+        public static Size Zero => new Size(0, 0);
 
         public Size(int width, int height)
         {

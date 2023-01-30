@@ -7,9 +7,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Game
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class CustomGame
         : IDisposable
     {
@@ -18,7 +15,7 @@ namespace CasaEngine.Game
 
         private IGraphicsDeviceManager graphicsDeviceManager;
         private IGraphicsDeviceService graphicsDeviceService;
-        private GameServiceContainer gameServices;
+        private readonly GameServiceContainer gameServices;
 
         private bool firstUpdateDone;
         private bool firstDrawDone;
@@ -28,7 +25,7 @@ namespace CasaEngine.Game
 
         private volatile bool ShouldExit;
 
-        private WindowsGameTimer gameTimer;
+        private readonly WindowsGameTimer gameTimer;
         private TimeSpan gameTimeAccu;
         private GameTime gameTime;
         private TimeSpan totalGameTime;
@@ -40,7 +37,7 @@ namespace CasaEngine.Game
 
         private ContentManager content;
 
-        private List<IGameComponent> drawableGameComponents;
+        private readonly List<IGameComponent> drawableGameComponents;
 
         private volatile bool m_NeedResize;
         private DateTime m_NeedResizeLastTime = DateTime.MinValue;
@@ -53,9 +50,6 @@ namespace CasaEngine.Game
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Form GameWindow
         {
             get;
@@ -69,10 +63,6 @@ namespace CasaEngine.Game
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="control_"></param>
         public CustomGame(Control control_, IntPtr handle)
         {
             Control = control_;
@@ -111,19 +101,11 @@ namespace CasaEngine.Game
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void OnControlResize(object sender, EventArgs e)
         {
             m_NeedResize = true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         ~CustomGame()
         {
             Components.ComponentAdded -= components_ComponentAdded;
@@ -415,24 +397,12 @@ namespace CasaEngine.Game
             return (bool)(mi.Invoke(ctl, new object[] { 2 }));
         }
 
-        public GameServiceContainer Services
-        {
-            get
-            {
-                return gameServices;
-            }
-        }
+        public GameServiceContainer Services => gameServices;
 
         public ContentManager Content
         {
-            get
-            {
-                return content;
-            }
-            set
-            {
-                content = value;
-            }
+            get => content;
+            set => content = value;
         }
 
         public GraphicsDevice GraphicsDevice
@@ -460,9 +430,6 @@ namespace CasaEngine.Game
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public IntPtr ControlHandle // to avoid inter thread call
         {
             get;
@@ -506,13 +473,7 @@ namespace CasaEngine.Game
         }
 
 
-        internal bool IsActiveIgnoringGuide
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        internal bool IsActiveIgnoringGuide => throw new NotImplementedException();
 
         public void Dispose()
         {

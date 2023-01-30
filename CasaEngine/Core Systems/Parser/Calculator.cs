@@ -1,50 +1,26 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.IO;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 
 
 namespace CasaEngine.Design.Parser
 {
-    /// <summary>
-    /// 
-    /// </summary>
     class Calculator
     {
 
         ICalculatorToken m_Root;
-        Parser m_Parser;
+        readonly Parser m_Parser;
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ICalculatorToken Root
         {
-            get { return m_Root; }
-            set { m_Root = value; }
+            get => m_Root;
+            set => m_Root = value;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public CasaEngine.Design.Parser.Parser Parser
-        {
-            get { return m_Parser; }
-        }
+        public CasaEngine.Design.Parser.Parser Parser => m_Parser;
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parser_"></param>
         public Calculator(Parser parser_)
         {
             m_Parser = parser_;
@@ -52,21 +28,12 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public float Evaluate()
         {
             return m_Root.Evaluate();
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Load(XmlElement el_, SaveOption option_)
         {
             m_Root = null;
@@ -79,11 +46,6 @@ namespace CasaEngine.Design.Parser
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Save(XmlElement el_, SaveOption option_)
         {
             if (m_Root != null)
@@ -94,11 +56,6 @@ namespace CasaEngine.Design.Parser
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Save(BinaryWriter bw_, SaveOption option_)
         {
             if (m_Root != null)
@@ -107,13 +64,6 @@ namespace CasaEngine.Design.Parser
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="token_"></param>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
-        /// <returns></returns>
         static public ICalculatorToken CreateCalculatorToken(Calculator calculator_, XmlElement el_, SaveOption option_)
         {
             ICalculatorToken token = null;
@@ -149,13 +99,6 @@ namespace CasaEngine.Design.Parser
             return token;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="token_"></param>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
-        /// <returns></returns>
         static public ICalculatorToken CreateCalculatorToken(Calculator calculator_, BinaryReader br_, SaveOption option_)
         {
             ICalculatorToken token = null;

@@ -10,47 +10,24 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using Microsoft.Xna.Framework;
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Dialog window. It has a top panel (with description and caption) and a bottom panel.
-    /// </summary>
     public class Dialog : Window
     {
 
 
-        /// <summary>
-        /// Top panel. 
-        /// It also stores the caption and description.
-        /// </summary>
         public Panel TopPanel { get; private set; }
 
-        /// <summary>
-        /// Bottom panel, good for buttons.
-        /// </summary>
         public Panel BottomPanel { get; private set; }
 
-        /// <summary>
-        /// Caption. It shows in the top panel.
-        /// </summary>
         public Label Caption { get; private set; }
 
-        /// <summary>
-        /// Description. It shows in the top panel.
-        /// </summary>
         public Label Description { get; private set; }
 
 
 
-        /// <summary>
-        /// Dialog window. It has a top panel (with description and caption) and a bottom panel.
-        /// </summary>
         public Dialog(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {

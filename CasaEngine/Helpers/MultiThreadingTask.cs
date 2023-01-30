@@ -25,29 +25,9 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 
 */
 
-using System;
-
-
-using System.Collections.Generic;
-using System.Threading;
 
 namespace XNAFinalEngine.Helpers
 {
-    /// <summary>
-    /// Creates several threads that perform the same task over different data.
-    /// It also provides synchronization methods.
-    /// T correspond to the parameter type.
-    /// </summary>
-    /// <remarks>
-    /// Threading in XNA Final Engine is fairly simple. 
-    /// Thanks to the data oriented design, the task could be performed in serial mode spreading the work into different cores and therefore avoiding asynchronic updates.
-    /// 
-    /// The game loop asks for the hardware threads available and divides the work in them. 
-    /// In Xbox 360 the engine uses the core 1, 3, 4 and 5; 0 and 2 are used by XNA (or the operative system).
-    /// In PC, there is a hardware thread for each available core. I assume that the cores are not being used;
-    /// however, the core that runs the application makes a little more work than the others to avoid a potential bottleneck,
-    /// moreover, small test performed shows me that this is better for performance. 
-    /// </remarks>
     public class MultiThreadingTask<T>
     {
 
@@ -68,9 +48,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Obtain the number of logical cores available for multithreading.
-        /// </summary>
         public MultiThreadingTask(Action<T> task, int numberOfThreads, int[] processorAffinity = null)
         {
             if (numberOfThreads <= 0)
@@ -95,10 +72,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// A thread could not be restarted. 
-        /// The thread needs to sleep and wait for more work to perform.
-        /// </summary>
         private void TaskManager(object parameter)
         {
             int index = (int)parameter;
@@ -120,9 +93,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        ///  Start again the task.
-        /// </summary>
         public void Start(int taskNumber, T parameter)
         {
             parameters[taskNumber] = parameter;
@@ -131,9 +101,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Call this if you need to wait for all tasks to be completed.
-        /// </summary>
         public void WaitForTaskCompletition()
         {
             for (int i = 0; i < threads.Count; i++)
@@ -143,9 +110,6 @@ namespace XNAFinalEngine.Helpers
             }
         } // WaitForTaskCompletition
 
-        /// <summary>
-        /// Call this if you need to wait for one task to be completed.
-        /// </summary>
         public void WaitForTaskCompletition(int taskNumber)
         {
             taskDone[taskNumber].WaitOne();

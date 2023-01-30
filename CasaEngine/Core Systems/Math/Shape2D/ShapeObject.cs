@@ -1,20 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using Microsoft.Xna.Framework;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
 using System.ComponentModel;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Math.Shape2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public abstract
 #if EDITOR
     partial
@@ -32,9 +22,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
 #if EDITOR
         [Category("Shape2D"), ReadOnly(true)]
 #endif
@@ -43,9 +30,6 @@ namespace CasaEngine.Math.Shape2D
             get { return m_Type; }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape2D")]
 #endif
@@ -61,9 +45,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape2D")]
 #endif
@@ -79,9 +60,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape2D")]
 #endif
@@ -99,16 +77,9 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected Shape2DObject()
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="o_"></param>
         protected Shape2DObject(Shape2DObject o_)
         {
             CopyFrom(o_);
@@ -117,12 +88,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
-        /// <returns></returns>
         static public Shape2DObject CreateShape2DObject(XmlElement el_, SaveOption option_)
         {
             Shape2DType type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el_.Attributes["type"].Value);
@@ -155,11 +120,6 @@ namespace CasaEngine.Math.Shape2D
             return res;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public virtual void Load(XmlElement el_, SaveOption option_)
         {
             int version = int.Parse(el_.Attributes["version"].Value);
@@ -173,16 +133,8 @@ namespace CasaEngine.Math.Shape2D
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public abstract Shape2DObject Clone();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ob_"></param>
         public virtual void CopyFrom(Shape2DObject ob_)
         {
             m_Location = ob_.m_Location;
@@ -191,19 +143,11 @@ namespace CasaEngine.Math.Shape2D
             m_Flag = ob_.m_Flag;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="x_"></param>
         public virtual void FlipHorizontally()
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="y_"></param>
         public virtual void FlipVertically()
         {
 

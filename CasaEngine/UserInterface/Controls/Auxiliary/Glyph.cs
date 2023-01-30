@@ -10,18 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-using CasaEngine.Asset;
-using Microsoft.Xna.Framework.Graphics;
-
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Represents an image that could be used in buttons, image boxs, etc.
-    /// </summary>
     public class Glyph
     {
 
@@ -44,22 +35,21 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Glyph color (used for coloring the glyph's texture)
-        /// </summary>
-        public Color Color { get { return color; } set { color = value; } }
+        public Color Color
+        {
+            get => color;
+            set => color = value;
+        }
 
-        /// <summary>
-        /// Glyph offset.
-        /// </summary>
-        public Point Offset { get { return offset; } set { offset = value; } }
+        public Point Offset
+        {
+            get => offset;
+            set => offset = value;
+        }
 
-        /// <summary>
-        /// Texture.
-        /// </summary>
         public CasaEngine.Asset.Texture Texture
         {
-            get { return texture; }
+            get => texture;
             set
             {
                 texture = value;
@@ -67,12 +57,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Texture
 
-        /// <summary>
-        /// Allows to cut the texture.
-        /// </summary>
         public Rectangle SourceRectangle
         {
-            get { return sourceRectangle; }
+            get => sourceRectangle;
             set
             {
                 if (texture != null)
@@ -104,20 +91,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SourceRectangle
 
-        /// <summary>
-        /// Size Mode (Normal, Streched, Fit, Centered and Auto).
-        /// </summary>
         public SizeMode SizeMode
         {
-            get { return sizeMode; }
-            set { sizeMode = value; }
+            get => sizeMode;
+            set => sizeMode = value;
         } // SizeMode
 
 
 
-        /// <summary>
-        /// Represents an image on a button.
-        /// </summary>
         public Glyph(CasaEngine.Asset.Texture _texture)
         {
             Texture = _texture;

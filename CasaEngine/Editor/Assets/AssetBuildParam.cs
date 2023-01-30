@@ -1,46 +1,27 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
-using Microsoft.Xna.Framework;
+﻿using System.ComponentModel;
 using System.Xml;
 using CasaEngineCommon.Extension;
 
 namespace CasaEngine.Editor.Assets
 {
-    /// <summary>
-    /// 
-    /// </summary>
     [TypeConverter(typeof(AssetBuildParamConverter))]
     public abstract class AssetBuildParam
     {
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public string Name
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         internal string SubName
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         [Browsable(false)]
         public abstract string Value
         {
@@ -49,10 +30,6 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         protected AssetBuildParam(string name_)
         {
             if (string.IsNullOrWhiteSpace(name_) == true)
@@ -63,10 +40,6 @@ namespace CasaEngine.Editor.Assets
             SetName(name_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected AssetBuildParam(XmlElement el_)
         {
             Load(el_);
@@ -74,20 +47,12 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         private void SetName(string name_)
         {
             SubName = name_;
             Name = "ProcessorParameters_" + name_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public void Load(XmlElement el_)
         {
             XmlNode node = el_.SelectSingleNode("Name");
@@ -96,16 +61,8 @@ namespace CasaEngine.Editor.Assets
             LoadValue(node.InnerText);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected abstract void LoadValue(string val_);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public void Save(XmlElement el_)
         {
             XmlElement node = el_.OwnerDocument.CreateElementWithText("Name", SubName);
@@ -119,9 +76,6 @@ namespace CasaEngine.Editor.Assets
     }
 
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamColor
         : AssetBuildParam
     {
@@ -132,35 +86,18 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return ColorKey.R + ", " + ColorKey.G + ", " + ColorKey.B + ", " + ColorKey.A; }
-        }
+        public override string Value => ColorKey.R + ", " + ColorKey.G + ", " + ColorKey.B + ", " + ColorKey.A;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamColor(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamColor()
             : base("ColorKeyColor")
         {
             ColorKey = new Color(255, 0, 255);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             string[] a = val_.Split(',');
@@ -171,11 +108,6 @@ namespace CasaEngine.Editor.Assets
                 byte.Parse(a[2]));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamColor o = (AssetBuildParamColor)param_;
@@ -189,9 +121,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamColorKeyEnabled
         : AssetBuildParam
     {
@@ -202,45 +131,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return ColorKeyEnabled.ToString(); }
-        }
+        public override string Value => ColorKeyEnabled.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamColorKeyEnabled()
             : base("ColorKeyEnabled")
         {
             ColorKeyEnabled = true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamColorKeyEnabled(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             ColorKeyEnabled = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamColorKeyEnabled o = (AssetBuildParamColorKeyEnabled)param_;
@@ -254,9 +161,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamGenerateMipmaps
         : AssetBuildParam
     {
@@ -267,45 +171,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return GenerateMipmaps.ToString(); }
-        }
+        public override string Value => GenerateMipmaps.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamGenerateMipmaps()
             : base("GenerateMipmaps")
         {
             GenerateMipmaps = true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamGenerateMipmaps(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             GenerateMipmaps = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamGenerateMipmaps o = (AssetBuildParamGenerateMipmaps)param_;
@@ -319,9 +201,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamPremultiplyAlpha
         : AssetBuildParam
     {
@@ -332,45 +211,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return PremultiplyAlpha.ToString(); }
-        }
+        public override string Value => PremultiplyAlpha.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamPremultiplyAlpha()
             : base("PremultiplyAlpha")
         {
             PremultiplyAlpha = true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamPremultiplyAlpha(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             PremultiplyAlpha = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamPremultiplyAlpha o = (AssetBuildParamPremultiplyAlpha)param_;
@@ -384,9 +241,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamResizeToPowerOfTwo
         : AssetBuildParam
     {
@@ -397,45 +251,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return ResizeToPowerOfTwo.ToString(); }
-        }
+        public override string Value => ResizeToPowerOfTwo.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamResizeToPowerOfTwo()
             : base("ResizeToPowerOfTwo")
         {
             ResizeToPowerOfTwo = true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamResizeToPowerOfTwo(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             ResizeToPowerOfTwo = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamResizeToPowerOfTwo o = (AssetBuildParamResizeToPowerOfTwo)param_;
@@ -449,15 +281,9 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamTextureFormat
         : AssetBuildParam
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum TextureFormat
         {
             NoChange,
@@ -472,45 +298,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return Enum.GetName(typeof(TextureFormat), Format); }
-        }
+        public override string Value => Enum.GetName(typeof(TextureFormat), Format);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamTextureFormat()
             : base("TextureFormat")
         {
             Format = TextureFormat.NoChange;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamTextureFormat(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             Format = (TextureFormat)Enum.Parse(typeof(TextureFormat), val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamTextureFormat o = (AssetBuildParamTextureFormat)param_;
@@ -526,15 +330,9 @@ namespace CasaEngine.Editor.Assets
 
 
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamDebuggingOptions
         : AssetBuildParam
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum DebuggingOptions
         {
             Auto,
@@ -549,45 +347,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return Enum.GetName(typeof(DebuggingOptions), Option); }
-        }
+        public override string Value => Enum.GetName(typeof(DebuggingOptions), Option);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamDebuggingOptions()
             : base("DebuggingOptions")
         {
             Option = DebuggingOptions.Auto;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamDebuggingOptions(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             Option = (DebuggingOptions)Enum.Parse(typeof(DebuggingOptions), val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamDebuggingOptions o = (AssetBuildParamDebuggingOptions)param_;
@@ -601,9 +377,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamDefines
         : AssetBuildParam
     {
@@ -614,45 +387,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return Defines; }
-        }
+        public override string Value => Defines;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamDefines()
             : base("Defines")
         {
             Defines = string.Empty;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamDefines(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             Defines = val_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamDefines o = (AssetBuildParamDefines)param_;
@@ -668,9 +419,6 @@ namespace CasaEngine.Editor.Assets
 
 
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamFirstCharacter
         : AssetBuildParam
     {
@@ -681,45 +429,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return FirstCharacter; }
-        }
+        public override string Value => FirstCharacter;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamFirstCharacter()
             : base("FirstCharacter")
         {
             FirstCharacter = string.Empty;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamFirstCharacter(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             FirstCharacter = val_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamFirstCharacter o = (AssetBuildParamFirstCharacter)param_;
@@ -735,15 +461,9 @@ namespace CasaEngine.Editor.Assets
 
 
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamDefaultEffect
         : AssetBuildParam
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum DefaultEffect
         {
             BasicEffect,
@@ -760,45 +480,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return Enum.GetName(typeof(DefaultEffect), Effect); }
-        }
+        public override string Value => Enum.GetName(typeof(DefaultEffect), Effect);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamDefaultEffect()
             : base("DefaultEffect")
         {
             Effect = DefaultEffect.BasicEffect;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamDefaultEffect(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             Effect = (DefaultEffect)Enum.Parse(typeof(DefaultEffect), val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamDefaultEffect o = (AssetBuildParamDefaultEffect)param_;
@@ -812,9 +510,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamPremultiplyTextureAlpha
         : AssetBuildParam
     {
@@ -825,45 +520,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return PremultiplyTextureAlpha.ToString(); }
-        }
+        public override string Value => PremultiplyTextureAlpha.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamPremultiplyTextureAlpha()
             : base("PremultiplyTextureAlpha")
         {
             PremultiplyTextureAlpha = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamPremultiplyTextureAlpha(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             PremultiplyTextureAlpha = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamPremultiplyTextureAlpha o = (AssetBuildParamPremultiplyTextureAlpha)param_;
@@ -877,9 +550,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamPremultiplyVertexColor
         : AssetBuildParam
     {
@@ -890,45 +560,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return PremultiplyVertexColor.ToString(); }
-        }
+        public override string Value => PremultiplyVertexColor.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamPremultiplyVertexColor()
             : base("PremultiplyVertexColor")
         {
             PremultiplyVertexColor = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamPremultiplyVertexColor(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             PremultiplyVertexColor = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamPremultiplyVertexColor o = (AssetBuildParamPremultiplyVertexColor)param_;
@@ -942,9 +590,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamGenerateTangentFrames
         : AssetBuildParam
     {
@@ -955,45 +600,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return GenerateTangentFrames.ToString(); }
-        }
+        public override string Value => GenerateTangentFrames.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamGenerateTangentFrames()
             : base("GenerateTangentFrames")
         {
             GenerateTangentFrames = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamGenerateTangentFrames(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             GenerateTangentFrames = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamGenerateTangentFrames o = (AssetBuildParamGenerateTangentFrames)param_;
@@ -1007,9 +630,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamScale
         : AssetBuildParam
     {
@@ -1020,45 +640,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return Scale.ToString(); }
-        }
+        public override string Value => Scale.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamScale()
             : base("Scale")
         {
             Scale = 1.0f;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamScale(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             Scale = float.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamScale o = (AssetBuildParamScale)param_;
@@ -1072,9 +670,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamSwapWindingOrder
         : AssetBuildParam
     {
@@ -1085,45 +680,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return SwapWindingOrder.ToString(); }
-        }
+        public override string Value => SwapWindingOrder.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamSwapWindingOrder()
             : base("SwapWindingOrder")
         {
             SwapWindingOrder = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamSwapWindingOrder(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             SwapWindingOrder = bool.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamSwapWindingOrder o = (AssetBuildParamSwapWindingOrder)param_;
@@ -1137,9 +710,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamXRotation
         : AssetBuildParam
     {
@@ -1150,45 +720,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return XRotation.ToString(); }
-        }
+        public override string Value => XRotation.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamXRotation()
             : base("XRotation")
         {
             XRotation = 0.0f;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamXRotation(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             XRotation = float.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamXRotation o = (AssetBuildParamXRotation)param_;
@@ -1202,9 +750,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamYRotation
         : AssetBuildParam
     {
@@ -1215,45 +760,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return YRotation.ToString(); }
-        }
+        public override string Value => YRotation.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamYRotation()
             : base("YRotation")
         {
             YRotation = 0.0f;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamYRotation(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             YRotation = float.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamYRotation o = (AssetBuildParamYRotation)param_;
@@ -1267,9 +790,6 @@ namespace CasaEngine.Editor.Assets
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamZRotation
         : AssetBuildParam
     {
@@ -1280,45 +800,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return ZRotation.ToString(); }
-        }
+        public override string Value => ZRotation.ToString();
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamZRotation()
             : base("ZRotation")
         {
             ZRotation = 0.0f;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamZRotation(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             ZRotation = float.Parse(val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamZRotation o = (AssetBuildParamZRotation)param_;
@@ -1334,15 +832,9 @@ namespace CasaEngine.Editor.Assets
 
 
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamCompressionQuality
         : AssetBuildParam
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum CompressionQuality
         {
             Low,
@@ -1357,45 +849,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return Enum.GetName(typeof(CompressionQuality), Quality); }
-        }
+        public override string Value => Enum.GetName(typeof(CompressionQuality), Quality);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamCompressionQuality()
             : base("CompressionQuality")
         {
             Quality = CompressionQuality.Best;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamCompressionQuality(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             Quality = (CompressionQuality)Enum.Parse(typeof(CompressionQuality), val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamCompressionQuality o = (AssetBuildParamCompressionQuality)param_;
@@ -1411,15 +881,9 @@ namespace CasaEngine.Editor.Assets
 
 
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamVideoSoundTrackType
         : AssetBuildParam
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum VideoSoundTrackType
         {
             Low,
@@ -1434,45 +898,23 @@ namespace CasaEngine.Editor.Assets
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public override string Value
-        {
-            get { return Enum.GetName(typeof(VideoSoundTrackType), TrackType); }
-        }
+        public override string Value => Enum.GetName(typeof(VideoSoundTrackType), TrackType);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public AssetBuildParamVideoSoundTrackType()
             : base("VideoSoundTrackType")
         {
             TrackType = VideoSoundTrackType.Best;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public AssetBuildParamVideoSoundTrackType(XmlElement el_)
             : base(el_)
         { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         protected override void LoadValue(string val_)
         {
             TrackType = (VideoSoundTrackType)Enum.Parse(typeof(VideoSoundTrackType), val_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="param_"></param>
-        /// <returns></returns>
         public override bool Compare(AssetBuildParam param_)
         {
             AssetBuildParamVideoSoundTrackType o = (AssetBuildParamVideoSoundTrackType)param_;

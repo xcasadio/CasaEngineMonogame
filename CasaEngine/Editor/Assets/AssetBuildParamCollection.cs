@@ -1,49 +1,23 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections;
+﻿using System.Collections;
 using System.ComponentModel;
 
 namespace CasaEngine.Editor.Assets
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamCollection
         : CollectionBase, ICustomTypeDescriptor
     {
 
-        /// <summary>
-        /// Adds an employee object to the collection
-        /// </summary>
-        /// <param name="emp"></param>
         public void Add(AssetBuildParam emp)
         {
             this.List.Add(emp);
         }
 
-        /// <summary>
-        /// Removes an employee object from the collection
-        /// </summary>
-        /// <param name="emp"></param>
         public void Remove(AssetBuildParam emp)
         {
             this.List.Remove(emp);
         }
 
-        /// <summary>
-        /// Returns an employee object at index position.
-        /// </summary>
-        public AssetBuildParam this[int index]
-        {
-            get
-            {
-                return (AssetBuildParam)this.List[index];
-            }
-        }
+        public AssetBuildParam this[int index] => (AssetBuildParam)this.List[index];
 
 
         // Implementation of interface ICustomTypeDescriptor 
@@ -99,21 +73,11 @@ namespace CasaEngine.Editor.Assets
         }
 
 
-        /// <summary>
-        /// Called to get the properties of this type. Returns properties with certain
-        /// attributes. this restriction is not implemented here.
-        /// </summary>
-        /// <param name="attributes"></param>
-        /// <returns></returns>
         public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
         {
             return GetProperties();
         }
 
-        /// <summary>
-        /// Called to get the properties of this type.
-        /// </summary>
-        /// <returns></returns>
         public PropertyDescriptorCollection GetProperties()
         {
             // Create a collection object to hold property descriptors

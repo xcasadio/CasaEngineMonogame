@@ -26,14 +26,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Panel collapsible.
-    /// </summary>
     public class PanelCollapsible : ClipControl
     {
 
@@ -42,16 +37,13 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Panel Collapsible.
-        /// </summary>
         public PanelCollapsible(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
             CanFocus = false;
             Passive = false;
             BackgroundColor = Color.Transparent;
-            
+
             // This is the control that manages the collapse functionality.
             treeButton = new TreeButton(UserInterfaceManager);
             treeButton.Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
@@ -64,7 +56,7 @@ namespace XNAFinalEngine.UserInterface
             Margins m = ClientMargins;
             m.Top += 20;
             ClientMargins = m;
-            
+
             // If the control is collaped or expanded...
             treeButton.CheckedChanged += delegate
             {
@@ -74,7 +66,7 @@ namespace XNAFinalEngine.UserInterface
                     // Only show the tree button.
                     ClientArea.Visible = false;
                     differencial = -Height + 20;
-                    Height = 20; 
+                    Height = 20;
                 }
                 else
                 {
@@ -90,7 +82,7 @@ namespace XNAFinalEngine.UserInterface
                     {
                         if (childControl.Top > Top && (childControl.Anchor & Anchors.Top) == Anchors.Top)
                         {
-                            childControl.Top += differencial; 
+                            childControl.Top += differencial;
                         }
                     }
                 }
@@ -122,9 +114,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             // We only want to render the children.

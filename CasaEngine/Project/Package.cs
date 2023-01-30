@@ -1,83 +1,50 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngineCommon.Design;
+﻿using CasaEngineCommon.Design;
 using System.Xml;
-using System.IO;
 using CasaEngineCommon.Logger;
-using CasaEngine.Game;
-using CasaEngine.Graphics2D;
 
 namespace CasaEngine.Project
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class Package
     {
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public Package Parent
         {
             get;
             internal set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public List<Package> Children
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public List<PackageItem> Items
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public string Name
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public string PathFromProjectPath
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public string PackageFileName
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public string[] SubDirectories
         {
             get
@@ -99,11 +66,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <param name="parent_"></param>
         public Package(string name_, Package parent_ = null)
         {
             Parent = parent_;
@@ -115,21 +77,11 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item_"></param>
-        /// <param name="subDirectory_"></param>
         public void AddItem(PackageItem item_, string subDirectory_ = "")
         {
             Items.Add(item_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_">group name + name</param>
-        /// <param name="sprite2D"></param>
         public T GetItem<T>(string name_) where T : class
         {
             foreach (PackageItem item in Items)
@@ -146,11 +98,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="file_"></param>
-        /// <param name="opt_"></param>
         public void LoadXml(string file_, SaveOption opt_)
         {
             if (File.Exists(file_) == false)
@@ -165,11 +112,6 @@ namespace CasaEngine.Project
             PackageFileName = file_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="file_"></param>
-        /// <param name="opt_"></param>
         public void SaveXml(string file_, SaveOption opt_)
         {
             XmlDocument xmlDoc = new XmlDocument();
@@ -193,11 +135,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="file_"></param>
-        /// <param name="opt_"></param>
         public void LoadBinary(string file_, SaveOption opt_)
         {
             if (File.Exists(file_) == false)
@@ -213,11 +150,6 @@ namespace CasaEngine.Project
             PackageFileName = file_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="file_"></param>
-        /// <param name="opt_"></param>
         public void SaveBinary(string file_, SaveOption opt_)
         {
             BinaryWriter bw = new BinaryWriter(File.Open(file_, FileMode.Create));

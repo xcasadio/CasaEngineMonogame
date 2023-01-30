@@ -1,23 +1,12 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
+﻿using System.Xml;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using CasaEngine.Graphics2D;
 using CasaEngine.Game;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.FrontEnd.Screen.Gadget
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -30,18 +19,12 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public SizeImage SizeImage
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Sprite2D Image
         {
             get;
@@ -50,9 +33,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ScreenGadgetButton(XmlElement el_, SaveOption opt_)
             : base(el_, opt_)
         {
@@ -61,19 +41,11 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         /*public override void Update(float elapsedTime_)
         {
             
         }*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
 #if EDITOR
         public
 #else
@@ -124,11 +96,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 area);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Load(XmlElement el_, SaveOption opt_)
         {
             base.Load(el_, opt_);

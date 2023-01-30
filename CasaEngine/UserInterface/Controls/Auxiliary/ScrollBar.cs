@@ -10,18 +10,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using Microsoft.Xna.Framework;
-
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Scrollbar.
-    /// </summary>
     public class ScrollBar : Control
     {
 
@@ -45,12 +37,9 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Value.
-        /// </summary>
         public virtual int Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (this.value != value)
@@ -67,12 +56,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Value
 
-        /// <summary>
-        /// Range.
-        /// </summary>
         public virtual int Range
         {
-            get { return range; }
+            get => range;
             set
             {
                 if (range != value)
@@ -85,12 +71,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Range
 
-        /// <summary>
-        /// Page size, this value is expressed in percentages.
-        /// </summary>
         public virtual int PageSize
         {
-            get { return pageSize; }
+            get => pageSize;
             set
             {
                 if (pageSize != value)
@@ -103,12 +86,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // PageSize
 
-        /// <summary>
-        /// Step size, this value is expressed in percentages.
-        /// </summary>
         public virtual int StepSize
         {
-            get { return stepSize; }
+            get => stepSize;
             set
             {
                 if (stepSize != value)
@@ -128,10 +108,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Scrollbar.
-        /// </summary>
-        /// <param name="orientation">Vertical or Horizontal</param>
         public ScrollBar(UserInterfaceManager userInterfaceManager_, Orientation orientation)
             : base(userInterfaceManager_)
         {
@@ -236,9 +212,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -251,9 +224,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             RecalculateParameters();
@@ -283,9 +253,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Recalculate some parameters.
-        /// </summary>
         private void RecalculateParameters()
         {
             if (buttonMinus != null && buttonPlus != null && buttonSlider != null)

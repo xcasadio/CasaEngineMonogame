@@ -26,26 +26,17 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using CasaEngine.CoreSystems;
 using Screen = CasaEngine.CoreSystems.Screen;
 
 
 namespace XNAFinalEngine.Helpers
 {
 
-    /// <summary>
-    /// Stores an ordered pair of integers, which specify a Height and Width.
-    /// </summary>
     public struct Size
     {
 
 
-        /// <summary>
-        /// Some effect works in different sizes but relative to the screen size.
-        /// </summary>
         public enum TextureSize
         {
             QuarterSize,
@@ -60,9 +51,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Gets or sets the horizontal component of this Size structure.
-        /// </summary>
         public int Width
         {
             get
@@ -83,9 +71,6 @@ namespace XNAFinalEngine.Helpers
             }
         } // Width
 
-        /// <summary>
-        /// Gets or sets the vertical component of this Size structure.
-        /// </summary>
         public int Height
         {
             get
@@ -114,47 +99,27 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>Full screen size.</summary>
-        /// <remarks>This size will be updated with screen size changes.</remarks>
-        public Size FullScreen { get { return new Size { width = -1, height = 0, m_Screen = this.m_Screen }; } }
+        public Size FullScreen => new Size { width = -1, height = 0, m_Screen = this.m_Screen };
 
-        /// <summary>Half screen size. E.g. 800x600 becomes 400x300</summary>
-        /// <remarks>This size will be updated with screen size changes.</remarks>
-        public Size HalfScreen { get { return new Size { width = -2, height = 0, m_Screen = this.m_Screen }; } }
+        public Size HalfScreen => new Size { width = -2, height = 0, m_Screen = this.m_Screen };
 
-        /// <summary>Quarter of the full screen size. E.g. 800x600 becomes 200x150</summary>
-        /// <remarks>This size will be updated with screen size changes.</remarks>
-        public Size QuarterScreen { get { return new Size { width = -3, height = 0, m_Screen = this.m_Screen }; } }
+        public Size QuarterScreen => new Size { width = -3, height = 0, m_Screen = this.m_Screen };
 
-        /// <summary>Horizontal split version of the full screen size. E.g. 800x600 becomes 800x300 </summary>
-        /// <remarks>This size will be updated with screen size changes.</remarks>
-        public Size SplitFullScreen { get { return new Size { width = -4, height = 0, m_Screen = this.m_Screen }; } }
+        public Size SplitFullScreen => new Size { width = -4, height = 0, m_Screen = this.m_Screen };
 
-        /// <summary>Horizontal split version of the half screen size. E.g. 800x600 becomes 400x150</summary>
-        /// <remarks>This size will be updated with screen size changes.</remarks>
-        public Size SplitHalfScreen { get { return new Size { width = -5, height = 0, m_Screen = this.m_Screen }; } }
+        public Size SplitHalfScreen => new Size { width = -5, height = 0, m_Screen = this.m_Screen };
 
-        /// <summary>Horizontal split version of the quarter of the full screen size. E.g. 800x600 becomes 200x75</summary>
-        /// <remarks>This size will be updated with screen size changes.</remarks>
-        public Size SplitQuarterScreen { get { return new Size { width = -6, height = 0, m_Screen = this.m_Screen }; } }
+        public Size SplitQuarterScreen => new Size { width = -6, height = 0, m_Screen = this.m_Screen };
 
-        /// <summary>256 x 256</summary>
-        public Size Square256X256 { get { return new Size(256, 256, m_Screen); } }
+        public Size Square256X256 => new Size(256, 256, m_Screen);
 
-        /// <summary>512 x 512</summary>
-        public Size Square512X512 { get { return new Size(512, 512, m_Screen); } }
+        public Size Square512X512 => new Size(512, 512, m_Screen);
 
-        /// <summary>1024 x 1024</summary>
-        public Size Square1024X1024 { get { return new Size(1024, 1024, m_Screen); } }
+        public Size Square1024X1024 => new Size(1024, 1024, m_Screen);
 
-        /// <summary>2048 x 2048</summary>
-        public Size Square2048X2048 { get { return new Size(2048, 2048, m_Screen); } }
+        public Size Square2048X2048 => new Size(2048, 2048, m_Screen);
 
 
-
-        /// <summary>
-        /// Stores an ordered pair of integers, which specify a Height and Width.
-        /// </summary>
         public Size(int width, int height, Screen screen_)
         {
             if (width < 0)
@@ -191,11 +156,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Returns a size of half dimensions.
-        /// It contemplates relative sizes.
-        /// </summary>
-        /// <returns></returns>
         public Size HalfSize()
         {
             if (this == FullScreen)
@@ -211,9 +171,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// If this size value correspond to a relative screen size (like full screen) make it relative.
-        /// </summary>
         public void MakeRelativeIfPosible()
         {
             if (this == FullScreen)

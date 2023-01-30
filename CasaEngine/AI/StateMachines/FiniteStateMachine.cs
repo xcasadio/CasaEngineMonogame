@@ -1,53 +1,19 @@
-
-using System;
-
-
-using CasaEngine.AI.Messaging;
-using CasaEngineCommon.Logger;
-using CasaEngine.Gameplay.Actor.Object;
-
-
-
 namespace CasaEngine.AI.StateMachines
 {
-    /// <summary>
-    /// This class represents a classical Moore Finite State Machine (FSM). The FSM is the one that orchestrates
-    /// all state transitions and executes them when the game logic updates the FSM
-    /// </summary>
-    /// <remarks>
-    /// Based on the implementation of Mat Buckland from his book "Programming Game AI By Example"
-    /// </remarks>
-    /// <typeparam name="T">Type of the entity owner of the state machine</typeparam>
     [Serializable]
     public class FiniteStateMachine<T> : IFiniteStateMachine<T> where T : /*BaseEntity,*/ IFSMCapable<T>
     {
 
-        /// <summary>
-        /// The owner of the state machine
-        /// </summary>
         protected internal T owner;
 
-        /// <summary>
-        /// Current state of the state machine
-        /// </summary>
         protected internal IState<T> currentState;
 
-        /// <summary>
-        /// Previous state of the state machine. Gives the machine a short time memory
-        /// </summary>
         protected internal IState<T> previousState;
 
-        /// <summary>
-        /// Global state of the state machine
-        /// </summary>
         protected internal IState<T> globalState;
 
 
 
-        /// <summary>
-        /// Default constructor. The state machine starts with DefaultIdleStates
-        /// </summary>
-        /// <param name="owner">The entity that owns the state machine</param>
         public FiniteStateMachine(T owner)
         {
             this.owner = owner;
@@ -57,12 +23,6 @@ namespace CasaEngine.AI.StateMachines
             globalState = new DefaultIdleState<T>();
         }
 
-        /// <summary>
-        /// Creates a finite state machine with initial states
-        /// </summary>
-        /// <param name="owner">The entity that owns the state machine</param>
-        /// <param name="currentState">The starting state of the machine</param>
-        /// <param name="globalState">The global state of the machine</param>
         public FiniteStateMachine(T owner, IState<T> currentState, IState<T> globalState)
         {
             this.owner = owner;
@@ -74,39 +34,26 @@ namespace CasaEngine.AI.StateMachines
 
 
 
-        /// <summary>
-        /// Gets or sets the current state
-        /// </summary>
         public IState<T> CurrentState
         {
-            get { return currentState; }
-            set { this.currentState = value; }
+            get => currentState;
+            set => this.currentState = value;
         }
 
-        /// <summary>
-        /// Gets or sets the global state
-        /// </summary>
         public IState<T> GlobalState
         {
-            get { return globalState; }
-            set { this.globalState = value; }
+            get => globalState;
+            set => this.globalState = value;
         }
 
 
 
-        /// <summary>
-        /// Updates the finite state machine
-        /// </summary>
         public void Update(float elpasedTime_)
         {
             globalState.Update(owner, elpasedTime_);
             currentState.Update(owner, elpasedTime_);
         }
 
-        /// <summary>
-        /// Changes the state of the finite state machine
-        /// </summary>
-        /// <param name="newState">The new state the machine is going to transition</param>
         public void Transition(IState<T> newState)
         {
             /*String message = String.Empty;
@@ -141,19 +88,11 @@ namespace CasaEngine.AI.StateMachines
             currentState.Enter(owner);
         }
 
-        /// <summary>
-        /// Puts the finite state machine back to its previous state
-        /// </summary>
         public void RevertStateChange()
         {
             Transition(previousState);
         }
 
-        /// <summary>
-        /// Tells if the state machine is in a determinated state or not
-        /// </summary>
-        /// <param name="state">The state we want to check</param>
-        /// <returns>True if the machine is in state, false if it´s not</returns>
         public bool IsInState(IState<T> state)
         {
             if (this.currentState == state)
@@ -163,11 +102,6 @@ namespace CasaEngine.AI.StateMachines
                 return false;
         }
 
-        /// <summary>
-        /// The message handler of the Finite State Machine
-        /// </summary>
-        /// <param name="message">Message the entity will recieve</param>
-        /// <returns>True if the entity could handle the message, false if not</returns>
         public bool HandleMessage(Message message)
         {
             //Try to handle the message with the current state

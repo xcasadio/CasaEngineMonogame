@@ -1,11 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Design.Parser
 {
     class ParserTokenValue
         : ParserToken
@@ -17,10 +10,6 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parser_"></param>
         public ParserTokenValue(Parser parser_)
             : base(parser_, string.Empty)
         {
@@ -29,11 +18,6 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sentence_"></param>
-        /// <returns></returns>
         public override bool Check(string sentence_)
         {
             //int value;

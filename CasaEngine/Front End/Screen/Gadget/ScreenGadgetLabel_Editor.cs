@@ -1,19 +1,5 @@
-﻿
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using Microsoft.Xna.Framework;
-using CasaEngine.Game;
-
-namespace CasaEngine.FrontEnd.Screen.Gadget
+﻿namespace CasaEngine.FrontEnd.Screen.Gadget
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class ScreenGadgetLabel
     {
 
@@ -23,9 +9,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ScreenGadgetLabel()
             : base("Label" + (num++))
         {

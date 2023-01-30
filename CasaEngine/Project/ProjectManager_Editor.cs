@@ -1,24 +1,11 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
-using System.IO;
-using CasaEngine.Gameplay.Actor;
-using CasaEngine;
-using CasaEngine.SourceControl;
 using CasaEngineCommon.Design;
 using CasaEngine.Game;
 
 
 namespace CasaEngine.Project
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class ProjectManager
     {
         static private readonly uint m_Version = 1;
@@ -31,18 +18,12 @@ namespace CasaEngine.Project
             get;
             set;
         }
-        /// <summary>
-        /// Gets the full path of the open project file else string.Empty
-        /// </summary>
         public string ProjectFileOpened
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Clear all assets loaded
-        /// </summary>
         public void Clear()
         {
             Engine.Instance.AssetManager.Clear();
@@ -56,10 +37,6 @@ namespace CasaEngine.Project
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
         public void CreateProject(string fileName_)
         {
 #if !DEBUG
@@ -80,10 +57,6 @@ namespace CasaEngine.Project
 #endif
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
         private void CreateProjectDirectoryHierarchy(string path_)
         {
             System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + AssetDirPath);
@@ -98,10 +71,6 @@ namespace CasaEngine.Project
             System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + ConfigDirPath);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
         public bool Save(string fileName_)
         {
             //Si on sauvegarde et qu'il y a deja une sauvegarde

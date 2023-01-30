@@ -10,20 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using CasaEngine.CoreSystems;
-
-
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Combo Box
-    /// </summary>
     public class ComboBox : TextBox
     {
 
@@ -32,26 +21,14 @@ namespace XNAFinalEngine.UserInterface
         private readonly List<object> items = new List<object>();
         private readonly ListBox listCombo;
 
-        /// <summary>
-        /// Maximum Number of items showed by time.
-        /// </summary>
         private int maxItems = 5;
 
-        /// <summary>
-        /// Draw Selection?
-        /// </summary>
         private bool drawSelection = true;
 
 
 
-        /// <summary>
-        /// Indicates if the internal list box is visible or not.
-        /// </summary>
-        public bool ListBoxVisible { get { return listCombo.Visible; } }
+        public bool ListBoxVisible => listCombo.Visible;
 
-        /// <summary>
-        /// Read Only?
-        /// </summary>
         public override bool ReadOnly
         {
             get { return base.ReadOnly; }
@@ -65,21 +42,15 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ReadOnly
 
-        /// <summary>
-        /// Draw Selection?
-        /// </summary>
         public bool DrawSelection
         {
-            get { return drawSelection; }
-            set { drawSelection = value; }
+            get => drawSelection;
+            set => drawSelection = value;
         } // DrawSelection
 
-        /// <summary>
-        /// Text
-        /// </summary>
         public override string Text
         {
-            get { return base.Text; }
+            get => base.Text;
             set
             {
                 base.Text = value;
@@ -90,20 +61,11 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Text
 
-        /// <summary>
-        /// List of Items.
-        /// </summary>
-        public virtual List<object> Items
-        {
-            get { return items; }
-        } // Items
+        public virtual List<object> Items => items; // Items
 
-        /// <summary>
-        /// Maximum Number of items showed by time.
-        /// </summary>
         public int MaxItemsShow
         {
-            get { return maxItems; }
+            get => maxItems;
             set
             {
                 if (maxItems != value)
@@ -115,12 +77,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MaxItems
 
-        /// <summary>
-        /// Item index.
-        /// </summary>
         public int ItemIndex
         {
-            get { return listCombo.ItemIndex; }
+            get => listCombo.ItemIndex;
             set
             {
                 if (value >= 0 && value < items.Count)
@@ -144,9 +103,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Combo Box
-        /// </summary>
         public ComboBox(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -173,9 +129,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -217,9 +170,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             base.DrawControl(rect);

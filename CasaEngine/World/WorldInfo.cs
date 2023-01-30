@@ -1,20 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using CasaEngine.Physics2D;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using CasaEngine.Gameplay;
 using CasaEngine.Gameplay.Actor;
 
 namespace CasaEngine.World
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class WorldInfo
     {
 
@@ -30,35 +19,23 @@ namespace CasaEngine.World
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public World World
         {
-            get { return m_World; }
-            set { m_World = value; }
+            get => m_World;
+            set => m_World = value;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         /*public PhysicsSettings PhysicsSettings
         {
             get { return m_PhysicsSettings; }
         }*/
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Vector2 WorldGravity
         {
-            get { return m_WorldGravity; }
-            set { m_WorldGravity = value; }
+            get => m_WorldGravity;
+            set => m_WorldGravity = value;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public float ElapsedTime
         {
             get;
@@ -69,20 +46,11 @@ namespace CasaEngine.World
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         internal void Update(float elapsedTime_)
         {
             ElapsedTime += elapsedTime_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public List<T> GetActors<T>()
         {
             List<T> res = new List<T>();
@@ -90,10 +58,6 @@ namespace CasaEngine.World
             return res;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public List<CharacterActor2D> GetPlayers()
         {
             List<CharacterActor2D> res = new List<CharacterActor2D>();

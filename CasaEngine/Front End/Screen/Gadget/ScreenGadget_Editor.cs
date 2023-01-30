@@ -1,22 +1,11 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
 using System.Xml;
 using CasaEngine.Game;
 using CasaEngineCommon.Extension;
-using System.IO;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.FrontEnd.Screen.Gadget
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class ScreenGadget
     {
 
@@ -26,10 +15,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         protected ScreenGadget(string name_)
         {
             Scale = Vector2.One;
@@ -40,11 +25,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public virtual void Save(XmlElement el_, SaveOption opt_)
         {
             XmlElement node;
@@ -76,11 +56,6 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             el_.AppendChild(node);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public virtual void Save(BinaryWriter bw_, SaveOption opt_)
         {
             bw_.Write(GetType().Name);

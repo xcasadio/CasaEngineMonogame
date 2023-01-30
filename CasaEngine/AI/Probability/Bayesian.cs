@@ -1,41 +1,20 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-
-namespace CasaEngine.AI.Probability
+﻿namespace CasaEngine.AI.Probability
 {
-    /// <summary>
-    /// 
-    /// </summary>
     class Pattern
         : IEquatable<Pattern>
     {
-
-        int[] m_Pattern;
-
+        readonly int[] m_Pattern;
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pattern_"></param>
+
         public Pattern(int[] pattern_)
         {
             m_Pattern = pattern_;
         }
 
 
-        /// <summary>
-        /// Checks whether two pattern are equal disregarding the order of the elements
-        /// </summary>
-        /// <param name="other"></param>
-        /// <returns></returns>
         public bool Equals(Pattern other)
         {
             for (int i = 0; i < m_Pattern.Length; i++)
@@ -52,26 +31,17 @@ namespace CasaEngine.AI.Probability
 
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class Bayesian
     {
-
-        int nbActions, nbPossibilities;
-        Dictionary<Pattern, int[]> m_Probabilities = new Dictionary<Pattern, int[]>();
-        List<Pattern> m_ListPattern = new List<Pattern>();
-
-
+        readonly int nbActions;
+        readonly int nbPossibilities;
+        readonly Dictionary<Pattern, int[]> m_Probabilities = new Dictionary<Pattern, int[]>();
+        readonly List<Pattern> m_ListPattern = new List<Pattern>();
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <remarks>Bug si nbPossibilities_ > 2</remarks>
-        /// <param name="nbAction_"></param>
-        /// <param name="data_"></param>
+
+
         public Bayesian(int nbAction_, int nbPossibilities_)
         {
             nbActions = nbAction_;
@@ -82,9 +52,6 @@ namespace CasaEngine.AI.Probability
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void BuildProbabilities()
         {
             List<int[]> list = new List<int[]>();
@@ -111,11 +78,6 @@ namespace CasaEngine.AI.Probability
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="listPattern"></param>
-        /// <param name="pattern_"></param>
         private void CreatePattern(ref List<int[]> listPattern, int[] pattern_, int pos_)
         {
             int p;
@@ -159,11 +121,6 @@ namespace CasaEngine.AI.Probability
             CreatePattern(ref listPattern, pattern_, pos_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="currentPattern_"></param>
-        /// <returns></returns>
         public int ComputeProbabilities(int[] currentPattern_)
         {
             Pattern pattern = GetPattern(currentPattern_);
@@ -185,12 +142,6 @@ namespace CasaEngine.AI.Probability
             return action;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="currentPattern_"></param>
-        /// <param name="action_"></param>
-        /// <returns></returns>
         public void UpdateProbabilities(int[] currentPattern_, int action_)
         {
             Pattern pattern = GetPattern(currentPattern_);
@@ -199,11 +150,6 @@ namespace CasaEngine.AI.Probability
             m_Probabilities[pattern][action_]++;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="currentPattern_"></param>
-        /// <returns></returns>
         Pattern GetPattern(int[] currentPattern_)
         {
             Pattern pattern = new Pattern(currentPattern_);

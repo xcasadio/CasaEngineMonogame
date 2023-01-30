@@ -1,11 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Project
+﻿namespace CasaEngine.Project
 {
     public enum PackageItemType
     {

@@ -1,23 +1,10 @@
-﻿
-
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml;
-using CasaEngine;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
 
 
 namespace CasaEngine.Design.Event
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public abstract partial class Trigger
     {
 
@@ -29,11 +16,6 @@ namespace CasaEngine.Design.Event
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public virtual void Save(XmlElement el_, SaveOption option_)
         {
             XmlElement node;
@@ -56,11 +38,6 @@ namespace CasaEngine.Design.Event
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public virtual void Save(BinaryWriter bw_, SaveOption option_)
         {
             bw_.Write(m_Version);
@@ -76,10 +53,6 @@ namespace CasaEngine.Design.Event
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="event_"></param>
         public void RemoveEvent(TriggerEvent event_)
         {
             m_Events.Remove(event_);

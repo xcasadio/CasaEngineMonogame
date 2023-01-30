@@ -1,10 +1,3 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
-using CasaEngine.AI.EvolutionaryComputing.Crossover;
 using CasaEngine.AI.EvolutionaryComputing.Mutation;
 using CasaEngine.AI.EvolutionaryComputing.Replacement;
 using CasaEngine.AI.EvolutionaryComputing.Selection;
@@ -14,61 +7,27 @@ using CasaEngine.AI.EvolutionaryComputing.Selection;
 
 namespace CasaEngine.AI.EvolutionaryComputing
 {
-    /// <summary>
-    /// This class represents and evolutive algorithm (a genetic algorithm or an evolutive strategy)
-    /// </summary>
-    /// <typeparam name="T">The type of the genes</typeparam>
     public class EvolutionaryAlgorithm<T>
     {
 
-        /// <summary>
-        /// Event fired everytime the algorithm makes one loop
-        /// </summary>
         //public event NewStepEventHandler<T> NewStep;
 
 
 
-        /// <summary>
-        /// The mutation algorithm
-        /// </summary>
         protected internal MutationMethod<T> mutation;
 
-        /// <summary>
-        /// The replacement method
-        /// </summary>
         protected internal ReplacementMethod<T> replacement;
 
-        /// <summary>
-        /// The selection method
-        /// </summary>
         protected internal SelectionMethod<T> selection;
 
-        /// <summary>
-        /// The problem to solve
-        /// </summary>
         protected internal IEvolutionaryProblem<T> problem;
 
-        /// <summary>
-        /// The number of offsprings to create every generation
-        /// </summary>
         protected internal int numberOffsprings;
 
-        /// <summary>
-        /// Number of generations to execute the algorithm
-        /// </summary>
         protected internal int numberGenerations;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="problem">Problem to try to solve</param>
-        /// <param name="selection">Selection operator</param>
-        /// <param name="mutation">Mutation operator</param>
-        /// <param name="replacement">Replacement operator</param>
-        /// <param name="numberOffsprings">Number of offsprings that will be created every generation</param>
-        /// <param name="numberGenerations">Number of generations to execute the algorithm</param>
         public EvolutionaryAlgorithm(IEvolutionaryProblem<T> problem, SelectionMethod<T> selection, MutationMethod<T> mutation, ReplacementMethod<T> replacement,
             int numberOffsprings, int numberGenerations)
         {
@@ -102,12 +61,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
 
 
-        /// <summary>
-        /// Gets or sets the mutation operator
-        /// </summary>
         public MutationMethod<T> Mutation
         {
-            get { return mutation; }
+            get => mutation;
             set
             {
                 String message = String.Empty;
@@ -119,12 +75,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
         }
 
-        /// <summary>
-        /// Gets or sets the replacement operator
-        /// </summary>
         public ReplacementMethod<T> Replacement
         {
-            get { return replacement; }
+            get => replacement;
             set
             {
                 String message = String.Empty;
@@ -136,12 +89,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
         }
 
-        /// <summary>
-        /// Gets or sets the selection operator
-        /// </summary>
         public SelectionMethod<T> Selection
         {
-            get { return selection; }
+            get => selection;
             set
             {
                 String message = String.Empty;
@@ -153,12 +103,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
         }
 
-        /// <summary>
-        /// Gets or sets the evolutive problem
-        /// </summary>
         public IEvolutionaryProblem<T> Problem
         {
-            get { return problem; }
+            get => problem;
             set
             {
                 String message = String.Empty;
@@ -170,12 +117,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
         }
 
-        /// <summary>
-        /// Gets or sets the number of offsprings
-        /// </summary>
         public int NumberOffsprings
         {
-            get { return numberOffsprings; }
+            get => numberOffsprings;
             set
             {
                 String message = String.Empty;
@@ -187,12 +131,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
         }
 
-        /// <summary>
-        /// Gets or sets the number of generations
-        /// </summary>
         public int NumberGenerations
         {
-            get { return numberGenerations; }
+            get => numberGenerations;
             set
             {
                 String message = String.Empty;
@@ -206,12 +147,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
 
 
-        /// <summary>
-        /// Validates if the mutation value is correct (not null)
-        /// </summary>
-        /// <param name="mutation">The mutation value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateMutation(MutationMethod<T> mutation, ref string message)
         {
             if (mutation == null)
@@ -223,12 +158,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return true;
         }
 
-        /// <summary>
-        /// Validates if the replacement value is correct (not null)
-        /// </summary>
-        /// <param name="replacement">The replacement value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateReplacement(ReplacementMethod<T> replacement, ref string message)
         {
             if (replacement == null)
@@ -240,12 +169,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return true;
         }
 
-        /// <summary>
-        /// Validates if the selection value is correct (not null)
-        /// </summary>
-        /// <param name="selection">The selection value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateSelection(SelectionMethod<T> selection, ref string message)
         {
             if (selection == null)
@@ -257,12 +180,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return true;
         }
 
-        /// <summary>
-        /// Validates if the problem value is correct (not null)
-        /// </summary>
-        /// <param name="problem">The problem value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateProblem(IEvolutionaryProblem<T> problem, ref string message)
         {
             if (problem == null)
@@ -274,12 +191,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return true;
         }
 
-        /// <summary>
-        /// Validates if the number of offsprings value is correct (>= 1)
-        /// </summary>
-        /// <param name="numberOffsprings">The number of offsprings value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateOffsprings(int numberOffsprings, ref string message)
         {
             if (numberOffsprings < 1)
@@ -291,12 +202,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return true;
         }
 
-        /// <summary>
-        /// Validates if the number of generations value is correct (>= 1)
-        /// </summary>
-        /// <param name="numberGenerations">The number of generations value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateGenerations(int numberGenerations, ref string message)
         {
             if (numberGenerations < 1)
@@ -310,12 +215,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
 
 
-        /// <summary>
-        /// Method that solves the problem in a number of generations without improvement.
-        /// The algorithm finishes when no better solution is found in numberGenerations
-        /// generations
-        /// </summary>
-        /// <returns>The best individual found</returns>
         public Chromosome<T> SolveWithImprovement()
         {
             int evaluationsWithoutImprovement;
@@ -375,10 +274,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return parents[0];
         }
 
-        /// <summary>
-        /// Method that solves the problem in a number of generations
-        /// </summary>
-        /// <returns>The best individual found</returns>
         public Chromosome<T> SolveWithoutImprovement()
         {
             Population<T> parents, offsprings, survivors;

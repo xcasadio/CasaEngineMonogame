@@ -9,14 +9,8 @@ using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Input
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class InputManager
     {
-        /// <summary>
-        /// Only one button held
-        /// </summary>
         [Test]
         public void SimpleTest()
         {
@@ -64,9 +58,6 @@ namespace CasaEngine.Input
             Assert.IsTrue(Matches(move));
         }
 
-        /// <summary>
-        /// 2 buttons pressed
-        /// </summary>
         [Test]
         public void ComposedTest()
         {
@@ -132,9 +123,6 @@ namespace CasaEngine.Input
             Assert.IsTrue(Matches(move));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         [Test]
         public void ComplexTest()
         {

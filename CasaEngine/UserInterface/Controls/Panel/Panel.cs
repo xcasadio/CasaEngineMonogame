@@ -10,14 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Panel.
-    /// </summary>
     public class Panel : Container
     {
 
@@ -30,12 +25,9 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Bevel Style.
-        /// </summary>
         public BevelStyle BevelStyle
         {
-            get { return bevelStyle; }
+            get => bevelStyle;
             set
             {
                 if (bevelStyle != value)
@@ -47,12 +39,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // BevelStyle
 
-        /// <summary>
-        /// Bevel Border
-        /// </summary>
         public BevelBorder BevelBorder
         {
-            get { return bevelBorder; }
+            get => bevelBorder;
             set
             {
                 if (bevelBorder != value)
@@ -65,12 +54,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // BevelBorder
 
-        /// <summary>
-        /// Bevel Margin
-        /// </summary>
         public int BevelMargin
         {
-            get { return bevelMargin; }
+            get => bevelMargin;
             set
             {
                 if (bevelMargin != value)
@@ -82,16 +68,10 @@ namespace XNAFinalEngine.UserInterface
             }
         } // BevelMargin
 
-        /// <summary>
-        /// Bevel Color.
-        /// </summary>
         public virtual Color BevelColor
         {
-            get { return bevelColor; }
-            set
-            {
-                bevel.Color = bevelColor = value;
-            }
+            get => bevelColor;
+            set => bevel.Color = bevelColor = value;
         } // BevelColor
 
 
@@ -102,9 +82,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Panel.
-        /// </summary>
         public Panel(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -139,9 +116,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -184,9 +158,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             int x = rect.Left;

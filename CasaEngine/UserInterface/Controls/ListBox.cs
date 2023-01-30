@@ -10,21 +10,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-
-
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Display a list of items.
-    /// </summary>
     public class ListBox : Control
     {
 
@@ -41,13 +30,13 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual List<object> Items
         {
-            get { return items; }
-            internal set { items = value; }
+            get => items;
+            internal set => items = value;
         } // Items
 
         public virtual bool HotTrack
         {
-            get { return hotTrack; }
+            get => hotTrack;
             set
             {
                 if (hotTrack != value)
@@ -61,7 +50,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual int ItemIndex
         {
-            get { return itemIndex; }
+            get => itemIndex;
             set
             {
                 if (value >= 0 && value < items.Count)
@@ -81,7 +70,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual bool HideSelection
         {
-            get { return hideSelection; }
+            get => hideSelection;
             set
             {
                 if (hideSelection != value)
@@ -101,9 +90,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Display a list of items.
-        /// </summary>
         public ListBox(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -142,9 +128,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -188,9 +171,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             scrollBarVertical.Invalidate();
@@ -268,9 +248,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// This method select the element that is under the mouse pointer (if any).
-        /// </summary>
         private void TrackItem(int x, int y)
         {
             if (items != null && items.Count > 0 && (pane.ControlRectangleRelativeToParent.Contains(new Point(x, y))))

@@ -1,31 +1,13 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Physics2D;
-using CasaEngine.Gameplay.Actor;
-using CasaEngine.Gameplay.Design;
-using CasaEngine.Math.Shape2D;
+﻿using CasaEngine.Math.Shape2D;
 using Microsoft.Xna.Framework;
 using FarseerPhysics.Dynamics;
 using CasaEngine.AI.Messaging;
-using CasaEngine.Design;
-using CasaEngine.Game;
 using CasaEngine.Helper;
-using System.Xml;
-using CasaEngineCommon.Logger;
-using CasaEngine.Graphics2D;
-using CasaEngine.CoreSystems;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngineCommon.Helper;
 
 namespace CasaEngine.Gameplay.Actor
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class ProjectilActor
         : AnimatedSpriteActor, IAttackable
     {
@@ -44,46 +26,22 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Shape2DObject[] Shape2DObjectList
-        {
-            get { return m_Shape2DObjectList.ToArray(); }
-        }
+        public Shape2DObject[] Shape2DObjectList => m_Shape2DObjectList.ToArray();
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public new Vector2 Position
-        {
-            get
-            {
-                return m_Body.Position;
-            }
-        }
+        public new Vector2 Position => m_Body.Position;
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public TeamInfo TeamInfo
         {
-            get { return m_TeamInfo; }
-            set { m_TeamInfo = value; }
+            get => m_TeamInfo;
+            set => m_TeamInfo = value;
         }
 
-        /// <summary>
-        /// Sets
-        /// </summary>
         public Actor2D Owner
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Sets
-        /// </summary>
         public Vector2 Velocity
         {
             get;
@@ -92,19 +50,11 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         public ProjectilActor()
             : base()
         {
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         public ProjectilActor(ProjectilActor src_)
         {
             CopyFrom(src_);
@@ -112,19 +62,11 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override BaseObject Clone()
         {
             return new ProjectilActor(this);
         }
 
-        /// <summary>
-        /// Copy
-        /// </summary>
-        /// <param name="ob_"></param>
         protected override void CopyFrom(BaseObject ob_)
         {
             base.CopyFrom(ob_);
@@ -140,10 +82,6 @@ namespace CasaEngine.Gameplay.Actor
             Velocity = src.Velocity;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="world_"></param>
         public virtual void Initialize(FarseerPhysics.Dynamics.World world_)
         {
             base.Initialize();
@@ -160,29 +98,16 @@ namespace CasaEngine.Gameplay.Actor
             m_Body.UserData = world_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void DoANewAttack()
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other_"></param>
-        /// <returns></returns>
         public bool CanAttackHim(IAttackable other_)
         {
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
         public bool HandleMessage(Message message)
         {
             switch (message.Type)
@@ -201,10 +126,6 @@ namespace CasaEngine.Gameplay.Actor
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public override void Update(float elapsedTime_)
         {
             base.Update(elapsedTime_);
@@ -212,10 +133,6 @@ namespace CasaEngine.Gameplay.Actor
             m_Body.LinearVelocity = Velocity;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public override void Draw(float elapsedTime_)
         {
             base.Draw(elapsedTime_);
@@ -233,11 +150,6 @@ namespace CasaEngine.Gameplay.Actor
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="position"></param>
-        /// <param name="direction_"></param>
         public void SetTransform(Vector2 position, Vector2 direction_)
         {
             float rot = Vector2Helper.GetAngleBetweenVectors(Vector2.UnitX, direction_);

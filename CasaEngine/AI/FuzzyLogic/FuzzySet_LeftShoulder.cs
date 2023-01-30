@@ -1,36 +1,16 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.Fuzzy
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class FuzzySet_LeftShoulder
         : FuzzySet
     {
-
-        /// <summary>
-        /// The values that define the shape of this FLV
-        /// </summary>
-        double m_dPeakPoint;
-        double m_dRightOffset;
-        double m_dLeftOffset;
+        readonly double m_dPeakPoint;
+        readonly double m_dRightOffset;
+        readonly double m_dLeftOffset;
 
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="peak"></param>
-        /// <param name="LeftOffset"></param>
-        /// <param name="RightOffset"></param>
         public FuzzySet_LeftShoulder(double peak, double LeftOffset, double RightOffset) :
             base(((peak - LeftOffset) + peak) / 2)
         {
@@ -41,11 +21,6 @@ namespace CasaEngine.AI.Fuzzy
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
         public override double CalculateDOM(double val)
         {
             //test for the case where the left or right offsets are zero

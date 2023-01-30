@@ -1,44 +1,11 @@
-
-using System;
-
-
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Microsoft.Xna.Framework;
 
 
 namespace CasaEngine.AI.Graphs
 {
-    /// <summary>
-    /// Helper class for graphs
-    /// </summary>
-    /// <remarks>
-    /// This class has only barebone functionality at the moment
-    /// </remarks>
     public static class GraphBuilder
     {
 
-        /// <summary>
-        /// Reads a graph from a matrix file. The format for the graph must be similar to a tile based graph
-        /// </summary>
-        /// <example>
-        /// File format example:
-        /// 3
-        /// 3
-        /// 1 2 3
-        /// 4 5 6
-        /// 7 8 9
-        /// The first number is the height of the graph, the next one the width, and then the
-        /// node weights for all nodes of the graph.
-        /// </example>
-        /// <remarks>
-        /// -1 represents the infinite cost. Quite simple, but useful to load sample nav graphs
-        /// </remarks>
-        /// <typeparam name="T">The type of the nodes</typeparam>
-        /// <typeparam name="K">The type of the edges</typeparam>
-        /// <param name="filename">File that contains the graph</param>
-        /// <returns>The graph from the file</returns>
         public static Graph<T, K> NavGraphFromMatrixFile<T, K>(string filename)
             where T : NavigationNode
             where K : WeightedEdge
@@ -134,14 +101,6 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        /// <summary>
-        /// Validates if a position is in the graph or outside it
-        /// </summary>
-        /// <param name="width">Width of the graph</param>
-        /// <param name="height">Height of the graph</param>
-        /// <param name="x">X coordinate of the position</param>
-        /// <param name="y">Y coordiante of the position</param>
-        /// <returns>True if (x, y) is a valid position, false if it is not</returns>
         private static bool ValidatePosition(int width, int height, int x, int y)
         {
             if (x < 0 || x >= width)

@@ -1,36 +1,13 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 {
-    /// <summary>
-    /// This class represents the discrete crossover algorithm. In this algorithm, one
-    /// offspring is create from N parents, and each gene of the offspring is one random
-    /// value from the genotype of its parents
-    /// </summary>
-    /// <typeparam name="T">The type of the genes</typeparam>
     public sealed class DiscreteCrossover<T> : CrossoverAlgorithm<T>
     {
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="probability"></param>
-        /// <param name="generator"></param>
         public DiscreteCrossover(double probability, Random generator)
             : base(probability, generator) { }
 
 
 
-        /// <summary>
-        /// Crossover function
-        /// </summary>
-        /// <param name="parents">The parents to cross</param>
-        /// <returns>The list of offsprings</returns>
         public override List<Chromosome<T>> Crossover(List<Chromosome<T>> parents)
         {
             List<Chromosome<T>> list;

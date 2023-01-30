@@ -1,22 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml;
-using CasaEngine;
-using CasaEngine.Graphics2D;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.Graphics2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class Asset2DManager
     {
 
@@ -36,11 +24,7 @@ namespace CasaEngine.Graphics2D
 
 
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public string[] GetAllSprite2DName()
+        public string[] GetAllSprite2DName()
         {
             List<string> res = new List<string>();
 
@@ -52,11 +36,7 @@ namespace CasaEngine.Graphics2D
             return res.ToArray();
         }
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name_"></param>
-		public void DeleteSprite2DByName(string name_)
+        public void DeleteSprite2DByName(string name_)
         {
             /*foreach (KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
 			{
@@ -73,12 +53,6 @@ namespace CasaEngine.Graphics2D
             }*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite2DName_"></param>
-        /// <param name="newName_"></param>
-        /// <returns></returns>
         public bool RenameSprite2D(string sprite2DName_, string newName_)
         {
             /*foreach (KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
@@ -100,11 +74,6 @@ namespace CasaEngine.Graphics2D
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns>true if the name is unsused, else returns false</returns>
         public bool IsValidSprite2DName(string name_)
         {
             /*foreach (KeyValuePair<uint, Sprite2D> pair in  m_Sprite2DList)
@@ -118,10 +87,6 @@ namespace CasaEngine.Graphics2D
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sprite2D_"></param>
         public void ReplaceSprite2D(Sprite2D sprite2D_)
         {
             int id = int.MaxValue;
@@ -144,11 +109,7 @@ namespace CasaEngine.Graphics2D
 
 
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public string[] GetAllAnimation2DName()
+        public string[] GetAllAnimation2DName()
         {
             List<string> res = new List<string>();
 
@@ -160,11 +121,6 @@ namespace CasaEngine.Graphics2D
             return res.ToArray();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns></returns>
         /*public Animation2D GetAnimation2DByName(string name_)
 		{
 			foreach (KeyValuePair<string, Animation2D> pair in m_Animation2DList)
@@ -178,11 +134,6 @@ namespace CasaEngine.Graphics2D
 			return null;
 		}*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns>true if the name is unsused, else returns false</returns>
         public bool IsValidAnimation2DName(string name_)
         {
             string name = name_.ToLower();
@@ -198,11 +149,6 @@ namespace CasaEngine.Graphics2D
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="anim2DName_"></param>
-        /// <param name="newName_"></param>
         public bool RenameAnimation2D(string anim2DName_, string newName_)
         {
             Animation2D tmp = GetAnimation2DByName(anim2DName_);
@@ -229,10 +175,6 @@ namespace CasaEngine.Graphics2D
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         public void DeleteAnimation2DByName(string name_)
         {
             foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
@@ -251,10 +193,6 @@ namespace CasaEngine.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id_"></param>
         public void DeleteAnimation2DByID(int id_)
         {
             string name = m_Animation2DList[id_].Name;
@@ -267,10 +205,6 @@ namespace CasaEngine.Graphics2D
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public void Save(XmlElement el_, SaveOption option_)
         {
             el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
@@ -296,10 +230,6 @@ namespace CasaEngine.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public void Save(BinaryWriter bw_, SaveOption option_)
         {
             bw_.Write(m_Version);
@@ -318,9 +248,6 @@ namespace CasaEngine.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Clear()
         {
             m_Animation2DList.Clear();

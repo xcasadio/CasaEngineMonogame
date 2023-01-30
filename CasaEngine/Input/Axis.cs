@@ -26,10 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 //using XNAFinalEngine.EngineCore;
 using XNAFinalEngine.Helpers;
@@ -37,27 +34,13 @@ using XNAFinalEngine.Helpers;
 namespace XNAFinalEngine.Input
 {
 
-    /// <summary>
-    /// Virtual axes serve two purposes: 
-    /// * They allow you to reference your inputs by axis name in scripting.
-    /// * They allow the players of your game to customize the controls to their liking.
-    /// </summary>
     public class Axis : Disposable
     {
 
 
-        /// <summary>
-        /// Indicates the behavior of the axis.
-        /// </summary>
         public enum AxisBehaviors
         {
-            /// <summary>
-            /// Use Digital Input for any kind of buttons or keys.
-            /// </summary>
             DigitalInput,
-            /// <summary>
-            /// Use Analog Input for mouse delta, scrollwheels and gamepad sticks and triggers.
-            /// </summary>
             AnalogInput,
         } // AxisBehaviors
 
@@ -76,81 +59,34 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// The list of all axes.
-        /// </summary>
         public static List<Axis> Axes { get; set; }
 
-        /// <summary>
-        /// The string that refers to the axis.
-        /// </summary>
         public string Name { get; set; }
 
-        /// <summary>
-        /// Use Key / Button for any kind of buttons or use Analog Movement for mouse delta, scrollwheels and gamepad sticks and triggers.
-        /// </summary>
         public AxisBehaviors AxisBehavior { get; set; }
 
-        /// <summary>
-        /// The axis of a connected device that will control this axis.
-        /// </summary>
         public AnalogAxes AnalogAxis { get; set; }
 
-        /// <summary>
-        /// The button used to push the axis in the negative direction.
-        /// </summary>
         public KeyButton NegativeKeyButton { get; set; }
 
-        /// <summary>
-        /// The button used to push the axis in the positive direction.
-        /// </summary>
         public KeyButton PositiveKeyButton { get; set; }
 
-        /// <summary>
-        /// Alternative button used to push the axis in the negative direction.
-        /// </summary>
         public KeyButton AlternativeNegativeKeyButton { get; set; }
 
-        /// <summary>
-        /// Alternative button used to push the axis in the positive direction.
-        /// </summary>
         public KeyButton AlternativePositiveKeyButton { get; set; }
 
-        /// <summary>
-        /// Speed in units per second that the axis falls toward neutral when no buttons are pressed. 
-        /// </summary>
         public float Gravity { get; set; }
 
-        /// <summary>
-        /// Size of the analog dead zone. All analog device values within this range result map to neutral.
-        /// </summary>
         public float DeadZone { get; set; }
 
-        /// <summary>
-        /// For buttons, sensitivity is the speed in units per second that the the axis will move toward the target value.
-        /// For gamepad axes, sensitivity is an inverted exponential value that transforms the axis curve from linear to gamma (rawvalue ^ (1 / sensitivity)).
-        /// For mouse pointer is just a multiplier.
-        /// </summary>
         public float Sensitivity { get; set; }
 
-        /// <summary>
-        /// If enabled, the axis value will reset to zero when pressing a button of the opposite direction.
-        /// </summary>
         public bool Snap { get; set; }
 
-        /// <summary>
-        /// If enabled, the axis invert its direction.
-        /// </summary>
         public bool Invert { get; set; }
 
-        /// <summary>
-        /// Which gamepad should be used. By default (0) this is set to retrieve the input from all gamepads.
-        /// </summary>
         public int GamePadNumber { get; set; }
 
-        /// <summary>
-        /// Average the input of the current frame with the previous values.
-        /// </summary>
         public bool TemporalSmoothing { get; set; }
 
 
@@ -170,9 +106,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             Axes.Remove(this);
@@ -180,10 +113,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Update.
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         internal void Update(float elapsedTime_)
         {
 
@@ -357,9 +286,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Returns the value of the virtual axis identified by axisName.
-        /// </summary>
         public static float Value(string axisName)
         {
             float maxValue = 0;
@@ -377,12 +303,6 @@ namespace XNAFinalEngine.Input
             return maxValue;
         } // Value
 
-        /// <summary>
-        /// Returns the value of the virtual axis identified by axisName with no smoothing filtering applied.
-        /// The value will be in the range -1...1 for keyboard and joystick input. 
-        /// Since input is not smoothed, keyboard input will always be either -1, 0 or 1. 
-        /// This is useful if you want to do all smoothing of keyboard input processing yourself.
-        /// </summary>
         public static float ValueRaw(string axisName)
         {
             float maxValue = 0;

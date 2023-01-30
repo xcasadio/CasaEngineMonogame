@@ -1,29 +1,18 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FarseerPhysics.Common;
-using CasaEngine.Game;
+﻿using CasaEngine.Game;
 using CasaEngine.Gameplay;
 using CasaEngine.Gameplay.Actor;
-using CasaEngine.Design;
 using CasaEngine.Physics2D;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.World
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class World
     {
 
-        private List<Actor2D> m_Actors = new List<Actor2D>(30);
-        private List<Actor2D> m_ActorsToAdd = new List<Actor2D>();
+        private readonly List<Actor2D> m_Actors = new List<Actor2D>(30);
+        private readonly List<Actor2D> m_ActorsToAdd = new List<Actor2D>();
 
-        private FarseerPhysics.Dynamics.World m_PhysicWorld;
+        private readonly FarseerPhysics.Dynamics.World m_PhysicWorld;
         private HUDBase m_HUD = null;
 
         public event EventHandler Initializing;
@@ -32,36 +21,18 @@ namespace CasaEngine.World
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Actor2D[] Actors
-        {
-            get { return m_Actors.ToArray(); }
-        }
+        public Actor2D[] Actors => m_Actors.ToArray();
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public FarseerPhysics.Dynamics.World PhysicWorld
-        {
-            get { return m_PhysicWorld; }
-        }
+        public FarseerPhysics.Dynamics.World PhysicWorld => m_PhysicWorld;
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public HUDBase HUD
         {
-            get { return m_HUD; }
-            set { m_HUD = value; }
+            get => m_HUD;
+            set => m_HUD = value;
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public World(bool usePhysics = true)
         {
             if (usePhysics == true)
@@ -73,28 +44,17 @@ namespace CasaEngine.World
 
 
 
-        /// <summary>
-        /// Use only when the world is not running else use PushObject
-        /// </summary>
-        /// <param name="actor2D_"></param>
         public void AddObject(Actor2D actor2D_)
         {
             m_Actors.Add(actor2D_);
         }
 
-        /// <summary>
-        /// Use only when the world is not running else use PushObject
-        /// </summary>
-        /// <param name="actor2D_"></param>
         public void PushObject(Actor2D actor2D_)
         {
             m_ActorsToAdd.Add(actor2D_);
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Initialize()
         {
 
@@ -105,9 +65,6 @@ namespace CasaEngine.World
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void LoadContent()
         {
             if (m_HUD != null)
@@ -121,9 +78,6 @@ namespace CasaEngine.World
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Start()
         {
             if (m_HUD != null)
@@ -137,10 +91,6 @@ namespace CasaEngine.World
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public virtual void Update(float elapsedTime_)
         {
             List<Actor2D> toRemove = new List<Actor2D>();
@@ -182,10 +132,6 @@ namespace CasaEngine.World
             Collision2DManager.Instance.Update();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public virtual void Draw(float elapsedTime_)
         {
             foreach (Actor2D a in m_Actors)

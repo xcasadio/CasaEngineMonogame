@@ -1,20 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
-using System.IO;
 using CasaEngineCommon.Design;
 
 
 namespace CasaEngine.Design.Parser
 {
-    /// <summary>
-    /// 
-    /// </summary>
     class CalculatorTokenFunction
         : ICalculatorToken
     {
@@ -26,12 +16,6 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="calculator_"></param>
-        /// <param name="functionName_"></param>
-        /// <param name="args_"></param>
         public CalculatorTokenFunction(Calculator calculator_, string functionName_, string[] args_)
             : base(calculator_)
         {
@@ -39,22 +23,12 @@ namespace CasaEngine.Design.Parser
             m_Args = args_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public CalculatorTokenFunction(Calculator calculator_, XmlElement el_, SaveOption option_)
             : base(calculator_)
         {
             Load(el_, option_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="option_"></param>
         public CalculatorTokenFunction(Calculator calculator_, BinaryReader br_, SaveOption option_)
             : base(calculator_)
         {
@@ -63,21 +37,12 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override float Evaluate()
         {
             return Calculator.Parser.EvaluateFunction(m_FunctionName, m_Args);
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Save(XmlElement el_, SaveOption option_)
         {
             XmlElement node = (XmlElement)el_.OwnerDocument.CreateElement("Node");
@@ -96,11 +61,6 @@ namespace CasaEngine.Design.Parser
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(XmlElement el_, SaveOption option_)
         {
             m_FunctionName = el_.SelectSingleNode("FunctionName").InnerText;
@@ -114,11 +74,6 @@ namespace CasaEngine.Design.Parser
             m_Args = args.ToArray();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Save(BinaryWriter bw_, SaveOption option_)
         {
             bw_.Write((int)CalculatorTokenType.Function);
@@ -131,11 +86,6 @@ namespace CasaEngine.Design.Parser
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(BinaryReader br_, SaveOption option_)
         {
             br_.ReadInt32();

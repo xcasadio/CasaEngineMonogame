@@ -5,21 +5,12 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CasaEngine.Input
 {
-    /// <summary>
-    /// Represents a set of available moves for matching. This internal storage of this
-    /// class is optimized for efficient match searches.
-    /// </summary>
     public class MoveManager
     {
-        private Move[] moves;
+        private readonly Move[] moves;
 
         public MoveManager(IEnumerable<Move> moves)
         {
@@ -33,9 +24,6 @@ namespace CasaEngine.Input
 #endif
         }
 
-        /// <summary>
-        /// Finds the longest Move which matches the given input, if any.
-        /// </summary>
         public Move DetectMove(InputManager input)
         {
             // Perform a linear search for a move which matches the input. This relies
@@ -50,9 +38,6 @@ namespace CasaEngine.Input
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public int LongestMoveLength
         {
             get

@@ -1,54 +1,21 @@
-
-using System;
-
-
 using Microsoft.Xna.Framework;
 
 
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
-    /// <summary>
-    /// This class represents the pursuit steering behavior. This behavior calculates the force
-    /// needed to try to catch another moving entity. The pursuer try to estimates the future
-    /// position of the evader and seeks towards that point
-    /// </summary>
     public class Pursuit : SteeringBehavior
     {
 
-        /// <summary>
-        /// The entity this behavior tries to pursue
-        /// </summary>
         protected internal MovingEntity evader;
 
-        /// <summary>
-        /// Helper behavior used to pursue the evader
-        /// </summary>
         protected internal Seek seek;
 
-        /// <summary>
-        /// The force produced by the behavior
-        /// </summary>
         protected internal Vector3 force;
 
-        /// <summary>
-        /// The target position the behavior tries to seek
-        /// </summary>
-        /// <remarks>
-        /// This position is estimated by the behavior
-        /// </remarks>
         protected internal Vector3 targetPosition;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="name">Name of the behavior, used to identify it</param>
-        /// <param name="owner">The owner entity of the behavior</param>
-        /// <param name="modifier">
-        /// This value can modify the value of the behavior when the total force of all combined
-        /// behaviors is updated
-        /// </param>
         public Pursuit(String name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
@@ -57,12 +24,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
 
 
-        /// <summary>
-        /// Gets or sets wheter the x-axis should be ignored for the behavior calculations or not
-        /// </summary>
         public override bool IgnoreX
         {
-            get { return base.IgnoreX; }
+            get => base.IgnoreX;
             set
             {
                 base.IgnoreX = value;
@@ -70,12 +34,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             }
         }
 
-        /// <summary>
-        /// Gets or sets wheter the y-axis should be ignored for the behavior calculations or not
-        /// </summary>
         public override bool IgnoreY
         {
-            get { return base.IgnoreY; }
+            get => base.IgnoreY;
             set
             {
                 base.IgnoreY = value;
@@ -83,12 +44,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             }
         }
 
-        /// <summary>
-        /// Gets or sets wheter the z-axis should be ignored for the behavior calculations or not
-        /// </summary>
         public override bool IgnoreZ
         {
-            get { return base.IgnoreZ; }
+            get => base.IgnoreZ;
             set
             {
                 base.IgnoreZ = value;
@@ -96,37 +54,17 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             }
         }
 
-        /// <summary>
-        /// Gets or sets the entity this behavior tries to pursue
-        /// </summary>
         public MovingEntity Evader
         {
-            get { return evader; }
-            set { evader = value; }
+            get => evader;
+            set => evader = value;
         }
 
-        /// <summary>
-        /// Gets the force produced by the behavior
-        /// </summary>
-        public Vector3 Force
-        {
-            get { return force; }
-        }
+        public Vector3 Force => force;
 
-        /// <summary>
-        /// Gets the target position the behavior tries to seek
-        /// </summary>
-        public Vector3 TargetPosition
-        {
-            get { return targetPosition; }
-        }
+        public Vector3 TargetPosition => targetPosition;
 
 
-
-        /// <summary>
-        /// Calculates the resultant force of this behavior
-        /// </summary>
-        /// <returns>The force vector of this behavior</returns>
         public override Vector3 Calculate()
         {
             Vector3 toEvader;
@@ -163,12 +101,6 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
 
 
-        /// <summary>
-        /// Calculates the time needed for an entity to turn to face a given position
-        /// </summary>
-        /// <param name="agent">The entity that is going to turn</param>
-        /// <param name="position">The position to face when turning</param>
-        /// <returns></returns>
         private float TurnTime(MovingEntity agent, Vector3 position)
         {
             Vector3 toTarget;

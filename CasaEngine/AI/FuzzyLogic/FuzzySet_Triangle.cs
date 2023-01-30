@@ -1,36 +1,16 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.Fuzzy
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class FuzzySet_Triangle
         : FuzzySet
     {
-
-        /// <summary>
-        /// The values that define the shape of this FLV
-        /// </summary>
-        double m_dPeakPoint;
-        double m_dLeftOffset;
-        double m_dRightOffset;
+        readonly double m_dPeakPoint;
+        readonly double m_dLeftOffset;
+        readonly double m_dRightOffset;
 
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="mid"></param>
-        /// <param name="lft"></param>
-        /// <param name="rgt"></param>
         public FuzzySet_Triangle(double mid, double lft, double rgt)
             : base(mid)
         {
@@ -41,11 +21,6 @@ namespace CasaEngine.AI.Fuzzy
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
         public override double CalculateDOM(double val)
         {
             //test for the case where the triangle's left or right offsets are zero

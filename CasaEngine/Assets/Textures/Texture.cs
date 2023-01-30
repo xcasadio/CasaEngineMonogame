@@ -26,38 +26,21 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.IO;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
-using XNAFinalEngine.Helpers;
 using CasaEngine.Game;
 using System.Xml;
 using CasaEngineCommon.Design;
-using CasaEngine.CoreSystems;
-
 using Screen = CasaEngine.CoreSystems.Screen;
 using Size = XNAFinalEngine.Helpers.Size;
 
 namespace CasaEngine.Asset
 {
 
-    /// <summary>
-    /// Base class for textures.
-    /// Important: Try to dispose only the textures created without the content manager.
-    /// If you dispose a texture and then you try to load again using the same content managed an exception will be raised.
-    /// In this cases use the Unload method from the Content Manager instead.
-    /// </summary>
     public class Texture : Asset
     {
 
 
-        /// <summary>
-        /// XNA Texture.
-        /// </summary>
         protected Texture2D xnaTexture;
 
         // Default value.
@@ -68,26 +51,18 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Gets the GraphicsDevice
-        /// </summary>
         public GraphicsDevice GraphicsDevice { get; private set; }
 
 
-        /// <summary>
-        /// XNA Texture.
-        /// </summary>
         public virtual Texture2D Resource
         {
-            get
-            {
+            get =>
                 // Textures and render targets have a different treatment because textures could be set,
                 // because both are persistent shader parameters, and because they could be created without using content managers.
                 // For that reason the nullified resources could be accessed.
                 //if (xnaTexture != null && xnaTexture.IsDisposed)
                 //xnaTexture = null;
-                return xnaTexture;
-            }
+                xnaTexture;
             // This is only allowed for videos. 
             // Doing something to avoid this “set” is unnecessary and probably will make more complex some classes just for this special case. 
             // Besides, an internal statement elegantly prevents a bad use of this set.
@@ -102,53 +77,31 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Some shaders allow us to choose how to sample the texture data.
-        /// </summary>
         public virtual SamplerState PreferredSamplerState
         {
-            get { return preferedSamplerState; }
-            set { preferedSamplerState = value; }
+            get => preferedSamplerState;
+            set => preferedSamplerState = value;
         } // PreferredSamplerState
 
 
 
-        /// <summary>
-        /// Texture's width.
-        /// </summary>
-        public int Width { get { return Size.Width; } }
+        public int Width => Size.Width;
 
-        /// <summary>
-        /// Texture's height.
-        /// </summary>
-        public int Height { get { return Size.Height; } }
+        public int Height => Size.Height;
 
-        /// <summary>
-        /// Rectangle that starts in 0, 0 and finish in the width and height of the texture. 
-        /// </summary>
-        public Rectangle TextureRectangle { get { return new Rectangle(0, 0, Width, Height); } }
+        public Rectangle TextureRectangle => new Rectangle(0, 0, Width, Height);
 
-        /// <summary>
-        /// Size.
-        /// This value store information about sizes relative to screen.
-        /// </summary>
         public Size Size { get; protected set; }
 
 
 
 
-        /// <summary>
-        /// Empty texture. 
-        /// </summary>
         internal Texture(GraphicsDevice graphicsDevice_)
         {
             GraphicsDevice = graphicsDevice_;
             Name = "Empty Texture";
         } // Texture
 
-        /// <summary>
-        /// Texture from XNA asset.
-        /// </summary>
         public Texture(Texture2D xnaTexture)
         {
             GraphicsDevice = xnaTexture.GraphicsDevice;
@@ -157,10 +110,6 @@ namespace CasaEngine.Asset
             Size = new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
         } // Texture
 
-        /// <summary>
-        /// Load texture.
-        /// </summary>
-        /// <param name="filename">The filename must be relative and be a valid file in the textures directory.</param>
         public Texture(GraphicsDevice graphicsDevice_, string filename)
         {
             GraphicsDevice = graphicsDevice_;
@@ -189,9 +138,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             base.DisposeManagedResources();
@@ -201,9 +147,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Useful when the XNA device is disposed.
-        /// </summary>
         internal override void OnDeviceReset(GraphicsDevice device_)
         {
             if (Resource == null)
@@ -218,21 +161,11 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="option_"></param>
         public override void Load(BinaryReader br_, SaveOption option_)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(XmlElement el_, SaveOption option_)
         {
 

@@ -1,22 +1,13 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework.Content;
 
 namespace CasaEngine.Game
 {
-    /// <summary>
-    /// Same as ContentManager but we can unload specific asset
-    /// </summary>
     public class CustomContentManager
         : ContentManager
     {
         // Cache of all the loaded content
-        Dictionary<string, object> loaded = new Dictionary<string, object>();
-        List<IDisposable> disposableAssets = new List<IDisposable>();
+        readonly Dictionary<string, object> loaded = new Dictionary<string, object>();
+        readonly List<IDisposable> disposableAssets = new List<IDisposable>();
 
         public CustomContentManager(IServiceProvider services)
             : base(services)

@@ -10,18 +10,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using System.Collections.Generic;
-using XNAFinalEngine.Helpers;
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// This list raise events when an element is added or removed.
-    /// </summary>
     public class EventedList<T> : List<T>
     {
 

@@ -1,18 +1,8 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Text;
-
-namespace CasaEngine.AI.NeuralNets.FeedForward
+﻿namespace CasaEngine.AI.NeuralNets.FeedForward
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class NeuralNetworkTraining
     {
-
-        NeuralNetwork m_NeuralNetwork = null;
+        readonly NeuralNetwork m_NeuralNetwork = null;
         int m_NumberOfData = 0;
 
         double[,] TrainingSet = null;
@@ -21,10 +11,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="neuralNet_"></param>
         public NeuralNetworkTraining(NeuralNetwork neuralNet_)
         {
             m_NeuralNetwork = neuralNet_;
@@ -32,32 +18,18 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="numberOfSet"></param>
         public void InitTrainingData(int numberOfSet)
         {
             m_NumberOfData = numberOfSet;
             TrainingSet = new double[m_NumberOfData, m_NeuralNetwork.NumberOfInputNode + m_NeuralNetwork.NumberOfOutputNode];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="numberOfSet"></param>
-        /// <param name="data"></param>
         public void InitTrainingData(int numberOfSet, double[,] data)
         {
             InitTrainingData(numberOfSet);
             TrainingSet = data;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="numberOfSet"></param>
-        /// <param name="fileName"></param>
         public void InitTrainingData(int numberOfSet, string fileName)
         {
             double[,] data = null;
@@ -67,9 +39,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
             InitTrainingData(numberOfSet, data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Training()
         {
             int i;

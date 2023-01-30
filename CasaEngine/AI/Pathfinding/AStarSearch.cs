@@ -1,9 +1,3 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
 using CasaEngineCommon.Collection;
 
 using CasaEngine.AI.Graphs;
@@ -11,60 +5,25 @@ using CasaEngine.AI.Graphs;
 
 namespace CasaEngine.AI.Pathfinding
 {
-    /// <summary>
-    /// Class that implements the A* search algorithm. This algorithm is optimal and complete (it 
-    /// finds a solution if it exists, and it´s always the best solution). Also, no other algorithm
-    /// will visit less nodes than A*. All of this is true only if the heuristic function is monotonous
-    /// (the heuristic function estimates the cost to reach a node). Euclidean and Manhattan distance
-    /// heuristics satisfy this requeriment
-    /// </summary>
-    /// <remarks>
-    /// Based on Mat Buckland implementation from his book "Programming Game AI by Example"
-    /// </remarks>
-    /// <typeparam name="T">The type of the nodes</typeparam>
-    /// <typeparam name="K">The type of the edges</typeparam>
     public class AStarSearch<T, K> : GraphSearchAlgorithm<T, K>
         where T : NavigationNode
         where K : WeightedEdge
     {
 
-        /// <summary>
-        /// Total cost to reach a node  (total cost = real cost + estimated cost)
-        /// </summary>
         protected internal List<double> fCosts;
 
-        /// <summary>
-        /// Real cost to get to a node
-        /// </summary>
         protected internal List<double> gCosts;
 
-        /// <summary>
-        /// Sub-graph with the shortest way to reach every node
-        /// </summary>
         protected internal List<K> shortestPathTree;
 
-        /// <summary>
-        /// Nodes that the algorithm will visit to add to the shortest path tree
-        /// </summary>
         protected internal List<K> frontier;
 
-        /// <summary>
-        /// Estimation function used by A* to aproximate the cost to a node
-        /// </summary>
         protected internal HeuristicMethod<T, K> heuristic;
 
-        /// <summary>
-        /// Indexed priority queue to order the nodes for their total cost
-        /// </summary>
         protected internal IndexedPriorityQueue<double> queue;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="graph">The graph where the search will be performed</param>
-        /// <param name="heuristic">The heuristic function that will guide A*</param>
         public AStarSearch(Graph<T, K> graph, HeuristicMethod<T, K> heuristic) : base(graph)
         {
             this.heuristic = heuristic;
@@ -72,9 +31,6 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        /// <summary>
-        /// Gets the path found by the search algorithm as a list of node indexes
-        /// </summary>
         public override List<int> PathOfNodes
         {
             get
@@ -100,9 +56,6 @@ namespace CasaEngine.AI.Pathfinding
             }
         }
 
-        /// <summary>
-        /// Gets the path found by the search algorithm as a list of edges
-        /// </summary>
         public override List<K> PathOfEdges
         {
             get
@@ -129,12 +82,6 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        /// <summary>
-        /// Initializes a search
-        /// </summary>
-        /// <param name="source">Source node</param>
-        /// <param name="target">Target node</param>
-        /// <remarks>Calling this method is mandatory when using time-sliced searchs</remarks>
         public override void Initialize(int source, int target)
         {
             //Create the auxiliary lists
@@ -160,10 +107,6 @@ namespace CasaEngine.AI.Pathfinding
             base.Initialize(source, target);
         }
 
-        /// <summary>
-        /// Searches in a graph
-        /// </summary>
-        /// <returns>The state of the search</returns>
         public override SearchState Search()
         {
             int closestNode;
@@ -221,10 +164,6 @@ namespace CasaEngine.AI.Pathfinding
             return found;
         }
 
-        /// <summary>
-        /// Does one full iteration in the search process. Used in time-sliced searchs
-        /// </summary>
-        /// <returns>The state of the search</returns>
         public override SearchState CycleOnce()
         {
             int closestNode;

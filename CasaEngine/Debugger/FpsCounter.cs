@@ -6,10 +6,6 @@
 //-----------------------------------------------------------------------------
 
 
-using System;
-
-
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
@@ -29,9 +25,6 @@ using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.Debugger
 {
-    /// <summary>
-    /// Component for FPS measure and draw.
-    /// </summary>
     public class FpsCounter
         : Microsoft.Xna.Framework.DrawableGameComponent
 #if EDITOR
@@ -39,40 +32,16 @@ namespace CasaEngine.Debugger
 #endif
     {
 
-        /// <summary>
-        /// Gets current FPS
-        /// </summary>
         public float Fps { get; private set; }
 
-        /// <summary>
-        /// Gets Minimum FPS
-        /// </summary>
         public float FpsMin { get; private set; }
 
-        /// <summary>
-        /// Gets Maximum FPS
-        /// </summary>
         public float FpsMax { get; private set; }
 
-        /// <summary>
-        /// Gets Average FPS
-        /// </summary>
-        public float FpsAvg
-        {
-            get
-            {
-                return m_FpsAverage / (float)m_NumberOfFPSCount;
-            }
-        }
+        public float FpsAvg => m_FpsAverage / (float)m_NumberOfFPSCount;
 
-        /// <summary>
-        /// Gets total number of frames
-        /// </summary>
         public int TotalNumberOfFrames { get; private set; }
 
-        /// <summary>
-        /// Gets/Sets FPS sample duration.
-        /// </summary>
         public TimeSpan SampleSpan { get; set; }
 
 
@@ -86,13 +55,13 @@ namespace CasaEngine.Debugger
         private int sampleFrames;
 
         // stringBuilder for FPS counter draw.
-        private StringBuilder stringBuilder = new StringBuilder(16);
+        private readonly StringBuilder stringBuilder = new StringBuilder(16);
 
         private Renderer2DComponent m_Renderer2DComponent = null;
 
-        private Color m_ColorBackground = new Color(0, 0, 0, 128);
+        private readonly Color m_ColorBackground = new Color(0, 0, 0, 128);
 
-        private List<CasaEngineCommon.Design.IObserver<FpsCounter>> m_ListObserver = new List<CasaEngineCommon.Design.IObserver<FpsCounter>>();
+        private readonly List<CasaEngineCommon.Design.IObserver<FpsCounter>> m_ListObserver = new List<CasaEngineCommon.Design.IObserver<FpsCounter>>();
 
         private float m_FpsAverage = 0.0f;
 
@@ -102,10 +71,6 @@ namespace CasaEngine.Debugger
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="game"></param>
         public FpsCounter(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
@@ -115,9 +80,6 @@ namespace CasaEngine.Debugger
             DrawOrder = (int)ComponentDrawOrder.DebugManager;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public override void Initialize()
         {
             // Get debug manager from game service.
@@ -143,9 +105,6 @@ namespace CasaEngine.Debugger
             base.Initialize();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected override void LoadContent()
         {
             m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
@@ -159,9 +118,6 @@ namespace CasaEngine.Debugger
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Reset()
         {
             Fps = 0;
@@ -175,9 +131,6 @@ namespace CasaEngine.Debugger
             stringBuilder.Length = 0;
         }
 
-        /// <summary>
-        /// FPS command implementation.
-        /// </summary>
         private void CommandExecute(IDebugCommandHost host,
                                     string command, IList<string> arguments)
         {
@@ -199,10 +152,6 @@ namespace CasaEngine.Debugger
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Update(GameTime gameTime)
         {
             if (stopwatch.Elapsed > SampleSpan)
@@ -246,10 +195,6 @@ namespace CasaEngine.Debugger
             TotalNumberOfFrames++;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
             SpriteFont font = Engine.Instance.DefaultSpriteFont;
@@ -277,28 +222,17 @@ namespace CasaEngine.Debugger
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="arg_"></param>
         public void RegisterObserver(CasaEngineCommon.Design.IObserver<FpsCounter> arg_)
         {
             m_ListObserver.Add(arg_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="arg_"></param>
         public void UnRegisterObserver(CasaEngineCommon.Design.IObserver<FpsCounter> arg_)
         {
             m_ListObserver.Remove(arg_);
             arg_.OnUnregister(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void NotifyObservers()
         {
             foreach (CasaEngineCommon.Design.IObserver<FpsCounter> ob in m_ListObserver)

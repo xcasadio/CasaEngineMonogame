@@ -1,34 +1,13 @@
 
-using System;
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Scaling
 {
-    /// <summary>
-    /// This class represents the rank scaling operator. The new fitness for
-    /// each chromosome is based in its position when the whole population is
-    /// ordered. More fitness is given to the best ranked chromosomes. The alpha
-    /// parammeter indicates how many times the best individual should be choosen
-    /// by normal chance.
-    /// </summary>
-    /// <typeparam name="T">The genes type. Can be anything</typeparam>
     public sealed class RankScaling<T> : ScalingAlgorithm<T>
     {
 
-        /// <summary>
-        /// Number of selections of the best individual
-        /// </summary>
         internal double alpha;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="objective">Evolution objective</param>
-        /// <param name="alpha">Number of selections of the best individual</param>
         public RankScaling(EvolutionObjective objective, double alpha)
             : base(objective)
         {
@@ -42,11 +21,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
 
 
 
-        /// <summary>
-        /// Applies the scaling operator
-        /// </summary>
-        /// <param name="population">The population we want to scale</param>
-        /// <returns>The scaled mapping of the population</returns>
         public override ScalingMapping<T> Scale(Population<T> population)
         {
             ScalingMapping<T> mapping;
@@ -76,12 +50,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
 
 
 
-        /// <summary>
-        /// Validates if the number of selections of the best individual is correct (in the interval (1, 2])
-        /// </summary>
-        /// <param name="alpha">The number of selections of the best individual value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateAlpha(double alpha, ref string message)
         {
             if (alpha <= 1.0 || alpha > 2.0)

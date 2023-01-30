@@ -26,20 +26,13 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.IO;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
 
 namespace CasaEngine.Asset
 {
 
-    /// <summary>
-    /// LDR or HDR Cube Maps.
-    /// HDR can be stored in the RGBM format.
-    /// </summary>
     public class TextureCube : Asset
     {
 
@@ -52,39 +45,17 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// XNA Texture.
-        /// </summary>
-        public virtual Microsoft.Xna.Framework.Graphics.TextureCube Resource { get { return xnaTextureCube; } }
+        public virtual Microsoft.Xna.Framework.Graphics.TextureCube Resource => xnaTextureCube;
 
-        /// <summary>
-        /// The size of this texture resource, in pixels.
-        /// </summary>
         public int Size { get; protected set; }
 
-        /// <summary>
-        /// Is it in RGBM format?
-        /// </summary>
         public bool IsRgbm { get; set; }
 
-        /// <summary>
-        /// RGBM Max Range.
-        /// </summary>
         public float RgbmMaxRange { get; set; }
 
-        /// <summary>
-        ///  A list with all texture' filenames on the cube texture directory.
-        /// </summary>
-        /// <remarks>
-        /// If there are memory limitations, this list could be eliminated for the release version.
-        /// This is use only useful for the editor.
-        /// </remarks>
         public static string[] Filenames { get; private set; }
 
 
-        /// <summary>
-        /// Returns a small cube texture filled with a black constant color.
-        /// </summary>
         public static TextureCube BlackTexture
         {
             get
@@ -97,9 +68,6 @@ namespace CasaEngine.Asset
             }
         } // BlackTexture
 
-        /// <summary>
-        /// Returns a small cube texture filled with a white constant color.
-        /// </summary>
         public static TextureCube WhiteTexture
         {
             get
@@ -115,10 +83,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Create cube map from given filename.
-        /// </summary>
-        /// <param name="filename">Set filename, must be relative and be a valid file in the textures cube directory.</param>
         public TextureCube(string filename)
         {
             Name = filename;
@@ -149,9 +113,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Useful when the XNA device is disposed.
-        /// </summary>
         internal override void OnDeviceReset(GraphicsDevice device_)
         {
             xnaTextureCube = Engine.Instance.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, device_);

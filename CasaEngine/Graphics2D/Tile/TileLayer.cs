@@ -1,18 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 
 namespace CasaEngine.Graphics2D.Tile
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public abstract
 #if EDITOR
     partial
@@ -37,9 +28,6 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        /// <summary>
-        /// Gets/Sets(Editor only)
-        /// </summary>
         /*public Renderer2DComponent Renderer2DComponent
 		{
 #if EDITOR
@@ -51,25 +39,10 @@ namespace CasaEngine.Graphics2D.Tile
 #endif
 		}*/
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        protected Vector2 DisplaySize
-        {
-            get { return displaySize; }
-        }
+        protected Vector2 DisplaySize => displaySize;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        protected Matrix RotationMatrix
-        {
-            get { return rotationMatrix; }
-        }
+        protected Matrix RotationMatrix => rotationMatrix;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Vector2 CameraPosition
         {
             set
@@ -77,15 +50,9 @@ namespace CasaEngine.Graphics2D.Tile
                 cameraPositionValue = value;
                 visibilityChanged = true;
             }
-            get
-            {
-                return cameraPositionValue;
-            }
+            get => cameraPositionValue;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public float CameraRotation
         {
             set
@@ -94,15 +61,9 @@ namespace CasaEngine.Graphics2D.Tile
                 rotationMatrix = Matrix.CreateRotationZ(rotationValue);
                 visibilityChanged = true;
             }
-            get
-            {
-                return rotationValue;
-            }
+            get => rotationValue;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public float CameraZoom
         {
             set
@@ -110,30 +71,15 @@ namespace CasaEngine.Graphics2D.Tile
                 zoomValue = value;
                 visibilityChanged = true;
             }
-            get
-            {
-                return zoomValue;
-            }
+            get => zoomValue;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Color Color
         {
-            set
-            {
-                layerColor = value;
-            }
-            get
-            {
-                return layerColor;
-            }
+            set => layerColor = value;
+            get => layerColor;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Vector2 WorldOffset
         {
             set
@@ -141,20 +87,11 @@ namespace CasaEngine.Graphics2D.Tile
                 worldOffset = value;
                 visibilityChanged = true;
             }
-            get
-            {
-                return worldOffset;
-            }
+            get => worldOffset;
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="offset"></param>
-        /// <param name="graphicsComponent"></param>
-        /// <param name="Renderer2DComponent_"></param>
         public TileLayer(Vector2 offset, GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
         {
 #if !EDITOR
@@ -183,9 +120,6 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void InitializeGraphics()
         {
             m_Graphics.DeviceReset +=
@@ -194,11 +128,6 @@ namespace CasaEngine.Graphics2D.Tile
             OnGraphicsComponentDeviceReset(this, new EventArgs());
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void OnGraphicsComponentDeviceReset(object sender, EventArgs e)
         {
             displaySize.X =
@@ -212,32 +141,18 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        /// <summary>
-        /// This function determines which tiles are visible on the screen,
-        /// given the current camera position, rotation, zoom, and tile scale
-        /// </summary>
         protected virtual void DetermineVisibility()
         {
             visibilityChanged = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Update()
         {
             if (visibilityChanged) DetermineVisibility();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="batch"></param>
         protected abstract void DrawTiles(SpriteBatch batch);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Draw(SpriteBatch batch)
         {
             DrawTiles(batch);

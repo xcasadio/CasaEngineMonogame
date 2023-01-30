@@ -1,30 +1,12 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using CasaEngine.Game;
-using FarseerPhysics.Common;
-using Microsoft.Xna.Framework.Graphics;
-using FarseerPhysics.Collision;
-using FarseerPhysics.Dynamics;
-using FarseerPhysics.Dynamics.Joints;
-using FarseerPhysics;
 using CasaEngine.Math.Shape2D;
 
 namespace CasaEngine.Helper
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class ShapeRendererComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        /// <summary>
-        /// 
-        /// </summary>
         private struct DisplayCollisionData
         {
             public Shape2DObject Shape2DObject;
@@ -38,28 +20,17 @@ namespace CasaEngine.Helper
         private ShapeRenderer m_ShapeRenderer;
         Matrix m_ProjectionMatrix, m_WorldMatrix, m_View;
         private FarseerPhysics.Dynamics.World m_World;
-        private List<DisplayCollisionData> m_DisplayCollisionData = new List<DisplayCollisionData>();
+        private readonly List<DisplayCollisionData> m_DisplayCollisionData = new List<DisplayCollisionData>();
 
         //to avoid GC
-        private Stack<DisplayCollisionData> m_FreeDisplayCollisionData = new Stack<DisplayCollisionData>();
+        private readonly Stack<DisplayCollisionData> m_FreeDisplayCollisionData = new Stack<DisplayCollisionData>();
         private Vector2 vector2D1 = new Vector2();
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public ShapeRenderer ShapeRenderer
-        {
-            get { return m_ShapeRenderer; }
-        }
+        public ShapeRenderer ShapeRenderer => m_ShapeRenderer;
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="game_"></param>
         public ShapeRendererComponent(Microsoft.Xna.Framework.Game game_)
             : base(game_)
         {
@@ -79,19 +50,12 @@ namespace CasaEngine.Helper
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected override void LoadContent()
         {
             Resize(0, 0);
             base.LoadContent();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="world_"></param>
         public void SetCurrentPhysicsWorld(FarseerPhysics.Dynamics.World world_)
         {
             m_World = world_;
@@ -102,19 +66,11 @@ namespace CasaEngine.Helper
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="a_"></param>
         /*public void AddShape2DObject(IEnumerable<Shape2DObject> a_)
         {
             m_DisplayCollisionData.AddRange(a_);
         }*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="g_"></param>
         public void AddShape2DObject(Shape2DObject g_, Color color_)
         {
             DisplayCollisionData data = GetDisplayCollisionData();
@@ -123,10 +79,6 @@ namespace CasaEngine.Helper
             m_DisplayCollisionData.Add(data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Update(GameTime gameTime)
         {
             foreach (DisplayCollisionData d in m_DisplayCollisionData)
@@ -139,10 +91,6 @@ namespace CasaEngine.Helper
             base.Update(gameTime);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
             if (m_ShapeRenderer == null)
@@ -168,10 +116,6 @@ namespace CasaEngine.Helper
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data_"></param>
         private void DisplayShape2D(DisplayCollisionData data_)
         {
             vector2D1.X = data_.Shape2DObject.Location.X;
@@ -226,11 +170,6 @@ namespace CasaEngine.Helper
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="w"></param>
-        /// <param name="h"></param>
         public void Resize(int w, int h)
         {
             /*width = w;
@@ -267,10 +206,6 @@ namespace CasaEngine.Helper
             //m_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(0, ww * 2, 0, hh * 2, 0f, 1f);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         private DisplayCollisionData GetDisplayCollisionData()
         {
             if (m_FreeDisplayCollisionData.Count > 0)

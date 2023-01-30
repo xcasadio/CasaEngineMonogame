@@ -5,11 +5,7 @@
  Modify by: Schneider, José Ignacio
 */
 
-using System;
 
-
-using System.IO;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using CasaEngine.Game;
@@ -17,66 +13,21 @@ using CasaEngine.Game;
 namespace CasaEngine.Asset
 {
 
-    /// <summary>
-    /// Lookup Table.
-    /// </summary>
-    /// <remarks>
-    /// XNA Final Engine uses three-dimensional lookup tables for real-time color processing and allows having up to two lookup tables at the same time.
-    /// If two lookup tables are active then the system will lerp the colors by the LerpLookupTablesAmount property value. 
-    /// If the LerpOriginalColorAmount has a value different to 0 the system will lerp between the color corrected by the lookup tables and the original color.
-    /// 
-    /// Unreal Engine 3 and Cryengine 3 both use a 16x16x16 lookup table.
-    /// 
-    /// Lookup tables (LUTs) are an excellent technique for optimizing the evaluation of functions that are expensive to compute and inexpensive to cache.
-    /// By precomputing the evaluation of a function over a domain of common inputs, expensive runtime operations can be replaced with inexpensive table lookups.
-    /// If the table lookups can be performed faster than computing the results from scratch (or if the function is repeatedly queried at the same input),
-    /// then the use of a lookup table will yield significant performance gains. 
-    /// For data requests that fall between the table's samples, an interpolation algorithm can generate reasonable approximations by averaging nearby samples.
-    /// 
-    /// About this subject:
-    /// http://http.developer.nvidia.com/GPUGems/gpugems_ch22.html
-    /// http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter24.html
-    /// 
-    /// Maybe this paper is useful: Reducing the Cost of Lookup Table Based Color Transformations (Raja Balasubramanian)
-    /// I don’t read it yet because I’m happy with the performance of the current lookup tables.
-    /// 
-    /// One more thing: a lookup table doesn’t reduce color precision thanks to the GPU’s linear interpolation. However you can lose precision in the transformation itself.
-    /// </remarks>
     public class LookupTable : Asset
     {
         static private readonly string AssetContentManagerCategoryName = "temp";
 
 
-        /// <summary>
-        /// Gets GraphicsDevice
-        /// </summary>
         public GraphicsDevice GraphicsDevice { get; private set; }
 
-        /// <summary>
-        /// Lookup Table Texture.
-        /// </summary>
         public Texture3D Resource { get; private set; }
 
-        /// <summary>
-        /// Side size.
-        /// </summary>
         public int Size { get; private set; }
 
-        /// <summary>
-        ///  A list with all texture' filenames on the lookup table directory.
-        /// </summary>
-        /// <remarks>
-        /// If there are memory limitations, this list could be eliminated for the release version.
-        /// This is use only useful for the editor.
-        /// </remarks>
         public static string[] Filenames { get; private set; }
 
 
 
-        /// <summary>
-        /// Loads lookup table from image file.
-        /// </summary>
-        /// <param name="filename">Texture path.</param>
         public LookupTable(GraphicsDevice graphicsDevice_, string filename)
         {
             Name = filename;
@@ -99,9 +50,6 @@ namespace CasaEngine.Asset
             }
         } // LookupTable
 
-        /// <summary>
-        /// Dummy constructor for static methods.
-        /// </summary>
         private LookupTable()
         {
             Name = "";
@@ -110,9 +58,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Creates the lookup table.
-        /// </summary>
         private void Create(GraphicsDevice graphicsDevice_, string filename)
         {
             Texture lookupTableTexture2D = new Texture(graphicsDevice_, filename);
@@ -135,19 +80,11 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Gives an identity lookup table.
-        /// </summary>
-        /// <remarks>O(n) operation.</remarks>
-        /// <param name="size">Side size. 64 is a good value. Total size is size^3</param>
         public static LookupTable Identity(GraphicsDevice graphicsDevice_, int size)
         {
             return new LookupTable { Name = "Identity", Filename = "", Resource = IdentityTexture(graphicsDevice_, size), Size = size };
         } // Identity
 
-        /// <summary>
-        /// Gives the resources of the identity lookup table.
-        /// </summary>
         private static Texture3D IdentityTexture(GraphicsDevice graphicsDevice_, int size)
         {
             Color[] colors = new Color[size * size * size];
@@ -172,10 +109,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Gives a 2D representation of a lookup table.
-        /// </summary>
-        /// <param name="lookupTable">Lookup table</param>
         public static Texture LookupTableToTexture(GraphicsDevice graphicsDevice_, LookupTable lookupTable)
         {
             // Calculate closest to square proportions for 2d table
@@ -199,9 +132,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // This type of resource can be disposed ignoring the content manager.
@@ -211,9 +141,6 @@ namespace CasaEngine.Asset
 
 
 
-        /// <summary>
-        /// Useful when the XNA device is disposed.
-        /// </summary>
         internal override void OnDeviceReset(GraphicsDevice device_)
         {
             if (string.IsNullOrEmpty(Filename))

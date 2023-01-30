@@ -1,12 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
-using System.Xml;
-using CasaEngineCommon.Extension;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 
 #if EDITOR
@@ -15,9 +7,6 @@ using System.ComponentModel;
 
 namespace CasaEngine.Math.Shape2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -30,9 +19,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape Rectangle")]
 #endif
@@ -48,9 +34,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
 #if EDITOR
         [Category("Shape Rectangle")]
 #endif
@@ -68,25 +51,14 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ShapeRectangle() { }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ShapeRectangle(ShapeRectangle o_)
             : base(o_)
         { }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public override void Load(XmlElement el_, SaveOption option_)
         {
             base.Load(el_, option_);
@@ -95,19 +67,11 @@ namespace CasaEngine.Math.Shape2D
             m_Height = int.Parse(el_.Attributes["height"].Value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override Shape2DObject Clone()
         {
             return new ShapeRectangle(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ob_"></param>
         public override void CopyFrom(Shape2DObject ob_)
         {
             if (ob_ is ShapeRectangle == false)

@@ -44,9 +44,6 @@ namespace XNAFinalEngine.Input
         Mouse,
     } // InputDevices
 
-    /// <summary>
-    /// The axis of a connected device that will control this axis.
-    /// </summary>
     public enum AnalogAxes
     {
         MouseX,
@@ -61,9 +58,6 @@ namespace XNAFinalEngine.Input
 
 
 
-    /// <summary>
-    /// This structure represent a key or a button of a device.
-    /// </summary>
     public struct KeyButton
     {
 
@@ -83,9 +77,6 @@ namespace XNAFinalEngine.Input
             MouseButton = 0;
         } // KeyButton
 
-        /// <summary>
-        /// If it is a key.
-        /// </summary>
         public KeyButton(Buttons gamePadButton)
         {
             InputDevice = InputDevices.GamePad;
@@ -104,9 +95,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// True if the key or button was pressed.
-        /// </summary>
         public bool Pressed(int gamePadNumber)
         {
             if (InputDevice == InputDevices.NoDevice)
@@ -135,16 +123,10 @@ namespace XNAFinalEngine.Input
     } // KeyButton
 
 
-    /// <summary>
-    /// Manager for input devices.
-    /// </summary>
     internal class InputManager
     {
 
 
-        /// <summary>
-        /// Initialize Input Devices.
-        /// </summary>
         internal static void Initialize()
         {
             //Wiimote.InitWiimotes();
@@ -152,9 +134,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Unload Input Devices.
-        /// </summary>
         public static void UnloadInputDevices()
         {
             /*Wiimote.PlayerOne.Disconnect();
@@ -165,9 +144,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        ///  Will catch all new states for keyboard, mouse, gamepads, and Wiimotes.
-		/// </summary>
         internal static void Update(float elapsedTime_)
         {
             //if (EngineManager.IsApplicationActive)

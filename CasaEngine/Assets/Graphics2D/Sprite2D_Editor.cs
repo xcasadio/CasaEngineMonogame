@@ -1,28 +1,15 @@
-﻿
-
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using System.IO;
 using CasaEngineCommon.Extension;
 using System.ComponentModel;
 using System.Xml;
 using CasaEngine.Math.Shape2D;
-using CasaEngine;
 using CasaEngineCommon.Design;
 using CasaEngine.Gameplay.Actor.Object;
 
 
 namespace CasaEngine.Assets.Graphics2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class Sprite2D
     {
 
@@ -31,24 +18,11 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        /// <summary>
-        /// Gets/Sets Texture file name
-        /// </summary>
         [Category("Sprite"),
         ReadOnly(true)]
-        public List<string> AssetFileNames
-        {
-            get { return m_AssetFileNames; }
-        }
+        public List<string> AssetFileNames => m_AssetFileNames;
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="tex_"></param>
-        /// <param name="assetFileName_"></param>
-        /// <param name="textureFileName_"></param>
         public Sprite2D(Texture2D tex_, string assetFileName_)
             : this(tex_)
         {
@@ -58,69 +32,36 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public List<KeyValuePair<string, Vector2>> GetSockets()
         {
             return m_Sockets.ToList();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
         public Vector2 GetSocketByIndex(int index)
         {
             return m_Sockets.ElementAt(index).Value;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns></returns>
         public bool IsValidSocketName(string name_)
         {
             return !m_Sockets.ContainsKey(name_);
         }
 
-        /// <summary>
-        /// /
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <param name="position_"></param>
         public void AddSocket(string name_, Vector2 position_)
         {
             m_Sockets.Add(name_, position_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <param name="position_"></param>
         public void ModifySocket(string name_, Vector2 position_)
         {
             m_Sockets[name_] = position_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
-        /// <param name="position_"></param>
         public void ModifySocket(int index_, Vector2 position_)
         {
             m_Sockets[m_Sockets.ElementAt(index_).Key] = position_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         public void RemoveSocket(string name_)
         {
             m_Sockets.Remove(name_);
@@ -128,29 +69,16 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="coll_"></param>
         public void AddCollision(Shape2DObject coll_)
         {
             m_Collisions.Add(coll_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
-        /// <param name="coll_"></param>
         public void SetCollisionAt(int index_, Shape2DObject coll_)
         {
             m_Collisions[index_] = coll_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="coll_"></param>
         public void RemoveCollision(Shape2DObject coll_)
         {
             if (m_Collisions.Remove(coll_) == false)
@@ -159,21 +87,12 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
         public void RemoveCollisionAt(int index_)
         {
             m_Collisions.RemoveAt(index_);
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other_"></param>
-        /// <returns></returns>
         public override bool CompareTo(BaseObject other_)
         {
             if (other_ is Sprite2D)
@@ -226,11 +145,7 @@ namespace CasaEngine.Assets.Graphics2D
             return false;
         }
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="info"></param>
-		private void NotifyPropertyChanged(String info)
+        private void NotifyPropertyChanged(String info)
         {
             if (PropertyChanged != null)
             {
@@ -239,10 +154,6 @@ namespace CasaEngine.Assets.Graphics2D
         }
 
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="el_"></param>
         public override void Save(XmlElement el_, SaveOption option_)
         {
             XmlElement node;
@@ -288,10 +199,6 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
         public override void Save(BinaryWriter bw_, SaveOption option_)
         {
             base.Save(bw_, option_);

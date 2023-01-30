@@ -1,9 +1,3 @@
-
-using System;
-
-
-using System.Collections.Generic;
-using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 
@@ -12,32 +6,16 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace CasaEngine.AI.EvolutionaryComputing
 {
-    /// <summary>
-    /// This class represents a chromosome to use in a genetic algorithm or evolutionary strategy. A chromosome is
-    /// composed by a list of genes and has an associated fitness value that indicates his "quality" as a solution
-    /// for the problem we are trying to solve
-    /// </summary>
-    /// <typeparam name="T">The genes type. Can be anything</typeparam>
     [Serializable]
     public class Chromosome<T> : ICloneable
     {
 
-        /// <summary>
-        /// Fitness of the chromosome
-        /// </summary>
         protected internal double fitness;
 
-        /// <summary>
-        /// Genotype of the chromosome
-        /// </summary>
         protected internal List<T> genotype;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <remarks>Creates an empty list of genes</remarks>
         public Chromosome()
         {
             genotype = new List<T>();
@@ -45,21 +23,15 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
 
 
-        /// <summary>
-        /// Gets or sets the fitness value of the chromosome
-        /// </summary>
         public virtual double Fitness
         {
-            get { return fitness; }
-            set { fitness = value; }
+            get => fitness;
+            set => fitness = value;
         }
 
-        /// <summary>
-        /// Gets or sets the genotype of the chromosome
-        /// </summary>
         public virtual List<T> Genotype
         {
-            get { return genotype; }
+            get => genotype;
             set
             {
                 String message = String.Empty;
@@ -71,23 +43,14 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
         }
 
-        /// <summary>
-        /// Indexer to get or set a gene from the chromosome
-        /// </summary>
-        /// <param name="index">Index we want to access</param>
-        /// <returns>The gene in the index position</returns>
         public virtual T this[int index]
         {
-            get { return genotype[index]; }
-            set { genotype[index] = value; }
+            get => genotype[index];
+            set => genotype[index] = value;
         }
 
 
 
-        /// <summary>
-        /// Creates a clone from this object
-        /// </summary>
-        /// <returns>The clone of the object</returns>
         public object Clone()
         {
             Chromosome<T> newChrom;
@@ -142,15 +105,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return this;
         }
 
-        /// <summary>
-        /// Returns a new instance of a chromosome
-        /// </summary>
-        /// <remarks>
-        /// This way of getting an instance is faster than using reflection
-        /// and the Activator method. This instance is the same as if
-        /// calling the empty constructor to create a Chromosome
-        /// </remarks>
-        /// <returns>A new chromosome instance</returns>
         public virtual Chromosome<T> FastEmptyInstance()
         {
             Chromosome<T> clone;
@@ -167,12 +121,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
 
 
-        /// <summary>
-        /// Validates if the chromosome value is correct (not null)
-        /// </summary>
-        /// <param name="chromosome">The chromosome value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateChromosome(Chromosome<T> chromosome, ref string message)
         {
             if (chromosome == null)
@@ -187,12 +135,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return true;
         }
 
-        /// <summary>
-        /// Validates if the genotype value is correct (not null)
-        /// </summary>
-        /// <param name="genotype">The genotype value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the values are correct. False if they are not</returns>
         public static bool ValidateGenotype(List<T> genotype, ref String message)
         {
             if (genotype == null)

@@ -10,18 +10,12 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.CoreSystems;
-using CasaEngine.Asset.Fonts;
 
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Window
-    /// </summary>
     public class Window : ModalContainer
     {
 
@@ -41,96 +35,51 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Close Button.
-        /// </summary>
         private readonly Button buttonClose;
 
-        /// <summary>
-        /// Is the close button visible?
-        /// </summary>
         private bool closeButtonVisible = true;
 
-        /// <summary>
-        /// Is the icon visible?
-        /// </summary>
         private bool iconVisible = true;
 
-        /// <summary>
-        /// Has shadow?
-        /// </summary>
         private bool shadow = true;
 
-        /// <summary>
-        /// Is caption visible?
-        /// </summary>
         private bool captionVisible = true;
 
-        /// <summary>
-        /// Is the window's border visible?
-        /// </summary>
         private bool borderVisible = true;
 
-        /// <summary>
-        /// The alpha intensity when the window is dragged.
-        /// </summary>
         private byte dragAlpha = 200;
-        private byte oldAlpha  = 255;
+        private byte oldAlpha = 255;
 
 
 
-        /// <summary>
-        /// Top-left icon.
-        /// </summary>
         public Texture2D Icon { get; set; }
 
-        /// <summary>
-        /// Has shadow?
-        /// </summary>
         public virtual bool Shadow
         {
-            get { return shadow; }
-            set { shadow = value; }
+            get => shadow;
+            set => shadow = value;
         } // Shadow
 
-        /// <summary>
-        /// Is the close button visible?
-        /// </summary>
         public virtual bool CloseButtonVisible
         {
-            get
-            {
-                return closeButtonVisible;
-            }
+            get => closeButtonVisible;
             set
             {
                 closeButtonVisible = value;
-                if (buttonClose != null) 
+                if (buttonClose != null)
                     buttonClose.Visible = value;
             }
         } // CloseButtonVisible
 
-        /// <summary>
-        /// Is the icon visible?
-        /// </summary>
         public virtual bool IconVisible
         {
-            get
-            {
-                return iconVisible;
-            }
-            set
-            {
-                iconVisible = value;
-            }
+            get => iconVisible;
+            set => iconVisible = value;
         } // IconVisible
 
-        /// <summary>
-        /// Is caption visible?
-        /// </summary>
         public virtual bool CaptionVisible
         {
-            get { return captionVisible; }
+            get => captionVisible;
             set
             {
                 captionVisible = value;
@@ -138,12 +87,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // CaptionVisible
 
-        /// <summary>
-        /// Is the window's border visible?
-        /// </summary>
         public virtual bool BorderVisible
         {
-            get { return borderVisible; }
+            get => borderVisible;
             set
             {
                 borderVisible = value;
@@ -151,20 +97,14 @@ namespace XNAFinalEngine.UserInterface
             }
         } // BorderVisible
 
-        /// <summary>
-        /// The alpha intensity when the window is dragged.
-        /// </summary>
         public virtual byte DragAlpha
         {
-            get { return dragAlpha; }
-            set { dragAlpha = value; }
+            get => dragAlpha;
+            set => dragAlpha = value;
         } // DragAlpha
 
 
 
-        /// <summary>
-        /// Window
-        /// </summary>
         public Window(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -178,7 +118,7 @@ namespace XNAFinalEngine.UserInterface
                 CanFocus = false,
                 Text = null,
             };
-            buttonClose.Click       += ButtonClose_Click;
+            buttonClose.Click += ButtonClose_Click;
             buttonClose.SkinChanged += ButtonClose_SkinChanged;
 
             AdjustMargins();
@@ -189,7 +129,7 @@ namespace XNAFinalEngine.UserInterface
             CenterWindow();
 
             Add(buttonClose, false);
-            
+
             oldAlpha = Alpha;
         } // Window
 
@@ -199,10 +139,10 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
             SkinLayer skinLayer = buttonClose.SkinInformation.Layers[layerButton];
-            buttonClose.Width  = skinLayer.Width  - buttonClose.SkinInformation.OriginMargins.Horizontal;
+            buttonClose.Width = skinLayer.Width - buttonClose.SkinInformation.OriginMargins.Horizontal;
             buttonClose.Height = skinLayer.Height - buttonClose.SkinInformation.OriginMargins.Vertical;
-            buttonClose.Left   = ControlAndMarginsWidth - SkinInformation.OriginMargins.Right - buttonClose.Width + skinLayer.OffsetX;
-            buttonClose.Top    = SkinInformation.OriginMargins.Top + skinLayer.OffsetY;
+            buttonClose.Left = ControlAndMarginsWidth - SkinInformation.OriginMargins.Right - buttonClose.Width + skinLayer.OffsetX;
+            buttonClose.Top = SkinInformation.OriginMargins.Top + skinLayer.OffsetY;
             buttonClose.Anchor = Anchors.Top | Anchors.Right;
         } // Init
 
@@ -224,17 +164,11 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// When the button skin changed.
-        /// </summary>
         private void ButtonClose_SkinChanged(object sender, EventArgs e)
         {
             buttonClose.SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls[skinButton]);
         } // ButtonClose_SkinChanged
 
-        /// <summary>
-        /// When a click on the button happen.
-        /// </summary>
         private void ButtonClose_Click(object sender, EventArgs e)
         {
             Close(ModalResult = ModalResult.Cancel);
@@ -242,9 +176,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Render the control to the main render target.
-        /// </summary>
         internal override void DrawControlOntoMainTexture()
         {
 
@@ -252,16 +183,16 @@ namespace XNAFinalEngine.UserInterface
             if (Visible && Shadow)
             {
                 SkinControlInformation skinControlShadow = UserInterfaceManager.Skin.Controls[skinShadow];
-                SkinLayer   skinLayerShadow   = skinControlShadow.Layers[layerShadow];
+                SkinLayer skinLayerShadow = skinControlShadow.Layers[layerShadow];
 
-                Color shadowColor = Color.FromNonPremultiplied(skinLayerShadow.States.Enabled.Color.R, 
+                Color shadowColor = Color.FromNonPremultiplied(skinLayerShadow.States.Enabled.Color.R,
                                                                skinLayerShadow.States.Enabled.Color.G,
                                                                skinLayerShadow.States.Enabled.Color.B, Alpha);
 
                 UserInterfaceManager.Renderer.Begin();
                 UserInterfaceManager.Renderer.DrawLayer(skinLayerShadow,
                                        new Rectangle(Left - skinControlShadow.OriginMargins.Left,
-                                                     Top - skinControlShadow.OriginMargins.Top, 
+                                                     Top - skinControlShadow.OriginMargins.Top,
                                                      Width + skinControlShadow.OriginMargins.Horizontal,
                                                      Height + skinControlShadow.OriginMargins.Vertical),
                                        shadowColor, 0);
@@ -272,31 +203,25 @@ namespace XNAFinalEngine.UserInterface
             base.DrawControlOntoMainTexture();
         } // Render
 
-        /// <summary>
-        /// Get the rectangle that contains the icon.
-        /// </summary>
         private Rectangle GetIconRectangle()
         {
             SkinLayer skinLayerCaption = SkinInformation.Layers[layerCaption];
-            SkinLayer skinLayerIcon    = SkinInformation.Layers[layerIcon];
+            SkinLayer skinLayerIcon = SkinInformation.Layers[layerIcon];
 
             int iconHeight = skinLayerCaption.Height - skinLayerCaption.ContentMargins.Vertical;
             return new Rectangle(DrawingRectangle.Left + skinLayerCaption.ContentMargins.Left + skinLayerIcon.OffsetX,
-                                 DrawingRectangle.Top  + skinLayerCaption.ContentMargins.Top  + skinLayerIcon.OffsetY,
+                                 DrawingRectangle.Top + skinLayerCaption.ContentMargins.Top + skinLayerIcon.OffsetY,
                                  iconHeight, iconHeight);
 
         } // GetIconRectangle
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer skinLayerFrameTop    = captionVisible ? SkinInformation.Layers[layerCaption] : SkinInformation.Layers[layerFrameTop];
-            SkinLayer skinLayerFrameLeft   = SkinInformation.Layers[layerFrameLeft];
-            SkinLayer skinLayerFrameRight  = SkinInformation.Layers[layerFrameRight];
+            SkinLayer skinLayerFrameTop = captionVisible ? SkinInformation.Layers[layerCaption] : SkinInformation.Layers[layerFrameTop];
+            SkinLayer skinLayerFrameLeft = SkinInformation.Layers[layerFrameLeft];
+            SkinLayer skinLayerFrameRight = SkinInformation.Layers[layerFrameRight];
             SkinLayer skinLayerFrameBottom = SkinInformation.Layers[layerFrameBottom];
-            SkinLayer skinLayerIcon        = SkinInformation.Layers[layerIcon];
+            SkinLayer skinLayerIcon = SkinInformation.Layers[layerIcon];
             LayerStates layerStateFrameTop, layerStateFrameLeft, layerStateFrameRight, layerStateFrameButtom;
             Font font = skinLayerFrameTop.Text.Font.Font;
             Color color;
@@ -364,9 +289,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Center of the main window.
-        /// </summary>
         public virtual void CenterWindow()
         {
             Left = (UserInterfaceManager.Screen.Width / 2) - (Width / 2);
@@ -413,22 +335,16 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Adjust the controls margin.
-        /// </summary>
-        /// <remarks>
-        /// This implementation requires that the know margins are set before the base method is called because the base method use this modified information.
-        /// </remarks>
         protected override void AdjustMargins()
         {
             if (captionVisible && borderVisible)
             {
-                ClientMargins = new Margins(SkinInformation.ClientMargins.Left,  SkinInformation.Layers[layerCaption].Height, 
+                ClientMargins = new Margins(SkinInformation.ClientMargins.Left, SkinInformation.Layers[layerCaption].Height,
                                             SkinInformation.ClientMargins.Right, SkinInformation.ClientMargins.Bottom);
             }
             else if (!captionVisible && borderVisible)
             {
-                ClientMargins = new Margins(SkinInformation.ClientMargins.Left,  SkinInformation.ClientMargins.Top,
+                ClientMargins = new Margins(SkinInformation.ClientMargins.Left, SkinInformation.ClientMargins.Top,
                                             SkinInformation.ClientMargins.Right, SkinInformation.ClientMargins.Bottom);
             }
             else if (!borderVisible)

@@ -10,7 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
 using CasaEngine.Asset;
 
 
@@ -39,31 +38,19 @@ namespace XNAFinalEngine.UserInterface
     } // BevelBorder
 
 
-    /// <summary>
-    /// Bevel.
-    /// </summary>
     public class Bevel : Control
     {
 
 
-        /// <summary>
-        /// Border (none, top, left, right, bottom, all)
-        /// </summary>
         private BevelBorder border = BevelBorder.All;
 
-        /// <summary>
-        /// Border Style (None, Flat, Etched, Bumped, Lowered, Raised).
-        /// </summary>
         private BevelStyle style = BevelStyle.Etched;
 
 
 
-        /// <summary>
-        /// Border (none, top, left, right, bottom, all)
-        /// </summary>
         public BevelBorder Border
         {
-            get { return border; }
+            get => border;
             set
             {
                 if (border != value)
@@ -74,12 +61,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Border
 
-        /// <summary>
-        /// Border Style (None, Flat, Etched, Bumped, Lowered, Raised).
-        /// </summary>
         public BevelStyle Style
         {
-            get { return style; }
+            get => style;
             set
             {
                 if (style != value)
@@ -97,9 +81,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Bevel.
-        /// </summary>
         public Bevel(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -111,9 +92,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -124,9 +102,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             if (Border != BevelBorder.None && Style != BevelStyle.None)

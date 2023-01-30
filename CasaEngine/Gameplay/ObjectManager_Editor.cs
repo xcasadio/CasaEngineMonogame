@@ -1,46 +1,24 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.AI;
-using CasaEngineCommon.Design;
+﻿using CasaEngineCommon.Design;
 using System.Xml;
 using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Game;
-using System.IO;
 using CasaEngineCommon.Logger;
-using System.Reflection;
-using CasaEngine.SourceControl;
 using CasaEngine.Editor.Assets;
-using System.ComponentModel;
 using CasaEngine.Project;
 using CasaEngine.Audio;
 
 namespace CasaEngine.Gameplay
 {
-    /// <summary>
-    /// 
-    /// </summary>
     partial class ObjectManager
     {
 
-        /// <summary>
-        /// Used in GUI (example content browser object list)
-        /// </summary>
         public struct ObjectData
         {
             public string Name { get; private set; }
             public string ClassName { get; private set; }
             public bool MustBeSaved { get; private set; }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="path_"></param>
-            /// <param name="className_"></param>
             public ObjectData(string path_, string className_, bool mustBeSaved_)
                 : this()
             {
@@ -52,18 +30,12 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         partial class ObjectContainer
         {
             static private int m_Version = 1;
             static private int m_FreeID = 1;
 
 
-            /// <summary>
-            /// 
-            /// </summary>
             public bool MustBeSaved
             {
                 get;
@@ -71,11 +43,6 @@ namespace CasaEngine.Gameplay
             }
 
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="id_"></param>
-            /// <param name="path"></param>
             public ObjectContainer(string path)
             {
                 MustBeSaved = true;
@@ -85,10 +52,6 @@ namespace CasaEngine.Gameplay
                 FilePosition = -1;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="newpath_">full path</param>
             public void Rename(string newpath_)
             {
                 Path = newpath_;
@@ -96,21 +59,11 @@ namespace CasaEngine.Gameplay
             }
 
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="bw_"></param>
-            /// <param name="option_"></param>
             public void Save(System.IO.BinaryWriter bw_, SaveOption option_)
             {
                 throw new NotImplementedException();
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="el_"></param>
-            /// <param name="option_"></param>
             public XmlElement Save(XmlElement el_, SaveOption option_)
             {
                 //if (IsLoaded == true)
@@ -156,9 +109,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public string[] Directories
         {
             get
@@ -183,38 +133,22 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Refresh()
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Clear()
         {
             throw new NotImplementedException();
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
-        /// <returns></returns>
         public bool IsValidObjectPath(string path_)
         {
             return !m_Objects.ContainsKey(path_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
-        /// <param name="object_"></param>
         public void Add(string path_, BaseObject object_)
         {
             try
@@ -254,11 +188,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
-        /// <param name="object_"></param>
         public void Replace(string path_, BaseObject object_)
         {
             try
@@ -281,10 +210,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
         public void Remove(string path_, bool removeAssetFile_ = true)
         {
             try
@@ -334,13 +259,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// Rename an object
-        /// Delete old file
-        /// Save new file
-        /// </summary>
-        /// <param name="srcPath_">full path</param>
-        /// <param name="newName_">new name</param>
         public void Rename(string srcPath_, string newName_)
         {
             try
@@ -387,11 +305,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// Move an object
-        /// </summary>
-        /// <param name="srcPath_">full path (with name)</param>
-        /// <param name="newName_">new full path (without name)</param>
         public void Move(string srcPath_, string destPath_)
         {
             try
@@ -480,11 +393,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
-        /// <returns></returns>
         public bool IsNewFolder(string path_)
         {
             foreach (var pair in m_Objects)
@@ -498,12 +406,6 @@ namespace CasaEngine.Gameplay
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
-        /// <param name="recursive"></param>
-        /// <returns></returns>
         public ObjectData[] GetAllItemsFromPath(string path_, bool recursive = false)
         {
             List<ObjectData> res = new List<ObjectData>();
@@ -529,11 +431,6 @@ namespace CasaEngine.Gameplay
             return res.ToArray();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type_"></param>
-        /// <returns></returns>
         public string[] GetAllAssetByType(AssetType type_)
         {
             List<string> res = new List<string>();
@@ -565,10 +462,6 @@ namespace CasaEngine.Gameplay
             return res.ToArray();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public string[] GetAllDirectories()
         {
             List<string> res = new List<string>();
@@ -585,11 +478,6 @@ namespace CasaEngine.Gameplay
             return res.ToArray();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id_"></param>
-        /// <returns></returns>
         public string GetObjectNameByID(int id_)
         {
             foreach (var pair in m_Objects)
@@ -603,12 +491,6 @@ namespace CasaEngine.Gameplay
             return string.Empty;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="objC_"></param>
-        /// <param name="option_"></param>
-        /// <returns></returns>
         private string GetFileName(ObjectContainer objC_)
         {
             string ext = ".xml";
@@ -618,11 +500,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Save(System.Xml.XmlElement el_, SaveOption option_)
         {
             XmlElement node = el_.OwnerDocument.CreateElement("Objects");
@@ -670,13 +547,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="filePath_"></param>
-        /// <param name="objC_"></param>
-        /// <param name="option_"></param>
-        /// <returns></returns>
         private bool SaveObjectXML(string filePath_, ObjectContainer objC_, SaveOption option_)
         {
             try
@@ -696,10 +566,6 @@ namespace CasaEngine.Gameplay
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="option_"></param>
         private void SaveInSourceControlXML(SaveOption option_)
         {
             //source control
@@ -812,11 +678,6 @@ namespace CasaEngine.Gameplay
             }*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="bw_"></param>
-        /// <param name="option_"></param>
         public void Save(System.IO.BinaryWriter bw_, SaveOption option_)
         {
             throw new NotImplementedException();

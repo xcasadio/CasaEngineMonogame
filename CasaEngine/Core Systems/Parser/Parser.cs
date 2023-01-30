@@ -1,58 +1,27 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.IO;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 
 
 namespace CasaEngine.Design.Parser
 {
-    /// <summary>
-    /// Recognized operators : 
-    /// +, -, /, *, ==, !=, >, &lt;, >=, &lt;=, ||, &&
-    /// 
-    /// Can support functions, format : function_name="arg1, arg2, ..."
-    /// Can support keyword
-    /// </summary>
     public abstract class Parser
     {
-
-        Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator> m_MapBinaryOperator = new Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator>();
+        readonly Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator> m_MapBinaryOperator = new Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator>();
 
         Dictionary<int, List<ParserToken>> m_Tokens = new Dictionary<int, List<ParserToken>>();
 
-        List<ICalculatorToken> m_CalculatorList = new List<ICalculatorToken>();
-        Calculator m_Calculator;
+        readonly List<ICalculatorToken> m_CalculatorList = new List<ICalculatorToken>();
+        readonly Calculator m_Calculator;
 
-        List<string> m_TokensValue = new List<string>();
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal CasaEngine.Design.Parser.Calculator Calculator
-        {
-            get { return m_Calculator; }
-        }
-
-        /// <summary>
-        /// Gets
-        /// </summary>
-        internal string[] TokensValue
-        {
-            get { return m_TokensValue.ToArray(); }
-        }
+        readonly List<string> m_TokensValue = new List<string>();
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
+        internal CasaEngine.Design.Parser.Calculator Calculator => m_Calculator;
+
+        internal string[] TokensValue => m_TokensValue.ToArray();
+
+
         public Parser()
         {
             m_MapBinaryOperator.Add("+", CalculatorTokenBinaryOperator.BinaryOperator.Plus);
@@ -91,11 +60,6 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="token_"></param>
-        /// <param name="priority_">Plus la valeur est petite plus la priorite est grande</param>
         private void AddParserToken(ParserToken token_, int priority_)
         {
             if (m_Tokens.ContainsKey(priority_) == true)
@@ -110,29 +74,16 @@ namespace CasaEngine.Design.Parser
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="keyword_"></param>
         public void AddKeywordToken(string keyword_)
         {
             AddParserToken(new ParserTokenKeyword(this, keyword_), 11);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="functionName_"></param>
         public void AddFunctionToken(string functionName_)
         {
             AddParserToken(new ParserTokenFunction(this, functionName_), 10);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sentence_"></param>
-        /// <returns></returns>
         public bool Check(string sentence_)
         {
             sentence_ = sentence_.Trim();
@@ -159,11 +110,6 @@ namespace CasaEngine.Design.Parser
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sentence_"></param>
-        /// <returns></returns>
         public bool Compile(string sentence_)
         {
             m_CalculatorList.Clear();
@@ -183,11 +129,6 @@ namespace CasaEngine.Design.Parser
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sentence_"></param>
-        /// <returns></returns>
         public float Evaluate(string sentence_)
         {
             sentence_ = sentence_.ToLower();
@@ -200,10 +141,6 @@ namespace CasaEngine.Design.Parser
             throw new InvalidOperationException("Can't Compile!; Please check your sentence");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public float Evaluate()
         {
             if (m_Calculator.Root == null)
@@ -214,37 +151,16 @@ namespace CasaEngine.Design.Parser
             return m_Calculator.Evaluate();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="keyword_"></param>
-        /// <returns></returns>
         public abstract float EvaluateKeyword(string keyword_);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="functionName_"></param>
-        /// <param name="args_"></param>
-        /// <returns></returns>
         public abstract float EvaluateFunction(string functionName_, string[] args_);
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="token_"></param>
         internal void AddToken(string token_)
         {
             m_TokensValue.Add(token_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="token_"></param>
-        /// <param name="index_"></param>
-        /// <returns></returns>
         private int CompileCalculatorToken(out ICalculatorToken token_, int index_)
         {
             token_ = m_CalculatorList[index_];
@@ -263,12 +179,6 @@ namespace CasaEngine.Design.Parser
             return index_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent_"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
         private int CompileBinaryOperator(CalculatorTokenBinaryOperator parent_, int index_)
         {
             ICalculatorToken left, right;
@@ -281,13 +191,6 @@ namespace CasaEngine.Design.Parser
             return index_ + 1;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent_"></param>
-        /// <param name="res_"></param>
-        /// <param name="index_"></param>
-        /// <returns>the index of the end of the sequence</returns>
         private int CompileSequence(ICalculatorToken parent_, out ICalculatorToken res_, int index_)
         {
             CalculatorTokenSequence seq;
@@ -312,20 +215,11 @@ namespace CasaEngine.Design.Parser
             return end;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="token_"></param>
         internal void AddCalculator(ICalculatorToken token_)
         {
             m_CalculatorList.Add(token_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="operator_"></param>
-        /// <returns></returns>
         internal ICalculatorToken GetCalculatorByBinaryOperator(string operator_)
         {
             return new CalculatorTokenBinaryOperator(m_Calculator, m_MapBinaryOperator[operator_]);
@@ -333,41 +227,21 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Save(XmlElement el_, SaveOption option_)
         {
             m_Calculator.Save(el_, option_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Load(XmlElement el_, SaveOption option_)
         {
             m_Calculator.Load(el_, option_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Save(BinaryWriter bw_, SaveOption option_)
         {
             m_Calculator.Save(bw_, option_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Load(BinaryReader br_, SaveOption option_)
         {
             //m_Calculator.Load(br_, option_);

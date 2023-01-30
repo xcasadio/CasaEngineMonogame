@@ -34,9 +34,6 @@ namespace XNAFinalEngine.Helpers
     {
 
 
-        /// <summary>
-        /// Test if two matrix arrays have the same values.
-        /// </summary>
         public static bool Equals(Matrix[] a1, Matrix[] a2)
         {
             if (a1 == null && a2 == null)
@@ -58,9 +55,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Test if two Vector2 arrays have the same values.
-        /// </summary>
         public static bool Equals(Vector2[] a1, Vector2[] a2)
         {
             if (a1 == null && a2 == null)
@@ -82,9 +76,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Test if two Vector3 arrays have the same values.
-        /// </summary>
         public static bool Equals(Vector3[] a1, Vector3[] a2)
         {
             if (a1 == null && a2 == null)
@@ -106,9 +97,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Test if two Vector4 arrays have the same values.
-        /// </summary>
         public static bool Equals(Vector4[] a1, Vector4[] a2)
         {
             if (a1 == null && a2 == null)

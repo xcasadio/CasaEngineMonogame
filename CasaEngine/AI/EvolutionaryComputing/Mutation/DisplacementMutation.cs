@@ -1,41 +1,13 @@
 
-using System;
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 {
-    /// <summary>
-    /// This class represents the displacement mutation operator for chromosomes representing a permutation 
-    /// (int valuses).The operator is applied to the chromosome as a whole. If the mutation takes place, then
-    /// a chunk of the genome is displaced from his position and the order of the displaced genes is swaped
-    /// if the invert flag value is true.
-    /// </summary>
-    /// <example>
-    /// Chromosome = (0 3 1 4 2 5 6)
-    /// There´s a mutation. The displacement chunk takes from the 4th to the 6th element (4 2 5).
-    /// The chunk is displaced to the 2nd position.
-    /// Temp chromosome = (0 4 2 5 3 1 6)
-    /// If we have to inver the values, we invert the chunk.
-    /// New chromosome = (0 5 2 4 3 1 6)
-    /// </example>
     public sealed class DisplacementMutation : MutationAlgorithm<int>
     {
 
-        /// <summary>
-        /// Indicates if we have to invert or not the mutated chunk
-        /// </summary>
         internal bool invert;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="probability">The mutation probabilty</param>
-        /// <param name="generator">Random number generator</param>
-        /// <param name="invert">Invert flag</param>
         public DisplacementMutation(double probability, Random generator, bool invert)
             : base(probability, generator)
         {
@@ -44,10 +16,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
 
 
-        /// <summary>
-        /// Applies the mutation operator
-        /// </summary>
-        /// <param name="population">The population we want to mutate</param>
         public override void Mutate(Population<int> population)
         {
             for (int i = 0; i < population.Genome.Count; i++)
@@ -55,11 +23,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
                     population[i] = Mutate(population[i]);
         }
 
-        /// <summary>
-        /// Auxiliary method that mutates a single chromosome
-        /// </summary>
-        /// <param name="chromosome">Chromosome we are going to mutate</param>
-        /// <returns>The mutated chromosome</returns>
         private Chromosome<int> Mutate(Chromosome<int> chromosome)
         {
             int first, second, temp, position;

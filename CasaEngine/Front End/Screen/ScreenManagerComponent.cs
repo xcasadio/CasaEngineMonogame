@@ -6,38 +6,26 @@
 //-----------------------------------------------------------------------------
 
 
-using System;
-
-
 using System.Diagnostics;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.Math;
 using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Helper;
 
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    /// <summary>
-    /// The screen manager is a component which manages one or more Screen
-    /// instances. It maintains a stack of screens, calls their Update and Draw
-    /// methods at the appropriate times, and automatically routes input to the
-    /// topmost active screen.
-    /// </summary>
     public class ScreenManagerComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
+        readonly List<Screen> screens = new List<Screen>();
+        readonly List<Screen> screensToUpdate = new List<Screen>();
 
-        List<Screen> screens = new List<Screen>();
-        List<Screen> screensToUpdate = new List<Screen>();
-
-        InputState input = new InputState();
+        readonly InputState input = new InputState();
 
         //SpriteBatch spriteBatch;
         //SpriteFont font;
@@ -51,38 +39,18 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public bool CanSetVisible
-        {
-            get { return true; }
-        }
+        public bool CanSetVisible => true;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public bool CanSetEnable
-        {
-            get { return true; }
-        }
+        public bool CanSetEnable => true;
 
-        /// <summary>
-        /// If true, the manager prints out a list of all the screens
-        /// each time it is updated. This can be useful for making sure
-        /// everything is being added and removed at the right times.
-        /// </summary>
         public bool TraceEnabled
         {
-            get { return traceEnabled; }
-            set { traceEnabled = value; }
+            get => traceEnabled;
+            set => traceEnabled = value;
         }
 
 
 
-        /// <summary>
-        /// Constructs a new screen manager component.
-        /// </summary>
         public ScreenManagerComponent(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
@@ -99,9 +67,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Initializes the screen manager component.
-        /// </summary>
         public override void Initialize()
         {
             m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
@@ -116,9 +81,6 @@ namespace CasaEngine.FrontEnd.Screen
             base.Initialize();
         }
 
-        /// <summary>
-        /// Load your graphics content.
-        /// </summary>
         protected override void LoadContent()
         {
             // Load content belonging to the screen manager.
@@ -137,9 +99,6 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// Unload your graphics content.
-        /// </summary>
         protected override void UnloadContent()
         {
             // Tell each of the screens to unload their content.
@@ -157,9 +116,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Allows each screen to run logic.
-        /// </summary>
         public override void Update(GameTime gameTime)
         {
             float elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
@@ -210,9 +166,6 @@ namespace CasaEngine.FrontEnd.Screen
                 TraceScreens();
         }
 
-        /// <summary>
-        /// Prints a list of all the screens, for debugging.
-        /// </summary>
         void TraceScreens()
         {
             List<string> screenNames = new List<string>();
@@ -223,9 +176,6 @@ namespace CasaEngine.FrontEnd.Screen
             Trace.WriteLine(string.Join(", ", screenNames.ToArray()));
         }
 
-        /// <summary>
-        /// Tells each screen to draw itself.
-        /// </summary>
         public override void Draw(GameTime gameTime)
         {
             float elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
@@ -243,9 +193,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 #if EDITOR
-        /// <summary>
-        /// 
-        /// </summary>
         /*public void LoadStaticAsset(AssetManager assetManager_)
 		{
 			if (blankTexture != null)
@@ -261,9 +208,6 @@ namespace CasaEngine.FrontEnd.Screen
 		}*/
 #endif
 
-        /// <summary>
-        /// Adds a new screen to the screen manager.
-        /// </summary>
         public void AddScreen(Screen screen, PlayerIndex? controllingPlayer)
         {
             screen.ControllingPlayer = controllingPlayer;
@@ -280,12 +224,6 @@ namespace CasaEngine.FrontEnd.Screen
             screens.Add(screen);
         }
 
-        /// <summary>
-        /// Removes a screen from the screen manager. You should normally
-        /// use Screen.ExitScreen instead of calling this directly, so
-        /// the screen can gradually transition off rather than just being
-        /// instantly removed.
-        /// </summary>
         public void RemoveScreen(Screen screen)
         {
             // If we have a graphics device, tell the screen to unload content.
@@ -299,9 +237,6 @@ namespace CasaEngine.FrontEnd.Screen
         }
 
 #if EDITOR
-        /// <summary>
-        /// 
-        /// </summary>
         public void ClearScreen()
         {
             foreach (Screen screen in screens)
@@ -314,20 +249,11 @@ namespace CasaEngine.FrontEnd.Screen
         }
 #endif
 
-        /// <summary>
-        /// Expose an array holding all the screens. We return a copy rather
-        /// than the real master list, because screens should only ever be added
-        /// or removed using the AddScreen and RemoveScreen methods.
-        /// </summary>
-		public Screen[] GetScreens()
+        public Screen[] GetScreens()
         {
             return screens.ToArray();
         }
 
-        /// <summary>
-        /// Helper draws a translucent black fullscreen sprite, used for fading
-        /// screens in and out, and for darkening the background behind popups.
-        /// </summary>
         public void FadeBackBufferToBlack(int alpha)
         {
             Viewport viewport = this.GraphicsDevice.Viewport;

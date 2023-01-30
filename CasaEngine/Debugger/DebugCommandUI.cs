@@ -6,10 +6,6 @@
 //-----------------------------------------------------------------------------
 
 
-using System;
-
-
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,74 +23,29 @@ using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.Debugger
 {
-    /// <summary>
-    /// Command Window class for Debug purpose.
-    /// </summary>
-    /// <remarks>
-    /// Debug command UI that runs in the Game.
-    /// You can type commands using the keyboard, even on the Xbox
-    /// just connect a USB keyboard to it
-    /// This works on all 3 platforms (Xbox, Windows, Phone)
-    /// 
-    /// How to Use:
-    /// 1) Add this component to the game.
-    /// 2) Register command by RegisterCommand method.
-    /// 3) Open/Close Debug window by Tab key.
-    /// </remarks>
     public class DebugCommandUI
         : Microsoft.Xna.Framework.DrawableGameComponent,
         IDebugCommandHost,
         IGameComponentResizable
     {
 
-        /// <summary>
-        /// Maximum lines that shows in Debug command window.
-        /// </summary>
         const int MaxLineCount = 20;
 
-        /// <summary>
-        /// Maximum command history number.
-        /// </summary>
         const int MaxCommandHistory = 32;
 
-        /// <summary>
-        /// Cursor character.
-        /// </summary>
         const string Cursor = "_";
 
-        /// <summary>
-        /// Default Prompt string.
-        /// </summary>
         public const string DefaultPrompt = "CMD>";
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public bool CanSetVisible
-        {
-            get { return true; }
-        }
+        public bool CanSetVisible => true;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public bool CanSetEnable
-        {
-            get { return true; }
-        }
+        public bool CanSetEnable => true;
 
-        /// <summary>
-        /// Gets/Sets Prompt string.
-        /// </summary>
         public string Prompt { get; set; }
 
-        /// <summary>
-        /// Is it waiting for key inputs?
-        /// </summary>
-        public bool Focused { get { return state != State.Closed; } }
-
+        public bool Focused => state != State.Closed;
 
 
         // Command window states.
@@ -106,9 +57,6 @@ namespace CasaEngine.Debugger
             Closing
         }
 
-        /// <summary>
-        /// CommandInfo class that contains information to run the command.
-        /// </summary>
         class CommandInfo
         {
             public CommandInfo(
@@ -120,13 +68,13 @@ namespace CasaEngine.Debugger
             }
 
             // command name
-            public string command;
+            public readonly string command;
 
             // Description of command.
-            public string description;
+            public readonly string description;
 
             // delegate for execute the command.
-            public DebugCommandExecute callback;
+            public readonly DebugCommandExecute callback;
         }
 
         // Reference to DebugManager.
@@ -139,30 +87,30 @@ namespace CasaEngine.Debugger
         private float stateTransition;
 
         // Registered echo listeners.
-        private List<IDebugEchoListner> listenrs = new List<IDebugEchoListner>();
+        private readonly List<IDebugEchoListner> listenrs = new List<IDebugEchoListner>();
 
         // Registered command executioner.
-        private Stack<IDebugCommandExecutioner> executioners = new Stack<IDebugCommandExecutioner>();
+        private readonly Stack<IDebugCommandExecutioner> executioners = new Stack<IDebugCommandExecutioner>();
 
         // Registered commands
-        private Dictionary<string, CommandInfo> commandTable =
+        private readonly Dictionary<string, CommandInfo> commandTable =
                                                 new Dictionary<string, CommandInfo>();
 
         // Current command line string and cursor position.
         private string commandLine = String.Empty;
         private int cursorIndex = 0;
 
-        private Queue<string> lines = new Queue<string>();
+        private readonly Queue<string> lines = new Queue<string>();
 
         // Command history buffer.
-        private List<string> commandHistory = new List<string>();
+        private readonly List<string> commandHistory = new List<string>();
 
         // Selecting command history index.
         private int commandHistoryIndex;
 
         private Renderer2DComponent m_Renderer2DComponent = null;
 
-        private Color m_BackgroundColor = new Color(0, 0, 0, 200);
+        private readonly Color m_BackgroundColor = new Color(0, 0, 0, 200);
 
 
         // Previous frame keyboard state.
@@ -175,18 +123,15 @@ namespace CasaEngine.Debugger
         private float keyRepeatTimer;
 
         // Key repeat duration in seconds for the first key press.
-        private float keyRepeatStartDuration = 0.3f;
+        private readonly float keyRepeatStartDuration = 0.3f;
 
         // Key repeat duration in seconds after the first key press.
-        private float keyRepeatDuration = 0.03f;
+        private readonly float keyRepeatDuration = 0.03f;
 
 
 
 
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
         public DebugCommandUI(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
@@ -333,9 +278,6 @@ namespace CasaEngine.Debugger
             DrawOrder = (int)ComponentDrawOrder.DebugManager;
         }
 
-        /// <summary>
-        /// Initialize component
-        /// </summary>
         public override void Initialize()
         {
             debugManager =
@@ -347,9 +289,6 @@ namespace CasaEngine.Debugger
             base.Initialize();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected override void LoadContent()
         {
             m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
@@ -489,9 +428,6 @@ namespace CasaEngine.Debugger
 
 
 
-        /// <summary>
-        /// Show Debug Command window.
-        /// </summary>
         public void Show()
         {
             if (state == State.Closed)
@@ -501,9 +437,6 @@ namespace CasaEngine.Debugger
             }
         }
 
-        /// <summary>
-        /// Hide Debug Command window.
-        /// </summary>
         public void Hide()
         {
             if (state == State.Opened)
@@ -513,10 +446,6 @@ namespace CasaEngine.Debugger
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Update(GameTime gameTime)
         {
             KeyboardState keyState = Keyboard.GetState();
@@ -557,10 +486,6 @@ namespace CasaEngine.Debugger
             base.Update(gameTime);
         }
 
-        /// <summary>
-        /// Hand keyboard input.
-        /// </summary>
-        /// <param name="dt"></param>
         public void ProcessKeyInputs(float dt)
         {
             KeyboardState keyState = Keyboard.GetState();
@@ -636,11 +561,6 @@ namespace CasaEngine.Debugger
 
         }
 
-        /// <summary>
-        /// Pressing check with key repeating.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
         bool IsKeyPressed(Keys key, float dt)
         {
             // Treat it as pressed if given key has not pressed in previous frame.
@@ -725,9 +645,6 @@ namespace CasaEngine.Debugger
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void OnResize()
         {
 

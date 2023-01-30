@@ -13,9 +13,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Modal Containter, for now it's only used for the windows.
-    /// </summary>
     public abstract class ModalContainer : Container
     {
 
@@ -28,46 +25,32 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Is visible?
-        /// </summary>
         public override bool Visible
         {
-            get { return base.Visible; }
+            get => base.Visible;
             set
             {
-                if (value) 
+                if (value)
                     Focused = true;
                 base.Visible = value;
             }
         } // Visible
 
-        /// <summary>
-        /// Is the active modal?
-        /// </summary>
-        public virtual bool IsTheActiveModal { get { return UserInterfaceManager.ModalWindow == this; } }
+        public virtual bool IsTheActiveModal => UserInterfaceManager.ModalWindow == this;
 
-        /// <summary>
-        /// When the modal window is closed can give diferent results (None, Ok, Cancel, Yes, No, Abort, Retry, Ignore).
-        /// This stores the result.
-        /// </summary>
         public virtual ModalResult ModalResult
         {
-            get { return modalResult; }
-            set { modalResult = value; }
+            get => modalResult;
+            set => modalResult = value;
         } // ModalResult
 
 
 
         public event WindowClosingEventHandler Closing;
-        public event WindowClosedEventHandler  Closed;
+        public event WindowClosedEventHandler Closed;
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="userInterfaceManager_"></param>
         protected ModalContainer(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -76,9 +59,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -89,10 +69,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Show this container in modal mode.
-        /// That means that prevent user from interacting with the rest of the controls.
-        /// </summary>
         public virtual void ShowModal()
         {
             // You can't activate the modal mode twice at the same time.
@@ -106,9 +82,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Close
-        /// </summary>
         public virtual void Close()
         {
             // Raise on closing event.
@@ -135,9 +108,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Close
 
-        /// <summary>
-        /// Close
-        /// </summary>
         public virtual void Close(ModalResult modalResult)
         {
             ModalResult = modalResult;
@@ -148,21 +118,18 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnClosing(WindowClosingEventArgs e)
         {
-            if (Closing != null) 
+            if (Closing != null)
                 Closing.Invoke(this, e);
         } // OnClosing
 
         protected virtual void OnClosed(WindowClosedEventArgs e)
         {
-            if (Closed != null) 
+            if (Closed != null)
                 Closed.Invoke(this, e);
         } // OnClosed
 
 
 
-        /// <summary>
-        /// If it's modal then with escape can be closed.
-        /// </summary>
         void InputKeyDown(object sender, KeyEventArgs e)
         {
             if (Visible && UserInterfaceManager.FocusedControl == this && e.Key == Microsoft.Xna.Framework.Input.Keys.Escape)

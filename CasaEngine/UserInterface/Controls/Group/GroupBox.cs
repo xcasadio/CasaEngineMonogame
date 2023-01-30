@@ -11,10 +11,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset.Fonts;
-
-
 
 
 namespace XNAFinalEngine.UserInterface
@@ -26,34 +22,22 @@ namespace XNAFinalEngine.UserInterface
         Flat
     } // GroupBoxType
 
-    /// <summary>
-    /// Group Box. Group controls that will be enclosed by a bevel and it will be a title in the top bevel line.
-    /// </summary>
     public class GroupBox : Container
     {
 
 
-        /// <summary>
-        /// Group Box Type (Normal, Flat).
-        /// </summary>
         private GroupBoxType type = GroupBoxType.Normal;
 
 
 
-        /// <summary>
-        /// Group Box Type (Normal, Flat).
-        /// </summary>
         public virtual GroupBoxType Type
         {
-            get { return type; }
+            get => type;
             set { type = value; Invalidate(); }
         } // Type
 
 
 
-        /// <summary>
-        /// Group Box. Group controls with and title in a line.
-        /// </summary>
         public GroupBox(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -69,9 +53,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             SkinLayer layer = type == GroupBoxType.Normal ? SkinInformation.Layers["Control"] : SkinInformation.Layers["Flat"];

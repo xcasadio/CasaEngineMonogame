@@ -5,18 +5,12 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System;
 
-
-using System.Linq;
 using Microsoft.Xna.Framework.Input;
 
 
 namespace CasaEngine.Input
 {
-    /// <summary>
-    /// Helper class for working with the 8-way directions stored in a Buttons enum.
-    /// </summary>
     static public class Direction
     {
         // Helper bit masks for directions defined with the Buttons flags enum.
@@ -31,9 +25,6 @@ namespace CasaEngine.Input
         public const Buttons DownRight = Down | Right;
         public const Buttons Any = Up | Down | Left | Right;
 
-        /// <summary>
-        /// Gets the current direction from a game pad and keyboard.
-        /// </summary>
         public static Buttons FromInput(GamePadState gamePad, KeyboardState keyboard)
         {
             Buttons direction = None;
@@ -69,9 +60,6 @@ namespace CasaEngine.Input
             return direction;
         }
 
-        /// <summary>
-        /// Gets the direction without non-direction buttons from a set of Buttons flags.
-        /// </summary>
         public static Buttons FromButtons(Buttons buttons)
         {
             // Extract the direction from a full set of buttons using a bit mask.

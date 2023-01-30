@@ -33,26 +33,20 @@ using Microsoft.Xna.Framework;
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// A composite control with 3 text box to modified vector3 data.
-    /// </summary>
     public class Vector3Box : Control
     {
-        
+
 
         // Controls
         private readonly TextBox xTextBox, yTextBox, zTextBox;
-        
+
         private Vector3 value;
 
 
-        
-        /// <summary>
-        /// Current value.
-        /// </summary>
+
         public virtual Vector3 Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (value != Value)
@@ -69,9 +63,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -81,9 +72,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// A composite control with 3 text box to modified vector3 data.
-        /// </summary>
         public Vector3Box(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -109,7 +97,7 @@ namespace XNAFinalEngine.UserInterface
             var yLabel = new Label(UserInterfaceManager)
             {
                 Parent = this,
-                Left = xTextBox.Left + xTextBox.Width +  8,
+                Left = xTextBox.Left + xTextBox.Width + 8,
                 Width = 15,
                 Height = 25,
                 Text = "Y"
@@ -136,9 +124,9 @@ namespace XNAFinalEngine.UserInterface
                 Width = 100,
                 Text = "0",
             };
-            
 
-            KeyEventHandler keyHandler = delegate(object sender, KeyEventArgs e)
+
+            KeyEventHandler keyHandler = delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
@@ -181,8 +169,8 @@ namespace XNAFinalEngine.UserInterface
                 yTextBox.Text = value.Y.ToString();
                 zTextBox.Text = value.Z.ToString();
             };
-            
-            
+
+
         } // Vector3Box
 
 
@@ -196,7 +184,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnValueChanged(EventArgs e)
         {
-            if (ValueChanged != null) 
+            if (ValueChanged != null)
                 ValueChanged.Invoke(this, e);
         } // OnValueChanged
 

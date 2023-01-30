@@ -17,10 +17,6 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        /// <summary>
-        /// Gives the upper position inside the control that does not have any child control.
-        /// This is useful for placing new controls, but be careful, you have to call it before the parent is set.
-        /// </summary>
         public int AvailablePositionInsideControl
         {
             get
@@ -36,18 +32,12 @@ namespace XNAFinalEngine.UserInterface
                 return max;
             }
         } // AvailablePositionInsideControl
-        
-        /// <summary>
-        /// Client Area.
-        /// </summary>
+
         public virtual ClipBox ClientArea { get; set; }
 
-        /// <summary>
-        /// Get and set the control's client margins.
-        /// </summary>
         public override Margins ClientMargins
         {
-            get { return base.ClientMargins; }
+            get => base.ClientMargins;
             set
             {
                 // Fix the range
@@ -63,9 +53,9 @@ namespace XNAFinalEngine.UserInterface
                 base.ClientMargins = value;
                 if (ClientArea != null)
                 {
-                    ClientArea.Left   = ClientLeft;
-                    ClientArea.Top    = ClientTop;
-                    ClientArea.Width  = ClientWidth;
+                    ClientArea.Left = ClientLeft;
+                    ClientArea.Top = ClientTop;
+                    ClientArea.Width = ClientWidth;
                     ClientArea.Height = ClientHeight;
                 }
             }
@@ -109,13 +99,10 @@ namespace XNAFinalEngine.UserInterface
             base.Remove(control);
             ClientArea.Remove(control);
         } // Remove
-        
 
 
-        /// <summary>
-        /// Remove all controls from client area.
-        /// </summary>
-        public  void RemoveControlsFromClientArea()
+
+        public void RemoveControlsFromClientArea()
         {
             // Recursively disposing all children controls.
             // The collection might change from its children, so we check it on count greater than zero.
@@ -148,9 +135,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Adjust the height to the available position inside the control.
-        /// </summary>
         public virtual void AdjustHeightFromChildren()
         {
             Height = AvailablePositionInsideControl + ClientMargins.Top + ClientMargins.Bottom + 6;
@@ -158,9 +142,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Adjust the controls margin.
-        /// </summary>
         protected virtual void AdjustMargins()
         {
             // Overrite it!!

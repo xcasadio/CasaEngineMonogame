@@ -1,42 +1,20 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Text;
-
-namespace CasaEngine.AI.Reinforcement_Learning.QLearning
+﻿namespace CasaEngine.AI.Reinforcement_Learning.QLearning
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class QPolicy
     {
-
-        Dictionary<KeyValuePair<string, string>, float> m_QValues = new Dictionary<KeyValuePair<string, string>, float>();
-
+        readonly Dictionary<KeyValuePair<string, string>, float> m_QValues = new Dictionary<KeyValuePair<string, string>, float>();
 
 
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <param name="action_"></param>
-        /// <returns></returns>
+
         public float GetQValues(string state_, string action_)
         {
             return m_QValues[new KeyValuePair<string, string>(state_, action_)];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <param name="numAction_"></param>
-        /// <returns></returns>
         public float GetQValues(string state_, int numAction_)
         {
             int action = 0;
@@ -58,22 +36,11 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
             throw new ArgumentException("GetQValues() : numAction_ is too high");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <param name="action_"></param>
-        /// <param name="value_"></param>
         public void SetQValue(string state_, string action_, float value_)
         {
             m_QValues[new KeyValuePair<string, string>(state_, action_)] = value_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <returns></returns>
         public int GetNumberOfActions(IQAgent agent_, string state_)
         {
             int action = 0;
@@ -90,12 +57,6 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
             return action;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="?"></param>
-        /// <param name="?"></param>
-        /// <returns></returns>
         public string GetNewStateFromAction(IQAgent agent_, string state_, int numAction_)
         {
             int action = 0;
@@ -117,12 +78,6 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
             throw new ArgumentException("GetNewStateFromAction() : numAction_ is too high");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <param name="numAction_"></param>
-        /// <returns></returns>
         public string GetActionNumber(IQAgent agent_, string state_, int numAction_)
         {
             int action = 0;
@@ -144,11 +99,6 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
             throw new ArgumentException("GetNewStateFromAction() : numAction_ is too high");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="states_"></param>
-        /// <param name="values_"></param>
         public void CreateStatesAndActions(KeyValuePair<string, string>[] states_, float[] values_)
         {
             if (states_.Length != values_.Length)

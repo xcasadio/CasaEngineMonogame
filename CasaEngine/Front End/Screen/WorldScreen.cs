@@ -1,12 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
-using CasaEngine.Game;
+﻿using CasaEngine.Game;
 using CasaEngine.Graphics2D;
 
 namespace CasaEngine.FrontEnd.Screen
@@ -14,14 +6,10 @@ namespace CasaEngine.FrontEnd.Screen
     public class WorldScreen
         : Screen
     {
-
-        World.World m_World = null;
-
+        readonly World.World m_World = null;
 
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
+
         public WorldScreen(World.World world_, string worldName_)
             : base(worldName_)
         {
@@ -36,9 +24,6 @@ namespace CasaEngine.FrontEnd.Screen
             m_World = world_;
         }
 
-        /// <summary>
-        /// Load graphics content for the game.
-        /// </summary>
         public override void LoadContent(Renderer2DComponent r_)
         {
             base.LoadContent(r_);
@@ -48,20 +33,12 @@ namespace CasaEngine.FrontEnd.Screen
             Engine.Instance.Game.ResetElapsedTime();
         }
 
-        /// <summary>
-        /// Unload graphics content used by the game.
-        /// </summary>
         public override void UnloadContent()
         {
         }
 
 
 
-        /// <summary>
-        /// Updates the state of the game. This method checks the Screen.IsActive
-        /// property, so the game will stop updating when the pause menu is active,
-        /// or if you tab away to a different application.
-        /// </summary>
         public override void Update(float elapsedTime, bool otherScreenHasFocus,
                                                        bool coveredByOtherScreen)
         {
@@ -73,10 +50,6 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// Lets the game respond to player input. Unlike the Update method,
-        /// this will only be called when the gameplay screen is active.
-        /// </summary>
         public override void HandleInput(InputState input)
         {
             if (input == null)
@@ -85,16 +58,12 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// Draws the gameplay screen.
-        /// </summary>
         public override void Draw(float elapsedTime_)
         {
             // This game has a blue background. Why? Because!
             /*GameInfo.Instance.GraphicsDeviceManager.GraphicsDevice.Clear(ClearOptions.Target,
                                                Color.CornflowerBlue, 0, 0);*/
 
-            /////////////////////////////////////
             //base.ScreenManager.GraphicsDevice.RenderState.AlphaBlendEnable = false;
             //base.ScreenManager.GraphicsDevice.RenderState.AlphaTestEnable = false;
             //base.ScreenManager.GraphicsDevice.RenderState.BlendFunction = BlendFunction.Add;

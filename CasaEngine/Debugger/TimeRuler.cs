@@ -6,17 +6,8 @@
 //-----------------------------------------------------------------------------
 
 
-using System;
-
-
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using System.Text;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngineCommon.Extension;
-
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
 using CasaEngine.CoreSystems.Game;
@@ -27,133 +18,48 @@ using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.Debugger
 {
-    /// <summary>
-    /// Realtime CPU measuring tool
-    /// </summary>
-    /// <remarks>
-    /// You can visually find bottle neck, and know how much you can put more CPU jobs
-    /// by using this tool.
-    /// Because of this is real time profile, you can find glitches in the game too.
-    /// 
-    /// TimeRuler provide the following features:
-    ///  * Up to 8 bars (Configurable)
-    ///  * Change colors for each markers
-    ///  * Marker logging.
-    ///  * It won't even generate BeginMark/EndMark method calls when you got rid of the
-    ///    TRACE constant.
-    ///  * It supports up to 32 (Configurable) nested BeginMark method calls.
-    ///  * Multithreaded safe
-    ///  * Automatically changes display frames based on frame duration.
-    ///  
-    /// How to use:
-    /// Added TimerRuler instance to Game.Components and call timerRuler.StartFrame in
-    /// top of the Game.Update method.
-    /// 
-    /// Then, surround the code that you want measure by BeginMark and EndMark.
-    /// 
-    /// timeRuler.BeginMark( "Update", Color.Blue );
-    /// // process that you want to measure.
-    /// timerRuler.EndMark( "Update" );
-    /// 
-    /// Also, you can specify bar index of marker (default value is 0)
-    /// 
-    /// timeRuler.BeginMark( 1, "Update", Color.Blue );
-    /// 
-    /// All profiling methods has CondionalAttribute with "TRACE".
-    /// If you not specified "TRACE" constant, it doesn't even generate
-    /// method calls for BeginMark/EndMark.
-    /// So, don't forget remove "TRACE" constant when you release your game.
-    /// 
-    /// </remarks>
     public class TimeRuler
         : Microsoft.Xna.Framework.DrawableGameComponent, IGameComponentResizable
     {
 
-        /// <summary>
-        /// Max bar count.
-        /// </summary>
         const int MaxBars = 8;
 
-        /// <summary>
-        /// Maximum sample number for each bar.
-        /// </summary>
         const int MaxSamples = 256;
 
-        /// <summary>
-        /// Maximum nest calls for each bar.
-        /// </summary>
         const int MaxNestCall = 32;
 
-        /// <summary>
-        /// Maximum display frames.
-        /// </summary>
         const int MaxSampleFrames = 4;
 
-        /// <summary>
-        /// Duration (in frame count) for take snap shot of log.
-        /// </summary>
         const int LogSnapDuration = 120;
 
-        /// <summary>
-        /// Height(in pixels) of bar.
-        /// </summary>
         const int BarHeight = 8;
 
-        /// <summary>
-        /// Padding(in pixels) of bar.
-        /// </summary>
         const int BarPadding = 2;
 
-        /// <summary>
-        /// Delay frame count for auto display frame adjustment.
-        /// </summary>
         const int AutoAdjustDelay = 30;
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public bool CanSetVisible
-        {
-            get { return false; }
-        }
+        public bool CanSetVisible => false;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public bool CanSetEnable
-        {
-            get { return true; }
-        }
+        public bool CanSetEnable => true;
 
-        /// <summary>
-        /// Gets/Set log display or no.
-        /// </summary>
         public bool ShowLog { get; set; }
 
-        /// <summary>
-        /// Gets/Sets target sample frames.
-        /// </summary>
         public int TargetSampleFrames { get; set; }
 
-        /// <summary>
-        /// Gets/Sets TimeRuler rendering position.
-        /// </summary>
-        public Vector2 Position { get { return position; } set { position = value; } }
+        public Vector2 Position
+        {
+            get => position;
+            set => position = value;
+        }
 
-        /// <summary>
-        /// Gets/Sets timer ruler width.
-        /// </summary>
         public int Width { get; set; }
 
 
 
 #if TRACE
 
-        /// <summary>
-        /// Marker structure.
-        /// </summary>
         private struct Marker
         {
             public int MarkerId;
@@ -162,9 +68,6 @@ namespace CasaEngine.Debugger
             public Color Color;
         }
 
-        /// <summary>
-        /// Collection of markers.
-        /// </summary>
         private class MarkerCollection
         {
             // Marker collection.
@@ -176,9 +79,6 @@ namespace CasaEngine.Debugger
             public int NestCount;
         }
 
-        /// <summary>
-        /// Frame logging information.
-        /// </summary>
         private class FrameLog
         {
             public MarkerCollection[] Bars;
@@ -192,9 +92,6 @@ namespace CasaEngine.Debugger
             }
         }
 
-        /// <summary>
-        /// Marker information
-        /// </summary>
         private class MarkerInfo
         {
             // Name of marker.
@@ -209,9 +106,6 @@ namespace CasaEngine.Debugger
             }
         }
 
-        /// <summary>
-        /// Marker log information.
-        /// </summary>
         private struct MarkerLog
         {
             public float SnapMin;
@@ -278,10 +172,6 @@ namespace CasaEngine.Debugger
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="game"></param>
         public TimeRuler(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
@@ -292,9 +182,6 @@ namespace CasaEngine.Debugger
             DrawOrder = (int)ComponentDrawOrder.DebugManager;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public override void Initialize()
         {
 #if TRACE
@@ -328,9 +215,6 @@ namespace CasaEngine.Debugger
             base.Initialize();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         protected override void LoadContent()
         {
             m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
@@ -346,9 +230,6 @@ namespace CasaEngine.Debugger
         }
 
 #if TRACE
-        /// <summary>
-        /// 'tr' command execution.
-        /// </summary>
         void CommandExecute(IDebugCommandHost host, string command,
                                                                 IList<string> arguments)
         {
@@ -416,9 +297,6 @@ namespace CasaEngine.Debugger
         }
 #endif
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void OnResize()
         {
             Width = (int)(GraphicsDevice.Viewport.Width * 0.8f);
@@ -430,9 +308,6 @@ namespace CasaEngine.Debugger
 
 
 
-        /// <summary>
-        /// Start new frame.
-        /// </summary>
         [Conditional("TRACE")]
         public void StartFrame()
         {
@@ -520,11 +395,6 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        /// <summary>
-        /// Start measure time.
-        /// </summary>
-        /// <param name="markerName">name of marker.</param>
-        /// <param name="color">color/param>
         [Conditional("TRACE")]
         public void BeginMark(string markerName, Color color)
         {
@@ -533,12 +403,6 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        /// <summary>
-        /// Start measure time.
-        /// </summary>
-        /// <param name="barIndex">index of bar</param>
-        /// <param name="markerName">name of marker.</param>
-        /// <param name="color">color/param>
         [Conditional("TRACE")]
         public void BeginMark(int barIndex, string markerName, Color color)
         {
@@ -592,10 +456,6 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        /// <summary>
-        /// End measuring.
-        /// </summary>
-        /// <param name="markerName">Name of marker.</param>
         [Conditional("TRACE")]
         public void EndMark(string markerName)
         {
@@ -604,11 +464,6 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        /// <summary>
-        /// End measuring.
-        /// </summary>
-        /// <param name="barIndex">Index of bar.</param>
-        /// <param name="markerName">Name of marker.</param>
         [Conditional("TRACE")]
         public void EndMark(int barIndex, string markerName)
         {
@@ -652,12 +507,6 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        /// <summary>
-        /// Get average time of given bar index and marker name.
-        /// </summary>
-        /// <param name="barIndex">Index of bar</param>
-        /// <param name="markerName">name of marker</param>
-        /// <returns>average spending time in ms.</returns>
         public float GetAverageTime(int barIndex, string markerName)
         {
 #if TRACE
@@ -675,9 +524,6 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-        /// <summary>
-        /// Reset marker log.
-        /// </summary>
         [Conditional("TRACE")]
         public void ResetLog()
         {
@@ -706,21 +552,12 @@ namespace CasaEngine.Debugger
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
             Draw(position, Width);
             base.Draw(gameTime);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="position"></param>
-        /// <param name="width"></param>
         [Conditional("TRACE")]
         public void Draw(Vector2 position, int width)
         {

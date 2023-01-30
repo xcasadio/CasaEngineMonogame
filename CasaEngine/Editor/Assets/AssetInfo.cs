@@ -1,25 +1,7 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Content;
-using System.Xml;
-using CasaEngineCommon.Extension;
-using System.IO;
-using CasaEngine.Game;
-using CasaEngineCommon.Logger;
-using Microsoft.Xna.Framework;
-using CasaEngine;
-using CasaEngine.Editor.Builder;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace CasaEngine.Editor.Assets
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public struct AssetInfo
     {
         static private int FreeID = 0;
@@ -32,13 +14,6 @@ namespace CasaEngine.Editor.Assets
         [TypeConverter(typeof(AssetBuildParamCollectionConverter))]
         public AssetBuildParamCollection Params;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id_"></param>
-        /// <param name="name_"></param>
-        /// <param name="type_"></param>
-        /// <param name="fileName_"></param>
         public AssetInfo(int id_, string name_, AssetType type_, string fileName_)
         {
             ID = id_;
@@ -48,11 +23,6 @@ namespace CasaEngine.Editor.Assets
             Params = new AssetBuildParamCollection();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
         public override bool Equals(object obj)
         {
             if (obj is AssetInfo)
@@ -66,19 +36,11 @@ namespace CasaEngine.Editor.Assets
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override int GetHashCode()
         {
             return Name.GetHashCode() + Type.GetHashCode() + ID.GetHashCode();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id_"></param>
         public void SetID(int id_)
         {
             ID = id_;
@@ -89,9 +51,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void GetNewID()
         {
             this.ID = ++FreeID;

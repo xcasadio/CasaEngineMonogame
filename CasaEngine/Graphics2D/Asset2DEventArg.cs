@@ -1,15 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Graphics2D
+﻿namespace CasaEngine.Graphics2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class Asset2DEventArg
         : EventArgs
     {

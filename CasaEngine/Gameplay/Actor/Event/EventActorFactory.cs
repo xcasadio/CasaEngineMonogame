@@ -1,19 +1,8 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Design.Event;
-using System.Xml;
-using CasaEngineCommon.Extension;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Gameplay.Actor.Event
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public static class EventActorFactory
     {
 
@@ -23,12 +12,6 @@ namespace CasaEngine.Gameplay.Actor.Event
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
-        /// <returns></returns>
         static public EventActor LoadEvent(XmlElement el_, SaveOption option_)
         {
             EventActorType type = (EventActorType)Enum.Parse(typeof(EventActorType), el_.Attributes["type"].Value);

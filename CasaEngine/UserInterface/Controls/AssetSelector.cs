@@ -26,16 +26,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-using System.Collections.Generic;
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Add, edit and change XNA Final Engine Assets.
-    /// </summary>
     public class AssetSelector : Control
     {
 
@@ -47,40 +40,22 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Indicates if the internal list box is visible or not.
-        /// </summary>
-        public bool ListBoxVisible { get { return comboBox.ListBoxVisible; } }
+        public bool ListBoxVisible => comboBox.ListBoxVisible;
 
-        /// <summary>
-        /// List of Items.
-        /// </summary>
-        public virtual List<object> Items
-        {
-            get { return comboBox.Items; }
-        } // Items
+        public virtual List<object> Items => comboBox.Items; // Items
 
-        /// <summary>
-        /// Maximum Number of items showed by time.
-        /// </summary>
         public int MaxItemsShow
         {
-            get { return comboBox.MaxItemsShow; }
-            set { comboBox.MaxItemsShow = value; }
+            get => comboBox.MaxItemsShow;
+            set => comboBox.MaxItemsShow = value;
         } // MaxItems
 
-        /// <summary>
-        /// Item index.
-        /// </summary>
         public int ItemIndex
         {
-            get { return comboBox.ItemIndex; }
-            set { comboBox.ItemIndex = value; }
+            get => comboBox.ItemIndex;
+            set => comboBox.ItemIndex = value;
         } // ItemIndex
 
-        /// <summary>
-        /// Is the edit button enabled?
-        /// </summary>
         public bool EditButtonEnabled { get; set; }
 
 
@@ -92,9 +67,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Add, edit and change XNA Final Engine Assets.
-        /// </summary>
         public AssetSelector(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -155,9 +127,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.

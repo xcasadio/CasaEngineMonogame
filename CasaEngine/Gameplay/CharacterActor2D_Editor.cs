@@ -1,32 +1,12 @@
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Content;
-
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Media;
-using CasaEngine.AI.StateMachines;
 using System.Xml;
-using CasaEngine.Design;
 using CasaEngine.Game;
 using CasaEngineCommon.Extension;
-using CasaEngine;
-using CasaEngine.Graphics2D;
-using System.IO;
 using CasaEngineCommon.Design;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.Gameplay
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class CharacterActor2D
     {
 
@@ -36,11 +16,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Save(XmlElement el_, SaveOption opt_)
         {
             base.Save(el_, opt_);
@@ -67,11 +42,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="bw_"></param>
         public override void Save(BinaryWriter bw_, SaveOption opt_)
         {
             base.Save(bw_, opt_);
@@ -91,11 +61,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
-        /// <param name="name_"></param>
         public void AddOrSetAnimation(int index_, string name_)
         {
             Animation2D anim = Engine.Instance.ObjectManager.GetObjectByPath(name_) as Animation2D;
@@ -115,11 +80,6 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns>The index of the animation. Returns -1 if the animation has not been found.</returns>
         public int AddAnimation(string name_)
         {
             int index = 0;
@@ -141,11 +101,6 @@ namespace CasaEngine.Gameplay
             return -1;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index_"></param>
-        /// <returns></returns>
         public string GetAnimationName(int index_)
         {
             //if (m_Animations.ContainsKey(index_))
@@ -158,10 +113,6 @@ namespace CasaEngine.Gameplay
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public List<string> GetAllAnimationName()
         {
             List<string> res = new List<string>();
@@ -175,11 +126,6 @@ namespace CasaEngine.Gameplay
             return res;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other_"></param>
-        /// <returns></returns>
         public override bool CompareTo(BaseObject other_)
         {
             throw new NotImplementedException();

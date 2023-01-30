@@ -27,30 +27,12 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
 
 using Microsoft.Xna.Framework;
 
 namespace XNAFinalEngine.Helpers
 {
 
-    /// <summary>
-    /// Curve 3D. Assumes that the firts point it's allways 0.
-    /// 
-    /// To create a curve:
-    /// 
-    ///  // Create instance
-    ///  * curve = new Curve3D();
-    ///  
-    ///  // Add points
-    ///  * curve.AddPoint(..., 0);
-    ///  * curve.AddPoint(...);
-    ///  ...
-    ///  
-    ///  // Finish the curve calculating its tangents.
-    ///  * curve.SetTangents();
-    /// </summary>
     public class Curve3D
     {
 
@@ -61,12 +43,9 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// The PreLoop and PostLoop types determine how the curve will interpret positions before the first key or after the last key.
-        /// </summary>
         public CurveLoopType PostLoop
         {
-            get { return curveX.PostLoop; }
+            get => curveX.PostLoop;
             set
             {
                 curveX.PostLoop = value;
@@ -75,17 +54,11 @@ namespace XNAFinalEngine.Helpers
             }
         } // PostLoop
 
-        /// <summary>
-        /// Point count.
-        /// </summary>
-        public int PointCount { get { return curveX.Keys.Count; } }
+        public int PointCount => curveX.Keys.Count;
 
-        /// <summary>
-        /// The PreLoop and PostLoop types determine how the curve will interpret positions before the first key or after the last key.
-        /// </summary>
         public CurveLoopType PreLoop
         {
-            get { return curveX.PostLoop; }
+            get => curveX.PostLoop;
             set
             {
                 curveX.PreLoop = value;
@@ -94,21 +67,12 @@ namespace XNAFinalEngine.Helpers
             }
         } // PreLoop
 
-        /// <summary>
-        /// Stores the last point's time.
-        /// </summary>
         public float CurveTotalTime { get; private set; }
 
-        /// <summary>
-        /// is the curve close?
-        /// </summary>
         public bool IsClose { get; private set; }
 
 
 
-        /// <summary>
-        /// Curve 3D. Assumes that the firts point it's allways 0.
-        /// </summary>
         public Curve3D()
         {
             IsClose = false;
@@ -117,10 +81,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Add a point to the curve. Assumes that the firts point it's allways 0.
-        /// The worldMatrix modify the point's position to the world matrix coordinate system.
-        /// </summary>
         public void AddPoint(Vector3 point, float time, Matrix worldMatrix)
         {
             point = Vector3.Transform(point, worldMatrix);
@@ -130,9 +90,6 @@ namespace XNAFinalEngine.Helpers
             CurveTotalTime = time;
         } // AddPoint
 
-        /// <summary>
-        /// Add a point to the curve. Assumes that the firts point it's allways 0.
-        /// </summary>
         public void AddPoint(Vector3 point, float time)
         {
             AddPoint(point, time, Matrix.Identity);
@@ -140,9 +97,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Close the curve
-        /// </summary>
         public void Close()
         {
             if (!IsClose)
@@ -156,9 +110,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Get point
-        /// </summary>
         public Vector3 GetPoint(float time)
         {
             return new Vector3(curveX.Evaluate(time), curveY.Evaluate(time), curveZ.Evaluate(time));
@@ -166,9 +117,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Reparametrize a curve.
-        /// </summary>
         public void Reparametrize(float newTotalTime)
         {
             Curve newCurveX = new Curve();
@@ -190,10 +138,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Build tangents. The tangents of the CurveKeys control the shape of the Curve.
-        /// Setting the tangents of the CurveKeys to the slope between the previous and next CurveKey will give a curve that moves smoothly through each point on the curve.
-        /// </summary>
         public void BuildTangents()
         {
             CurveKey prev;
@@ -250,9 +194,6 @@ namespace XNAFinalEngine.Helpers
             } // for
         } // BuildTangents
 
-        /// <summary>
-        /// Set curve key tangent
-        /// </summary>
         private static void SetCurveKeyTangent(ref CurveKey prev, ref CurveKey cur, ref CurveKey next, bool border)
         {
             float dt = next.Position - prev.Position;
@@ -278,10 +219,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Circle
-        /// The worldMatrix modify the point's position to the world matrix coordinate system.
-        /// </summary>
         public static Curve3D Circle(Matrix worldMatrix, float radius = 1, int numberOfPoints = 50)
         {
             Curve3D circle = new Curve3D();
@@ -296,9 +233,6 @@ namespace XNAFinalEngine.Helpers
             return circle;
         } // Circle
 
-        /// <summary>
-        /// Circle
-        /// </summary>
         public static Curve3D Circle(float radius = 1, int numberOfPoints = 50)
         {
             return Circle(Matrix.Identity, radius, 50);
@@ -306,10 +240,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Polygon.
-        /// The worldMatrix modify the point's position to the world matrix coordinate system.
-        /// </summary>
         public static Curve3D Polygon(Matrix worldMatrix, float sideLenght, int sides, bool buildTangents)
         {
             Curve3D poly = new Curve3D();
@@ -337,9 +267,6 @@ namespace XNAFinalEngine.Helpers
             return poly;
         } // Polygon
 
-        /// <summary>
-        /// Polygon.
-        /// </summary>
         public static Curve3D Polygon(float sideLength = 50, int sides = 5, bool buildTangents = false)
         {
             return Polygon(Matrix.Identity, sideLength, sides, buildTangents);
@@ -347,10 +274,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Hexagon.
-        /// The worldMatrix modify the point's position to the world matrix coordinate system.
-        /// </summary>
         public static Curve3D Hexagon(Matrix worldMatrix, float sideLength = 50, bool buildTangents = true)
         {
             Curve3D hexagon = new Curve3D();
@@ -385,9 +308,6 @@ namespace XNAFinalEngine.Helpers
             return hexagon;
         } // Hexagon
 
-        /// <summary>
-        /// Hexagon.
-        /// </summary>
         public static Curve3D Hexagon(float sideLength = 50, bool buildTangents = true)
         {
             return Hexagon(Matrix.Identity, sideLength, buildTangents);

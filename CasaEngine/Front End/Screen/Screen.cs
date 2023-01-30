@@ -5,21 +5,15 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System;
-
 
 using Microsoft.Xna.Framework;
 using CasaEngine.Graphics2D;
 using System.Xml;
-using CasaEngine.FrontEnd.Screen.Gadget;
 using CasaEngineCommon.Design;
 using CasaEngine.Gameplay.Actor.Object;
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    /// <summary>
-    /// Enum describes the screen transition state.
-    /// </summary>
     public enum ScreenState
     {
         TransitionOn,
@@ -28,13 +22,6 @@ namespace CasaEngine.FrontEnd.Screen
         Hidden,
     }
 
-    /// <summary>
-    /// A screen is a single layer that has update and draw logic, and which
-    /// can be combined with other layers to build up a complex menu system.
-    /// For instance the main menu, the options menu, the "are you sure you
-    /// want to quit" message box, and the main game itself are all implemented
-    /// as screens.
-    /// </summary>
     public abstract
 #if EDITOR
     partial
@@ -54,131 +41,67 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-		/// Gets
-		/// </summary>
-		public string Name
+        public string Name
         {
             get;
             internal set;
         }
 
-        /// <summary>
-        /// Normally when one screen is brought up over the top of another,
-        /// the first screen will transition off to make room for the new
-        /// one. This property indicates whether the screen is only a small
-        /// popup, in which case screens underneath it do not need to bother
-        /// transitioning off.
-        /// </summary>
         public bool IsPopup
         {
-            get { return isPopup; }
-            protected set { isPopup = value; }
+            get => isPopup;
+            protected set => isPopup = value;
         }
 
-        /// <summary>
-        /// Indicates how long the screen takes to
-        /// transition on when it is activated.
-        /// </summary>
         public TimeSpan TransitionOnTime
         {
-            get { return transitionOnTime; }
-            set { transitionOnTime = value; }
+            get => transitionOnTime;
+            set => transitionOnTime = value;
         }
 
-        /// <summary>
-        /// Indicates how long the screen takes to
-        /// transition off when it is deactivated.
-        /// </summary>
         public TimeSpan TransitionOffTime
         {
-            get { return transitionOffTime; }
-            set { transitionOffTime = value; }
+            get => transitionOffTime;
+            set => transitionOffTime = value;
         }
 
-        /// <summary>
-        /// Gets the current position of the screen transition, ranging
-        /// from zero (fully active, no transition) to one (transitioned
-        /// fully off to nothing).
-        /// </summary>
         public float TransitionPosition
         {
-            get { return transitionPosition; }
-            set { transitionPosition = value; }
+            get => transitionPosition;
+            set => transitionPosition = value;
         }
 
-        /// <summary>
-        /// Gets the current alpha of the screen transition, ranging
-        /// from 255 (fully active, no transition) to 0 (transitioned
-        /// fully off to nothing).
-        /// </summary>
-        public byte TransitionAlpha
-        {
-            get { return (byte)(255 - TransitionPosition * 255); }
-        }
+        public byte TransitionAlpha => (byte)(255 - TransitionPosition * 255);
 
-        /// <summary>
-        /// Gets the current screen transition state.
-        /// </summary>
         public ScreenState ScreenState
         {
-            get { return screenState; }
-            set { screenState = value; }
+            get => screenState;
+            set => screenState = value;
         }
 
-        /// <summary>
-        /// There are two possible reasons why a screen might be transitioning
-        /// off. It could be temporarily going away to make room for another
-        /// screen that is on top of it, or it could be going away for good.
-        /// This property indicates whether the screen is exiting for real:
-        /// if set, the screen will automatically remove itself as soon as the
-        /// transition finishes.
-        /// </summary>
         public bool IsExiting
         {
-            get { return isExiting; }
-            internal set { isExiting = value; }
+            get => isExiting;
+            internal set => isExiting = value;
         }
 
-        /// <summary>
-        /// Checks whether this screen is active and can respond to user input.
-        /// </summary>
-        public bool IsActive
+        public bool IsActive =>
+            !otherScreenHasFocus &&
+            (screenState == ScreenState.TransitionOn ||
+             screenState == ScreenState.Active);
+
+        public ScreenManagerComponent ScreenManagerComponent
         {
-            get
-            {
-                return !otherScreenHasFocus &&
-                       (screenState == ScreenState.TransitionOn ||
-                        screenState == ScreenState.Active);
-            }
+            get => screenManager;
+            internal set => screenManager = value;
         }
 
-        /// <summary>
-        /// Gets the manager that this screen belongs to.
-        /// </summary>
-		public ScreenManagerComponent ScreenManagerComponent
-        {
-            get { return screenManager; }
-            internal set { screenManager = value; }
-        }
-
-        /// <summary>
-        /// Gets the index of the player who is currently controlling this screen,
-        /// or null if it is accepting input from any player. This is used to lock
-        /// the game to a specific player profile. The main menu responds to input
-        /// from any connected gamepad, but whichever player makes a selection from
-        /// this menu is given control over all subsequent screens, so other gamepads
-        /// are inactive until the controlling player returns to the main menu.
-        /// </summary>
         public PlayerIndex? ControllingPlayer
         {
-            get { return controllingPlayer; }
-            internal set { controllingPlayer = value; }
+            get => controllingPlayer;
+            internal set => controllingPlayer = value;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public Renderer2DComponent Renderer2DComponent
         {
             get;
@@ -187,20 +110,11 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         protected Screen(string name_)
         {
             Name = name_;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         protected Screen(XmlElement el_, SaveOption opt_)
         {
             Load(el_, opt_);
@@ -208,29 +122,15 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Load graphics content for the screen.
-        /// </summary>
         public virtual void LoadContent(Renderer2DComponent r_)
         {
             Renderer2DComponent = r_;
         }
 
-        /// <summary>
-        /// Unload content for the screen.
-        /// </summary>
         public virtual void UnloadContent() { }
 
 
 
-        /// <summary>
-        /// Allows the screen to run logic, such as updating the transition position.
-        /// Unlike HandleInput, this method is called regardless of whether the screen
-        /// is active, hidden, or in the middle of a transition.
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
-        /// <param name="otherScreenHasFocus"></param>
-        /// <param name="coveredByOtherScreen"></param>
         public virtual void Update(float elapsedTime_, bool otherScreenHasFocus,
                                                       bool coveredByOtherScreen)
         {
@@ -277,10 +177,7 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// Helper for updating the screen transition position.
-        /// </summary>
-		bool UpdateTransition(float elapsedTime_, TimeSpan time, int direction)
+        bool UpdateTransition(float elapsedTime_, TimeSpan time, int direction)
         {
             // How much should we move by?
             float transitionDelta;
@@ -306,25 +203,12 @@ namespace CasaEngine.FrontEnd.Screen
             return true;
         }
 
-        /// <summary>
-        /// Allows the screen to handle user input. Unlike Update, this method
-        /// is only called when the screen is active, and not when some other
-        /// screen has taken the focus.
-        /// </summary>
         public virtual void HandleInput(InputState input) { }
 
-        /// <summary>
-        /// This is called when the screen should draw itself.
-        /// </summary>
-		public virtual void Draw(float elapsedTime_) { }
+        public virtual void Draw(float elapsedTime_) { }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Load(XmlElement el_, SaveOption opt_)
         {
             base.Load(el_, opt_);
@@ -337,11 +221,6 @@ namespace CasaEngine.FrontEnd.Screen
             //this.TransitionPosition = float.Parse(el_.SelectSingleNode("TransitionPosition").InnerText);
         }
 
-        /// <summary>
-		/// Tells the screen to go away. Unlike ScreenManagerComponent.RemoveScreen, which
-        /// instantly kills the screen, this method respects the transition timings
-        /// and will give the screen a chance to gradually transition off.
-        /// </summary>
         public void ExitScreen()
         {
             if (TransitionOffTime == TimeSpan.Zero)
@@ -356,10 +235,6 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="screen_"></param>
         public virtual void CopyFrom(Screen screen_)
         {
             isPopup = screen_.isPopup;
@@ -375,11 +250,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 #if EDITOR
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="screen_"></param>
-        /// <returns></returns>
         public override bool CompareTo(BaseObject other_)
         {
             if (other_ is Screen == false)
@@ -400,10 +270,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 #endif
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override BaseObject Clone()
         {
             throw new Exception("The method or operation is not implemented.");

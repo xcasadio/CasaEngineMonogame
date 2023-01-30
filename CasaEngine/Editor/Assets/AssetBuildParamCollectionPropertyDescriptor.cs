@@ -1,21 +1,12 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace CasaEngine.Editor.Assets
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class AssetBuildParamCollectionPropertyDescriptor
         : PropertyDescriptor
     {
-        private AssetBuildParamCollection collection = null;
-        private int index = -1;
+        private readonly AssetBuildParamCollection collection = null;
+        private readonly int index = -1;
 
         public AssetBuildParamCollectionPropertyDescriptor(AssetBuildParamCollection coll, int idx) :
             base("#" + idx.ToString(), null)
@@ -24,26 +15,14 @@ namespace CasaEngine.Editor.Assets
             this.index = idx;
         }
 
-        public override AttributeCollection Attributes
-        {
-            get
-            {
-                return new AttributeCollection(null);
-            }
-        }
+        public override AttributeCollection Attributes => new AttributeCollection(null);
 
         public override bool CanResetValue(object component)
         {
             return true;
         }
 
-        public override Type ComponentType
-        {
-            get
-            {
-                return this.collection.GetType();
-            }
-        }
+        public override Type ComponentType => this.collection.GetType();
 
         public override string DisplayName
         {
@@ -68,20 +47,11 @@ namespace CasaEngine.Editor.Assets
             return this.collection[index];
         }
 
-        public override bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public override bool IsReadOnly => false;
 
-        public override string Name
-        {
-            get { return "#" + index.ToString(); }
-        }
+        public override string Name => "#" + index.ToString();
 
-        public override Type PropertyType
-        {
-            get { return this.collection[index].GetType(); }
-        }
+        public override Type PropertyType => this.collection[index].GetType();
 
         public override void ResetValue(object component)
         {

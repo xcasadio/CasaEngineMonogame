@@ -1,25 +1,14 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using P4API;
+﻿using P4API;
 using CasaEngineCommon.Logger;
 using CasaEngine.Game;
-using System.Windows;
-using System.Globalization;
 
 namespace CasaEngine.SourceControl
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class P4SourceControl
         : ISourceControl
     {
 
-        private P4Connection m_P4Connection = null;
+        private readonly P4Connection m_P4Connection = null;
 
         private string[] m_CommandFstatKeys = {
             "headModTime",
@@ -48,7 +37,7 @@ namespace CasaEngine.SourceControl
             "action",
             "time"};
 
-        private Dictionary<string, SourceControlKeyWord> KeyWordMapping = new Dictionary<string, SourceControlKeyWord>();
+        private readonly Dictionary<string, SourceControlKeyWord> KeyWordMapping = new Dictionary<string, SourceControlKeyWord>();
 
         private bool m_ValidWorkspaceDirectory = false;
 
@@ -56,10 +45,6 @@ namespace CasaEngine.SourceControl
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="scManager_"></param>
         public P4SourceControl()
         {
             m_P4Connection = new P4Connection();
@@ -89,24 +74,12 @@ namespace CasaEngine.SourceControl
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="command_"></param>
-        /// <param name="args_"></param>
-        /// <returns></returns>
         private bool Run(string command_, params string[] args_)
         {
             P4RecordSet set = RunEx(command_, args_);
             return set == null ? false : set.Errors.Count() == 0;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="command_"></param>
-        /// <param name="args_"></param>
-        /// <returns></returns>
         private P4RecordSet RunEx(string command_, params string[] args_)
         {
             if (IsValidConnection() == false)
@@ -148,9 +121,6 @@ namespace CasaEngine.SourceControl
             return set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Connect()
         {
 #if UNITTEST
@@ -206,18 +176,11 @@ namespace CasaEngine.SourceControl
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Disconnect()
         {
             m_P4Connection.Disconnect();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public bool IsValidConnection()
         {
 #if UNITTEST
@@ -230,11 +193,6 @@ namespace CasaEngine.SourceControl
             return m_ValidWorkspaceDirectory && m_P4Connection.IsValidConnection(true, true);
         }
 
-        /// <summary>
-        /// Get status of one file
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <returns></returns>
         public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FileStatus(string[] filesName_)
         {
             Dictionary<string, Dictionary<SourceControlKeyWord, string>> res = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
@@ -266,21 +224,11 @@ namespace CasaEngine.SourceControl
             return res;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <returns></returns>
         public bool RevertFile(string fileName_)
         {
             return Run("revert", fileName_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="changeListNum_"></param>
-        /// <returns></returns>
         public bool Submit(int changeListNum_)
         {
             //P4PendingChangelist pc = new P4PendingChangelist();
@@ -295,72 +243,39 @@ namespace CasaEngine.SourceControl
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <returns></returns>
         public bool CheckOut(string fileName_)
         {
             //sync
             return Run("edit", fileName_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public bool Sync(string fileName_)
         {
             return Run("sync", fileName_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public bool SyncAll()
         {
             return Run("sync");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <returns></returns>
         public bool LockFile(string fileName_)
         {
             //p4 [g-opts] lock [-c changelist] [file ...] 
             return Run("lock", fileName_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <returns></returns>
         public bool UnlockFile(string fileName_)
         {
             //p4 [g-opts] unlock [-c changelist | -s shelvedchange ] [-f] file...
             return Run("unlock", fileName_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <returns></returns>
         public bool MarkFileForDelete(string fileName_)
         {
             return Run("delete", "-v", fileName_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName_"></param>
-        /// <returns></returns>
         public bool MarkFileForAdd(string fileName_)
         {
             return Run("add", "-f", fileName_);

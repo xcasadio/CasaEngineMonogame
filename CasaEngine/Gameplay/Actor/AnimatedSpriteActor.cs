@@ -1,27 +1,16 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Gameplay.Actor.Object;
+﻿using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Graphics2D;
-using CasaEngine.Helper;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using CasaEngine.Game;
 using System.Xml;
 using CasaEngineCommon.Logger;
-using CasaEngine.Design;
 using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
 
 namespace CasaEngine.Gameplay.Actor
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class AnimatedSpriteActor : Actor2D, IRenderable
     {
 
@@ -44,35 +33,20 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Animation2DPlayer Animation2DPlayer
-        {
-            get { return m_Animation2DPlayer; }
-        }
+        public Animation2DPlayer Animation2DPlayer => m_Animation2DPlayer;
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Depth
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public float ZOrder
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public bool Visible
         {
             get;
@@ -81,20 +55,12 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         public AnimatedSpriteActor()
             : base()
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
         public AnimatedSpriteActor(AnimatedSpriteActor src_)
         {
             //return new 
@@ -102,19 +68,11 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override BaseObject Clone()
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Copy
-        /// </summary>
-        /// <param name="ob_"></param>
         protected override void CopyFrom(BaseObject ob_)
         {
             base.CopyFrom(ob_);
@@ -132,19 +90,11 @@ namespace CasaEngine.Gameplay.Actor
             m_Renderer2DComponent = src.m_Renderer2DComponent;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public override void Update(float elapsedTime_)
         {
             m_Animation2DPlayer.Update(elapsedTime_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public virtual void Draw(float elapsedTime_)
         {
             m_Renderer2DComponent.AddSprite2D(
@@ -154,11 +104,6 @@ namespace CasaEngine.Gameplay.Actor
                 SpriteEffects.None);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Load(XmlElement el_, SaveOption opt_)
         {
             base.Load(el_, opt_);
@@ -181,10 +126,6 @@ namespace CasaEngine.Gameplay.Actor
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="anim2DName_"></param>
         public void LoadAnimation(int index_, string anim2DName_)
         {
             m_Animations.Add(
@@ -201,10 +142,6 @@ namespace CasaEngine.Gameplay.Actor
             m_Animation2DPlayer = new Animation2DPlayer(m_Animations);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="physicWorld_"></param>
         public virtual void Initialize()
         {
             m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);

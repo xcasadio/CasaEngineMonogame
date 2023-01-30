@@ -1,9 +1,3 @@
-
-using System;
-
-
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.Xna.Framework;
 
 
@@ -11,49 +5,22 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Graphs
 {
-    /// <summary>
-    /// This class represents a graph
-    /// </summary>
-    /// <remarks>
-    /// This implementation uses a list of edges to determine connectivity between two
-    /// nodes. This kind of implementation is better suited for sparse graphs. Based
-    /// on Mat Buckland implementation from his book "Programming Game AI by Example"
-    /// </remarks>
-    /// <typeparam name="T">The type of the nodes</typeparam>
-    /// <typeparam name="K">The type of the edges</typeparam>
     [Serializable]
     public class Graph<T, K>
         where T : Node
         where K : Edge
     {
 
-        /// <summary>
-        /// Next node index when adding a new node to the graph
-        /// </summary>
         protected internal int nextNode;
 
-        /// <summary>
-        /// The list of nodes of the graph
-        /// </summary>
         protected internal List<T> nodes;
 
-        /// <summary>
-        /// The list of edges that come out from each node
-        /// </summary>
         protected internal List<List<K>> edges;
 
-        /// <summary>
-        /// Indicates if the graph is a digraph (edges are directional: the same two nodes can be 
-        /// connected by two edges, one on each direction)
-        /// </summary>
         protected internal bool digraph;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="digraph">Indicates if the graph is a digraph or not</param>
         public Graph(bool digraph)
         {
             this.digraph = digraph;
@@ -64,17 +31,8 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        /// <summary>
-        /// Gets the total number of nodes in the graph
-        /// </summary>
-        public int NodeCount
-        {
-            get { return nodes.Count; }
-        }
+        public int NodeCount => nodes.Count;
 
-        /// <summary>
-        /// Gets the number of active nodes in the graph
-        /// </summary>
         public int ActiveNodeCount
         {
             get
@@ -89,9 +47,6 @@ namespace CasaEngine.AI.Graphs
             }
         }
 
-        /// <summary>
-        /// Gets the total number of edges in the graph
-        /// </summary>
         public int EdgesCount
         {
             get
@@ -105,9 +60,6 @@ namespace CasaEngine.AI.Graphs
             }
         }
 
-        /// <summary>
-        /// Gets the number of active edges in the graph
-        /// </summary>
         public int ActiveEdgesCount
         {
             get
@@ -125,11 +77,6 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        /// <summary>
-        /// Indicates if a node is active or not
-        /// </summary>
-        /// <param name="index">Node to test</param>
-        /// <returns>True if the node is active, false if it is not</returns>
         public bool IsNodeActive(int index)
         {
             if (index < 0 || index >= nodes.Count)
@@ -141,12 +88,6 @@ namespace CasaEngine.AI.Graphs
             return true;
         }
 
-        /// <summary>
-        /// Tests if a edge exists between two nodes
-        /// </summary>
-        /// <param name="start">Start node index</param>
-        /// <param name="end">End node index</param>
-        /// <returns>True if the edge exists, false if it doesn´t</returns>
         public bool IsEdgePresent(int start, int end)
         {
             if (IsNodeActive(start) && IsNodeActive(end))
@@ -157,11 +98,6 @@ namespace CasaEngine.AI.Graphs
             return false;
         }
 
-        /// <summary>
-        /// Gets a node
-        /// </summary>
-        /// <param name="index">Node to get</param>
-        /// <returns>The node</returns>
         public T GetNode(int index)
         {
             if (index < 0 || index > nodes.Count)
@@ -170,12 +106,6 @@ namespace CasaEngine.AI.Graphs
             return nodes[index];
         }
 
-        /// <summary>
-        /// Gets an edge
-        /// </summary>
-        /// <param name="start">Start node of the edge</param>
-        /// <param name="end">End node of the edge</param>
-        /// <returns>The edge</returns>
         public K GetEdge(int start, int end)
         {
             if (IsNodeActive(start) && IsNodeActive(end))
@@ -186,11 +116,6 @@ namespace CasaEngine.AI.Graphs
             throw new Exception("Invalid edge");
         }
 
-        /// <summary>
-        /// Gets all the edges from a node
-        /// </summary>
-        /// <param name="nodeIndex">The node index</param>
-        /// <returns>The list of edges of the node</returns>
         public List<K> GetEdgesFromNode(int nodeIndex)
         {
             if (nodeIndex < 0 || nodeIndex > nodes.Count)
@@ -199,10 +124,6 @@ namespace CasaEngine.AI.Graphs
             return edges[nodeIndex];
         }
 
-        /// <summary>
-        /// Adds a new edge to the graph
-        /// </summary>
-        /// <param name="edge"></param>
         public void AddEdge(K edge)
         {
             K reverseEdge;
@@ -223,11 +144,6 @@ namespace CasaEngine.AI.Graphs
                 }
         }
 
-        /// <summary>
-        /// Deletes and edge from the graph
-        /// </summary>
-        /// <param name="start">Start node of the edge</param>
-        /// <param name="end">End node of the edge</param>
         public void RemoveEdge(int start, int end)
         {
             if (IsNodeActive(start) && IsNodeActive(end))
@@ -251,13 +167,6 @@ namespace CasaEngine.AI.Graphs
             }
         }
 
-        /// <summary>
-        /// Adds a node to the graph
-        /// </summary>
-        /// <remarks>
-        /// The node can´t have an index value assigned to it
-        /// </remarks>
-        /// <param name="node"></param>
         public void AddNode(T node)
         {
             if (node.Index == Edge.InvalidNode)
@@ -271,13 +180,6 @@ namespace CasaEngine.AI.Graphs
                 throw new Exception("A node can´t have an index before being added to a graph");
         }
 
-        /// <summary>
-        /// Deletes a node from the graph
-        /// </summary>
-        /// <remarks>
-        /// The node can´t have an index value assigned to it
-        /// </remarks>
-        /// <param name="node"></param>
         public void RemoveNode(T node)
         {
             int nodeIndex = nodes.IndexOf(node);
@@ -305,15 +207,6 @@ namespace CasaEngine.AI.Graphs
             }
         }
 
-        /// <summary>
-        /// Gets the neighbour nodes of a point in space
-        /// </summary>
-        /// <param name="spacePartitionSector">The sector in the space partition structure</param>
-        /// <param name="searchPosition">The point used to search</param>
-        /// <param name="searchRange">The maximum distance we want to search from the start position.
-        /// This distance must not be a squared distance</param>
-        /// <returns>The list of neighboring nodes to the point</returns>
-        /// <remarks>The knowledge of neighbourhood is in the nodes not in the graph</remarks>
         public List<T> GetNeighbourNodes(int spacePartitionSector, Vector3 searchPosition, float searchRange)
         {
             List<T> neighbours;

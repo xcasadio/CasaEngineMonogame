@@ -1,34 +1,18 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.Fuzzy
 {
-    /// <summary>
-    /// This defines a fuzzy set that is a singleton (a range over which the DOM is always 1.0)
-    /// </summary>
     public class FuzzySet_Singleton
         : FuzzySet
     {
 
         //the values that define the shape of this FLV
-        double m_dMidPoint;
-        double m_dLeftOffset;
-        double m_dRightOffset;
+        readonly double m_dMidPoint;
+        readonly double m_dLeftOffset;
+        readonly double m_dRightOffset;
 
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="mid"></param>
-        /// <param name="lft"></param>
-        /// <param name="rgt"></param>
         public FuzzySet_Singleton(double mid, double lft, double rgt)
             : base(mid)
         {
@@ -39,11 +23,6 @@ namespace CasaEngine.AI.Fuzzy
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
         public override double CalculateDOM(double val)
         {
             if ((val >= m_dMidPoint - m_dLeftOffset) &&

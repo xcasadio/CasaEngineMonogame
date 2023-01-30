@@ -1,32 +1,21 @@
-﻿
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Math.Shape2D;
+﻿using CasaEngine.Math.Shape2D;
 using CasaEngine.Math.Collision;
 using Microsoft.Xna.Framework;
 using CasaEngine.AI.Messaging;
 using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay;
-using CasaEngine.Gameplay.Design;
 
 
 namespace CasaEngine.Physics2D
 {
-    /// <summary>
-    /// Check collisions between geometry2DObject and send message at the IMessageable object
-    /// </summary>
     public class Collision2DManager
     {
 
         static private Collision2DManager m_Instance = null;
 
-        private List<IAttackable> m_Objects = new List<IAttackable>();
-        private Message m_Message1 = new Message(0, 0, (int)MessageType.Hit, 0, null);
-        private Message m_Message2 = new Message(0, 0, (int)MessageType.Hit, 0, null);
+        private readonly List<IAttackable> m_Objects = new List<IAttackable>();
+        private readonly Message m_Message1 = new Message(0, 0, (int)MessageType.Hit, 0, null);
+        private readonly Message m_Message2 = new Message(0, 0, (int)MessageType.Hit, 0, null);
         private HitInfo m_HitInfo = new HitInfo();
 
         //to avoid GC
@@ -37,9 +26,6 @@ namespace CasaEngine.Physics2D
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         static public Collision2DManager Instance
         {
             get
@@ -58,27 +44,16 @@ namespace CasaEngine.Physics2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="object_"></param>
         public void RegisterObject(IAttackable object_)
         {
             m_Objects.Add(object_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="object_"></param>
         public void UnregisterObject(IAttackable object_)
         {
             m_Objects.Remove(object_);
         }
 
-        /// <summary>
-        /// @TODO : do this in world in a separate loop with if is Collide2Dable
-        /// </summary>
         public void Update()
         {
             Shape2DObject g1, g2;
@@ -242,11 +217,6 @@ namespace CasaEngine.Physics2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="attacker_"></param>
-        /// <param name="hit_"></param>
         private void SendMessage(IAttackable attacker_, IAttackable hit_, ref Vector2 contactPoint)
         {
             m_HitInfo.ActorHit = (Actor2D)hit_;

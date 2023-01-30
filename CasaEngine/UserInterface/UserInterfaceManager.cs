@@ -10,63 +10,33 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using System.Linq;
 #if (!XBOX)
-using System.Windows.Forms;
 #endif
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Asset;
-using CasaEngine.Game;
-using CasaEngine.Input;
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// User Interface Manager.
-    /// This user interface is prepared to work for editors and window applications only.
-    /// However if gamepad support is added and a cursor is rendered then it could work in XBOX 360 perfectly.
-    /// </summary>
     public class UserInterfaceManager
     {
 
 
-        /// <summary>
-        /// Used to call the UI's update and render methods in the correct order without explicit calls. 
-        /// </summary>
-        /// <remarks>
-        /// Most XNA Final Engine managers don’t work this way because the GameLoop class controls their functionality.
-        /// This manager is in a higher level because of the GPL license (the code is based in Neo Force Controls) and because is not garbage free.
-        /// I do baste improvement in the code and functionality of this UI but I’m not disposed to waste more time in this endeavor.
-        /// The UI has a purpose and in its current state can accomplished.
-        /// </remarks>
         /*private sealed class ScripUserInterface : Script
         {
 
-            /// <summary>
-            /// Update.
-            /// </summary>
             public override void Update()
             {
                 UserInterfaceManager.Update();
             }
 
-            /// <summary>
-            /// Tasks executed during the first stage of the scene render.
-            /// </summary>
             public override void PreRenderUpdate()
             {
                 UserInterfaceManager.PreRenderControls();
             }
 
-            /// <summary>
-            /// Tasks executed during the last stage of the scene render.
-            /// </summary>
             public override void PostRenderUpdate()
             {
                 UserInterfaceManager.RenderUserInterfaceToScreen();
@@ -86,14 +56,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 #if (!XBOX)
-        /// <summary>
-        /// Current cursor.
-        /// </summary>
         private CasaEngine.Asset.Cursors.Cursor cursor;
 
-        /// <summary>
-        /// Returns the form of the game runs in.
-        /// </summary>
         private Form window;
 #endif
 
@@ -115,19 +79,13 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Gets the GraphicsDevice
-        /// </summary>
         public GraphicsDevice GraphicsDevice { get; private set; }
 
 #if (!XBOX)
 
-        /// <summary>
-        /// Gets or sets an application cursor.
-        /// </summary>
         public CasaEngine.Asset.Cursors.Cursor Cursor
         {
-            get { return cursor; }
+            get => cursor;
             set
             {
                 cursor = value;
@@ -145,81 +103,39 @@ namespace XNAFinalEngine.UserInterface
 
 #endif
 
-        /// <summary>
-        /// Gets Skin
-        /// </summary>
         internal Skin Skin { get; private set; }
 
-        /// <summary>
-        /// Gets Renderer
-        /// </summary>
         internal Renderer Renderer { get; private set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
         internal CasaEngine.CoreSystems.Screen Screen { get; private set; }
 
 
-        /// <summary>
-        /// Are the controls visible?
-        /// </summary>
         public bool Visible { get; set; }
 
-        /// <summary>
-        /// Enable or Disable Input.
-        /// </summary>
         public bool InputEnabled { get; set; }
 
 
-        /// <summary>
-        /// Returns InputSystem instance responsible for managing user input.
-        /// </summary>
         public Input InputSystem { get; set; }
 
-        /// <summary>
-        /// Returns list of controls added to the manager.
-        /// </summary>
         public ControlsList RootControls { get; private set; }
 
         internal ControlsList OrderList { get; private set; }
 
-        /// <summary>
-        /// Gets or sets the time that passes before the ToolTip appears.
-        /// </summary>
         public int ToolTipDelay { get; set; }
 
-        /// <summary>
-        /// Gets or sets the time that passes before a submenu appears when hovered over menu item.
-        /// </summary>
         public int MenuDelay { get; set; }
 
-        /// <summary>
-        /// Gets or sets the maximum number of milliseconds that can elapse between a first click and a second click to consider the mouse action a double-click.
-        /// </summary>
         public int DoubleClickTime { get; set; }
 
-        /// <summary>
-        /// Gets or sets texture size increment in pixel while performing controls resizing.
-        /// </summary>
         public int TextureResizeIncrement { get; set; }
 
-        /// <summary>
-        /// Enables or disables showing of tooltips globally.
-        /// </summary>
         public bool ToolTipsEnabled { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating if a control should unfocus if you click outside on the screen.
-        /// </summary>
         public bool AutoUnfocus { get; set; }
 
-        /// <summary>
-        /// Returns currently active modal window.
-        /// </summary>
         public ModalContainer ModalWindow
         {
-            get { return modalWindow; }
+            get => modalWindow;
             internal set
             {
                 modalWindow = value;
@@ -232,9 +148,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ModalWindow
 
-        /// <summary>
-        /// Returns currently focused control.
-        /// </summary>
         public Control FocusedControl
         {
             get
@@ -280,46 +193,22 @@ namespace XNAFinalEngine.UserInterface
             }
         } // FocusedControl
 
-        /// <summary>
-        /// User Interface Content Manager.
-        /// </summary>
         //internal AssetContentManager UserInterfaceContentManager { get; private set; }
 
 
 
-        /// <summary>
-        /// Occurs when the GraphicsDevice settings are changed.
-        /// </summary>
         internal event EventHandler DeviceReset;
 
-        /// <summary>
-        /// Occurs when the skin is about to change.
-        /// </summary>
         public event SkinEventHandler SkinChanging;
 
-        /// <summary>
-        /// Occurs when the skin changes.
-        /// </summary>
         public event SkinEventHandler SkinChanged;
 
-        /// <summary>
-        /// Occurs when game window is about to close.
-        /// </summary>
         public event WindowClosingEventHandler WindowClosing;
 
-        /// <summary>
-        /// Occurs with the window change its size.
-        /// </summary>
         public event ResizeEventHandler WindowResize;
 
 
 
-        /// <summary>
-        /// Initializes the User Interface Manager.
-        /// </summary>
-        /// <param name="graphicsDevice_">The GraphicsDevice used to load the skin</param>
-        /// <param name="formHandle_">Handle of the form</param>
-        /// <param name="gameWindowClientBounds_">Used by the class Input</param>
         public void Initialize(GraphicsDevice graphicsDevice_, IntPtr formHandle_, Rectangle gameWindowClientBounds_)
         {
             if (initialized)
@@ -406,9 +295,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// If the device is recreated then the controls have to be invalidated so that they redraw.
-        /// </summary>
         private void OnDeviceReset(object sender, System.EventArgs e)
         {
             if (DeviceReset != null)
@@ -417,9 +303,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Raised when the window size changes.
-        /// </summary>
         private void OnScreenSizeChanged(object sender, System.EventArgs e)
         {
             if (WindowResize != null)
@@ -434,9 +317,6 @@ namespace XNAFinalEngine.UserInterface
 
 #if (WINDOWS)
 
-        /// <summary>
-        /// If the form is closing
-        /// </summary>
         private void FormClosing(object sender, FormClosingEventArgs e)
         {
             bool ret = false;
@@ -454,9 +334,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose all controls added to the manager and its child controls.
-        /// </summary>
         public void DisposeControls()
         {
             try
@@ -477,9 +354,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Sets a new UserInterfaceManager.Skin.
-        /// </summary>
         public void SetSkin(string skinName)
         {
             if (SkinChanging != null)
@@ -512,10 +386,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Brings the control to the front (z-order).
-        /// </summary>
-        /// <param name="control">The control being brought to the front.</param>
         internal void BringToFront(Control control)
         {
             if (control != null && !control.StayOnBack)
@@ -545,10 +415,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // BringToFront
 
-        /// <summary>
-        /// Sends the control to the back (z-order).
-        /// </summary>
-        /// <param name="control">The control being sent back.</param>
         internal void SendToBack(Control control)
         {
             if (control != null && !control.StayOnTop)
@@ -578,9 +444,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update.
-        /// </summary>
         public void Update(float elapsedTime_)
         {
             if (!Visible || !InputEnabled)
@@ -608,10 +471,6 @@ namespace XNAFinalEngine.UserInterface
             }*/
         } // Update
 
-        /// <summary>
-        /// Sort the control and their children.
-        /// </summary>
-        /// <param name="controlList"></param>
         private void SortLevel(ControlsList controlList)
         {
             if (controlList != null)
@@ -629,10 +488,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Adds a control to the manager.
-        /// </summary>
-        /// <param name="control">The control being added.</param>
         internal void Add(Control control)
         {
             if (control != null)
@@ -651,10 +506,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Add
 
-        /// <summary>
-        /// Removes a component or a control from the manager.
-        /// </summary>
-        /// <param name="control">The control being removed.</param>
         internal void Remove(Control control)
         {
             if (control != null)
@@ -669,9 +520,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Renders all controls added to the manager to a render target.
-        /// </summary>
         public void PreRenderControls()
         {
             if (!Visible)
@@ -697,9 +545,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawToTexture
 
-        /// <summary>
-        /// Draws User Interface's render target to screen.
-        /// </summary>
         public void RenderUserInterfaceToScreen()
         {
             if (!Visible)
@@ -746,9 +591,6 @@ namespace XNAFinalEngine.UserInterface
             return (control != null && !control.Passive && control.Visible && control.Enabled && modal);
         } // CheckState
 
-        /// <summary>
-        /// True is the control is on this position and the other controls on this position are parents of this control.
-        /// </summary>
         private bool CheckOrder(Control control, Point pos)
         {
             if (!CheckPosition(control, pos))
@@ -1117,10 +959,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// True is the control is on this position and the other controls on this position are parents of this control.
-        /// I.e. if it is the control visible in this position.
-        /// </summary>
         public bool IsOverThisControl(Control control, Point pos)
         {
             if (!control.Visible)
@@ -1141,9 +979,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Invalidate all controls
-        /// </summary>
         public void Invalidate()
         {
             foreach (Control rootControl in RootControls)

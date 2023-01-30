@@ -26,8 +26,6 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
 
 using System.Runtime;
 using CasaEngine.Debugger;
@@ -36,17 +34,10 @@ using CasaEngine.Debugger;
 
 namespace XNAFinalEngine.Helpers
 {
-    /// <summary>
-    /// Collects the garbage using appropriate settings for both platforms. 
-    /// It also tests if a garbage collection occurs.
-    /// </summary>
     public sealed class GarbageCollector
     {
 
 
-        /// <summary>
-        /// The garbage collector is working.
-        /// </summary>
         ~GarbageCollector()
         {
             Statistics.GarbageCollections++;
@@ -55,10 +46,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Creates a dummy object and immediately it is dereferenced,
-        /// so when the garbage collector call its destructor we will know that a garbage collection was called.
-        /// </summary>
         public static void CreateWeakReference()
         {
             new GarbageCollector();
@@ -66,13 +53,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        ///  Collect garbage.
-        /// </summary>
-        /// <remarks>
-        /// In PC WinForms does generate some garbage in its message handling infrastructure, 
-        /// but this is all extremely short-lived and unlikely to make it into gen2, so it will be cheap to collect.
-        /// </remarks>
         internal static void CollectGarbage()
         {
             // All generations will undergo a garbage collection.

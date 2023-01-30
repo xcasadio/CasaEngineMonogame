@@ -1,25 +1,12 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Graphics2D;
-using CasaEngine.Game;
-using CasaEngine.CoreSystems.Game;
-using CasaEngine.FrontEnd.Screen.Gadget;
+﻿using CasaEngine.Graphics2D;
 using System.Xml;
 using CasaEngineCommon.Design;
-using XNAFinalEngine.UserInterface;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.UserInterface;
 using Control = XNAFinalEngine.UserInterface.Control;
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -27,28 +14,13 @@ namespace CasaEngine.FrontEnd.Screen
     class UIScreen
         : Screen
     {
-
-        List<Control> m_Controls = new List<Control>();
-
-
-
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Control[] Gagdets
-        {
-            get
-            {
-                return m_Controls.ToArray();
-            }
-        }
+        readonly List<Control> m_Controls = new List<Control>();
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
+        public Control[] Gagdets => m_Controls.ToArray();
+
+
         public UIScreen(string name_)
             : base(name_)
         {
@@ -56,11 +28,6 @@ namespace CasaEngine.FrontEnd.Screen
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public UIScreen(XmlElement el_, SaveOption opt_)
             : base(el_, opt_)
         {
@@ -70,9 +37,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Load graphics content for the screen.
-        /// </summary>
         public override void LoadContent(Renderer2DComponent r_)
         {
             base.LoadContent(r_);
@@ -83,10 +47,6 @@ namespace CasaEngine.FrontEnd.Screen
             }*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
         public override void Draw(float elapsedTime_)
         {
             /*foreach (Control g in m_Controls)
@@ -95,21 +55,11 @@ namespace CasaEngine.FrontEnd.Screen
             }*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="input"></param>
         public override void HandleInput(InputState input)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
-        /// <param name="otherScreenHasFocus"></param>
-        /// <param name="coveredByOtherScreen"></param>
         public override void Update(float elapsedTime_, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
             base.Update(elapsedTime_, otherScreenHasFocus, coveredByOtherScreen);
@@ -121,11 +71,6 @@ namespace CasaEngine.FrontEnd.Screen
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns></returns>
         public Control GetGadget(string name_)
         {
             foreach (Control g in m_Controls)
@@ -139,10 +84,6 @@ namespace CasaEngine.FrontEnd.Screen
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="screen_"></param>
         public override void CopyFrom(Screen screen_)
         {
             base.CopyFrom(screen_);
@@ -161,11 +102,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 #if EDITOR
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="other_"></param>
-        /// <returns></returns>
         public override bool CompareTo(BaseObject other_)
         {
             if (base.CompareTo(other_) == false)
@@ -201,11 +137,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 #endif
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="opt_"></param>
         public override void Load(XmlElement el_, SaveOption opt_)
         {
             base.Load(el_, opt_);

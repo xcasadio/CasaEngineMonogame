@@ -10,15 +10,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Main Menu
-    /// </summary>
     public class MainMenu : MenuBase
     {
 
@@ -28,9 +24,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Main Menu.
-        /// </summary>
         public MainMenu(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -52,19 +45,16 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer layerControl   = SkinInformation.Layers["Control"];
+            SkinLayer layerControl = SkinInformation.Layers["Control"];
             SkinLayer layerSelection = SkinInformation.Layers["Selection"];
             rectangle = new Rectangle[Items.Count];
 
             UserInterfaceManager.Renderer.DrawLayer(this, layerControl, rect, ControlState.Enabled);
-            
+
             int prev = layerControl.ContentMargins.Left;
-            
+
             // Draw root menu items (the others are rendered using context menu controls)
             for (int i = 0; i < Items.Count; i++)
             {
@@ -160,7 +150,7 @@ namespace XNAFinalEngine.UserInterface
                 ChildMenu = null;
             }
         } // HideSubMenu
-        
+
         public virtual void HideMenu()
         {
             if (ChildMenu != null)
@@ -202,7 +192,7 @@ namespace XNAFinalEngine.UserInterface
 
                         int y = Root.ControlTopAbsoluteCoordinate + rectangle[ItemIndex].Bottom + 1;
                         (ChildMenu as ContextMenu).Show(Root, Root.ControlLeftAbsoluteCoordinate + rectangle[ItemIndex].Left, y);
-                        if (ex.Button == MouseButton.None) 
+                        if (ex.Button == MouseButton.None)
                             (ChildMenu as ContextMenu).ItemIndex = 0;
                     }
                     else
@@ -250,9 +240,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// If the control gained focus then...
-        /// </summary>
         protected override void OnFocusGained()
         {
             base.OnFocusGained();
@@ -260,9 +247,6 @@ namespace XNAFinalEngine.UserInterface
                 ItemIndex = 0;
         } // OnFocusGained
 
-        /// <summary>
-        /// If the control lost focus then...
-        /// </summary>
         protected override void OnFocusLost()
         {
             base.OnFocusLost();

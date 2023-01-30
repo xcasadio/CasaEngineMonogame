@@ -30,8 +30,6 @@ String extension methods based on the class StringHelper.cs from RacingGame. Lic
   
 */
 
-using System;
-
 
 using System.Globalization;
 using System.Text;
@@ -40,21 +38,12 @@ using Microsoft.Xna.Framework;
 
 namespace XNAFinalEngine.Helpers
 {
-    /// <summary> 
-    /// Class used to extend other classes. 
-    /// </summary> 
     public static class ExtensionMethods
     {
 
 
 #if (XBOX)
 
-        /// <summary> 
-        /// Removes all elements from the List that match the conditions defined by the specified predicate. 
-        /// </summary> 
-        /// <typeparam name="T">The type of elements held by the List.</typeparam> 
-        /// <param name="list">The List to remove the elements from.</param> 
-        /// <param name="match">The Predicate delegate that defines the conditions of the elements to remove.</param> 
         public static int RemoveAll<T>(this System.Collections.Generic.List<T> list, Predicate<T> match)
         {
             int numberRemoved = 0;
@@ -74,12 +63,6 @@ namespace XNAFinalEngine.Helpers
             return numberRemoved;
         } // RemoveAll
 
-        /// <summary> 
-        /// Returns true if the List contains elements that match the conditions defined by the specified predicate. 
-        /// </summary> 
-        /// <typeparam name="T">The type of elements held by the List.</typeparam> 
-        /// <param name="list">The List to search for a match in.</param> 
-        /// <param name="match">The Predicate delegate that defines the conditions of the elements to match against.</param> 
         public static bool Exists<T>(this System.Collections.Generic.List<T> list, Func<T, bool> match)
         {
             // Loop through every element in the List, until a match is found. 
@@ -142,20 +125,11 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Is numeric float
-        /// </summary>
         public static bool IsNumericFloat(this String str)
         {
             return IsNumericFloat(str, CultureInfo.InvariantCulture.NumberFormat);
         } // IsNumericFloat
 
-        /// <summary>
-        /// Checks if string is numeric float value
-        /// </summary>
-        /// <param name="str">Input string</param>
-        /// <param name="numberFormat">Used number format, e.g. CultureInfo.InvariantCulture.NumberFormat</param>
-        /// <returns>True if str can be converted to a float, false otherwise</returns>
         public static bool IsNumericFloat(this String str, NumberFormatInfo numberFormat)
         {
             // Can't be a float if string is not valid!
@@ -217,10 +191,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Check if string is numeric integer. A decimal point is not accepted.
-        /// </summary>
-        /// <param name="str">String to check</param>
         public static bool IsNumericInt(this string str)
         {
             // Can't be an int if string is not valid!
@@ -245,12 +215,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Allow only one decimal point, used for IsNumericFloat.
-        /// </summary>
-        /// <param name="str">Input string to check</param>
-        /// <param name="numberFormat">Used number format, e.g. CultureInfo.InvariantCulture.NumberFormat</param>
-        /// <return>True if check succeeded, false otherwise</return>
         private static bool AllowOnlyOneDecimalPoint(string str, NumberFormatInfo numberFormat)
         {
             char[] strInChars = str.ToCharArray();
@@ -310,12 +274,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// Return the string plus one.
-        /// </summary>
-        /// <example>
-        /// "name" will be returned like "name1" and "name9" will be returned like "name10".
-        /// </example>
         public static string PlusOne(this string name)
         {
             Regex regex = new Regex(@"(\d+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
@@ -332,9 +290,6 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        /// <summary>
-        /// In a 2D grid, returns the angle to a specified point from the +X axis.
-        /// </summary>
         public static float ArcTanAngle(float X, float Y)
         {
             if (X == 0)
@@ -354,9 +309,6 @@ namespace XNAFinalEngine.Helpers
             return 0;
         } // ArcTanAngle
 
-        /// <summary>
-        /// Returns Euler angles that point from one point to another.
-        /// </summary>
         public static Vector3 AngleTo(Vector3 from, Vector3 location)
         {
             Vector3 angle = new Vector3();
@@ -366,13 +318,6 @@ namespace XNAFinalEngine.Helpers
             return angle;
         } // AngleTo
 
-        /// <summary>
-        /// Return yaw, pitch and roll from this quaternion.
-        /// </summary>
-        /// <remarks>
-        /// Based on: http://forums.create.msdn.com/forums/p/4574/23988.aspx#23988
-        /// </remarks>
-        /// <returns>X = yaw, Y = pitch, Z = roll</returns>
         public static Vector3 GetYawPitchRoll(this Quaternion quaternion)
         {
             Vector3 rotationaxes = new Vector3();

@@ -1,23 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Particle
+﻿namespace CasaEngine.Particle
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class Particle
     {
 
 
 
-        /// <summary>
-        /// Remove the particle?
-        /// </summary>
         public bool Remove
         {
             get;
@@ -28,9 +15,6 @@ namespace CasaEngine.Particle
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Initialize()
         {
             Remove = false;

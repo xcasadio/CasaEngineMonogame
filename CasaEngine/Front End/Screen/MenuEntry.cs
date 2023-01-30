@@ -5,8 +5,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System;
-
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,55 +14,31 @@ using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    /// <summary>
-    /// Helper class represents a single entry in a MenuScreen. By default this
-    /// just draws the entry text string, but it can be customized to display menu
-    /// entries in different ways. This also provides an event that will be raised
-    /// when the menu entry is selected.
-    /// </summary>
     public class MenuEntry
     {
 
-        /// <summary>
-        /// The text rendered for this entry.
-        /// </summary>
         string text;
 
-        /// <summary>
-        /// Tracks a fading selection effect on the entry.
-        /// </summary>
-        /// <remarks>
-        /// The entries transition out of the selection effect when they are deselected.
-        /// </remarks>
         float selectionFade;
 
-        Renderer2DComponent m_Renderer2DComponent = null;
+        readonly Renderer2DComponent m_Renderer2DComponent = null;
 
 
 
 
-        /// <summary>
-        /// Gets or sets the text of this menu entry.
-        /// </summary>
         public string Text
         {
-            get { return text; }
-            set { text = value; }
+            get => text;
+            set => text = value;
         }
 
 
 
 
 
-        /// <summary>
-        /// Event raised when the menu entry is selected.
-        /// </summary>
         public event EventHandler<PlayerIndexEventArgs> Selected;
 
 
-        /// <summary>
-        /// Method for raising the Selected event.
-        /// </summary>
         protected internal virtual void OnSelectEntry(PlayerIndex playerIndex)
         {
             if (Selected != null)
@@ -75,9 +49,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Constructs a new menu entry with the specified text.
-        /// </summary>
         public MenuEntry(string text)
         {
             this.text = text;
@@ -88,9 +59,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Updates the menu entry.
-        /// </summary>
         public virtual void Update(MenuScreen screen, bool isSelected,
                                                       float elapsedTime_)
         {
@@ -106,9 +74,6 @@ namespace CasaEngine.FrontEnd.Screen
         }
 
 
-        /// <summary>
-        /// Draws the menu entry. This can be overridden to customize the appearance.
-        /// </summary>
         public virtual void Draw(MenuScreen screen, Vector2 position,
                                  bool isSelected, float elapsedTime_)
         {
@@ -140,9 +105,6 @@ namespace CasaEngine.FrontEnd.Screen
             m_Renderer2DComponent.AddText2D(font, text, position, 0.0f, new Vector2(scale), color, 0.99f);
         }
 
-        /// <summary>
-        /// Queries how much space this menu entry requires.
-        /// </summary>
         public virtual int GetHeight(MenuScreen screen)
         {
             return Engine.Instance.DefaultSpriteFont.LineSpacing;

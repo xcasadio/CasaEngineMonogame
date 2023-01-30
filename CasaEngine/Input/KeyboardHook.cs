@@ -27,37 +27,21 @@ This class was based in the work of Emma Burrows. That work doesn't have a licen
 
 */
 
-using System;
-
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.Xna.Framework.Input;
 
 
 namespace XNAFinalEngine.Input
 {
-    /// <summary>
-    /// Sets up a keyboard hook to trap all keystrokes without passing any to other applications.
-    /// It also disables the win key and allows the print screen key to call the screenshot capturer ignoring the windows screenshot capturer.
-    /// </summary>
-    /// <remarks>
-    /// Keyboard Hook has deprecated because is unpredictable and produces some lag.
-    /// </remarks>
     public class KeyboardHook : IDisposable
     {
 
 
-        /// <summary>
-        /// Keyboard API constants
-        /// </summary>
         private const int keyboardHookId = 13;
 
 
 
-        /// <summary>
-        /// Structure returned by the hook whenever a key is pressed
-        /// </summary>
         internal struct KeyboadHookStruct
         {
             public int VkCode;
@@ -66,9 +50,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Variables used in the call to SetWindowsHookEx
-        /// </summary>
         private readonly HookHandlerDelegate proc;
         private readonly IntPtr hookId = IntPtr.Zero;
         internal delegate IntPtr HookHandlerDelegate(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam);
@@ -77,10 +58,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Sets up a keyboard hook to trap all keystrokes without passing any to other applications.
-        /// It also disables the win key and allows the print screen key to call the screenshot capturer.
-        /// </summary>
         public KeyboardHook()
         {
             proc = new HookHandlerDelegate(HookCallback);
@@ -93,9 +70,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Processes the key event captured by the hook.
-        /// </summary>
         private IntPtr HookCallback(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam)
         {
             // This is an easy way to change from a key press behavior to a key down behavior.
@@ -130,9 +104,6 @@ namespace XNAFinalEngine.Input
 
 
 
-        /// <summary>
-        /// Releases the keyboard hook.
-        /// </summary>
         public void Dispose()
         {
             NativeMethods.UnhookWindowsHookEx(hookId);

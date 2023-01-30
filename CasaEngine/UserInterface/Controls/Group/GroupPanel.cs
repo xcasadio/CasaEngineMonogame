@@ -10,26 +10,13 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset.Fonts;
-
-
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Group Panel. Group controls that will be enclosed by a bevel and it will be a title in the top title bar.
-    /// </summary>
     public class GroupPanel : Container
     {
 
 
-        /// <summary>
-        /// Group Panel. Group controls with and title a bar.
-        /// </summary>
         public GroupPanel(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -41,9 +28,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             SkinLayer layer = SkinInformation.Layers["Control"];

@@ -6,11 +6,8 @@
 //-----------------------------------------------------------------------------
 
 
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Content;
 
-using CasaEngine.Game;
 #if EDITOR
 //using CasaEngine.Editor.GameComponent;
 #endif
@@ -18,42 +15,26 @@ using CasaEngine.Game;
 
 namespace CasaEngine.Debugger
 {
-    /// <summary>
-    /// DebugManager class that holds graphics resources for debug
-    /// </summary>
     public class DebugManager
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
 
-		/// <summary>
-		/// Gets/Sets
-		/// </summary>
-		public bool DebugPickBufferTexture
-		{
-			get;
-			set;
-		}
+        public bool DebugPickBufferTexture
+        {
+            get;
+            set;
+        }
 
-		/// <summary>
-		/// Gets/Sets
-		/// </summary>
-		public bool MakeScreenShot
-		{
-			get;
-			set;
-		}
+        public bool MakeScreenShot
+        {
+            get;
+            set;
+        }
 
-        /// <summary>
-        /// Gets white texture.
-        /// </summary>
         public Texture2D WhiteTexture { get; private set; }
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="game"></param>
         public DebugManager(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
@@ -65,50 +46,37 @@ namespace CasaEngine.Debugger
             this.Enabled = false;
             this.Visible = false;
 
-			/*UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
+            /*UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
 			DrawOrder = (int)ComponentDrawOrder.DebugManager;*/
 
             VisibleChanged += new System.EventHandler<System.EventArgs>(DebugManager_VisibleChanged);
             EnabledChanged += new System.EventHandler<System.EventArgs>(DebugManager_EnabledChanged);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void DebugManager_EnabledChanged(object sender, System.EventArgs e)
         {
             this.Enabled = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void DebugManager_VisibleChanged(object sender, System.EventArgs e)
         {
             this.Visible = false;
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		protected override void LoadContent()
-		{
-			// Load debug content.
-			//SpriteBatch = new SpriteBatch(GraphicsDevice);
+        protected override void LoadContent()
+        {
+            // Load debug content.
+            //SpriteBatch = new SpriteBatch(GraphicsDevice);
 
-			//DebugFont = Game.Content.Load<SpriteFont>(debugFont);
+            //DebugFont = Game.Content.Load<SpriteFont>(debugFont);
 
-			// Create white texture.
-			WhiteTexture = new Texture2D(GraphicsDevice, 1, 1);
-			Color[] whitePixels = new Color[] { Color.White };
-			WhiteTexture.SetData<Color>(whitePixels);
+            // Create white texture.
+            WhiteTexture = new Texture2D(GraphicsDevice, 1, 1);
+            Color[] whitePixels = new Color[] { Color.White };
+            WhiteTexture.SetData<Color>(whitePixels);
 
-			base.LoadContent();
-		}
+            base.LoadContent();
+        }
 
     }
 }

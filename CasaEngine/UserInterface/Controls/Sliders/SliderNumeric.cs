@@ -26,18 +26,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-using System;
-
-
-using Microsoft.Xna.Framework.Input;
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Slider for numeric values.
-    /// </summary>
     public class SliderNumeric : Control
     {
 
@@ -48,67 +40,46 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Minimum value that can has the slider.
-        /// </summary>
         public virtual float MinimumValue
         {
-            get { return slider.MinimumValue; }
-            set { slider.MinimumValue = value; }
+            get => slider.MinimumValue;
+            set => slider.MinimumValue = value;
         } // MinimumValue
 
-        /// <summary>
-        /// Maximum value that can has the slider.
-        /// </summary>
         public virtual float MaximumValue
         {
-            get { return slider.MaximumValue; }
-            set { slider.MaximumValue = value; }
+            get => slider.MaximumValue;
+            set => slider.MaximumValue = value;
         } // MaximumValue
 
-        /// <summary>
-        /// If out of range rescale. In other words the maximum or minimum value changes.
-        /// </summary>
         public virtual bool IfOutOfRangeRescale
         {
-            get { return slider.IfOutOfRangeRescale; }
-            set { slider.IfOutOfRangeRescale = value; }
+            get => slider.IfOutOfRangeRescale;
+            set => slider.IfOutOfRangeRescale = value;
         } // IfOutOfRangeRescale
 
-        /// <summary>
-        /// Indicates if the value can be out of range.
-        /// </summary>
         public virtual bool ValueCanBeOutOfRange
         {
-            get { return slider.ValueCanBeOutOfRange; }
-            set { slider.ValueCanBeOutOfRange = value; }
+            get => slider.ValueCanBeOutOfRange;
+            set => slider.ValueCanBeOutOfRange = value;
         } // ValueCanBeOutOfRange
 
-        /// <summary>
-        /// Current value.
-        /// </summary>
         public virtual float Value
         {
-            get { return slider.Value; }
-            set { slider.Value = value; }
+            get => slider.Value;
+            set => slider.Value = value;
         } // Value
 
-        /// <summary>
-        /// Page size, this value is expressed in percentages.
-        /// </summary>
         public virtual int PageSize
         {
-            get { return slider.PageSize; }
-            set { slider.PageSize = value; }
+            get => slider.PageSize;
+            set => slider.PageSize = value;
         } // PageSize
 
-        /// <summary>
-        /// Step size, this value is expressed in percentages.
-        /// </summary>
         public virtual int StepSize
         {
-            get { return slider.StepSize; }
-            set { slider.StepSize = value; }
+            get => slider.StepSize;
+            set => slider.StepSize = value;
         } // StepSize
 
 
@@ -123,9 +94,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Slider for numeric values.
-        /// </summary>
         public SliderNumeric(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -204,9 +172,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.

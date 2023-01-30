@@ -1,15 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.Fuzzy
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class FzSet
         : FuzzyTerm
     {
@@ -18,20 +8,9 @@ namespace CasaEngine.AI.Fuzzy
 
 
 
-        /// <summary>
-        /// Gets DOM
-        /// </summary>
-        public double DOM
-        {
-            get { return m_Set.DOM; }
-        }
+        public double DOM => m_Set.DOM;
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fs"></param>
         public FzSet(FuzzySet fs)
         {
             m_Set = fs;
@@ -39,27 +18,16 @@ namespace CasaEngine.AI.Fuzzy
 
 
 
-        /// <summary>
-        /// Clone
-        /// </summary>
-        /// <returns></returns>
         public FuzzyTerm Clone()
         {
             return new FzSet(m_Set);
         }
 
-        /// <summary>
-        /// Clear DOM of the FuzzySet
-        /// </summary>
         public void ClearDOM()
         {
             m_Set.ClearDOM();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="val"></param>
         public void ORwithDOM(double val)
         {
             m_Set.ORwithDOM(val);

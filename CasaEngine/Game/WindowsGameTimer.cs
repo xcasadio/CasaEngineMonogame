@@ -1,20 +1,11 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using CasaEngineCommon.Logger;
 
 namespace CasaEngine.Game
 {
-    /// <summary>
-    /// 
-    /// </summary>
     class WindowsGameTimer
     {
-        private Stopwatch stopwatch;
+        private readonly Stopwatch stopwatch;
         private TimeSpan lastElapsed;
 
 
@@ -63,20 +54,8 @@ namespace CasaEngine.Game
             internal set;
         }
 
-        public long Frequency
-        {
-            get
-            {
-                return Stopwatch.Frequency;
-            }
-        }
+        public long Frequency => Stopwatch.Frequency;
 
-        public long Timestamp
-        {
-            get
-            {
-                return Stopwatch.GetTimestamp();
-            }
-        }
+        public long Timestamp => Stopwatch.GetTimestamp();
     }
 }

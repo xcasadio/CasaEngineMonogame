@@ -1,22 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using CasaEngineCommon.Extension;
+﻿using System.Xml;
 
 namespace CasaEngine.Editor.Assets
 {
-    /// <summary>
-    /// 
-    /// </summary>
     static public class AssetBuildParamFactory
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum AssetBuildParamType
         {
             Texture,
@@ -28,11 +15,6 @@ namespace CasaEngine.Editor.Assets
             Xml
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="params_"></param>
-        /// <param name="type_"></param>
         static public void SetBuildParams(ref AssetBuildParamCollection params_, AssetBuildParamType type_)
         {
             switch (type_)
@@ -88,10 +70,6 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="params_"></param>
         static public AssetBuildParam Load(XmlElement el_)
         {
             AssetBuildParam param;

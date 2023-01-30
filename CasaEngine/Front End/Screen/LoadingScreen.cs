@@ -1,8 +1,4 @@
-﻿
-using System;
-
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
@@ -11,38 +7,19 @@ using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    /// <summary>
-    /// The loading screen coordinates transitions between the menu system and the
-    /// game itself. Normally one screen will transition off at the same time as
-    /// the next screen is transitioning on, but for larger transitions that can
-    /// take a longer time to load their data, we want the menu system to be entirely
-    /// gone before we start loading the game. This is done as follows:
-    /// 
-    /// - Tell all the existing screens to transition off.
-    /// - Activate a loading screen, which will transition on at the same time.
-    /// - The loading screen watches the state of the previous screens.
-    /// - When it sees they have finished transitioning off, it activates the real
-    ///   next screen, which may take a long time to load its data. The loading
-    ///   screen will be the only thing displayed while this load is taking place.
-    /// </summary>
     public class LoadingScreen
         : Screen
     {
-
-        bool loadingIsSlow;
+        readonly bool loadingIsSlow;
         bool otherScreensAreGone;
 
-        Screen[] screensToLoad;
+        readonly Screen[] screensToLoad;
 
-        Renderer2DComponent m_Renderer2DComponent = null;
+        readonly Renderer2DComponent m_Renderer2DComponent = null;
 
 
 
-        /// <summary>
-        /// The constructor is private: loading screens should
-        /// be activated via the static Load method instead.
-        /// </summary>
-		private LoadingScreen(ScreenManagerComponent screenManager, bool loadingIsSlow,
+        private LoadingScreen(ScreenManagerComponent screenManager, bool loadingIsSlow,
                               Screen[] screensToLoad)
             : base("LoadingScreen")
         {
@@ -54,10 +31,7 @@ namespace CasaEngine.FrontEnd.Screen
             m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
-        /// <summary>
-        /// Activates the loading screen.
-        /// </summary>
-		public static void Load(ScreenManagerComponent screenManager, bool loadingIsSlow,
+        public static void Load(ScreenManagerComponent screenManager, bool loadingIsSlow,
                                 PlayerIndex? controllingPlayer,
                                 params Screen[] screensToLoad)
         {
@@ -75,9 +49,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Updates the loading screen.
-        /// </summary>
         public override void Update(float elapsedTime_, bool otherScreenHasFocus,
                                                        bool coveredByOtherScreen)
         {
@@ -104,9 +75,6 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// Draws the loading screen.
-        /// </summary>
         public override void Draw(float elapsedTime_)
         {
             // If we are the only active screen, that means all the previous screens

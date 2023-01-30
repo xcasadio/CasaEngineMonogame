@@ -10,27 +10,18 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
 
 using System.Reflection;
 using System.Xml.Linq;
-using CasaEngine.Asset;
 using XNAFinalEngine.Assets;
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary> 
-    /// Load a complete user interface layout from a XML file.
-    /// </summary>
     public static class Layout
     {
 
 
-        /// <summary>
-        /// Load layout file.
-        /// </summary>
         public static Container Load(string filename)
         {
             Container mainContainer = null;
@@ -73,9 +64,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Load a control from the xml layout file.
-        /// </summary>
         private static Control LoadControl(XElement element, Type type, Control parent)
         {
             // Create control instance (it doesn't know the type in compiler time)
@@ -113,9 +101,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Load the properties of a control.
-        /// </summary>
         private static void LoadProperty(XElement property, Control control)
         {
             string name = property.Attribute("Name").Value;

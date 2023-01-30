@@ -26,24 +26,15 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
 
-
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 //using XNAFinalEngine.Editor; // This can be avoided and ideally I have to avoid this.
 
 //using XNAFinalEngine.Graphics;
 using XNAFinalEngine.Helpers;
-using CasaEngine.CoreSystems;
 
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Color picker dialog.
-    /// </summary>
     public class ColorPickerDialog : Dialog
     {
 
@@ -94,12 +85,9 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Gets or sets the color for the control.
-        /// </summary>
         public override Color Color
         {
-            get { return base.Color; }
+            get => base.Color;
             set
             {
                 base.Color = value;
@@ -116,9 +104,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Color picker dialog.
-        /// </summary>
         public ColorPickerDialog(UserInterfaceManager userInterfaceManager_, Color _oldColor)
             : base(userInterfaceManager_)
         {
@@ -307,9 +292,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -529,9 +511,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             base.DrawControl(rect);
@@ -600,18 +579,12 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Update Color from the R G B sliders values.
-        /// </summary>
         private void UpdateColorFromRGB()
         {
             Color = new Color((float)double.Parse(textBoxRed.Text), (float)double.Parse(textBoxGreen.Text), (float)double.Parse(textBoxBlue.Text));
             positionSquareColor = PositionFromColor(Color);
         } // UpdateColorFromRGB
 
-        /// <summary>
-        /// Update the R G B sliders values with the control color.
-        /// </summary>
         private void UpdateRGBFromColor()
         {
             textBoxRed.Text = Math.Round(Color.R / 255f, 3).ToString();
@@ -621,25 +594,16 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Return the color from the position in the square color.
-        /// </summary>
         private Color ColorFromPositionWithIntensity(Point position)
         {
             return ColorFromPositionWithIntensity(position, intensityLevel);
         } // ColorFromPositionWithIntensity
 
-        /// <summary>
-        /// Return the color from the position in the square color.
-        /// </summary>
         private static Color ColorFromPositionWithIntensity(Point position, float _intensityLevel)
         {
             return Color.Lerp(MultiplyColorByFloat(ColorFromPosition(position), _intensityLevel), MultiplyColorByFloat(new Color(255, 255, 255), _intensityLevel), position.Y / 132f);
         } // ColorFromPositionWithIntensity
 
-        /// <summary>
-        /// Return the color from the position in the square color.
-        /// </summary>
         private static Color ColorFromPosition(Point position)
         {
             Color color = new Color(0, 0, 0, 255);
@@ -690,9 +654,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Return a square color position from a given color.
-        /// </summary>
         private Point PositionFromColor(Color color)
         {
             Point position = new Point();
@@ -759,9 +720,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Multiply a color by a float.
-        /// </summary>
         private static Color MultiplyColorByFloat(Color color, float intensityLevel)
         {
             Color result = Color.White;
@@ -773,9 +731,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Close
-        /// </summary>
         public override void Close()
         {
             base.Close();

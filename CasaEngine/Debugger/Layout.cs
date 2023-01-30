@@ -6,18 +6,12 @@
 //-----------------------------------------------------------------------------
 
 
-using System;
-
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 
 namespace CasaEngine.Debugger
 {
-    /// <summary>
-    /// Alignment for layout.
-    /// </summary>
     [Flags]
     public enum Alignment
     {
@@ -47,77 +41,26 @@ namespace CasaEngine.Debugger
         Center = VerticalCenter | HorizontalCenter
     }
 
-    /// <summary>
-    /// Layout class that supports title safe area.
-    /// </summary>
-    /// <remarks>
-    /// You have to support various resolutions when you develop multi-platform
-    /// games. Also, you have to support title safe area for Xbox 360 games.
-    /// 
-    /// This structure places given rectangle with specified alignment and margin
-    /// based on layout area (client area) with safe area.
-    /// 
-    /// Margin is percentage of client area size.
-    /// 
-    /// Example:
-    /// 
-    /// Place( region, 0.1f, 0.2f, Aligment.TopLeft );
-    /// 
-    /// Place region at 10% from left side of the client area,
-    /// 20% from top of the client area.
-    /// 
-    /// 
-    /// Place( region, 0.3f, 0.4f, Aligment.BottomRight );
-    /// 
-    /// Place region at 30% from right side of client,
-    /// 40% from the bottom of the client area.
-    /// 
-    /// 
-    /// You can individually specify client area and safe area.
-    /// So, it is useful when you have split screen game which layout happens based
-    /// on client and it takes care of the safe at same time.
-    /// 
-    /// </remarks>
     public struct Layout
     {
 
-        /// <summary>
-        /// Gets/Sets client area.
-        /// </summary>
         public Rectangle ClientArea;
 
-        /// <summary>
-        /// Gets/Sets safe area.
-        /// </summary>
         public Rectangle SafeArea;
 
 
 
-        /// <summary>
-        /// Construct layout object by specify both client area and safe area.
-        /// </summary>
-        /// <param name="client">Client area</param>
-        /// <param name="safeArea">safe area</param>
         public Layout(Rectangle clientArea, Rectangle safeArea)
         {
             ClientArea = clientArea;
             SafeArea = safeArea;
         }
 
-        /// <summary>
-        /// Construct layout object by specify client area.
-        /// Safe area becomes same size as client area.
-        /// </summary>
-        /// <param name="client">Client area</param>
         public Layout(Rectangle clientArea)
             : this(clientArea, clientArea)
         {
         }
 
-        /// <summary>
-        /// Construct layout object by specify viewport.
-        /// Safe area becomes same as Viewpoert.TItleSafeArea.
-        /// </summary>
         public Layout(Viewport viewport)
         {
             ClientArea = new Rectangle((int)viewport.X, (int)viewport.Y,
@@ -126,11 +69,6 @@ namespace CasaEngine.Debugger
         }
 
 
-        /// <summary>
-        /// Layouting specified region
-        /// </summary>
-        /// <param name="region">placing region</param>
-        /// <returns>Placed position</returns>
         public Vector2 Place(Vector2 size, float horizontalMargin,
                                             float verticalMargine, Alignment alignment)
         {
@@ -139,11 +77,6 @@ namespace CasaEngine.Debugger
             return new Vector2(rc.X, rc.Y);
         }
 
-        /// <summary>
-        /// Layouting specified region
-        /// </summary>
-        /// <param name="region">placing rectangle</param>
-        /// <returns>placed rectangle</returns>
         public Rectangle Place(Rectangle region, float horizontalMargin,
                                             float verticalMargine, Alignment alignment)
         {

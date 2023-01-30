@@ -1,42 +1,12 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 {
-    /// <summary>
-    /// This class represents the lineal crossover algorithm. This algorithm uses two parents to
-    /// create two offsprings. The first offspring genotype is:
-    /// genotype =  n*(first parent values) + (1-n)*(second parent values)
-    /// The second offspring is the other way around. The interval modifier tells the value of n,
-    /// and it´s calculated for every gene (this algorithm is pretty similar to arithmetic crossover, 
-    /// but in arithmetic crossover the n value is calculated only once)
-    /// </summary>
-    /// <remarks>
-    /// This operator only works with double genes
-    /// </remarks>
     public sealed class LinealCrossover : CrossoverAlgorithm<double>
     {
 
-        /// <summary>
-        /// Interval modifier for the lineal crossover
-        /// </summary>
         internal double intervalModifier;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="probability">Probability of crossover</param>
-        /// <param name="generator">Random number generator</param>
-        /// <param name="intervalModifier">The interval modifier</param>
         public LinealCrossover(double probability, Random generator, double intervalModifier)
             : base(probability, generator)
         {
@@ -50,11 +20,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
 
 
-        /// <summary>
-        /// Crossover function
-        /// </summary>
-        /// <param name="parents">The parents to cross</param>
-        /// <returns>The list of offsprings</returns>
         public override List<Chromosome<double>> Crossover(List<Chromosome<double>> parents)
         {
             List<Chromosome<double>> list;
@@ -96,12 +61,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
 
 
-        /// <summary>
-        /// Validates if the interval modifier value is correct (>= 0)
-        /// </summary>
-        /// <param name="intervalModifier">The interval modifier value to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the value is correct. False if it is not</returns>
         public static bool ValidateIntervalModifier(double intervalModifier, ref string message)
         {
             if (intervalModifier < 0)

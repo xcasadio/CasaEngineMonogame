@@ -5,36 +5,17 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework;
-
 
 namespace CasaEngine.Input
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class InputManager
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public struct KeyState
         {
             public int Key;
             public ButtonState State;
             public float Time;
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="other_"></param>
-            /// <returns></returns>
             public bool Match(KeyState other_)
             {
                 return Key == other_.Key
@@ -43,9 +24,6 @@ namespace CasaEngine.Input
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public struct KeyStateFrame
         {
             public float GlobalTime;
@@ -60,22 +38,8 @@ namespace CasaEngine.Input
 
         public List<KeyStateFrame> m_Buffer = new List<KeyStateFrame>(50);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public KeyStateFrame[] Buffer
-        {
-            get { return m_Buffer.ToArray(); }
-        }
+        public KeyStateFrame[] Buffer => m_Buffer.ToArray();
 
-        /// <summary>
-        /// This is the size of the "merge window" for combining button presses that
-        /// occur at almost the same time.
-        /// If it is too small, players will find it difficult to perform moves which
-        /// require pressing several buttons simultaneously.
-        /// If it is too large, players will find it difficult to perform moves which
-        /// require pressing several buttons in sequence.
-        /// </summary>
         //public readonly TimeSpan MergeInputTime = TimeSpan.FromMilliseconds(100);
         public readonly float MergeInputTime = 0.1f;
 
@@ -87,14 +51,8 @@ namespace CasaEngine.Input
         public GamePadState GamePadState { get; private set; }
         public KeyboardState KeyboardState { get; private set; }
 
-        /// <summary>
-        /// The current sequence of pressed buttons.
-        /// </summary>
         public List<Buttons> Buffer;
 
-        /// <summary>
-        /// Provides the map of non-direction game pad buttons to keyboard keys.
-        /// </summary>
         internal static readonly Dictionary<Buttons, Keys> NonDirectionButtons =
             new Dictionary<Buttons, Keys>
             {
@@ -114,9 +72,6 @@ namespace CasaEngine.Input
             Buffer = new List<Buttons>(bufferSize);
         }
 
-        /// <summary>
-        /// Gets the latest input and uses it to update the input history buffer.
-        /// </summary>
         public void Update(float elapsedTime_)//GameTime gameTime)
         {
             // Get latest input state.
@@ -199,11 +154,6 @@ namespace CasaEngine.Input
             }
         }*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="keysState_"></param>
-        /// <param name="globalTime_"></param>
         public void Update(KeyState[] keysState_, float globalTime_)
         {
             List<KeyState> keyStateList = new List<KeyState>(keysState_);
@@ -398,14 +348,6 @@ namespace CasaEngine.Input
             }
         }
 
-        /// <summary>
-        /// Don't merge two different directions. This avoids having impossible
-        /// directions such as Left+Up+Right. This also has the side effect that
-        /// the direction needs to be pressed at the same time or slightly before
-        /// the buttons for merging to work.
-        /// </summary>
-        /// <param name="keys_"></param>
-        /// <returns></returns>
         private bool CheckDirectionCollisionForMerge(IEnumerable<KeyState> keys_)
         {
             /*int last = m_Buffer.Count - 1;
@@ -421,21 +363,11 @@ namespace CasaEngine.Input
             return true; // false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="keys_"></param>
-        /// <returns></returns>
         private bool CheckIfReleasedButtonCollisionForMerge(IEnumerable<KeyState> keys_)
         {
             return false; //false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="move"></param>
-        /// <returns></returns>
         public bool Matches(Move move)
         {
             int moveSequencecount = 0;

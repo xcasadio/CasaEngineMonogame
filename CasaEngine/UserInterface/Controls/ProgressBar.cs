@@ -10,14 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System;
-
-
-using Microsoft.Xna.Framework;
-
-
-
-
 
 namespace XNAFinalEngine.UserInterface
 {
@@ -30,48 +22,25 @@ namespace XNAFinalEngine.UserInterface
     } // ProgressBarMode
 
 
-    /// <summary>
-    /// Progress Bar.
-    /// </summary>
     public class ProgressBar : Control
     {
 
 
-        /// <summary>
-        /// Range
-        /// </summary>
         private int range = 100;
 
-        /// <summary>
-        /// Current value.
-        /// </summary>
         private int value;
 
-        /// <summary>
-        /// Progress Bar Mode.
-        /// Infinite: It will be move automatically and indefinitely.
-        /// Default: manual move.
-        /// </summary>
         private ProgressBarMode mode = ProgressBarMode.Default;
 
-        /// <summary>
-        /// For infinite mode.
-        /// </summary>
         private double time;
 
-        /// <summary>
-        /// For infinite mode, when the bar comeback to the origen.
-        /// </summary>
         private int sign = 1;
 
 
 
-        /// <summary>
-        /// Current value (in porcentage).
-        /// </summary>
         public int Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (mode == ProgressBarMode.Default)
@@ -89,14 +58,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Value
 
-        /// <summary>
-        /// Progress Bar Mode.
-        /// Infinite: It will be move automatically and indefinitely.
-        /// Default: manual move.
-        /// </summary>
         public ProgressBarMode Mode
         {
-            get { return mode; }
+            get => mode;
             set
             {
                 if (mode != value)
@@ -121,12 +85,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Mode
 
-        /// <summary>
-        /// Range (default 100%)
-        /// </summary>
         public int Range
         {
-            get { return range; }
+            get => range;
             set
             {
                 if (range != value)
@@ -152,9 +113,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Progress Bar.
-        /// </summary>
         public ProgressBar(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -168,9 +126,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Dispose managed resources.
-        /// </summary>
         protected override void DisposeManagedResources()
         {
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
@@ -182,9 +137,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Prerender the control into the control's render target.
-        /// </summary>
         protected override void DrawControl(Rectangle rect)
         {
             CheckLayer(SkinInformation, "Control");

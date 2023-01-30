@@ -9,7 +9,7 @@ namespace CasaEngine.Game
         public static readonly int DefaultBackBufferHeight = 480;
         private const string RuntimeProfileResourceName = "Microsoft.Xna.Framework.RuntimeProfile";
 
-        private CustomGame? game;
+        private readonly CustomGame? game;
         private GraphicsDevice? graphicsDevice;
         private int backBufferWidth = DefaultBackBufferWidth;
         private int backBufferHeight = DefaultBackBufferHeight;
@@ -30,89 +30,47 @@ namespace CasaEngine.Game
         public event EventHandler<EventArgs> DeviceResetting;
         public event EventHandler<PreparingDeviceSettingsEventArgs> PreparingDeviceSettings;
 
-        public GraphicsDevice GraphicsDevice
-        {
-            get { return graphicsDevice; }
-        }
+        public GraphicsDevice GraphicsDevice => graphicsDevice;
 
         public GraphicsProfile GraphicsProfile
         {
-            get
-            {
-                return currentGraphicsDeviceInformation.GraphicsProfile;
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => currentGraphicsDeviceInformation.GraphicsProfile;
+            set => throw new NotImplementedException();
         }
 
         public DepthFormat PreferredDepthStencilFormat
         {
-            get
-            {
-                return currentGraphicsDeviceInformation.PresentationParameters.DepthStencilFormat;
-            }
-            set
-            {
-                depthStencilFormat = value;
-            }
+            get => currentGraphicsDeviceInformation.PresentationParameters.DepthStencilFormat;
+            set => depthStencilFormat = value;
         }
 
         public SurfaceFormat PreferredBackBufferFormat
         {
-            get
-            {
-                return currentGraphicsDeviceInformation.PresentationParameters.BackBufferFormat;
-            }
-            set
-            {
-                backBufferFormat = value;
-            }
+            get => currentGraphicsDeviceInformation.PresentationParameters.BackBufferFormat;
+            set => backBufferFormat = value;
         }
 
         public int PreferredBackBufferWidth
         {
-            get
-            {
-                return currentGraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
-            }
-            set
-            {
-                backBufferWidth = value;
-            }
+            get => currentGraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
+            set => backBufferWidth = value;
         }
 
         public int PreferredBackBufferHeight
         {
-            get
-            {
-                return currentGraphicsDeviceInformation.PresentationParameters.BackBufferHeight;
-            }
-            set
-            {
-                backBufferHeight = value;
-            }
+            get => currentGraphicsDeviceInformation.PresentationParameters.BackBufferHeight;
+            set => backBufferHeight = value;
         }
 
         public bool IsFullScreen
         {
-            get
-            {
-                return currentGraphicsDeviceInformation.PresentationParameters.IsFullScreen;
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => currentGraphicsDeviceInformation.PresentationParameters.IsFullScreen;
+            set => throw new NotImplementedException();
         }
 
         public bool SynchronizeWithVerticalRetrace
         {
-            get
-            {
-                return synchronizeWithVerticalRetrace;
-            }
+            get => synchronizeWithVerticalRetrace;
             set
             {
                 synchronizeWithVerticalRetrace = value;
@@ -122,17 +80,14 @@ namespace CasaEngine.Game
 
         public bool PreferMultiSampling
         {
-            get
-            {
-                return currentGraphicsDeviceInformation.PresentationParameters.MultiSampleCount > 0;
-            }
-            set { throw new NotImplementedException(); }
+            get => currentGraphicsDeviceInformation.PresentationParameters.MultiSampleCount > 0;
+            set => throw new NotImplementedException();
         }
 
         public DisplayOrientation SupportedOrientations
         {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         public GraphicsDeviceManager(CustomGame game)

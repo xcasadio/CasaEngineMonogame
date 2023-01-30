@@ -1,43 +1,15 @@
 
-using System;
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 {
-    /// <summary>
-    /// This class represents the aleatory mutation operator for chromosomes composed of ints.
-    /// The operator is applied to all genes from a chromosome. If the mutation takes place, then
-    /// the gene is replaced by a random number between two limits.
-    /// </summary>
-    /// <example>
-    /// Chromosome = (0 2 1 5), Ceil = 0, Floor = 10
-    /// There´s a mutation in the 2nd element (2), the random number between [0, 10] is 7.
-    /// New chromosome = (0 7 1 5)
-    /// </example>
     public sealed class AleatoryMutation : MutationAlgorithm<int>
     {
 
-        /// <summary>
-        /// Lower limit of the mutation range
-        /// </summary>
         internal int floor;
 
-        /// <summary>
-        /// Upper limit of the mutation range
-        /// </summary>
         internal int ceil;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="probability">The mutation probabilty</param>
-        /// <param name="generator">Random number generator</param>
-        /// <param name="floor">Lower limit of the range</param>
-        /// <param name="ceil">Upper limit of the range</param>
         public AleatoryMutation(double probability, Random generator, int floor, int ceil)
             : base(probability, generator)
         {
@@ -53,10 +25,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
 
 
-        /// <summary>
-        /// Applies the mutation operator
-        /// </summary>
-        /// <param name="population">The population we want to mutate</param>
         public override void Mutate(Population<int> population)
         {
             for (int i = 0; i < population.Genome.Count; i++)
@@ -67,13 +35,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
 
 
-        /// <summary>
-        /// Validates if a floor and a ceil value are correct (floor must be lower than ceil)
-        /// </summary>
-        /// <param name="floor">Lower limit to validate</param>
-        /// <param name="ceil">Higher limit to validate</param>
-        /// <param name="message">Message explaining why the validation failed</param>
-        /// <returns>True if the values are correct. False if they are not</returns>
         public static bool ValidateLimits(int floor, int ceil, ref String message)
         {
             if (floor > ceil)

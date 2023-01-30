@@ -1,28 +1,18 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
-using System.Windows.Forms;
 using System.ComponentModel;
 
 namespace CasaEngine.Editor.Manipulation
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class Anchor
     {
 
         private Vector2 m_Position;
         private Vector2 mouseStart;
         private bool m_MousePressed = false;
-        private List<Anchor> m_Anchors = new List<Anchor>();
+        private readonly List<Anchor> m_Anchors = new List<Anchor>();
 
         public event EventHandler<AnchorLocationChangedEventArgs> LocationChanged;
         public event EventHandler StartManipulating, FinishManipulating;
@@ -33,71 +23,44 @@ namespace CasaEngine.Editor.Manipulation
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Height
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public int Width
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public bool Selected
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public bool MoveOnX
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public bool MoveOnY
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public Rectangle Bounds
-        {
-            get { return new Rectangle((int)(m_Position.X + Offset.X), (int)(m_Position.Y + Offset.Y), Width, Height); }
-        }
+        public Rectangle Bounds => new Rectangle((int)(m_Position.X + Offset.X), (int)(m_Position.Y + Offset.Y), Width, Height);
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public bool IsManipulating
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
         public bool CanManipulate
         {
             get
@@ -114,18 +77,12 @@ namespace CasaEngine.Editor.Manipulation
             }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public Vector2 Offset
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         [DefaultValue(null)]
         public Cursor CursorOverShiftPressed
         {
@@ -133,9 +90,6 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         [DefaultValue(null)]
         public Cursor CursorOverControlPressed
         {
@@ -143,9 +97,6 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         [DefaultValue(null)]
         public Cursor CursorOverAltPressed
         {
@@ -153,9 +104,6 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         [DefaultValue(null)]
         public Cursor CursorOver
         {
@@ -163,9 +111,6 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         [DefaultValue(null)]
         public Cursor CursorPressed
         {
@@ -175,15 +120,6 @@ namespace CasaEngine.Editor.Manipulation
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="x_"></param>
-        /// <param name="y_"></param>
-        /// <param name="width_"></param>
-        /// <param name="height_"></param>
-        /// <param name="cursorOver_"></param>
-        /// <param name="cursorPressed_"></param>
         public Anchor(int x_, int y_, int width_, int height_)
         {
             m_Position = new Vector2(x_ - width_ / 2, y_ - height_ / 2);
@@ -199,18 +135,11 @@ namespace CasaEngine.Editor.Manipulation
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="a_"></param>
         public void LinkWithAnchor(Anchor a_)
         {
             m_Anchors.Add(a_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Update(MouseState mouseState_, bool shiftKeyPressed_, bool controlKeyPressed_, bool altKeyPressed_)
         {
             int mouseX = mouseState_.X, mouseY = mouseState_.Y;
@@ -311,19 +240,11 @@ namespace CasaEngine.Editor.Manipulation
             m_MousePressed = Mouse.GetState().LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="r_"></param>
         public void Draw(Renderer2DComponent r_)
         {
             r_.AddBox(m_Position.X + Offset.X, m_Position.Y + Offset.Y, Width, Height, Color.Black);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="r_"></param>
         public void Draw(Line2DRenderer lineRenderer_, SpriteBatch spriteBatch_, Color color_)
         {
             lineRenderer_.DrawLine(spriteBatch_, color_,
@@ -343,12 +264,6 @@ namespace CasaEngine.Editor.Manipulation
                 new Vector2(m_Position.X + Offset.X, m_Position.Y + Offset.Y));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="x_"></param>
-        /// <param name="y_"></param>
-        /// <param name="callHandler_"></param>
         public void SetLocation(int x_, int y_, bool callHandler_)
         {
             m_Position.X = x_;
@@ -361,12 +276,6 @@ namespace CasaEngine.Editor.Manipulation
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="offsetX_"></param>
-        /// <param name="OffsetY_"></param>
-        /// <param name="callHandler_"></param>
         public void SetLocationOffSet(int offsetX_, int offsetY_, bool callHandler_)
         {
             m_Position.X += offsetX_;
@@ -379,10 +288,6 @@ namespace CasaEngine.Editor.Manipulation
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="cursor_"></param>
         private void InvokeCursorChanged(Cursor cursor_)
         {
             if (CursorChanged != null)
@@ -391,28 +296,16 @@ namespace CasaEngine.Editor.Manipulation
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="p_"></param>
         public bool IsInside(int x_, int y_)
         {
             return Bounds.Contains(x_, y_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="p_"></param>
         public bool IsInside(Point p_)
         {
             return IsInside(p_.X, p_.Y);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="v_"></param>
         public bool IsInside(Vector2 v_)
         {
             return IsInside((int)v_.X, (int)v_.Y);

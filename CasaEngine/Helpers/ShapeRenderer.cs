@@ -1,10 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FarseerPhysics.Common;
+﻿using FarseerPhysics.Common;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
@@ -12,7 +6,6 @@ using FarseerPhysics;
 using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Collision;
 using FarseerPhysics.Dynamics;
-using Microsoft.Xna.Framework.Content;
 using FarseerPhysics.Collision.Shapes;
 using FarseerPhysics.Dynamics.Joints;
 using FarseerPhysics.Controllers;
@@ -21,21 +14,13 @@ using System.Diagnostics;
 
 namespace CasaEngine.Helper
 {
-    /// <summary>
-    /// Engine phyics debug renderer
-    /// </summary>
-    /// <summary>
-    /// A debug view that works in XNA.
-    /// A debug view shows you what happens inside the physics engine. You can view
-    /// bodies, joints, fixtures and more.
-    /// </summary>
     public class ShapeRenderer
         : DebugView, IDisposable
     {
 
         //Drawing
         private PrimitiveBatch _primitiveBatch;
-        private Vector2[] _tempVertices = new Vector2[Settings.MaxPolygonVertices];
+        private readonly Vector2[] _tempVertices = new Vector2[Settings.MaxPolygonVertices];
         private List<StringData> _stringData;
 
         private Matrix _localProjection;
@@ -56,7 +41,7 @@ namespace CasaEngine.Helper
         //Contacts
         private int _pointCount;
         private const int MaxContactPoints = 2048;
-        private ContactPoint[] _points = new ContactPoint[MaxContactPoints];
+        private readonly ContactPoint[] _points = new ContactPoint[MaxContactPoints];
 
         //Debug panel
 #if XBOX
@@ -73,14 +58,14 @@ namespace CasaEngine.Helper
         public int ValuesToGraph = 500;
         public int MinimumValue;
         public int MaximumValue = 1000;
-        private List<float> _graphValues = new List<float>();
+        private readonly List<float> _graphValues = new List<float>();
 
 #if XBOX
         public Rectangle PerformancePanelBounds = new Rectangle(265, 100, 200, 100);
 #else
         public Rectangle PerformancePanelBounds = new Rectangle(250, 100, 200, 100);
 #endif
-        private Vector2[] _background = new Vector2[4];
+        private readonly Vector2[] _background = new Vector2[4];
         public bool Enabled = true;
 
 #if XBOX || WINDOWS_PHONE
@@ -93,10 +78,6 @@ namespace CasaEngine.Helper
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="world"></param>
         public ShapeRenderer(FarseerPhysics.Dynamics.World world)
             : base(world)
         {
@@ -125,10 +106,6 @@ namespace CasaEngine.Helper
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="flag"></param>
         private void EnableOrDisableFlag(DebugViewFlags flag)
         {
             if ((Flags & flag) == flag)
@@ -141,40 +118,23 @@ namespace CasaEngine.Helper
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="projection"></param>
-        /// <param name="view"></param>
-        /// <param name="world"></param>
         public void BeginCustomDraw(ref Matrix projection, ref Matrix view, ref Matrix world)
         {
             _primitiveBatch.Begin(ref projection, ref view, ref world);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void EndCustomDraw()
         {
             _primitiveBatch.End();
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public void Dispose()
         {
             World.ContactManager.PreSolve -= PreSolve;
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="contact"></param>
-        /// <param name="oldManifold"></param>
         private void PreSolve(Contact contact, ref Manifold oldManifold)
         {
             if ((Flags & DebugViewFlags.ContactPoints) == DebugViewFlags.ContactPoints)
@@ -211,9 +171,6 @@ namespace CasaEngine.Helper
             }
         }
 
-        /// <summary>
-        /// Call this to draw shapes and other debug draw data.
-        /// </summary>
         private void DrawDebugData()
         {
             if ((Flags & DebugViewFlags.Shape) == DebugViewFlags.Shape)
@@ -378,9 +335,6 @@ namespace CasaEngine.Helper
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void DrawPerformanceGraph()
         {
             _graphValues.Add(World.UpdateTime);
@@ -445,9 +399,6 @@ namespace CasaEngine.Helper
             DrawSolidPolygon(_background, 4, Color.DarkGray, true);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void DrawDebugPanel()
         {
             int fixtures = 0;
@@ -476,11 +427,6 @@ namespace CasaEngine.Helper
                                    "\n- Total: " + World.UpdateTime);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="aabb"></param>
-        /// <param name="color"></param>
         public void DrawAABB(ref AABB aabb, Color color)
         {
             Vector2[] verts = new Vector2[4];
@@ -492,10 +438,6 @@ namespace CasaEngine.Helper
             DrawPolygon(verts, 4, color);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="joint"></param>
         private void DrawJoint(Joint joint)
         {
             if (!joint.Enabled)
@@ -640,12 +582,6 @@ namespace CasaEngine.Helper
             DrawPolygon(vertices, count, new Color(red, green, blue));
         }
 
-        /// <summary>
-        /// Draw a Polygon
-        /// </summary>
-        /// <param name="vertices"></param>
-        /// <param name="count"></param>
-        /// <param name="color"></param>
         public void DrawPolygon(Vector2[] vertices, int count, Color color)
         {
             if (!_primitiveBatch.IsReady())
@@ -681,14 +617,6 @@ namespace CasaEngine.Helper
             _primitiveBatch.AddVertex(n, color, PrimitiveType.LineList);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="vertices"></param>
-        /// <param name="count"></param>
-        /// <param name="red"></param>
-        /// <param name="green"></param>
-        /// <param name="blue"></param>
         public override void DrawSolidPolygon(Vector2[] vertices, int count, float red, float green, float blue)
         {
             DrawSolidPolygon(vertices, count, new Color(red, green, blue), true);
@@ -942,12 +870,6 @@ namespace CasaEngine.Helper
             RenderDebugData(ref projection, ref view);
         }*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="device"></param>
-        /// <param name="batch"></param>
-        /// <param name="font"></param>
         public void LoadContent(GraphicsDevice device, SpriteBatch batch, SpriteFont font)
         {
             // Create a new SpriteBatch, which can be used to draw textures.
@@ -964,9 +886,6 @@ namespace CasaEngine.Helper
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         private struct ContactPoint
         {
             public Vector2 Normal;
@@ -976,15 +895,13 @@ namespace CasaEngine.Helper
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         private struct StringData
         {
-            public object[] Args;
-            public Color Color;
-            public string S;
-            public int X, Y;
+            public readonly object[] Args;
+            public readonly Color Color;
+            public readonly string S;
+            public readonly int X;
+            public readonly int Y;
 
             public StringData(int x, int y, string s, object[] args, Color color)
             {

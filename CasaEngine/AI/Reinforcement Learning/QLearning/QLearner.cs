@@ -1,40 +1,18 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Text;
-using CasaEngine.Gameplay.Actor.Object;
+﻿using CasaEngine.Gameplay.Actor.Object;
 
 
 namespace CasaEngine.AI.Reinforcement_Learning.QLearning
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class QLearner
         : BaseObject
     {
-
-        QLearning m_QL = new QLearning();
-
-
-
-        /// <summary>
-        /// Gets QLearning
-        /// </summary>
-        public QLearning QLearning
-        {
-            get { return m_QL; }
-        }
+        readonly QLearning m_QL = new QLearning();
 
 
 
+        public QLearning QLearning => m_QL;
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dt"></param>
         public void Update(float dt)
         {
 
@@ -43,11 +21,6 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
             //m_QL.Learn()
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="agent_"></param>
-        /// <param name="currentState_"></param>
         public void Update(IQAgent agent_, string currentState_)
         {
             m_QL.Learn(agent_, currentState_);

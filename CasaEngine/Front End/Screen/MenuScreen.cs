@@ -1,10 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
@@ -12,38 +6,20 @@ using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    /// <summary>
-    /// Base class for screens that contain a menu of options. The user can
-    /// move up and down to select an entry, or cancel to back out of the screen.
-    /// </summary>
     public class MenuScreen
         : Screen
     {
-
-        List<MenuEntry> menuEntries = new List<MenuEntry>();
+        readonly List<MenuEntry> menuEntries = new List<MenuEntry>();
         int selectedEntry = 0;
-        string menuTitle;
+        readonly string menuTitle;
 
-        Renderer2DComponent m_Renderer2DComponent = null;
-
-
-
-        /// <summary>
-        /// Gets the list of menu entries, so derived classes can add
-        /// or change the menu contents.
-        /// </summary>
-        protected IList<MenuEntry> MenuEntries
-        {
-            get { return menuEntries; }
-        }
+        readonly Renderer2DComponent m_Renderer2DComponent = null;
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="menuTitle"></param>
-        /// <param name="menuName_"></param>
+        protected IList<MenuEntry> MenuEntries => menuEntries;
+
+
         public MenuScreen(string menuTitle, string menuName_)
             : base(menuName_)
         {
@@ -57,10 +33,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Responds to user input, changing the selected entry and accepting
-        /// or cancelling the menu.
-        /// </summary>
         public override void HandleInput(InputState input)
         {
             // Move to the previous menu entry?
@@ -98,9 +70,6 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// Handler for when the user has chosen a menu entry.
-        /// </summary>
         protected virtual void OnSelectEntry(int entryIndex, PlayerIndex playerIndex)
         {
             if (selectedEntry < 0 || selectedEntry >= menuEntries.Count)
@@ -111,17 +80,11 @@ namespace CasaEngine.FrontEnd.Screen
             menuEntries[selectedEntry].OnSelectEntry(playerIndex);
         }
 
-        /// <summary>
-        /// Handler for when the user has cancelled the menu.
-        /// </summary>
         protected virtual void OnCancel(PlayerIndex playerIndex)
         {
             ExitScreen();
         }
 
-        /// <summary>
-        /// Helper overload makes it easy to use OnCancel as a MenuEntry event handler.
-        /// </summary>
         protected void OnCancel(object sender, PlayerIndexEventArgs e)
         {
             OnCancel(e.PlayerIndex);
@@ -129,9 +92,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-        /// Updates the menu.
-        /// </summary>
         public override void Update(float elapsedTime, bool otherScreenHasFocus,
                                                        bool coveredByOtherScreen)
         {
@@ -146,9 +106,6 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        /// <summary>
-        /// Draws the menu.
-        /// </summary>
         public override void Draw(float elapsedTime_)
         {
             SpriteBatch spriteBatch = Engine.Instance.SpriteBatch;

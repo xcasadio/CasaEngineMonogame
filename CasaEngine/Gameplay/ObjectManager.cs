@@ -1,25 +1,13 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.AI;
-using CasaEngineCommon.Design;
+﻿using CasaEngineCommon.Design;
 using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Game;
-using System.IO;
 using CasaEngineCommon.Logger;
 using System.Reflection;
 using CasaEngine.Project;
 
 namespace CasaEngine.Gameplay
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public sealed
 #if EDITOR
     partial
@@ -28,9 +16,6 @@ namespace CasaEngine.Gameplay
         : ISaveLoad
     {
 
-        /// <summary>
-        /// 
-        /// </summary>
 #if EDITOR
         partial
 #endif
@@ -40,70 +25,40 @@ namespace CasaEngine.Gameplay
             private Type m_ItemType;
 
 
-            /// <summary>
-            /// 
-            /// </summary>
             public int ID
             {
                 get;
                 private set;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            public bool IsLoaded
-            {
-                get { return m_BaseObject != null; }
-            }
+            public bool IsLoaded => m_BaseObject != null;
 
-            /// <summary>
-            /// Gets
-            /// </summary>
             public string ClassName
             {
                 get;
                 private set;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            public string Name
-            {
-                get { return System.IO.Path.GetFileName(Path); }
-            }
+            public string Name => System.IO.Path.GetFileName(Path);
 
-            /// <summary>
-            /// 
-            /// </summary>
             public string Path
             {
                 get;
                 private set;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
             internal int FilePosition
             {
                 get;
                 set;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
             internal string XPath
             {
                 get;
                 set;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
             internal BaseObject Object
             {
                 get
@@ -159,9 +114,6 @@ namespace CasaEngine.Gameplay
                 }
             }
 
-            /// <summary>
-            /// Gets
-            /// </summary>
             public Type ItemType
             {
                 get
@@ -191,9 +143,6 @@ namespace CasaEngine.Gameplay
             }
 
 
-            /// <summary>
-            /// 
-            /// </summary>
             public ObjectContainer()
             {
 #if EDITOR
@@ -201,11 +150,6 @@ namespace CasaEngine.Gameplay
 #endif
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="el_"></param>
-            /// <param name="option_"></param>
             public ObjectContainer(XmlElement el_, SaveOption option_)
             {
 #if EDITOR
@@ -214,11 +158,6 @@ namespace CasaEngine.Gameplay
                 Load(el_, option_);
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="br_"></param>
-            /// <param name="option_"></param>
             public ObjectContainer(BinaryReader br_, SaveOption option_)
             {
 #if EDITOR
@@ -228,21 +167,11 @@ namespace CasaEngine.Gameplay
             }
 
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="br_"></param>
-            /// <param name="option_"></param>
             public void Load(System.IO.BinaryReader br_, SaveOption option_)
             {
                 throw new NotImplementedException();
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="el_"></param>
-            /// <param name="option_"></param>
             public void Load(XmlElement el_, SaveOption option_)
             {
                 int version = int.Parse(el_.Attributes["version"].Value);
@@ -267,15 +196,12 @@ namespace CasaEngine.Gameplay
 
 
         //full path, object container
-        Dictionary<string, ObjectContainer> m_Objects = new Dictionary<string, ObjectContainer>(100);
+        readonly Dictionary<string, ObjectContainer> m_Objects = new Dictionary<string, ObjectContainer>(100);
 
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public ObjectManager()
         {
 
@@ -284,10 +210,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fullpath_"></param>
         public BaseObject GetObjectByPath(string fullpath_)
         {
             if (m_Objects.ContainsKey(fullpath_) == false)
@@ -303,10 +225,6 @@ namespace CasaEngine.Gameplay
             return res;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id_"></param>
         public BaseObject GetObjectByID(int id_)
         {
             //m_Objects[fullpath_].Object return a copy!
@@ -334,11 +252,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public void Load(XmlElement el_, SaveOption option_)
         {
             /*string assetPath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
@@ -384,11 +297,6 @@ namespace CasaEngine.Gameplay
             //assetManager.BuildAll(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="br_"></param>
-        /// <param name="option_"></param>
         public void Load(System.IO.BinaryReader br_, SaveOption option_)
         {
             throw new NotImplementedException();

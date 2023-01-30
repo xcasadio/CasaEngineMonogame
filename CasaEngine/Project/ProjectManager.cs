@@ -1,21 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using CasaEngine.Gameplay.Actor;
-using CasaEngine;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 using CasaEngine.Game;
-using System.IO;
 
 namespace CasaEngine.Project
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public
 #if EDITOR
     partial
@@ -77,9 +65,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// Gets the project full path (ends with directory separator)
-        /// </summary>
         public string ProjectPath
         {
             get
@@ -94,10 +79,6 @@ namespace CasaEngine.Project
         }
 
 
-        /// <summary>
-        /// Load project from file
-        /// </summary>
-        /// <param name="fileName_"></param>
         public void Load(string fileName_)
         {
 #if EDITOR

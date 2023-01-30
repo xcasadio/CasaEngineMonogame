@@ -16,9 +16,6 @@ using CasaEngine.Game;
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Exit Dialog.
-    /// </summary>
     public class ExitDialog : Dialog
     {
 
@@ -30,9 +27,6 @@ namespace XNAFinalEngine.UserInterface
 
 
     
-        /// <summary>
-        /// Exit Dialog.
-        /// </summary>
         public ExitDialog(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {

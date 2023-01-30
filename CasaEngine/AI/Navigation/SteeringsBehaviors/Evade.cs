@@ -1,7 +1,3 @@
-
-using System;
-
-
 using Microsoft.Xna.Framework;
 
 
@@ -9,34 +5,15 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
-    /// <summary>
-    /// This class represents the evade steering behavior. This behavior calculates the force
-    /// needed to evade another entity
-    /// </summary>
     public class Evade : SteeringBehavior
     {
 
-        /// <summary>
-        /// The entity that the behavior tries to avoid
-        /// </summary>
         protected MovingEntity pursuer;
 
-        /// <summary>
-        /// Flee helper behavior
-        /// </summary>
         protected Flee flee;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="name">Name of the behavior, used to identify it</param>
-        /// <param name="owner">The owner entity of the behavior</param>
-        /// <param name="modifier">
-        /// This value can modify the value of the behavior when the total force of all combined
-        /// behaviors is updated
-        /// </param>
         public Evade(String name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
@@ -45,21 +22,14 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
 
 
-        /// <summary>
-        /// Gets or sets the entity that the behavior tries to avoid
-        /// </summary>
         public MovingEntity Pursuer
         {
-            get { return pursuer; }
-            set { pursuer = value; }
+            get => pursuer;
+            set => pursuer = value;
         }
 
 
 
-        /// <summary>
-        /// Calculates the resultant force of this behavior
-        /// </summary>
-        /// <returns>The force vector of this behavior</returns>
         public override Vector3 Calculate()
         {
             Vector3 toPursuer;

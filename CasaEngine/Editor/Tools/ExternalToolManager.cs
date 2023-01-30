@@ -1,29 +1,17 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using CasaEngine.Game;
 using CasaEngine.Project;
 using CasaEngine.Gameplay.Actor.Object;
 using CasaEngineCommon.Logger;
-using CasaEngine.Graphics2D;
 
 namespace CasaEngine.Editor.Tools
 {
-    /// <summary>
-    /// Handle all <see cref="ExternTool"/>
-    /// </summary>
     public class ExternalToolManager
     {
-
-        Dictionary<string, Type> m_CustomObjects = new Dictionary<string, Type>();
-        Dictionary<string, Type> m_CustomEditorsTemplate = new Dictionary<string, Type>();
-        Dictionary<Type, IExternalTool> m_CustomEditors = new Dictionary<Type, IExternalTool>();
-        Dictionary<string, Assembly> m_CustomObjectAssembly = new Dictionary<string, Assembly>();
+        readonly Dictionary<string, Type> m_CustomObjects = new Dictionary<string, Type>();
+        readonly Dictionary<string, Type> m_CustomEditorsTemplate = new Dictionary<string, Type>();
+        readonly Dictionary<Type, IExternalTool> m_CustomEditors = new Dictionary<Type, IExternalTool>();
+        readonly Dictionary<string, Assembly> m_CustomObjectAssembly = new Dictionary<string, Assembly>();
 
         public event EventHandler EventExternalToolChanged;
 
@@ -33,9 +21,6 @@ namespace CasaEngine.Editor.Tools
 
 
 
-        /// <summary>
-        /// Load all external tools in the project
-        /// </summary>
         public void Initialize()
         {
             Clear();
@@ -103,20 +88,11 @@ namespace CasaEngine.Editor.Tools
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="objectTypeName_"></param>
-        /// <param name="editorType_"></param>
         public void RegisterEditor(string objectTypeName_, Type editorType_)
         {
             m_CustomEditorsTemplate.Add(objectTypeName_, editorType_);
         }
 
-        /// <summary>
-        /// Get all Custom Object names
-        /// </summary>
-        /// <returns></returns>
         public string[] GetAllCustomObjectNames()
         {
             List<string> res = new List<string>();
@@ -129,10 +105,6 @@ namespace CasaEngine.Editor.Tools
             return res.ToArray();
         }
 
-        /// <summary>
-        /// Get all tool names
-        /// </summary>
-        /// <returns></returns>
         /*public string[] GetAllToolNames()
 		{
 			List<string> res = new List<string>();
@@ -145,20 +117,11 @@ namespace CasaEngine.Editor.Tools
 			return res.ToArray();
 		}*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns></returns>
         public BaseObject CreateCustomObjectByName(string name_)
         {
             return (BaseObject)m_CustomObjects[name_].Assembly.CreateInstance(m_CustomObjects[name_].FullName);
         }
 
-        /// <summary>
-        /// Run a tool
-        /// </summary>
-        /// <param name="name_"></param>
         /*public void RunTool(System.Windows.Forms.Form parent, string name_)
 		{
             if (m_Tools.ContainsKey(name_) == true)
@@ -167,9 +130,6 @@ namespace CasaEngine.Editor.Tools
             }
 		}
 
-		/// <summary>
-		/// Close all tool
-		/// </summary>
 		public void CloseAllTool()
 		{
             foreach (KeyValuePair<string, IExternalTool> pair in m_Tools)
@@ -178,9 +138,6 @@ namespace CasaEngine.Editor.Tools
 			}
 		}*/
 
-        /// <summary>
-        /// Clear
-        /// </summary>
         public void Clear()
         {
             CloseAllSubEditor();
@@ -191,11 +148,6 @@ namespace CasaEngine.Editor.Tools
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path_"></param>
-        /// <param name="obj_"></param>
         public void RunSubEditor(string path_, BaseObject obj_)
         {
             if (obj_ == null)
@@ -251,9 +203,6 @@ namespace CasaEngine.Editor.Tools
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void CloseAllSubEditor()
         {
             foreach (var p in m_CustomEditors)

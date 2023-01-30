@@ -1,18 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Graphics2D;
+﻿using CasaEngine.Graphics2D;
 using CasaEngine.Game;
 using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class DebugScreen
         : Screen
     {
@@ -24,11 +15,6 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="menuTitle"></param>
-		/// <param name="menuName_"></param>
         public DebugScreen(string menuTitle, string menuName_)
             : base(menuName_)
         {

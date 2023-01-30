@@ -1,28 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Text;
-
-namespace CasaEngine.AI.Reinforcement_Learning.QLearning
+﻿namespace CasaEngine.AI.Reinforcement_Learning.QLearning
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class QLearning
     {
 
-        /// <summary>
-        /// reward discount factor (between 0 and 1)
-        /// </summary>
         protected float m_Gamma = 0.8f;
-        /// <summary>
-        /// learning rate (between 0 and 1)
-        /// </summary>
         protected float m_Alpha = 0.9f;
-        /// <summary>
-        /// parameter for the epsilon-greedy policy (between 0 and 1)
-        /// </summary>
         protected float m_Epsilon = 0.8f;
 
         public string m_State = "Idle";
@@ -34,72 +16,38 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
 		protected Actions m_PrevAction;                 //< previous action taken
 		protected Actions m_newAction;           //< new action*/
 
-        /// <summary>
-        /// 
-        /// </summary>
-        QPolicy m_Policy = new QPolicy();
+        readonly QPolicy m_Policy = new QPolicy();
 
         List<KeyValuePair<string, string>> m_PastActions = new List<KeyValuePair<string, string>>();
-        float[] m_PastReward = new float[50];
+        readonly float[] m_PastReward = new float[50];
 
 
 
-        /// <summary>
-        /// Gets/Sets Epsilon
-        /// </summary>
         public float Epsilon
         {
-            get { return m_Epsilon; }
-            set { m_Epsilon = value; }
+            get => m_Epsilon;
+            set => m_Epsilon = value;
         }
 
-        /// <summary>
-        /// Gets/Sets Gamma
-        /// </summary>
         public float Gamma
         {
-            get { return m_Gamma; }
-            set { m_Gamma = value; }
+            get => m_Gamma;
+            set => m_Gamma = value;
         }
 
-        /// <summary>
-        /// Gets/Sets Alpha
-        /// </summary>
         public float Alpha
         {
-            get { return m_Alpha; }
-            set { m_Alpha = value; }
+            get => m_Alpha;
+            set => m_Alpha = value;
         }
 
-        /// <summary>
-        /// Gets Policy
-        /// </summary>
-        public QPolicy Policy
-        {
-            get { return m_Policy; }
-        }
+        public QPolicy Policy => m_Policy;
 
-        /// <summary>
-        /// Gets current state
-        /// </summary>
-        public string CurrentState
-        {
-            get { return m_State; }
-        }
+        public string CurrentState => m_State;
 
-        /// <summary>
-        /// Gets current action
-        /// </summary>
-        public string CurrentAction
-        {
-            get { return m_Action; }
-        }
+        public string CurrentAction => m_Action;
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
         public QLearning()
         {
             for (int i = 0; i < m_PastReward.Length; i++)
@@ -113,11 +61,6 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
         // predicts reinforcement for current round
         //protected abstract double predict(Sensors new_state);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="agent_"></param>
-        /// <param name="currentState_"></param>
         public void Learn(IQAgent agent_, string currentState_)
         {
             float reward = 1.0f;
@@ -154,33 +97,16 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
             m_Action = maxAction;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <param name="action_"></param>
-        /// <returns></returns>
         float ValueState(string state_, string action_)
         {
             return m_Policy.GetQValues(state_, action_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <param name="numAction_"></param>
-        /// <returns></returns>
         float ValueState(string state_, int numAction_)
         {
             return m_Policy.GetQValues(state_, numAction_);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="state_"></param>
-        /// <returns></returns>
         float MaxValueState(IQAgent agent_, string state_)
         {
             float res = 0.0f;

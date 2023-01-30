@@ -1,16 +1,6 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Gameplay
+﻿namespace CasaEngine.Gameplay
 {
-    /// <summary>
-    /// 
-    /// </summary>
-	public class GlobalVar
+    public class GlobalVar
     {
 
         private static GlobalVar instance;
@@ -18,9 +8,6 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public static GlobalVar Instance
         {
             get
@@ -33,20 +20,14 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Dictionary<string, int> Vars
         {
-            get { return m_Vars; }
-            set { m_Vars = value; }
+            get => m_Vars;
+            set => m_Vars = value;
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         private GlobalVar()
         {
             m_Vars = new Dictionary<string, int>();

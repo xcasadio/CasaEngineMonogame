@@ -1,12 +1,5 @@
-using System;
-
-
-
 namespace CasaEngine.Gameplay
 {
-    /// <summary>
-    /// 
-    /// </summary>
     [Flags]
     public enum CharacterActor2DOrientation
     {

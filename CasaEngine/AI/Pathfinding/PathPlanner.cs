@@ -1,11 +1,3 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
-
-
 using CasaEngine.AI.Graphs;
 using CasaEngine.AI.Messaging;
 using CasaEngine.AI.Navigation;
@@ -14,70 +6,28 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Pathfinding
 {
-    /// <summary>
-    /// This class is capable of handling search requests done by a MovingEntity to move
-    /// and navigate its environment
-    /// </summary>
-    /// <typeparam name="T">The type of the edges of the graph where the searchs will take place</typeparam>
-    /// <remarks>
-    /// The PathPlanner uses messages by default to comunicate with its owner entity about search results, so the
-    /// owner should implement the <see cref="CasaEngine.AI.Messaging.IMessageable" /> interface
-    /// </remarks>
     public class PathPlanner<T>
         where T : WeightedEdge
     {
 
-        /// <summary>
-        /// No neighbour node was found
-        /// </summary>
         public const int NoNodeFound = -1;
 
 
 
-        /// <summary>
-        /// The owner entity of the PathPlanner
-        /// </summary>
         protected internal MovingEntity owner;
 
-        /// <summary>
-        /// The graph where the pathfinding searches are going to happen
-        /// </summary>
         protected internal Graph<NavigationNode, T> graph;
 
-        /// <summary>
-        /// The maximum distance the PathPlanner will use to search a neighbour-Runable
-        /// node to a given position
-        /// </summary>
         protected internal float neighboursSearchRange;
 
-        /// <summary>
-        /// Search algorithm used by the planner
-        /// </summary>
         protected internal GraphSearchAlgorithm<NavigationNode, T> search;
 
-        /// <summary>
-        /// Destination point of the search
-        /// </summary>
         protected internal Vector3 destination;
 
-        /// <summary>
-        /// Smooth algorithm for the path
-        /// </summary>
         protected internal PathSmoother smoothAlgorithm;
 
 
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="owner">The owner entity of the PathManager</param>
-        /// <param name="graph">The graph where the pathfinding searches are going to happen</param>
-        /// <param name="search">Search algorithm used by the planner</param>
-        /// <param name="neighboursSearchRange">
-        /// The maximum distance the PathPlanner will use to search a neighbour-Runable
-        /// node to a given position
-        /// </param>
-        /// <param name="smoothAlgorithm">Smooth algorithm for the path</param>
         public PathPlanner(MovingEntity owner, Graph<NavigationNode, T> graph, GraphSearchAlgorithm<NavigationNode, T> search, float neighboursSearchRange, PathSmoother smoothAlgorithm)
         {
             this.owner = owner;
@@ -89,52 +39,28 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        /// <summary>
-        /// Gets the owner of the planner
-        /// </summary>
-        public MovingEntity Owner
-        {
-            get { return owner; }
-        }
+        public MovingEntity Owner => owner;
 
-        /// <summary>
-        /// Gets or sets the graph where the searchs will happen
-        /// </summary>
         public Graph<NavigationNode, T> Graph
         {
-            get { return graph; }
-            set { graph = value; }
+            get => graph;
+            set => graph = value;
         }
 
-        /// <summary>
-        /// Gets or sets the search algorithm used by the planner
-        /// </summary>
         public GraphSearchAlgorithm<NavigationNode, T> Search
         {
-            get { return search; }
-            set { search = value; }
+            get => search;
+            set => search = value;
         }
 
-        /// <summary>
-        /// Gets or sets the maximum search distance for neighbours
-        /// </summary>
         public float NeighboursSearchRange
         {
-            get { return neighboursSearchRange; }
-            set { neighboursSearchRange = value; }
+            get => neighboursSearchRange;
+            set => neighboursSearchRange = value;
         }
 
 
 
-        /// <summary>
-        /// This method requests a time-sliced search to a position
-        /// </summary>
-        /// <param name="position">The destination of the search</param>
-        /// <returns>
-        /// True if the search can take place (even if later it fails). False if it can´t take place: the start or end positions are
-        /// unreachable for the owner entity (they are out of the geometry or another kind of problem)
-        /// </returns>
-        /// <remarks>A* is used by default as search algorithm</remarks>
         public bool RequestPathToPosition(Vector3 position)
         {
             int closestNodeToEntity, closestNodeToDestination;
@@ -169,9 +95,6 @@ namespace CasaEngine.AI.Pathfinding
             return true;
         }
 
-        /// <summary>
-        /// Gets a list of 3D positions from the location of the entity to the destination
-        /// </summary>
         public List<Vector3> PathOfPositions
         {
             get
@@ -185,10 +108,6 @@ namespace CasaEngine.AI.Pathfinding
             }
         }
 
-        /// <summary>
-        /// Gets a list of NavigationEdges from the location of the entity to the destination
-        /// </summary>
-        /// <remarks>The path is smoothed according to the choosen path algorithm</remarks>
         public List<NavigationEdge> PathOfEdges
         {
             get
@@ -220,12 +139,6 @@ namespace CasaEngine.AI.Pathfinding
             }
         }
 
-        /// <summary>
-        /// This method performs a full search for a path to reach the target position and returns
-        /// the path of positions to it if it exists
-        /// </summary>
-        /// <param name="position">The destination of the search</param>
-        /// <returns>The list of positions if the search was succesful, null if it wasn´t</returns>
         public List<Vector3> GetNowPathOfPositionsToPosition(Vector3 position)
         {
             int closestNodeToEntity, closestNodeToDestination;
@@ -254,12 +167,6 @@ namespace CasaEngine.AI.Pathfinding
             return null;
         }
 
-        /// <summary>
-        /// This method performs a full search for a path to reach the target position and returns
-        /// the path of NavigationEdges to it if it exists
-        /// </summary>
-        /// <param name="position">The destination of the search</param>
-        /// <returns>The list of NavigationEdges if the search was succesful, null if it wasn´t</returns>
         public List<NavigationEdge> GetNowPathOfEdgesToPosition(Vector3 position)
         {
             int closestNodeToEntity, closestNodeToDestination;
@@ -288,10 +195,6 @@ namespace CasaEngine.AI.Pathfinding
             return null;
         }
 
-        /// <summary>
-        /// This method makes one search cycle and messages the owner entity if the search was finished
-        /// </summary>
-        /// <returns>The state of the search</returns>
         protected internal SearchState CycleOnce()
         {
             SearchState result;
@@ -311,11 +214,6 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        /// <summary>
-        /// This method gets the closest node to a given position that the owner entity can reach
-        /// </summary>
-        /// <param name="position">The position we are going to test</param>
-        /// <returns>The index in the graph of the closest node to the tested position</returns>
         private int ClosestNodeToPosition(Vector3 position)
         {
             int closestNode;
@@ -347,11 +245,6 @@ namespace CasaEngine.AI.Pathfinding
             return closestNode;
         }
 
-        /// <summary>
-        /// This method transform a list of graph nodes indexes into a list of 3D positions
-        /// </summary>
-        /// <param name="nodes">The list of nodes to transform</param>
-        /// <returns>A list of 3D positions</returns>
         private List<Vector3> NodesToPositions(List<int> nodes)
         {
             List<Vector3> path;
@@ -365,11 +258,6 @@ namespace CasaEngine.AI.Pathfinding
             return path;
         }
 
-        /// <summary>
-        /// This method transform a list of graph node indexes into a list of <see cref="NavigationEdge"/>
-        /// </summary>
-        /// <param name="nodes"></param>
-        /// <returns></returns>
         private List<NavigationEdge> NodesToPathEdges(List<int> nodes)
         {
             List<NavigationEdge> path;

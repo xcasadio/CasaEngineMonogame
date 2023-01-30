@@ -1,58 +1,30 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Graphics2D;
+﻿using CasaEngine.Graphics2D;
 using CasaEngine.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.Gameplay
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public abstract class HUDBase
     {
-
-        CharacterActor2D m_Character;
+        readonly CharacterActor2D m_Character;
         Renderer2DComponent m_Renderer2DComponent;
 
 
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        protected Renderer2DComponent Renderer2DComponent
+        protected Renderer2DComponent Renderer2DComponent => m_Renderer2DComponent;
+
+        protected CharacterActor2D CharacterActor2D => m_Character;
+
+
+        public HUDBase(CharacterActor2D character)
         {
-            get { return m_Renderer2DComponent; }
-        }
-
-        /// <summary>
-        /// Gets
-        /// </summary>
-        protected CharacterActor2D CharacterActor2D
-        {
-            get { return m_Character; }
-        }
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="character_"></param>
-        public HUDBase(CharacterActor2D character_)
-        {
-            if (character_ == null)
+            if (character == null)
             {
                 throw new ArgumentNullException("HUD() : CharacterActor2D is null");
             }
 
-            m_Character = character_;
+            m_Character = character;
 
 #if !EDITOR
             m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
@@ -66,35 +38,19 @@ namespace CasaEngine.Gameplay
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elpaseTime_"></param>
-        public virtual void LoadContent(GraphicsDevice graphicsDevice_)
+        public virtual void LoadContent(GraphicsDevice graphicsDevice)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="graphicsDevice_"></param>
         public abstract void Start();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elpaseTime_"></param>
-        public virtual void Update(float elpaseTime_)
+        public virtual void Update(float elapsedTime)
         {
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elpasedTime_"></param>
-        public virtual void Draw(float elpasedTime_)
+        public virtual void Draw(float elapsedTime)
         {
             //@TODO : string is not GC friendly
             /*m_Renderer2DComponent.AddText2D(

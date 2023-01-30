@@ -13,16 +13,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Status Bar. It's just a container.
-    /// </summary>
     public class StatusBar : Control
     {
 
     
-        /// <summary>
-        /// Status Bar. It's just a container.
-        /// </summary>
         public StatusBar(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {

@@ -1,28 +1,14 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Design.Parser
 {
     class ParserTokenDelimiter
         : ParserToken
     {
-
-        string m_Close;
-
+        readonly string m_Close;
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parser_"></param>
-        /// <param name="open_"></param>
-        /// <param name="close_"></param>
+
         public ParserTokenDelimiter(Parser parser_, string open_, string close_)
             : base(parser_, open_)
         {
@@ -32,11 +18,6 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sentence_"></param>
-        /// <returns></returns>
         public override bool Check(string sentence_)
         {
             string res;
@@ -62,15 +43,6 @@ namespace CasaEngine.Design.Parser
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="str_"></param>
-        /// <param name="open_"></param>
-        /// <param name="close_"></param>
-        /// <param name="s1_">la sequence</param>
-        /// <param name="s2_">la phrase avec la sequence remplacé par &lt;seq&gt;</param>
-        /// <returns></returns>
         static public bool GetStringBetweenDelimiter(string str_, string open_, string close_, out string s1_, out string s2_)
         {
             s1_ = string.Empty;

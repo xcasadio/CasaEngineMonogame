@@ -1,12 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Game;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Audio;
+﻿using CasaEngine.Game;
 
 namespace CasaEngine.Project
 {
@@ -15,7 +7,7 @@ namespace CasaEngine.Project
     {
 
         private Type m_Type;
-        private string m_XnbName;
+        private readonly string m_XnbName;
 
 
 
@@ -28,9 +20,6 @@ namespace CasaEngine.Project
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
         public override T LoadItem<T>()
         {
             return Engine.Instance.Game.Content.Load<T>(m_XnbName);

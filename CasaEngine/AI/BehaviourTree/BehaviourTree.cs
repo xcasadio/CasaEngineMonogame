@@ -1,22 +1,8 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-
-namespace CasaEngine.AI.BehaviourTree
+﻿namespace CasaEngine.AI.BehaviourTree
 {
-    /// <summary>
-    /// The Behaviour Tree is a HFSM 
-    /// </summary>
     public class BehaviourTree<T> where T : BaseEntity
     {
 
-        /// <summary>
-        /// The owner of the state machine
-        /// </summary>
         protected internal T m_Owner;
 
         BehaviourTreeNode<T> m_Root = null;
@@ -28,10 +14,6 @@ namespace CasaEngine.AI.BehaviourTree
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime"></param>
         public void Update()
         {
             if (m_Root == null) return;
@@ -66,11 +48,6 @@ namespace CasaEngine.AI.BehaviourTree
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="nodes_"></param>
-        /// <returns></returns>
         BehaviourTreeNode<T> Update(List<BehaviourTreeNode<T>> nodes_)
         {
             foreach (BehaviourTreeNode<T> node in nodes_)
@@ -89,11 +66,6 @@ namespace CasaEngine.AI.BehaviourTree
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <returns></returns>
         public BehaviourTreeNode<T> GetNodeByName(string name_)
         {
             if (m_Root == null)
@@ -105,12 +77,6 @@ namespace CasaEngine.AI.BehaviourTree
             return SearchNodeByName(name_, m_Root.Children);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name_"></param>
-        /// <param name="nodes_"></param>
-        /// <returns></returns>
         BehaviourTreeNode<T> SearchNodeByName(string name_, List<BehaviourTreeNode<T>> nodes_)
         {
             foreach (BehaviourTreeNode<T> node in nodes_)
@@ -126,11 +92,6 @@ namespace CasaEngine.AI.BehaviourTree
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parentNode_"></param>
-        /// <param name="node_"></param>
         public void AddNode(string parentNodeName_, BehaviourTreeNode<T> node_)
         {
             if (node_ == null)

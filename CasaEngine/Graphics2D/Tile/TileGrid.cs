@@ -5,34 +5,23 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System;
 
-
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-
 
 
 namespace CasaEngine.Graphics2D.Tile
 {
-    /// <summary>
-    /// EDUCATIONAL: Class used to align tiles to a regular grid.
-    /// This represents a tiling "layer" in this sample
-    /// </summary>
     public class TileGrid
         : TileLayer
     {
 
-        private int[][] grid;
+        private readonly int[][] grid;
         //private SpriteSheet sheet;
-        private int width;
-        private int height;
-        private int cellWidth;
-        private int cellHeight;
+        private readonly int width;
+        private readonly int height;
+        private readonly int cellWidth;
+        private readonly int cellHeight;
         private Rectangle visibleTiles;
 
         private Vector2 scaleValue;
@@ -46,24 +35,11 @@ namespace CasaEngine.Graphics2D.Tile
                 scaleValue = value;
                 visibilityChanged = true;
             }
-            get
-            {
-                return scaleValue;
-            }
+            get => scaleValue;
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="tileWidth"></param>
-        /// <param name="tileHeight"></param>
-        /// <param name="numXTiles"></param>
-        /// <param name="numYTiles"></param>
-        /// <param name="offset"></param>
-        /// <param name="tileSheet"></param>
-        /// <param name="graphicsComponent"></param>
         public TileGrid(int tileWidth, int tileHeight, int numXTiles, int numYTiles,
             Vector2 offset,  /*SpriteSheet tileSheet,*/
             GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
@@ -92,22 +68,12 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="xIndex"></param>
-        /// <param name="yIndex"></param>
-        /// <param name="tile"></param>
         public void SetTile(int xIndex, int yIndex, int tile)
         {
             grid[xIndex][yIndex] = tile;
         }
 
 
-        /// <summary>
-        /// This function determines which tiles are visible on the screen,
-        /// given the current camera position, rotation, zoom, and tile scale
-        /// </summary>
         protected override void DetermineVisibility()
         {
             //create the view rectangle
@@ -194,10 +160,6 @@ namespace CasaEngine.Graphics2D.Tile
             if (visibleTiles.Bottom < 0) visibleTiles.Height = 0;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="batch"></param>
         protected override void DrawTiles(SpriteBatch batch)
         {
             float scaledTileWidth = (float)cellWidth * scaleValue.X;

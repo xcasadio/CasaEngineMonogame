@@ -1,15 +1,5 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Design.Parser
 {
-    /// <summary>
-    /// format : function_name="arg1, arg2, ..."
-    /// </summary>
     class ParserTokenFunction
         : ParserToken
     {
@@ -18,22 +8,12 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parser_"></param>
-        /// <param name="token_"></param>
         public ParserTokenFunction(Parser parser_, string token_)
             : base(parser_, token_)
         { }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sentence_"></param>
-        /// <returns></returns>
         public override bool Check(string sentence_)
         {
             if (sentence_.StartsWith(m_Token.ToLower()) == true)

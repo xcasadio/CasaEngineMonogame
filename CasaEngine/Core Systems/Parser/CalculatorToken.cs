@@ -1,11 +1,4 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
 
 
@@ -20,31 +13,16 @@ namespace CasaEngine.Design.Parser
         Function
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     abstract class ICalculatorToken
         : ISaveLoad
     {
-
-        Calculator m_Calculator;
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public CasaEngine.Design.Parser.Calculator Calculator
-        {
-            get { return m_Calculator; }
-        }
+        readonly Calculator m_Calculator;
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="calculator_"></param>
+        public CasaEngine.Design.Parser.Calculator Calculator => m_Calculator;
+
+
         protected ICalculatorToken(Calculator calculator_)
         {
             m_Calculator = calculator_;
@@ -52,17 +30,8 @@ namespace CasaEngine.Design.Parser
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public abstract float Evaluate();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="keyword_"></param>
-        /// <returns></returns>
         protected float EvaluateKeyword(string keyword_)
         {
             return m_Calculator.Parser.EvaluateKeyword(keyword_);

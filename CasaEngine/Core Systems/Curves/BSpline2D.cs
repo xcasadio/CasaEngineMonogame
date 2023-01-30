@@ -1,21 +1,9 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Math.Curves
 {
-    /// <summary>
-    /// BSpline curve, Cox de Boor algorithm
-    /// </summary>
     public class BSpline2D
     {
-        /// <summary>
-        /// vector modal parametrization method
-        /// </summary>
         public enum VectorModalParametrization
         {
             Uniform,
@@ -24,48 +12,29 @@ namespace CasaEngine.Math.Curves
         }
 
 
-        private List<Vector2> m_ControlPoints = new List<Vector2>();
-        private List<float> m_ModalNodes = new List<float>();
-        private List<Vector2> m_CurvePoints = new List<Vector2>();
+        private readonly List<Vector2> m_ControlPoints = new List<Vector2>();
+        private readonly List<float> m_ModalNodes = new List<float>();
+        private readonly List<Vector2> m_CurvePoints = new List<Vector2>();
 
-        private int m_Degree = 3;
-        private bool m_Closed = false;
-        private bool m_BeginToBounds = true;
+        private readonly int m_Degree = 3;
+        private readonly bool m_Closed = false;
+        private readonly bool m_BeginToBounds = true;
         private float m_Resolution = 0.1f;
-        private VectorModalParametrization m_VectorModalParametrization = VectorModalParametrization.Uniform;
+        private readonly VectorModalParametrization m_VectorModalParametrization = VectorModalParametrization.Uniform;
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public float Resolution
         {
-            get { return m_Resolution; }
-            set { m_Resolution = value; }
+            get => m_Resolution;
+            set => m_Resolution = value;
         }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public List<Vector2> CurvePoints
-        {
-            get { return m_CurvePoints; }
-        }
+        public List<Vector2> CurvePoints => m_CurvePoints;
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        public List<Vector2> ControlPoints
-        {
-            get { return m_ControlPoints; }
-        }
+        public List<Vector2> ControlPoints => m_ControlPoints;
 
 
-
-        /// <summary>
-        /// Cox de Boor Algorithm
-        /// </summary>
         public void Compute()
         {
             if (m_ControlPoints.Count == 0)
@@ -134,13 +103,6 @@ namespace CasaEngine.Math.Curves
             }
         }
 
-        /// <summary>
-        /// Cox de Boor algorithm
-        /// </summary>
-        /// <param name="r"></param>
-        /// <param name="t"></param>
-        /// <param name="ptControl_"></param>
-        /// <returns></returns>
         Vector2 Cox_de_Boor(int r, float t, List<Vector2> ptControl_)
         {
             List<Vector2> Pt = new List<Vector2>(m_Degree * (r + 1));
@@ -170,10 +132,6 @@ namespace CasaEngine.Math.Curves
             return Pt[m_Degree * m_Degree + r];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ptControl_"></param>
         void ModalVectorParametrization(List<Vector2> ptControl_)
         {
             int nbVectorModal = ptControl_.Count;
@@ -277,11 +235,6 @@ namespace CasaEngine.Math.Curves
 			}*/
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="percent_">Between 0 and 1</param>
-        /// <returns></returns>
         public Vector2 GetPoint(float percent_)
         {
             if (percent_ < 0.0f || percent_ > 1.0f)

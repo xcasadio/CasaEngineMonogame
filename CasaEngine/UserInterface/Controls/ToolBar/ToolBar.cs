@@ -13,20 +13,17 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 namespace XNAFinalEngine.UserInterface
 {
 
-    /// <summary>
-    /// Tool Bar
-    /// </summary>
     public class ToolBar : Control
     {
 
-             
+
         private int row;
 
 
 
         public virtual int Row
         {
-            get { return row; }
+            get => row;
             set
             {
                 row = value;

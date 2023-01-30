@@ -1,20 +1,10 @@
-﻿using System;
-
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Extension;
 using System.ComponentModel;
-using System.IO;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Math.Shape2D
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public partial class Shape2DObject
     {
 
@@ -22,30 +12,20 @@ namespace CasaEngine.Math.Shape2D
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        /// <summary>
-        /// Used to no loop on the Tag object which have EventHandler also
-        /// </summary>
         public bool PropertyChangedActivated = true;
         private object m_Tag;
 
 
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         [Browsable(false)]
         public object Tag
         {
-            get { return m_Tag; }
-            set { m_Tag = value; }
+            get => m_Tag;
+            set => m_Tag = value;
         }
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type_"></param>
         public Shape2DObject(Shape2DType type_)
         {
             m_Type = type_;
@@ -53,11 +33,6 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="o_"></param>
-        /// <returns></returns>
         public virtual bool CompareTo(Shape2DObject o_)
         {
             return m_Flag == o_.m_Flag
@@ -66,11 +41,6 @@ namespace CasaEngine.Math.Shape2D
                 && m_Type == o_.m_Type;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public virtual void Save(XmlElement el_, SaveOption option_)
         {
             el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
@@ -83,11 +53,6 @@ namespace CasaEngine.Math.Shape2D
             el_.OwnerDocument.AddAttribute(el_, "flag", m_Flag.ToString());
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="el_"></param>
-        /// <param name="option_"></param>
         public virtual void Save(BinaryWriter bw_, SaveOption option_)
         {
             bw_.Write(m_Version);
@@ -96,10 +61,6 @@ namespace CasaEngine.Math.Shape2D
             bw_.Write(m_Flag);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="info"></param>
         public void NotifyPropertyChanged(String info)
         {
             if (PropertyChanged != null
@@ -109,11 +70,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
         public override bool Equals(object obj)
         {
             if (obj is Shape2DObject)
@@ -124,19 +80,11 @@ namespace CasaEngine.Math.Shape2D
             return false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override int GetHashCode()
         {
             return base.GetHashCode();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public override string ToString()
         {
             return base.ToString();

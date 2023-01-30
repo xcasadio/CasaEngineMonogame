@@ -1,39 +1,13 @@
-
-using System;
-
-
-using System.Collections.Generic;
-
-
 namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 {
-    /// <summary>
-    /// This class represents the partially mapped crossover operator (PMX for friends). This operator takes
-    /// two parents and generates one offspring
-    /// </summary>
-    /// <remarks>
-    /// This algorithm only works with chromosomes that represent a permutation. Btw, crossover 
-    /// algorithms for permutations can be a little complicated... (I´m sure this could be implemented
-    /// more easily)
-    /// </remarks>
     public sealed class PartiallyMappedCrossover : CrossoverAlgorithm<int>
     {
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        /// <param name="probability">Probability of crossover</param>
-        /// <param name="generator">Random number generator</param>
         public PartiallyMappedCrossover(double probability, Random generator)
             : base(probability, generator) { }
 
 
 
-        /// <summary>
-        /// Crossover function
-        /// </summary>
-        /// <param name="parents">The parents to cross</param>
-        /// <returns>The list of offsprings</returns>
         public override List<Chromosome<int>> Crossover(List<Chromosome<int>> parents)
         {
             List<Chromosome<int>> list;
@@ -75,14 +49,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             return list;
         }
 
-        /// <summary>
-        /// The real PMX function
-        /// </summary>
-        /// <param name="firstParent">first parent to cross</param>
-        /// <param name="secondParent">second parent to cross</param>
-        /// <param name="first">First crossing index</param>
-        /// <param name="second">Last crossing index</param>
-        /// <returns>The new offspring</returns>
         private Chromosome<int> PMX(Chromosome<int> firstParent, Chromosome<int> secondParent, int first, int second)
         {
             List<int> selectedGenes, combinableGenes;
@@ -138,15 +104,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             return chromosome;
         }
 
-        /// <summary>
-        /// Function that searches a position to insert a gene
-        /// </summary>
-        /// <param name="gen">Position of the gene to insert</param>
-        /// <param name="firstParent">First parent</param>
-        /// <param name="secondParent">Second parent</param>
-        /// <param name="first">First crossover point</param>
-        /// <param name="second">Last crossover point</param>
-        /// <returns>The position where to insert the gene</returns>
         private int SearchPosition(int gen, Chromosome<int> firstParent, Chromosome<int> secondParent, int first, int second)
         {
             int origin, destiny, final;

@@ -10,9 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
-
-
 namespace XNAFinalEngine.UserInterface
 {
 
@@ -22,9 +19,6 @@ namespace XNAFinalEngine.UserInterface
         public int Horizontal;
     } // ScrollBarValue
 
-    /// <summary>
-    /// Containter.
-    /// </summary>
     public class Container : ClipControl
     {
 
@@ -44,9 +38,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Scroll Bar Value.
-        /// </summary>
         public virtual ScrollBarValue ScrollBarValue
         {
             get
@@ -60,12 +51,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ScrollBarValue
 
-        /// <summary>
-        /// Is visible?
-        /// </summary>
         public override bool Visible
         {
-            get { return base.Visible; }
+            get => base.Visible;
             set
             {
                 if (value)
@@ -77,12 +65,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Visible
 
-        /// <summary>
-        /// The control that has inmediate focus. For example a button for closing a dialog.
-        /// </summary>
         public virtual Control DefaultControl
         {
-            get { return defaultControl; }
+            get => defaultControl;
             set
             {
                 defaultControl = value;
@@ -91,17 +76,11 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DefaultControl
 
-        /// <summary>
-        /// Auto Scroll?
-        /// </summary>
         public virtual bool AutoScroll { get; set; }
 
-        /// <summary>
-        /// If we want to add a menu, this is the place.
-        /// </summary>
         public virtual MainMenu MainMenu
         {
-            get { return mainMenu; }
+            get => mainMenu;
             set
             {
                 if (mainMenu != null)
@@ -121,12 +100,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MainMenu
 
-        /// <summary>
-        /// If we want to add a tool bar panel, this is the place.
-        /// </summary>
         public virtual ToolBarPanel ToolBarPanel
         {
-            get { return toolBarPanel; }
+            get => toolBarPanel;
             set
             {
                 if (toolBarPanel != null)
@@ -146,12 +122,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ToolBarPanel
 
-        /// <summary>
-        /// Control's Status Bar.
-        /// </summary>
         public virtual StatusBar StatusBar
         {
-            get { return statusBar; }
+            get => statusBar;
             set
             {
                 if (statusBar != null)
@@ -173,9 +146,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Containter.
-        /// </summary>
         public Container(UserInterfaceManager userInterfaceManager_)
             : base(userInterfaceManager_)
         {
@@ -210,12 +180,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Adjust the controls margin.
-        /// </summary>
-        /// <remarks>
-        /// This implementation requires that the know margins are set before the base method is called because the base method use this modified information.
-        /// </remarks>
         protected override void AdjustMargins()
         {
             // We get the default size of the client area.
@@ -310,9 +274,6 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        /// <summary>
-        /// Invalidate it and its parents.
-        /// </summary>
         public override void Invalidate()
         {
             base.Invalidate();
