@@ -31,18 +31,18 @@ namespace CasaEngine.Assets.Graphics2D
 
         //constant
         private Texture2D _texture2D = null;
-        private Rectangle _positionInTexture = new Rectangle();
+        private Rectangle _positionInTexture = new();
         private Point _origin = Point.Zero;
 
 #if EDITOR
-        private readonly List<Shape2DObject> _collisions = new List<Shape2DObject>();
+        private readonly List<Shape2DObject> _collisions = new();
 #else
         private Shape2DObject[] _Collisions;
 #endif
 
-        private readonly Dictionary<string, Vector2> _sockets = new Dictionary<string, Vector2>();
+        private readonly Dictionary<string, Vector2> _sockets = new();
 
-        private readonly List<string> _assetFileNames = new List<string>();
+        private readonly List<string> _assetFileNames = new();
 
 
 
@@ -90,7 +90,7 @@ namespace CasaEngine.Assets.Graphics2D
             {
                 //if (value != this._Origin)
                 {
-                    this._origin = value;
+                    _origin = value;
 #if EDITOR
                     NotifyPropertyChanged("HotSpot");
 #endif
@@ -170,19 +170,19 @@ namespace CasaEngine.Assets.Graphics2D
             }
 #endif
 
-            this._origin = sprite._origin;
-            this._assetFileNames.AddRange(sprite._assetFileNames);
-            this._positionInTexture = sprite._positionInTexture;
+            _origin = sprite._origin;
+            _assetFileNames.AddRange(sprite._assetFileNames);
+            _positionInTexture = sprite._positionInTexture;
 
             base.CopyFrom(sprite);
         }
 
 
-        public override void Load(XmlElement node, SaveOption option)
+        public override void Load(XmlElement element, SaveOption option)
         {
-            base.Load(node, option);
+            base.Load(element, option);
 
-            XmlNode rootNode = node.SelectSingleNode("Sprite2D");
+            XmlNode rootNode = element.SelectSingleNode("Sprite2D");
 
             uint version = uint.Parse(rootNode.Attributes["version"].Value);
 
@@ -233,7 +233,7 @@ namespace CasaEngine.Assets.Graphics2D
             foreach (XmlNode node in socketNode.ChildNodes)
             {
                 Vector2 position = new Vector2();
-                ((XmlElement)node.SelectSingleNode("Position")).Read(ref position);
+                ((XmlElement)node.SelectSingleNode("position")).Read(ref position);
                 _sockets.Add(node.SelectSingleNode("Name").InnerText, position);
             }
         }
@@ -271,8 +271,8 @@ namespace CasaEngine.Assets.Graphics2D
                 return;
             }
 
-            string assetFile = System.IO.Path.GetDirectoryName(_assetFileNames[0]) + System.IO.Path.DirectorySeparatorChar +
-                System.IO.Path.GetFileNameWithoutExtension(_assetFileNames[0]);
+            string assetFile = Path.GetDirectoryName(_assetFileNames[0]) + Path.DirectorySeparatorChar +
+                Path.GetFileNameWithoutExtension(_assetFileNames[0]);
 
             _texture2D = content.Load<Texture2D>(assetFile);
         }
@@ -282,8 +282,8 @@ namespace CasaEngine.Assets.Graphics2D
             string assetFile;
 
 #if EDITOR
-            assetFile = Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
-                ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
+            assetFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
+                ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + _assetFileNames[0];
 #else
             assetFile = Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileNames[0];
 #endif

@@ -168,7 +168,7 @@ namespace CasaEngine.Debugger
 
         Renderer2DComponent _renderer2DComponent = null;
 
-        Color _backgroundColor = new Color(0, 0, 0, 128);
+        Color _backgroundColor = new(0, 0, 0, 128);
 
 
 

@@ -74,7 +74,11 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public bool Undo()
         {
-            if (!CanUndo) return false;
+            if (!CanUndo)
+            {
+                return false;
+            }
+
             commands[--commandIndex].Unexecute();
             return true;
         }
@@ -84,7 +88,11 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public bool Redo()
         {
-            if (!CanRedo) return false;
+            if (!CanRedo)
+            {
+                return false;
+            }
+
             commands[commandIndex++].Execute();
             return true;
         }
@@ -100,7 +108,9 @@ namespace Editor.Tools.CurveEditor
         {
             // Unexecute all commands.
             for (int i = commands.Count - 1; i >= 0; --i)
+            {
                 commands[i].Unexecute();
+            }
         }
 
 
@@ -108,7 +118,7 @@ namespace Editor.Tools.CurveEditor
         /// <summary>
         /// For store commands.
         /// </summary>
-        List<ICommand> commands = new List<ICommand>();
+        List<ICommand> commands = new();
 
         /// <summary>
         /// Current command index.

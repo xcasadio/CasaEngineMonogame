@@ -30,40 +30,40 @@ using System.Reflection;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 {
-	public static class Exporters
-	{
-		private static List<IImageExporter> imageExporters = new List<IImageExporter>();
-		private static List<IMapExporter> mapExporters = new List<IMapExporter>();
+    public static class Exporters
+    {
+        private static List<IImageExporter> imageExporters = new();
+        private static List<IMapExporter> mapExporters = new();
 
-		public static ReadOnlyCollection<IImageExporter> ImageExporters { get; private set; }
-		public static ReadOnlyCollection<IMapExporter> MapExporters { get; private set; }
+        public static ReadOnlyCollection<IImageExporter> ImageExporters { get; private set; }
+        public static ReadOnlyCollection<IMapExporter> MapExporters { get; private set; }
 
-		public static void Load() { /* invokes static constructor */ }
+        public static void Load() { /* invokes static constructor */ }
 
-		static Exporters()
-		{
-			ImageExporters = new ReadOnlyCollection<IImageExporter>(imageExporters);
-			MapExporters = new ReadOnlyCollection<IMapExporter>(mapExporters);
+        static Exporters()
+        {
+            ImageExporters = new ReadOnlyCollection<IImageExporter>(imageExporters);
+            MapExporters = new ReadOnlyCollection<IMapExporter>(mapExporters);
 
-			// find built in exporters
-			FindExporters(Assembly.GetExecutingAssembly());
+            // find built in exporters
+            FindExporters(Assembly.GetExecutingAssembly());
 
-			// find exporters in any DLLs in the directory with Editor.Sprite2DEditor.SpriteSheetPacker.sspack.exe
-			string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-			string[] dlls = Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly);
-			//foreach (string file in dlls)
-			//{
-			//	try { FindExporters(Assembly.LoadFile(file)); }
-			//	catch { /* don't care */ }
-			//}
-		}
+            // find exporters in any DLLs in the directory with Editor.Sprite2DEditor.SpriteSheetPacker.sspack.exe
+            string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string[] dlls = Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly);
+            //foreach (string file in dlls)
+            //{
+            //	try { FindExporters(Assembly.LoadFile(file)); }
+            //	catch { /* don't care */ }
+            //}
+        }
 
-		private static void FindExporters(Assembly assembly)
-		{
-			foreach (Type type in assembly.GetTypes())
-			{
-				if (!type.IsAbstract && type.IsClass)
-				{
+        private static void FindExporters(Assembly assembly)
+        {
+            foreach (Type type in assembly.GetTypes())
+            {
+                if (!type.IsAbstract && type.IsClass)
+                {
                     Type type2 = type.GetInterface("IImageExporter");
 
                     if (type2 != null)
@@ -85,8 +85,8 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
                             mapExporters.Add(mapExporter);
                         }
                     }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 }

@@ -20,7 +20,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             List<Chromosome<T>> selectedChromosomes;
 
             //Calculate the spaced hand
-            increment = ScaledPopulation.TotalFitness / (double)this.NumberParents;
+            increment = ScaledPopulation.TotalFitness / (double)NumberParents;
 
             //Get the start position
             selectedChromosomes = new List<Chromosome<T>>();
@@ -29,7 +29,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             //Select the winner chromosomes
             total = 0;
             j = 0;
-            for (i = 0; i < this.NumberParents; i++)
+            for (i = 0; i < NumberParents; i++)
             {
                 //Search the selected chromosome
                 while (total < selectedFitness)

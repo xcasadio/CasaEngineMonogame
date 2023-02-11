@@ -75,7 +75,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             if (Image != null)
             {
                 Renderer2DComponent.AddSprite2D(
-                    Image.ID,
+                    Image.Id,
                     Location,
                     0.0f,
                     new Vector2((float)Width / (float)Image.PositionInTexture.Width, (float)Height / (float)Image.PositionInTexture.Height),

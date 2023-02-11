@@ -89,7 +89,7 @@ namespace XNAFinalEngine.Input
 	        }
 	    } // TrackDeltaOutsideScreen
 
-		public static Point Position
+		public static Point position
 		{
 			get
 			{
@@ -113,7 +113,7 @@ namespace XNAFinalEngine.Input
                 positionX = value.X;
                 positionY = value.Y;
 			}
-        } // Position
+        } // position
         */
         public static float DeltaX => _deltaX;
 
@@ -151,38 +151,38 @@ namespace XNAFinalEngine.Input
         public static bool XButton2JustReleased => _currentState.XButton2 == ButtonState.Released && _previousState.XButton2 == ButtonState.Pressed;
 
 
-        //public static Point DraggingAmount { get { return new Point(-startDraggingPosition.X + Position.X, -startDraggingPosition.Y + Position.Y); } }
+        //public static Point DraggingAmount { get { return new Point(-startDraggingPosition.X + position.X, -startDraggingPosition.Y + position.Y); } }
 
         /*public static Rectangle DraggingRectangle
 	    {
 	        get
 	        {
 	            int x, y, width, height;
-                if (startDraggingPosition.X <= Position.X)
+                if (startDraggingPosition.X <= position.X)
                 {
                     x = startDraggingPosition.X;
-                    width = Position.X - startDraggingPosition.X;
+                    width = position.X - startDraggingPosition.X;
                 }
                 else
                 {
-                    x = Position.X;
-                    width = startDraggingPosition.X - Position.X;
+                    x = position.X;
+                    width = startDraggingPosition.X - position.X;
                 }
-                if (startDraggingPosition.Y <= Position.Y)
+                if (startDraggingPosition.Y <= position.Y)
                 {
                     y = startDraggingPosition.Y;
-                    height = Position.Y - startDraggingPosition.Y;
+                    height = position.Y - startDraggingPosition.Y;
                 }
                 else
                 {
-                    y = Position.Y;
-                    height = startDraggingPosition.Y - Position.Y;
+                    y = position.Y;
+                    height = startDraggingPosition.Y - position.Y;
                 }
                 return new Rectangle(x, y, width, height);
 	        }
 	    } // DraggingRectangle
         */
-        //public static bool IsDragging { get { return Math.Abs(Position.X - startDraggingPosition.X) + Math.Abs(Position.Y - startDraggingPosition.Y) == 0; } }
+        //public static bool IsDragging { get { return Math.Abs(position.X - startDraggingPosition.X) + Math.Abs(position.Y - startDraggingPosition.Y) == 0; } }
 
 
 
@@ -193,7 +193,7 @@ namespace XNAFinalEngine.Input
 
         /*public static void ResetDragging()
 		{
-			startDraggingPosition = Position;
+			startDraggingPosition = position;
 		} // ResetDragging
         */
 
@@ -211,26 +211,50 @@ namespace XNAFinalEngine.Input
         public static bool ButtonJustPressed(MouseButtons button)
         {
             if (button == MouseButtons.LeftButton)
+            {
                 return LeftButtonJustPressed;
+            }
+
             if (button == MouseButtons.MiddleButton)
+            {
                 return MiddleButtonJustPressed;
+            }
+
             if (button == MouseButtons.RightButton)
+            {
                 return RightButtonJustPressed;
+            }
+
             if (button == MouseButtons.XButton1)
+            {
                 return XButton1JustPressed;
+            }
+
             return XButton2JustPressed;
         } // ButtonJustPressed
 
         public static bool ButtonPressed(MouseButtons button)
         {
             if (button == MouseButtons.LeftButton)
+            {
                 return LeftButtonPressed;
+            }
+
             if (button == MouseButtons.MiddleButton)
+            {
                 return MiddleButtonPressed;
+            }
+
             if (button == MouseButtons.RightButton)
+            {
                 return RightButtonPressed;
+            }
+
             if (button == MouseButtons.XButton1)
+            {
                 return XButton1Pressed;
+            }
+
             return XButton2Pressed;
         } // ButtonPressed
 
@@ -253,8 +277,8 @@ namespace XNAFinalEngine.Input
             }
             /*else
             {
-                deltaX = currentState.X - Screen.Width / 2;
-                deltaY = currentState.Y - Screen.Height / 2;
+                deltaX = _currentState.X - Screen.Width / 2;
+                deltaY = _currentState.Y - Screen.Height / 2;
                 positionX += deltaX;
                 positionY += deltaY;
                 if (positionX >= Screen.Width)
@@ -271,7 +295,7 @@ namespace XNAFinalEngine.Input
             // Dragging
             /*if (LeftButtonJustPressed || (!LeftButtonPressed && !LeftButtonJustReleased))
             {
-                startDraggingPosition = Position;
+                startDraggingPosition = position;
             }*/
 
             // Wheel

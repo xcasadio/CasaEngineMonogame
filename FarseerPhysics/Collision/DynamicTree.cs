@@ -66,7 +66,7 @@ namespace FarseerPhysics.Collision
     public class DynamicTree<T>
     {
         internal const int NullNode = -1;
-        private static Stack<int> _stack = new Stack<int>(256);
+        private static Stack<int> _stack = new(256);
         private int _freeList;
         private int _insertionCount;
         private int _nodeCapacity;

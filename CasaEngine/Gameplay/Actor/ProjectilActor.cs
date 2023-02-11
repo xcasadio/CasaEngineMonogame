@@ -13,7 +13,7 @@ namespace CasaEngine.Gameplay.Actor
     {
 
         private Body _body;
-        private List<Shape2DObject> _shape2DObjectList = new List<Shape2DObject>();
+        private List<Shape2DObject> _shape2DObjectList = new();
         private TeamInfo _teamInfo;
 
 #if !FINAL

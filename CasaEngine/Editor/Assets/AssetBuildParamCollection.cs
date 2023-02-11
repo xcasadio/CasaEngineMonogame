@@ -9,20 +9,20 @@ namespace CasaEngine.Editor.Assets
 
         public void Add(AssetBuildParam emp)
         {
-            this.List.Add(emp);
+            List.Add(emp);
         }
 
         public void Remove(AssetBuildParam emp)
         {
-            this.List.Remove(emp);
+            List.Remove(emp);
         }
 
-        public AssetBuildParam this[int index] => (AssetBuildParam)this.List[index];
+        public AssetBuildParam this[int index] => (AssetBuildParam)List[index];
 
 
         // Implementation of interface ICustomTypeDescriptor 
 
-        public String GetClassName()
+        public string GetClassName()
         {
             return TypeDescriptor.GetClassName(this, true);
         }
@@ -32,7 +32,7 @@ namespace CasaEngine.Editor.Assets
             return TypeDescriptor.GetAttributes(this, true);
         }
 
-        public String GetComponentName()
+        public string GetComponentName()
         {
             return TypeDescriptor.GetComponentName(this, true);
         }
@@ -84,7 +84,7 @@ namespace CasaEngine.Editor.Assets
             PropertyDescriptorCollection pds = new PropertyDescriptorCollection(null);
 
             // Iterate the list of employees
-            for (int i = 0; i < this.List.Count; i++)
+            for (int i = 0; i < List.Count; i++)
             {
                 // Create a property descriptor for the employee item and add to the property descriptor collection
                 AssetBuildParamCollectionPropertyDescriptor pd = new AssetBuildParamCollectionPropertyDescriptor(this, i);

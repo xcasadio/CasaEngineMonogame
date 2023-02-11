@@ -52,7 +52,9 @@ namespace CasaEngine.Debugger
         {
             // if the singleton exists, return that; we don't want two systems being created for a game
             if (_singletonInstance != null)
+            {
                 return _singletonInstance;
+            }
 
             // Create the system
             _singletonInstance = new DebugSystem();

@@ -79,7 +79,9 @@ namespace Editor.WinForm.DocToolkit
             registryPath = data.RegistryPath;
 
             if (!registryPath.EndsWith("\\"))
+            {
                 registryPath += "\\";
+            }
 
             registryPath += "FileDir";
 
@@ -91,7 +93,9 @@ namespace Editor.WinForm.DocToolkit
                 string s = (string)key.GetValue(registryValue);
 
                 if (!Empty(s))
+                {
                     fileDlgInitDir = s;
+                }
             }
         }
 
@@ -120,7 +124,9 @@ namespace Editor.WinForm.DocToolkit
         public bool NewDocument()
         {
             if (!CloseDocument())
+            {
                 return false;
+            }
 
             SetFileName("");
 
@@ -142,8 +148,10 @@ namespace Editor.WinForm.DocToolkit
         /// <returns></returns>
         public bool CloseDocument()
         {
-            if (!this.dirty)
+            if (!dirty)
+            {
                 return true;
+            }
 
             DialogResult res = MessageBox.Show(
                 frmOwner,
@@ -172,7 +180,9 @@ namespace Editor.WinForm.DocToolkit
         {
             // Check if we can close current file
             if (!CloseDocument())
+            {
                 return false;
+            }
 
             // Get the file to open
             if (Empty(newFileName))
@@ -184,7 +194,9 @@ namespace Editor.WinForm.DocToolkit
                 DialogResult res = openFileDialog1.ShowDialog(frmOwner);
 
                 if (res != DialogResult.OK)
+                {
                     return false;
+                }
 
                 newFileName = openFileDialog1.FileName;
                 fileDlgInitDir = new FileInfo(newFileName).DirectoryName;
@@ -261,7 +273,7 @@ namespace Editor.WinForm.DocToolkit
         public bool SaveDocument(SaveType type)
         {
             // Get the file name
-            string newFileName = this.fileName;
+            string newFileName = fileName;
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = fileDlgFilter;
@@ -284,7 +296,9 @@ namespace Editor.WinForm.DocToolkit
                 DialogResult res = saveFileDialog1.ShowDialog(frmOwner);
 
                 if (res != DialogResult.OK)
+                {
                     return false;
+                }
 
                 newFileName = saveFileDialog1.FileName;
                 fileDlgInitDir = new FileInfo(newFileName).DirectoryName;
@@ -308,7 +322,9 @@ namespace Editor.WinForm.DocToolkit
                         SaveEvent(this, args);
 
                         if (args.Error)
+                        {
                             return false;
+                        }
                     }
 
                 }
@@ -343,7 +359,7 @@ namespace Editor.WinForm.DocToolkit
         {
             try
             {
-                string s = String.Format(CultureInfo.InvariantCulture, ".{0}", fileExtension);
+                string s = string.Format(CultureInfo.InvariantCulture, ".{0}", fileExtension);
 
                 // Register custom extension with the shell
                 using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(s))
@@ -450,14 +466,16 @@ namespace Editor.WinForm.DocToolkit
         private void SetCaption()
         {
             if (!updateTitle)
+            {
                 return;
+            }
 
             frmOwner.Text = string.Format(
                 CultureInfo.InvariantCulture,
                 "{0} - {1}{2}",
                 Application.ProductName,
-                Empty(this.fileName) ? newDocName : Path.GetFileName(this.fileName),
-                this.dirty ? "*" : "");
+                Empty(fileName) ? newDocName : Path.GetFileName(fileName),
+                dirty ? "*" : "");
         }
 
         /// <summary>
@@ -525,7 +543,7 @@ namespace Editor.WinForm.DocToolkit
     /// Used in events raised from DocManager class.
     /// Class contains information required to load/save file.
     /// </summary>
-    public class SerializationEventArgs : System.EventArgs
+    public class SerializationEventArgs : EventArgs
     {
         private IFormatter formatter;
         private Stream stream;
@@ -584,7 +602,7 @@ namespace Editor.WinForm.DocToolkit
     /// Used in events raised from DocManager class.
     /// Class contains name of file and result of Open operation.
     /// </summary>
-    public class OpenFileEventArgs : System.EventArgs
+    public class OpenFileEventArgs : EventArgs
     {
         private string fileName;
         private bool success;

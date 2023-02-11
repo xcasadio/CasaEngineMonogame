@@ -10,12 +10,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
         public LinealCrossover(double probability, Random generator, double intervalModifier)
             : base(probability, generator)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateIntervalModifier(intervalModifier, ref message) == false)
-                throw new AiException("intervalModifier", this.GetType().ToString(), message);
+            {
+                throw new AiException("intervalModifier", GetType().ToString(), message);
+            }
 
-            this.IntervalModifier = intervalModifier;
+            IntervalModifier = intervalModifier;
         }
 
 
@@ -28,7 +30,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //This algorithm uses only 2 parents
             if (parents.Count != 2)
+            {
                 throw new Exception("The number of parents must be 2.");
+            }
 
             list = new List<Chromosome<double>>();
 

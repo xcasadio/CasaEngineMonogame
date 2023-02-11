@@ -55,7 +55,10 @@ namespace XNAFinalEngine.Helpers
             set
             {
                 if (value < Count)
+                {
                     throw new ArgumentOutOfRangeException("value", "Pool: new size has to be bigger than active elements.");
+                }
+
                 ResizePool(value);
             }
         } // Capacity
@@ -66,7 +69,10 @@ namespace XNAFinalEngine.Helpers
         public Pool(int capacity)
         {
             if (capacity <= 0)
+            {
                 throw new ArgumentOutOfRangeException("capacity", "Pool: Argument capacity must be greater than zero.");
+            }
+
             Elements = new T[capacity];
             for (int i = 0; i < capacity; i++)
             {
@@ -132,7 +138,10 @@ namespace XNAFinalEngine.Helpers
         public void Release(Accessor accessor)
         {
             if (accessor == null)
+            {
                 throw new ArgumentNullException("accessor", "Pool: Accessor value cannot be null");
+            }
+
             // To accomplish our second objective (memory locality) the last available element will be moved to the place where the released element resided.
             // First swap elements values.
             T accesorPoolElement = Elements[accessor.Index]; // If T is a type by reference we can lost its value

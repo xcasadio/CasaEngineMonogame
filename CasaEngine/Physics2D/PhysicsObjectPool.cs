@@ -6,7 +6,7 @@ namespace CasaEngine.Physics2D
     static public class PhysicsObjectPool
     {
         //static private ResourcePool<Body> _ResourcePoolBody = new ResourcePool<Body>(CreateBody);
-        static private ResourcePool<Fixture> _resourcePoolFixture = new ResourcePool<Fixture>(CreateFixture);
+        static private ResourcePool<Fixture> _resourcePoolFixture = new(CreateFixture);
 
         /*static private Body CreateBody(ResourcePool<Body> pool_)
         {

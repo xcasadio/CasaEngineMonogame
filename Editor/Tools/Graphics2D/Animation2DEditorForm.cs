@@ -34,7 +34,7 @@ namespace Editor.Tools.Graphics2D
         UndoRedoManager m_UndoRedoManager;
         Animation2DEditorComponent m_Animation2DComponent;
 
-        private System.Windows.Forms.Control[] m_ListViewSubControls;
+        private Control[] m_ListViewSubControls;
 
 
 
@@ -68,8 +68,8 @@ namespace Editor.Tools.Graphics2D
             m_Animation2DComponent.CurrentAnimationSetted += new EventHandler(OnCurrentAnimationSetted);
             m_XnaEditorForm.StartGame();
 
-            listViewFrame.SubItemClicked += new Editor.WinForm.SubItemEventHandler(listViewFrame_SubItemClicked);
-            listViewFrame.SubItemEndEditing += new Editor.WinForm.SubItemEndEditingEventHandler(listViewFrame_SubItemEndEditing);
+            listViewFrame.SubItemClicked += new WinForm.SubItemEventHandler(listViewFrame_SubItemClicked);
+            listViewFrame.SubItemEndEditing += new WinForm.SubItemEndEditingEventHandler(listViewFrame_SubItemEndEditing);
         }
 
 
@@ -105,7 +105,7 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void listViewFrame_SubItemClicked(object sender, Editor.WinForm.SubItemEventArgs e)
+        void listViewFrame_SubItemClicked(object sender, WinForm.SubItemEventArgs e)
         {
             listViewFrame.StartEditing(m_ListViewSubControls[e.SubItem], e.Item, e.SubItem);
         }
@@ -115,7 +115,7 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void listViewFrame_SubItemEndEditing(object sender, Editor.WinForm.SubItemEndEditingEventArgs e)
+        void listViewFrame_SubItemEndEditing(object sender, WinForm.SubItemEndEditingEventArgs e)
         {
             if (e.Cancel)
             {
@@ -134,14 +134,14 @@ namespace Editor.Tools.Graphics2D
                 //case 0 : index : readonly
                 case 1: // name
                     //Sprite2D sprite2D = GameInfo.Instance.Asset2DManager.GetSprite2DByName(e.DisplayText);
-                    //anim2D.SetFrameSprite2D(sprite2D.ID, e.Item.Index);
+                    //anim2D.SetFrameSprite2D(sprite2D.Id, e.Item.Index);
                     break;
 
                 case 2: //delay
                     string num = e.DisplayText.Replace(".", ",");
                     try
                     {
-                        anim2D.SetFrameDelay(e.Item.Index, System.Convert.ToSingle(num));
+                        anim2D.SetFrameDelay(e.Item.Index, Convert.ToSingle(num));
                     }
                     catch (Exception) { e.DisplayText = "0.1"; }
                     break;
@@ -185,9 +185,9 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void UndoRedoEventCommandDone(object sender, EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new DefaultEventDelegate(OnUndoRedoEventCommandDone));
+                Invoke(new DefaultEventDelegate(OnUndoRedoEventCommandDone));
             }
             else
             {
@@ -211,9 +211,9 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void UndoRedoCommandAdded(object sender, EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new DefaultEventDelegate(OnUndoRedoCommandAdded));
+                Invoke(new DefaultEventDelegate(OnUndoRedoCommandAdded));
             }
             else
             {
@@ -239,7 +239,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void Animation2DEditorForm_Load(object sender, EventArgs e)
         {
-            m_ListViewSubControls = new System.Windows.Forms.Control[] {
+            m_ListViewSubControls = new Control[] {
                                     null,
                                     comboBoxFrameSprite2DName,
                                     numericUpDownFrameDelayForListViewEx,
@@ -452,7 +452,7 @@ namespace Editor.Tools.Graphics2D
             Sprite2D sprite2D = GameInfo.Instance.Asset2DManager.GetSprite2DByName(sprite2DNames[0]);
 
             Animation2D anim2D = GameInfo.Instance.Asset2DManager.GetAnimation2DByName(listBoxAnimations.SelectedItem as string);
-            anim2D.AddFrame(sprite2D.ID, 0.1f, null);
+            anim2D.AddFrame(sprite2D.Id, 0.1f, null);
 
             listViewFrame.SelectedItems.Clear();
             listViewFrame.Focus();
@@ -606,10 +606,10 @@ namespace Editor.Tools.Graphics2D
                 anim.SetCurrentFrame(hScrollBarCurrentFrame.Value);
                 labelCurrentFrame2.Text = (hScrollBarCurrentFrame.Value + 1) + "/" + anim.FrameCount;
 
-                listViewFrame.SelectedIndexChanged -= new System.EventHandler(this.listViewFrame_SelectedIndexChanged);
+                listViewFrame.SelectedIndexChanged -= new EventHandler(listViewFrame_SelectedIndexChanged);
                 listViewFrame.SelectedIndices.Clear();
                 listViewFrame.SelectedIndices.Add(hScrollBarCurrentFrame.Value);
-                listViewFrame.SelectedIndexChanged += new System.EventHandler(this.listViewFrame_SelectedIndexChanged);
+                listViewFrame.SelectedIndexChanged += new EventHandler(listViewFrame_SelectedIndexChanged);
             }
         }
 
@@ -660,9 +660,9 @@ namespace Editor.Tools.Graphics2D
             }
 
             labelCurrentFrame2.Text = (e.NewFrame + 1) + "/" + m_Animation2DComponent.CurrentAnimation.FrameCount.ToString();
-            hScrollBarCurrentFrame.Scroll -= new System.Windows.Forms.ScrollEventHandler(hScrollBarCurrentFrame_Scroll);
+            hScrollBarCurrentFrame.Scroll -= new ScrollEventHandler(hScrollBarCurrentFrame_Scroll);
             hScrollBarCurrentFrame.Value = e.NewFrame;
-            hScrollBarCurrentFrame.Scroll += new System.Windows.Forms.ScrollEventHandler(hScrollBarCurrentFrame_Scroll);
+            hScrollBarCurrentFrame.Scroll += new ScrollEventHandler(hScrollBarCurrentFrame_Scroll);
         }
 
 

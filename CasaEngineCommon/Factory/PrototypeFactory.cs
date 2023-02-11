@@ -29,7 +29,7 @@ namespace CasaEngineCommon.Factory
         /// <returns>The newly created instance</returns>
         public ProductType CreateInstance()
         {
-            return (ProductType)this.prototype.Clone();
+            return (ProductType)prototype.Clone();
         }
 
         /// <summary>
@@ -38,21 +38,21 @@ namespace CasaEngineCommon.Factory
         /// <returns>The newly created instance</returns>
         object IAbstractFactory.CreateInstance()
         {
-            return this.prototype.Clone();
+            return prototype.Clone();
         }
 
         /// <summary>Immediately releases all resources owned by the instance</summary>
         public void Dispose()
         {
-            if (this.prototype != null)
+            if (prototype != null)
             {
-                IDisposable disposablePrototype = this.prototype as IDisposable;
+                IDisposable disposablePrototype = prototype as IDisposable;
                 if (disposablePrototype != null)
                 {
                     disposablePrototype.Dispose();
                 }
 
-                this.prototype = null;
+                prototype = null;
             }
         }
 

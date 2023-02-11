@@ -29,7 +29,9 @@ namespace CasaEngine.CoreSystems
         internal void OnScreenSizeChanged(object sender, EventArgs e)
         {
             if (ScreenSizeChanged != null)
+            {
                 ScreenSizeChanged(sender, EventArgs.Empty);
+            }
         } // OnScreenSizeChanged
 
 

@@ -27,7 +27,7 @@ namespace CasaEngine.Gameplay.Actor
         }
 #endif
 
-        private Dictionary<int, Animation2D> _animations = new Dictionary<int, Animation2D>();
+        private Dictionary<int, Animation2D> _animations = new();
         private Animation2DPlayer _animation2DPlayer;
         private Renderer2DComponent _renderer2DComponent;
 

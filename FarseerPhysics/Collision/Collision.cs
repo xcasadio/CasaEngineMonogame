@@ -219,7 +219,7 @@ namespace FarseerPhysics.Collision
     /// </summary>
     public struct AABB
     {
-        private static DistanceInput _input = new DistanceInput();
+        private static DistanceInput _input = new();
 
         /// <summary>
         /// The lower vertex
@@ -565,8 +565,8 @@ namespace FarseerPhysics.Collision
     {
         private static FatEdge _edgeA;
 
-        private static EPProxy _proxyA = new EPProxy();
-        private static EPProxy _proxyB = new EPProxy();
+        private static EPProxy _proxyA = new();
+        private static EPProxy _proxyB = new();
 
         private static Transform _xf;
         private static Vector2 _limit11, _limit12;

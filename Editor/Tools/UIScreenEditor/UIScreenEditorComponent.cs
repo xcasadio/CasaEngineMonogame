@@ -27,8 +27,8 @@ namespace Editor.Tools.UIScreenEditor
         System.Windows.Forms.Control m_Control;
         //Renderer2DComponent m_Renderer2DComponent;
         UserInterfaceManager m_UIManager;
-        List<XNAFinalEngine.UserInterface.Control> m_ControlToAdd = new List<XNAFinalEngine.UserInterface.Control>();
-        List<XNAFinalEngine.UserInterface.Control> m_ControlToRemove = new List<XNAFinalEngine.UserInterface.Control>();
+        List<Control> m_ControlToAdd = new();
+        List<Control> m_ControlToRemove = new();
 
 
 
@@ -140,7 +140,7 @@ namespace Editor.Tools.UIScreenEditor
         /// 
         /// </summary>
         /// <param name="control_"></param>
-        public void AddControl(XNAFinalEngine.UserInterface.Control control_)
+        public void AddControl(Control control_)
         {
             control_.Movable = true;
             control_.Visible = true;
@@ -157,7 +157,7 @@ namespace Editor.Tools.UIScreenEditor
         /// 
         /// </summary>
         /// <param name="control_"></param>
-        public void RemoveControl(XNAFinalEngine.UserInterface.Control control_)
+        public void RemoveControl(Control control_)
         {
             lock (this)
             {

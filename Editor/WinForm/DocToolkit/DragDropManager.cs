@@ -54,13 +54,17 @@ namespace Editor.WinForm.DocToolkit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnDragEnter(object sender, System.Windows.Forms.DragEventArgs e)
+        private void OnDragEnter(object sender, DragEventArgs e)
         {
             // If file is dragged, show cursor "Drop allowed"
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
                 e.Effect = DragDropEffects.Copy;
+            }
             else
+            {
                 e.Effect = DragDropEffects.None;
+            }
         }
 
         /// <summary>
@@ -68,7 +72,7 @@ namespace Editor.WinForm.DocToolkit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnDragDrop(object sender, System.Windows.Forms.DragEventArgs e)
+        private void OnDragDrop(object sender, DragEventArgs e)
         {
             // When file(s) are dragged from Explorer to the form, IDataObject
             // contains array of file names. If one file is dragged,
@@ -98,13 +102,13 @@ namespace Editor.WinForm.DocToolkit
 
     public delegate void FileDroppedEventHandler(object sender, FileDroppedEventArgs e);
 
-    public class FileDroppedEventArgs : System.EventArgs
+    public class FileDroppedEventArgs : EventArgs
     {
         private Array fileArray;
 
         public FileDroppedEventArgs(Array array)
         {
-            this.fileArray = array;
+            fileArray = array;
         }
 
         public Array FileArray

@@ -11,9 +11,9 @@
         static public readonly int NumSamples = 15;
 
 
-        private readonly Dictionary<string, FuzzyVariable> _variables = new Dictionary<string, FuzzyVariable>();
+        private readonly Dictionary<string, FuzzyVariable> _variables = new();
 
-        private readonly List<FuzzyRule> _rules = new List<FuzzyRule>();
+        private readonly List<FuzzyRule> _rules = new();
 
 
 

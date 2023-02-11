@@ -48,7 +48,7 @@ namespace Editor.Tools.CurveEditor
 
         public override int GetHashCode()
         {
-            return String.IsNullOrEmpty(Name) ? 0 : Name.GetHashCode() +
+            return string.IsNullOrEmpty(Name) ? 0 : Name.GetHashCode() +
                 PreLoop.GetHashCode() + +PostLoop.GetHashCode();
         }
 
@@ -57,18 +57,23 @@ namespace Editor.Tools.CurveEditor
             EditCurveState other = obj as EditCurveState;
             bool isSame = false;
             if (other != null)
+            {
                 isSame = Equals(other);
+            }
 
             return isSame;
         }
 
         public bool Equals(EditCurveState other)
         {
-            if (other == null) return false;
+            if (other == null)
+            {
+                return false;
+            }
 
             return (Name == other.Name &&
-                PreLoop == other.PreLoop &&
-                PostLoop == other.PostLoop);
+                    PreLoop == other.PreLoop &&
+                    PostLoop == other.PostLoop);
         }
 
 
@@ -88,12 +93,12 @@ namespace Editor.Tools.CurveEditor
 
         public static bool operator ==(EditCurveState value1, EditCurveState value2)
         {
-            return Object.Equals(value1, value2);
+            return Equals(value1, value2);
         }
 
         public static bool operator !=(EditCurveState value1, EditCurveState value2)
         {
-            return !Object.Equals(value1, value2);
+            return !Equals(value1, value2);
         }
 
 

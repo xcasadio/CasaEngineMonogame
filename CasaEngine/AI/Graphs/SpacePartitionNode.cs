@@ -1,15 +1,12 @@
 using Microsoft.Xna.Framework;
 
-
 namespace CasaEngine.AI.Graphs
 {
     [Serializable]
     public class SpacePartitionNode : NavigationNode
     {
 
-        protected internal int SpaceSector;
-
-
+        protected internal int spaceSector;
 
         public SpacePartitionNode() : base()
         { }
@@ -20,16 +17,15 @@ namespace CasaEngine.AI.Graphs
             this.spaceSector = spaceSector;
         }
 
-
-
         public int SpaceSector => spaceSector;
-
 
         protected internal override bool IsNeighbour(int spacePartitionSector, Vector3 searchPosition, float searchRange)
         {
             //Only search if the node and the search position are in the same space sector
-            if (this.spaceSector == spacePartitionSector)
+            if (spaceSector == spacePartitionSector)
+            {
                 return base.IsNeighbour(spacePartitionSector, searchPosition, searchRange);
+            }
 
             return false;
         }

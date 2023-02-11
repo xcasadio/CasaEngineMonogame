@@ -126,9 +126,9 @@ namespace XNAFinalEngine.UserInterface
         private readonly TextBox _textMain;
         private readonly ComboBox _cmbMain;
         private readonly ScrollBar _sbVert;
-        private EventedList<ConsoleMessage> _buffer = new EventedList<ConsoleMessage>();
-        private ChannelList _channels = new ChannelList();
-        private List<byte> _filter = new List<byte>();
+        private EventedList<ConsoleMessage> _buffer = new();
+        private ChannelList _channels = new();
+        private List<byte> _filter = new();
         private ConsoleMessageFormats _messageFormat = ConsoleMessageFormats.None;
         private bool _channelsVisible = true;
         private bool _textBoxVisible = true;
@@ -378,7 +378,7 @@ namespace XNAFinalEngine.UserInterface
                 _textMain.TextColor = ch.Color;
 
                 string message = _textMain.Text;
-                if ((k.Key == Microsoft.Xna.Framework.Input.Keys.Enter) && !string.IsNullOrEmpty(message))
+                if ((k.Key == Keys.Enter) && !string.IsNullOrEmpty(message))
                 {
                     x.Handled = true;
 

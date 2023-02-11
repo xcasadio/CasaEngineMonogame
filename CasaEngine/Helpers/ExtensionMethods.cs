@@ -125,16 +125,18 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        public static bool IsNumericFloat(this String str)
+        public static bool IsNumericFloat(this string str)
         {
             return IsNumericFloat(str, CultureInfo.InvariantCulture.NumberFormat);
         } // IsNumericFloat
 
-        public static bool IsNumericFloat(this String str, NumberFormatInfo numberFormat)
+        public static bool IsNumericFloat(this string str, NumberFormatInfo numberFormat)
         {
             // Can't be a float if string is not valid!
-            if (String.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str))
+            {
                 return false;
+            }
 
             //not supported by Convert.ToSingle:
             //if (str.EndsWith("f"))
@@ -142,7 +144,9 @@ namespace XNAFinalEngine.Helpers
 
             // Only 1 decimal point is allowed
             if (AllowOnlyOneDecimalPoint(str, numberFormat) == false)
+            {
                 return false;
+            }
 
             // + allows in the first,last,don't allow in middle of the string
             // - allows in the first,last,don't allow in middle of the string
@@ -154,7 +158,9 @@ namespace XNAFinalEngine.Helpers
             // If string is just 1 letter, don't allow it to be a sign
             if (str.Length == 1 &&
                 "+-$.,".IndexOf(str[0]) >= 0)
+            {
                 return false;
+            }
 
             for (int i = 0; i < str.Length; i++)
             {
@@ -164,7 +170,9 @@ namespace XNAFinalEngine.Helpers
                     Convert.ToChar(str.Substring(i, 1));
 
                 if (retVal)
+                {
                     retVal = false;
+                }
 
                 if ((str.IndexOf(pChar) == 0))
                 {
@@ -183,7 +191,9 @@ namespace XNAFinalEngine.Helpers
                 }
 
                 if (!retVal)
+                {
                     break;
+                }
             }
 
             return retVal;
@@ -194,8 +204,10 @@ namespace XNAFinalEngine.Helpers
         public static bool IsNumericInt(this string str)
         {
             // Can't be an int if string is not valid!
-            if (String.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str))
+            {
                 return false;
+            }
 
             // Go through every letter in str
             int strPos = 0;
@@ -205,7 +217,10 @@ namespace XNAFinalEngine.Helpers
                 if ("0123456789".IndexOf(ch) < 0 &&
                     // Allow +/- for first char
                     (strPos > 0 || (ch != '-' && ch != '+')))
+                {
                     return false;
+                }
+
                 strPos++;
             } // foreach (ch in str)
 
@@ -240,7 +255,9 @@ namespace XNAFinalEngine.Helpers
                 // there is something wrong, the group seperator is used as a comma.
                 if (str.StartsWith(numberFormat.CurrencyGroupSeparator) ||
                     strInChars[0] == '0')
+                {
                     return false;
+                }
 
                 // look only at the digits in front of the decimal point
                 string[] splittedByDecimalSeperator = str.Split(
@@ -267,7 +284,9 @@ namespace XNAFinalEngine.Helpers
                 } // for (int)
             } // if (hasGroupSeperator)
             if (decimalSeperatorCount > 1)
+            {
                 return false;
+            }
 
             return true;
         } // AllowOnlyOneDecimalPoint
@@ -295,15 +314,24 @@ namespace XNAFinalEngine.Helpers
             if (x == 0)
             {
                 if (y == 1)
+                {
                     return MathHelper.PiOver2;
+                }
+
                 return -MathHelper.PiOver2;
             }
             if (x > 0)
+            {
                 return (float)Math.Atan(y / x);
+            }
+
             if (x < 0)
             {
                 if (y > 0)
+                {
                     return (float)Math.Atan(y / x) + MathHelper.Pi;
+                }
+
                 return (float)Math.Atan(y / x) - MathHelper.Pi;
             }
             return 0;
@@ -344,9 +372,15 @@ namespace XNAFinalEngine.Helpers
 
             // Special cases.
             if (rotationaxes.Y <= (float)-Math.PI)
+            {
                 rotationaxes.Y = (float)Math.PI;
+            }
+
             if (rotationaxes.Z <= (float)-Math.PI)
+            {
                 rotationaxes.Z = (float)Math.PI;
+            }
+
             if (rotationaxes.Y >= Math.PI && rotationaxes.Z >= Math.PI)
             {
                 rotationaxes.Y = 0;

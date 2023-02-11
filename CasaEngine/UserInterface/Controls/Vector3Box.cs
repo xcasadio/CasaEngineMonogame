@@ -51,7 +51,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (value != Value)
                 {
-                    this._value = value;
+                    _value = value;
                     OnValueChanged(new EventArgs());
                 }
             }

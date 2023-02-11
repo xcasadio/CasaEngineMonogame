@@ -24,7 +24,7 @@ namespace Editor.WinForm
 
             progressBar1.Minimum = min_;
             progressBar1.Maximum = max_;
-            this.Text = title_;
+            Text = title_;
             label.Text = label_;
             UpgradeLabelProgression();
         }

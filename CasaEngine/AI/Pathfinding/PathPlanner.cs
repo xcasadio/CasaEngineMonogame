@@ -3,30 +3,17 @@ using CasaEngine.AI.Messaging;
 using CasaEngine.AI.Navigation;
 using Microsoft.Xna.Framework;
 
-
 namespace CasaEngine.AI.Pathfinding
 {
-    public class PathPlanner<T>
-        where T : WeightedEdge
+    public class PathPlanner<T> where T : WeightedEdge
     {
-
         public const int NoNodeFound = -1;
-
-
-
-        protected internal MovingEntity Owner;
-
-        protected internal Graph<NavigationNode, T> Graph;
-
-        protected internal float NeighboursSearchRange;
-
-        protected internal GraphSearchAlgorithm<NavigationNode, T> Search;
-
-        protected internal Vector3 Destination;
-
-        protected internal PathSmoother SmoothAlgorithm;
-
-
+        protected internal MovingEntity owner;
+        protected internal Graph<NavigationNode, T> graph;
+        protected internal float neighboursSearchRange;
+        protected internal GraphSearchAlgorithm<NavigationNode, T> search;
+        protected internal Vector3 destination;
+        protected internal PathSmoother smoothAlgorithm;
 
         public PathPlanner(MovingEntity owner, Graph<NavigationNode, T> graph, GraphSearchAlgorithm<NavigationNode, T> search, float neighboursSearchRange, PathSmoother smoothAlgorithm)
         {
@@ -34,10 +21,8 @@ namespace CasaEngine.AI.Pathfinding
             this.graph = graph;
             this.search = search;
             this.neighboursSearchRange = neighboursSearchRange;
-            this.SmoothAlgorithm = smoothAlgorithm;
+            this.smoothAlgorithm = smoothAlgorithm;
         }
-
-
 
         public MovingEntity Owner => owner;
 
@@ -59,35 +44,37 @@ namespace CasaEngine.AI.Pathfinding
             set => neighboursSearchRange = value;
         }
 
-
-
         public bool RequestPathToPosition(Vector3 position)
         {
-            int closestNodeToEntity, closestNodeToDestination;
+            int closestNodeToEntity, closestNodeTodestination;
 
             PathManager<T>.Instance.Unregister(this);
 
-            Destination = position;
+            destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, Destination) == true)
+            if (owner.CanMoveBetween(owner.Position, destination) == true)
             {
-                MessageManagerRouter.Instance.SendMessage(0, owner.ID, 0, (int)MessageType.PathReady, null);
+                MessageManagerRouter.Instance.SendMessage(0, owner.Id, 0, (int)MessageType.PathReady, null);
                 return true;
             }
 
             //Get the closest node to the entity
             closestNodeToEntity = ClosestNodeToPosition(owner.Position);
             if (closestNodeToEntity == NoNodeFound)
+            {
                 return false;
+            }
 
             //Get the cloest node to the destination
-            closestNodeToDestination = ClosestNodeToPosition(Destination);
-            if (closestNodeToDestination == NoNodeFound)
+            closestNodeTodestination = ClosestNodeToPosition(destination);
+            if (closestNodeTodestination == NoNodeFound)
+            {
                 return false;
+            }
 
             //Initialize the search
-            search.Initialize(closestNodeToEntity, closestNodeToDestination);
+            search.Initialize(closestNodeToEntity, closestNodeTodestination);
 
             //Register the search in the PathManager
             PathManager<T>.Instance.Register(this);
@@ -102,7 +89,7 @@ namespace CasaEngine.AI.Pathfinding
                 List<Vector3> path;
 
                 path = NodesToPositions(search.PathOfNodes);
-                path.Add(Destination);
+                path.Add(destination);
 
                 return path;
             }
@@ -126,14 +113,16 @@ namespace CasaEngine.AI.Pathfinding
                     pathEdges.Insert(0, new NavigationEdge(owner.Position, graph.GetNode(pathNodes[0]).Position, EdgeInformation.Normal));
 
                     //Add the edge between the last node of the path and the destination
-                    pathEdges.Add(new NavigationEdge(graph.GetNode(pathNodes[pathNodes.Count - 1]).Position, Destination, EdgeInformation.Normal));
+                    pathEdges.Add(new NavigationEdge(graph.GetNode(pathNodes[pathNodes.Count - 1]).Position, destination, EdgeInformation.Normal));
 
                     //Smooth the path
-                    SmoothAlgorithm(owner, pathEdges);
+                    smoothAlgorithm(owner, pathEdges);
                 }
 
                 else //The path is a straight line
-                    pathEdges.Add(new NavigationEdge(owner.Position, Destination, EdgeInformation.Normal));
+                {
+                    pathEdges.Add(new NavigationEdge(owner.Position, destination, EdgeInformation.Normal));
+                }
 
                 return pathEdges;
             }
@@ -141,56 +130,72 @@ namespace CasaEngine.AI.Pathfinding
 
         public List<Vector3> GetNowPathOfPositionsToPosition(Vector3 position)
         {
-            int closestNodeToEntity, closestNodeToDestination;
+            int closestNodeToEntity, closestNodeTodestination;
 
-            Destination = position;
+            destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, Destination) == true)
+            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            {
                 return PathOfPositions;
+            }
 
             //Get the closest node to the entity
             closestNodeToEntity = ClosestNodeToPosition(owner.Position);
             if (closestNodeToEntity == NoNodeFound)
+            {
                 return null;
+            }
 
             //Get the cloest node to the destination
-            closestNodeToDestination = ClosestNodeToPosition(Destination);
-            if (closestNodeToDestination == NoNodeFound)
+            closestNodeTodestination = ClosestNodeToPosition(destination);
+            if (closestNodeTodestination == NoNodeFound)
+            {
                 return null;
+            }
 
             //Do the full search and if succesful return the path of positions
             search.Initialize(closestNodeToEntity, closestNodeToEntity);
             if (search.Search() == SearchState.CompletedAndFound)
+            {
                 return PathOfPositions;
+            }
 
             return null;
         }
 
         public List<NavigationEdge> GetNowPathOfEdgesToPosition(Vector3 position)
         {
-            int closestNodeToEntity, closestNodeToDestination;
+            int closestNodeToEntity, closestNodeTodestination;
 
-            Destination = position;
+            destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, Destination) == true)
+            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            {
                 return PathOfEdges;
+            }
 
             //Get the closest node to the entity
             closestNodeToEntity = ClosestNodeToPosition(owner.Position);
             if (closestNodeToEntity == NoNodeFound)
+            {
                 return null;
+            }
 
             //Get the cloest node to the destination
-            closestNodeToDestination = ClosestNodeToPosition(Destination);
-            if (closestNodeToDestination == NoNodeFound)
+            closestNodeTodestination = ClosestNodeToPosition(destination);
+            if (closestNodeTodestination == NoNodeFound)
+            {
                 return null;
+            }
 
             //Do the full search and if succesful return the path of positions
             search.Initialize(closestNodeToEntity, closestNodeToEntity);
             if (search.Search() == SearchState.CompletedAndFound)
+            {
                 return PathOfEdges;
+            }
 
             return null;
         }
@@ -203,16 +208,18 @@ namespace CasaEngine.AI.Pathfinding
 
             //If the search failed inform the owner
             if (result == SearchState.CompletedAndNotFound)
-                MessageManagerRouter.Instance.SendMessage(0, owner.ID, 0, (int)MessageType.PathNotAvailable, null);
+            {
+                MessageManagerRouter.Instance.SendMessage(0, owner.Id, 0, (int)MessageType.PathNotAvailable, null);
+            }
 
             //If the search succeeded inform the owner
             if (result == SearchState.CompletedAndFound)
-                MessageManagerRouter.Instance.SendMessage(0, owner.ID, 0, (int)MessageType.PathReady, null);
+            {
+                MessageManagerRouter.Instance.SendMessage(0, owner.Id, 0, (int)MessageType.PathReady, null);
+            }
 
             return result;
         }
-
-
 
         private int ClosestNodeToPosition(Vector3 position)
         {
@@ -253,7 +260,9 @@ namespace CasaEngine.AI.Pathfinding
 
             //Get the position of each node
             for (int i = 0; i < nodes.Count; i++)
+            {
                 path.Add(graph.GetNode(i).Position);
+            }
 
             return path;
         }
@@ -271,14 +280,18 @@ namespace CasaEngine.AI.Pathfinding
             {
                 //Create the list without extra edge information
                 for (int i = 0; i < nodes.Count - 1; i++)
+                {
                     path.Add(new NavigationEdge(graph.GetNode(nodes[i]).Position, graph.GetNode(nodes[i + 1]).Position, EdgeInformation.Normal));
+                }
             }
 
             else
             {
                 //Create the list with extra edge information
                 for (int i = 0; i < nodes.Count - 1; i++)
+                {
                     path.Add(new NavigationEdge(annotatedGraph.GetNode(nodes[i]).Position, annotatedGraph.GetNode(nodes[i + 1]).Position, annotatedGraph.GetEdge(nodes[i], nodes[i + 1]).Information));
+                }
             }
 
             return path;

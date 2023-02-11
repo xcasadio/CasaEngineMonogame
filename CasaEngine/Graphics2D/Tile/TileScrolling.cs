@@ -10,8 +10,8 @@ namespace CasaEngine.Graphics2D.Tile
         : TileLayer
     {
 
-        private List<Sprite2D> _sprites = new List<Sprite2D>();
-        private List<Sprite2D> _displaySprites = new List<Sprite2D>();
+        private List<Sprite2D> _sprites = new();
+        private List<Sprite2D> _displaySprites = new();
         private Rectangle _visibleTiles;
 
 
@@ -47,8 +47,8 @@ namespace CasaEngine.Graphics2D.Tile
 			{
 				Rectangle rect = new Rectangle();
 
-				rect.X = (int)s.Position.X;
-				rect.Y = (int)s.Position.Y;
+				rect.X = (int)s.position.X;
+				rect.Y = (int)s.position.Y;
 				rect.Width = (int)((float)s.PositionInTexture.Width);
 				rect.Height = (int)((float)s.PositionInTexture.Height);
 
@@ -56,8 +56,8 @@ namespace CasaEngine.Graphics2D.Tile
 				{
                     PoolItem<Sprite2D> sprite = Graphics2DPool.ResourcePoolSprite2D.GetItem();
                     sprite.Resource.Clone(s);
-					// = GameInfo.Instance.Asset2DManager.GetSprite2DByID(s.ID);
-                    sprite.Resource.Position = (s.Position - CameraPosition) * CameraZoom;
+					// = GameInfo.Instance.Asset2DManager.GetSprite2DByID(s.Id);
+                    sprite.Resource.position = (s.position - CameraPosition) * CameraZoom;
                     sprite.Resource.HotSpot = new Point((int)((float)s.HotSpot.X * CameraZoom), (int)((float)s.HotSpot.Y * CameraZoom));
                     sprite.Resource.Scale = new Vector2(CameraZoom);
                     sprite.Resource.Color = s.Color;

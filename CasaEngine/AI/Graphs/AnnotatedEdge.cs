@@ -5,13 +5,11 @@ namespace CasaEngine.AI.Graphs
     public class AnnotatedEdge : WeightedEdge
     {
 
-        protected internal EdgeInformation Information;
-
-
+        protected internal EdgeInformation information;
 
         public AnnotatedEdge()
         {
-            this.information = EdgeInformation.Normal;
+            information = EdgeInformation.Normal;
         }
 
         public AnnotatedEdge(int start, int end, float cost, EdgeInformation information)
@@ -19,8 +17,6 @@ namespace CasaEngine.AI.Graphs
         {
             this.information = information;
         }
-
-
 
         public EdgeInformation Information
         {

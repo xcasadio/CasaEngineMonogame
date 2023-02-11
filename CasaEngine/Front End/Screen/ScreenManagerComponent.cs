@@ -22,10 +22,10 @@ namespace CasaEngine.FrontEnd.Screen
     public class ScreenManagerComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        readonly List<Screen> _screens = new List<Screen>();
-        readonly List<Screen> _screensToUpdate = new List<Screen>();
+        readonly List<Screen> _screens = new();
+        readonly List<Screen> _screensToUpdate = new();
 
-        readonly InputState _input = new InputState();
+        readonly InputState _input = new();
 
         //SpriteBatch spriteBatch;
         //SpriteFont font;
@@ -88,7 +88,7 @@ namespace CasaEngine.FrontEnd.Screen
 
             //#if !EDITOR
             _blankTexture = new Texture2D(GraphicsDevice, 1, 1);
-            Color[] whitePixels = new Color[] { new Color(0, 0, 0, 0) };
+            Color[] whitePixels = new Color[] { new(0, 0, 0, 0) };
             _blankTexture.SetData<Color>(whitePixels);
             //#endif
 
@@ -157,13 +157,17 @@ namespace CasaEngine.FrontEnd.Screen
                     // If this is an active non-popup, inform any subsequent
                     // screens that they are covered by it.
                     if (!screen.IsPopup)
+                    {
                         coveredByOtherScreen = true;
+                    }
                 }
             }
 
             // Print debug trace?
             if (_traceEnabled)
+            {
                 TraceScreens();
+            }
         }
 
         void TraceScreens()
@@ -183,7 +187,9 @@ namespace CasaEngine.FrontEnd.Screen
             foreach (Screen screen in _screens)
             {
                 if (screen.ScreenState == ScreenState.Hidden)
+                {
                     continue;
+                }
 
                 //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenDraw(screen);
                 screen.Draw(elpasedTime);
@@ -256,7 +262,7 @@ namespace CasaEngine.FrontEnd.Screen
 
         public void FadeBackBufferToBlack(int alpha)
         {
-            Viewport viewport = this.GraphicsDevice.Viewport;
+            Viewport viewport = GraphicsDevice.Viewport;
 
             _renderer2DComponent.AddSprite2D(_blankTexture,
                                 new Rectangle(0, 0, viewport.Width, viewport.Height),

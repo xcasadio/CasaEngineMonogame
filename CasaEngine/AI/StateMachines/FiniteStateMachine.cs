@@ -1,120 +1,93 @@
 namespace CasaEngine.AI.StateMachines
 {
     [Serializable]
-    public class FiniteStateMachine<T> : IFiniteStateMachine<T> where T : /*BaseEntity,*/ IFsmCapable<T>
+    public class FiniteStateMachine<T> : IFiniteStateMachine<T> where T : IFsmCapable<T>
     {
+        protected T Owner;
 
-        protected internal T Owner;
+        protected IState<T> _currentState;
 
-        protected internal IState<T> CurrentState;
+        protected IState<T> _previousState;
 
-        protected internal IState<T> PreviousState;
-
-        protected internal IState<T> GlobalState;
-
-
+        protected IState<T> _globalState;
 
         public FiniteStateMachine(T owner)
         {
-            this.Owner = owner;
+            Owner = owner;
 
-            currentState = new DefaultIdleState<T>();
-            PreviousState = new DefaultIdleState<T>();
-            globalState = new DefaultIdleState<T>();
+            _currentState = new DefaultIdleState<T>();
+            _previousState = new DefaultIdleState<T>();
+            _globalState = new DefaultIdleState<T>();
         }
 
         public FiniteStateMachine(T owner, IState<T> currentState, IState<T> globalState)
         {
-            this.Owner = owner;
+            Owner = owner;
 
-            this.currentState = currentState;
-            this.globalState = globalState;
-            this.PreviousState = new DefaultIdleState<T>();
+            _currentState = currentState;
+            _globalState = globalState;
+            _previousState = new DefaultIdleState<T>();
         }
-
-
 
         public IState<T> CurrentState
         {
-            get => currentState;
-            set => this.currentState = value;
+            get => _currentState;
+            set => _currentState = value;
         }
 
         public IState<T> GlobalState
         {
-            get => globalState;
-            set => this.globalState = value;
+            get => _globalState;
+            set => _globalState = value;
         }
 
-
-
-        public void Update(float elpasedTime)
+        public void Update(float elapsedTime)
         {
-            globalState.Update(Owner, elpasedTime);
-            currentState.Update(Owner, elpasedTime);
+            _globalState.Update(Owner, elapsedTime);
+            _currentState.Update(Owner, elapsedTime);
         }
 
         public void Transition(IState<T> newState)
         {
-            /*String message = String.Empty;
+            _currentState.Exit(Owner);
 
-            if (LogManager.Instance.Verbosity == LogManager.LogVerbosity.Debug)
-            {
-                string n;
+            _previousState = _currentState;
+            _currentState = newState;
 
-                if (owner is BaseObject)
-                {
-                    n = (owner as BaseObject).Name;
-                }
-                else
-                {
-                    n = "unknown";
-                }
-
-                if (LogManager.Instance.Verbosity == LogManager.LogVerbosity.Debug)
-                {
-                    LogManager.Instance.WriteLineDebug("Object '" + n + "' change state '" + currentState.Name + "' to '" + newState.Name + "'");
-                }
-            }*/
-
-            //Exit the actual state
-            currentState.Exit(Owner);
-
-            //Actualize internal values
-            PreviousState = currentState;
-            currentState = newState;
-
-            //Enter the new state
-            currentState.Enter(Owner);
+            _currentState.Enter(Owner);
         }
 
         public void RevertStateChange()
         {
-            Transition(PreviousState);
+            Transition(_previousState);
         }
 
         public bool IsInState(IState<T> state)
         {
-            if (this.currentState == state)
+            if (_currentState == state)
+            {
                 return true;
+            }
 
             else
+            {
                 return false;
+            }
         }
 
         public bool HandleMessage(Message message)
         {
-            //Try to handle the message with the current state
-            if (currentState.HandleMessage(Owner, message) == true)
+            if (_currentState.HandleMessage(Owner, message) == true)
+            {
                 return true;
+            }
 
-            //If the current state couldn´t handle the message, try the global state
-            if (globalState.HandleMessage(Owner, message) == true)
+            if (_globalState.HandleMessage(Owner, message) == true)
+            {
                 return true;
+            }
 
-            //The machine wasn´t able to handle the message
             return false;
         }
-
     }
 }

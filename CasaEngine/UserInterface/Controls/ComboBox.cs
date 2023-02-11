@@ -18,7 +18,7 @@ namespace XNAFinalEngine.UserInterface
 
 
         private readonly Button _buttonDown;
-        private readonly List<object> _items = new List<object>();
+        private readonly List<object> _items = new();
         private readonly ListBox _listCombo;
 
         private int _maxItems = 5;

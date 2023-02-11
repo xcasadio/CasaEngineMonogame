@@ -671,7 +671,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 int index = -1;
 
-                if (kbe.Key == Microsoft.Xna.Framework.Input.Keys.Left && !kbe.Handled)
+                if (kbe.Key == Keys.Left && !kbe.Handled)
                 {
                     int miny = int.MaxValue;
                     int minx = int.MinValue;
@@ -691,7 +691,7 @@ namespace XNAFinalEngine.UserInterface
                         }
                     }
                 }
-                else if (kbe.Key == Microsoft.Xna.Framework.Input.Keys.Right && !kbe.Handled)
+                else if (kbe.Key == Keys.Right && !kbe.Handled)
                 {
                     int miny = int.MaxValue;
                     int minx = int.MaxValue;
@@ -711,7 +711,7 @@ namespace XNAFinalEngine.UserInterface
                         }
                     }
                 }
-                else if (kbe.Key == Microsoft.Xna.Framework.Input.Keys.Up && !kbe.Handled)
+                else if (kbe.Key == Keys.Up && !kbe.Handled)
                 {
                     int miny = int.MinValue;
                     int minx = int.MaxValue;
@@ -731,7 +731,7 @@ namespace XNAFinalEngine.UserInterface
                         }
                     }
                 }
-                else if (kbe.Key == Microsoft.Xna.Framework.Input.Keys.Down && !kbe.Handled)
+                else if (kbe.Key == Keys.Down && !kbe.Handled)
                 {
                     int miny = int.MaxValue;
                     int minx = int.MaxValue;
@@ -906,7 +906,7 @@ namespace XNAFinalEngine.UserInterface
                 _states.Buttons[(int)MouseButton.None] = focusedControl;
                 focusedControl.SendMessage(Message.KeyDown, e);
 
-                if (e.Key == Microsoft.Xna.Framework.Input.Keys.Enter)
+                if (e.Key == Keys.Enter)
                 {
                     focusedControl.SendMessage(Message.Click, new MouseEventArgs(new MouseState(), MouseButton.None, Point.Zero));
                 }
@@ -919,7 +919,7 @@ namespace XNAFinalEngine.UserInterface
 
             if (control != null)
             {
-                if (e.Key == Microsoft.Xna.Framework.Input.Keys.Space)
+                if (e.Key == Keys.Space)
                 {
                     control.SendMessage(Message.Click, new MouseEventArgs(new MouseState(), MouseButton.None, Point.Zero));
                 }
@@ -936,20 +936,20 @@ namespace XNAFinalEngine.UserInterface
             {
                 control.SendMessage(Message.KeyPress, e);
 
-                if ((e.Key == Microsoft.Xna.Framework.Input.Keys.Right ||
-                     e.Key == Microsoft.Xna.Framework.Input.Keys.Left ||
-                     e.Key == Microsoft.Xna.Framework.Input.Keys.Up ||
-                     e.Key == Microsoft.Xna.Framework.Input.Keys.Down) && !e.Handled && CheckButtons((int)MouseButton.None))
+                if ((e.Key == Keys.Right ||
+                     e.Key == Keys.Left ||
+                     e.Key == Keys.Up ||
+                     e.Key == Keys.Down) && !e.Handled && CheckButtons((int)MouseButton.None))
                 {
                     ProcessArrows(control, e);
                     KeyDownProcess(sender, e);
                 }
-                else if (e.Key == Microsoft.Xna.Framework.Input.Keys.Tab && !e.Shift && !e.Handled && CheckButtons((int)MouseButton.None))
+                else if (e.Key == Keys.Tab && !e.Shift && !e.Handled && CheckButtons((int)MouseButton.None))
                 {
                     TabNextControl(control);
                     KeyDownProcess(sender, e);
                 }
-                else if (e.Key == Microsoft.Xna.Framework.Input.Keys.Tab && e.Shift && !e.Handled && CheckButtons((int)MouseButton.None))
+                else if (e.Key == Keys.Tab && e.Shift && !e.Handled && CheckButtons((int)MouseButton.None))
                 {
                     TabPrevControl(control);
                     KeyDownProcess(sender, e);

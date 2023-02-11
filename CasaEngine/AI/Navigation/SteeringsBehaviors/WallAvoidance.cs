@@ -10,7 +10,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
     public class WallAvoidance : SteeringBehavior
     {
 
-        public WallAvoidance(String name, MovingEntity owner, float modifier)
+        public WallAvoidance(string name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         { }
 

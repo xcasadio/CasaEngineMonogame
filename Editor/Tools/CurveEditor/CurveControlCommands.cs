@@ -52,7 +52,7 @@ namespace Editor.Tools.CurveEditor
             addKey = false;
 
             keys = new List<EditCurveKey>(deleteKeys.Count);
-            foreach ( EditCurveKey key in deleteKeys )
+            foreach (EditCurveKey key in deleteKeys)
                 keys.Add(key.Clone());
         }
 
@@ -71,17 +71,25 @@ namespace Editor.Tools.CurveEditor
         public void Execute()
         {
             if (addKey)
+            {
                 AddKeys();
+            }
             else
+            {
                 RemoveKeys();
+            }
         }
 
         public void Unexecute()
         {
             if (addKey)
+            {
                 RemoveKeys();
+            }
             else
+            {
                 AddKeys();
+            }
         }
 
 
@@ -118,8 +126,10 @@ namespace Editor.Tools.CurveEditor
                 curve.ComputeTangents(idx);
             }
 
-            if ( selection != null )
+            if (selection != null)
+            {
                 curve.ApplySelection(selection, false);
+            }
         }
 
         EditCurve curve;
@@ -167,8 +177,15 @@ namespace Editor.Tools.CurveEditor
         public EditCurveStateChangeCommand(EditCurve curve, EditCurveState oldState,
                                                                 EditCurveState newState)
         {
-            if (oldState == null) throw new ArgumentNullException("oldState");
-            if (newState == null) throw new ArgumentNullException("newState");
+            if (oldState == null)
+            {
+                throw new ArgumentNullException("oldState");
+            }
+
+            if (newState == null)
+            {
+                throw new ArgumentNullException("newState");
+            }
 
             this.curve = curve;
             this.oldState = (EditCurveState)oldState.Clone();

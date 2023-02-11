@@ -1,47 +1,33 @@
 using Microsoft.Xna.Framework;
 
-
-
-
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public abstract class SteeringBehavior
     {
+        protected internal string name;
+        protected internal MovingEntity owner;
+        protected internal float modifier;
+        protected internal bool active;
+        protected internal bool ignoreX;
+        protected internal bool ignoreY;
+        protected internal bool ignoreZ;
 
-        protected internal String Name;
-
-        protected internal MovingEntity Owner;
-
-        protected internal float Modifier;
-
-        protected internal bool Active;
-
-        protected internal bool IgnoreX;
-
-        protected internal bool IgnoreY;
-
-        protected internal bool IgnoreZ;
-
-
-
-        public SteeringBehavior(String name, MovingEntity owner, float modifier)
+        public SteeringBehavior(string name, MovingEntity owner, float modifier)
         {
             this.name = name;
             this.owner = owner;
             this.modifier = modifier;
 
-            this.active = false;
+            active = false;
 
             ignoreX = false;
             ignoreY = false;
             ignoreZ = false;
         }
 
-
-
         public MovingEntity Owner => owner;
 
-        public String Name
+        public string Name
         {
             get => name;
             set => name = value;
@@ -77,20 +63,24 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             set => ignoreZ = value;
         }
 
-
-
         public abstract Vector3 Calculate();
 
         protected Vector3 ConstraintVector(Vector3 vector)
         {
             if (ignoreX == true)
+            {
                 vector.X = 0;
+            }
 
             if (ignoreY == true)
+            {
                 vector.Y = 0;
+            }
 
             if (ignoreZ == true)
+            {
                 vector.Y = 0;
+            }
 
             return vector;
         }
@@ -98,13 +88,19 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
         protected void ConstraintVector(ref Vector3 vector)
         {
             if (ignoreX == true)
+            {
                 vector.X = 0;
+            }
 
             if (ignoreY == true)
+            {
                 vector.Y = 0;
+            }
 
             if (ignoreZ == true)
+            {
                 vector.Y = 0;
+            }
         }
 
     }

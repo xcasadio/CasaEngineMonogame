@@ -2,54 +2,58 @@ using CasaEngine.AI.EvolutionaryComputing.Mutation;
 using CasaEngine.AI.EvolutionaryComputing.Replacement;
 using CasaEngine.AI.EvolutionaryComputing.Selection;
 
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing
 {
     public class EvolutionaryAlgorithm<T>
     {
-
         //public event NewStepEventHandler<T> NewStep;
 
+        protected internal MutationMethod<T> mutation;
 
+        protected internal ReplacementMethod<T> replacement;
 
-        protected internal MutationMethod<T> Mutation;
+        protected internal SelectionMethod<T> selection;
 
-        protected internal ReplacementMethod<T> Replacement;
+        protected internal IEvolutionaryProblem<T> problem;
 
-        protected internal SelectionMethod<T> Selection;
+        protected internal int numberOffsprings;
 
-        protected internal IEvolutionaryProblem<T> Problem;
-
-        protected internal int NumberOffsprings;
-
-        protected internal int NumberGenerations;
-
-
+        protected internal int numberGenerations;
 
         public EvolutionaryAlgorithm(IEvolutionaryProblem<T> problem, SelectionMethod<T> selection, MutationMethod<T> mutation, ReplacementMethod<T> replacement,
             int numberOffsprings, int numberGenerations)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateMutation(mutation, ref message) == false)
-                throw new AiException("mutation", this.GetType().ToString(), message);
+            {
+                throw new AiException("mutation", GetType().ToString(), message);
+            }
 
             if (ValidateReplacement(replacement, ref message) == false)
-                throw new AiException("replacement", this.GetType().ToString(), message);
+            {
+                throw new AiException("replacement", GetType().ToString(), message);
+            }
 
             if (ValidateSelection(selection, ref message) == false)
-                throw new AiException("selection", this.GetType().ToString(), message);
+            {
+                throw new AiException("selection", GetType().ToString(), message);
+            }
 
             if (ValidateProblem(problem, ref message) == false)
-                throw new AiException("problem", this.GetType().ToString(), message);
+            {
+                throw new AiException("problem", GetType().ToString(), message);
+            }
 
             if (ValidateOffsprings(numberOffsprings, ref message) == false)
-                throw new AiException("numberOffsprings", this.GetType().ToString(), message);
+            {
+                throw new AiException("numberOffsprings", GetType().ToString(), message);
+            }
 
             if (ValidateGenerations(numberGenerations, ref message) == false)
-                throw new AiException("numberGenerations", this.GetType().ToString(), message);
+            {
+                throw new AiException("numberGenerations", GetType().ToString(), message);
+            }
 
             this.mutation = mutation;
             this.replacement = replacement;
@@ -59,17 +63,17 @@ namespace CasaEngine.AI.EvolutionaryComputing
             this.numberGenerations = numberGenerations;
         }
 
-
-
         public MutationMethod<T> Mutation
         {
             get => mutation;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateMutation(value, ref message) == false)
-                    throw new AiException("mutation", this.GetType().ToString(), message);
+                {
+                    throw new AiException("mutation", GetType().ToString(), message);
+                }
 
                 mutation = value;
             }
@@ -80,10 +84,12 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => replacement;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateReplacement(value, ref message) == false)
-                    throw new AiException("replacement", this.GetType().ToString(), message);
+                {
+                    throw new AiException("replacement", GetType().ToString(), message);
+                }
 
                 replacement = value;
             }
@@ -94,10 +100,12 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => selection;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateSelection(value, ref message) == false)
-                    throw new AiException("selection", this.GetType().ToString(), message);
+                {
+                    throw new AiException("selection", GetType().ToString(), message);
+                }
 
                 selection = value;
             }
@@ -108,10 +116,12 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => problem;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateProblem(value, ref message) == false)
-                    throw new AiException("problem", this.GetType().ToString(), message);
+                {
+                    throw new AiException("problem", GetType().ToString(), message);
+                }
 
                 problem = value;
             }
@@ -122,10 +132,12 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => numberOffsprings;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateOffsprings(value, ref message) == false)
-                    throw new AiException("numberOffsprings", this.GetType().ToString(), message);
+                {
+                    throw new AiException("numberOffsprings", GetType().ToString(), message);
+                }
 
                 numberOffsprings = value;
             }
@@ -136,16 +148,16 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => numberGenerations;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateGenerations(value, ref message) == false)
-                    throw new AiException("numberGenerations", this.GetType().ToString(), message);
+                {
+                    throw new AiException("numberGenerations", GetType().ToString(), message);
+                }
 
                 numberGenerations = value;
             }
         }
-
-
 
         public static bool ValidateMutation(MutationMethod<T> mutation, ref string message)
         {
@@ -213,8 +225,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             return true;
         }
 
-
-
         public Chromosome<T> SolveWithImprovement()
         {
             int evaluationsWithoutImprovement;
@@ -233,7 +243,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 problem.CalculateFitness(parents);
 
                 if (parents.HasPerfectSolution == true)
+                {
                     return parents[parents.PerfectSolutionIndex];
+                }
 
                 //Create the offsprings population
                 offsprings = selection(parents, numberOffsprings);
@@ -245,7 +257,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 problem.CalculateFitness(offsprings);
 
                 if (offsprings.HasPerfectSolution == true)
+                {
                     return offsprings[offsprings.PerfectSolutionIndex];
+                }
 
                 //Choose the survivors
                 survivors = replacement(parents, offsprings);
@@ -259,15 +273,21 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
                 //If the parents where better than the survivors, there wasn´t any improvement in this generation
                 if (comparer.Compare(parents[0], survivors[0]) != -1)
+                {
                     evaluationsWithoutImprovement++;
+                }
 
                 else
+                {
                     evaluationsWithoutImprovement = 0;
+                }
 
                 parents = survivors;
 
                 if (evaluationsWithoutImprovement >= numberGenerations)
+                {
                     break;
+                }
             }
 
             //Return the best individual
@@ -288,7 +308,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 problem.CalculateFitness(parents);
 
                 if (parents.HasPerfectSolution == true)
+                {
                     return parents[parents.PerfectSolutionIndex];
+                }
 
                 //Select the offsprings population
                 offsprings = selection(parents, numberOffsprings);
@@ -300,7 +322,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 problem.CalculateFitness(offsprings);
 
                 if (offsprings.HasPerfectSolution == true)
+                {
                     return offsprings[offsprings.PerfectSolutionIndex];
+                }
 
                 //Choose the survivors and replace the parents
                 survivors = replacement(parents, offsprings);

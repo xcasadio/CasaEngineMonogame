@@ -6,10 +6,8 @@
         readonly string _name;
         readonly BehaviourTreeNode<T> _parent = null;
 
-        readonly List<BehaviourTreeNode<T>> _children = new List<BehaviourTreeNode<T>>();
+        readonly List<BehaviourTreeNode<T>> _children = new();
         //condition script
-
-
 
         public string Name => _name;
 
@@ -17,13 +15,10 @@
 
         public List<BehaviourTreeNode<T>> Children => _children;
 
-
         public BehaviourTreeNode(string name)
         {
             _name = name;
         }
-
-
 
         public abstract bool EnterCondition(T entity);
 

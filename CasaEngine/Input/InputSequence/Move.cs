@@ -21,7 +21,7 @@ namespace CasaEngine.Input
         //public Buttons[] Sequence;
         //public int[] Sequence;
 #if EDITOR
-        public List<List<InputManager.KeyState>> Sequence = new List<List<InputManager.KeyState>>();
+        public List<List<InputManager.KeyState>> Sequence = new();
 #else
         public InputManager.KeyState[][] Sequence; 
 #endif

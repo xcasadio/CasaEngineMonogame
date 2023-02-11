@@ -11,12 +11,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
         public RankScaling(EvolutionObjective objective, double alpha)
             : base(objective)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateAlpha(alpha, ref message) == false)
-                throw new AiException("alpha", this.GetType().ToString(), message);
+            {
+                throw new AiException("alpha", GetType().ToString(), message);
+            }
 
-            this.Alpha = alpha;
+            Alpha = alpha;
         }
 
 
@@ -32,10 +34,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
 
             //Order the population on inverse order depending on the objective
             if (Objective == EvolutionObjective.Maximize)
+            {
                 population.Genome.Sort(new ChromosomeComparer<T>(EvolutionObjective.Minimize));
+            }
 
             else
+            {
                 population.Genome.Sort(new ChromosomeComparer<T>(EvolutionObjective.Maximize));
+            }
 
             //Calculate the new fitness values (ranks) for the mapping
             popSize = population.Genome.Count;

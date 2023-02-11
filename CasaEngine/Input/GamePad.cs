@@ -138,8 +138,8 @@ namespace XNAFinalEngine.Input
 
         private GamePad(PlayerIndex playerIndex)
         {
-            this._playerIndex = playerIndex;
-            _currentState = Microsoft.Xna.Framework.Input.GamePad.GetState(this._playerIndex);
+            _playerIndex = playerIndex;
+            _currentState = Microsoft.Xna.Framework.Input.GamePad.GetState(_playerIndex);
             DeadZone = GamePadDeadZone.IndependentAxes;
         } // GamePad
 
@@ -168,10 +168,10 @@ namespace XNAFinalEngine.Input
 
 
         // The four possible gamepads.
-        private readonly static GamePad PlayerOneGamePad = new GamePad(PlayerIndex.One),
-                                        PlayerTwoGamePad = new GamePad(PlayerIndex.Two),
-                                        PlayerThreeGamePad = new GamePad(PlayerIndex.Three),
-                                        PlayerFourGamePad = new GamePad(PlayerIndex.Four);
+        private readonly static GamePad PlayerOneGamePad = new(PlayerIndex.One),
+                                        PlayerTwoGamePad = new(PlayerIndex.Two),
+                                        PlayerThreeGamePad = new(PlayerIndex.Three),
+                                        PlayerFourGamePad = new(PlayerIndex.Four);
 
 
 

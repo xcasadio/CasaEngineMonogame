@@ -36,7 +36,7 @@ namespace CasaEngine.Input
             }
         }
 
-        public List<KeyStateFrame> _buffer = new List<KeyStateFrame>(50);
+        public List<KeyStateFrame> _buffer = new(50);
 
         public KeyStateFrame[] Buffer => _buffer.ToArray();
 
@@ -380,7 +380,9 @@ namespace CasaEngine.Input
 
             // If the move is longer than the buffer, it can't possibly match.
             if (_buffer.Count < moveSequencecount)
+            {
                 return false;
+            }
 
             // Loop backwards to match against the most recent input.
             for (int i = 1; i <= moveSequencecount; ++i)

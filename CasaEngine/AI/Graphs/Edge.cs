@@ -1,9 +1,5 @@
 using System.Runtime.Serialization.Formatters.Binary;
 
-
-
-
-
 namespace CasaEngine.AI.Graphs
 {
     [Serializable]
@@ -12,47 +8,47 @@ namespace CasaEngine.AI.Graphs
 
         public const int InvalidNode = -1;
 
+        protected internal int start;
 
-
-        protected internal int Start;
-
-        protected internal int End;
-
-
+        protected internal int end;
 
         public Edge()
         {
-            start = Edge.InvalidNode;
-            end = Edge.InvalidNode;
+            start = InvalidNode;
+            end = InvalidNode;
         }
 
         public Edge(int start, int end)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateNode(start, ref message) == false)
-                throw new AiException("start", this.GetType().ToString(), message);
+            {
+                throw new AiException("start", GetType().ToString(), message);
+            }
 
             if (ValidateNode(end, ref message) == false)
-                throw new AiException("end", this.GetType().ToString(), message);
+            {
+                throw new AiException("end", GetType().ToString(), message);
+            }
 
             this.start = start;
             this.end = end;
         }
-
-
 
         public int Start
         {
             get => start;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateNode(value, ref message) == false)
-                    throw new AiException("start", this.GetType().ToString(), message);
+                {
+                    throw new AiException("start", GetType().ToString(), message);
+                }
 
-                this.start = value;
+                start = value;
             }
         }
 
@@ -62,29 +58,27 @@ namespace CasaEngine.AI.Graphs
             set
             {
 
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateNode(value, ref message) == false)
-                    throw new AiException("end", this.GetType().ToString(), message);
+                {
+                    throw new AiException("end", GetType().ToString(), message);
+                }
 
-                this.end = value;
+                end = value;
             }
         }
 
-
-
         public static bool ValidateNode(int index, ref string message)
         {
-            if (index < Edge.InvalidNode)
+            if (index < InvalidNode)
             {
-                message = "The node index number must be equal or greater than " + Edge.InvalidNode;
+                message = "The node index number must be equal or greater than " + InvalidNode;
                 return false;
             }
 
             return true;
         }
-
-
 
         public object Clone()
         {

@@ -80,7 +80,9 @@ namespace Editor.Tools.CurveEditor
             {
                 // If they don't have ISite, returns static instance.
                 if (staticCommandHistory == null)
+                {
                     staticCommandHistory = new CommandHistory();
+                }
 
                 result = staticCommandHistory;
             }
@@ -95,7 +97,9 @@ namespace Editor.Tools.CurveEditor
         public void Do(ICommand command)
         {
             if (command == null)
+            {
                 throw new ArgumentNullException("command");
+            }
 
             command.Execute();
             Add(command);
@@ -117,7 +121,10 @@ namespace Editor.Tools.CurveEditor
             else
             {
                 commands.Add(command);
-                if (Changed != null) Changed(this, EventArgs.Empty);
+                if (Changed != null)
+                {
+                    Changed(this, EventArgs.Empty);
+                }
             }
         }
 
@@ -127,13 +134,18 @@ namespace Editor.Tools.CurveEditor
         public void Undo()
         {
             if (recordingNestCount != 0)
-                throw new InvalidOperationException(String.Format(
+            {
+                throw new InvalidOperationException(string.Format(
                     CurveControlResources.CantExecuteCommandHistory, "Undo"));
+            }
 
             DebugPrintCommand("Undo", -1);
 
             commands.Undo();
-            if (Changed != null) Changed(this, EventArgs.Empty);
+            if (Changed != null)
+            {
+                Changed(this, EventArgs.Empty);
+            }
         }
 
         /// <summary>
@@ -142,13 +154,18 @@ namespace Editor.Tools.CurveEditor
         public void Redo()
         {
             if (recordingNestCount != 0)
-                throw new InvalidOperationException(String.Format(
+            {
+                throw new InvalidOperationException(string.Format(
                     CurveControlResources.CantExecuteCommandHistory, "Redo"));
+            }
 
             DebugPrintCommand("Redo", 0);
 
             commands.Redo();
-            if (Changed != null) Changed(this, EventArgs.Empty);
+            if (Changed != null)
+            {
+                Changed(this, EventArgs.Empty);
+            }
         }
 
         /// <summary>
@@ -157,7 +174,9 @@ namespace Editor.Tools.CurveEditor
         public void BeginRecordCommands()
         {
             if (recordingNestCount++ == 0)
+            {
                 recordingCommands = new CommandCollection();
+            }
         }
 
         /// <summary>
@@ -165,7 +184,10 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public void EndRecordCommands()
         {
-            if (--recordingNestCount != 0) return;
+            if (--recordingNestCount != 0)
+            {
+                return;
+            }
 
             // Added recorded commands to commands.
             // If recording commands recored one command, we just add that command to
@@ -173,11 +195,18 @@ namespace Editor.Tools.CurveEditor
             if (recordingCommands.Count != 0)
             {
                 if (recordingCommands.Count == 1)
+                {
                     commands.Add(recordingCommands[0]);
+                }
                 else
+                {
                     commands.Add(recordingCommands);
+                }
 
-                if (Changed != null) Changed(this, EventArgs.Empty);
+                if (Changed != null)
+                {
+                    Changed(this, EventArgs.Empty);
+                }
             }
 
             recordingCommands = null;
@@ -188,7 +217,7 @@ namespace Editor.Tools.CurveEditor
         /// <summary>
         /// Main CommandQueue.
         /// </summary>
-        CommandCollection commands = new CommandCollection();
+        CommandCollection commands = new();
 
         /// <summary>
         /// Sub CommandQueue that uses for command recoording.
@@ -211,7 +240,7 @@ namespace Editor.Tools.CurveEditor
         static void DebugPrintCommand(string prefix, ICommand command)
         {
             System.Diagnostics.Debugger.Log(0, "CmdHistory",
-                String.Format("{0}:{1}\n", prefix, command.ToString()));
+                string.Format("{0}:{1}\n", prefix, command.ToString()));
 
             CommandCollection cq = command as CommandCollection;
             if (cq != null)
@@ -219,7 +248,7 @@ namespace Editor.Tools.CurveEditor
                 for (int i = 0; i < cq.Count; ++i)
                 {
                     System.Diagnostics.Debugger.Log(0, "CmdHistory",
-                        String.Format("    [{0}]:{1}\n", i, cq[i].ToString()));
+                        string.Format("    [{0}]:{1}\n", i, cq[i].ToString()));
                 }
             }
         }

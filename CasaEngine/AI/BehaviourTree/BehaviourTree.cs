@@ -2,21 +2,17 @@
 {
     public class BehaviourTree<T> where T : BaseEntity
     {
-
         protected internal T Owner;
 
         BehaviourTreeNode<T> _root = null;
         BehaviourTreeNode<T> _currentNode = null;
 
-
-
-
-
-
-
         public void Update()
         {
-            if (_root == null) return;
+            if (_root == null)
+            {
+                return;
+            }
 
             if (_root.EnterCondition(Owner) == false)
             {
@@ -33,7 +29,9 @@
             if (node == null)
             {
                 if (_currentNode != null)
+                {
                     _currentNode.Exit(Owner);
+                }
 
                 _currentNode = null;
             }
@@ -69,10 +67,14 @@
         public BehaviourTreeNode<T> GetNodeByName(string name)
         {
             if (_root == null)
+            {
                 return null;
+            }
 
             if (_root.Name.Equals(name))
+            {
                 return _root;
+            }
 
             return SearchNodeByName(name, _root.Children);
         }
@@ -113,6 +115,5 @@
 
             parent.Children.Add(node);
         }
-
     }
 }

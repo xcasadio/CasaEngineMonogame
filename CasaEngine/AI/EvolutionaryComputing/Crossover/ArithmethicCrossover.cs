@@ -5,20 +5,18 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
         internal double IntervalModifier;
 
-
-
         public ArithmethicCrossover(double probability, Random generator, double intervalModifier)
             : base(probability, generator)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateIntervalModifier(intervalModifier, ref message) == false)
-                throw new AiException("intervalModificer", this.GetType().ToString(), message);
+            {
+                throw new AiException("intervalModificer", GetType().ToString(), message);
+            }
 
-            this.IntervalModifier = intervalModifier;
+            IntervalModifier = intervalModifier;
         }
-
-
 
         public override List<Chromosome<double>> Crossover(List<Chromosome<double>> parents)
         {
@@ -28,7 +26,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //This algorithm uses only 2 parents
             if (parents.Count != 2)
+            {
                 throw new Exception("The number of parents must be 2.");
+            }
 
             list = new List<Chromosome<double>>();
 
@@ -60,8 +60,6 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             return list;
         }
-
-
 
         public static bool ValidateIntervalModifier(double intervalModifier, ref string message)
         {

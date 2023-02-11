@@ -13,14 +13,16 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public AleatoryMutation(double probability, Random generator, int floor, int ceil)
             : base(probability, generator)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             //Validate params
             if (ValidateLimits(floor, ceil, ref message) == false)
-                throw new AiException("floor-ceil", this.GetType().ToString(), message);
+            {
+                throw new AiException("floor-ceil", GetType().ToString(), message);
+            }
 
-            this.Floor = floor;
-            this.Ceil = ceil;
+            Floor = floor;
+            Ceil = ceil;
         }
 
 
@@ -28,14 +30,20 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public override void Mutate(Population<int> population)
         {
             for (int i = 0; i < population.Genome.Count; i++)
+            {
                 for (int j = 0; j < population[i].Genotype.Count; j++)
-                    if (Generator.NextDouble() <= this.Probability)
-                        population[i].Genotype[j] = Generator.Next(this.Floor, this.Ceil);
+                {
+                    if (Generator.NextDouble() <= Probability)
+                    {
+                        population[i].Genotype[j] = Generator.Next(Floor, Ceil);
+                    }
+                }
+            }
         }
 
 
 
-        public static bool ValidateLimits(int floor, int ceil, ref String message)
+        public static bool ValidateLimits(int floor, int ceil, ref string message)
         {
             if (floor > ceil)
             {

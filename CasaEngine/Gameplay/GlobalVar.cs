@@ -6,8 +6,6 @@
         private static GlobalVar _instance;
         private Dictionary<string, int> _vars;
 
-
-
         public static GlobalVar Instance
         {
             get
@@ -26,14 +24,10 @@
             set => _vars = value;
         }
 
-
-
         private GlobalVar()
         {
             _vars = new Dictionary<string, int>();
         }
-
-
 
     }
 }

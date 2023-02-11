@@ -12,7 +12,7 @@ namespace CasaEngine.AI.Graphs
         {
             StreamReader file;
             int width, height, weight, xPos, yPos;
-            String[] elements, separators;
+            string[] elements, separators;
             int[,] weights;
             Graph<T, TK> graph;
             List<TK> edges;
@@ -23,10 +23,14 @@ namespace CasaEngine.AI.Graphs
             {
                 //Get the dimensions of the graph
                 if (int.TryParse(file.ReadLine(), out height) == false)
+                {
                     throw new Exception("Height expected");
+                }
 
                 if (int.TryParse(file.ReadLine(), out width) == false)
+                {
                     throw new Exception("Width expected");
+                }
 
                 weights = new int[height, width];
 
@@ -38,12 +42,16 @@ namespace CasaEngine.AI.Graphs
                     elements = file.ReadLine().Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
                     if (elements.Length != width)
+                    {
                         throw new Exception("Incorrect number of elements in row " + (i + 1));
+                    }
 
                     for (int j = 0; j < elements.Length; j++)
                     {
                         if (int.TryParse(elements[j], out weight) == false)
+                        {
                             throw new Exception("Weight expected");
+                        }
 
                         weights[i, j] = weight;
                     }
@@ -52,12 +60,14 @@ namespace CasaEngine.AI.Graphs
                 //Generate all the nodes
                 graph = new Graph<T, TK>(true);
                 for (int i = 0; i < height; i++)
+                {
                     for (int j = 0; j < width; j++)
                     {
                         node = Activator.CreateInstance<T>();
                         node.Position = new Vector3(j, i, 0);
                         graph.AddNode(node);
                     }
+                }
 
                 //Generate the edges
                 for (int z = 0; z < graph.ActiveNodeCount; z++)
@@ -72,7 +82,9 @@ namespace CasaEngine.AI.Graphs
                         for (int j = -1; j < 2; j++)
                         {
                             if (i == 0 && j == 0)
+                            {
                                 continue;
+                            }
 
                             //The position where the edge is going to point must be a valid position
                             if (ValidatePosition(width, height, xPos + j, yPos + i))
@@ -84,10 +96,14 @@ namespace CasaEngine.AI.Graphs
                                 edge.End = xPos + j + width * (yPos + i);
 
                                 if (weights[yPos + i, xPos + j] == -1)
+                                {
                                     edge.Cost = float.MaxValue;
+                                }
 
                                 else
+                                {
                                     edge.Cost = weights[yPos + i, xPos + j];
+                                }
 
                                 edges.Add(edge);
                             }
@@ -104,10 +120,14 @@ namespace CasaEngine.AI.Graphs
         private static bool ValidatePosition(int width, int height, int x, int y)
         {
             if (x < 0 || x >= width)
+            {
                 return false;
+            }
 
             if (y < 0 || y >= height)
+            {
                 return false;
+            }
 
             return true;
         }

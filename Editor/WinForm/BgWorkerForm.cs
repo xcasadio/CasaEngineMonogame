@@ -56,7 +56,7 @@ namespace Editor.WinForm
         /// <param name="e"></param>
         void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            this.Result = e;
+            Result = e;
             Close();
         }
 

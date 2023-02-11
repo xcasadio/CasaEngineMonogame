@@ -33,7 +33,7 @@ namespace CasaEngine.Gameplay
         private TeamInfo _teamInfo;
 
         private CharacterActor2DOrientation _orientation = CharacterActor2DOrientation.Right;
-        private Vector2 _velocity = new Vector2();
+        private Vector2 _velocity = new();
 
         private Vector2 _initialPosition;
         private Vector2 _position; //utilisé si pas physique
@@ -42,27 +42,27 @@ namespace CasaEngine.Gameplay
         private Controller _controller;
 
         // Used to load all animations
-        private readonly Dictionary<int, string> _animationListToLoad = new Dictionary<int, string>();
-        private Dictionary<int, Animation2D> _animations = new Dictionary<int, Animation2D>();
+        private readonly Dictionary<int, string> _animationListToLoad = new();
+        private Dictionary<int, Animation2D> _animations = new();
         private Animation2DPlayer _animation2DPlayer;
         private int _numberOfDirection = 8;
         private int _animationDirectioMask = 0;
-        private readonly Dictionary<int, int> _animationDirectionOffset = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> _animationDirectionOffset = new();
         private Renderer2DComponent _renderer2DComponent;
 
         private Body _body;
 
         //use to avoid GC
-        private Point _pointTmp = new Point();
-        private readonly Message _message = new Message(-1, -1, (int)MessageType.AnimationChanged, 0.0, null);
-        private Vector2 _vector2 = new Vector2();
+        private Point _pointTmp = new();
+        private readonly Message _message = new(-1, -1, (int)MessageType.AnimationChanged, 0.0, null);
+        private Vector2 _vector2 = new();
 
 #if !FINAL
         private ShapeRendererComponent _shapeRendererComponent;
 #endif
 
         //use to attack only one time per attack
-        private readonly List<ICollide2Dable> _alreadyAttacked = new List<ICollide2Dable>();
+        private readonly List<ICollide2Dable> _alreadyAttacked = new();
 
         //for debugging : to delete
         Texture2D _whiteTexture;
@@ -390,10 +390,10 @@ namespace CasaEngine.Gameplay
 
         void OnEndAnimationReached(object sender, EventArgs e)
         {
-            _message.SenderID = this.ID;
-            _message.RecieverID = this.ID; //_Animation2DPlayer.CurrentAnimation.ID ??
+            _message.SenderID = Id;
+            _message.RecieverID = Id; //_Animation2DPlayer.CurrentAnimation.Id ??
             _message.Type = (int)MessageType.AnimationChanged;
-            //_Message.ExtraInfo = _Animation2DPlayer.CurrentAnimation.ID; // @TODO : boxing is not GC friendly
+            //_Message.ExtraInfo = _Animation2DPlayer.CurrentAnimation.Id; // @TODO : boxing is not GC friendly
 
             _fsm.HandleMessage(_message);
             _controller.StateMachine.HandleMessage(_message);
@@ -489,7 +489,7 @@ namespace CasaEngine.Gameplay
                     _Renderer2DComponent.AddText2D(
                         Engine.Instance.DefaultSpriteFont,
                         "State : " + _Controller.StateMachine.CurrentState.Name,
-                        Position + new Vector2(-100.0f, -130.0f),
+                        position + new Vector2(-100.0f, -130.0f),
                         0.0f, Vector2.One, Color.Green, 0.0f);
                 }
 
@@ -498,7 +498,7 @@ namespace CasaEngine.Gameplay
                     _Renderer2DComponent.AddText2D(
                         Engine.Instance.DefaultSpriteFont,
                         "Speed : " + _Body.LinearVelocity.Length(),
-                        Position + new Vector2(-70.0f, -100.0f),
+                        position + new Vector2(-70.0f, -100.0f),
                         0.0f, Vector2.One, Color.White, 0.0f);
                 }*/
             }
@@ -644,7 +644,7 @@ namespace CasaEngine.Gameplay
             {
                 Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(_animation2DPlayer.CurrentAnimation.CurrentSpriteId);
 
-                //return Manager.CreateShape2DFromSprite2D(id, Position, SpriteEffects);
+                //return Manager.CreateShape2DFromSprite2D(id, position, SpriteEffects);
 
                 Shape2DObject[] res = null;
 
@@ -656,8 +656,8 @@ namespace CasaEngine.Gameplay
                     {
                         Shape2DObject g = res[i].Clone();
 
-                        //_PointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
-                        //_PointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
+                        //_PointTmp.X = g.Location.X + (int)(position.X - sprite.HotSpot.X);
+                        //_PointTmp.Y = g.Location.Y + (int)(position.Y - sprite.HotSpot.Y);
 
                         if (SpriteEffects == SpriteEffects.FlipHorizontally)
                         {

@@ -148,7 +148,10 @@ namespace CasaEngine.Graphics2D.Tile
 
         public void Update()
         {
-            if (VisibilityChanged) DetermineVisibility();
+            if (VisibilityChanged)
+            {
+                DetermineVisibility();
+            }
         }
 
         protected abstract void DrawTiles(SpriteBatch batch);

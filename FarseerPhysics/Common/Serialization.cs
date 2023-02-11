@@ -41,9 +41,9 @@ namespace FarseerPhysics.Common
     ///</summary>
     public class WorldXmlSerializer
     {
-        private List<Body> _bodies = new List<Body>();
-        private List<Fixture> _serializedFixtures = new List<Fixture>();
-        private List<Shape> _serializedShapes = new List<Shape>();
+        private List<Body> _bodies = new();
+        private List<Fixture> _serializedFixtures = new();
+        private List<Shape> _serializedShapes = new();
         private XmlWriter _writer;
 
         private void SerializeShape(Shape shape)
@@ -465,10 +465,10 @@ namespace FarseerPhysics.Common
 
     public class WorldXmlDeserializer
     {
-        private List<Body> _bodies = new List<Body>();
-        private List<Fixture> _fixtures = new List<Fixture>();
-        private List<Joint> _joints = new List<Joint>();
-        private List<Shape> _shapes = new List<Shape>();
+        private List<Body> _bodies = new();
+        private List<Fixture> _fixtures = new();
+        private List<Joint> _joints = new();
+        private List<Shape> _shapes = new();
 
         public World Deserialize(Stream stream)
         {
@@ -1127,8 +1127,8 @@ namespace FarseerPhysics.Common
 
     public class XMLFragmentElement
     {
-        private List<XMLFragmentAttribute> _attributes = new List<XMLFragmentAttribute>();
-        private List<XMLFragmentElement> _elements = new List<XMLFragmentElement>();
+        private List<XMLFragmentAttribute> _attributes = new();
+        private List<XMLFragmentElement> _elements = new();
 
         public IList<XMLFragmentElement> Elements
         {
@@ -1208,7 +1208,7 @@ namespace FarseerPhysics.Common
 
     public class XMLFragmentParser
     {
-        private static List<char> _punctuation = new List<char> { '/', '<', '>', '=' };
+        private static List<char> _punctuation = new() { '/', '<', '>', '=' };
         private FileBuffer _buffer;
         private XMLFragmentElement _rootNode;
 

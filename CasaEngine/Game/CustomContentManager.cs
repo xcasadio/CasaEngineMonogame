@@ -6,8 +6,8 @@ namespace CasaEngine.Game
         : ContentManager
     {
         // Cache of all the loaded content
-        readonly Dictionary<string, object> _loaded = new Dictionary<string, object>();
-        readonly List<IDisposable> _disposableAssets = new List<IDisposable>();
+        readonly Dictionary<string, object> _loaded = new();
+        readonly List<IDisposable> _disposableAssets = new();
 
         public CustomContentManager(IServiceProvider services)
             : base(services)
@@ -24,10 +24,12 @@ namespace CasaEngine.Game
         {
             // Return the stored instance if there is one
             if (_loaded.ContainsKey(assetName))
+            {
                 return (T)_loaded[assetName];
+            }
 
             // If there isn't, load a new one
-            T read = base.ReadAsset<T>(assetName, RecordDisposableAsset);
+            T read = ReadAsset<T>(assetName, RecordDisposableAsset);
             _loaded.Add(assetName, read);
 
             return read;
@@ -38,7 +40,7 @@ namespace CasaEngine.Game
         // be individually unloaded
         public T LoadFreshCopy<T>(string assetName)
         {
-            return base.ReadAsset<T>(assetName, null);
+            return ReadAsset<T>(assetName, null);
         }
 
         void RecordDisposableAsset(IDisposable disposable)

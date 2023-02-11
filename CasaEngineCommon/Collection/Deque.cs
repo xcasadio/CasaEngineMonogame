@@ -125,7 +125,7 @@ namespace CasaEngineCommon.Collection
             {
                 this.owner = owner;
                 currentNode = owner.front;
-                this.version = owner.version;
+                version = owner.version;
             }
 
 
@@ -134,7 +134,7 @@ namespace CasaEngineCommon.Collection
 
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(this.GetType().Name);
+                    throw new ObjectDisposedException(GetType().Name);
                 }
                 else if (version != owner.version)
                 {
@@ -154,7 +154,7 @@ namespace CasaEngineCommon.Collection
 
                     if (disposed)
                     {
-                        throw new ObjectDisposedException(this.GetType().Name);
+                        throw new ObjectDisposedException(GetType().Name);
                     }
                     else if (!moveResult)
                     {
@@ -173,7 +173,7 @@ namespace CasaEngineCommon.Collection
 
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(this.GetType().Name);
+                    throw new ObjectDisposedException(GetType().Name);
                 }
                 else if (version != owner.version)
                 {
@@ -206,7 +206,7 @@ namespace CasaEngineCommon.Collection
 
                     if (disposed)
                     {
-                        throw new ObjectDisposedException(this.GetType().Name);
+                        throw new ObjectDisposedException(GetType().Name);
                     }
                     else if (!moveResult)
                     {
@@ -654,7 +654,7 @@ namespace CasaEngineCommon.Collection
         {
             Deque<T> clone = new Deque<T>(this);
 
-            clone.version = this.version;
+            clone.version = version;
 
             return clone;
         }

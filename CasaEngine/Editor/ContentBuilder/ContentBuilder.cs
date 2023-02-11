@@ -35,7 +35,7 @@ namespace CasaEngine.Editor.Builder
         Microsoft.Build.Evaluation.Project _buildProject;
         ProjectRootElement _projectRootElement;
         BuildParameters _buildParameters;
-        readonly List<ProjectItem> _projectItems = new List<ProjectItem>();
+        readonly List<ProjectItem> _projectItems = new();
         ErrorLogger _errorLogger;
 
 
@@ -142,7 +142,7 @@ namespace CasaEngine.Editor.Builder
 
         public ProjectItem Add(string filename, string name)
         {
-            return this.Add(filename, name, null, null);
+            return Add(filename, name, null, null);
         }
         public ProjectItem Add(string filename, string name, string importer, string processor)
         {
@@ -152,10 +152,14 @@ namespace CasaEngine.Editor.Builder
             item.SetMetadataValue("Name", name);
 
             if (!string.IsNullOrEmpty(importer))
+            {
                 item.SetMetadataValue("Importer", importer);
+            }
 
             if (!string.IsNullOrEmpty(processor))
+            {
                 item.SetMetadataValue("Processor", processor);
+            }
 
             _projectItems.Add(item);
 

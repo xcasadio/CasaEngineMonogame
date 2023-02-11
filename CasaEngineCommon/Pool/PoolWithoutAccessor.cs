@@ -58,7 +58,10 @@ namespace CasaEngineCommon.Pool
             set
             {
                 if (value < Count)
+                {
                     throw new ArgumentOutOfRangeException("value", "Pool: new size has to be bigger than active elements.");
+                }
+
                 ResizePool(value);
             }
         } // Capacity
@@ -72,7 +75,10 @@ namespace CasaEngineCommon.Pool
         public PoolWithoutAccessor(int capacity)
         {
             if (capacity <= 0)
+            {
                 throw new ArgumentOutOfRangeException("capacity", "Pool: Argument capacity must be greater than zero.");
+            }
+
             Elements = new T[capacity];
             for (int i = 0; i < capacity; i++)
             {
@@ -130,7 +136,10 @@ namespace CasaEngineCommon.Pool
         public void Release(T element)
         {
             if (element == null)
+            {
                 throw new ArgumentNullException("element", "Pool: Element value cannot be null");
+            }
+
             // To accomplish our second objective (memory locality) the last available element will be moved to the place where the released element resided.
             int i = 0;
             while (i < Count && !Elements[i].Equals(element))
@@ -138,7 +147,10 @@ namespace CasaEngineCommon.Pool
                 i++;
             }
             if (i == Count)
+            {
                 throw new ArgumentNullException("element", "Pool: Element value not found.");
+            }
+
             T temp = Elements[i];
             Elements[i] = Elements[Count - 1];
             Elements[Count - 1] = temp;

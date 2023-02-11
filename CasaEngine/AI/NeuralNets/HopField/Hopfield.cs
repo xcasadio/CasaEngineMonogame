@@ -5,7 +5,7 @@
 
         int _numUnits;
 
-        readonly List<int[]> _pattern = new List<int[]>();
+        readonly List<int[]> _pattern = new();
 
         int[] _output;
 
@@ -70,7 +70,7 @@
                         }
                     }
 
-                    this._weights[i, j] = weight;
+                    _weights[i, j] = weight;
                 }
             }
         }
@@ -103,8 +103,16 @@
 
             if (sum != _threshold[i])
             {
-                if (sum < _threshold[i]) @out = -1;
-                if (sum >= _threshold[i]) @out = 1;
+                if (sum < _threshold[i])
+                {
+                    @out = -1;
+                }
+
+                if (sum >= _threshold[i])
+                {
+                    @out = 1;
+                }
+
                 if (@out != _output[i])
                 {
                     changed = true;

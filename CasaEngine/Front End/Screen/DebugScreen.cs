@@ -18,7 +18,7 @@ namespace CasaEngine.FrontEnd.Screen
         public DebugScreen(string menuTitle, string menuName)
             : base(menuName)
         {
-            this._menuTitle = menuTitle;
+            _menuTitle = menuTitle;
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);

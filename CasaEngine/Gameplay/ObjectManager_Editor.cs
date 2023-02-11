@@ -59,7 +59,7 @@ namespace CasaEngine.Gameplay
             }
 
 
-            public void Save(System.IO.BinaryWriter bw, SaveOption option)
+            public void Save(BinaryWriter bw, SaveOption option)
             {
                 throw new NotImplementedException();
             }
@@ -182,7 +182,7 @@ namespace CasaEngine.Gameplay
                     FolderCreated(folder, EventArgs.Empty);
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e);
             }
@@ -204,7 +204,7 @@ namespace CasaEngine.Gameplay
                     ObjectModified(path, EventArgs.Empty);
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e);
             }
@@ -253,7 +253,7 @@ namespace CasaEngine.Gameplay
                     ObjectRemoved(path, EventArgs.Empty);
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e);
             }
@@ -299,7 +299,7 @@ namespace CasaEngine.Gameplay
                     ObjectRenamed(srcPath, EventArgs.Empty);
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e);
             }
@@ -387,7 +387,7 @@ namespace CasaEngine.Gameplay
                     ObjectMoved(srcPath, EventArgs.Empty);
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e);
             }
@@ -431,13 +431,13 @@ namespace CasaEngine.Gameplay
             return res.ToArray();
         }
 
-        public string[] GetAllAssetByType(AssetType type)
+        public string[] GetAllAssetByType(AssetType assetType)
         {
             List<string> res = new List<string>();
 
             Type type = null;
 
-            switch (type_)
+            switch (assetType)
             {
                 case AssetType.Audio:
                     type = typeof(Sound);
@@ -500,7 +500,7 @@ namespace CasaEngine.Gameplay
 
 
 
-        public void Save(System.Xml.XmlElement el, SaveOption option)
+        public void Save(XmlElement el, SaveOption option)
         {
             XmlElement node = el.OwnerDocument.CreateElement("Objects");
             el.AppendChild(node);
@@ -557,7 +557,7 @@ namespace CasaEngine.Gameplay
                 objC.Object.Save(objNode, option);
                 xmlDoc.Save(filePath);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e);
                 return false;
@@ -678,7 +678,7 @@ namespace CasaEngine.Gameplay
             }*/
         }
 
-        public void Save(System.IO.BinaryWriter bw, SaveOption option)
+        public void Save(BinaryWriter bw, SaveOption option)
         {
             throw new NotImplementedException();
 

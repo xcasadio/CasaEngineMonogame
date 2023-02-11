@@ -438,7 +438,7 @@ namespace XNAFinalEngine.UserInterface
                 UserInterfaceManager.Add(this);
             }
 
-            this._sender = sender;
+            _sender = sender;
 
             if (sender != null && sender.Root != null && sender.Root is Container)
             {

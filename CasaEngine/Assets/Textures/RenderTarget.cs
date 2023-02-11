@@ -91,7 +91,7 @@ namespace CasaEngine.Asset
         private bool _looked;
 
         // Remember the last render targets we set. We can enable up to four render targets at once.
-        private static readonly RenderTarget[] CurrentRenderTarget = new RenderTarget[4];
+        private static readonly RenderTarget[] currentRenderTarget = new RenderTarget[4];
 
         private RenderTargetBinding? _renderTargetBinding;
 
@@ -102,7 +102,10 @@ namespace CasaEngine.Asset
             get
             {
                 if (_alreadyResolved)
+                {
                     return _renderTarget;
+                }
+
                 throw new InvalidOperationException("Render Target: Unable to return render target. Render target not resolved.");
             }
         } // Resource
@@ -244,7 +247,10 @@ namespace CasaEngine.Asset
         public void EnableRenderTarget()
         {
             if (currentRenderTarget[0] != null)
+            {
                 throw new InvalidOperationException("Render Target: unable to set render target. Another render target is still set. If you want to set multiple render targets use the static method called EnableRenderTargets.");
+            }
+
             GraphicsDevice.SetRenderTarget(_renderTarget);
             currentRenderTarget[0] = this;
             _alreadyResolved = false;
@@ -253,7 +259,10 @@ namespace CasaEngine.Asset
         public static void EnableRenderTargets(GraphicsDevice graphicsDevice, RenderTargetBinding renderTargetBinding)
         {
             if (currentRenderTarget[0] != null)
+            {
                 throw new InvalidOperationException("Render Target: unable to set render target. Another render target is still set.");
+            }
+
             for (int i = 0; i < renderTargetBinding.RenderTargets.Length; i++)
             {
                 currentRenderTarget[i] = renderTargetBinding.RenderTargets[i];
@@ -274,19 +283,31 @@ namespace CasaEngine.Asset
         public void Clear(Color clearColor)
         {
             if (currentRenderTarget[0] != this)
+            {
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
+            }
+
             if (DepthFormat == DepthFormat.None)
+            {
                 GraphicsDevice.Clear(clearColor);
+            }
             else if (DepthFormat == DepthFormat.Depth24Stencil8)
+            {
                 GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, clearColor, 1.0f, 0);
+            }
             else
+            {
                 GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
+            }
         } // Clear
 
         public static void ClearCurrentRenderTargets(Color clearColor)
         {
             if (currentRenderTarget[0] == null)
+            {
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
+            }
+
             currentRenderTarget[0].Clear(clearColor);
         } // Clear
 
@@ -300,7 +321,9 @@ namespace CasaEngine.Asset
                 throw new InvalidOperationException("Render Target: Cannot call disable to a render target without first setting it.");
             }
             if (currentRenderTarget[1] != null)
+            {
                 throw new InvalidOperationException("Render Target: There are multiple render targets enabled. Use RenderTarget.BackToBackBuffer instead.");
+            }
 
             _alreadyResolved = true;
             currentRenderTarget[0] = null;
@@ -312,7 +335,10 @@ namespace CasaEngine.Asset
             for (int i = 0; i < 4; i++)
             {
                 if (currentRenderTarget[i] != null)
+                {
                     currentRenderTarget[i]._alreadyResolved = true;
+                }
+
                 currentRenderTarget[i] = null;
             }
             graphicsDevice.SetRenderTarget(null);
@@ -377,7 +403,7 @@ namespace CasaEngine.Asset
 
 
         // A pool of all render targets.
-        private static readonly List<RenderTarget> RenderTargets = new List<RenderTarget>(0);
+        private static readonly List<RenderTarget> RenderTargets = new(0);
 
         public static RenderTarget Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntialiasingType antialiasingType, bool mipMap = false)
         {
@@ -402,7 +428,10 @@ namespace CasaEngine.Asset
         public static void Release(RenderTarget rendertarget)
         {
             if (rendertarget == null)
+            {
                 return;
+            }
+
             for (int i = 0; i < RenderTargets.Count; i++)
             {
                 if (rendertarget == RenderTargets[i])
@@ -418,14 +447,17 @@ namespace CasaEngine.Asset
         public static void ClearRenderTargetPool()
         {
             for (int i = 0; i < RenderTargets.Count; i++)
+            {
                 RenderTargets[i].Dispose();
+            }
+
             RenderTargets.Clear();
         } // ClearRenderTargetPool
 
 
 
         // A pool of all multiple render targets.
-        private static readonly List<RenderTargetBinding> MultipleRenderTargets = new List<RenderTargetBinding>(0);
+        private static readonly List<RenderTargetBinding> MultipleRenderTargets = new(0);
 
         public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
         {
@@ -504,7 +536,9 @@ namespace CasaEngine.Asset
             for (int i = 0; i < MultipleRenderTargets.Count; i++)
             {
                 for (int j = 0; j < MultipleRenderTargets[i].RenderTargets.Length; j++)
+                {
                     MultipleRenderTargets[i].RenderTargets[j].Dispose();
+                }
             }
             MultipleRenderTargets.Clear();
         } // ClearMultpleRenderTargetPool

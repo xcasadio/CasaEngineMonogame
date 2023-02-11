@@ -83,7 +83,9 @@ namespace Editor.Game.Control
                 if (disposing)
                 {
                     if (DeviceDisposing != null)
+                    {
                         DeviceDisposing(this, EventArgs.Empty);
+                    }
 
                     graphicsDevice.Dispose();
                 }
@@ -101,7 +103,9 @@ namespace Editor.Game.Control
         public void ResetDevice(int width, int height)
         {
             if (DeviceResetting != null)
+            {
                 DeviceResetting(this, EventArgs.Empty);
+            }
 
             parameters.BackBufferWidth = Math.Max(parameters.BackBufferWidth, width);
             parameters.BackBufferHeight = Math.Max(parameters.BackBufferHeight, height);
@@ -109,7 +113,9 @@ namespace Editor.Game.Control
             graphicsDevice.Reset(parameters);
 
             if (DeviceReset != null)
+            {
                 DeviceReset(this, EventArgs.Empty);
+            }
         }
 
 

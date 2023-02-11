@@ -18,7 +18,7 @@ namespace CasaEngine.Input
             // This greatly simplifies the logic of the DetectMove method.
 
 #if EDITOR
-            this._moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
+            _moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
 #else
             this.moves = moves.OrderByDescending(m => m.Sequence.Length).ToArray();
 #endif

@@ -65,7 +65,9 @@ namespace CasaEngine.Helper
             if (disposing && !_isDisposed)
             {
                 if (_basicEffect != null)
+                {
                     _basicEffect.Dispose();
+                }
 
                 _isDisposed = true;
             }

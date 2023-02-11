@@ -1,28 +1,18 @@
 using Microsoft.Xna.Framework;
 
-
-
-
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Interpose : SteeringBehavior
     {
+        protected MovingEntity agentA;
+        protected MovingEntity agentB;
+        protected Arrive arrive;
 
-        protected MovingEntity AgentA;
-
-        protected MovingEntity AgentB;
-
-        protected Arrive Arrive;
-
-
-
-        public Interpose(String name, MovingEntity owner, float modifier)
+        public Interpose(string name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
-            Arrive = new Arrive(name + "Arrive", owner, 0, 0.1f);
+            arrive = new Arrive(name + "Arrive", owner, 0, 0.1f);
         }
-
-
 
         public MovingEntity AgentA
         {
@@ -35,8 +25,6 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             get => agentB;
             set => agentB = value;
         }
-
-
 
         public override Vector3 Calculate()
         {
@@ -53,9 +41,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             //Calculate the mid point of the estimated positions and asap to it
             midPoint = (posA + posB) * 0.5f;
-            Arrive.TargetPosition = midPoint;
+            arrive.TargetPosition = midPoint;
 
-            return Arrive.Calculate();
+            return arrive.Calculate();
         }
 
     }

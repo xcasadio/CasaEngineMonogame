@@ -31,7 +31,9 @@ namespace CasaEngine.AI.Pathfinding
 
                 //If the search didn´t find anything, return null
                 if (Found != SearchState.CompletedAndFound)
+                {
                     return null;
+                }
 
                 //Get the list of nodes from source to target. The route list is visited in reverse order
                 path = new List<int>();
@@ -56,7 +58,9 @@ namespace CasaEngine.AI.Pathfinding
 
                 //If the search didn´t find anything, return null
                 if (Found != SearchState.CompletedAndFound)
+                {
                     return null;
+                }
 
                 //Get the nodes that form the path
                 nodes = PathOfNodes;
@@ -64,7 +68,9 @@ namespace CasaEngine.AI.Pathfinding
                 //Get the edges between the nodes from the graph
                 path = new List<TK>();
                 for (int i = 0; i < nodes.Count - 1; i++)
+                {
                     path.Add(Graph.GetEdge(nodes[i], nodes[i + 1]));
+                }
 
                 return path;
             }
@@ -120,8 +126,12 @@ namespace CasaEngine.AI.Pathfinding
                 //Stack all child edges from this node that aren´t visited
                 nodeEdges = Graph.GetEdgesFromNode(next.End);
                 for (int i = 0; i < nodeEdges.Count; i++)
+                {
                     if (Visited[nodeEdges[i].End] == Visibility.Unvisited)
+                    {
                         StackedEdges.Push(nodeEdges[i]);
+                    }
+                }
             }
 
             //The search failed
@@ -157,8 +167,12 @@ namespace CasaEngine.AI.Pathfinding
             //Stack all child edges from this node that aren´t visited
             nodeEdges = Graph.GetEdgesFromNode(next.End);
             for (int i = 0; i < nodeEdges.Count; i++)
+            {
                 if (Visited[nodeEdges[i].End] == Visibility.Unvisited)
+                {
                     StackedEdges.Push(nodeEdges[i]);
+                }
+            }
 
             Found = SearchState.NotCompleted;
             return Found;

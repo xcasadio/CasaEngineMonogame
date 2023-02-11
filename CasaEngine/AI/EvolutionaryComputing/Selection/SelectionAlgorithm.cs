@@ -26,22 +26,28 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
 
         public SelectionAlgorithm(int numberParents, Random generator, EvolutionObjective objective, CrossoverMethod<T> crossover, ScalingMethod<T> scaling)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateNumberParents(numberParents, ref message) == false)
-                throw new AiException("numberParents", this.GetType().ToString(), message);
+            {
+                throw new AiException("numberParents", GetType().ToString(), message);
+            }
 
             if (ValidateGenerator(generator, ref message) == false)
-                throw new AiException("generator", this.GetType().ToString(), message);
+            {
+                throw new AiException("generator", GetType().ToString(), message);
+            }
 
             if (ValidateCrossover(crossover, ref message) == false)
-                throw new AiException("crossover", this.GetType().ToString(), message);
+            {
+                throw new AiException("crossover", GetType().ToString(), message);
+            }
 
-            this.NumberParents = numberParents;
-            this.Generator = generator;
-            this.Objective = objective;
-            this.Crossover = crossover;
-            this.Scaling = scaling;
+            NumberParents = numberParents;
+            Generator = generator;
+            Objective = objective;
+            Crossover = crossover;
+            Scaling = scaling;
         }
 
 
@@ -52,13 +58,15 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             List<Chromosome<T>> selected;
 
             //Save the parents
-            this.Population = population;
+            Population = population;
 
             offsprings = population.FastEmptyInstance();
 
             //Test if scaling is used
             if (Scaling != null)
+            {
                 ScaledPopulation = Scaling(population);
+            }
 
             //Generate the offsprings
             while (offsprings.Genome.Count < offspringPopulationSize)
@@ -81,7 +89,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
 
 
 
-        public bool ValidateNumberParents(int numberParents, ref String message)
+        public bool ValidateNumberParents(int numberParents, ref string message)
         {
             if (numberParents < 2)
             {
@@ -92,7 +100,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             return true;
         }
 
-        public static bool ValidateGenerator(Random generator, ref String message)
+        public static bool ValidateGenerator(Random generator, ref string message)
         {
             if (generator == null)
             {

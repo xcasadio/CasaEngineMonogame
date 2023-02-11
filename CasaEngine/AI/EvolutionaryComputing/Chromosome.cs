@@ -1,27 +1,19 @@
 using System.Runtime.Serialization.Formatters.Binary;
 
-
-
-
-
 namespace CasaEngine.AI.EvolutionaryComputing
 {
     [Serializable]
     public class Chromosome<T> : ICloneable
     {
 
-        protected internal double Fitness;
+        protected internal double fitness;
 
-        protected internal List<T> Genotype;
-
-
+        protected internal List<T> genotype;
 
         public Chromosome()
         {
             genotype = new List<T>();
         }
-
-
 
         public virtual double Fitness
         {
@@ -34,10 +26,12 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => genotype;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateGenotype(value, ref message) == false)
-                    throw new AiException("genotype", this.GetType().ToString(), message);
+                {
+                    throw new AiException("genotype", GetType().ToString(), message);
+                }
 
                 genotype = value;
             }
@@ -48,8 +42,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => genotype[index];
             set => genotype[index] = value;
         }
-
-
 
         public object Clone()
         {
@@ -65,7 +57,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 newChrom.Genotype.Clear();
 
                 for (int i = 0; i < genotype.Count; i++)
+                {
                     newChrom.Genotype.Add(genotype[i]);
+                }
 
                 return newChrom;
             }
@@ -77,7 +71,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 newChrom.Genotype.Clear();
 
                 for (int i = 0; i < genotype.Count; i++)
+                {
                     newChrom.Genotype.Add((T)((ICloneable)genotype[i]).Clone());
+                }
 
                 return newChrom;
             }
@@ -110,7 +106,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             Chromosome<T> clone;
 
             //Clone the actual chromosome
-            clone = (Chromosome<T>)base.MemberwiseClone();
+            clone = (Chromosome<T>)MemberwiseClone();
 
             //Restart the internal fields of the chromosome
             clone.Fitness = 0;
@@ -118,8 +114,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
             return clone;
         }
-
-
 
         public static bool ValidateChromosome(Chromosome<T> chromosome, ref string message)
         {
@@ -130,12 +124,14 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
 
             if (ValidateGenotype(chromosome.Genotype, ref message) == false)
+            {
                 return false;
+            }
 
             return true;
         }
 
-        public static bool ValidateGenotype(List<T> genotype, ref String message)
+        public static bool ValidateGenotype(List<T> genotype, ref string message)
         {
             if (genotype == null)
             {

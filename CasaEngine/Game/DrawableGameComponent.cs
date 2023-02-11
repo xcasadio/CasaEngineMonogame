@@ -26,11 +26,11 @@ namespace CasaEngine.Game
         {
             get
             {
-                if (this._device == null)
+                if (_device == null)
                 {
                     throw new InvalidOperationException("Component is not initialized");
                 }
-                return this._device.GraphicsDevice;
+                return _device.GraphicsDevice;
             }
         }
 
@@ -81,16 +81,16 @@ namespace CasaEngine.Game
             base.Initialize();
             if (!_isInitialized)
             {
-                this._device = base.Game.Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
-                if (this._device == null)
+                _device = Game.Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
+                if (_device == null)
                 {
                     throw new InvalidOperationException("Service not found: IGraphicsDeviceService");
                 }
-                this._device.DeviceCreated += OnDeviceCreated;
-                this._device.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
-                this._device.DeviceDisposing += OnDeviceDisposing;
+                _device.DeviceCreated += OnDeviceCreated;
+                _device.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
+                _device.DeviceDisposing += OnDeviceDisposing;
 
-                if (this._device.GraphicsDevice != null)
+                if (_device.GraphicsDevice != null)
                 {
                     LoadContent();
                 }
@@ -102,11 +102,11 @@ namespace CasaEngine.Game
         {
             if (disposing)
             {
-                this.UnloadContent();
-                if (this._device != null)
+                UnloadContent();
+                if (_device != null)
                 {
-                    this._device.DeviceCreated -= OnDeviceCreated;
-                    this._device.DeviceDisposing -= OnDeviceDisposing;
+                    _device.DeviceCreated -= OnDeviceCreated;
+                    _device.DeviceDisposing -= OnDeviceDisposing;
                 }
             }
             base.Dispose(disposing);
@@ -128,17 +128,17 @@ namespace CasaEngine.Game
 
         private void OnDeviceCreated(object sender, EventArgs arg)
         {
-            this.LoadContent();
+            LoadContent();
         }
 
         private void OnDeviceReset(object sender, EventArgs e)
         {
-            this.LoadContent();
+            LoadContent();
         }
 
         private void OnDeviceDisposing(object sender, EventArgs arg)
         {
-            this.UnloadContent();
+            UnloadContent();
         }
     }
 }

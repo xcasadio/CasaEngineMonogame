@@ -38,7 +38,9 @@
         public void ORwithDom(double val)
         {
             if (val > DDom)
+            {
                 DDom = val;
+            }
         }
 
         public void ClearDom()

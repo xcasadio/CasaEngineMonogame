@@ -18,7 +18,7 @@ namespace Editor.WinForm
         /// <param name="rtfFileName"></param>
         public InputRtfForm(string title, string rtfFileName)
         {
-            this.Text = title;
+            Text = title;
 
             InitializeComponent();
 

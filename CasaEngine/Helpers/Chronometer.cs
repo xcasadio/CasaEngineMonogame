@@ -41,7 +41,7 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        private static readonly List<Chronometer> Chronometers = new List<Chronometer>();
+        private static readonly List<Chronometer> Chronometers = new();
 
 
 
@@ -125,7 +125,9 @@ namespace XNAFinalEngine.Helpers
             foreach (Chronometer chronometer in Chronometers)
             {
                 if (chronometer.TimeSpace == TimeSpaceEnum.GameDeltaTime)
+                {
                     chronometer.Update();
+                }
             }
         } // UpdateGameDeltaTimeChronometers
 
@@ -134,7 +136,9 @@ namespace XNAFinalEngine.Helpers
             foreach (Chronometer chronometer in Chronometers)
             {
                 if (chronometer.TimeSpace == TimeSpaceEnum.FrameTime)
+                {
                     chronometer.Update();
+                }
             }
         } // UpdateFrameTimeChronometers
 

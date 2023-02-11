@@ -67,7 +67,7 @@ namespace CasaEngine.Gameplay.Actor.Object
 
         protected virtual void CopyFrom(BaseObject ob)
         {
-            this.Temporary = ob.Temporary;
+            Temporary = ob.Temporary;
         }
 
 

@@ -99,10 +99,10 @@ namespace Editor.Game
 
             //m_Control.MouseClick += new System.Windows.Forms.MouseEventHandler(MouseClick);
             //m_Control.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(MouseDoubleClick);
-            m_Control.MouseDown += new System.Windows.Forms.MouseEventHandler(MouseDown);
-            m_Control.MouseMove += new System.Windows.Forms.MouseEventHandler(MouseMove);
-            m_Control.MouseUp += new System.Windows.Forms.MouseEventHandler(MouseUp);
-            m_Control.MouseWheel += new System.Windows.Forms.MouseEventHandler(MouseWheel);
+            m_Control.MouseDown += new MouseEventHandler(MouseDown);
+            m_Control.MouseMove += new MouseEventHandler(MouseMove);
+            m_Control.MouseUp += new MouseEventHandler(MouseUp);
+            m_Control.MouseWheel += new MouseEventHandler(MouseWheel);
             m_Control.MouseEnter += new EventHandler(m_Control_MouseEnter);
 
             X = 0;
@@ -122,11 +122,11 @@ namespace Editor.Game
         /// <returns></returns>
         public MouseState GetState()
         {
-            return new MouseState(X, Y, ScrollWheelValue, 
+            return new MouseState(X, Y, ScrollWheelValue,
                 LeftButton ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released,
-                MiddleButton ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released, 
-                RightButton ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released, 
-                XButton1 ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released, 
+                MiddleButton ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released,
+                RightButton ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released,
+                XButton1 ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released,
                 XButton2 ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released);
         }
 
@@ -148,12 +148,12 @@ namespace Editor.Game
             m_MousePosition.X = m_MouseState.Y - p.Y;
         }*/
 
-        void MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
+        void MouseWheel(object sender, MouseEventArgs e)
         {
             ScrollWheelValue = e.Delta;
         }
 
-        void MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        void MouseUp(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
@@ -179,13 +179,13 @@ namespace Editor.Game
             }
         }
 
-        void MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        void MouseMove(object sender, MouseEventArgs e)
         {
             X = e.X;
             Y = e.Y;
         }
 
-        void MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        void MouseDown(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {

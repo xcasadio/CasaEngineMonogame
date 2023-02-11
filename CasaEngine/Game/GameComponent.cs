@@ -45,12 +45,12 @@ namespace CasaEngine.Game
 
         public GameComponent(CustomGame game)
         {
-            this._game = game;
+            _game = game;
         }
 
         ~GameComponent()
         {
-            this.Dispose(false);
+            Dispose(false);
         }
 
         protected virtual void OnEnabledChanged(object sender, EventArgs args)
@@ -79,7 +79,7 @@ namespace CasaEngine.Game
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -87,13 +87,13 @@ namespace CasaEngine.Game
         {
             if (disposing)
             {
-                if (this.Game != null)
+                if (Game != null)
                 {
-                    this.Game.Components.Remove(this);
+                    Game.Components.Remove(this);
                 }
-                if (this.Disposed != null)
+                if (Disposed != null)
                 {
-                    this.Disposed(this, EventArgs.Empty);
+                    Disposed(this, EventArgs.Empty);
                 }
             }
         }

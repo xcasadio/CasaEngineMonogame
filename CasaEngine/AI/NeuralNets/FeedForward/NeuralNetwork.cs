@@ -75,7 +75,7 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
                 return _outputLayer.NeuronValues[i];
             }
 
-            return (double)Int32.MaxValue; // to indicate an error
+            return (double)int.MaxValue; // to indicate an error
         }
 
         public void SetDesiredOutput(int i, double value)

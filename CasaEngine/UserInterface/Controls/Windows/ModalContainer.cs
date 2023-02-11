@@ -132,7 +132,7 @@ namespace XNAFinalEngine.UserInterface
 
         void InputKeyDown(object sender, KeyEventArgs e)
         {
-            if (Visible && UserInterfaceManager.FocusedControl == this && e.Key == Microsoft.Xna.Framework.Input.Keys.Escape)
+            if (Visible && UserInterfaceManager.FocusedControl == this && e.Key == Keys.Escape)
             {
                 Close(ModalResult.Cancel);
             }

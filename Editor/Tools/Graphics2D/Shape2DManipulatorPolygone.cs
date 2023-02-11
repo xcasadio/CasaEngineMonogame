@@ -21,20 +21,20 @@ namespace Editor.Tools.Graphics2D
         : Shape2DManipulator
     {
         private bool m_MouseLeftButtonPressed = false;
-        private volatile object m_MySyncRoot = new object();
+        private volatile object m_MySyncRoot = new();
 
         /// <summary>
         /// 
         /// </summary>
-        public CasaEngine.Math.Shape2D.ShapePolygone ShapePolygone
+        public ShapePolygone ShapePolygone
         {
             get
             {
-                return (ShapePolygone)base.Shape2DObject;
+                return (ShapePolygone)Shape2DObject;
             }
             internal set
             {
-                base.Shape2DObject = value;
+                Shape2DObject = value;
             }
         }
 
@@ -76,8 +76,8 @@ namespace Editor.Tools.Graphics2D
                     a.LocationChanged += new EventHandler<AnchorLocationChangedEventArgs>(AnchorLocationChanged);
                     a.CursorOver = Cursors.Hand;
                     a.CursorPressed = Cursors.SizeAll;
-                    a.CursorOverShiftPressed = new Cursor(new MemoryStream(Editor.Properties.Resources.CursorAdd));
-                    a.CursorOverControlPressed = new Cursor(new MemoryStream(Editor.Properties.Resources.CursorRemove));
+                    a.CursorOverShiftPressed = new Cursor(new MemoryStream(Properties.Resources.CursorAdd));
+                    a.CursorOverControlPressed = new Cursor(new MemoryStream(Properties.Resources.CursorRemove));
 
                     m_AnchorList.Add(a);
                 }
@@ -131,7 +131,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         void ManipulatorLocationChanged(object sender, AnchorLocationChangedEventArgs e)
         {
-            ShapePolygone.Location = new Microsoft.Xna.Framework.Point(
+            ShapePolygone.Location = new Point(
                 ShapePolygone.Location.X + e.OffsetX,
                 ShapePolygone.Location.Y + e.OffsetY);
         }

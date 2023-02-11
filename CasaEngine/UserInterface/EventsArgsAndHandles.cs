@@ -33,7 +33,7 @@ namespace XNAFinalEngine.UserInterface
     public class KeyEventArgs : EventArgs
     {
 
-                
+
         public Keys Key = Keys.None;
         public bool Control;
         public bool Shift;
@@ -41,9 +41,9 @@ namespace XNAFinalEngine.UserInterface
         public bool Caps;
 
 
-                
-        public KeyEventArgs() { } 
-                
+
+        public KeyEventArgs() { }
+
         public KeyEventArgs(Keys key)
         {
             Key = key;
@@ -52,7 +52,7 @@ namespace XNAFinalEngine.UserInterface
             Alt = false;
             Caps = false;
         } // KeyEventArgs
-        
+
         public KeyEventArgs(Keys key, bool control, bool shift, bool alt, bool caps)
         {
             Key = key;
@@ -61,7 +61,7 @@ namespace XNAFinalEngine.UserInterface
             Alt = alt;
             Caps = caps;
         } // KeyEventArgs
-        
+
 
     } // KeyEventArgs
 
@@ -74,9 +74,9 @@ namespace XNAFinalEngine.UserInterface
 
         public MouseState State;
         public MouseButton Button = MouseButton.None;
-        public Point Position = new Point(0, 0);
-        public Point Difference = new Point(0, 0);
-        
+        public Point Position = new(0, 0);
+        public Point Difference = new(0, 0);
+
 
 
         public MouseEventArgs() { }
@@ -97,13 +97,13 @@ namespace XNAFinalEngine.UserInterface
     public class DrawEventArgs : EventArgs
     {
 
-                
+
         public Rectangle Rectangle = Rectangle.Empty;
-        
+
 
 
         public DrawEventArgs() { }
-        
+
         public DrawEventArgs(Rectangle rectangle)
         {
             Rectangle = rectangle;
@@ -127,7 +127,7 @@ namespace XNAFinalEngine.UserInterface
 
 
         public ResizeEventArgs() { }
-        
+
         public ResizeEventArgs(int width, int height, int oldWidth, int oldHeight)
         {
             Width = width;
@@ -154,7 +154,7 @@ namespace XNAFinalEngine.UserInterface
 
 
         public MoveEventArgs() { }
-        
+
         public MoveEventArgs(int left, int top, int oldLeft, int oldTop)
         {
             Left = left;
@@ -174,11 +174,11 @@ namespace XNAFinalEngine.UserInterface
 
 
         public PreparingDeviceSettingsEventArgs DeviceSettings;
-        
 
-        
+
+
         public DeviceEventArgs() { }
-        
+
         public DeviceEventArgs(PreparingDeviceSettingsEventArgs deviceSettings)
         {
             DeviceSettings = deviceSettings;
@@ -209,13 +209,13 @@ namespace XNAFinalEngine.UserInterface
     public class ConsoleMessageEventArgs : EventArgs
     {
 
-        
-        public ConsoleMessage Message;        
 
-        
-        
+        public ConsoleMessage Message;
+
+
+
         public ConsoleMessageEventArgs() { }
-        
+
         public ConsoleMessageEventArgs(ConsoleMessage message)
         {
             Message = message;

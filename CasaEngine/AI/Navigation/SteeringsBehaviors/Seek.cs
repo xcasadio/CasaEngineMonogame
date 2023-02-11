@@ -1,23 +1,14 @@
 using Microsoft.Xna.Framework;
 
-
-
-
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Seek : SteeringBehavior
     {
+        protected internal Vector3 targetPosition;
+        protected internal Vector3 force;
 
-        protected internal Vector3 TargetPosition;
-
-        protected internal Vector3 Force;
-
-
-
-        public Seek(String name, MovingEntity owner, float modifier)
+        public Seek(string name, MovingEntity owner, float modifier)
             : base(name, owner, modifier) { }
-
-
 
         public Vector3 TargetPosition
         {
@@ -26,7 +17,6 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
         }
 
         public Vector3 Force => force;
-
 
         public override Vector3 Calculate()
         {

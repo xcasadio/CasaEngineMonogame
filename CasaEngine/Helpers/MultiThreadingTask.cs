@@ -51,16 +51,24 @@ namespace XNAFinalEngine.Helpers
         public MultiThreadingTask(Action<T> task, int numberOfThreads, int[] processorAffinity = null)
         {
             if (numberOfThreads <= 0)
+            {
                 throw new ArgumentOutOfRangeException("numberOfThreads");
-            this._task = task;
+            }
+
+            _task = task;
             _taskDone = new ManualResetEvent[numberOfThreads];
             _waitForWork = new ManualResetEvent[numberOfThreads];
             _parameters = new T[numberOfThreads];
             _threads = new List<Thread>(numberOfThreads);
             if (processorAffinity != null)
-                this._processorAffinity = processorAffinity;
+            {
+                _processorAffinity = processorAffinity;
+            }
             else
-                this._processorAffinity = ProcessorsInformation.ProcessorsAffinity;
+            {
+                _processorAffinity = ProcessorsInformation.ProcessorsAffinity;
+            }
+
             for (int i = 0; i < numberOfThreads; i++)
             {
                 _taskDone[i] = new ManualResetEvent(false);

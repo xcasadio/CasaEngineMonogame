@@ -7,7 +7,7 @@ namespace CasaEngine.Gameplay
     {
 
         private readonly FiniteStateMachine<Controller> _fsm;
-        private readonly Dictionary<int, IState<Controller>> _states = new Dictionary<int, IState<Controller>>();
+        private readonly Dictionary<int, IState<Controller>> _states = new();
         private CharacterActor2D _character;
 
 

@@ -22,13 +22,13 @@ namespace CasaEngineCommon.Helper
         /// <summary>
         /// Empty color, used to mark unused color values.
         /// </summary>
-        public static readonly Color Empty = new Color(0, 0, 0, 0);
+        public static readonly Color Empty = new(0, 0, 0, 0);
 
         /// <summary>
         /// Half alpha color helper. Just white with 50% alpha.
         /// </summary>
         public static readonly Color
-            HalfAlpha = new Color(255, 255, 255, 128);
+            HalfAlpha = new(255, 255, 255, 128);
 
         /// <summary>
         /// Stay in range, val will be set to min if less or to max when bigger.
@@ -36,9 +36,15 @@ namespace CasaEngineCommon.Helper
         private static float StayInRange(float val, float min, float max)
         {
             if (val < min)
+            {
                 return min;
+            }
+
             if (val > max)
+            {
                 return max;
+            }
+
             return val;
         }
 
@@ -53,9 +59,14 @@ namespace CasaEngineCommon.Helper
             // Quick check if any of the colors is white,
             // multiplying won't do anything then.
             if (color1 == Color.White)
+            {
                 return color2;
+            }
+
             if (color2 == Color.White)
+            {
                 return color1;
+            }
 
             // Get values from color1
             float redValue1 = color1.R / 255.0f;
@@ -112,9 +123,15 @@ namespace CasaEngineCommon.Helper
         public static Color ApplyAlphaToColor(Color col, float newAlpha)
         {
             if (newAlpha < 0)
+            {
                 newAlpha = 0;
+            }
+
             if (newAlpha > 1)
+            {
                 newAlpha = 1;
+            }
+
             return new Color(
                 (byte)(col.R),
                 (byte)(col.G),
@@ -131,9 +148,15 @@ namespace CasaEngineCommon.Helper
         public static Color MixAlphaToColor(Color col, float newAlpha)
         {
             if (newAlpha < 0)
+            {
                 newAlpha = 0;
+            }
+
             if (newAlpha > 1)
+            {
                 newAlpha = 1;
+            }
+
             return new Color(
                 (byte)(col.R * newAlpha),
                 (byte)(col.G * newAlpha),

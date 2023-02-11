@@ -49,7 +49,7 @@ namespace FarseerPhysics.Common
         public void Transform(Matrix transform)
         {
             // Transform main polygon
-            for (int i = 0; i < this.Count; i++)
+            for (int i = 0; i < Count; i++)
                 this[i] = Vector2.Transform(this[i], transform);
 
             // Transform holes

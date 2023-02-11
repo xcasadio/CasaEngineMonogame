@@ -12,17 +12,21 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
         protected MutationAlgorithm(double probability, Random generator)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             //Validate the params
             if (ValidateProbability(probability, ref message) == false)
-                throw new AiException("probability", this.GetType().ToString(), message);
+            {
+                throw new AiException("probability", GetType().ToString(), message);
+            }
 
             if (ValidateGenerator(generator, ref message) == false)
-                throw new AiException("generator", this.GetType().ToString(), message);
+            {
+                throw new AiException("generator", GetType().ToString(), message);
+            }
 
-            this.Probability = probability;
-            this.Generator = generator;
+            Probability = probability;
+            Generator = generator;
         }
 
 
@@ -31,7 +35,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
 
 
-        public static bool ValidateProbability(double probability, ref String message)
+        public static bool ValidateProbability(double probability, ref string message)
         {
             if (probability < 0 || probability > 1)
             {
@@ -42,7 +46,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             return true;
         }
 
-        public static bool ValidateGenerator(Random generator, ref String message)
+        public static bool ValidateGenerator(Random generator, ref string message)
         {
             if (generator == null)
             {

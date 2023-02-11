@@ -25,13 +25,13 @@ namespace Editor.Tools.Graphics2D
     {
         static public readonly int AnchorHeight = 7, AnchorWidth = 7;
 
-        protected List<Anchor> m_AnchorList = new List<Anchor>();
+        protected List<Anchor> m_AnchorList = new();
         public event EventHandler CursorChanged;
         Shape2DObject m_Shape2DObject;
         Vector2 m_Offset;
 
 
-        private volatile object m_SyncRoot = new object();
+        private volatile object m_SyncRoot = new();
 
         /// <summary>
         /// Use to synchronize

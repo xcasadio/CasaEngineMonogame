@@ -21,10 +21,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
             for (int i = 0; i < population.Genome.Count; i++)
             {
                 if (Objective == EvolutionObjective.Maximize)
+                {
                     temp = population[i].Fitness;
+                }
 
                 else
+                {
                     temp = 1 / population[i].Fitness;
+                }
 
                 mapping.AddChromosome(population[i], temp);
             }

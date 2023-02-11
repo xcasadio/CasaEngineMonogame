@@ -93,15 +93,24 @@ namespace CasaEngine.Game
         public GraphicsDeviceManager(CustomGame game)
         {
             if (game == null)
+            {
                 throw new ArgumentNullException("game");
-            this._game = game;
+            }
+
+            _game = game;
 
             if (game.Services.GetService(typeof(IGraphicsDeviceManager)) != null)
+            {
                 throw new ArgumentException("The GraphicsDeviceManager was already registered to the game class");
+            }
+
             game.Services.AddService(typeof(IGraphicsDeviceManager), this);
 
             if (game.Services.GetService(typeof(IGraphicsDeviceService)) != null)
+            {
                 throw new ArgumentException("The GraphicsDeviceService was already registered to the game class");
+            }
+
             game.Services.AddService(typeof(IGraphicsDeviceService), this);
 
             //game.Control.ClientSizeChanged += Window_ClientSizeChanged;
@@ -174,7 +183,9 @@ namespace CasaEngine.Game
             }
 
             if (_graphicsDevice == null)
+            {
                 CreateDevice(graphicsDeviceInformation);
+            }
 
             _currentGraphicsDeviceInformation = graphicsDeviceInformation;
         }
@@ -195,7 +206,9 @@ namespace CasaEngine.Game
             if (disposing)
             {
                 if (_game != null && _game.Services.GetService(typeof(IGraphicsDeviceService)) == this)
+                {
                     _game.Services.RemoveService(typeof(IGraphicsDeviceService));
+                }
 
                 if (_graphicsDevice != null)
                 {
@@ -204,7 +217,9 @@ namespace CasaEngine.Game
                 }
 
                 if (Disposed != null)
+                {
                     Disposed(this, EventArgs.Empty);
+                }
             }
         }
 
@@ -292,7 +307,9 @@ namespace CasaEngine.Game
         private void RaiseEventIfNotNull<T>(EventHandler<T> handler, object sender, T args) where T : EventArgs
         {
             if (handler != null)
+            {
                 handler(sender, args);
+            }
         }
     }
 }

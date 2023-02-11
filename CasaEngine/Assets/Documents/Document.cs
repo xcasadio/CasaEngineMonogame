@@ -75,7 +75,9 @@ namespace XNAFinalEngine.Assets
         internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (Resource == null)
+            {
                 Resource = Engine.Instance.AssetContentManager.Load<XDocument>(Filename, device);
+            }
         } // RecreateResource
 
 

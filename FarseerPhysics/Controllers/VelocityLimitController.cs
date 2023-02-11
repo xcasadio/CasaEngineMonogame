@@ -12,7 +12,7 @@ namespace FarseerPhysics.Controllers
     {
         public bool LimitAngularVelocity = true;
         public bool LimitLinearVelocity = true;
-        private List<Body> _bodies = new List<Body>();
+        private List<Body> _bodies = new();
         private float _maxAngularSqared;
         private float _maxAngularVelocity;
         private float _maxLinearSqared;

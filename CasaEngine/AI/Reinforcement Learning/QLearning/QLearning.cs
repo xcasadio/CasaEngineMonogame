@@ -2,10 +2,9 @@
 {
     public class QLearning
     {
-
-        protected float Gamma = 0.8f;
-        protected float Alpha = 0.9f;
-        protected float Epsilon = 0.8f;
+        protected float gamma = 0.8f;
+        protected float alpha = 0.9f;
+        protected float epsilon = 0.8f;
 
         public string State = "Idle";
         public string Action = "Idling";
@@ -16,29 +15,27 @@
 		protected Actions _PrevAction;                 //< previous action taken
 		protected Actions _newAction;           //< new action*/
 
-        readonly QPolicy _policy = new QPolicy();
+        readonly QPolicy _policy = new();
 
-        List<KeyValuePair<string, string>> _pastActions = new List<KeyValuePair<string, string>>();
+        List<KeyValuePair<string, string>> _pastActions = new();
         readonly float[] _pastReward = new float[50];
-
-
 
         public float Epsilon
         {
-            get => _Epsilon;
-            set => _Epsilon = value;
+            get => epsilon;
+            set => epsilon = value;
         }
 
         public float Gamma
         {
-            get => _Gamma;
-            set => _Gamma = value;
+            get => gamma;
+            set => gamma = value;
         }
 
         public float Alpha
         {
-            get => _Alpha;
-            set => _Alpha = value;
+            get => alpha;
+            set => alpha = value;
         }
 
         public QPolicy Policy => _policy;
@@ -47,7 +44,6 @@
 
         public string CurrentAction => Action;
 
-
         public QLearning()
         {
             for (int i = 0; i < _pastReward.Length; i++)
@@ -55,8 +51,6 @@
                 _pastReward[i] = 0.0f;
             }
         }
-
-
 
         // predicts reinforcement for current round
         //protected abstract double predict(Sensors new_state);
@@ -80,7 +74,7 @@
 
                 reward = agent.GetReward(action);
 
-                res = (1.0f - _Alpha) * _policy.GetQValues(currentState, i) + (reward + _Gamma * MaxValueState(agent, /*newState*/currentState));
+                res = (1.0f - alpha) * _policy.GetQValues(currentState, i) + (reward + gamma * MaxValueState(agent, /*newState*/currentState));
 
                 if (res > newQvalue)
                 {

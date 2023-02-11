@@ -59,16 +59,16 @@ namespace CasaEngine.Project
 
         private void CreateProjectDirectoryHierarchy(string path)
         {
-            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + AssetDirPath);
+            Directory.CreateDirectory(path + Path.DirectorySeparatorChar + AssetDirPath);
             //System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + ImageDirPath);
-            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + ExternalToolsDirPath);
+            Directory.CreateDirectory(path + Path.DirectorySeparatorChar + ExternalToolsDirPath);
             //System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + SoundDirPath);
             //model
             //video
             //System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + PackageDirPath);
-            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + GameDirPath);
-            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + GameDirPath + "\\Content");
-            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + ConfigDirPath);
+            Directory.CreateDirectory(path + Path.DirectorySeparatorChar + GameDirPath);
+            Directory.CreateDirectory(path + Path.DirectorySeparatorChar + GameDirPath + "\\Content");
+            Directory.CreateDirectory(path + Path.DirectorySeparatorChar + ConfigDirPath);
         }
 
         public bool Save(string fileName)

@@ -16,7 +16,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             foreach (SteeringBehavior behavior in behaviors)
                 if (behavior.Active == true)
+                {
                     totalForce += behavior.Calculate() * behavior.Modifier;
+                }
 
             return totalForce;
         }

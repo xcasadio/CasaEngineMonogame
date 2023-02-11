@@ -38,7 +38,7 @@ namespace FarseerPhysics.Collision
     public class DistanceProxy
     {
         internal float Radius;
-        internal Vertices Vertices = new Vertices();
+        internal Vertices Vertices = new();
 
         /// <summary>
         /// Initialize the proxy using the given shape. The shape
@@ -175,8 +175,8 @@ namespace FarseerPhysics.Collision
     /// </summary>
     public class DistanceInput
     {
-        public DistanceProxy ProxyA = new DistanceProxy();
-        public DistanceProxy ProxyB = new DistanceProxy();
+        public DistanceProxy ProxyA = new();
+        public DistanceProxy ProxyB = new();
         public Transform TransformA;
         public Transform TransformB;
         public bool UseRadii;

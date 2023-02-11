@@ -45,11 +45,11 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_mode == ProgressBarMode.Default)
                 {
-                    if (this._value != value)
+                    if (_value != value)
                     {
-                        this._value = value;
-                        if (this._value > _range) this._value = _range;
-                        if (this._value < 0) this._value = 0;
+                        _value = value;
+                        if (_value > _range) _value = _range;
+                        if (_value < 0) _value = 0;
                         Invalidate();
 
                         if (!Suspended) OnValueChanged(new EventArgs());
@@ -69,13 +69,13 @@ namespace XNAFinalEngine.UserInterface
                     if (_mode == ProgressBarMode.Infinite)
                     {
                         _range = 100;
-                        this._value = 0;
+                        _value = 0;
                         _time = 0;
                         _sign = 1;
                     }
                     else
                     {
-                        this._value = 0;
+                        _value = 0;
                         _range = 100;
                     }
                     Invalidate();
@@ -96,7 +96,7 @@ namespace XNAFinalEngine.UserInterface
                     {
                         _range = value;
                         if (_range < 0) _range = 0;
-                        if (_range < this._value) this._value = _range;
+                        if (_range < _value) _value = _range;
                         Invalidate();
 
                         if (!Suspended) OnRangeChanged(new EventArgs());

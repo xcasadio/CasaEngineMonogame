@@ -19,15 +19,13 @@ namespace CasaEngine.Game
         private InputComponent _inputComponent;
         private ShapeRendererComponent _shapeRendererComponent;
 
-        protected string ProjectFile = string.Empty;
 #if !FINAL
         protected string ContentPath = string.Empty;
 #endif
 
-
         public Microsoft.Xna.Framework.GraphicsDeviceManager GraphicsDeviceManager => _graphics;
 
-        public string ProjectFile => _ProjectFile;
+        public string ProjectFile { get; } = string.Empty;
 
 
         public CasaEngineGame()
@@ -39,7 +37,7 @@ namespace CasaEngine.Game
 
             Engine.Instance.AssetContentManager = new AssetContentManager();
             Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
-            Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(System.Windows.Forms.Cursor), new CursorLoader());
+            Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
 
             DebugSystem.Initialize(this);
 
@@ -53,7 +51,7 @@ namespace CasaEngine.Game
 
             if (args.Length > 1)
             {
-                _ProjectFile = args[1];
+                ProjectFile = args[1];
             }
 
             ContentPath = Directory.GetCurrentDirectory();
@@ -87,7 +85,7 @@ namespace CasaEngine.Game
             Content.RootDirectory = ContentPath;
 #endif
 
-            Engine.Instance.ProjectManager.Load(_ProjectFile);
+            Engine.Instance.ProjectManager.Load(ProjectFile);
 
 #if !FINAL
             _graphics.PreferredBackBufferWidth = Engine.Instance.ProjectConfig.DebugWidth;
@@ -98,10 +96,10 @@ namespace CasaEngine.Game
             graphics.PreferredBackBufferHeight = 768;
 #endif
 
-            this.Window.Title = Engine.Instance.ProjectConfig.WindowTitle;
-            this.Window.AllowUserResizing = Engine.Instance.ProjectConfig.AllowUserResizing;
-            this.IsFixedTimeStep = Engine.Instance.ProjectConfig.IsFixedTimeStep;
-            this.IsMouseVisible = Engine.Instance.ProjectConfig.IsMouseVisible;
+            Window.Title = Engine.Instance.ProjectConfig.WindowTitle;
+            Window.AllowUserResizing = Engine.Instance.ProjectConfig.AllowUserResizing;
+            IsFixedTimeStep = Engine.Instance.ProjectConfig.IsFixedTimeStep;
+            IsMouseVisible = Engine.Instance.ProjectConfig.IsMouseVisible;
 
             _graphics.ApplyChanges();
 

@@ -9,7 +9,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
         public ChromosomeComparer(EvolutionObjective order)
         {
-            this.Order = order;
+            Order = order;
         }
 
 
@@ -17,10 +17,14 @@ namespace CasaEngine.AI.EvolutionaryComputing
         public int Compare(Chromosome<T> x, Chromosome<T> y)
         {
             if (Order == EvolutionObjective.Minimize)
+            {
                 return x.Fitness.CompareTo(y.Fitness);
+            }
 
             else
+            {
                 return -(x.Fitness.CompareTo(y.Fitness));
+            }
         }
 
     }

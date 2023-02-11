@@ -98,19 +98,37 @@ namespace XNAFinalEngine.Input
         public bool Pressed(int gamePadNumber)
         {
             if (InputDevice == InputDevices.NoDevice)
+            {
                 return false;
+            }
+
             if (InputDevice == InputDevices.Keyboard)
+            {
                 return Keyboard.KeyPressed(Key);
+            }
+
             if (InputDevice == InputDevices.GamePad)
             {
                 if (gamePadNumber == 1)
+                {
                     return GamePad.PlayerOne.ButtonPressed(GamePadButton);
+                }
+
                 if (gamePadNumber == 2)
+                {
                     return GamePad.PlayerTwo.ButtonPressed(GamePadButton);
+                }
+
                 if (gamePadNumber == 3)
+                {
                     return GamePad.PlayerThree.ButtonPressed(GamePadButton);
+                }
+
                 if (gamePadNumber == 4)
+                {
                     return GamePad.PlayerFour.ButtonPressed(GamePadButton);
+                }
+
                 // if (gamepadNumber == 0) // All gamepads at the same time.
                 return GamePad.PlayerOne.ButtonPressed(GamePadButton) || GamePad.PlayerTwo.ButtonPressed(GamePadButton) ||
                        GamePad.PlayerThree.ButtonPressed(GamePadButton) || GamePad.PlayerFour.ButtonPressed(GamePadButton);

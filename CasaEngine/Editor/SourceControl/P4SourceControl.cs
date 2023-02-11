@@ -37,7 +37,7 @@ namespace CasaEngine.SourceControl
             "action",
             "time"};
 
-        private readonly Dictionary<string, SourceControlKeyWord> _keyWordMapping = new Dictionary<string, SourceControlKeyWord>();
+        private readonly Dictionary<string, SourceControlKeyWord> _keyWordMapping = new();
 
         private bool _validWorkspaceDirectory = false;
 
@@ -113,7 +113,7 @@ namespace CasaEngine.SourceControl
                 }
 #endif               
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e, false);
             }
@@ -170,7 +170,7 @@ namespace CasaEngine.SourceControl
                     LogManager.Instance.WriteLineError("[Perforce] Can't connect to Perforce server");
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LogManager.Instance.WriteException(e, false);
             }

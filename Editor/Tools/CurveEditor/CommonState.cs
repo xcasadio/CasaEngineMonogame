@@ -24,7 +24,7 @@ namespace Editor.Tools.CurveEditor
     /// This generic class holds common stae of multiple states.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    class CommonState<T> where T: struct
+    class CommonState<T> where T : struct
     {
         /// <summary>
         /// Gets common value.
@@ -36,8 +36,11 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public string ValueString
         {
-            get { return ( hasValue && hasSameValues ) ?
-                value.ToString() : String.Empty; }
+            get
+            {
+                return (hasValue && hasSameValues) ?
+                value.ToString() : string.Empty;
+            }
         }
 
         /// <summary>
@@ -69,8 +72,10 @@ namespace Editor.Tools.CurveEditor
                 hasValue = true;
             }
 
-            if ( !Object.Equals(this.value, value))
+            if (!Equals(this.value, value))
+            {
                 hasSameValues = false;
+            }
 
             count++;
         }

@@ -18,7 +18,7 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private List<object> _items = new List<object>();
+        private List<object> _items = new();
         private readonly ScrollBar _scrollBarVertical;
         private readonly ClipBox _pane;
         private int _itemIndex = -1;

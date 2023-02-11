@@ -1,35 +1,20 @@
 using Microsoft.Xna.Framework;
-//using CasaEngine.GameLogic;
-//using CasaEngine.PhysicEngine;
-
 
 namespace CasaEngine.AI.Navigation
 {
     [Serializable]
     public abstract class MovingEntity : BaseEntity
     {
-
-        protected internal Vector3 Position;
-
-        protected internal Vector3 Velocity;
-
-        protected internal Vector3 Look;
-
-        protected internal Vector3 Right;
-
-        protected internal Vector3 Up;
-
-        protected internal float Mass;
-
-        protected internal float MaxSpeed;
-
-        protected internal float MaxForce;
-
-        protected internal float MaxTurnRate;
-
-        protected internal object MeshObject;
-
-
+        protected internal Vector3 position;
+        protected internal Vector3 velocity;
+        protected internal Vector3 look;
+        protected internal Vector3 right;
+        protected internal Vector3 up;
+        protected internal float mass;
+        protected internal float maxSpeed;
+        protected internal float maxForce;
+        protected internal float maxTurnRate;
+        protected internal object meshObject;
 
         public Vector3 Position
         {
@@ -92,8 +77,6 @@ namespace CasaEngine.AI.Navigation
             get => meshObject;
             set => meshObject = value;
         }
-
-
 
         public virtual bool CanMoveBetween(Vector3 start, Vector3 end)
         {

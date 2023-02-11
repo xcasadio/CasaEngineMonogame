@@ -49,7 +49,7 @@ namespace Poly2Tri.Triangulation.Polygon
     {
         protected List<Polygon> _holes;
         protected PolygonPoint _last;
-        protected List<TriangulationPoint> _points = new List<TriangulationPoint>();
+        protected List<TriangulationPoint> _points = new();
         protected List<TriangulationPoint> _steinerPoints;
         protected List<DelaunayTriangle> _triangles;
 
@@ -235,7 +235,7 @@ namespace Poly2Tri.Triangulation.Polygon
                 _last = p;
                 _points.Add(p);
             }
-            first = (PolygonPoint) _points[0];
+            first = (PolygonPoint)_points[0];
             _last.Next = first;
             first.Previous = _last;
         }

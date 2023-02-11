@@ -1,9 +1,10 @@
-﻿using CasaEngine.Graphics2D;
-using CasaEngine.Game;
+﻿using CasaEngine.Game;
+using CasaEngine.Gameplay;
+using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Gameplay
+namespace CasaEngine.Front_End
 {
     public abstract class HudBase
     {

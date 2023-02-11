@@ -67,7 +67,9 @@ namespace Editor.WinForm.DocToolkit
             }
 
             if (!registryPath.EndsWith("\\"))
+            {
                 registryPath += "\\";
+            }
 
             registryPath += "MainForm";
 
@@ -111,7 +113,7 @@ namespace Editor.WinForm.DocToolkit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnResize(object sender, System.EventArgs e)
+        private void OnResize(object sender, EventArgs e)
         {
             // save width and height
             if (ownerForm.WindowState == FormWindowState.Normal)
@@ -127,7 +129,7 @@ namespace Editor.WinForm.DocToolkit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnMove(object sender, System.EventArgs e)
+        private void OnMove(object sender, EventArgs e)
         {
             // save position
             if (ownerForm.WindowState == FormWindowState.Normal)
@@ -159,7 +161,9 @@ namespace Editor.WinForm.DocToolkit
             if (!allowSaveMinimized)
             {
                 if (windowState == FormWindowState.Minimized)
+                {
                     windowState = FormWindowState.Normal;
+                }
             }
 
             key.SetValue("WindowState", (int)windowState);
@@ -171,7 +175,7 @@ namespace Editor.WinForm.DocToolkit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnLoad(object sender, System.EventArgs e)
+        private void OnLoad(object sender, EventArgs e)
         {
             // attempt to read state from registry
             RegistryKey key = Registry.CurrentUser.OpenSubKey(registryPath);

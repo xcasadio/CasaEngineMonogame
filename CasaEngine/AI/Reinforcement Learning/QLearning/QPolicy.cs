@@ -2,7 +2,7 @@
 {
     public class QPolicy
     {
-        readonly Dictionary<KeyValuePair<string, string>, float> _qValues = new Dictionary<KeyValuePair<string, string>, float>();
+        readonly Dictionary<KeyValuePair<string, string>, float> _qValues = new();
 
 
 

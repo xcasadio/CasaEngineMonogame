@@ -74,7 +74,9 @@ namespace XNAFinalEngine.Input
                 key == Keys.OemPeriod ||        // .>
                 key == Keys.OemQuestion ||      // /?
                 key == Keys.OemPlus)            // =+
+            {
                 return false;
+            }
 
             // Else it is a special key.
             return true;
@@ -90,9 +92,13 @@ namespace XNAFinalEngine.Input
             if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z)
             {
                 if (uppercase)
+                {
                     return key.ToString();
+                }
                 else
+                {
                     return key.ToString().ToLower();
+                }
             }
             switch (key)
             {

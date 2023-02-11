@@ -20,15 +20,15 @@ namespace Editor.Tools.Graphics2D
         /// <summary>
         /// 
         /// </summary>
-        public CasaEngine.Math.Shape2D.ShapeLine ShapeLine
+        public ShapeLine ShapeLine
         {
             get
             {
-                return (ShapeLine)base.Shape2DObject;
+                return (ShapeLine)Shape2DObject;
             }
             internal set
             {
-                base.Shape2DObject = value;
+                Shape2DObject = value;
             }
         }
 

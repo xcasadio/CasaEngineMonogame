@@ -5,8 +5,8 @@ namespace CasaEngine.Math.Curves
     public class Bezier2DCurve
     {
 
-        private readonly List<Vector2> _controlPoints = new List<Vector2>();
-        private readonly List<Vector2> _curvePoints = new List<Vector2>();
+        private readonly List<Vector2> _controlPoints = new();
+        private readonly List<Vector2> _curvePoints = new();
 
         private float _resolution = 0.1f;
 
@@ -37,7 +37,7 @@ namespace CasaEngine.Math.Curves
             //Algo
             for (int u = 0; u <= nbPoint; u++)
             {
-                _curvePoints.Add(Bezier2DCurve.Casteljau(_controlPoints, (float)u / (float)nbPoint));
+                _curvePoints.Add(Casteljau(_controlPoints, (float)u / (float)nbPoint));
             }
         }
 
@@ -97,7 +97,7 @@ namespace CasaEngine.Math.Curves
                 throw new ArgumentOutOfRangeException("percent_ has to be between 0 and 1");
             }
 
-            return Bezier2DCurve.Casteljau(_controlPoints, percent);
+            return Casteljau(_controlPoints, percent);
         }
 
     }

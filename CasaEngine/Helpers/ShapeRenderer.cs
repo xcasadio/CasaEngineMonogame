@@ -31,11 +31,11 @@ namespace CasaEngine.Helper
         SpriteFont _font;
 
         //Shapes
-        public Color DefaultShapeColor = new Color(0.9f, 0.7f, 0.7f);
-        public Color InactiveShapeColor = new Color(0.5f, 0.5f, 0.3f);
-        public Color KinematicShapeColor = new Color(0.5f, 0.5f, 0.9f);
-        public Color SleepingShapeColor = new Color(0.6f, 0.6f, 0.6f);
-        public Color StaticShapeColor = new Color(0.5f, 0.9f, 0.5f);
+        public Color DefaultShapeColor = new(0.9f, 0.7f, 0.7f);
+        public Color InactiveShapeColor = new(0.5f, 0.5f, 0.3f);
+        public Color KinematicShapeColor = new(0.5f, 0.5f, 0.9f);
+        public Color SleepingShapeColor = new(0.6f, 0.6f, 0.6f);
+        public Color StaticShapeColor = new(0.5f, 0.9f, 0.5f);
         public Color TextColor = Color.White;
 
         //Contacts
@@ -47,7 +47,7 @@ namespace CasaEngine.Helper
 #if XBOX
         public Vector2 DebugPanelPosition = new Vector2(55, 100);
 #else
-        public Vector2 DebugPanelPosition = new Vector2(40, 100);
+        public Vector2 DebugPanelPosition = new(40, 100);
 #endif
         private int _max;
         private int _avg;
@@ -58,12 +58,12 @@ namespace CasaEngine.Helper
         public int ValuesToGraph = 500;
         public int MinimumValue;
         public int MaximumValue = 1000;
-        private readonly List<float> _graphValues = new List<float>();
+        private readonly List<float> _graphValues = new();
 
 #if XBOX
         public Rectangle PerformancePanelBounds = new Rectangle(265, 100, 200, 100);
 #else
-        public Rectangle PerformancePanelBounds = new Rectangle(250, 100, 200, 100);
+        public Rectangle PerformancePanelBounds = new(250, 100, 200, 100);
 #endif
         private readonly Vector2[] _background = new Vector2[4];
         public bool Enabled = true;
@@ -340,7 +340,9 @@ namespace CasaEngine.Helper
             _graphValues.Add(World.UpdateTime);
 
             if (_graphValues.Count > ValuesToGraph + 1)
+            {
                 _graphValues.RemoveAt(0);
+            }
 
             float x = PerformancePanelBounds.X;
             float deltaX = PerformancePanelBounds.Width / (float)ValuesToGraph;
@@ -441,7 +443,9 @@ namespace CasaEngine.Helper
         private void DrawJoint(Joint joint)
         {
             if (!joint.Enabled)
+            {
                 return;
+            }
 
             Body b1 = joint.BodyA;
             Body b2 = joint.BodyB;
@@ -827,7 +831,9 @@ namespace CasaEngine.Helper
 
             //Nothing is enabled - don't draw the debug view.
             if (Flags == 0)
+            {
                 return;
+            }
 
             _device.RasterizerState = RasterizerState.CullNone;
             _device.DepthStencilState = DepthStencilState.Default;

@@ -6,7 +6,7 @@ namespace CasaEngine.AI.Messaging
     public sealed class MessageManagerHandler : IMessageManager
     {
 
-        private static readonly MessageManagerHandler Manager = new MessageManagerHandler();
+        private static readonly MessageManagerHandler Manager = new();
 
         internal UniquePriorityQueue<Message> MessageQueue;
 
@@ -50,7 +50,9 @@ namespace CasaEngine.AI.Messaging
         public void UnregisterForMessage(int type, int entityId)
         {
             if (RegisteredEntities[type] == null)
+            {
                 return;
+            }
 
             RegisteredEntities[type].Remove(entityId);
         }
@@ -65,10 +67,14 @@ namespace CasaEngine.AI.Messaging
             if (delayTime == 0)
             {
                 if (RegisteredEntities[type] == null)
+                {
                     return;
+                }
 
                 if (RegisteredEntities[type][recieverId] == null)
+                {
                     return;
+                }
 
                 RegisteredEntities[type][recieverId](message);
             }
@@ -76,7 +82,7 @@ namespace CasaEngine.AI.Messaging
             //If the messaged was a delayed one, calculate its future time and put it in the message queue
             else
             {
-                message.DispatchTime = System.DateTime.Now.Ticks + delayTime;
+                message.DispatchTime = DateTime.Now.Ticks + delayTime;
                 MessageQueue.Enqueue(message);
             }
         }
@@ -86,17 +92,21 @@ namespace CasaEngine.AI.Messaging
             Message message;
             double currentTime;
 
-            currentTime = System.DateTime.Now.Ticks;
+            currentTime = DateTime.Now.Ticks;
 
             while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
             {
                 message = MessageQueue.Dequeue();
 
                 if (RegisteredEntities[message.Type] == null)
+                {
                     return;
+                }
 
                 if (RegisteredEntities[message.Type][message.RecieverID] == null)
+                {
                     return;
+                }
 
                 RegisteredEntities[message.Type][message.RecieverID](message);
             }

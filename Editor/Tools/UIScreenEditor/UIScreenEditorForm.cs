@@ -39,9 +39,9 @@ namespace Editor.Tools.UIScreenEditor
         //UIScreenEditorTool m_UIScreenEditorTool = UIScreenEditorTool.Selection;
         Type m_ToolControlType = null;
 
-        Dictionary<string, Type> m_ControlTypes = new Dictionary<string, Type>();
+        Dictionary<string, Type> m_ControlTypes = new();
         System.Windows.Forms.RadioButton m_DefaultRadioButton;
-        Dictionary<string, XNAFinalEngine.UserInterface.Control> m_Controls = new Dictionary<string, XNAFinalEngine.UserInterface.Control>();
+        Dictionary<string, XNAFinalEngine.UserInterface.Control> m_Controls = new();
 
 
 
@@ -50,7 +50,7 @@ namespace Editor.Tools.UIScreenEditor
         /// </summary>
         public System.Windows.Forms.Control XnaPanel
         {
-            get { return this.panelXna; }
+            get { return panelXna; }
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Editor.Tools.UIScreenEditor
         /// <summary>
         /// 
         /// </summary>
-        public System.Windows.Forms.Cursor CurrentCursor
+        public Cursor CurrentCursor
         {
             get;
             set;
@@ -93,7 +93,7 @@ namespace Editor.Tools.UIScreenEditor
             m_XnaEditorForm.Game.Content.RootDirectory = Engine.Instance.ProjectManager.ProjectPath;
             m_XnaEditorForm.StartGame();
 
-            this.FormClosed += new FormClosedEventHandler(ScreenEditorFormClosed);
+            FormClosed += new FormClosedEventHandler(ScreenEditorFormClosed);
 
             m_ControlTypes.Add("Cursor", null);
             m_ControlTypes.Add("ComboBox", typeof(XNAFinalEngine.UserInterface.ComboBox));
@@ -113,8 +113,8 @@ namespace Editor.Tools.UIScreenEditor
             m_ControlTypes.Add("GroupBox", typeof(XNAFinalEngine.UserInterface.GroupBox));
             m_ControlTypes.Add("GroupPanel", typeof(GroupPanel));
 
-            m_ControlTypes.Add("ContextMenu", typeof(XNAFinalEngine.UserInterface.ContextMenu));
-            m_ControlTypes.Add("MainMenu", typeof(XNAFinalEngine.UserInterface.MainMenu));
+            m_ControlTypes.Add("ContextMenu", typeof(ContextMenu));
+            m_ControlTypes.Add("MainMenu", typeof(MainMenu));
 
             m_ControlTypes.Add("Panel", typeof(XNAFinalEngine.UserInterface.Panel));
             m_ControlTypes.Add("PanelCollapsible", typeof(PanelCollapsible));
@@ -130,8 +130,8 @@ namespace Editor.Tools.UIScreenEditor
             m_ControlTypes.Add("SpinBox", typeof(SpinBox));
             m_ControlTypes.Add("TextBox", typeof(XNAFinalEngine.UserInterface.TextBox));
 
-            m_ControlTypes.Add("ToolBar", typeof(XNAFinalEngine.UserInterface.ToolBar));
-            m_ControlTypes.Add("ToolBarButton", typeof(XNAFinalEngine.UserInterface.ToolBarButton));
+            m_ControlTypes.Add("ToolBar", typeof(ToolBar));
+            m_ControlTypes.Add("ToolBarButton", typeof(ToolBarButton));
             m_ControlTypes.Add("ToolBarPanel", typeof(ToolBarPanel));
 
 
@@ -141,8 +141,8 @@ namespace Editor.Tools.UIScreenEditor
                 {
                     AutoSize = false,
                     Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                    Appearance = System.Windows.Forms.Appearance.Button,
-                    BackColor = System.Drawing.Color.Transparent,
+                    Appearance = Appearance.Button,
+                    BackColor = Color.Transparent,
                     Text = pair.Key,
                     FlatStyle = FlatStyle.Flat,
                     Tag = pair.Value,
@@ -151,8 +151,8 @@ namespace Editor.Tools.UIScreenEditor
                     TextAlign = ContentAlignment.MiddleCenter,
                     TextImageRelation = TextImageRelation.ImageBeforeText,
                     UseVisualStyleBackColor = false,
-                    Size = new System.Drawing.Size(50,21),
-                    Margin = new System.Windows.Forms.Padding(1, 1, 1, 0)
+                    Size = new System.Drawing.Size(50, 21),
+                    Margin = new Padding(1, 1, 1, 0)
                 };
                 button.FlatAppearance.BorderColor = Color.Black;
                 button.FlatAppearance.BorderSize = 1;
@@ -186,7 +186,7 @@ namespace Editor.Tools.UIScreenEditor
                 {
                     //Type controlType = button.Tag as Type;
                     m_ToolControlType = button.Tag as Type;
-                }                
+                }
             }
         }
 
@@ -258,9 +258,9 @@ namespace Editor.Tools.UIScreenEditor
         /// <param name="e"></param>
         private void UndoRedoEventCommandDone(object sender, System.EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new Action(() => OnUndoRedoEventCommandDone()));
+                Invoke(new Action(() => OnUndoRedoEventCommandDone()));
             }
             else
             {
@@ -285,9 +285,9 @@ namespace Editor.Tools.UIScreenEditor
         /// <param name="e"></param>
         private void UndoRedoCommandAdded(object sender, System.EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new Action(() => OnUndoRedoCommandAdded()));
+                Invoke(new Action(() => OnUndoRedoCommandAdded()));
             }
             else
             {
@@ -362,7 +362,7 @@ namespace Editor.Tools.UIScreenEditor
         private void panelXna_MouseLeave(object sender, System.EventArgs e)
         {
             //panelXna.Cursor = System.Windows.Forms.Cursors.Default;
-        }        
+        }
 
         /// <summary>
         /// 
@@ -428,10 +428,10 @@ namespace Editor.Tools.UIScreenEditor
                     m_ToolControlType = null;
                     m_DefaultRadioButton.Checked = true;
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
-                }             
+                }
             }
         }
 
@@ -447,7 +447,7 @@ namespace Editor.Tools.UIScreenEditor
             {
                 m_Controls[comboBoxControls.SelectedItem as string].Focused = true;
                 propertyGrid1.SelectedObject = m_Controls[comboBoxControls.SelectedItem as string];
-            }            
+            }
         }
 
     }

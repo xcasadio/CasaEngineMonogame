@@ -44,10 +44,10 @@ namespace Editor.Game
         public MyOwnEditorGame()
             : base()
         {
-            this.Window.Title = "Editor";
-            this.Window.AllowUserResizing = true;
-            this.IsFixedTimeStep = true;
-            this.IsMouseVisible = true;
+            Window.Title = "Editor";
+            Window.AllowUserResizing = true;
+            IsFixedTimeStep = true;
+            IsMouseVisible = true;
 
             Content.RootDirectory = /*Environment.CurrentDirectory + */"Content";
 
@@ -56,7 +56,7 @@ namespace Editor.Game
 
             //Grid2DComponent g = new Grid2DComponent(this);
 
-            this.Exiting += new EventHandler<EventArgs>(EditorGame_Exiting);
+            Exiting += new EventHandler<EventArgs>(EditorGame_Exiting);
         }
 
 
@@ -152,7 +152,7 @@ namespace Editor.Game
 
             base.Initialize();
 
-            GameForm = (Form)System.Windows.Forms.Control.FromHandle(this.Window.Handle);
+            GameForm = (Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
             GameForm.FormBorderStyle = FormBorderStyle.SizableToolWindow;
 
             AttachedForm.VisibleChanged += new EventHandler(xnaScreen_VisibleChanged);
@@ -241,10 +241,10 @@ namespace Editor.Game
         /// </summary>
         protected override void BeginRun()
         {
-            if (this.AttachedForm != null)
+            if (AttachedForm != null)
             {
                 SetFormEnabledCallback c = new SetFormEnabledCallback(FormEnabledCallback);
-                this.AttachedForm.Invoke(c);
+                AttachedForm.Invoke(c);
             }
 
             base.BeginRun();
@@ -255,7 +255,7 @@ namespace Editor.Game
         /// </summary>
         private void FormEnabledCallback()
         {
-            this.AttachedForm.Enabled = true;
+            AttachedForm.Enabled = true;
         }
 
     }

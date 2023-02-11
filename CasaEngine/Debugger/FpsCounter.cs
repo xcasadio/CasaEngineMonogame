@@ -55,13 +55,13 @@ namespace CasaEngine.Debugger
         private int _sampleFrames;
 
         // stringBuilder for FPS counter draw.
-        private readonly StringBuilder _stringBuilder = new StringBuilder(16);
+        private readonly StringBuilder _stringBuilder = new(16);
 
         private Renderer2DComponent _renderer2DComponent = null;
 
-        private readonly Color _colorBackground = new Color(0, 0, 0, 128);
+        private readonly Color _colorBackground = new(0, 0, 0, 128);
 
-        private readonly List<CasaEngineCommon.Design.IObserver<FpsCounter>> _listObserver = new List<CasaEngineCommon.Design.IObserver<FpsCounter>>();
+        private readonly List<CasaEngineCommon.Design.IObserver<FpsCounter>> _listObserver = new();
 
         private float _fpsAverage = 0.0f;
 
@@ -87,7 +87,9 @@ namespace CasaEngine.Debugger
                 Game.Services.GetService(typeof(DebugManager)) as DebugManager;
 
             if (_debugManager == null)
+            {
                 throw new InvalidOperationException("DebugManaer is not registered.");
+            }
 
             // Register 'fps' command if debug command is registered as a service.
             IDebugCommandHost host =
@@ -96,7 +98,7 @@ namespace CasaEngine.Debugger
 
             if (host != null)
             {
-                host.RegisterCommand("fps", "FPS Counter", this.CommandExecute);
+                host.RegisterCommand("fps", "FPS Counter", CommandExecute);
                 Visible = false;
             }
 
@@ -121,8 +123,8 @@ namespace CasaEngine.Debugger
         public void Reset()
         {
             Fps = 0;
-            FpsMin = Single.MaxValue;
-            FpsMax = Single.MinValue;
+            FpsMin = float.MaxValue;
+            FpsMax = float.MinValue;
             TotalNumberOfFrames = 0;
             _firstCompute = true;
             _fpsAverage = 0.0f;
@@ -135,7 +137,9 @@ namespace CasaEngine.Debugger
                                     string command, IList<string> arguments)
         {
             if (arguments.Count == 0)
+            {
                 Visible = !Visible;
+            }
 
             foreach (string arg in arguments)
             {

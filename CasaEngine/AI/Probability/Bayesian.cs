@@ -35,8 +35,8 @@
     {
         readonly int _nbActions;
         readonly int _nbPossibilities;
-        readonly Dictionary<Pattern, int[]> _probabilities = new Dictionary<Pattern, int[]>();
-        readonly List<Pattern> _listPattern = new List<Pattern>();
+        readonly Dictionary<Pattern, int[]> _probabilities = new();
+        readonly List<Pattern> _listPattern = new();
 
 
 

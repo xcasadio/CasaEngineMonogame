@@ -6,7 +6,7 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
     public class QLearner
         : BaseObject
     {
-        readonly QLearning _ql = new QLearning();
+        readonly QLearning _ql = new();
 
 
 

@@ -1,11 +1,6 @@
 using System.Runtime.Serialization.Formatters.Binary;
 
-
-
-
 using Microsoft.Xna.Framework;
-
-
 
 namespace CasaEngine.AI.Graphs
 {
@@ -15,11 +10,7 @@ namespace CasaEngine.AI.Graphs
 
         public const int NoParent = -1;
 
-
-
-        protected internal int Index;
-
-
+        protected internal int index;
 
         public Node()
         {
@@ -28,23 +19,21 @@ namespace CasaEngine.AI.Graphs
 
         public Node(int index)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateIndex(index, ref message) == false)
-                throw new AiException("index", this.GetType().ToString(), message);
+            {
+                throw new AiException("index", GetType().ToString(), message);
+            }
 
             this.index = index;
         }
 
-
-
         public int Index
         {
             get => index;
-            protected internal set => this.index = value;
+            protected internal set => index = value;
         }
-
-
 
         public static bool ValidateIndex(int index, ref string message)
         {
@@ -56,8 +45,6 @@ namespace CasaEngine.AI.Graphs
 
             return true;
         }
-
-
 
         public object Clone()
         {
@@ -80,8 +67,6 @@ namespace CasaEngine.AI.Graphs
                 return clone;
             }
         }
-
-
 
         protected internal virtual bool IsNeighbour(int spacePartitionSector, Vector3 searchPosition, float searchRange)
         {

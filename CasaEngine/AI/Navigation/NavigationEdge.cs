@@ -1,20 +1,15 @@
 using CasaEngine.AI.Graphs;
 using Microsoft.Xna.Framework;
 
-
 namespace CasaEngine.AI.Navigation
 {
     [Serializable]
     public class NavigationEdge
     {
 
-        protected internal Vector3 Start;
-
-        protected internal Vector3 End;
-
-        protected internal EdgeInformation Information;
-
-
+        protected internal Vector3 start;
+        protected internal Vector3 end;
+        protected internal EdgeInformation information;
 
         public NavigationEdge(Vector3 start, Vector3 end, EdgeInformation information)
         {
@@ -22,8 +17,6 @@ namespace CasaEngine.AI.Navigation
             this.end = end;
             this.information = information;
         }
-
-
 
         public Vector3 Start
         {

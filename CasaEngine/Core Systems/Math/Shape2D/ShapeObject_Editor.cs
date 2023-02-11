@@ -43,14 +43,14 @@ namespace CasaEngine.Math.Shape2D
 
         public virtual void Save(XmlElement el, SaveOption option)
         {
-            el_.OwnerDocument.AddAttribute(el_, "version", Version.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "type", Enum.GetName(typeof(Shape2DType), _type));
+            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
+            el.OwnerDocument.AddAttribute(el, "type", Enum.GetName(typeof(Shape2DType), _type));
 
-            XmlElement el = el_.OwnerDocument.CreateElement("Location", Location);
-            el_.AppendChild(el);
+            XmlElement location = el.OwnerDocument.CreateElement("Location", Location);
+            el.AppendChild(location);
 
-            el_.OwnerDocument.AddAttribute(el_, "rotation", _rotation.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "flag", _flag.ToString());
+            el.OwnerDocument.AddAttribute(el, "rotation", _rotation.ToString());
+            el.OwnerDocument.AddAttribute(el, "flag", _flag.ToString());
         }
 
         public virtual void Save(BinaryWriter bw, SaveOption option)
@@ -61,7 +61,7 @@ namespace CasaEngine.Math.Shape2D
             bw.Write(_flag);
         }
 
-        public void NotifyPropertyChanged(String info)
+        public void NotifyPropertyChanged(string info)
         {
             if (PropertyChanged != null
                 && PropertyChangedActivated == true)

@@ -76,7 +76,7 @@ namespace CasaEngine.Gameplay
 
 #if EDITOR
                             projectFile = Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
-                            projectFile += System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
+                            projectFile += System.IO.Path.DirectorySeparatorChar + Path + ".xml";
 #else
                             projectFile = Engine.Instance.AssetContentManager.RootDirectory + System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
 #endif
@@ -99,7 +99,7 @@ namespace CasaEngine.Gameplay
                             _baseObject = (BaseObject)Activator.CreateInstance(ItemType, args);
                             ClassName = _baseObject.GetType().FullName;
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             LogManager.Instance.WriteException(ex);
                         }
@@ -167,7 +167,7 @@ namespace CasaEngine.Gameplay
             }
 
 
-            public void Load(System.IO.BinaryReader br, SaveOption option)
+            public void Load(BinaryReader br, SaveOption option)
             {
                 throw new NotImplementedException();
             }
@@ -196,7 +196,7 @@ namespace CasaEngine.Gameplay
 
 
         //full path, object container
-        readonly Dictionary<string, ObjectContainer> _objects = new Dictionary<string, ObjectContainer>(100);
+        readonly Dictionary<string, ObjectContainer> _objects = new(100);
 
 
 
@@ -220,7 +220,7 @@ namespace CasaEngine.Gameplay
             //_Objects[fullpath_].Object return a copy!
             ObjectContainer obj = _objects[fullpath];
             BaseObject res = obj.Object;
-            res.ID = obj.Id;
+            res.Id = obj.Id;
             _objects[fullpath] = obj;
             return res;
         }
@@ -242,7 +242,7 @@ namespace CasaEngine.Gameplay
             if (obj != null)
             {
                 BaseObject res = obj.Object;
-                res.ID = obj.Id;
+                res.Id = obj.Id;
                 //_Objects[obj.Path] = obj;
                 return res;
             }
@@ -297,7 +297,7 @@ namespace CasaEngine.Gameplay
             //assetManager.BuildAll(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath);
         }
 
-        public void Load(System.IO.BinaryReader br, SaveOption option)
+        public void Load(BinaryReader br, SaveOption option)
         {
             throw new NotImplementedException();
         }

@@ -24,7 +24,7 @@ namespace CasaEngine.Editor.Builder
 
         public List<string> Errors => _errors;
 
-        readonly List<string> _errors = new List<string>();
+        readonly List<string> _errors = new();
 
 
 

@@ -148,7 +148,9 @@ namespace CasaEngine.Asset
                 Resource = IdentityTexture(device, Size);
             }
             else
+            {
                 Create(device, Filename.Substring(30)); // Removes "Textures\\"
+            }
 
             GraphicsDevice = device;
         } // RecreateResource

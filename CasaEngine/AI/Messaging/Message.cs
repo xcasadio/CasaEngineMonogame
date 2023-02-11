@@ -14,16 +14,22 @@ namespace CasaEngine.AI.Messaging
 
         public Message(int senderId, int recieverId, int type, double dispatchTime, object extraInfo)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateId(senderId, ref message) == false)
-                throw new AiException("senderID", this.GetType().ToString(), message);
+            {
+                throw new AiException("senderID", GetType().ToString(), message);
+            }
 
             if (ValidateId(recieverId, ref message) == false)
-                throw new AiException("recieverID", this.GetType().ToString(), message);
+            {
+                throw new AiException("recieverID", GetType().ToString(), message);
+            }
 
             if (ValidateTime(dispatchTime, ref message) == false)
-                throw new AiException("dispatchTime", this.GetType().ToString(), message);
+            {
+                throw new AiException("dispatchTime", GetType().ToString(), message);
+            }
 
             _senderId = senderId;
             _recieverId = recieverId;
@@ -39,10 +45,12 @@ namespace CasaEngine.AI.Messaging
             get => _senderId;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateId(value, ref message) == false)
-                    throw new AiException("senderID", this.GetType().ToString(), message);
+                {
+                    throw new AiException("senderID", GetType().ToString(), message);
+                }
 
                 _senderId = value;
             }
@@ -53,10 +61,12 @@ namespace CasaEngine.AI.Messaging
             get => _recieverId;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateId(value, ref message) == false)
-                    throw new AiException("recieverID", this.GetType().ToString(), message);
+                {
+                    throw new AiException("recieverID", GetType().ToString(), message);
+                }
 
                 _recieverId = value;
             }
@@ -73,10 +83,12 @@ namespace CasaEngine.AI.Messaging
             get => _dispatchTime;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateTime(value, ref message) == false)
-                    throw new AiException("dispatchTime", this.GetType().ToString(), message);
+                {
+                    throw new AiException("dispatchTime", GetType().ToString(), message);
+                }
 
                 _dispatchTime = value;
             }

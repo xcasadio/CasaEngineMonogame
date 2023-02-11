@@ -42,13 +42,13 @@ namespace XNAFinalEngine.UserInterface
             get => _value;
             set
             {
-                if (this._value != value)
+                if (_value != value)
                 {
-                    this._value = value;
-                    if (this._value < 0)
-                        this._value = 0;
-                    if (this._value > _range - _pageSize)
-                        this._value = _range - _pageSize;
+                    _value = value;
+                    if (_value < 0)
+                        _value = 0;
+                    if (_value > _range - _pageSize)
+                        _value = _range - _pageSize;
                     Invalidate();
                     if (!Suspended)
                         OnValueChanged(new EventArgs());
@@ -111,7 +111,7 @@ namespace XNAFinalEngine.UserInterface
         public ScrollBar(UserInterfaceManager userInterfaceManager, Orientation orientation)
             : base(userInterfaceManager)
         {
-            this._orientation = orientation;
+            _orientation = orientation;
             CanFocus = false;
 
             if (orientation == Orientation.Horizontal)

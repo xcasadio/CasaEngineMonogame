@@ -22,7 +22,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 
         static private string m_FileOpened = string.Empty;
 
-        private SpriteSheetTaskManager m_SpriteSheetTaskManager = new SpriteSheetTaskManager();
+        private SpriteSheetTaskManager m_SpriteSheetTaskManager = new();
         private SpriteSheetTaskManager m_OldSpriteSheetTaskManager;
         private EventHandler<BuildResultEventArgs> m_OnSpriteSheetBuildFinished;
 
@@ -62,7 +62,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 fileToolStripMenuItem,					// parent
                 m_RegistryPath);						// Registry path to keep MRU list
 
-            m_MruManager.MruOpenEvent += delegate(object sender_, MruFileOpenEventArgs e_)
+            m_MruManager.MruOpenEvent += delegate (object sender_, MruFileOpenEventArgs e_)
             {
                 LoadTaskFile(e_.FileName);
             };
@@ -168,7 +168,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             if (listView1.SelectedIndices.Count > 0)
             {
                 SpriteSheetTask t = m_SpriteSheetTaskManager.GetTask(listView1.SelectedIndices[listView1.SelectedIndices.Count - 1]);
-                
+
                 SpriteSheetTaskForm form = new SpriteSheetTaskForm(t.Copy());
                 if (form.ShowDialog() == DialogResult.OK
                     && t.Compare(form.SpriteSheetTask) == false)
@@ -176,7 +176,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                     m_SpriteSheetTaskManager.SetTask(listView1.SelectedIndices[0], form.SpriteSheetTask);
                     UpdateTask(listView1.SelectedIndices[0], form.SpriteSheetTask);
                 }
-                
+
                 form.Dispose();
             }
         }
@@ -240,7 +240,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             m_BackgroundWorker = sender as BackgroundWorker;
 
             string mapFileName, spriteSheetFileName;
-            SpriteSheetTask.SpriteSheetBuild build = (SpriteSheetTask.SpriteSheetBuild) e.Argument;
+            SpriteSheetTask.SpriteSheetBuild build = (SpriteSheetTask.SpriteSheetBuild)e.Argument;
 
             Builder builder = new Builder();
             builder.ProgressChanged += new EventHandler<ProgressChangedEventArgs>(builder_ProgressChanged);
@@ -293,7 +293,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         /// </summary>
         /// <param name="failCode"></param>
         /// <returns></returns>
-        private static string SpaceErrorCode(Editor.Sprite2DEditor.SpriteSheetPacker.sspack.FailCode failCode)
+        private static string SpaceErrorCode(FailCode failCode)
         {
             string error = failCode.ToString();
 
@@ -303,7 +303,10 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             {
                 char c = error[i];
                 if (char.IsUpper(c))
+                {
                     result += " ";
+                }
+
                 result += c;
             }
 
@@ -325,7 +328,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 m_SpriteSheetTaskManager.Save(m_FileOpened);
             }
 
-            this.Close();
+            Close();
         }
 
         /// <summary>
@@ -387,7 +390,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             else
             {
                 toolStripMenuItem1_Click(sender, e);
-            }            
+            }
         }
 
         /// <summary>

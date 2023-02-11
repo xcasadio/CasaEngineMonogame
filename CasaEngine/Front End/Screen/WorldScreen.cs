@@ -76,7 +76,9 @@ namespace CasaEngine.FrontEnd.Screen
 
             // If the game is transitioning on or off, fade it out to black.
             if (TransitionPosition > 0)
+            {
                 ScreenManagerComponent.FadeBackBufferToBlack(255 - TransitionAlpha);
+            }
         }
 
     }

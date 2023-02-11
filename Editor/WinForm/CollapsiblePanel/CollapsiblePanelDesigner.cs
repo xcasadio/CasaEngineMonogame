@@ -10,30 +10,32 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
     public class CollapsiblePanelDesigner : ParentControlDesigner
     {
 
-        public override System.ComponentModel.Design.DesignerActionListCollection ActionLists
+        public override DesignerActionListCollection ActionLists
         {
             get
             {
                 DesignerActionListCollection collection = new DesignerActionListCollection();
-                if (this.Control != null && this.Control is CollapsiblePanel)
+                if (Control != null && Control is CollapsiblePanel)
                 {
-                    CollapsiblePanel panel = (CollapsiblePanel)this.Control;
-                    if (!String.IsNullOrEmpty(panel.Name))
+                    CollapsiblePanel panel = (CollapsiblePanel)Control;
+                    if (!string.IsNullOrEmpty(panel.Name))
                     {
-                        if (String.IsNullOrEmpty(panel.HeaderText))
+                        if (string.IsNullOrEmpty(panel.HeaderText))
+                        {
                             panel.HeaderText = panel.Name;
+                        }
                     }
                 }
 
-                collection.Add(new CollapsiblePanelActionList(this.Control));
-                
+                collection.Add(new CollapsiblePanelActionList(Control));
+
                 return collection;
             }
         }
 
-       
 
 
-        
+
+
     }
 }

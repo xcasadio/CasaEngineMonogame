@@ -9,7 +9,7 @@ namespace CasaEngine.Graphics2D
     public class ScreenLogComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        readonly List<LogText> _logText = new List<LogText>();
+        readonly List<LogText> _logText = new();
         Renderer2DComponent _renderer2DComponent = null;
 
 
@@ -39,7 +39,7 @@ namespace CasaEngine.Graphics2D
                 lock (this)
                 {
                     // Remove self from the service container.
-                    GameHelper.RemoveGameComponent<ScreenLogComponent>(this.Game);
+                    GameHelper.RemoveGameComponent<ScreenLogComponent>(Game);
                 }
             }
 

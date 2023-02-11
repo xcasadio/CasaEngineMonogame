@@ -7,9 +7,9 @@ namespace CasaEngine.Physics2D
     {
 
         private static Sprite2DPhysicsManager _instance;
-        private HashSet<Sprite2D> _physicToAddInWorld = new HashSet<Sprite2D>();
+        private HashSet<Sprite2D> _physicToAddInWorld = new();
 
-        private Vector2 _vector2Tmp = new Vector2();
+        private Vector2 _vector2Tmp = new();
 
 
 
@@ -61,7 +61,7 @@ namespace CasaEngine.Physics2D
 
             _Vector2Tmp.X = g_.Location.X;
             _Vector2Tmp.Y = g_.Location.Y;
-            body_.Position = _Vector2Tmp;
+            body_.position = _Vector2Tmp;
             body_.UserData = g_;
             item.AttachToBody(body_, shape);
 

@@ -1,8 +1,5 @@
 using Microsoft.Xna.Framework;
 
-
-
-
 namespace CasaEngine.AI.Graphs
 {
     [Serializable]
@@ -19,17 +16,13 @@ namespace CasaEngine.AI.Graphs
 
         protected internal bool Digraph;
 
-
-
         public Graph(bool digraph)
         {
-            this.Digraph = digraph;
+            Digraph = digraph;
 
             Nodes = new List<T>();
             Edges = new List<List<TK>>();
         }
-
-
 
         public int NodeCount => Nodes.Count;
 
@@ -40,8 +33,12 @@ namespace CasaEngine.AI.Graphs
                 int count = 0;
 
                 for (int i = 0; i < Nodes.Count; i++)
+                {
                     if (Nodes[i].Index != Edge.InvalidNode)
+                    {
                         count++;
+                    }
+                }
 
                 return count;
             }
@@ -54,7 +51,9 @@ namespace CasaEngine.AI.Graphs
                 int count = 0;
 
                 for (int i = 0; i < Edges.Count; i++)
+                {
                     count += Edges[i].Count;
+                }
 
                 return count;
             }
@@ -67,23 +66,31 @@ namespace CasaEngine.AI.Graphs
                 int count = 0;
 
                 for (int i = 0; i < Edges.Count; i++)
+                {
                     for (int j = 0; j < Edges[i].Count; j++)
+                    {
                         if ((Nodes[Edges[i][j].Start].Index != Edge.InvalidNode) && (Nodes[Edges[i][j].End].Index != Edge.InvalidNode))
+                        {
                             count++;
+                        }
+                    }
+                }
 
                 return count;
             }
         }
 
-
-
         public bool IsNodeActive(int index)
         {
             if (index < 0 || index >= Nodes.Count)
+            {
                 return false;
+            }
 
             if (Nodes[index].Index == Edge.InvalidNode)
+            {
                 return false;
+            }
 
             return true;
         }
@@ -91,9 +98,15 @@ namespace CasaEngine.AI.Graphs
         public bool IsEdgePresent(int start, int end)
         {
             if (IsNodeActive(start) && IsNodeActive(end))
+            {
                 for (int i = 0; i < Edges[start].Count; i++)
+                {
                     if (Edges[start][i].End == end)
+                    {
                         return true;
+                    }
+                }
+            }
 
             return false;
         }
@@ -101,7 +114,9 @@ namespace CasaEngine.AI.Graphs
         public T GetNode(int index)
         {
             if (index < 0 || index > Nodes.Count)
+            {
                 throw new Exception("Invalid index");
+            }
 
             return Nodes[index];
         }
@@ -109,9 +124,15 @@ namespace CasaEngine.AI.Graphs
         public TK GetEdge(int start, int end)
         {
             if (IsNodeActive(start) && IsNodeActive(end))
+            {
                 for (int i = 0; i < Edges[start].Count; i++)
+                {
                     if (Edges[start][i].End == end)
+                    {
                         return Edges[start][i];
+                    }
+                }
+            }
 
             throw new Exception("Invalid edge");
         }
@@ -119,7 +140,9 @@ namespace CasaEngine.AI.Graphs
         public List<TK> GetEdgesFromNode(int nodeIndex)
         {
             if (nodeIndex < 0 || nodeIndex > Nodes.Count)
+            {
                 throw new Exception("Invalid index");
+            }
 
             return Edges[nodeIndex];
         }
@@ -129,11 +152,16 @@ namespace CasaEngine.AI.Graphs
             TK reverseEdge;
 
             if (IsNodeActive(edge.Start) && IsNodeActive(edge.End))
+            {
                 if (IsEdgePresent(edge.Start, edge.End) == false)
+                {
                     Edges[edge.Start].Add(edge);
+                }
+            }
 
             //If the graph is a digraph, add the reversed edge
             if (Digraph)
+            {
                 if (IsEdgePresent(edge.End, edge.Start) == false)
                 {
                     reverseEdge = (TK)edge.Clone();
@@ -142,6 +170,7 @@ namespace CasaEngine.AI.Graphs
 
                     Edges[edge.End].Add(reverseEdge);
                 }
+            }
         }
 
         public void RemoveEdge(int start, int end)
@@ -149,21 +178,26 @@ namespace CasaEngine.AI.Graphs
             if (IsNodeActive(start) && IsNodeActive(end))
             {
                 for (int i = 0; i < Edges[start].Count; i++)
+                {
                     if (Edges[start][i].End == end)
                     {
                         Edges[start].Remove(Edges[start][i]);
                         break;
                     }
+                }
 
                 //If the graph is a digraph remove the revesed edge
                 if (Digraph)
+                {
                     for (int i = 0; i < Edges[end].Count; i++)
+                    {
                         if (Edges[end][i].End == start)
                         {
                             Edges[end].Remove(Edges[end][i]);
                             break;
                         }
-
+                    }
+                }
             }
         }
 
@@ -177,7 +211,9 @@ namespace CasaEngine.AI.Graphs
             }
 
             else
+            {
                 throw new Exception("A node can´t have an index before being added to a graph");
+            }
         }
 
         public void RemoveNode(T node)
@@ -213,8 +249,12 @@ namespace CasaEngine.AI.Graphs
 
             neighbours = new List<T>();
             for (int i = 0; i < Nodes.Count; i++)
+            {
                 if (Nodes[i].IsNeighbour(spacePartitionSector, searchPosition, searchRange) == true)
+                {
                     neighbours.Add(Nodes[i]);
+                }
+            }
 
             return neighbours;
         }

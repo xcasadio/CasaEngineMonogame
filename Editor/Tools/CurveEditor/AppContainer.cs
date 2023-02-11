@@ -27,12 +27,16 @@ namespace Editor.Tools.CurveEditor
     /// </summary>
     public class AppContainer : Container
     {
-        ServiceContainer services = new ServiceContainer();
+        ServiceContainer services = new();
 
         protected override object GetService(Type service)
         {
             object so = services.GetService(service);
-            if (so == null) so = base.GetService(service);
+            if (so == null)
+            {
+                so = base.GetService(service);
+            }
+
             return so;
         }
     }

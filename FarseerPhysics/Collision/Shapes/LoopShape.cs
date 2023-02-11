@@ -37,7 +37,7 @@ namespace FarseerPhysics.Collision.Shapes
     /// </summary>
     public class LoopShape : Shape
     {
-        private static EdgeShape _edgeShape = new EdgeShape();
+        private static EdgeShape _edgeShape = new();
 
         /// <summary>
         /// The vertices. These are not owned/freed by the loop Shape.

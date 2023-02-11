@@ -9,7 +9,7 @@ namespace CasaEngine.FrontEnd.Screen
     public class MenuScreen
         : Screen
     {
-        readonly List<MenuEntry> _menuEntries = new List<MenuEntry>();
+        readonly List<MenuEntry> _menuEntries = new();
         int _selectedEntry = 0;
         readonly string _menuTitle;
 
@@ -23,7 +23,7 @@ namespace CasaEngine.FrontEnd.Screen
         public MenuScreen(string menuTitle, string menuName)
             : base(menuName)
         {
-            this._menuTitle = menuTitle;
+            _menuTitle = menuTitle;
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
@@ -41,7 +41,9 @@ namespace CasaEngine.FrontEnd.Screen
                 _selectedEntry--;
 
                 if (_selectedEntry < 0)
+                {
                     _selectedEntry = _menuEntries.Count - 1;
+                }
             }
 
             // Move to the next menu entry?
@@ -50,7 +52,9 @@ namespace CasaEngine.FrontEnd.Screen
                 _selectedEntry++;
 
                 if (_selectedEntry >= _menuEntries.Count)
+                {
                     _selectedEntry = 0;
+                }
             }
 
             // Accept or cancel the menu? We pass in our ControllingPlayer, which may
@@ -119,9 +123,13 @@ namespace CasaEngine.FrontEnd.Screen
             float transitionOffset = (float)System.Math.Pow(TransitionPosition, 2);
 
             if (ScreenState == ScreenState.TransitionOn)
+            {
                 position.X -= transitionOffset * 256;
+            }
             else
+            {
                 position.X += transitionOffset * 512;
+            }
 
             //spriteBatch.Begin();
 

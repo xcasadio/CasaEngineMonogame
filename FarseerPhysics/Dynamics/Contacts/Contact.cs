@@ -106,7 +106,7 @@ namespace FarseerPhysics.Dynamics.Contacts
     /// </summary>
     public class Contact
     {
-        private static EdgeShape _edge = new EdgeShape();
+        private static EdgeShape _edge = new();
 
         private static ContactType[,] _registers = new[,]
                                                        {
@@ -147,8 +147,8 @@ namespace FarseerPhysics.Dynamics.Contacts
         public Manifold Manifold;
 
         // Nodes for connecting bodies.
-        internal ContactEdge NodeA = new ContactEdge();
-        internal ContactEdge NodeB = new ContactEdge();
+        internal ContactEdge NodeA = new();
+        internal ContactEdge NodeB = new();
         public float TOI;
         internal int TOICount;
         private ContactType _type;

@@ -43,24 +43,24 @@ namespace CasaEngine.Debugger
             //Game.Components.Add(this);
 
             // This component doesn't need be call neither update nor draw.
-            this.Enabled = false;
-            this.Visible = false;
+            Enabled = false;
+            Visible = false;
 
             /*UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
 			DrawOrder = (int)ComponentDrawOrder.DebugManager;*/
 
-            VisibleChanged += new System.EventHandler<System.EventArgs>(DebugManager_VisibleChanged);
-            EnabledChanged += new System.EventHandler<System.EventArgs>(DebugManager_EnabledChanged);
+            VisibleChanged += new EventHandler<EventArgs>(DebugManager_VisibleChanged);
+            EnabledChanged += new EventHandler<EventArgs>(DebugManager_EnabledChanged);
         }
 
-        void DebugManager_EnabledChanged(object sender, System.EventArgs e)
+        void DebugManager_EnabledChanged(object sender, EventArgs e)
         {
-            this.Enabled = false;
+            Enabled = false;
         }
 
-        void DebugManager_VisibleChanged(object sender, System.EventArgs e)
+        void DebugManager_VisibleChanged(object sender, EventArgs e)
         {
-            this.Visible = false;
+            Visible = false;
         }
 
         protected override void LoadContent()

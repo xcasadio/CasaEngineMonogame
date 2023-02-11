@@ -45,7 +45,7 @@ namespace Editor.World
             //m_XnaEditorForm.Game.Content.RootDirectory = GameInfo.Instance.ProjectManager.ProjectPath;
             //Component creation
             // 
-            this.Load += new EventHandler(OnFormLoad);
+            Load += new EventHandler(OnFormLoad);
         }
 
         /// <summary>
@@ -90,9 +90,9 @@ namespace Editor.World
         /// <param name="e"></param>
         private void UndoRedoEventCommandDone(object sender, EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new DefaultEventDelegate(OnUndoRedoEventCommandDone));
+                Invoke(new DefaultEventDelegate(OnUndoRedoEventCommandDone));
             }
             else
             {
@@ -116,9 +116,9 @@ namespace Editor.World
         /// <param name="e"></param>
         private void UndoRedoCommandAdded(object sender, EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new DefaultEventDelegate(OnUndoRedoCommandAdded));
+                Invoke(new DefaultEventDelegate(OnUndoRedoCommandAdded));
             }
             else
             {

@@ -37,7 +37,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
         /// <returns></returns>
         public int Build(SpriteSheetTask.SpriteSheetBuild build_, out string spriteSheetFileName, out string mapFileName)
         {
-            m_PercentTotal = build_.Files.Count + 6; 
+            m_PercentTotal = build_.Files.Count + 6;
             m_Percent = 0;
 
             SetProgress(1, "Initializing...");
@@ -47,7 +47,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
             CreateTemporaryDirectory();
 
             mapFileName = tmpDirectory + "\\" + Path.GetFileNameWithoutExtension(build_.SpriteSheetName) + ".txt";
-            spriteSheetFileName = tmpDirectory +"\\" + build_.SpriteSheetName + ".png";
+            spriteSheetFileName = tmpDirectory + "\\" + build_.SpriteSheetName + ".png";
 
             // try to find matching exporters
             IImageExporter imageExporter = null;
@@ -124,7 +124,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 
             // pack the image, generating a map only if desired
             int result = imagePacker.PackImageOptimized(
-                build_.Files, build_.PowerOfTwo, build_.Square, 
+                build_.Files, build_.PowerOfTwo, build_.Square,
                 build_.SpriteSheetWidth, build_.SpriteSheetHeight,
                 build_.Padding, mapExporter != null, out outputImage, out outputMap);
 
@@ -147,7 +147,10 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
             try
             {
                 if (File.Exists(spriteSheetFileName))
+                {
                     File.Delete(spriteSheetFileName);
+                }
+
                 imageExporter.Save(spriteSheetFileName, outputImage);
             }
             catch (Exception e)
@@ -166,7 +169,10 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
                 try
                 {
                     if (File.Exists(mapFileName))
+                    {
                         File.Delete(mapFileName);
+                    }
+
                     mapExporter.Save(mapFileName, outputMap);
                 }
                 catch (Exception e)

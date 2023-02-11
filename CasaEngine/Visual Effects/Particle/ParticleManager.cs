@@ -3,8 +3,8 @@
     public class ParticleManager
     {
 
-        private List<ParticleSystem> _particleSystem = new List<ParticleSystem>();
-        private Stack<ParticleSystem> _freeParticleSystem = new Stack<ParticleSystem>();
+        private List<ParticleSystem> _particleSystem = new();
+        private Stack<ParticleSystem> _freeParticleSystem = new();
 
 
 

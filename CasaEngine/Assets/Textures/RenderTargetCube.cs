@@ -56,7 +56,10 @@ namespace CasaEngine.Asset
             get
             {
                 if (_alreadyResolved)
+                {
                     return _renderTarget;
+                }
+
                 throw new InvalidOperationException("Render Target: Unable to return render target. Render target not resolved.");
             }
         } // Resource
@@ -138,7 +141,10 @@ namespace CasaEngine.Asset
         public void EnableRenderTarget(CubeMapFace cubeMapFace)
         {
             if (_currentRenderTarget != null)
+            {
                 throw new InvalidOperationException("Render Target Cube: unable to set render target. Another render target is still set. If you want to set multiple render targets use the static method called EnableRenderTargets.");
+            }
+
             Engine.Instance.Game.GraphicsDevice.SetRenderTarget(_renderTarget, cubeMapFace);
             _currentRenderTarget = this;
             _alreadyResolved = false;
@@ -149,19 +155,31 @@ namespace CasaEngine.Asset
         public void Clear(Color clearColor)
         {
             if (_currentRenderTarget != this)
+            {
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
+            }
+
             if (DepthFormat == DepthFormat.None)
+            {
                 Engine.Instance.Game.GraphicsDevice.Clear(clearColor);
+            }
             else if (DepthFormat == DepthFormat.Depth24Stencil8)
+            {
                 Engine.Instance.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, clearColor, 1.0f, 0);
+            }
             else
+            {
                 Engine.Instance.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
+            }
         } // Clear
 
         public static void ClearCurrentRenderTargets(Color clearColor)
         {
             if (_currentRenderTarget == null)
+            {
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
+            }
+
             _currentRenderTarget.Clear(clearColor);
         } // Clear
 
@@ -182,7 +200,10 @@ namespace CasaEngine.Asset
         public static void DisableCurrentRenderTargets()
         {
             if (_currentRenderTarget != null)
+            {
                 _currentRenderTarget._alreadyResolved = true;
+            }
+
             _currentRenderTarget = null;
             Engine.Instance.Game.GraphicsDevice.SetRenderTarget(null);
         } // DisableCurrentRenderTargets
@@ -190,7 +211,7 @@ namespace CasaEngine.Asset
 
 
         // A pool of all render targets.
-        private static readonly List<RenderTargetCube> RenderTargets = new List<RenderTargetCube>(0);
+        private static readonly List<RenderTargetCube> RenderTargets = new(0);
 
         public static RenderTargetCube Fetch(int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntialiasingType antialiasingType, bool mipMap = false)
         {
@@ -215,7 +236,10 @@ namespace CasaEngine.Asset
         public static void Release(RenderTargetCube rendertarget)
         {
             if (rendertarget == null)
+            {
                 return;
+            }
+
             for (int i = 0; i < RenderTargets.Count; i++)
             {
                 if (rendertarget == RenderTargets[i])
@@ -231,7 +255,10 @@ namespace CasaEngine.Asset
         public static void ClearRenderTargetPool()
         {
             for (int i = 0; i < RenderTargets.Count; i++)
+            {
                 RenderTargets[i].Dispose();
+            }
+
             RenderTargets.Clear();
         } // ClearRenderTargetPool
 

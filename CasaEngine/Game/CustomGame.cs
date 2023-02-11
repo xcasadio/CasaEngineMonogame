@@ -215,7 +215,9 @@ namespace CasaEngine.Game
             {
                 _graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
                 if (_graphicsDeviceManager != null)
+                {
                     _graphicsDeviceManager.CreateDevice();
+                }
 
                 Initialize();
                 LoadContent();
@@ -353,7 +355,9 @@ namespace CasaEngine.Game
         {
             _graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
             if (_graphicsDeviceManager != null)
+            {
                 _graphicsDeviceManager.CreateDevice();
+            }
 
             Initialize();
             //this.inRun = true;
@@ -393,7 +397,11 @@ namespace CasaEngine.Game
         {
             // Returns true if the control would be visible if container is visible
             MethodInfo mi = ctl.GetType().GetMethod("GetState", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (mi == null) return ctl.Visible;
+            if (mi == null)
+            {
+                return ctl.Visible;
+            }
+
             return (bool)(mi.Invoke(ctl, new object[] { 2 }));
         }
 
@@ -412,10 +420,10 @@ namespace CasaEngine.Game
                 //TODO: GraphicsDevice property is heavily used. Maybe it is better to hook an event to the services container and
                 //      cache the reference to the GraphicsDeviceService to prevent accessing the dictionary of the services container
 
-                IGraphicsDeviceService graphicsDeviceService = this._graphicsDeviceService;
+                IGraphicsDeviceService graphicsDeviceService = _graphicsDeviceService;
                 if (graphicsDeviceService == null)
                 {
-                    this._graphicsDeviceService = graphicsDeviceService = Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
+                    _graphicsDeviceService = graphicsDeviceService = Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
 
                     //TODO: exception if null
                 }
@@ -492,15 +500,21 @@ namespace CasaEngine.Game
                 {
                     disposable = (IDisposable)array[i];
                     if (disposable != null)
+                    {
                         disposable.Dispose();
+                    }
                 }
 
                 disposable = (IDisposable)_graphicsDeviceManager;
                 if (disposable != null)
+                {
                     disposable.Dispose();
+                }
 
                 if (Disposed != null)
+                {
                     Disposed(this, EventArgs.Empty);
+                }
             }
         }
 
@@ -509,22 +523,22 @@ namespace CasaEngine.Game
             throw new NotImplementedException();
         }
 
-        protected virtual void OnActivated(Object sender, EventArgs args)
+        protected virtual void OnActivated(object sender, EventArgs args)
         {
             RaiseIfNotNull(Activated, sender, args);
         }
 
-        protected virtual void OnDeactivated(Object sender, EventArgs args)
+        protected virtual void OnDeactivated(object sender, EventArgs args)
         {
             RaiseIfNotNull(Deactivated, sender, args);
         }
 
-        protected virtual void OnExiting(Object sender, EventArgs args)
+        protected virtual void OnExiting(object sender, EventArgs args)
         {
             RaiseIfNotNull(Exiting, sender, args);
         }
 
-        private void RaiseIfNotNull(EventHandler<EventArgs> eventDelegate, Object sender, EventArgs args)
+        private void RaiseIfNotNull(EventHandler<EventArgs> eventDelegate, object sender, EventArgs args)
         {
             if (eventDelegate != null)
             {

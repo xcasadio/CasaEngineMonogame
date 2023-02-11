@@ -70,7 +70,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             }
 
             ListViewItem item = new ListViewItem(
-                new string[] { build_.SpriteSheetName, build_.DetectAnimations == true? "X" : "", build_.Files.Count.ToString() });
+                new string[] { build_.SpriteSheetName, build_.DetectAnimations == true ? "X" : "", build_.Files.Count.ToString() });
             listViewTask.Items.Add(item);
             m_SpriteSheetTask.AddBuild(build_);
         }
@@ -88,13 +88,13 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 int index = listViewTask.SelectedIndices[listViewTask.SelectedIndices.Count - 1];
                 SpriteSheetPackerForm form = new SpriteSheetPackerForm(m_SpriteSheetTask.GetBuild(index), true);
 
-                if (form.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+                if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     m_SpriteSheetTask.SetBuild(index, form.SpriteSheetBuild);
                     ListViewItem item = new ListViewItem(
-                        new string[] { 
-                            form.SpriteSheetBuild.SpriteSheetName, 
-                            form.SpriteSheetBuild.DetectAnimations == true ? "X" : "", 
+                        new string[] {
+                            form.SpriteSheetBuild.SpriteSheetName,
+                            form.SpriteSheetBuild.DetectAnimations == true ? "X" : "",
                             form.SpriteSheetBuild.Files.Count.ToString() });
                     listViewTask.Items[index] = item;
                 }
@@ -137,7 +137,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         /// <param name="e"></param>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         /// <summary>

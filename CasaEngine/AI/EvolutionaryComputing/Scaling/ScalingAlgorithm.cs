@@ -10,7 +10,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
 
         protected ScalingAlgorithm(EvolutionObjective objective)
         {
-            this.Objective = objective;
+            Objective = objective;
         }
 
 

@@ -11,7 +11,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public DisplacementMutation(double probability, Random generator, bool invert)
             : base(probability, generator)
         {
-            this.Invert = invert;
+            Invert = invert;
         }
 
 
@@ -19,8 +19,12 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public override void Mutate(Population<int> population)
         {
             for (int i = 0; i < population.Genome.Count; i++)
-                if (this.Generator.NextDouble() <= this.Probability)
+            {
+                if (Generator.NextDouble() <= Probability)
+                {
                     population[i] = Mutate(population[i]);
+                }
+            }
         }
 
         private Chromosome<int> Mutate(Chromosome<int> chromosome)
@@ -48,12 +52,20 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
             //Insert the displaced genes in the new chromosome
             if (Invert == false)
+            {
                 for (int i = first; i < second; i++)
+                {
                     finalChromosome.Genotype.Add(chromosome[i]);
+                }
+            }
 
             else
+            {
                 for (int i = second - 1; i >= first; i--)
+                {
                     finalChromosome.Genotype.Add(chromosome[i]);
+                }
+            }
 
             //Remove those genes from the original chromosome
             chromosome.Genotype.RemoveRange(first, second - first);
@@ -64,11 +76,15 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             //Insert the genes that were before the displacement position in the original gene
             //at the start of the new chromosome
             for (int i = 0; i < position; i++)
+            {
                 finalChromosome.Genotype.Insert(i, chromosome[i]);
+            }
 
             //Append the genes that were after the displacement position in the original gene
             for (int i = position; i < chromosome.Genotype.Count - 1; i++)
+            {
                 finalChromosome.Genotype.Add(chromosome[i]);
+            }
 
             return finalChromosome;
         }

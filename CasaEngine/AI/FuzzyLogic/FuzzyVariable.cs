@@ -2,7 +2,7 @@
 {
     public class FuzzyVariable
     {
-        readonly Dictionary<string, FuzzySet> _memberSets = new Dictionary<string, FuzzySet>();
+        readonly Dictionary<string, FuzzySet> _memberSets = new();
         double _dMinRange = 0.0;
         double _dMaxRange = 0.0;
 
@@ -40,7 +40,10 @@
             }
 
             //make sure bottom is not equal to zero
-            if (0 == bottom) return 0.0;
+            if (0 == bottom)
+            {
+                return 0.0;
+            }
 
             return top / bottom;
         }
@@ -80,7 +83,10 @@
             }
 
             //make sure total area is not equal to zero
-            if (0 == totalArea) return 0.0;
+            if (0 == totalArea)
+            {
+                return 0.0;
+            }
 
             return (sumOfMoments / totalArea);
         }
@@ -129,8 +135,15 @@
 
         private void AdjustRangeToFit(double minBound, double maxBound)
         {
-            if (minBound < _dMinRange) _dMinRange = minBound;
-            if (maxBound > _dMaxRange) _dMaxRange = maxBound;
+            if (minBound < _dMinRange)
+            {
+                _dMinRange = minBound;
+            }
+
+            if (maxBound > _dMaxRange)
+            {
+                _dMaxRange = maxBound;
+            }
         }
 
         public void WriteDoMs(BinaryWriter binW)

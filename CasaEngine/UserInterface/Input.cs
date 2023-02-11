@@ -55,8 +55,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        private readonly List<InputKey> _keys = new List<InputKey>();
-        private readonly List<InputMouseButton> _mouseButtons = new List<InputMouseButton>();
+        private readonly List<InputKey> _keys = new();
+        private readonly List<InputMouseButton> _mouseButtons = new();
         private readonly Rectangle _gameWindowClientBounds;
 
 

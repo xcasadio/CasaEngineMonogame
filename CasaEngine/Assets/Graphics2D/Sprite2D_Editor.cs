@@ -145,7 +145,7 @@ namespace CasaEngine.Assets.Graphics2D
             return false;
         }
 
-        private void NotifyPropertyChanged(String info)
+        private void NotifyPropertyChanged(string info)
         {
             if (PropertyChanged != null)
             {
@@ -194,7 +194,7 @@ namespace CasaEngine.Assets.Graphics2D
             {
                 node = el.OwnerDocument.CreateElement("Socket");
                 node.AppendChild(el.OwnerDocument.CreateElementWithText("Name", pair.Key));
-                node.AppendChild(el.OwnerDocument.CreateElement("Position", pair.Value));
+                node.AppendChild(el.OwnerDocument.CreateElement("position", pair.Value));
                 socketNode.AppendChild(node);
             }
         }

@@ -46,7 +46,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
                 Rectangle rect = new Rectangle(0, 0, Width, Height);
 
                 // get source bitmap pixel format size
-                Depth = System.Drawing.Bitmap.GetPixelFormatSize(source.PixelFormat);
+                Depth = Image.GetPixelFormatSize(source.PixelFormat);
 
                 // Check if bpp (Bits Per Pixel) is 8, 24, or 32
                 if (Depth != 8 && Depth != 24 && Depth != 32)
@@ -108,7 +108,9 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
             int i = ((y * Width) + x) * cCount;
 
             if (i > Pixels.Length - cCount)
+            {
                 throw new IndexOutOfRangeException();
+            }
 
             if (Depth == 32) // For 32 bpp get Red, Green, Blue and Alpha
             {

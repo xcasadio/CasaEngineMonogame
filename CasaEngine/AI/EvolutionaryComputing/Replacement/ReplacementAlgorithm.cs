@@ -12,13 +12,15 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
 
         protected ReplacementAlgorithm(int newPopulationSize, EvolutionObjective objective)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateNewPopulationSize(newPopulationSize, ref message) == false)
-                throw new AiException("newPopulationSize", this.GetType().ToString(), message);
+            {
+                throw new AiException("newPopulationSize", GetType().ToString(), message);
+            }
 
-            this.NewPopulationSize = newPopulationSize;
-            this.Objective = objective;
+            NewPopulationSize = newPopulationSize;
+            Objective = objective;
         }
 
 

@@ -24,13 +24,13 @@ namespace Editor
             foreach (AssetInfo info in Engine.Instance.AssetManager.Assets)
             {
                 ListViewItem item = new ListViewItem(
-                    new string[] { 
-                        info.Name, 
+                    new string[] {
+                        info.Name,
                         Enum.GetName(typeof(AssetType), info.Type)});
                 item.Tag = info;
 
                 listView1.Items.Add(item);
-            }           
+            }
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Editor
         /// <param name="e"></param>
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Editor
         {
             foreach (ListViewItem item in listView1.CheckedItems)
             {
-                Engine.Instance.AssetManager.RebuildAsset((AssetInfo) item.Tag);
+                Engine.Instance.AssetManager.RebuildAsset((AssetInfo)item.Tag);
             }
         }
 

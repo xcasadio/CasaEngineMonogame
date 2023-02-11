@@ -9,8 +9,8 @@
         }
 
 
-        readonly Stack<UndoRedoParam> _undo = new Stack<UndoRedoParam>();
-        readonly Stack<UndoRedoParam> _redo = new Stack<UndoRedoParam>();
+        readonly Stack<UndoRedoParam> _undo = new();
+        readonly Stack<UndoRedoParam> _redo = new();
 
         public event EventHandler UndoRedoCommandAdded;
         public event EventHandler EventCommandDone;

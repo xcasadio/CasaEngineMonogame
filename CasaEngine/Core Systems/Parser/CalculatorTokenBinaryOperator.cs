@@ -89,35 +89,35 @@ namespace CasaEngine.Design.Parser
                     break;
 
                 case BinaryOperator.Equal:
-                    res = System.Convert.ToSingle(_left.Evaluate() == _right.Evaluate());
+                    res = Convert.ToSingle(_left.Evaluate() == _right.Evaluate());
                     break;
 
                 case BinaryOperator.Different:
-                    res = System.Convert.ToSingle(_left.Evaluate() != _right.Evaluate());
+                    res = Convert.ToSingle(_left.Evaluate() != _right.Evaluate());
                     break;
 
                 case BinaryOperator.Superior:
-                    res = System.Convert.ToSingle(_left.Evaluate() > _right.Evaluate());
+                    res = Convert.ToSingle(_left.Evaluate() > _right.Evaluate());
                     break;
 
                 case BinaryOperator.Inferior:
-                    res = System.Convert.ToSingle(_left.Evaluate() < _right.Evaluate());
+                    res = Convert.ToSingle(_left.Evaluate() < _right.Evaluate());
                     break;
 
                 case BinaryOperator.SupEqual:
-                    res = System.Convert.ToSingle(_left.Evaluate() >= _right.Evaluate());
+                    res = Convert.ToSingle(_left.Evaluate() >= _right.Evaluate());
                     break;
 
                 case BinaryOperator.InfEqual:
-                    res = System.Convert.ToSingle(_left.Evaluate() <= _right.Evaluate());
+                    res = Convert.ToSingle(_left.Evaluate() <= _right.Evaluate());
                     break;
 
                 case BinaryOperator.Or:
-                    res = System.Convert.ToSingle(System.Convert.ToBoolean(_left.Evaluate()) || System.Convert.ToBoolean(_right.Evaluate()));
+                    res = Convert.ToSingle(Convert.ToBoolean(_left.Evaluate()) || Convert.ToBoolean(_right.Evaluate()));
                     break;
 
                 case BinaryOperator.And:
-                    res = System.Convert.ToSingle(System.Convert.ToBoolean(_left.Evaluate()) && System.Convert.ToBoolean(_right.Evaluate()));
+                    res = Convert.ToSingle(Convert.ToBoolean(_left.Evaluate()) && Convert.ToBoolean(_right.Evaluate()));
                     break;
 
                 default:

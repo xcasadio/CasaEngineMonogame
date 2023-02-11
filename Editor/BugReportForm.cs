@@ -37,7 +37,7 @@ namespace Editor
             form.Multiselect = false;
             form.Title = "Please select a file to attached";
 
-            if (form.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+            if (form.ShowDialog(this) == DialogResult.OK)
             {
                 textBoxAttachment.Text = form.FileName;
             }

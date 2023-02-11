@@ -64,8 +64,8 @@ namespace XNAFinalEngine.UserInterface
 
             public Selection(int start, int end)
             {
-                this._start = start;
-                this._end = end;
+                _start = start;
+                _end = end;
             } // Selection
 
             public void Clear()
@@ -100,11 +100,11 @@ namespace XNAFinalEngine.UserInterface
         private bool _showCursor;
         private double _flashTime;
         private string _shownText = "";
-        private Selection _selection = new Selection(-1, -1);
-        private List<string> _lines = new List<string>();
+        private Selection _selection = new(-1, -1);
+        private List<string> _lines = new();
         private int _linesDrawn;
         private int _charsDrawn;
-        private CasaEngine.Asset.Fonts.Font _font;
+        private Font _font;
         private bool _wordWrap;
         private const string Separator = "\n";
         private string _text = "";
@@ -979,15 +979,15 @@ namespace XNAFinalEngine.UserInterface
 #if (WINDOWS)
                 if (e.Control && e.Key == Keys.C && _mode != TextBoxMode.Password)
                 {
-                    System.Windows.Forms.Clipboard.Clear();
+                    Clipboard.Clear();
                     if (_mode != TextBoxMode.Password && !_selection.IsEmpty)
                     {
-                        System.Windows.Forms.Clipboard.SetText((Text.Substring(_selection.Start, _selection.Length)).Replace("\n", Environment.NewLine));
+                        Clipboard.SetText((Text.Substring(_selection.Start, _selection.Length)).Replace("\n", Environment.NewLine));
                     }
                 }
                 else if (e.Control && e.Key == Keys.V && !_readOnly && _mode != TextBoxMode.Password)
                 {
-                    string t = System.Windows.Forms.Clipboard.GetText().Replace(Environment.NewLine, "\n");
+                    string t = Clipboard.GetText().Replace(Environment.NewLine, "\n");
                     if (_selection.IsEmpty)
                     {
                         Text = Text.Insert(Position, t);

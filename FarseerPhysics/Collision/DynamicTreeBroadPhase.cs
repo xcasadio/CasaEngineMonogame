@@ -75,7 +75,7 @@ namespace FarseerPhysics.Collision
         private int _proxyCount;
         private Func<int, bool> _queryCallback;
         private int _queryProxyId;
-        private DynamicTree<FixtureProxy> _tree = new DynamicTree<FixtureProxy>();
+        private DynamicTree<FixtureProxy> _tree = new();
 
         public DynamicTreeBroadPhase()
         {

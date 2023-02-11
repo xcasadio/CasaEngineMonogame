@@ -55,7 +55,9 @@ namespace CasaEngine.AI.Pathfinding
                     }
 
                     else
+                    {
                         j++;
+                    }
                 }
 
                 i++;

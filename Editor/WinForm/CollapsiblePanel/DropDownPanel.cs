@@ -17,7 +17,7 @@ using MouseEventHandler = System.Windows.Forms.MouseEventHandler;
 
 namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 {
-    public class DropDownPanel : System.Windows.Forms.Panel
+    public class DropDownPanel : Panel
     {
 
         // Controls data
@@ -34,7 +34,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         private HotTrackStyle hotTrackStyle = HotTrackStyle.Both;
         private Bitmap iconNormal = null;
         private Bitmap iconOver = null;
-        private Font headerFont = Control.DefaultFont;
+        private Font headerFont = DefaultFont;
 
         // Status data
         private bool expanded = true;
@@ -255,7 +255,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
         private void createAutoCollapseTimer()
         {
-            if (!this.DesignMode && autoCollapseDelay > 0)
+            if (!DesignMode && autoCollapseDelay > 0)
             {
                 autoCollapseTimer = new System.Windows.Forms.Timer();
                 autoCollapseTimer.Tick += new EventHandler(autoCollapseTimer_Tick);
@@ -282,7 +282,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
 
 
-        protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
+        protected override void OnPaint(PaintEventArgs e)
         {
             if (expanded && Height >= 2 * pnlHeader.Height)
             {
@@ -307,7 +307,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             base.OnPaint(e);
         }
 
-        private void pnlHeader_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
+        private void pnlHeader_Paint(object sender, PaintEventArgs e)
         {
             Graphics gr = e.Graphics;
             gr.SmoothingMode = SmoothingMode.AntiAlias;
@@ -406,7 +406,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             gr.DrawString(headerText, headerFont, b, new RectangleF(6 + offset, 0, pnlHeader.Width - 12 - 6 - 6, pnlHeader.Height - 1), vCenteredFormat);
         }
 
-        protected override void OnSizeChanged(System.EventArgs e)
+        protected override void OnSizeChanged(EventArgs e)
         {
             // Skip if the expanding/collapsing animation is running (prevents flickering)
             if (DesignMode)
@@ -563,7 +563,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
 
 
-        private void pnlHeader_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void pnlHeader_MouseDown(object sender, MouseEventArgs e)
         {
             if (moveable && e.Button == MouseButtons.Left)
             {
@@ -573,7 +573,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             }
         }
 
-        private void pnlHeader_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void pnlHeader_MouseMove(object sender, MouseEventArgs e)
         {
             if (moveable && mouseDown)
             {
@@ -582,7 +582,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             }
         }
 
-        private void pnlHeader_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void pnlHeader_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
@@ -601,38 +601,38 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             BringToFront();
         }
 
-        private void pnlHeader_MouseEnter(object sender, System.EventArgs e)
+        private void pnlHeader_MouseEnter(object sender, EventArgs e)
         {
             stopAutoCollapseTimer();
             mouseOverHeader = true;
             pnlHeader.Refresh();
         }
 
-        private void pnlHeader_MouseLeave(object sender, System.EventArgs e)
+        private void pnlHeader_MouseLeave(object sender, EventArgs e)
         {
             startAutoCollapseTimer();
             mouseOverHeader = false;
             pnlHeader.Refresh();
         }
 
-        protected override void OnMouseEnter(System.EventArgs e)
+        protected override void OnMouseEnter(EventArgs e)
         {
             stopAutoCollapseTimer();
             base.OnMouseEnter(e);
         }
 
-        protected override void OnMouseLeave(System.EventArgs e)
+        protected override void OnMouseLeave(EventArgs e)
         {
             startAutoCollapseTimer();
             base.OnMouseLeave(e);
         }
 
-        protected override void OnClick(System.EventArgs e)
+        protected override void OnClick(EventArgs e)
         {
             BringToFront();
         }
 
-        private void autoCollapseTimer_Tick(object sender, System.EventArgs e)
+        private void autoCollapseTimer_Tick(object sender, EventArgs e)
         {
             autoCollapseTimer.Stop();
             if (expanded)
@@ -643,7 +643,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
 
 
-        private void ctxHeader_ItemClick(object sender, System.EventArgs e)
+        private void ctxHeader_ItemClick(object sender, EventArgs e)
         {
             ToolStripMenuItem i = (ToolStripMenuItem)sender;
             if (i == itmExpand)
@@ -804,7 +804,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
                 }
                 pnlHeader.Height = value;
                 createPaths();
-                this.Padding = new Padding(0, value, 0, 0);
+                Padding = new Padding(0, value, 0, 0);
             }
         }
 
@@ -1108,7 +1108,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
         }
 
-        private void lstValues_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void lstValues_MouseUp(object sender, MouseEventArgs e)
         {
             if (wfes != null)
             {
@@ -1179,7 +1179,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
         }
 
-        private void lstValues_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void lstValues_MouseUp(object sender, MouseEventArgs e)
         {
             if (wfes != null)
             {
@@ -1192,7 +1192,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
     /// <summary>
     /// Class for incapsulate the EventArgs of a DropDownPanel.
     /// </summary>
-    public class DropDownPanelEventArgs : System.EventArgs
+    public class DropDownPanelEventArgs : EventArgs
     {
 
         private bool expanded;
@@ -1218,7 +1218,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
     /// <summary>
     /// Class for creating a Panel without flickerings.
     /// </summary>
-    public class FlickerFreePanel : System.Windows.Forms.Panel
+    public class FlickerFreePanel : Panel
     {
 
         public FlickerFreePanel()

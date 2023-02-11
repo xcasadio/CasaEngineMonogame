@@ -603,7 +603,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 foreach (SkinFont skinFont in Fonts)
                 {
-                    skinFont.Font = (CasaEngine.Asset.Fonts.Font)Engine.Instance.ObjectManager.GetObjectByPath(skinFont.Filename);
+                    skinFont.Font = (Font)Engine.Instance.ObjectManager.GetObjectByPath(skinFont.Filename);
                     skinFont.Font.LoadTexture("", graphicsDevice);
                     //skinFont.Font = new CasaEngine.Asset.Fonts.Font(graphicsDevice_, fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename);
                 }

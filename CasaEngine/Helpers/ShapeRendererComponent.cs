@@ -20,11 +20,11 @@ namespace CasaEngine.Helper
         private ShapeRenderer _shapeRenderer;
         Matrix _projectionMatrix, _worldMatrix, _view;
         private FarseerPhysics.Dynamics.World _world;
-        private readonly List<DisplayCollisionData> _displayCollisionData = new List<DisplayCollisionData>();
+        private readonly List<DisplayCollisionData> _displayCollisionData = new();
 
         //to avoid GC
-        private readonly Stack<DisplayCollisionData> _freeDisplayCollisionData = new Stack<DisplayCollisionData>();
-        private Vector2 _vector2D1 = new Vector2();
+        private readonly Stack<DisplayCollisionData> _freeDisplayCollisionData = new();
+        private Vector2 _vector2D1 = new();
 
 
 

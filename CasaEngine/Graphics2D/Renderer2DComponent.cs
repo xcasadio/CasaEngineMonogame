@@ -51,22 +51,22 @@ namespace CasaEngine.Graphics2D
 
         static public bool DrawDebug = false;
 
-        readonly List<SpriteDisplayData> _listSprite2D = new List<SpriteDisplayData>(50);
+        readonly List<SpriteDisplayData> _listSprite2D = new(50);
         //used to create a resource pool
-        readonly Stack<SpriteDisplayData> _listFreeSpriteDisplayData = new Stack<SpriteDisplayData>(50);
+        readonly Stack<SpriteDisplayData> _listFreeSpriteDisplayData = new(50);
 
-        readonly List<Text2DDisplayData> _listText2D = new List<Text2DDisplayData>(50);
+        readonly List<Text2DDisplayData> _listText2D = new(50);
         //used to create a resource pool
-        readonly Stack<Text2DDisplayData> _listFreeTextDisplayData = new Stack<Text2DDisplayData>(50);
+        readonly Stack<Text2DDisplayData> _listFreeTextDisplayData = new(50);
 
-        readonly List<Line2DDisplayData> _listLine2D = new List<Line2DDisplayData>(50);
+        readonly List<Line2DDisplayData> _listLine2D = new(50);
         //used to create a resource pool
-        readonly Stack<Line2DDisplayData> _listFreeLine2DDisplayData = new Stack<Line2DDisplayData>(50);
+        readonly Stack<Line2DDisplayData> _listFreeLine2DDisplayData = new(50);
 
         //List<RoundLine> _RoundLines = new List<RoundLine>();		
         //RoundLineManager _RoundLineManager = null;
 
-        readonly Line2DRenderer _line2DRenderer = new Line2DRenderer();
+        readonly Line2DRenderer _line2DRenderer = new();
 
 
 
@@ -108,7 +108,7 @@ namespace CasaEngine.Graphics2D
         public override void Initialize()
         {
             base.Initialize();
-            _line2DRenderer.Init(this.GraphicsDevice);
+            _line2DRenderer.Init(GraphicsDevice);
         }
 
         protected override void Dispose(bool disposing)
@@ -118,7 +118,7 @@ namespace CasaEngine.Graphics2D
                 lock (this)
                 {
                     // Remove self from the service container.
-                    GameHelper.RemoveGameComponent<Renderer2DComponent>(this.Game);
+                    GameHelper.RemoveGameComponent<Renderer2DComponent>(Game);
                 }
             }
 
@@ -181,8 +181,8 @@ namespace CasaEngine.Graphics2D
                 Rectangle? rect = sprite.PositionInTexture;
 
                 /*Rectangle temp = new Rectangle();
-                temp.X = (int)(sprite.Position.X - hotspot.X);
-                temp.Y = (int)(sprite.Position.Y - hotspot.Y);
+                temp.X = (int)(sprite.position.X - hotspot.X);
+                temp.Y = (int)(sprite.position.Y - hotspot.Y);
                 temp.Width = sprite.PositionInTexture.Width;
                 temp.Height = sprite.PositionInTexture.Height;
 
@@ -192,13 +192,13 @@ namespace CasaEngine.Graphics2D
                     temp.Y = System.Math.Max(temp.Y, sprite.ScissorRectangle.Y);
                     temp.Width = System.Math.Min(
                         sprite.ScissorRectangle.X + sprite.ScissorRectangle.Width, 
-                        (int)sprite.Position.X + sprite.PositionInTexture.Width) - temp.X;
+                        (int)sprite.position.X + sprite.PositionInTexture.Width) - temp.X;
                     temp.Height = System.Math.Min(
                         sprite.ScissorRectangle.Y + sprite.ScissorRectangle.Height,
-                        (int)sprite.Position.Y + sprite.PositionInTexture.Height) - temp.Y;
+                        (int)sprite.position.Y + sprite.PositionInTexture.Height) - temp.Y;
 
-                    temp.X += sprite.PositionInTexture.X - (int)(sprite.Position.X - sprite.Origin.X);
-                    temp.Y += sprite.PositionInTexture.Y - (int)(sprite.Position.Y - sprite.Origin.Y);
+                    temp.X += sprite.PositionInTexture.X - (int)(sprite.position.X - sprite.Origin.X);
+                    temp.Y += sprite.PositionInTexture.Y - (int)(sprite.position.Y - sprite.Origin.Y);
 
                     temp.Width = (int)((float)temp.Width / sprite.Scale.X);
                     temp.Height = (int)((float)temp.Height / sprite.Scale.Y);

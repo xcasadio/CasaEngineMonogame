@@ -52,8 +52,8 @@ namespace Editor.Game
         string m_ObjectPath;
 
         MouseWindowed m_Mouse;
-        Point m_MouseLeftDownPosition = new Microsoft.Xna.Framework.Point();
-        Point m_MouseRightDownPosition = new Microsoft.Xna.Framework.Point();
+        Point m_MouseLeftDownPosition = new Point();
+        Point m_MouseRightDownPosition = new Point();
         bool m_MouseLeftDown = false;
         bool m_MouseRightDown = false;
 

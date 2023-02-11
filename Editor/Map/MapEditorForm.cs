@@ -16,7 +16,7 @@ namespace Editor.Map
     /// <summary>
     /// 
     /// </summary>
-    public partial class MapEditorForm 
+    public partial class MapEditorForm
         : Form
     {
         MyOwnEditorGame m_Game;
@@ -29,11 +29,11 @@ namespace Editor.Map
         {
             InitializeComponent();
 
-            this.FormClosing += new FormClosingEventHandler(FormClosingCallback);
-            this.Disposed += new EventHandler(Form_DisposedCallback);
+            FormClosing += new FormClosingEventHandler(FormClosingCallback);
+            Disposed += new EventHandler(Form_DisposedCallback);
 
             m_ThreadGame = new Thread(RunGame);
-            m_ThreadGame.Start();      
+            m_ThreadGame.Start();
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Editor.Map
         /// <param name="e"></param>
         void FormClosingCallback(object sender, FormClosingEventArgs e)
         {
-            Form_DisposedCallback(sender, EventArgs.Empty);                     
+            Form_DisposedCallback(sender, EventArgs.Empty);
         }
 
         /// <summary>

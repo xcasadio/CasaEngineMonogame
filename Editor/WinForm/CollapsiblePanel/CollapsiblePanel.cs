@@ -53,7 +53,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         public bool Collapse
         {
             get { return collapse; }
-            set 
+            set
             {
                 // If using animation make sure to ignore requests for collapse or expand while a previous
                 // operation is in progress.
@@ -76,15 +76,17 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         [Description("Specifies the speed (in ms) of Expand/Collapse operation when using animation. UseAnimation property must be set to true.")]
         public int AnimationInterval
         {
-            get 
+            get
             {
-                return timerAnimation.Interval ;
+                return timerAnimation.Interval;
             }
             set
             {
                 // Update animation interval only during idle times.
-                if(!timerAnimation.Enabled )
+                if (!timerAnimation.Enabled)
+                {
                     timerAnimation.Interval = value;
+                }
             }
         }
 
@@ -140,7 +142,9 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             set
             {
                 if (value < 1 || value > 15)
+                {
                     throw new ArgumentOutOfRangeException("HeaderCornersRadius", value, "Value should be in range [1, 90]");
+                }
                 else
                 {
                     headerCornersRadius = value;
@@ -219,8 +223,8 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         public CollapsiblePanel()
         {
             InitializeComponent();
-            this.pnlHeader.Width = this.Width -1;
-            
+            pnlHeader.Width = Width - 1;
+
             headerFont = new Font(Font, FontStyle.Bold);
             headerTextColor = Color.Black;
         }
@@ -237,9 +241,9 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
             gp.AddLine(x + radius, y, x + width - (radius * 2), y); // Line
             gp.AddArc(x + width - (radius * 2), y, radius * 2, radius * 2, 270, 90); // Corner
-            gp.AddLine(x + width, y + radius, x + width, y + height ); // Line
-            gp.AddLine(x + width , y + height, x , y + height); // Line
-            gp.AddLine(x, y + height , x, y + radius); // Line
+            gp.AddLine(x + width, y + radius, x + width, y + height); // Line
+            gp.AddLine(x + width, y + height, x, y + height); // Line
+            gp.AddLine(x, y + height, x, y + radius); // Line
             gp.AddArc(x, y, radius * 2, radius * 2, 180, 90); // Corner
             gp.CloseFigure();
             g.FillPath(brush, gp);
@@ -249,7 +253,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             }
             gp.Dispose();
         }
-       
+
         private void DrawHeaderPanel(PaintEventArgs e)
         {
             Rectangle headerRect = pnlHeader.ClientRectangle;
@@ -265,20 +269,22 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
                 }
             }
             else
-                DrawHeaderCorners(e.Graphics, headerBrush, headerRect.X, headerRect.Y, 
+            {
+                DrawHeaderCorners(e.Graphics, headerBrush, headerRect.X, headerRect.Y,
                     headerRect.Width, headerRect.Height, headerCornersRadius);
-               
-        
+            }
+
+
             // Draw header separator
             if (showHeaderSeparator)
             {
-                Point start = new Point(pnlHeader.Location.X, pnlHeader.Location.Y+ pnlHeader.Height);
-                Point end = new Point(pnlHeader.Location.X+ pnlHeader.Width, pnlHeader.Location.Y+ pnlHeader.Height);
+                Point start = new Point(pnlHeader.Location.X, pnlHeader.Location.Y + pnlHeader.Height);
+                Point end = new Point(pnlHeader.Location.X + pnlHeader.Width, pnlHeader.Location.Y + pnlHeader.Height);
                 e.Graphics.DrawLine(new Pen(headerTextColor, 2), start, end);
                 // Draw rectangle lines for the rest of the control.
-                Rectangle bodyRect = this.ClientRectangle;
-                bodyRect.Y += this.pnlHeader.Height;
-                bodyRect.Height -= (this.pnlHeader.Height+1);
+                Rectangle bodyRect = ClientRectangle;
+                bodyRect.Y += pnlHeader.Height;
+                bodyRect.Height -= (pnlHeader.Height + 1);
                 bodyRect.Width -= 1;
                 e.Graphics.DrawRectangle(new Pen(headerTextColor), bodyRect);
             }
@@ -298,10 +304,10 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
 
 
             // Calculate header string position.
-            if (!String.IsNullOrEmpty(headerText))
+            if (!string.IsNullOrEmpty(headerText))
             {
                 useToolTip = false;
-                int delta = pictureBoxExpandCollapse.Width+5;
+                int delta = pictureBoxExpandCollapse.Width + 5;
                 int offset = 0;
                 if (headerImage != null)
                 {
@@ -311,7 +317,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
                 Size headerTextSize = TextRenderer.MeasureText(headerText, headerFont);
                 if (headerTextAutoEllipsis)
                 {
-                    if (headerTextSize.Width >= headerRect.Width - (delta+offset))
+                    if (headerTextSize.Width >= headerRect.Width - (delta + offset))
                     {
                         RectangleF rectLayout =
                             new RectangleF((float)headerRect.X + offset,
@@ -356,22 +362,24 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             {
                 if (collapse)
                 {
-                    originalHight = this.Height;
-                    this.Height = pnlHeader.Height + 3;
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.expand;
+                    originalHight = Height;
+                    Height = pnlHeader.Height + 3;
+                    pictureBoxExpandCollapse.Image = Properties.Resources.expand;
                 }
                 else
                 {
-                    this.Height = originalHight;
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.collapse;
+                    Height = originalHight;
+                    pictureBoxExpandCollapse.Image = Properties.Resources.collapse;
                 }
             }
             else
             {
 
                 // Keep original height only in case of a collapse operation.
-                if(collapse)
-                    originalHight = this.Height;
+                if (collapse)
+                {
+                    originalHight = Height;
+                }
 
                 timerAnimation.Enabled = true;
                 timerAnimation.Start();
@@ -384,10 +392,12 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             {
                 if (!collapse)
                 {
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.collapse_hightlight;
+                    pictureBoxExpandCollapse.Image = Properties.Resources.collapse_hightlight;
                 }
                 else
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.expand_highlight;
+                {
+                    pictureBoxExpandCollapse.Image = Properties.Resources.expand_highlight;
+                }
             }
         }
 
@@ -397,24 +407,26 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             {
                 if (!collapse)
                 {
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.collapse;
+                    pictureBoxExpandCollapse.Image = Properties.Resources.collapse;
                 }
                 else
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.expand;
+                {
+                    pictureBoxExpandCollapse.Image = Properties.Resources.expand;
+                }
             }
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            this.pnlHeader.Width = this.Width -1;
+            pnlHeader.Width = Width - 1;
             Refresh();
         }
 
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
-            this.pnlHeader.Width = this.Width -1;
+            pnlHeader.Width = Width - 1;
             Refresh();
         }
 
@@ -422,36 +434,42 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         {
             if (collapse)
             {
-                if (this.Height <= pnlHeader.Height + 3)
+                if (Height <= pnlHeader.Height + 3)
                 {
                     timerAnimation.Stop();
                     timerAnimation.Enabled = false;
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.expand;
+                    pictureBoxExpandCollapse.Image = Properties.Resources.expand;
                 }
                 else
                 {
-                    int newHight = this.Height - 20;
+                    int newHight = Height - 20;
                     if (newHight <= pnlHeader.Height + 3)
+                    {
                         newHight = pnlHeader.Height + 3;
-                    this.Height = newHight;
+                    }
+
+                    Height = newHight;
                 }
-                
-                
+
+
             }
             else
             {
-                if (this.Height >=  originalHight)
+                if (Height >= originalHight)
                 {
                     timerAnimation.Stop();
                     timerAnimation.Enabled = false;
-                    pictureBoxExpandCollapse.Image = Editor.Properties.Resources.collapse;
+                    pictureBoxExpandCollapse.Image = Properties.Resources.collapse;
                 }
                 else
                 {
-                    int newHeight = this.Height + 20;
+                    int newHeight = Height + 20;
                     if (newHeight >= originalHight)
+                    {
                         newHeight = originalHight;
-                    this.Height = newHeight;
+                    }
+
+                    Height = newHeight;
                 }
             }
         }
@@ -460,7 +478,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         {
             if (useToolTip)
             {
-                Point p = this.PointToClient(Control.MousePosition);
+                Point p = PointToClient(MousePosition);
                 if (toolTipRectangle.Contains(p))
                 {
                     toolTip.Show(headerText, pnlHeader, p);
@@ -472,7 +490,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
         {
             if (useToolTip)
             {
-                Point p = this.PointToClient(Control.MousePosition);
+                Point p = PointToClient(MousePosition);
                 if (!toolTipRectangle.Contains(p))
                 {
                     toolTip.Hide(pnlHeader);
@@ -480,7 +498,7 @@ namespace Editor.WinForm.CollapsiblePanel.CollapsiblePanel
             }
         }
 
-        
+
 
     }
 }

@@ -6,18 +6,18 @@ namespace CasaEngine.Design.Parser
 {
     public abstract class Parser
     {
-        readonly Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator> _mapBinaryOperator = new Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator>();
+        readonly Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator> _mapBinaryOperator = new();
 
-        Dictionary<int, List<ParserToken>> _tokens = new Dictionary<int, List<ParserToken>>();
+        Dictionary<int, List<ParserToken>> _tokens = new();
 
-        readonly List<CalculatorToken> _calculatorList = new List<CalculatorToken>();
+        readonly List<CalculatorToken> _calculatorList = new();
         readonly Calculator _calculator;
 
-        readonly List<string> _tokensValue = new List<string>();
+        readonly List<string> _tokensValue = new();
 
 
 
-        internal CasaEngine.Design.Parser.Calculator Calculator => _calculator;
+        internal Calculator Calculator => _calculator;
 
         internal string[] TokensValue => _tokensValue.ToArray();
 

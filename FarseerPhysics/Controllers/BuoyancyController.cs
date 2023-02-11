@@ -35,7 +35,7 @@ namespace FarseerPhysics.Controllers
         private Vector2 _gravity;
         private Vector2 _normal;
         private float _offset;
-        private Dictionary<int, Body> _uniqueBodies = new Dictionary<int, Body>();
+        private Dictionary<int, Body> _uniqueBodies = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuoyancyController"/> class.

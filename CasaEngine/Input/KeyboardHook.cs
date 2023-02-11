@@ -93,7 +93,9 @@ namespace XNAFinalEngine.Input
                     // Store current parameter.
                     _lastParameter = lParam;
                     if (lParam.VkCode != 13)
+                    {
                         return (IntPtr)1;
+                    }
                 }
             }
             // Store current parameter.

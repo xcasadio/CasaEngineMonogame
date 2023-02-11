@@ -136,7 +136,7 @@ namespace CasaEngine.Graphics2D
 
         public bool IsValidAnimation2DName(string name)
         {
-            string name = name_.ToLower();
+            name = name.ToLower();
 
             foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
             {
@@ -165,7 +165,7 @@ namespace CasaEngine.Graphics2D
             }
 
             tmp.Name = newName;
-            _animation2DList[tmp.ID] = tmp;
+            _animation2DList[tmp.Id] = tmp;
 
             if (AnimationRenamed != null)
             {

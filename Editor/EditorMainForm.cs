@@ -76,7 +76,7 @@ namespace Editor
                 fileToolStripMenuItem,					// parent
                 m_RegistryPath);						// Registry path to keep MRU list
 
-            m_MruManager.MruOpenEvent += delegate(object sender_, MruFileOpenEventArgs e_)
+            m_MruManager.MruOpenEvent += delegate (object sender_, MruFileOpenEventArgs e_)
             {
                 LoadProject(e_.FileName);
             };
@@ -107,7 +107,7 @@ namespace Editor
                 try
                 {
 #endif
-                    m_ProjectConfigForm = new ProjectConfigForm();
+                m_ProjectConfigForm = new ProjectConfigForm();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -178,7 +178,7 @@ namespace Editor
                 try
                 {
 #endif
-                    m_SoundEditorForm = new SoundEditorForm();
+                m_SoundEditorForm = new SoundEditorForm();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -323,7 +323,7 @@ namespace Editor
         /// <param name="e"></param>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
 
@@ -448,7 +448,7 @@ namespace Editor
                 }*/
             }
 #endif
-            
+
             OnProjectLoaded(fileName_);
 #if !DEBUG
             }
@@ -472,14 +472,14 @@ namespace Editor
             if (Engine.Instance.ProjectManager.Save(fileName_) == true)
             {
                 LogManager.Instance.WriteLine("Project ",
-                    "\"" + Engine.Instance.ProjectConfig.ProjectName + "\"", System.Drawing.Color.Blue,
+                    "\"" + Engine.Instance.ProjectConfig.ProjectName + "\"", Color.Blue,
                     " successfully saved.");
             }
             else
             {
                 LogManager.Instance.WriteLineError("Can't save the project.");
             }
-            
+
 #if !DEBUG
             }
             catch (System.Exception ex)
@@ -513,7 +513,7 @@ namespace Editor
             m_MruManager.Add(fileName_);
             SetTitle();
             LogManager.Instance.WriteLine("Project ",
-                "\"" + Engine.Instance.ProjectConfig.ProjectName + "\" ", System.Drawing.Color.Blue,
+                "\"" + Engine.Instance.ProjectConfig.ProjectName + "\" ", Color.Blue,
                 "(", Engine.Instance.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
         }
 
@@ -538,52 +538,52 @@ namespace Editor
             try
             { 
 #endif
-                saveToolStripMenuItem_Click(this, EventArgs.Empty);
+            saveToolStripMenuItem_Click(this, EventArgs.Empty);
 
-                BgWorkerForm form = new BgWorkerForm(BuildAssetFileInContentFolder);
-                //BgWorkerForm form = new BgWorkerForm(CopyAssetFileInContentFolder);
-                form.Text = "Copying ressource files";
-                form.ShowDialog(this);
+            BgWorkerForm form = new BgWorkerForm(BuildAssetFileInContentFolder);
+            //BgWorkerForm form = new BgWorkerForm(CopyAssetFileInContentFolder);
+            form.Text = "Copying ressource files";
+            form.ShowDialog(this);
 
-                bool res = form.Result == null ? false :
-                    form.Result.Error != null ? false:
-                    form.Result.Result is bool ? (bool)form.Result.Result : false;
+            bool res = form.Result == null ? false :
+                form.Result.Error != null ? false :
+                form.Result.Result is bool ? (bool)form.Result.Result : false;
 
-                if (res == false)
+            if (res == false)
+            {
+                if (form.Result != null) //else : user cancel the operation : no message
                 {
-                    if (form.Result != null) //else : user cancel the operation : no message
+                    if (form.Result.Error != null)
                     {
-                        if (form.Result.Error != null)
-                        {
-                            LogManager.Instance.WriteException(form.Result.Error);
-                            MessageBox.Show(this, form.Result.Error.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        else
-                        {
-                            LogManager.Instance.WriteLineError("Can't copy ressource files : unknown error!");
-                            MessageBox.Show(this, "Can't copy ressource files : unknown error!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
+                        LogManager.Instance.WriteException(form.Result.Error);
+                        MessageBox.Show(this, form.Result.Error.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-
-                    return;
+                    else
+                    {
+                        LogManager.Instance.WriteLineError("Can't copy ressource files : unknown error!");
+                        MessageBox.Show(this, "Can't copy ressource files : unknown error!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
 
-                form.Dispose();
+                return;
+            }
 
-                ProcessStartInfo myInfo = new ProcessStartInfo();
-                myInfo.FileName = FindGameExe();
+            form.Dispose();
 
-                if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
-                {
-                    myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
-                    myInfo.Arguments = Path.GetFileName(Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened));
-                    Process.Start(myInfo);
-                }
-                else
-                {
-                    LogManager.Instance.WriteLineError("Game exe not found!");
-                    MessageBox.Show(this, "Game exe not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            ProcessStartInfo myInfo = new ProcessStartInfo();
+            myInfo.FileName = FindGameExe();
+
+            if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
+            {
+                myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
+                myInfo.Arguments = Path.GetFileName(Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened));
+                Process.Start(myInfo);
+            }
+            else
+            {
+                LogManager.Instance.WriteLineError("Game exe not found!");
+                MessageBox.Show(this, "Game exe not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
 #if !DEBUG
             }
             catch (Exception ex)
@@ -751,7 +751,7 @@ namespace Editor
         /// <param name="e"></param>
         private void CheckExternalTool()
         {
-            this.groupBox2.Controls.Clear();
+            groupBox2.Controls.Clear();
 
             /*string[] names = GameInfo.Instance.ExternalToolManager.GetAllToolNames();
             int i = 0;
@@ -785,8 +785,8 @@ namespace Editor
             try
             {
 #endif
-                //Button button = (Button)sender;
-                //GameInfo.Instance.ExternalToolManager.RunTool(this, button.Name);
+            //Button button = (Button)sender;
+            //GameInfo.Instance.ExternalToolManager.RunTool(this, button.Name);
 #if !DEBUG
             }
             catch (Exception ex)
@@ -804,10 +804,10 @@ namespace Editor
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
 
-            this.Text = "Project Editor - " + Engine.Instance.ProjectConfig.ProjectName + " - " + fvi.ProductVersion;
+            Text = "Project Editor - " + Engine.Instance.ProjectConfig.ProjectName + " - " + fvi.ProductVersion;
 
 #if DEBUG
-            this.Text += " - DEBUG";
+            Text += " - DEBUG";
 #endif
         }
 
@@ -991,7 +991,7 @@ namespace Editor
                                             node.SelectedImageIndex = (int)SourceControlIcon.FileEditOther;
                                         }
                                     }
-                                }                                
+                                }
                                 else
                                 {
                                     node.ImageIndex = (int)SourceControlIcon.FileSync;
@@ -1014,8 +1014,8 @@ namespace Editor
                         {
                             node.ImageIndex = (int)SourceControlIcon.FileNotSync;
                             node.SelectedImageIndex = (int)SourceControlIcon.FileNotSync;
-                        }                        
-                        
+                        }
+
                         break;
                     }
                 }
@@ -1069,7 +1069,7 @@ namespace Editor
         /// <param name="e"></param>
         private void buttonSubmit_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         /// <summary>

@@ -123,20 +123,23 @@
                 _errors[i] = 0;
 
                 if (_childLayer != null)
+                {
                     for (j = 0; j < _numberOfChildNodes; j++)
                     {
                         _weights[i, j] = 0;
                         _weightChanges[i, j] = 0;
                     }
+                }
             }
 
             if (_childLayer != null)
+            {
                 for (j = 0; j < _numberOfChildNodes; j++)
                 {
                     _biasValues[j] = -1;
                     _biasWeights[j] = 0;
                 }
-
+            }
         }
 
         public void CleanUp()
@@ -168,10 +171,14 @@
                     number = rand.Next(min, max);
 
                     if (number > max)
+                    {
                         number = max;
+                    }
 
                     if (number < min)
+                    {
                         number = min;
+                    }
 
                     _weights[i, j] = number / 100.0f - 1;
                 }
@@ -182,10 +189,14 @@
                 number = rand.Next(min, max);
 
                 if (number > max)
+                {
                     number = max;
+                }
 
                 if (number < min)
+                {
                     number = min;
+                }
 
                 _biasWeights[j] = number / 100.0f - 1;
             }
@@ -268,9 +279,13 @@
                     x += _parentLayer.BiasValues[j] * _parentLayer.BiasWeights[j];
 
                     if ((_childLayer == null) && _linearOutput)
+                    {
                         _neuronValues[j] = x;
+                    }
                     else
+                    {
                         _neuronValues[j] = 1.0f / (1 + System.Math.Exp(-x));
+                    }
                 }
             }
         }

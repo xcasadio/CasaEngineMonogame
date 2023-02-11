@@ -13,8 +13,8 @@ namespace FarseerPhysics.Controllers
 
     public class GravityController : Controller
     {
-        public List<Body> Bodies = new List<Body>();
-        public List<Vector2> Points = new List<Vector2>();
+        public List<Body> Bodies = new();
+        public List<Vector2> Points = new();
 
         public GravityController(float strength)
             : base(ControllerType.GravityController)

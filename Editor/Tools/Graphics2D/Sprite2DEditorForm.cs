@@ -27,7 +27,7 @@ namespace Editor.Tools.Graphics2D
     /// <summary>
     /// 
     /// </summary>
-    public partial class Sprite2DEditorForm 
+    public partial class Sprite2DEditorForm
         : Form, IEditorForm, IExternalTool
     {
 
@@ -45,7 +45,7 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         public Control XnaPanel
         {
-            get { return this.panelXna; }
+            get { return panelXna; }
         }
 
         /// <summary>
@@ -94,8 +94,8 @@ namespace Editor.Tools.Graphics2D
             m_XnaEditorForm.Game.Content.RootDirectory = Engine.Instance.ProjectManager.ProjectPath;
             m_XnaEditorForm.StartGame();
 
-            this.FormClosed += new FormClosedEventHandler(Sprite2DEditorFormClosed);
-            this.Text = "Sprite2D Editor";
+            FormClosed += new FormClosedEventHandler(Sprite2DEditorFormClosed);
+            Text = "Sprite2D Editor";
         }
 
 
@@ -151,7 +151,7 @@ namespace Editor.Tools.Graphics2D
             //SetCurrentSocketIndex(listBoxSockets.Items.Count == 0 ? -1 : 0, false);
             propertyGridSocket.SelectedObject = listBoxSockets.SelectedItem;
             ///
-            buttonDelSocket.Enabled = listBoxSockets.Items.Count > 0;            
+            buttonDelSocket.Enabled = listBoxSockets.Items.Count > 0;
         }
 
         /// <summary>
@@ -183,10 +183,10 @@ namespace Editor.Tools.Graphics2D
             }
             else
             {
-                listBoxCollision.SelectedIndexChanged -= new System.EventHandler(this.listBoxCollision_SelectedIndexChanged);
+                listBoxCollision.SelectedIndexChanged -= new EventHandler(listBoxCollision_SelectedIndexChanged);
                 listBoxCollision.SelectedIndex = index_;
                 SetCollisionIndex(applyModification);
-                listBoxCollision.SelectedIndexChanged += new System.EventHandler(this.listBoxCollision_SelectedIndexChanged);
+                listBoxCollision.SelectedIndexChanged += new EventHandler(listBoxCollision_SelectedIndexChanged);
             }
         }
 
@@ -203,7 +203,7 @@ namespace Editor.Tools.Graphics2D
             {
                 m_Sprite2DComponent.ApplyCollisionChanges();
             }
-            
+
             m_Sprite2DComponent.CurrentCollisonIndex = index;
 
             if (index != -1 && m_Sprite2DComponent.CurrentSprite2D != null)
@@ -225,7 +225,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void CurrentCollision_PropertyValueChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (this.propertyGridCollision.InvokeRequired)
+            if (propertyGridCollision.InvokeRequired)
             {
                 SetPropertyChangedCallback c = new SetPropertyChangedCallback(CollisionPropertyChangedCallback);
                 propertyGridCollision.Invoke(c, new object[] { sender, e });
@@ -322,7 +322,7 @@ namespace Editor.Tools.Graphics2D
 
             InputComboBox form = new InputComboBox("Select a shape type", "Create a shape", Enum.GetNames(typeof(Shape2DType)));
 
-            if (form.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+            if (form.ShowDialog(this) == DialogResult.OK)
             {
                 AddCollisionInSprite((Shape2DType)Enum.Parse(typeof(Shape2DType), form.SelectedItem));
             }
@@ -385,7 +385,7 @@ namespace Editor.Tools.Graphics2D
         {
             if (listBoxCollision.InvokeRequired == true)
             {
-                listBoxCollision.Invoke(new Action( () => AddCollision(obj_, sprite_) ));
+                listBoxCollision.Invoke(new Action(() => AddCollision(obj_, sprite_)));
             }
             else
             {
@@ -393,8 +393,8 @@ namespace Editor.Tools.Graphics2D
                 listBoxCollision.Items.Add(obj_);
                 listBoxCollision.SelectedIndex = listBoxCollision.Items.Count - 1;
                 buttonDelColl.Enabled = true;
-            }            
-        }             
+            }
+        }
 
         /// <summary>
         /// 
@@ -425,7 +425,7 @@ namespace Editor.Tools.Graphics2D
             listBoxCollision.SelectedIndexChanged -= new EventHandler(listBoxCollision_SelectedIndexChanged);
 
             RemoveCollisionAt(index, sprite);
-            
+
             if (listBoxCollision.Items.Count > 0)
             {
                 index--;
@@ -439,7 +439,7 @@ namespace Editor.Tools.Graphics2D
             listBoxCollision.SelectedIndexChanged += new EventHandler(listBoxCollision_SelectedIndexChanged);
 
             SetCollisionIndex(false);
-        }        
+        }
 
         /// <summary>
         /// 
@@ -449,13 +449,13 @@ namespace Editor.Tools.Graphics2D
         {
             if (listBoxCollision.InvokeRequired == true)
             {
-                listBoxCollision.Invoke(new Action( () => RemoveCollisionAt(index_, sprite_) ));
+                listBoxCollision.Invoke(new Action(() => RemoveCollisionAt(index_, sprite_)));
             }
             else
             {
                 sprite_.RemoveCollisionAt(index_);
                 listBoxCollision.Items.RemoveAt(index_);
-            }            
+            }
         }
 
         /// <summary>
@@ -485,7 +485,7 @@ namespace Editor.Tools.Graphics2D
         private void undoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             m_OnUndoRedoManagerAction = true;
-            Thread t = new Thread(new ThreadStart(delegate { m_UndoRedoManager.Undo(); } ));
+            Thread t = new Thread(new ThreadStart(delegate { m_UndoRedoManager.Undo(); }));
             t.Start();
         }
 
@@ -497,7 +497,7 @@ namespace Editor.Tools.Graphics2D
         private void redoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             m_OnUndoRedoManagerAction = true;
-            Thread t = new Thread(new ThreadStart(delegate { m_UndoRedoManager.Redo(); } ));
+            Thread t = new Thread(new ThreadStart(delegate { m_UndoRedoManager.Redo(); }));
             t.Start();
         }
 
@@ -508,14 +508,14 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void UndoRedoEventCommandDone(object sender, EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new Action(() => OnUndoRedoEventCommandDone()));
+                Invoke(new Action(() => OnUndoRedoEventCommandDone()));
             }
             else
             {
                 OnUndoRedoEventCommandDone();
-            }            
+            }
         }
 
         /// <summary>
@@ -535,9 +535,9 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void UndoRedoCommandAdded(object sender, EventArgs e)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new Action(() => OnUndoRedoCommandAdded()));
+                Invoke(new Action(() => OnUndoRedoCommandAdded()));
             }
             else
             {
@@ -563,7 +563,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void cutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         /// <summary>
@@ -606,7 +606,7 @@ namespace Editor.Tools.Graphics2D
                 if (obj != null)
                 {
                     AddCollision(obj, m_Sprite2DComponent.CurrentSprite2D);
-                }                
+                }
             }
             else if (Clipboard.ContainsData("Socket2D") == true)
             {
@@ -774,7 +774,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         void sprite2DPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (this.propertyGridSprite2D.InvokeRequired)
+            if (propertyGridSprite2D.InvokeRequired)
             {
                 SetPropertyChangedCallback c = new SetPropertyChangedCallback(Sprite2DPropertyChangedCallback);
                 propertyGridSprite2D.Invoke(c, new object[] { sender, e });
@@ -880,7 +880,7 @@ namespace Editor.Tools.Graphics2D
 
                 m_TabSelectedIndex = tabControl1.SelectedIndex;
                 m_UndoRedoManager.Clear();
-            }            
+            }
         }
 
 
@@ -917,7 +917,7 @@ namespace Editor.Tools.Graphics2D
             else
             {
                 LogManager.Instance.WriteLineError("Sprite2DEditorForm.SetCurrentObject() : BaseObject is not a Sprite2D");
-            }            
+            }
         }
 
     }

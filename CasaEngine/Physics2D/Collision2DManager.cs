@@ -13,16 +13,16 @@ namespace CasaEngine.Physics2D
 
         static private Collision2DManager _instance = null;
 
-        private readonly List<IAttackable> _objects = new List<IAttackable>();
-        private readonly Message _message1 = new Message(0, 0, (int)MessageType.Hit, 0, null);
-        private readonly Message _message2 = new Message(0, 0, (int)MessageType.Hit, 0, null);
-        private HitInfo _hitInfo = new HitInfo();
+        private readonly List<IAttackable> _objects = new();
+        private readonly Message _message1 = new(0, 0, (int)MessageType.Hit, 0, null);
+        private readonly Message _message2 = new(0, 0, (int)MessageType.Hit, 0, null);
+        private HitInfo _hitInfo = new();
 
         //to avoid GC
         private Vector2
-            _v1 = new Vector2(),
-            _v2 = new Vector2(),
-            _contactPoint = new Vector2();
+            _v1 = new(),
+            _v2 = new(),
+            _contactPoint = new();
 
 
 
@@ -226,12 +226,12 @@ namespace CasaEngine.Physics2D
             _hitInfo.ContactPoint = contactPoint;
 
             _message1.SenderID = -1;
-            _message1.RecieverID = -1; //hit_.ID
+            _message1.RecieverID = -1; //hit_.Id
             _message1.Type = (int)MessageType.Hit;
             _message1.ExtraInfo = _hitInfo;
 
             _message2.SenderID = -1;
-            _message2.RecieverID = -1; //attacker_.ID
+            _message2.RecieverID = -1; //attacker_.Id
             _message2.Type = (int)MessageType.HitSomeone;
             _message2.ExtraInfo = _hitInfo;
 

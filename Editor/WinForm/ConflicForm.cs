@@ -26,7 +26,7 @@ namespace Editor.WinForm
         /// </summary>
         public ConflictAction Action
         {
-            get 
+            get
             {
                 if (radioButtonReplace.Checked == true)
                 {
@@ -67,7 +67,7 @@ namespace Editor.WinForm
                 MessageBox.Show(this, "Please select an action.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            this.Close();
+            Close();
         }
     }
 }

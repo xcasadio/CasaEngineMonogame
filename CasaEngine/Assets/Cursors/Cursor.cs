@@ -44,7 +44,9 @@ namespace CasaEngine.Asset.Cursors
         internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (Resource == null)
+            {
                 Resource = Engine.Instance.AssetContentManager.Load<System.Windows.Forms.Cursor>(Filename, GraphicsDevice);
+            }
         } // RecreateResource
 
 

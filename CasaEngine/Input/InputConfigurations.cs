@@ -5,7 +5,7 @@ namespace CasaEngine.Input
 {
     public class InputConfigurations
     {
-        readonly Dictionary<string, ButtonConfiguration> _configs = new Dictionary<string, ButtonConfiguration>();
+        readonly Dictionary<string, ButtonConfiguration> _configs = new();
 
 
 

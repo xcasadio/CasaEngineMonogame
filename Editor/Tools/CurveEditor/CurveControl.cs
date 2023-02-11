@@ -168,7 +168,10 @@ namespace Editor.Tools.CurveEditor
             EndUpdateCurves();
             EndCaptureCommands();
             batchUpdating = false;
-            if (renderRequested) RequestRender();
+            if (renderRequested)
+            {
+                RequestRender();
+            }
         }
 
         public void FrameAll()
@@ -183,13 +186,17 @@ namespace Editor.Tools.CurveEditor
 
         private void curveView_KeyDown(object sender, KeyEventArgs e)
         {
-            if (quickEditMode == EditMode.None && mousePressing == false )
+            if (quickEditMode == EditMode.None && mousePressing == false)
             {
                 EditMode em;
                 if (quickEditKeyMap.TryGetValue(e.KeyCode, out em))
+                {
                     quickEditMode = em;
+                }
                 else if (editKeyMap.TryGetValue(e.KeyCode, out em))
+                {
                     SetEditMode(em);
+                }
 
                 SelectCursorShape();
             }
@@ -213,14 +220,21 @@ namespace Editor.Tools.CurveEditor
 
         private void curveView_MouseDown(object sender, MouseEventArgs e)
         {
-            if ( ( e.Button & MouseButtons.Left ) != MouseButtons.Left ) return;
-            if (mousePressing) return;
+            if ((e.Button & MouseButtons.Left) != MouseButtons.Left)
+            {
+                return;
+            }
+
+            if (mousePressing)
+            {
+                return;
+            }
 
             mousePressing = true;
 
             clickedPos = prevMousePos = new Vector2(e.X, e.Y);
 
-            EditMode em = ( quickEditMode != EditMode.None )? quickEditMode: editMode;
+            EditMode em = (quickEditMode != EditMode.None) ? quickEditMode : editMode;
 
             if (editable)
             {
@@ -239,13 +253,20 @@ namespace Editor.Tools.CurveEditor
         private void curveView_MouseMove(object sender, MouseEventArgs e)
         {
             EditMode em = (quickEditMode != EditMode.None) ? quickEditMode : editMode;
-            if (em == EditMode.None) return;
-            if (!mousePressing) return;
+            if (em == EditMode.None)
+            {
+                return;
+            }
+
+            if (!mousePressing)
+            {
+                return;
+            }
 
             SelectCursorShape();
 
             Vector2 pos_ps = new Vector2(e.X, e.Y);
-            if ((e.Button & MouseButtons.Left)== MouseButtons.Left)
+            if ((e.Button & MouseButtons.Left) == MouseButtons.Left)
             {
                 switch (em)
                 {
@@ -268,10 +289,10 @@ namespace Editor.Tools.CurveEditor
                         if (editable)
                         {
                             Vector2 pos_us = curveView.ToUnitCoordinate(pos_ps);
-                            MathHelper.Clamp(pos_us.X, 
+                            MathHelper.Clamp(pos_us.X,
                                 -1f * MaximumCurveKeyEntry,
                                 MaximumCurveKeyEntry);
-                            MathHelper.Clamp(pos_us.Y, 
+                            MathHelper.Clamp(pos_us.Y,
                                 -1f * MaximumCurveKeyEntry,
                                 MaximumCurveKeyEntry);
 
@@ -281,7 +302,10 @@ namespace Editor.Tools.CurveEditor
                                 curve.Move(pos_us, prevPos_us);
 
                             CheckSelection();
-                            if (autoFrame) FrameSelection(true);
+                            if (autoFrame)
+                            {
+                                FrameSelection(true);
+                            }
                         }
                         break;
                 }
@@ -294,30 +318,40 @@ namespace Editor.Tools.CurveEditor
 
         private void curveView_MouseUp(object sender, MouseEventArgs e)
         {
-            if ((e.Button & MouseButtons.Left) != MouseButtons.Left) return;
-            if (!mousePressing) return;
+            if ((e.Button & MouseButtons.Left) != MouseButtons.Left)
+            {
+                return;
+            }
+
+            if (!mousePressing)
+            {
+                return;
+            }
 
             mousePressing = false;
 
             // Quit if edtable is false.
-            if (!editable) return;
+            if (!editable)
+            {
+                return;
+            }
 
             EditMode em = (quickEditMode != EditMode.None) ? quickEditMode : editMode;
             switch (em)
             {
                 case EditMode.Add:
-                    Vector2 pos_us = curveView.ToUnitCoordinate( prevMousePos );
+                    Vector2 pos_us = curveView.ToUnitCoordinate(prevMousePos);
                     MathHelper.Clamp(pos_us.X,
                         -1f * MaximumCurveKeyEntry,
                         MaximumCurveKeyEntry);
                     MathHelper.Clamp(pos_us.Y,
                         -1f * MaximumCurveKeyEntry,
-                        MaximumCurveKeyEntry); 
+                        MaximumCurveKeyEntry);
 
-                    UpdateCurves(delegate(EditCurve curve)
+                    UpdateCurves(delegate (EditCurve curve)
                     {
-                        curve.AddKey( pos_us );
-                    } );
+                        curve.AddKey(pos_us);
+                    });
                     break;
                 case EditMode.Move:
 
@@ -336,7 +370,7 @@ namespace Editor.Tools.CurveEditor
                         selectingBox.Height < MinSelectSize)
                     {
                         selectingBox.X += (selectingBox.Width - MinSelectSize) * 0.5f;
-                        selectingBox.Y += (selectingBox.Height- MinSelectSize) * 0.5f;
+                        selectingBox.Y += (selectingBox.Height - MinSelectSize) * 0.5f;
                         selectingBox.Width = selectingBox.Height = MinSelectSize;
                         singleSelect = true;
                     }
@@ -358,7 +392,10 @@ namespace Editor.Tools.CurveEditor
                     {
                         EditCurve curve = curves[curveCount];
 
-                        if (!curve.Editable || !curve.Visible) continue;
+                        if (!curve.Editable || !curve.Visible)
+                        {
+                            continue;
+                        }
 
                         if (singleSelect && selected)
                         {
@@ -390,9 +427,13 @@ namespace Editor.Tools.CurveEditor
         private void undoRedoToolStripMenuItems_Click(object sender, EventArgs e)
         {
             if (sender == undoToolStripMenuItem)
+            {
                 commandHistory.Undo();
+            }
             else
+            {
                 commandHistory.Redo();
+            }
 
             CheckSelection();
             RequestRender();
@@ -452,7 +493,7 @@ namespace Editor.Tools.CurveEditor
                 {
                     string[] texts = item.Tag.ToString().Split(splitChars);
                     item.Checked =
-                        String.Compare(texts[texts.Length - 1], name, true) == 0;
+                        string.Compare(texts[texts.Length - 1], name, true) == 0;
                 }
             }
         }
@@ -465,16 +506,20 @@ namespace Editor.Tools.CurveEditor
             // It assumes sender menuItem has a string like
             // "[Pre|Post], CurveLoopType".
             string[] texts = item.Tag.ToString().Split(new char[] { ',' });
-            bool preLoop = String.Compare("pre", texts[0], true) == 0;
+            bool preLoop = string.Compare("pre", texts[0], true) == 0;
             CurveLoopType loopType = (CurveLoopType)Enum.Parse(
                                         typeof(CurveLoopType), texts[1]);
 
-            UpdateCurves(delegate(EditCurve curve)
+            UpdateCurves(delegate (EditCurve curve)
             {
                 if (preLoop)
+                {
                     curve.PreLoop = loopType;
+                }
                 else
+                {
                     curve.PostLoop = loopType;
+                }
             });
         }
 
@@ -492,7 +537,7 @@ namespace Editor.Tools.CurveEditor
             EditCurveTangent tangent = (EditCurveTangent)Enum.Parse(
                                             typeof(EditCurveTangent), texts[1]);
 
-            UpdateCurves(delegate(EditCurve curve)
+            UpdateCurves(delegate (EditCurve curve)
             {
                 curve.SetTangents(selection, tangent);
             });
@@ -500,11 +545,17 @@ namespace Editor.Tools.CurveEditor
 
         private void singleKeyEdit_TextChanged(object sender, EventArgs e)
         {
-            if (singleEditUpdating) return;
+            if (singleEditUpdating)
+            {
+                return;
+            }
 
             float newPosition;
-            if (!Single.TryParse(keyPositionTextBox.Text, out newPosition))
+            if (!float.TryParse(keyPositionTextBox.Text, out newPosition))
+            {
                 newPosition = singleEditKey.Position;
+            }
+
             if (newPosition > MaximumCurveKeyEntry * (float)curveView.ScaleX)
             {
                 newPosition = MaximumCurveKeyEntry * (float)curveView.ScaleX;
@@ -517,8 +568,11 @@ namespace Editor.Tools.CurveEditor
             }
 
             float newValue;
-            if (!Single.TryParse(keyValueTextBox.Text, out newValue))
+            if (!float.TryParse(keyValueTextBox.Text, out newValue))
+            {
                 newValue = singleEditKey.Value;
+            }
+
             if (newValue > MaximumCurveKeyEntry * (float)curveView.ScaleY)
             {
                 newValue = MaximumCurveKeyEntry * (float)curveView.ScaleY;
@@ -536,14 +590,17 @@ namespace Editor.Tools.CurveEditor
             EndUpdateCurves();
             EndCaptureCommands();
 
-            if (autoFrame) FrameSelection(true);
+            if (autoFrame)
+            {
+                FrameSelection(true);
+            }
 
             RequestRender();
         }
 
         private void CurveControl_Load(object sender, EventArgs e)
         {
-            ISite site = (ParentForm!=null)? ParentForm.Site: null;
+            ISite site = (ParentForm != null) ? ParentForm.Site : null;
             commandHistory = CommandHistory.EnsureHasService(site);
             commandHistory.Changed += new EventHandler(commandHistory_Changed);
         }
@@ -587,10 +644,13 @@ namespace Editor.Tools.CurveEditor
         private void DrawLine(Graphics g, Pen pen, Vector2 p1, Vector2 p2)
         {
             float cw = curveView.ClientSize.Width, ch = curveView.ClientSize.Height;
-            if ( ( p1.X < 0.0f && p2.X < 0.0f ) || ( p1.Y < 0.0f && p2.Y < 0.0f ) ||
-                ( p1.X > cw && p2.X > cw ) || ( p1.Y > ch && p2.Y > ch ) ) return;
+            if ((p1.X < 0.0f && p2.X < 0.0f) || (p1.Y < 0.0f && p2.Y < 0.0f) ||
+                (p1.X > cw && p2.X > cw) || (p1.Y > ch && p2.Y > ch))
+            {
+                return;
+            }
 
-            g.DrawLine( pen, p1.X, p1.Y, p2.X, p2.Y);
+            g.DrawLine(pen, p1.X, p1.Y, p2.X, p2.Y);
         }
 
         /// <summary>
@@ -606,7 +666,11 @@ namespace Editor.Tools.CurveEditor
                                     float w, float h)
         {
             float cw = curveView.ClientSize.Width, ch = curveView.ClientSize.Height;
-            if ( x + w < 0.0f || y + h < 0.0f || x > cw || y > ch ) return;
+            if (x + w < 0.0f || y + h < 0.0f || x > cw || y > ch)
+            {
+                return;
+            }
+
             g.FillRectangle(brush, x, y, w, h);
         }
 
@@ -693,7 +757,9 @@ namespace Editor.Tools.CurveEditor
             foreach (EditCurve curve in curves)
             {
                 if (curve.Visible)
+                {
                     DrawTangents(g, curve);
+                }
             }
         }
 
@@ -711,7 +777,10 @@ namespace Editor.Tools.CurveEditor
             {
                 foreach (EditCurve curve in curves)
                 {
-                    if (!curve.Visible) continue;
+                    if (!curve.Visible)
+                    {
+                        continue;
+                    }
 
                     foreach (EditCurveKey key in curve.Keys)
                     {
@@ -732,7 +801,9 @@ namespace Editor.Tools.CurveEditor
             foreach (EditCurve curve in curves)
             {
                 if (!curve.Editable || !curve.Visible)
+                {
                     continue;
+                }
 
                 foreach (EditCurveKey key in curve.Keys)
                 {
@@ -748,13 +819,13 @@ namespace Editor.Tools.CurveEditor
         private void DrawCurveSections(Graphics g, Pen pen, EditCurve curve,
                                             double t0, double t1, double step)
         {
-            Vector2[] p = new Vector2[2] { new Vector2(), new Vector2() };
+            Vector2[] p = new Vector2[2] { new(), new() };
 
             int pIdx = 0;
-            p[pIdx] = 
+            p[pIdx] =
                 curveView.ToPixelCoordinate((float)t0, curve.Evaluate((float)t0));
 
-            for (double t = t0; t < t1; )
+            for (double t = t0; t < t1;)
             {
                 double nextT = t + step;
                 t = nextT;
@@ -780,7 +851,7 @@ namespace Editor.Tools.CurveEditor
         private void DrawCurve(Graphics g, Pen pen, EditCurve curve,
                                     double t0, double t1, double step)
         {
-            Vector2[] p = new Vector2[2] { new Vector2(), new Vector2() };
+            Vector2[] p = new Vector2[2] { new(), new() };
 
             // Search key and next key that includes t0 position.
             int keyIndex = 0;
@@ -788,7 +859,10 @@ namespace Editor.Tools.CurveEditor
             for (; keyIndex < curve.Keys.Count; ++keyIndex)
             {
                 key = nextKey; nextKey = curve.Keys[keyIndex];
-                if (nextKey.Position > t0) break;
+                if (nextKey.Position > t0)
+                {
+                    break;
+                }
             }
 
             int pIdx = 0;
@@ -797,7 +871,9 @@ namespace Editor.Tools.CurveEditor
             {
                 double nextT = t1 + step;
                 if (nextKey != null)
+                {
                     nextT = Math.Min(t1, nextKey.Position);
+                }
 
                 // Draw current key and next key section.
                 if (key.Continuity == CurveContinuity.Smooth)
@@ -806,7 +882,7 @@ namespace Editor.Tools.CurveEditor
                     {
                         // If this line crosses next key position, draw line from
                         // current position to next key position.
-                        t = ( t < nextT && t + step > nextT )? nextT: t + step;
+                        t = (t < nextT && t + step > nextT) ? nextT : t + step;
                         pIdx = (pIdx + 1) & 1;
                         p[pIdx] = curveView.ToPixelCoordinate(
                                                     (float)t, curve.Evaluate((float)t));
@@ -844,7 +920,10 @@ namespace Editor.Tools.CurveEditor
 
             foreach (EditCurve curve in curves)
             {
-                if (!curve.Visible) continue;
+                if (!curve.Visible)
+                {
+                    continue;
+                }
 
                 System.Drawing.Color curveColor = curve.Color;
 
@@ -890,7 +969,9 @@ namespace Editor.Tools.CurveEditor
                     t0 = Math.Max(dt0, kt0);
                     t1 = Math.Min(dt1, kt1);
                     if (t0 < t1)
+                    {
                         DrawCurve(g, pen0, curve, t0, t1, step);
+                    }
 
                     // draw post-section
                     t0 = Math.Min(dt1, kt1);
@@ -923,10 +1004,14 @@ namespace Editor.Tools.CurveEditor
             DrawCurves(g);
 
             if (curveTangentsViewMode != EditCurveView.Never)
+            {
                 DrawTangents(g);
+            }
 
             if (curveKeyViewMode != EditCurveView.Never)
+            {
                 DrawCurveKeys(g);
+            }
 
             // Draw Selection box
             if (selectingBox != RectangleF.Empty)
@@ -944,7 +1029,9 @@ namespace Editor.Tools.CurveEditor
             EditMode em = (quickEditMode != EditMode.None) ? quickEditMode : editMode;
             Cursor cur;
             if (cursorMap.TryGetValue(em, out cur))
+            {
                 curveView.Cursor = cur;
+            }
         }
 
         private void BeginCaptureCommands()
@@ -961,7 +1048,9 @@ namespace Editor.Tools.CurveEditor
         {
             // Ensure current update is finished.
             if (updatingCurve)
+            {
                 EndUpdateCurves();
+            }
 
             updatingCurve = true;
             foreach (EditCurve curve in curves)
@@ -981,7 +1070,7 @@ namespace Editor.Tools.CurveEditor
             switch (newMode)
             {
                 case EditMode.Delete:
-                    UpdateCurves(delegate(EditCurve curve) { curve.RemoveKeys(); });
+                    UpdateCurves(delegate (EditCurve curve) { curve.RemoveKeys(); });
                     break;
                 case EditMode.FrameAll:
                     FrameSelection(true);
@@ -1007,19 +1096,25 @@ namespace Editor.Tools.CurveEditor
         private void FrameSelection(bool allKeys)
         {
             // Get min max value of all curves and keys.
-            Vector2 min = new Vector2(Single.MaxValue, Single.MaxValue);
-            Vector2 max = new Vector2(Single.MinValue, Single.MinValue);
+            Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
+            Vector2 max = new Vector2(float.MinValue, float.MinValue);
 
             bool needToDefault = true;
-            foreach ( EditCurve curve in curves)
+            foreach (EditCurve curve in curves)
             {
-                if (!allKeys && curve.Visible == false) continue;
+                if (!allKeys && curve.Visible == false)
+                {
+                    continue;
+                }
 
                 for (int idx = 0; idx < curve.Keys.Count; ++idx)
                 {
                     EditCurveKey key = curve.Keys[idx];
 
-                    if (!allKeys && key.Selection == EditCurveSelections.None) continue;
+                    if (!allKeys && key.Selection == EditCurveSelections.None)
+                    {
+                        continue;
+                    }
 
                     Vector2 pos = new Vector2(key.Position, key.Value);
                     min = Vector2.Min(min, pos);
@@ -1028,7 +1123,7 @@ namespace Editor.Tools.CurveEditor
                     // Sample few point for more aculate result.
                     if (idx < curve.Keys.Count - 1)
                     {
-                        float nextPosition = curve.Keys[idx+1].Position;
+                        float nextPosition = curve.Keys[idx + 1].Position;
 
                         const int sampleCount = 4;
                         // at 0 is already sampled and 1 will be sampled in next loop.
@@ -1036,8 +1131,8 @@ namespace Editor.Tools.CurveEditor
                         float nt = dt;
                         for (int i = 0; i < sampleCount; ++i, nt += dt)
                         {
-                            float t = MathHelper.Lerp( key.Position, nextPosition, nt );
-                            pos = new Vector2( t, curve.Evaluate( t ) );
+                            float t = MathHelper.Lerp(key.Position, nextPosition, nt);
+                            pos = new Vector2(t, curve.Evaluate(t));
                             min = Vector2.Min(min, pos);
                             max = Vector2.Max(max, pos);
                         }
@@ -1046,14 +1141,16 @@ namespace Editor.Tools.CurveEditor
                 }
             }
 
-            if ( needToDefault )
+            if (needToDefault)
             {
                 min = -Vector2.One;
                 max = Vector2.One;
             }
 
-            if ( curveView.Frame(min, max) )
+            if (curveView.Frame(min, max))
+            {
                 RequestRender();
+            }
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -1075,13 +1172,19 @@ namespace Editor.Tools.CurveEditor
         /// <param name="callback"></param>
         private void UpdateCurves(UpdateCurveDelegate callback)
         {
-            if (!editable) return;
+            if (!editable)
+            {
+                return;
+            }
 
             BeginCaptureCommands();
             BeginUpdateCurves();
             foreach (EditCurve curve in curves)
             {
-                if ( curve.Editable ) callback(curve);
+                if (curve.Editable)
+                {
+                    callback(curve);
+                }
             }
             EndUpdateCurves();
             EndCaptureCommands();
@@ -1091,7 +1194,7 @@ namespace Editor.Tools.CurveEditor
 
         protected void RequestRender()
         {
-            if ( batchUpdating == false )
+            if (batchUpdating == false)
             {
                 Invalidate(true);
                 renderRequested = false;
@@ -1117,7 +1220,10 @@ namespace Editor.Tools.CurveEditor
             foreach (EditCurve curve in curves)
             {
                 if (!curve.Editable || !curve.Visible ||
-                        curve.Selection.Count == 0 ) continue;
+                        curve.Selection.Count == 0)
+                {
+                    continue;
+                }
 
                 EditCurveKeySelection selection = curve.Selection;
                 totalSelectCount += selection.Count;
@@ -1149,10 +1255,10 @@ namespace Editor.Tools.CurveEditor
             CheckMenuItem(preInfinityToolStripMenuItem, preLoop.ValueString);
             CheckMenuItem(postInfinityToolStripMenuItem, postLoop.ValueString);
 
-            bool sameValueString = String.Compare(tangentInType.ValueString,
+            bool sameValueString = string.Compare(tangentInType.ValueString,
                 tangentOutType.ValueString) == 0;
-            string tangentsString = sameValueString?
-                        tangentInType.ValueString : String.Empty;
+            string tangentsString = sameValueString ?
+                        tangentInType.ValueString : string.Empty;
 
             CheckMenuItem(tangentsToolStripMenuItem, tangentsString);
             CheckMenuItem(inTangentToolStripMenuItem, tangentInType.ValueString);
@@ -1167,9 +1273,9 @@ namespace Editor.Tools.CurveEditor
                 EditCurveKey[] keys = lastSelectedCurve.GetSelectedKeys();
                 singleEditKey = keys[0];
                 keyPositionTextBox.Text =
-                    String.Format( "{0:F3}", singleEditKey.Position );
+                    string.Format("{0:F3}", singleEditKey.Position);
 
-                keyValueTextBox.Text = String.Format("{0:F3}", singleEditKey.Value);
+                keyValueTextBox.Text = string.Format("{0:F3}", singleEditKey.Value);
 
                 keyPositionLabel.Enabled = keyValueLabel.Enabled =
                     keyPositionTextBox.Enabled = keyValueTextBox.Enabled = true;
@@ -1178,7 +1284,7 @@ namespace Editor.Tools.CurveEditor
             {
                 singleEditKey = null;
                 singleEditCurve = null;
-                keyPositionTextBox.Text = keyValueTextBox.Text = String.Empty;
+                keyPositionTextBox.Text = keyValueTextBox.Text = string.Empty;
                 keyPositionLabel.Enabled = keyValueLabel.Enabled =
                     keyPositionTextBox.Enabled = keyValueTextBox.Enabled = false;
             }
@@ -1219,38 +1325,37 @@ namespace Editor.Tools.CurveEditor
         private EditCurveCollection curves;
 
         // Curve display controls.
-        private int[]           smoothnessTable         = new int[] { 64, 32, 8, 4 };
-        private EditCurveView   curveKeyViewMode        = EditCurveView.Always;
-        private EditCurveView   curveTangentsViewMode   = EditCurveView.OnActiveKeys;
+        private int[] smoothnessTable = new int[] { 64, 32, 8, 4 };
+        private EditCurveView curveKeyViewMode = EditCurveView.Always;
+        private EditCurveView curveTangentsViewMode = EditCurveView.OnActiveKeys;
 
         // Show out of range part of curve.
-        private bool            showInfinitCurve        = true;
+        private bool showInfinitCurve = true;
 
-        private CurveSmoothness smoothness              = CurveSmoothness.Fine;
+        private CurveSmoothness smoothness = CurveSmoothness.Fine;
 
         // For UI
-        private EditMode    editMode        = EditMode.Select;
-        private EditMode    quickEditMode   = EditMode.None;
+        private EditMode editMode = EditMode.Select;
+        private EditMode quickEditMode = EditMode.None;
 
         // Mouse clicked position in unit coordinate.
-        private Vector2     clickedPos      = new Vector2();
-        private Vector2     prevMousePos    = new Vector2();
-        private RectangleF  selectingBox    = new RectangleF();
+        private Vector2 clickedPos = new();
+        private Vector2 prevMousePos = new();
+        private RectangleF selectingBox = new();
 
         // Control doesn't render when this flag is true.
-        private bool        batchUpdating   = false;
+        private bool batchUpdating = false;
 
         // Render requres occured while batch updating.
-        private bool        renderRequested = false;
-        private bool        autoFrame       = false;
-        private bool        mousePressing   = false;
+        private bool renderRequested = false;
+        private bool autoFrame = false;
+        private bool mousePressing = false;
 
         private bool singleEditUpdating;
 
         private Dictionary<Keys, EditMode> quickEditKeyMap;
         private Dictionary<Keys, EditMode> editKeyMap;
-        private Dictionary<EditMode, Cursor> cursorMap =
-            new Dictionary<EditMode,Cursor>();
+        private Dictionary<EditMode, Cursor> cursorMap = new();
 
         private bool updatingCurve;
         private bool editable = true;
@@ -1263,13 +1368,13 @@ namespace Editor.Tools.CurveEditor
         // Arrow shape information.
         static protected PointF[] arrowPositions = new PointF[]
         {
-           new PointF(  4.0f, 0.0f ),
-           new PointF(  0.0f, 4.0f ),
-           new PointF(  0.0f,-4.0f ),
+           new(  4.0f, 0.0f ),
+           new(  0.0f, 4.0f ),
+           new(  0.0f,-4.0f ),
         };
 
         static protected PointF[] transformedArrowPositions =
-            new PointF[] { new PointF(), new PointF(), new PointF() };
+            new PointF[] { new(), new(), new() };
 
 
     }

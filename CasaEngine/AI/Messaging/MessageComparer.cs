@@ -9,12 +9,14 @@ namespace CasaEngine.AI.Messaging
 
         public MessageComparer(double precision)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidatePrecision(precision, ref message) == false)
-                throw new AiException("precision", this.GetType().ToString(), message);
+            {
+                throw new AiException("precision", GetType().ToString(), message);
+            }
 
-            this.Precision = precision;
+            Precision = precision;
         }
 
 
@@ -36,13 +38,19 @@ namespace CasaEngine.AI.Messaging
         {
             //Note to myself: it´s really a good idea to compare the extra info field? Maybe will let pass nearly similar messages...
             if ((x.SenderID == y.SenderID) && (x.RecieverID == y.RecieverID) && (x.Type == y.Type) && (x.ExtraInfo == y.ExtraInfo) && (System.Math.Abs(x.DispatchTime - y.DispatchTime) < Precision))
+            {
                 return 0;
+            }
 
             if (x.DispatchTime >= y.DispatchTime)
+            {
                 return 1;
+            }
 
             else
+            {
                 return -1;
+            }
         }
 
     }

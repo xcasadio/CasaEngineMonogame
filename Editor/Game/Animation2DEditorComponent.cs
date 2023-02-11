@@ -23,14 +23,14 @@ namespace Editor.Game
 
         Animation2D m_CurrentAnimation2D;
         Animation2D m_OriginalAnimation2D;
-        Dictionary<int, Sprite2D> m_Sprites = new Dictionary<int, Sprite2D>();
+        Dictionary<int, Sprite2D> m_Sprites = new();
         Vector2 m_SpritePosition, m_Zoom;
         SpriteBatch m_SpriteBatch;
         Line2DRenderer m_Line2DRenderer;
         string m_ObjectPath;
 
         MouseWindowed m_Mouse;
-        Point m_MouseRightDownPosition = new Point();
+        Point m_MouseRightDownPosition = new();
         bool m_MouseRightDown = false;
 
         Animation2D m_ChangeCurrentAnimation;

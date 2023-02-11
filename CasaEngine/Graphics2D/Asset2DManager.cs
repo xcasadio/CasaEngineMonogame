@@ -12,9 +12,9 @@ namespace CasaEngine.Graphics2D
     class Asset2DManager
     {
 
-        private readonly Dictionary<int, Sprite2D> _sprite2DList = new Dictionary<int, Sprite2D>();
-        private readonly Dictionary<int, Animation2D> _animation2DList = new Dictionary<int, Animation2D>();
-        private readonly List<int> _sprite2DLoadingList = new List<int>();
+        private readonly Dictionary<int, Sprite2D> _sprite2DList = new();
+        private readonly Dictionary<int, Animation2D> _animation2DList = new();
+        private readonly List<int> _sprite2DLoadingList = new();
         //private Game _Game = null;
 
 
@@ -63,7 +63,7 @@ namespace CasaEngine.Graphics2D
                 throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Sprite2D is null.");
             }
 
-            AddSprite2DToLoadingList(sprite2D.ID);
+            AddSprite2DToLoadingList(sprite2D.Id);
         }
 
         public void AddSprite2DToLoadingList(Animation2D anim2D)
@@ -136,7 +136,7 @@ namespace CasaEngine.Graphics2D
 #endif
         void AddSprite2D(Sprite2D sprite2D)
         {
-            _sprite2DList.Add(sprite2D.ID, sprite2D);
+            _sprite2DList.Add(sprite2D.Id, sprite2D);
 
             //TODO : Perforce
 
@@ -155,7 +155,7 @@ namespace CasaEngine.Graphics2D
 #endif
         void AddAnimation2D(Animation2D ani)
         {
-            _animation2DList.Add(ani.ID, ani);
+            _animation2DList.Add(ani.Id, ani);
 
 #if EDITOR
             if (AnimationAdded != null)

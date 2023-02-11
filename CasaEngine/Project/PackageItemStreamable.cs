@@ -83,7 +83,7 @@ namespace CasaEngine.Project
                     _item = (IPackageable)Activator.CreateInstance(ItemType,
                     new object[] { el, SaveOption.Editor });
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
                 }

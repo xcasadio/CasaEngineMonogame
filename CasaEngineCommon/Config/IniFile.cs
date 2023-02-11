@@ -13,7 +13,7 @@ namespace CasaEngineCommon.Config
     public class IniFile
     {
 
-        private Hashtable Sections = new Hashtable();
+        private Hashtable Sections = new();
         private string sFileName;
 
         private const string newline = "\r\n";
@@ -34,7 +34,9 @@ namespace CasaEngineCommon.Config
             sFileName = fileName;
 
             if (File.Exists(fileName))
+            {
                 Load(fileName);
+            }
         }
 
 
@@ -46,7 +48,9 @@ namespace CasaEngineCommon.Config
         public void AddSection(string section)
         {
             if (!Sections.ContainsKey(section))
+            {
                 Sections.Add(section, new Section());
+            }
         }
 
         /// <summary>
@@ -68,7 +72,9 @@ namespace CasaEngineCommon.Config
         public void RemoveSection(string section)
         {
             if (Sections.ContainsKey(section))
+            {
                 Sections.Remove(section);
+            }
         }
 
         /// <summary>
@@ -98,7 +104,9 @@ namespace CasaEngineCommon.Config
                 return defaut.ToString();
             }
             else
+            {
                 return val;
+            }
         }
 
         /// <summary>
@@ -118,14 +126,19 @@ namespace CasaEngineCommon.Config
             get
             {
                 if (!Sections.ContainsKey(section))
+                {
                     AddSection(section);
+                }
 
                 return (Section)Sections[section];
             }
             set
             {
                 if (!Sections.ContainsKey(section))
+                {
                     AddSection(section);
+                }
+
                 Sections[section] = value;
             }
         }
@@ -136,7 +149,9 @@ namespace CasaEngineCommon.Config
         public void Save()
         {
             if (sFileName != "")
+            {
                 Save(sFileName);
+            }
         }
 
         /// <summary>
@@ -196,7 +211,7 @@ namespace CasaEngineCommon.Config
                     this[currentSection].SetKey(scts[0], scts[1]);
                 }
             }
-            this.sFileName = fileName;
+            sFileName = fileName;
 
             str.Close();
         }
@@ -207,7 +222,7 @@ namespace CasaEngineCommon.Config
         /// </summary>
         private class Section
         {
-            private Hashtable clefs = new Hashtable();
+            private Hashtable clefs = new();
 
             public Section() { }
 
@@ -219,12 +234,18 @@ namespace CasaEngineCommon.Config
             public void SetKey(string key, string value)
             {
                 if (key.IndexOf("=") > 0)
+                {
                     throw new Exception("Caractère '=' interdit");
+                }
 
                 if (clefs.ContainsKey(key))
+                {
                     clefs[key] = value;
+                }
                 else
+                {
                     clefs.Add(key, value);
+                }
             }
 
             /// <summary>
@@ -234,7 +255,9 @@ namespace CasaEngineCommon.Config
             public void DeleteKey(string key)
             {
                 if (clefs.ContainsKey(key))
+                {
                     clefs.Remove(key);
+                }
             }
 
             /// <summary>
@@ -256,7 +279,9 @@ namespace CasaEngineCommon.Config
                 get
                 {
                     if (clefs.ContainsKey(key))
+                    {
                         return clefs[key].ToString();
+                    }
                     else
                     {
                         SetKey(key, "");

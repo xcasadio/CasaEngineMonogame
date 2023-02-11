@@ -1,7 +1,7 @@
-﻿using XNAFinalEngine.UserInterface;
-using CasaEngine.Gameplay.Actor.Object;
+﻿using CasaEngine.Gameplay.Actor.Object;
 using System.Xml;
 using CasaEngineCommon.Design;
+using XNAFinalEngine.UserInterface;
 using Size = XNAFinalEngine.UserInterface.Size;
 
 #if EDITOR
@@ -17,10 +17,10 @@ namespace CasaEngine.Assets.UI
     class SkinUi
         : BaseObject
     {
-        readonly SkinList<SkinControlInformation> _controls = new SkinList<SkinControlInformation>();
-        readonly SkinList<SkinImage> _images = new SkinList<SkinImage>();
-        readonly SkinList<SkinFont> _fonts = new SkinList<SkinFont>();
-        readonly SkinList<SkinCursor> _cursors = new SkinList<SkinCursor>();
+        readonly SkinList<SkinControlInformation> _controls = new();
+        readonly SkinList<SkinImage> _images = new();
+        readonly SkinList<SkinFont> _fonts = new();
+        readonly SkinList<SkinCursor> _cursors = new();
 
 
 
@@ -92,7 +92,9 @@ namespace CasaEngine.Assets.UI
                     inherit = true;
                 }
                 else
+                {
                     skinControl = new SkinControlInformation();
+                }
 
                 // Load general information
                 string name = ""; node = controlNode.SelectSingleNode("DefaultSize");
@@ -343,7 +345,9 @@ namespace CasaEngine.Assets.UI
 
 
             if (!inherent)
+            {
                 skinControl.Layers.Add(skinLayer);
+            }
         } // LoadLayer
 
 
@@ -378,8 +382,9 @@ namespace CasaEngine.Assets.UI
             skinAttribute.Value = name;
 
             if (!inherent)
+            {
                 skinLayer.Attributes.Add(skinAttribute);
-
+            }
         } // LoadLayerAttribute
 
 

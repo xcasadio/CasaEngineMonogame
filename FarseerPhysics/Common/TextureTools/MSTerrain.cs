@@ -332,7 +332,7 @@ namespace FarseerPhysics.Common
                 item.Scale(ref scale);
                 item.Translate(ref _topLeft);
                 item.ForceCounterClockWise();
-                Vertices p = FarseerPhysics.Common.PolygonManipulation.SimplifyTools.CollinearSimplify(item);
+                Vertices p = PolygonManipulation.SimplifyTools.CollinearSimplify(item);
                 List<Vertices> decompPolys = new List<Vertices>();
 
                 switch (Decomposer)

@@ -128,65 +128,85 @@ namespace XNAFinalEngine.Input
                 else if (AnalogAxis == AnalogAxes.LeftStickX)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
+                    {
                         valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickX;
+                    }
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
+                            {
                                 valueRaw = GamePad.Player(i).LeftStickX;
+                            }
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.LeftStickY)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
+                    {
                         valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickY;
+                    }
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
+                            {
                                 valueRaw = GamePad.Player(i).LeftStickY;
+                            }
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.RightStickX)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
+                    {
                         valueRaw = GamePad.Player(GamePadNumber - 1).RightStickX;
+                    }
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
+                            {
                                 valueRaw = GamePad.Player(i).RightStickX;
+                            }
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.RightStickY)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
+                    {
                         valueRaw = GamePad.Player(GamePadNumber - 1).RightStickY;
+                    }
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
+                            {
                                 valueRaw = GamePad.Player(i).RightStickY;
+                            }
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.Triggers)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
+                    {
                         valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger + GamePad.Player(GamePadNumber - 1).RightTrigger;
+                    }
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
+                            {
                                 valueRaw = -GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger;
+                            }
                         }
                     }
                 }
@@ -194,7 +214,9 @@ namespace XNAFinalEngine.Input
 
                 // Invert if necessary.
                 if (Invert)
+                {
                     valueRaw *= -1;
+                }
 
                 _pressed = valueRaw > DeadZone;
             }
@@ -217,7 +239,10 @@ namespace XNAFinalEngine.Input
                 }
             }
             if (!foundAxis)
+            {
                 throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
+            }
+
             return foundValue;
         } // Pressed
 
@@ -236,7 +261,10 @@ namespace XNAFinalEngine.Input
                 }
             }
             if (!foundAxis)
+            {
                 throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
+            }
+
             return foundPressed && !foundPressedPreviousFrame;
         } // JustPressed
 

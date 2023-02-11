@@ -3,14 +3,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
     [Serializable]
     public class Population<T> : ICloneable
     {
-
-        protected internal List<Chromosome<T>> Genome;
-
-        protected internal bool HasPerfectSolution;
-
-        protected internal int PerfectSolutionIndex;
-
-
+        protected internal List<Chromosome<T>> genome;
+        protected internal bool hasPerfectSolution;
+        protected internal int perfectSolutionIndex;
 
         public Population()
         {
@@ -19,17 +14,17 @@ namespace CasaEngine.AI.EvolutionaryComputing
             perfectSolutionIndex = -1;
         }
 
-
-
         public virtual List<Chromosome<T>> Genome
         {
             get => genome;
             set
             {
-                String message = String.Empty;
+                string message = string.Empty;
 
                 if (ValidateGenome(value, ref message) == false)
-                    throw new AiException("genome", this.GetType().ToString(), message);
+                {
+                    throw new AiException("genome", GetType().ToString(), message);
+                }
 
                 genome = value;
             }
@@ -42,7 +37,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 double total = 0;
 
                 for (int i = 0; i < genome.Count; i++)
+                {
                     total += genome[i].Fitness;
+                }
 
                 return total;
             }
@@ -68,15 +65,15 @@ namespace CasaEngine.AI.EvolutionaryComputing
             set => genome[index] = value;
         }
 
-
-
         public object Clone()
         {
             Population<T> newPopulation;
 
             newPopulation = (Population<T>)MemberwiseClone();
             for (int i = 0; i < genome.Count; i++)
+            {
                 newPopulation.Genome.Add((Chromosome<T>)genome[i].Clone());
+            }
 
             return newPopulation;
         }
@@ -86,7 +83,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             Population<T> clone;
 
             //Clone the actual chromosome
-            clone = (Population<T>)base.MemberwiseClone();
+            clone = (Population<T>)MemberwiseClone();
 
             //Restart the internal fields of the chromosome
             clone.Genome = new List<Chromosome<T>>();
@@ -95,8 +92,6 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
             return clone;
         }
-
-
 
         private bool ValidatePopulation(Population<T> population, ref string message)
         {
@@ -107,7 +102,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
             }
 
             if (ValidateGenome(population.Genome, ref message) == false)
+            {
                 return false;
+            }
 
             return true;
         }

@@ -57,8 +57,8 @@ namespace Editor
         private WorldObjectForm m_WorldObjectForm = null;
         private SubMainForm m_SubMainForm = null;
 
-        private Tools.Graphics2D.Sprite2DEditorForm m_Sprite2DEditorForm = null;
-        private Tools.Graphics2D.Animation2DEditorForm m_Animation2DEditorForm = null;
+        private Sprite2DEditorForm m_Sprite2DEditorForm = null;
+        private Animation2DEditorForm m_Animation2DEditorForm = null;
 
 
 
@@ -106,7 +106,7 @@ namespace Editor
 
             SetTitle();
 
-            this.Load += new EventHandler(MainForm_Load);
+            Load += new EventHandler(MainForm_Load);
         }
 
         void MainForm_Load(object sender, EventArgs e)
@@ -266,7 +266,7 @@ namespace Editor
         /// <param name="e"></param>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         /// <summary>
@@ -332,10 +332,10 @@ namespace Editor
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
 
-            this.Text = "Project Editor - " + Engine.Instance.ProjectConfig.ProjectName + " - " + fvi.ProductVersion;
+            Text = "Project Editor - " + Engine.Instance.ProjectConfig.ProjectName + " - " + fvi.ProductVersion;
 
 #if DEBUG
-            this.Text += " - DEBUG";
+            Text += " - DEBUG";
 #endif
         }
 
@@ -537,7 +537,7 @@ namespace Editor
             if (Engine.Instance.ProjectManager.Save(fileName_) == true)
             {
                 LogManager.Instance.WriteLine("Project ",
-                    "\"" + Engine.Instance.ProjectConfig.ProjectName + "\"", System.Drawing.Color.Blue,
+                    "\"" + Engine.Instance.ProjectConfig.ProjectName + "\"", Color.Blue,
                     " successfully saved.");
             }
             else
@@ -563,7 +563,7 @@ namespace Editor
             m_MruManager.Add(fileName_);
             SetTitle();
             LogManager.Instance.WriteLine("Project ",
-                "\"" + Engine.Instance.ProjectConfig.ProjectName + "\" ", System.Drawing.Color.Blue,
+                "\"" + Engine.Instance.ProjectConfig.ProjectName + "\" ", Color.Blue,
                 "(", Engine.Instance.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
         }
 

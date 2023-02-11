@@ -85,7 +85,7 @@ namespace CasaEngineCommon.Packing
         {
 
             /// <summary>Provides a default instance for the anchor rank comparer</summary>
-            public static AnchorRankComparer Default = new AnchorRankComparer();
+            public static AnchorRankComparer Default = new();
 
             /// <summary>Compares the rank of two anchors against each other</summary>
             /// <param name="left">Left anchor point that will be compared</param>
@@ -107,12 +107,12 @@ namespace CasaEngineCommon.Packing
             base(packingAreaWidth, packingAreaHeight)
         {
 
-            this.packedRectangles = new List<Rectangle>();
-            this.anchors = new List<Point>();
-            this.anchors.Add(new Point(0, 0));
+            packedRectangles = new List<Rectangle>();
+            anchors = new List<Point>();
+            anchors.Add(new Point(0, 0));
 
-            this.actualPackingAreaWidth = 1;
-            this.actualPackingAreaHeight = 1;
+            actualPackingAreaWidth = 1;
+            actualPackingAreaHeight = 1;
         }
 
         /// <summary>Tries to allocate space for a rectangle in the packing area</summary>
@@ -130,7 +130,7 @@ namespace CasaEngineCommon.Packing
             // maximum allowed size is exceeded.
             int anchorIndex = selectAnchorRecursive(
               rectangleWidth, rectangleHeight,
-              this.actualPackingAreaWidth, this.actualPackingAreaHeight
+              actualPackingAreaWidth, actualPackingAreaHeight
             );
 
             // No anchor could be found at which the rectangle did fit in
@@ -140,7 +140,7 @@ namespace CasaEngineCommon.Packing
                 return false;
             }
 
-            placement = this.anchors[anchorIndex];
+            placement = anchors[anchorIndex];
 
             // Move the rectangle either to the left or to the top until it collides with
             // a neightbouring rectangle. This is done to combat the effect of lining up
@@ -154,11 +154,13 @@ namespace CasaEngineCommon.Packing
                 // The anchor is only removed if the placement optimization didn't
                 // move the rectangle so far that the anchor isn't blocked anymore
                 bool blocksAnchor =
-                  ((placement.X + rectangleWidth) > this.anchors[anchorIndex].X) &&
-                  ((placement.Y + rectangleHeight) > this.anchors[anchorIndex].Y);
+                  ((placement.X + rectangleWidth) > anchors[anchorIndex].X) &&
+                  ((placement.Y + rectangleHeight) > anchors[anchorIndex].Y);
 
                 if (blocksAnchor)
-                    this.anchors.RemoveAt(anchorIndex);
+                {
+                    anchors.RemoveAt(anchorIndex);
+                }
 
                 // Add new anchors at the upper right and lower left coordinates of the rectangle
                 insertAnchor(new Point(placement.X + rectangleWidth, placement.Y));
@@ -166,7 +168,7 @@ namespace CasaEngineCommon.Packing
             }
 
             // Finally, we can add the rectangle to our packed rectangles list
-            this.packedRectangles.Add(
+            packedRectangles.Add(
               new Rectangle(placement.X, placement.Y, rectangleWidth, rectangleHeight)
             );
 
@@ -211,9 +213,13 @@ namespace CasaEngineCommon.Packing
 
             // Use the dimension in which the rectangle could be moved farther
             if ((placement.X - leftMost) > (placement.Y - topMost))
+            {
                 placement.X = leftMost;
+            }
             else
+            {
                 placement.Y = topMost;
+            }
         }
 
         /// <summary>
@@ -244,8 +250,8 @@ namespace CasaEngineCommon.Packing
             // anchor at which the rectangle can be placed.
             if (freeAnchorIndex != -1)
             {
-                this.actualPackingAreaWidth = testedPackingAreaWidth;
-                this.actualPackingAreaHeight = testedPackingAreaHeight;
+                actualPackingAreaWidth = testedPackingAreaWidth;
+                actualPackingAreaHeight = testedPackingAreaHeight;
 
                 return freeAnchorIndex;
             }
@@ -272,7 +278,7 @@ namespace CasaEngineCommon.Packing
                 // Try to double the height of the packing area
                 return selectAnchorRecursive(
                   rectangleWidth, rectangleHeight,
-                  testedPackingAreaWidth, System.Math.Min(testedPackingAreaHeight * 2, PackingAreaHeight)
+                  testedPackingAreaWidth, Math.Min(testedPackingAreaHeight * 2, PackingAreaHeight)
                 );
 
             }
@@ -282,7 +288,7 @@ namespace CasaEngineCommon.Packing
                 // Try to double the width of the packing area
                 return selectAnchorRecursive(
                   rectangleWidth, rectangleHeight,
-                  System.Math.Min(testedPackingAreaWidth * 2, PackingAreaWidth), testedPackingAreaHeight
+                  Math.Min(testedPackingAreaWidth * 2, PackingAreaWidth), testedPackingAreaHeight
                 );
 
             }
@@ -315,14 +321,16 @@ namespace CasaEngineCommon.Packing
             // Walk over all anchors (which are ordered by their distance to the
             // upper left corner of the packing area) until one is discovered that
             // can house the new rectangle.
-            for (int index = 0; index < this.anchors.Count; ++index)
+            for (int index = 0; index < anchors.Count; ++index)
             {
-                potentialLocation.X = this.anchors[index].X;
-                potentialLocation.Y = this.anchors[index].Y;
+                potentialLocation.X = anchors[index].X;
+                potentialLocation.Y = anchors[index].Y;
 
                 // See if the rectangle would fit in at this anchor point
                 if (isFree(ref potentialLocation, testedPackingAreaWidth, testedPackingAreaHeight))
+                {
                     return index;
+                }
             }
 
             // No anchor points were found where the rectangle would fit in
@@ -351,16 +359,19 @@ namespace CasaEngineCommon.Packing
               (rectangle.Bottom > testedPackingAreaHeight);
 
             if (leavesPackingArea)
+            {
                 return false;
+            }
 
             // Brute-force search whether the rectangle touches any of the other
             // rectangles already in the packing area
-            for (int index = 0; index < this.packedRectangles.Count; ++index)
+            for (int index = 0; index < packedRectangles.Count; ++index)
             {
 
-                if (this.packedRectangles[index].Intersects(rectangle))
+                if (packedRectangles[index].Intersects(rectangle))
+                {
                     return false;
-
+                }
             }
 
             // Success! The rectangle is inside the packing area and doesn't overlap
@@ -387,12 +398,14 @@ namespace CasaEngineCommon.Packing
             //    a negative integer. You can apply the bitwise complement operation (~) to
             //    this negative integer to get the index of the first element that is
             //    larger than the search value."
-            int insertIndex = this.anchors.BinarySearch(anchor, AnchorRankComparer.Default);
+            int insertIndex = anchors.BinarySearch(anchor, AnchorRankComparer.Default);
             if (insertIndex < 0)
+            {
                 insertIndex = ~insertIndex;
+            }
 
             // Insert the anchor at the index matching its rank
-            this.anchors.Insert(insertIndex, anchor);
+            anchors.Insert(insertIndex, anchor);
 
         }
 

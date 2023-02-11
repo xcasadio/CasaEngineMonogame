@@ -89,7 +89,7 @@ namespace CasaEngine.Asset
 
         public int Height => Size.Height;
 
-        public Rectangle TextureRectangle => new Rectangle(0, 0, Width, Height);
+        public Rectangle TextureRectangle => new(0, 0, Width, Height);
 
         public Size Size { get; protected set; }
 
@@ -106,7 +106,7 @@ namespace CasaEngine.Asset
         {
             GraphicsDevice = xnaTexture.GraphicsDevice;
             Name = "Texture";
-            this.XnaTexture = xnaTexture;
+            XnaTexture = xnaTexture;
             Size = new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
         } // Texture
 
@@ -142,7 +142,9 @@ namespace CasaEngine.Asset
         {
             base.DisposeManagedResources();
             if (XnaTexture != null && !XnaTexture.IsDisposed)
+            {
                 Resource.Dispose();
+            }
         } // DisposeManagedResources
 
 
@@ -150,11 +152,18 @@ namespace CasaEngine.Asset
         internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (Resource == null)
+            {
                 return;
+            }
+
             if (string.IsNullOrEmpty(Filename))
+            {
                 XnaTexture = new Texture2D(device, Size.Width, Size.Height);
+            }
             else if (XnaTexture.IsDisposed == true)
+            {
                 XnaTexture = Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, device);
+            }
 
             GraphicsDevice = device;
         } // RecreateResource

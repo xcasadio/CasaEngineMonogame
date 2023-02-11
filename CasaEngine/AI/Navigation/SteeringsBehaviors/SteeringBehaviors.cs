@@ -1,31 +1,22 @@
+using CasaEngine.AI.Navigation.SteeringsBehaviors;
 using Microsoft.Xna.Framework;
 using CasaEngineCommon.Helper;
 
-//using Mathematics;
-
-
-namespace CasaEngine.AI.Navigation.SteeringsBehaviors
+namespace CasaEngine.AI.Navigation.Steeringsbehaviors
 {
-    public class SteeringBehaviors
+    public class Steeringbehaviors
     {
+        protected internal MovingEntity owner;
+        protected internal List<SteeringBehavior> behaviors;
+        protected internal SumMethod sumAlgorithm;
 
-        protected internal MovingEntity Owner;
-
-        protected internal List<SteeringBehavior> Behaviors;
-
-        protected internal SumMethod SumAlgorithm;
-
-
-
-        public SteeringBehaviors(MovingEntity owner, SumMethod sumAlgorithm)
+        public Steeringbehaviors(MovingEntity owner, SumMethod sumAlgorithm)
         {
-            this.Owner = owner;
+            owner = owner;
             this.sumAlgorithm = sumAlgorithm;
 
-            Behaviors = new List<SteeringBehavior>();
+            behaviors = new List<SteeringBehavior>();
         }
-
-
 
         public SumMethod SumAlgorithm
         {
@@ -33,72 +24,84 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             set => sumAlgorithm = value;
         }
 
-
-
-        public void RegisterBehavior<T>(String name, float modifier)
+        public void RegisterBehavior<T>(string name, float modifier)
         {
-            Object newBehavior;
-            Object[] parametters;
+            object newBehavior;
+            object[] parametters;
 
-            foreach (SteeringBehavior behavior in Behaviors)
+            foreach (SteeringBehavior behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
+                {
                     return;
+                }
 
             parametters = new object[3];
             parametters[0] = name;
-            parametters[1] = this.Owner;
+            parametters[1] = owner;
             parametters[2] = modifier;
 
             newBehavior = Activator.CreateInstance(typeof(T), parametters);
 
-            Behaviors.Add((SteeringBehavior)newBehavior);
+            behaviors.Add((SteeringBehavior)newBehavior);
         }
 
         public void RegisterBehavior(SteeringBehavior behavior)
         {
-            for (int i = 0; i < Behaviors.Count; i++)
-                if (Behaviors[i].GetType() == behavior.GetType() && Behaviors[i].Name == behavior.Name)
+            for (int i = 0; i < behaviors.Count; i++)
+            {
+                if (behaviors[i].GetType() == behavior.GetType() && behaviors[i].Name == behavior.Name)
                 {
-                    Behaviors[i] = behavior;
+                    behaviors[i] = behavior;
                     return;
                 }
+            }
 
-            Behaviors.Add(behavior);
+            behaviors.Add(behavior);
         }
 
-        public void UnregisterBehavior<T>(String name)
+        public void UnregisterBehavior<T>(string name)
         {
-            for (int i = 0; i < Behaviors.Count; i++)
-                if (Behaviors[i] is T && Behaviors[i].Name == name)
-                    Behaviors.RemoveAt(i);
+            for (int i = 0; i < behaviors.Count; i++)
+            {
+                if (behaviors[i] is T && behaviors[i].Name == name)
+                {
+                    behaviors.RemoveAt(i);
+                }
+            }
         }
 
-        public void ActivateBehavior<T>(String name)
+        public void ActivateBehavior<T>(string name)
         {
-            foreach (SteeringBehavior behavior in Behaviors)
+            foreach (SteeringBehavior behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
+                {
                     behavior.Active = true;
+                }
         }
 
-        public void DeactivateBehavior<T>(String name)
+        public void DeactivateBehavior<T>(string name)
         {
-            foreach (SteeringBehavior behavior in Behaviors)
+            foreach (SteeringBehavior behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
+                {
                     behavior.Active = false;
+                }
         }
 
-        public T GetBehavior<T>(String name) where T : SteeringBehavior
+        public T GetBehavior<T>(string name) where T : SteeringBehavior
         {
-            foreach (SteeringBehavior behavior in Behaviors)
+            foreach (SteeringBehavior behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
+                {
                     return (T)behavior;
+                }
 
             return null;
         }
 
         public Vector3 Calculate()
         {
-            return Vector3Helper.Truncate(sumAlgorithm(Behaviors), Owner.MaxForce);
+            return Vector3Helper.Truncate(sumAlgorithm(behaviors), owner.MaxForce);
         }
 
     }

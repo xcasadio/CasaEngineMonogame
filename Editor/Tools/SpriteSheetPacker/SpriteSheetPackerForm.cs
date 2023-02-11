@@ -36,18 +36,18 @@ using CasaEngine.Game;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {
-	public partial class SpriteSheetPackerForm : Form
+    public partial class SpriteSheetPackerForm : Form
     {
 
-        static private readonly Stopwatch stopWatch = new Stopwatch();
+        static private readonly Stopwatch stopWatch = new();
         static private readonly string tmpDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Editor.Sprite2DEditor.SpriteSheetPacker");
         static private readonly string fileList = Path.Combine(tmpDirectory, "FileList.txt");
 
-        private Editor.Sprite2DEditor.SpriteSheetPacker.sspack.IImageExporter currentImageExporter;
-        private Editor.Sprite2DEditor.SpriteSheetPacker.sspack.IMapExporter currentMapExporter;
+        private sspack.IImageExporter currentImageExporter;
+        private sspack.IMapExporter currentMapExporter;
 
         // a list of the files we'll build into our sprite sheet
-        private readonly List<string> files = new List<string>();
+        private readonly List<string> files = new();
 
         private bool m_OnlySettings;
 
@@ -141,7 +141,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             }
 
             // find all of the available exporters
-            Editor.Sprite2DEditor.SpriteSheetPacker.sspack.Exporters.Load();
+            sspack.Exporters.Load();
 
             // generate the save dialogs based on available exporters
             GenerateImageSaveDialog();
@@ -149,7 +149,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 
             // set our open file dialog filter based on the valid extensions
             imageOpenFileDialog.Filter = "Image Files|";
-            foreach (var ext in Editor.Sprite2DEditor.SpriteSheetPacker.sspack.MiscHelper.AllowedImageExtensions)
+            foreach (var ext in sspack.MiscHelper.AllowedImageExtensions)
                 imageOpenFileDialog.Filter += string.Format("*.{0};", ext);
 
             // set the UI values to our saved settings
@@ -160,7 +160,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             squareCheckBox.Checked = Editor.Sprite2DEditor.SpriteSheetPacker.Settings.Default.Square;*/
             //generateMapCheckBox.Checked = Editor.Sprite2DEditor.SpriteSheetPacker.Settings.Default.GenerateMap;
 
-            currentMapExporter = Editor.Sprite2DEditor.SpriteSheetPacker.sspack.Exporters.MapExporters[0];
+            currentMapExporter = sspack.Exporters.MapExporters[0];
 
             if (build_.HasValue == true)
             {
@@ -183,7 +183,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             int filterIndex = 0;
             int i = 0;
 
-            foreach (var exporter in Editor.Sprite2DEditor.SpriteSheetPacker.sspack.Exporters.ImageExporters)
+            foreach (var exporter in sspack.Exporters.ImageExporters)
             {
                 i++;
                 filter += string.Format("{0} Files|*.{1}|", exporter.ImageExtension.ToUpper(), exporter.ImageExtension);
@@ -205,7 +205,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             int filterIndex = 0;
             int i = 0;
 
-            foreach (var exporter in Editor.Sprite2DEditor.SpriteSheetPacker.sspack.Exporters.MapExporters)
+            foreach (var exporter in sspack.Exporters.MapExporters)
             {
                 i++;
                 filter += string.Format("{0} Files|*.{1}|", exporter.MapExtension.ToUpper(), exporter.MapExtension);
@@ -242,8 +242,10 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             foreach (var path in paths)
             {
                 // make sure the file is an image
-                if (!Editor.Sprite2DEditor.SpriteSheetPacker.sspack.MiscHelper.IsImageFile(path))
+                if (!sspack.MiscHelper.IsImageFile(path))
+                {
                     continue;
+                }
 
                 // prevent duplicates
                 if (IsFileNameValid(path) == false)
@@ -290,7 +292,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         {
             foreach (var file in Directory.GetFiles(directory, "*", SearchOption.AllDirectories))
             {
-                if (Editor.Sprite2DEditor.SpriteSheetPacker.sspack.MiscHelper.IsImageFile(file))
+                if (sspack.MiscHelper.IsImageFile(file))
                 {
                     return true;
                 }
@@ -303,7 +305,9 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         {
             // if this drag is not for a file drop, ignore it
             if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
                 return;
+            }
 
             // figure out if any the files being dropped are images
             bool imageFound = false;
@@ -317,7 +321,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 }
 
                 // or if the path itself is an image
-                if (Editor.Sprite2DEditor.SpriteSheetPacker.sspack.MiscHelper.IsImageFile(f))
+                if (sspack.MiscHelper.IsImageFile(f))
                 {
                     imageFound = true;
                     break;
@@ -332,7 +336,9 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         {
             // add all the files dropped onto the list box
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
                 AddFiles((string[])e.Data.GetData(DataFormats.FileDrop));
+            }
         }
 
         /// <summary>
@@ -342,7 +348,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         /// <param name="e"></param>
         private void buttonAddDirectory_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog  form = new FolderBrowserDialog ();
+            FolderBrowserDialog form = new FolderBrowserDialog();
             form.SelectedPath = Engine.Instance.ProjectManager.ProjectPath;
 
             if (form.ShowDialog(this) == DialogResult.OK)
@@ -360,7 +366,9 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         {
             // show our file dialog and add all the resulting files
             if (imageOpenFileDialog.ShowDialog() == DialogResult.OK)
+            {
                 AddFiles(imageOpenFileDialog.FileNames);
+            }
         }
 
         /// <summary>
@@ -516,7 +524,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
 
             if (m_OnlySettings == true)
             {
-                this.SpriteSheetBuild = buildTask;
+                SpriteSheetBuild = buildTask;
             }
             else
             {
@@ -563,25 +571,34 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             List<string> args = new List<string>();
             args.Add("/image:" + SpriteSheet/*image*/);
             if (true/*generateMap*/)
+            {
                 args.Add("/map:" + SpriteSheetMap/*map*/);
+            }
+
             args.Add("/mw:" + task_.SpriteSheetWidth);
             args.Add("/mh:" + task_.SpriteSheetHeight);
             args.Add("/pad:" + task_.Padding);
             if (task_.PowerOfTwo)
+            {
                 args.Add("/pow2");
+            }
+
             if (task_.Square)
+            {
                 args.Add("/sqr");
+            }
+
             args.Add("/il:" + fileList);
 
             LogManager.Instance.WriteLineDebug("Launch sspack : " + string.Concat(args));
 
-            Thread buildThread = new Thread(delegate(object obj)
+            Thread buildThread = new Thread(delegate (object obj)
             {
 #if !DEBUG
                 try
                 {
 #endif
-                int Result = Editor.Sprite2DEditor.SpriteSheetPacker.sspack.sspack.Launch(args.ToArray());
+                int Result = sspack.sspack.Launch(args.ToArray());
                 (obj as Control).Invoke(new Action<int>(BuildThreadComplete), new[] { (object)Result });
 #if !DEBUG
                 }
@@ -634,7 +651,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             else
             {
                 stopWatch.Stop();
-                ShowBuildError("Error packing images: " + SpaceErrorCode((Editor.Sprite2DEditor.SpriteSheetPacker.sspack.FailCode)result));
+                ShowBuildError("Error packing images: " + SpaceErrorCode((sspack.FailCode)result));
             }
 
             // re-enable all our controls
@@ -678,7 +695,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         /// </summary>
         /// <param name="failCode"></param>
         /// <returns></returns>
-        private static string SpaceErrorCode(Editor.Sprite2DEditor.SpriteSheetPacker.sspack.FailCode failCode)
+        private static string SpaceErrorCode(sspack.FailCode failCode)
         {
             string error = failCode.ToString();
 
@@ -688,7 +705,10 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             {
                 char c = error[i];
                 if (char.IsUpper(c))
+                {
                     result += " ";
+                }
+
                 result += c;
             }
 
@@ -704,5 +724,5 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-	}
+    }
 }

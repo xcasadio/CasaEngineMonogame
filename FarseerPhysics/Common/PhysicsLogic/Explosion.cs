@@ -92,7 +92,7 @@ namespace FarseerPhysics.Common.PhysicsLogic
         /// </summary>
         public int MinRays = 5;
 
-        private List<ShapeData> _data = new List<ShapeData>();
+        private List<ShapeData> _data = new();
         private Dictionary<Fixture, List<Vector2>> _exploded;
         private RayDataComparer _rdc;
 

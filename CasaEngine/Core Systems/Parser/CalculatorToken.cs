@@ -20,7 +20,7 @@ namespace CasaEngine.Design.Parser
 
 
 
-        public CasaEngine.Design.Parser.Calculator Calculator => _calculator;
+        public Calculator Calculator => _calculator;
 
 
         protected CalculatorToken(Calculator calculator)

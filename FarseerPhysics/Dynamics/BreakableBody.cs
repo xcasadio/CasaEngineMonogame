@@ -15,7 +15,7 @@ namespace FarseerPhysics.Dynamics
     {
         public bool Broken;
         public Body MainBody;
-        public List<Fixture> Parts = new List<Fixture>(8);
+        public List<Fixture> Parts = new(8);
 
         /// <summary>
         /// The force needed to break the body apart.

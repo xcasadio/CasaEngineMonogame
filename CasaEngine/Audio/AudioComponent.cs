@@ -4,26 +4,26 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Audio
 {
     public class AudioComponent
-        : Microsoft.Xna.Framework.GameComponent
+        : GameComponent
     {
 
         // The listener describes the ear which is hearing 3D sounds.
         // This is usually set to match the camera.
         public AudioListener Listener => _listener;
 
-        readonly AudioListener _listener = new AudioListener();
+        readonly AudioListener _listener = new();
 
 
         // The emitter describes an entity which is making a 3D sound.
-        readonly AudioEmitter _emitter = new AudioEmitter();
+        readonly AudioEmitter _emitter = new();
 
 
         // Store all the sound effects that are available to be played.
-        readonly Dictionary<string, SoundEffect> _soundEffects = new Dictionary<string, SoundEffect>();
+        readonly Dictionary<string, SoundEffect> _soundEffects = new();
 
 
         // Keep track of all the 3D sounds that are currently playing.
-        readonly List<ActiveSound> _activeSounds = new List<ActiveSound>();
+        readonly List<ActiveSound> _activeSounds = new();
 
 
 

@@ -37,7 +37,7 @@ namespace Editor.Tools.CurveEditor
         public bool GridVisible
         {
             get { return gridVisible; }
-            set { gridVisible= value; }
+            set { gridVisible = value; }
         }
 
         [Category("Grid Control")]
@@ -102,7 +102,7 @@ namespace Editor.Tools.CurveEditor
         }
 
 
-        public Vector2 ToPixelCoordinate( float position, float value )
+        public Vector2 ToPixelCoordinate(float position, float value)
         {
             double x = ((double)position - gridOffsets[0]) * invGridScale[0];
             double y = (double)viewSize.Y -
@@ -115,7 +115,7 @@ namespace Editor.Tools.CurveEditor
             return ToPixelCoordinate(unitPos.X, unitPos.Y);
         }
 
-        public Vector2 ToUnitCoordinate( Vector2 pixelPos )
+        public Vector2 ToUnitCoordinate(Vector2 pixelPos)
         {
             double x = gridOffsets[0] + (double)pixelPos.X * gridScale[0];
             double y = gridOffsets[1] + ((double)viewSize.Y -
@@ -131,7 +131,7 @@ namespace Editor.Tools.CurveEditor
             return new Vector2((float)xu, (float)yu);
         }
 
-        public float UnitToScreenTangentAngle( float unitTangent )
+        public float UnitToScreenTangentAngle(float unitTangent)
         {
             return (float)((double)unitTangent / (gridScale[1] / gridScale[0]));
         }
@@ -167,8 +167,15 @@ namespace Editor.Tools.CurveEditor
             bool result = false;
 
             // if min and max values are same will have 1.0 as new range.
-            if ( min.X == max.X ) max.X = min.X + 1.0f;
-            if ( min.Y == max.Y ) max.Y = min.Y + 1.0f;
+            if (min.X == max.X)
+            {
+                max.X = min.X + 1.0f;
+            }
+
+            if (min.Y == max.Y)
+            {
+                max.Y = min.Y + 1.0f;
+            }
 
             Vector2 newRange = Vector2.Max(max - min,
                             new Vector2((float)MinGridScale, (float)MinGridScale));
@@ -179,8 +186,8 @@ namespace Editor.Tools.CurveEditor
                 (double)newRange.Y / (double)Math.Max(viewSize.Y - margin_ps, 10.0f)};
 
             double threshold = 1e-4;
-            if( Math.Abs( newGridScale[0] - gridScale[0] ) > threshold ||
-                Math.Abs(newGridScale[1] - gridScale[1]) > threshold  )
+            if (Math.Abs(newGridScale[0] - gridScale[0]) > threshold ||
+                Math.Abs(newGridScale[1] - gridScale[1]) > threshold)
             {
                 SetScale(newGridScale[0], newGridScale[1]);
                 SetOffset(
@@ -196,11 +203,17 @@ namespace Editor.Tools.CurveEditor
 
         public void DrawGridLines(Graphics g)
         {
-            if (g == null) throw new ArgumentNullException("g");
+            if (g == null)
+            {
+                throw new ArgumentNullException("g");
+            }
 
             CalcGridSpans();
 
-            if (gridVisible == false) return;
+            if (gridVisible == false)
+            {
+                return;
+            }
 
             Pen pen = new Pen(GridLineColor);
             Pen boldPen = new Pen(GridBoldLineColor);
@@ -217,7 +230,7 @@ namespace Editor.Tools.CurveEditor
 
             // Draw Vertical lines
             const double boldThreshold = 1e-8;
-            for ( double p_us = sx_us; p_us < ex_us; p_us += gridSpans[0] )
+            for (double p_us = sx_us; p_us < ex_us; p_us += gridSpans[0])
             {
                 int p_ps = (int)((p_us - gridOffsets[0]) * invGridScale[0]);
                 bool isBoldLine = Math.Abs(p_us) < boldThreshold;
@@ -240,14 +253,14 @@ namespace Editor.Tools.CurveEditor
                 int p_ps = (int)((p_us - gridOffsets[0]) * invGridScale[0]);
 
                 // Make sure current text drawing over previous number text.
-                String text = ToNumberString(p_us);
+                string text = ToNumberString(p_us);
                 SizeF size = g.MeasureString(text, Font);
                 float hw = size.Width * 0.5f;
                 float x = p_ps - hw;
                 if (lastTextPos < x)
                 {
                     lastTextPos = p_ps + hw;
-                    g.DrawString(text, this.Font, brush,
+                    g.DrawString(text, Font, brush,
                                 x, viewSize.Y - size.Height - GridTextBottomMargin);
                 }
             }
@@ -265,7 +278,7 @@ namespace Editor.Tools.CurveEditor
                 if (lastTextPos > y && y < bottomLimit)
                 {
                     lastTextPos = y - hh;
-                    g.DrawString(ToNumberString(p_us), this.Font, brush,
+                    g.DrawString(ToNumberString(p_us), Font, brush,
                                                             GridTextLeftMargin, y);
                 }
             }
@@ -289,10 +302,14 @@ namespace Editor.Tools.CurveEditor
         private void CalcGridSpans()
         {
             if (viewSize.X >= MinGridSize)
+            {
                 gridSpans[0] = ComputeGridSpan(MinGridSize * gridScale[0]);
+            }
 
             if (viewSize.Y >= MinGridSize)
+            {
                 gridSpans[1] = ComputeGridSpan(MinGridSize * gridScale[1]);
+            }
         }
 
         private static string ToNumberString(double value)
@@ -323,7 +340,7 @@ namespace Editor.Tools.CurveEditor
             double baseNum = Math.Pow(10, digit);
 
             double minSpan = 0;
-            double min = Double.MaxValue;
+            double min = double.MaxValue;
             for (int i = 0; i < _span_table.Length; ++i)
             {
                 double span = baseNum * _span_table[i];
@@ -362,16 +379,16 @@ namespace Editor.Tools.CurveEditor
 
 
         // Grid ralated params.
-        private double[]    gridSpans       = {0.1,0.1};
+        private double[] gridSpans = { 0.1, 0.1 };
 
         // unit  (bottom left corner of window)
-        private double[]    gridOffsets     = {0,0};
+        private double[] gridOffsets = { 0, 0 };
 
         // unit/pixel
-        private double[]    gridScale       = {0,0};
+        private double[] gridScale = { 0, 0 };
 
         // pixel/unit
-        private double[]    invGridScale    = {0,0};
+        private double[] invGridScale = { 0, 0 };
 
         private Vector2 viewSize = new Vector2();
 

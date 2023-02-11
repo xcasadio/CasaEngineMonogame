@@ -48,7 +48,7 @@ namespace Editor.Game.Control
             get { return services; }
         }
 
-        GameServiceContainer services = new GameServiceContainer();
+        GameServiceContainer services = new();
 
 
 

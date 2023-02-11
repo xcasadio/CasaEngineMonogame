@@ -106,7 +106,9 @@ namespace CasaEngine.Input
 #if !XBOX360
                 //TODO: Introduce a mouse movement threshold constant
                 if (MouseXMovement > 1 || MouseYMovement > 1)
+                {
                     return true;
+                }
 #endif
                 return false;
             }
@@ -181,7 +183,7 @@ namespace CasaEngine.Input
             "Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode",
             Justification = "Makes this class reuseable.")]
         public Point MouseDraggingAmount =>
-            new Point(
+            new(
                 _startDraggingPos.X - MousePos.X,
                 _startDraggingPos.Y - MousePos.Y);
 
@@ -274,9 +276,13 @@ namespace CasaEngine.Input
             if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z)
             {
                 if (shiftPressed)
+                {
                     ret = key.ToString()[0];
+                }
                 else
+                {
                     ret = key.ToString().ToLower()[0];
+                }
             }
             else if (keyNum >= (int)Keys.D0 && keyNum <= (int)Keys.D9 &&
                 shiftPressed == false)
@@ -284,47 +290,89 @@ namespace CasaEngine.Input
                 ret = (char)((int)'0' + (keyNum - Keys.D0));
             }
             else if (key == Keys.D1 && shiftPressed)
+            {
                 ret = '!';
+            }
             else if (key == Keys.D2 && shiftPressed)
+            {
                 ret = '@';
+            }
             else if (key == Keys.D3 && shiftPressed)
+            {
                 ret = '#';
+            }
             else if (key == Keys.D4 && shiftPressed)
+            {
                 ret = '$';
+            }
             else if (key == Keys.D5 && shiftPressed)
+            {
                 ret = '%';
+            }
             else if (key == Keys.D6 && shiftPressed)
+            {
                 ret = '^';
+            }
             else if (key == Keys.D7 && shiftPressed)
+            {
                 ret = '&';
+            }
             else if (key == Keys.D8 && shiftPressed)
+            {
                 ret = '*';
+            }
             else if (key == Keys.D9 && shiftPressed)
+            {
                 ret = '(';
+            }
             else if (key == Keys.D0 && shiftPressed)
+            {
                 ret = ')';
+            }
             else if (key == Keys.OemTilde)
+            {
                 ret = shiftPressed ? '~' : '`';
+            }
             else if (key == Keys.OemMinus)
+            {
                 ret = shiftPressed ? '_' : '-';
+            }
             else if (key == Keys.OemPipe)
+            {
                 ret = shiftPressed ? '|' : '\\';
+            }
             else if (key == Keys.OemOpenBrackets)
+            {
                 ret = shiftPressed ? '{' : '[';
+            }
             else if (key == Keys.OemCloseBrackets)
+            {
                 ret = shiftPressed ? '}' : ']';
+            }
             else if (key == Keys.OemSemicolon)
+            {
                 ret = shiftPressed ? ':' : ';';
+            }
             else if (key == Keys.OemQuotes)
+            {
                 ret = shiftPressed ? '"' : '\'';
+            }
             else if (key == Keys.OemComma)
+            {
                 ret = shiftPressed ? '<' : '.';
+            }
             else if (key == Keys.OemPeriod)
+            {
                 ret = shiftPressed ? '>' : ',';
+            }
             else if (key == Keys.OemQuestion)
+            {
                 ret = shiftPressed ? '?' : '/';
+            }
             else if (key == Keys.OemPlus)
+            {
                 ret = shiftPressed ? '+' : '=';
+            }
 
             // Return result
             return ret;
@@ -926,7 +974,7 @@ namespace CasaEngine.Input
                 lock (this)
                 {
                     // Remove self from the service container.
-                    GameHelper.RemoveGameComponent<InputComponent>(this.Game);
+                    GameHelper.RemoveGameComponent<InputComponent>(Game);
                 }
             }
 
@@ -942,7 +990,7 @@ namespace CasaEngine.Input
 #else
             // Handle mouse input variables
             _mouseStateLastFrame = _mouseState;
-            _mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
+            _mouseState = Mouse.GetState();
 
             // Update mouseXMovement and mouseYMovement
             _lastMouseXMovement += _mouseState.X - _mouseStateLastFrame.X;
@@ -971,7 +1019,9 @@ namespace CasaEngine.Input
             }
 
             if (MouseLeftButtonPressed == false)
+            {
                 _startDraggingPos = MousePos;
+            }
 #if EDITOR
             _mouseWheelDelta = MsMouseWheel / 120;
             MsMouseWheel = 0;
@@ -998,10 +1048,12 @@ namespace CasaEngine.Input
             // This allows us to ignore the mouse even when it is captured
             // on a windows machine if just the gamepad or keyboard is used.
             if (_mouseDetected == false)// &&
-                //always returns false: Microsoft.Xna.Framework.Input.Mouse.IsCaptured)
+                                        //always returns false: Microsoft.Xna.Framework.Input.Mouse.IsCaptured)
+            {
                 _mouseDetected = _mouseState.X != _mouseStateLastFrame.X ||
-                    _mouseState.Y != _mouseStateLastFrame.Y ||
-                    _mouseState.LeftButton != _mouseStateLastFrame.LeftButton;
+                                 _mouseState.Y != _mouseStateLastFrame.Y ||
+                                 _mouseState.LeftButton != _mouseStateLastFrame.LeftButton;
+            }
 #endif
 
             // Handle keyboard input
@@ -1014,7 +1066,7 @@ namespace CasaEngine.Input
             {
                 _gamePadStateLastFrame[i] = _gamePadState[i];
                 _gamePadState[i] =
-                    Microsoft.Xna.Framework.Input.GamePad.GetState((PlayerIndex)i, _gamePadDeadZoneMode[i]);
+                    GamePad.GetState((PlayerIndex)i, _gamePadDeadZoneMode[i]);
             }
 
             // Update all InputManager

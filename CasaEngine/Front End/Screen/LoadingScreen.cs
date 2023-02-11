@@ -23,8 +23,8 @@ namespace CasaEngine.FrontEnd.Screen
                               Screen[] screensToLoad)
             : base("LoadingScreen")
         {
-            this._loadingIsSlow = loadingIsSlow;
-            this._screensToLoad = screensToLoad;
+            _loadingIsSlow = loadingIsSlow;
+            _screensToLoad = screensToLoad;
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
 

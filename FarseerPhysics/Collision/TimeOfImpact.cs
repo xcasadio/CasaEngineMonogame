@@ -35,8 +35,8 @@ namespace FarseerPhysics.Collision
     /// </summary>
     public class TOIInput
     {
-        public DistanceProxy ProxyA = new DistanceProxy();
-        public DistanceProxy ProxyB = new DistanceProxy();
+        public DistanceProxy ProxyA = new();
+        public DistanceProxy ProxyB = new();
         public Sweep SweepA;
         public Sweep SweepB;
         public float TMax; // defines sweep interval [0, tMax]
@@ -68,8 +68,8 @@ namespace FarseerPhysics.Collision
     {
         private static Vector2 _axis;
         private static Vector2 _localPoint;
-        private static DistanceProxy _proxyA = new DistanceProxy();
-        private static DistanceProxy _proxyB = new DistanceProxy();
+        private static DistanceProxy _proxyA = new();
+        private static DistanceProxy _proxyB = new();
         private static Sweep _sweepA, _sweepB;
         private static SeparationFunctionType _type;
 
@@ -289,7 +289,7 @@ namespace FarseerPhysics.Collision
 
         public static int TOICalls, TOIIters, TOIMaxIters;
         public static int TOIRootIters, TOIMaxRootIters;
-        private static DistanceInput _distanceInput = new DistanceInput();
+        private static DistanceInput _distanceInput = new();
 
         /// <summary>
         /// Compute the upper bound on time before two shapes penetrate. Time is represented as

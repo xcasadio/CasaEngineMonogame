@@ -35,7 +35,9 @@ namespace CasaEngine.AI.Pathfinding
                 //If the search didn´t find anything, return an empty path
                 path = new List<int>();
                 if (Found != SearchState.CompletedAndFound)
+                {
                     return path;
+                }
 
                 //Get the list of nodes from source to target. The shortest patrh tree is visited in reverse order
                 path.Insert(0, Target);
@@ -60,7 +62,9 @@ namespace CasaEngine.AI.Pathfinding
                 //If the search didn´t find anything, return an empty path
                 path = new List<TK>();
                 if (Found != SearchState.CompletedAndFound)
+                {
                     return path;
+                }
 
                 //Get the list of edges from source to target. The shortest patrh tree is visited in reverse order
                 aux = Target;
@@ -86,7 +90,7 @@ namespace CasaEngine.AI.Pathfinding
             //Initialize the values
             for (int i = 0; i < Graph.NodeCount; i++)
             {
-                CostToNode.Add(Double.MaxValue);
+                CostToNode.Add(double.MaxValue);
                 ShortestPathTree.Add(default(TK));
                 Frontier.Add(default(TK));
             }

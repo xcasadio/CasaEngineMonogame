@@ -43,7 +43,7 @@ namespace FarseerPhysics.Dynamics
         /// </summary>
         public CollisionFilterDelegate ContactFilter;
 
-        public List<Contact> ContactList = new List<Contact>(128);
+        public List<Contact> ContactList = new(128);
 
         /// <summary>
         /// Fires when a contact is deleted

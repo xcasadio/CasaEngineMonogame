@@ -10,14 +10,14 @@ namespace CasaEngine.AI.Goals
 
         protected internal T Owner;
 
-        protected internal GoalProcessingState Status;
+        protected internal GoalProcessingState status;
 
 
 
         public Goal(T owner)
         {
-            this.Owner = owner;
-            this.status = GoalProcessingState.Inactive;
+            Owner = owner;
+            status = GoalProcessingState.Inactive;
         }
 
 
@@ -51,13 +51,17 @@ namespace CasaEngine.AI.Goals
         protected void ActivateIfInactive()
         {
             if (status == GoalProcessingState.Inactive)
+            {
                 Activate();
+            }
         }
 
         protected void ReactivateIfFailed()
         {
             if (status == GoalProcessingState.Failed)
+            {
                 status = GoalProcessingState.Inactive;
+            }
         }
 
     }

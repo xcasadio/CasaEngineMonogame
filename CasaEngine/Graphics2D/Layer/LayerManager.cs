@@ -2,7 +2,7 @@
 {
     public class LayerManager
     {
-        readonly List<Layer> _layerList = new List<Layer>();
+        readonly List<Layer> _layerList = new();
 
 
 

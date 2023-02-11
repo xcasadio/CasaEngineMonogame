@@ -134,7 +134,7 @@ namespace CasaEngine.FrontEnd.Screen
         public virtual void Update(float elapsedTime, bool otherScreenHasFocus,
                                                       bool coveredByOtherScreen)
         {
-            this._otherScreenHasFocus = otherScreenHasFocus;
+            _otherScreenHasFocus = otherScreenHasFocus;
 
             if (_isExiting)
             {
@@ -183,10 +183,14 @@ namespace CasaEngine.FrontEnd.Screen
             float transitionDelta;
 
             if (time == TimeSpan.Zero)
+            {
                 transitionDelta = 1;
+            }
             else
+            {
                 transitionDelta = elapsedTime;//(float)(gameTime.ElapsedGameTime.TotalMilliseconds /
-                                              //time.TotalMilliseconds);
+            }
+            //time.TotalMilliseconds);
 
             // Update the transition position.
             _transitionPosition += transitionDelta * direction;
@@ -216,8 +220,8 @@ namespace CasaEngine.FrontEnd.Screen
             Name = el.Attributes["name"].Value;
 
             //this.TransitionAlpha = byte.Parse(el_.SelectSingleNode("TransitionAlpha").InnerText);
-            this.TransitionOffTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOffTime").InnerText);
-            this.TransitionOnTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOnTime").InnerText);
+            TransitionOffTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOffTime").InnerText);
+            TransitionOnTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOnTime").InnerText);
             //this.TransitionPosition = float.Parse(el_.SelectSingleNode("TransitionPosition").InnerText);
         }
 

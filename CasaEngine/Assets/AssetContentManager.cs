@@ -5,10 +5,10 @@ namespace CasaEngine.Asset
     public class AssetContentManager
     {
 
-        private readonly List<Asset> _assets = new List<Asset>();
+        private readonly List<Asset> _assets = new();
 
-        private readonly Dictionary<string, Dictionary<string, object>> _loadedAssets = new Dictionary<string, Dictionary<string, object>>();
-        private readonly Dictionary<Type, IAssetLoader> _assetLoader = new Dictionary<Type, IAssetLoader>();
+        private readonly Dictionary<string, Dictionary<string, object>> _loadedAssets = new();
+        private readonly Dictionary<Type, IAssetLoader> _assetLoader = new();
 
 
 

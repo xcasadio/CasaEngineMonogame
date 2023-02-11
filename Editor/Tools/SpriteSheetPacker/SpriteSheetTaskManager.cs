@@ -17,7 +17,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
     {
 
         static private int m_Version = 1;
-        private List<SpriteSheetTask> m_Tasks = new List<SpriteSheetTask>();
+        private List<SpriteSheetTask> m_Tasks = new();
 
 
 
@@ -137,7 +137,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 xmlDoc.AddAttribute(rootNode, "version", m_Version.ToString());
 
                 XmlElement nodeList = xmlDoc.CreateElement("TaskList");
-                rootNode.AppendChild(nodeList);                
+                rootNode.AppendChild(nodeList);
 
                 foreach (SpriteSheetTask t in m_Tasks)
                 {

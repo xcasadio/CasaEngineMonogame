@@ -10,12 +10,12 @@ namespace CasaEngine.Math.Collision
     {
 
         //to avoid GC
-        static Manifold _manifold = new Manifold();
-        static Transform _transformA = new Transform(), _transformB = new Transform();
-        static readonly CircleShape CircleShape1 = new CircleShape(1.0f, 1.0f);
-        static readonly CircleShape CircleShape2 = new CircleShape(1.0f, 1.0f);
-        static readonly PolygonShape PolygonShape1 = new PolygonShape(1.0f);
-        static readonly PolygonShape PolygonShape2 = new PolygonShape(1.0f);
+        static Manifold _manifold = new();
+        static Transform _transformA = new(), _transformB = new();
+        static readonly CircleShape CircleShape1 = new(1.0f, 1.0f);
+        static readonly CircleShape CircleShape2 = new(1.0f, 1.0f);
+        static readonly PolygonShape PolygonShape1 = new(1.0f);
+        static readonly PolygonShape PolygonShape2 = new(1.0f);
 
 
         static public bool CollidePolygons(ShapePolygone p1, ref Vector2 pos1, ShapePolygone p2, ref Vector2 pos2)

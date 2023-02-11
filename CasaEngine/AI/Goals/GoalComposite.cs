@@ -11,7 +11,7 @@ namespace CasaEngine.AI.Goals
         public GoalComposite(T owner)
             : base(owner)
         {
-            this.SubGoals = new List<Goal<T>>();
+            SubGoals = new List<Goal<T>>();
         }
 
 
@@ -57,7 +57,9 @@ namespace CasaEngine.AI.Goals
 
                 //If the goal was completed, but there are goals left, the composite goal continues to be active
                 if (subGoalStatus == GoalProcessingState.Completed && SubGoals.Count > 1)
+                {
                     return GoalProcessingState.Active;
+                }
 
                 //If not, return the status of the goal
                 return subGoalStatus;
@@ -70,7 +72,9 @@ namespace CasaEngine.AI.Goals
         protected void RemoveAllSubgoals()
         {
             for (int i = 0; i < SubGoals.Count; i++)
+            {
                 SubGoals[i].Terminate();
+            }
 
             SubGoals.Clear();
         }
@@ -78,7 +82,9 @@ namespace CasaEngine.AI.Goals
         protected bool ForwardMessage(Message message)
         {
             if (SubGoals.Count != 0)
+            {
                 return SubGoals[0].HandleMessage(message);
+            }
 
             return false;
         }

@@ -117,7 +117,7 @@ namespace Editor.Tools.CurveEditor
         public EditCurve(string name, System.Drawing.Color curveColor, CommandHistory commandHistory)
         {
             originalCurve = new Curve();
-            this.color = curveColor;
+            color = curveColor;
             keys = new EditCurveKeyCollection(this);
 
             state.Name = name;
@@ -131,7 +131,7 @@ namespace Editor.Tools.CurveEditor
                             CommandHistory commandHistory)
         {
             originalCurve = curve;
-            this.color = curveColor;
+            color = curveColor;
             keys = new EditCurveKeyCollection(this);
 
             state.Name = name;
@@ -165,7 +165,9 @@ namespace Editor.Tools.CurveEditor
         public void BeginUpdate()
         {
             if (inUpdating)
+            {
                 throw new InvalidOperationException("BeginUpdate called twice.");
+            }
 
             modifiedKeys = new Dictionary<long, EditCurveKey>();
             savedState = (EditCurveState)state.Clone();
@@ -180,8 +182,10 @@ namespace Editor.Tools.CurveEditor
         public void EndUpdate()
         {
             if (!inUpdating)
+            {
                 throw new InvalidOperationException(
                     "You must call BeginUpdate before call EndUpdate.");
+            }
 
             // Compare modified key values.
             if (modifiedKeys != null && modifiedKeys.Count > 0)
@@ -210,8 +214,10 @@ namespace Editor.Tools.CurveEditor
                 {
                     dirty = true;
                     if (commandHistory != null)
+                    {
                         commandHistory.Add(new EditCurveKeyUpdateCommand(
                             this, oldKeyValues, newKeyValues));
+                    }
                 }
             }
             modifiedKeys = null;
@@ -219,13 +225,18 @@ namespace Editor.Tools.CurveEditor
             // Compare states
             bool stateChanged = state != savedState;
             if (commandHistory != null && stateChanged)
+            {
                 commandHistory.Add(new EditCurveStateChangeCommand(
                     this, savedState, state));
+            }
 
             savedState = null;
             inUpdating = false;
 
-            if (stateChanged) FireStateChangeEvent();
+            if (stateChanged)
+            {
+                FireStateChangeEvent();
+            }
         }
 
         /// <summary>
@@ -241,7 +252,10 @@ namespace Editor.Tools.CurveEditor
                             EditCurveView keyView, EditCurveView tangentView,
                                 bool toggleSelection, bool singleSelect)
         {
-            if (!Editable) return;
+            if (!Editable)
+            {
+                return;
+            }
 
             EditCurveKeySelection newSelection = new EditCurveKeySelection();
 
@@ -268,8 +282,10 @@ namespace Editor.Tools.CurveEditor
             }
 
             if (toggleSelection)
+            {
                 newSelection = EditCurveKeySelection.ToggleSelection(
-                                                    selection, newSelection);
+                    selection, newSelection);
+            }
 
             ApplySelection(newSelection, true);
         }
@@ -307,14 +323,18 @@ namespace Editor.Tools.CurveEditor
                 {
                     EditCurveKey key;
                     if (keys.TryGetValue(id, out key))
+                    {
                         key.Selection = EditCurveSelections.None;
+                    }
                 }
             }
 
             // Invoke selection change event.
             if (generateCommand == true && !newSelection.Equals(selection) &&
                 commandHistory != null)
+            {
                 commandHistory.Add(new SelectCommand(this, newSelection, selection));
+            }
 
             // Update selection.
             selection = newSelection;
@@ -327,7 +347,10 @@ namespace Editor.Tools.CurveEditor
         /// <param name="prevPos"></param>
         public void Move(Vector2 newPos, Vector2 prevPos)
         {
-            if (!Editable || !Visible) return;
+            if (!Editable || !Visible)
+            {
+                return;
+            }
 
             Vector2 delta = newPos - prevPos;
 
@@ -366,8 +389,10 @@ namespace Editor.Tools.CurveEditor
                             key.TangentIn = (float)Math.Tan(MathHelper.Clamp(
                                 (float)(Math.Atan(tn) + da), minAngle, maxAngle)) * d;
 
-                            if (Single.IsNaN(key.TangentIn))
+                            if (float.IsNaN(key.TangentIn))
+                            {
                                 key.TangentIn = key.TangentIn;
+                            }
 
                             key.TangentInType = EditCurveTangent.Fixed;
                         }
@@ -411,8 +436,9 @@ namespace Editor.Tools.CurveEditor
                 ComputeTangents(newIdx);
 
                 if (newIdx != oldIdx)
+                {
                     ComputeTangents(oldIdx);
-
+                }
             }
 
         }
@@ -422,7 +448,10 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public void UpdateKey(long keyId, float newPosition, float newValue)
         {
-            if (!Editable || !Visible) return;
+            if (!Editable || !Visible)
+            {
+                return;
+            }
 
             EditCurveKey key;
             keys.TryGetValue(keyId, out key);
@@ -443,7 +472,9 @@ namespace Editor.Tools.CurveEditor
             ComputeTangents(newIdx);
 
             if (newIdx != oldIdx)
+            {
                 ComputeTangents(oldIdx);
+            }
 
             dirty = true;
         }
@@ -466,7 +497,10 @@ namespace Editor.Tools.CurveEditor
                 new EditCurveKeyAddRemoveCommand(this, key, selection);
 
             command.Execute();
-            if (commandHistory != null) commandHistory.Add(command);
+            if (commandHistory != null)
+            {
+                commandHistory.Add(command);
+            }
         }
 
         /// <summary>
@@ -474,7 +508,10 @@ namespace Editor.Tools.CurveEditor
         /// </summary>
         public void RemoveKeys()
         {
-            if (!Editable) return;
+            if (!Editable)
+            {
+                return;
+            }
 
             if (selectedKeys.Count != 0)
             {
@@ -483,7 +520,10 @@ namespace Editor.Tools.CurveEditor
                     new EditCurveKeyAddRemoveCommand(this, selectedKeys.Values);
 
                 command.Execute();
-                if (commandHistory != null) commandHistory.Add(command);
+                if (commandHistory != null)
+                {
+                    commandHistory.Add(command);
+                }
 
                 // Clear selection
                 selection.Clear();
@@ -499,7 +539,10 @@ namespace Editor.Tools.CurveEditor
         /// <param name="newState"></param>
         public void ApplyState(EditCurveState newState)
         {
-            if (newState == null) throw new ArgumentNullException("newState");
+            if (newState == null)
+            {
+                throw new ArgumentNullException("newState");
+            }
 
             inUpdating = true;
             Name = newState.Name;
@@ -541,7 +584,10 @@ namespace Editor.Tools.CurveEditor
         public void SetTangents(EditCurveSelections targetTangent,
                                         EditCurveTangent tangentType)
         {
-            if (!Editable) return;
+            if (!Editable)
+            {
+                return;
+            }
 
             EnsureUpdating("SetTangents");
 
@@ -559,10 +605,14 @@ namespace Editor.Tools.CurveEditor
                     SetKeyContinuity(key, CurveContinuity.Smooth);
 
                     if ((targetTangent & EditCurveSelections.TangentIn) != 0)
+                    {
                         key.TangentInType = tangentType;
+                    }
 
                     if ((targetTangent & EditCurveSelections.TangentOut) != 0)
+                    {
                         key.TangentOutType = tangentType;
+                    }
                 }
             }
 
@@ -577,8 +627,10 @@ namespace Editor.Tools.CurveEditor
         /// <param name="idx"></param>
         public void ComputeTangents(int keyIndex)
         {
-            if (keyIndex < 0 || keyIndex > keys.Count || keyIndex > Int32.MaxValue - 2)
+            if (keyIndex < 0 || keyIndex > keys.Count || keyIndex > int.MaxValue - 2)
+            {
                 throw new ArgumentOutOfRangeException("keyIndex");
+            }
 
             // Compute neighbors tangents too.
             for (int i = keyIndex - 1; i < keyIndex + 2; ++i)
@@ -596,15 +648,26 @@ namespace Editor.Tools.CurveEditor
 
                     OriginalCurve.ComputeTangent(i, tangentIn, tangentOut);
 
-                    if (Single.IsNaN(key.TangentIn)) key.TangentIn = 0.0f;
-                    if (Single.IsNaN(key.TangentOut)) key.TangentOut = 0.0f;
+                    if (float.IsNaN(key.TangentIn))
+                    {
+                        key.TangentIn = 0.0f;
+                    }
+
+                    if (float.IsNaN(key.TangentOut))
+                    {
+                        key.TangentOut = 0.0f;
+                    }
 
                     // Restore original value if EditCurveTanget is fixed.
                     if (key.TangentInType == EditCurveTangent.Fixed)
+                    {
                         key.TangentIn = tangentInValue;
+                    }
 
                     if (key.TangentOutType == EditCurveTangent.Fixed)
+                    {
                         key.TangentOut = tangentOutValue;
+                    }
                 }
             }
         }
@@ -748,18 +811,29 @@ namespace Editor.Tools.CurveEditor
         {
             dirty = true;
 
-            if (inUpdating) return;
+            if (inUpdating)
+            {
+                return;
+            }
 
-            if (StateChanged != null) StateChanged(this, EventArgs.Empty);
+            if (StateChanged != null)
+            {
+                StateChanged(this, EventArgs.Empty);
+            }
+
             if (Owner != null)
+            {
                 Owner.Invalidate();
+            }
         }
 
         private void EnsureUpdating(string operationName)
         {
             if (!inUpdating)
-                throw new InvalidOperationException(String.Format(
+            {
+                throw new InvalidOperationException(string.Format(
                     "You have to call BeginUpdate before call {0}", operationName));
+            }
         }
 
         const float MinTangentAngle = -89.99999f;
@@ -779,13 +853,12 @@ namespace Editor.Tools.CurveEditor
 
         private CommandHistory commandHistory;
 
-        private Dictionary<long, EditCurveKey> selectedKeys =
-                                                new Dictionary<long, EditCurveKey>();
-        private EditCurveKeySelection selection = new EditCurveKeySelection();
+        private Dictionary<long, EditCurveKey> selectedKeys = new();
+        private EditCurveKeySelection selection = new();
 
         private Dictionary<long, EditCurveKey> modifiedKeys;
 
-        private EditCurveState state = new EditCurveState();
+        private EditCurveState state = new();
         private EditCurveState savedState;
 
         private bool inUpdating;

@@ -42,7 +42,9 @@ namespace CasaEngine.FrontEnd.Screen
         protected internal virtual void OnSelectEntry(PlayerIndex playerIndex)
         {
             if (Selected != null)
+            {
                 Selected(this, new PlayerIndexEventArgs(playerIndex));
+            }
         }
 
 
@@ -51,7 +53,7 @@ namespace CasaEngine.FrontEnd.Screen
 
         public MenuEntry(string text)
         {
-            this._text = text;
+            _text = text;
 
             _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
@@ -68,9 +70,13 @@ namespace CasaEngine.FrontEnd.Screen
             float fadeSpeed = elapsedTime * 4.0f;//(float)gameTime.ElapsedGameTime.TotalSeconds * 4;
 
             if (isSelected)
+            {
                 _selectionFade = System.Math.Min(_selectionFade + fadeSpeed, 1);
+            }
             else
+            {
                 _selectionFade = System.Math.Max(_selectionFade - fadeSpeed, 0);
+            }
         }
 
 

@@ -11,7 +11,7 @@ using WeifenLuo.WinFormsUI.Docking;
 
 namespace Editor.Log
 {
-    public partial class LogForm 
+    public partial class LogForm
         : DockContent
     {
         public LogForm()
@@ -20,7 +20,7 @@ namespace Editor.Log
 
             try
             {
-                LogManager.Instance.AddLogger(new LogEditor(this.richTextBox_Log));
+                LogManager.Instance.AddLogger(new LogEditor(richTextBox_Log));
             }
             catch (Exception ex)
             {

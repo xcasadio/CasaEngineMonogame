@@ -18,12 +18,12 @@ namespace CasaEngine.Editor.Assets
         private readonly ContentBuilder _contentBuilder = null;
         private ContentBuilder _contentBuilderTempFiles = null;
 
-        private readonly List<AssetInfo> _assets = new List<AssetInfo>();
-        private readonly List<AssetBuildInfo> _assetBuildInfo = new List<AssetBuildInfo>();
+        private readonly List<AssetInfo> _assets = new();
+        private readonly List<AssetBuildInfo> _assetBuildInfo = new();
 
         //for temporary task
         private readonly FileSystemWatcher _fileWatcher;
-        private readonly List<string> _assetToCopy = new List<string>();
+        private readonly List<string> _assetToCopy = new();
 
 
 

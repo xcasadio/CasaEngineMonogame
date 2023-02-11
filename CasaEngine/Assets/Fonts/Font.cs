@@ -233,56 +233,56 @@ namespace CasaEngine.Asset.Fonts
 
     public class FontInfo
     {
-        public String Face
+        public string Face
         {
             get;
             set;
         }
 
-        public Int32 Size
+        public int Size
         {
             get;
             set;
         }
 
-        public Int32 Bold
+        public int Bold
         {
             get;
             set;
         }
 
-        public Int32 Italic
+        public int Italic
         {
             get;
             set;
         }
 
-        public String CharSet
+        public string CharSet
         {
             get;
             set;
         }
 
-        public Int32 Unicode
+        public int Unicode
         {
             get;
             set;
         }
 
-        public Int32 StretchHeight
+        public int StretchHeight
         {
             get;
             set;
         }
 
-        public Int32 Smooth
+        public int Smooth
         {
             get;
             set;
         }
 
         //"aa"
-        public Int32 SuperSampling
+        public int SuperSampling
         {
             get;
             set;
@@ -324,7 +324,7 @@ namespace CasaEngine.Asset.Fonts
         }*/
 
         [XmlAttribute("outline")]
-        public Int32 OutLine
+        public int OutLine
         {
             get;
             set;
@@ -339,10 +339,10 @@ namespace CasaEngine.Asset.Fonts
         {
             //face="Arial" size="32" bold="0" italic="0" charset="" unicode="1" stretchH="100" smooth="1" aa="1" padding="0,0,0,0" spacing="1,1" outline="0"
 
-            String[] padding = node.Attributes["padding"].Value.Split(',');
+            string[] padding = node.Attributes["padding"].Value.Split(',');
             Padding = new Rectangle(Convert.ToInt32(padding[0]), Convert.ToInt32(padding[1]), Convert.ToInt32(padding[2]), Convert.ToInt32(padding[3]));
 
-            String[] spacing = node.Attributes["spacing"].Value.Split(',');
+            string[] spacing = node.Attributes["spacing"].Value.Split(',');
             Spacing = new Point(Convert.ToInt32(spacing[0]), Convert.ToInt32(spacing[1]));
         }
     }
@@ -350,70 +350,70 @@ namespace CasaEngine.Asset.Fonts
     public class FontCommon
     {
         [XmlAttribute("lineHeight")]
-        public Int32 LineHeight
+        public int LineHeight
         {
             get;
             set;
         }
 
         [XmlAttribute("base")]
-        public Int32 Base
+        public int Base
         {
             get;
             set;
         }
 
         [XmlAttribute("scaleW")]
-        public Int32 ScaleW
+        public int ScaleW
         {
             get;
             set;
         }
 
         [XmlAttribute("scaleH")]
-        public Int32 ScaleH
+        public int ScaleH
         {
             get;
             set;
         }
 
         [XmlAttribute("pages")]
-        public Int32 Pages
+        public int Pages
         {
             get;
             set;
         }
 
         [XmlAttribute("packed")]
-        public Int32 Packed
+        public int Packed
         {
             get;
             set;
         }
 
         [XmlAttribute("alphaChnl")]
-        public Int32 AlphaChannel
+        public int AlphaChannel
         {
             get;
             set;
         }
 
         [XmlAttribute("redChnl")]
-        public Int32 RedChannel
+        public int RedChannel
         {
             get;
             set;
         }
 
         [XmlAttribute("greenChnl")]
-        public Int32 GreenChannel
+        public int GreenChannel
         {
             get;
             set;
         }
 
         [XmlAttribute("blueChnl")]
-        public Int32 BlueChannel
+        public int BlueChannel
         {
             get;
             set;
@@ -446,14 +446,14 @@ namespace CasaEngine.Asset.Fonts
     public class FontPage
     {
         [XmlAttribute("id")]
-        public Int32 Id
+        public int Id
         {
             get;
             set;
         }
 
         [XmlAttribute("file")]
-        public String File
+        public string File
         {
             get;
             set;
@@ -463,7 +463,7 @@ namespace CasaEngine.Asset.Fonts
     public class FontChar
     {
         [XmlAttribute("id")]
-        public Int32 Id
+        public int Id
         {
             get;
             set;
@@ -476,59 +476,59 @@ namespace CasaEngine.Asset.Fonts
         }
 
         [XmlAttribute("x")]
-        public Int32 X
+        public int X
         {
             get;
             set;
         }
 
         [XmlAttribute("y")]
-        public Int32 Y
+        public int Y
         {
             get;
             set;
         }
 
         [XmlAttribute("width")]
-        public Int32 Width
+        public int Width
         {
             get;
             set;
         }
 
         [XmlAttribute("height")]
-        public Int32 Height
+        public int Height
         {
             get;
             set;
         }
 
         [XmlAttribute("xoffset")]
-        public Int32 XOffset
+        public int XOffset
         {
             get;
             set;
         }
 
-        public Int32 YOffset
+        public int YOffset
         {
             get;
             set;
         }
 
-        public Int32 XAdvance
+        public int XAdvance
         {
             get;
             set;
         }
 
-        public Int32 Page
+        public int Page
         {
             get;
             set;
         }
 
-        public Int32 Channel
+        public int Channel
         {
             get;
             set;
@@ -571,19 +571,19 @@ namespace CasaEngine.Asset.Fonts
 
     public class FontKerning
     {
-        public Int32 First
+        public int First
         {
             get;
             set;
         }
 
-        public Int32 Second
+        public int Second
         {
             get;
             set;
         }
 
-        public Int32 Amount
+        public int Amount
         {
             get;
             set;

@@ -62,9 +62,9 @@ namespace CasaEngine.Debugger
             public CommandInfo(
                 string command, string description, DebugCommandExecute callback)
             {
-                this.Command = command;
-                this.Description = description;
-                this.Callback = callback;
+                Command = command;
+                Description = description;
+                Callback = callback;
             }
 
             // command name
@@ -87,30 +87,29 @@ namespace CasaEngine.Debugger
         private float _stateTransition;
 
         // Registered echo listeners.
-        private readonly List<IDebugEchoListner> _listenrs = new List<IDebugEchoListner>();
+        private readonly List<IDebugEchoListner> _listenrs = new();
 
         // Registered command executioner.
-        private readonly Stack<IDebugCommandExecutioner> _executioners = new Stack<IDebugCommandExecutioner>();
+        private readonly Stack<IDebugCommandExecutioner> _executioners = new();
 
         // Registered commands
-        private readonly Dictionary<string, CommandInfo> _commandTable =
-                                                new Dictionary<string, CommandInfo>();
+        private readonly Dictionary<string, CommandInfo> _commandTable = new();
 
         // Current command line string and cursor position.
-        private string _commandLine = String.Empty;
+        private string _commandLine = string.Empty;
         private int _cursorIndex = 0;
 
-        private readonly Queue<string> _lines = new Queue<string>();
+        private readonly Queue<string> _lines = new();
 
         // Command history buffer.
-        private readonly List<string> _commandHistory = new List<string>();
+        private readonly List<string> _commandHistory = new();
 
         // Selecting command history index.
         private int _commandHistoryIndex;
 
         private Renderer2DComponent _renderer2DComponent = null;
 
-        private readonly Color _backgroundColor = new Color(0, 0, 0, 200);
+        private readonly Color _backgroundColor = new(0, 0, 0, 200);
 
 
         // Previous frame keyboard state.
@@ -153,11 +152,11 @@ namespace CasaEngine.Debugger
                     foreach (CommandInfo cmd in _commandTable.Values)
                         maxLen = System.Math.Max(maxLen, cmd.Command.Length);
 
-                    string fmt = String.Format("{{0,-{0}}}    {{1}}", maxLen);
+                    string fmt = string.Format("{{0,-{0}}}    {{1}}", maxLen);
 
                     foreach (CommandInfo cmd in _commandTable.Values)
                     {
-                        Echo(String.Format(fmt, cmd.Command, cmd.Description));
+                        Echo(string.Format(fmt, cmd.Command, cmd.Description));
                     }
                 });
 
@@ -284,7 +283,9 @@ namespace CasaEngine.Debugger
                 Game.Services.GetService(typeof(DebugManager)) as DebugManager;
 
             if (_debugManager == null)
+            {
                 throw new InvalidOperationException("Coudn't find DebugManager.");
+            }
 
             base.Initialize();
         }
@@ -310,7 +311,7 @@ namespace CasaEngine.Debugger
             if (_commandTable.ContainsKey(lowerCommand))
             {
                 throw new InvalidOperationException(
-                    String.Format("Command \"{0}\" is already registered.", command));
+                    string.Format("Command \"{0}\" is already registered.", command));
             }
 
             _commandTable.Add(
@@ -323,7 +324,7 @@ namespace CasaEngine.Debugger
             if (!_commandTable.ContainsKey(lowerCommand))
             {
                 throw new InvalidOperationException(
-                    String.Format("Command \"{0}\" is not registered.", command));
+                    string.Format("Command \"{0}\" is not registered.", command));
             }
 
             _commandTable.Remove(command);
@@ -458,7 +459,10 @@ namespace CasaEngine.Debugger
             {
                 case State.Closed:
                     if (keyState.IsKeyDown(Keys.OemQuotes))
+                    {
                         Show();
+                    }
+
                     break;
                 case State.Opening:
                     _stateTransition += dt * openSpeed;
@@ -496,7 +500,10 @@ namespace CasaEngine.Debugger
 
             foreach (Keys key in keys)
             {
-                if (!IsKeyPressed(key, dt)) continue;
+                if (!IsKeyPressed(key, dt))
+                {
+                    continue;
+                }
 
                 char ch;
                 if (KeyboardUtils.KeyToString(key, shift, out ch))
@@ -511,19 +518,31 @@ namespace CasaEngine.Debugger
                     {
                         case Keys.Back:
                             if (_cursorIndex > 0)
+                            {
                                 _commandLine = _commandLine.Remove(--_cursorIndex, 1);
+                            }
+
                             break;
                         case Keys.Delete:
                             if (_cursorIndex < _commandLine.Length)
+                            {
                                 _commandLine = _commandLine.Remove(_cursorIndex, 1);
+                            }
+
                             break;
                         case Keys.Left:
                             if (_cursorIndex > 0)
+                            {
                                 _cursorIndex--;
+                            }
+
                             break;
                         case Keys.Right:
                             if (_cursorIndex < _commandLine.Length)
+                            {
                                 _cursorIndex++;
+                            }
+
                             break;
                         case Keys.Enter:
                             // Run the command.
@@ -589,7 +608,9 @@ namespace CasaEngine.Debugger
         {
             // Do nothing when command window is completely closed.
             if (_state == State.Closed)
+            {
                 return;
+            }
 
             SpriteFont font = Engine.Instance.DefaultSpriteFont;
             Texture2D whiteTexture = _debugManager.WhiteTexture;
@@ -637,7 +658,7 @@ namespace CasaEngine.Debugger
 
             // spriteBatch.DrawString(font,
             //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
-            _renderer2DComponent.AddText2D(font, String.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2DComponent.AddText2D(font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
             //spriteBatch.DrawString(font, Cursor, cursorPos, Color.White);
             _renderer2DComponent.AddText2D(font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
 

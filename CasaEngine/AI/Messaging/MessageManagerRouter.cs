@@ -7,7 +7,7 @@ namespace CasaEngine.AI.Messaging
     public sealed class MessageManagerRouter : IMessageManager
     {
 
-        private static readonly MessageManagerRouter Manager = new MessageManagerRouter();
+        private static readonly MessageManagerRouter Manager = new();
 
         internal UniquePriorityQueue<Message> MessageQueue;
 
@@ -52,7 +52,7 @@ namespace CasaEngine.AI.Messaging
             //If the message was a delayed one, calculate its future time and put it in the message queue
             else
             {
-                message.DispatchTime = System.DateTime.Now.Ticks + delayTime;
+                message.DispatchTime = DateTime.Now.Ticks + delayTime;
                 MessageQueue.Enqueue(message);
             }
         }
@@ -63,7 +63,7 @@ namespace CasaEngine.AI.Messaging
             Message message;
             //IMessageable entity;
 
-            currentTime = System.DateTime.Now.Ticks;
+            currentTime = DateTime.Now.Ticks;
 
             while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
             {

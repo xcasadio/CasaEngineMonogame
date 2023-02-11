@@ -26,7 +26,7 @@ namespace CasaEngine.AI.Pathfinding
 
         public AStarSearch(Graph<T, TK> graph, HeuristicMethod<T, TK> heuristic) : base(graph)
         {
-            this.Heuristic = heuristic;
+            Heuristic = heuristic;
         }
 
 
@@ -41,7 +41,9 @@ namespace CasaEngine.AI.Pathfinding
                 //If the search didn´t find anything, return an empty path
                 path = new List<int>();
                 if (Found != SearchState.CompletedAndFound)
+                {
                     return path;
+                }
 
                 //Get the list of nodes from source to target. The shortest patrh tree is visited in reverse order
                 path.Insert(0, Target);
@@ -66,7 +68,9 @@ namespace CasaEngine.AI.Pathfinding
                 //If the search didn´t find anything, return an empty path
                 path = new List<TK>();
                 if (Found != SearchState.CompletedAndFound)
+                {
                     return path;
+                }
 
                 //Get the list of edges from source to target. The shortest patrh tree is visited in reverse order
                 aux = Target;

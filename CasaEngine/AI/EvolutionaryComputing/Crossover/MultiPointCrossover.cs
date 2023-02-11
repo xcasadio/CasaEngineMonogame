@@ -10,12 +10,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
         public MultiPointCrossover(double probability, Random generator, int crossoverPoints)
             : base(probability, generator)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateCrossoverPoints(crossoverPoints, ref message) == false)
-                throw new AiException("probability", this.GetType().ToString(), message);
+            {
+                throw new AiException("probability", GetType().ToString(), message);
+            }
 
-            this.CrossoverPoints = crossoverPoints;
+            CrossoverPoints = crossoverPoints;
         }
 
 
@@ -28,10 +30,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //This algorithm uses only 2 parents
             if (parents.Count != 2)
+            {
                 throw new Exception("The number of parents must be 2.");
+            }
 
             if (CrossoverPoints > parents[0].Genotype.Count)
+            {
                 throw new Exception("The number of crossover points must be smaller than the genotype size of the parents.");
+            }
 
             list = new List<Chromosome<T>>();
 
@@ -88,7 +94,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
                 //Check if we have reached the end
                 if (i + 1 == pointsList.Count)
+                {
                     break;
+                }
 
                 //Set the next crossover point and change parent
                 start = pointsList[i];

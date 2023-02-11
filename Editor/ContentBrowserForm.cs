@@ -148,7 +148,7 @@ namespace Editor
                 {
                     UpdateListView(treeViewFolder.SelectedNode != null ? treeViewFolder.SelectedNode.FullPath : "");
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
                 }
@@ -172,7 +172,7 @@ namespace Editor
                 {
                     UpdateListView(treeViewFolder.SelectedNode != null ? treeViewFolder.SelectedNode.FullPath : "");
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
                 }
@@ -208,7 +208,7 @@ namespace Editor
                         }
                     }
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
                 }
@@ -232,7 +232,7 @@ namespace Editor
                 {
                     UpdateListView(treeViewFolder.SelectedNode != null ? treeViewFolder.SelectedNode.FullPath : "");
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
                 }
@@ -263,7 +263,7 @@ namespace Editor
                         }
                     }
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
                 }
@@ -291,7 +291,7 @@ namespace Editor
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 LogManager.Instance.WriteException(ex);
             }
@@ -456,7 +456,7 @@ namespace Editor
                 {
                     item.ImageKey = "animation";
                 }
-                else if (typeof(CasaEngine.FrontEnd.Screen.UiScreen).FullName.Equals(o.ClassName) == true)
+                else if (typeof(UiScreen).FullName.Equals(o.ClassName) == true)
                 {
                     item.ImageKey = "menu";
                 }
@@ -619,7 +619,7 @@ namespace Editor
                     Sound s = new Sound(SoundEffect.FromStream(fs));
                     //GameInfo.Instance.ObjectManager.Add(treeView1.SelectedNode.FullPath, s);
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     LogManager.Instance.WriteException(ex);
                     MessageBox.Show("Can't add sound.");
@@ -802,7 +802,7 @@ namespace Editor
                     DetectAnimation2D(filesAdded.ToArray());
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 LogManager.Instance.WriteException(ex);
             }
@@ -1003,7 +1003,7 @@ namespace Editor
         /// <param name="e"></param>
         private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (this.listViewItems.SelectedIndices.Count > 0
+            if (listViewItems.SelectedIndices.Count > 0
                 && listViewItems.SelectedItems[0].Tag is string)
             {
                 string fullpath = listViewItems.SelectedItems[0].Tag as string;
@@ -1111,7 +1111,7 @@ namespace Editor
         /// <param name="e"></param>
         private void listViewItems_ItemDrag(object sender, ItemDragEventArgs e)
         {
-            this.DoDragDrop(typeof(BaseObject).FullName + "#" + ((ListViewItem)e.Item).Tag, DragDropEffects.Move);
+            DoDragDrop(typeof(BaseObject).FullName + "#" + ((ListViewItem)e.Item).Tag, DragDropEffects.Move);
         }
 
         /// <summary>
@@ -1121,7 +1121,7 @@ namespace Editor
         /// <param name="e"></param>
         private void listViewItems_DragDrop(object sender, DragEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("listViewItems_DragDrop");
+            Debug.WriteLine("listViewItems_DragDrop");
         }
 
         /// <summary>
@@ -1131,7 +1131,7 @@ namespace Editor
         /// <param name="e"></param>
         private void listViewItems_DragEnter(object sender, DragEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("listViewItems_DragEnter");
+            Debug.WriteLine("listViewItems_DragEnter");
         }
 
         /// <summary>
@@ -1141,7 +1141,7 @@ namespace Editor
         /// <param name="e"></param>
         private void listViewItems_DragLeave(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("listViewItems_DragLeave");
+            Debug.WriteLine("listViewItems_DragLeave");
         }
 
         /// <summary>
@@ -1151,7 +1151,7 @@ namespace Editor
         /// <param name="e"></param>
         private void listViewItems_DragOver(object sender, DragEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("listViewItems_DragOver");
+            Debug.WriteLine("listViewItems_DragOver");
             e.Effect = DragDropEffects.Move;
         }
 
@@ -1162,8 +1162,8 @@ namespace Editor
         /// <param name="e"></param>
         private void treeView1_ItemDrag(object sender, ItemDragEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("treeView1_ItemDrag");
-            this.DoDragDrop("Path#" + ((TreeNode)e.Item).FullPath, DragDropEffects.Move);
+            Debug.WriteLine("treeView1_ItemDrag");
+            DoDragDrop("Path#" + ((TreeNode)e.Item).FullPath, DragDropEffects.Move);
         }
 
         /// <summary>
@@ -1182,7 +1182,7 @@ namespace Editor
                 {
                     if (split[0].Equals(typeof(BaseObject).FullName) == true)
                     {
-                        TreeNode node = this.treeViewFolder.GetNodeAt(treeViewFolder.PointToClient(new System.Drawing.Point(e.X, e.Y)));
+                        TreeNode node = treeViewFolder.GetNodeAt(treeViewFolder.PointToClient(new System.Drawing.Point(e.X, e.Y)));
 
                         if (node == null)
                         {
@@ -1242,7 +1242,7 @@ namespace Editor
             if (e.Data.GetDataPresent(typeof(string)) == true)
             {
                 e.Effect = DragDropEffects.Move;
-                TreeNode node = this.treeViewFolder.GetNodeAt(treeViewFolder.PointToClient(new System.Drawing.Point(e.X, e.Y)));
+                TreeNode node = treeViewFolder.GetNodeAt(treeViewFolder.PointToClient(new System.Drawing.Point(e.X, e.Y)));
 
                 if (node == null)
                 {
@@ -1338,7 +1338,7 @@ namespace Editor
                     Engine.Instance.ObjectManager.Add(form.PackageFile + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(form.BmFile), font);
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 LogManager.Instance.WriteException(ex);
             }

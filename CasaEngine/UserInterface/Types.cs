@@ -128,7 +128,7 @@ namespace XNAFinalEngine.UserInterface
         public int Width;
         public int Height;
 
-        public static Size Zero => new Size(0, 0);
+        public static Size Zero => new(0, 0);
 
         public Size(int width, int height)
         {

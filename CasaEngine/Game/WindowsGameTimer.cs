@@ -13,7 +13,7 @@ namespace CasaEngine.Game
         {
             if (!Stopwatch.IsHighResolution)
             {
-                LogManager.Instance.WriteLineWarning("Created " + this.GetType().FullName + ", but it is not high resolution. Maybe the underlying platform doesn't support high resolution timers?");
+                LogManager.Instance.WriteLineWarning("Created " + GetType().FullName + ", but it is not high resolution. Maybe the underlying platform doesn't support high resolution timers?");
             }
             _stopwatch = Stopwatch.StartNew();
             Reset();

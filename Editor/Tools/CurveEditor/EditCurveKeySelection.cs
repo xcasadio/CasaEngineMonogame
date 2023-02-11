@@ -30,8 +30,10 @@ namespace Editor.Tools.CurveEditor
         {
             foreach (EditCurveKey key in keys)
             {
-                if ( key.Selection != EditCurveSelections.None )
+                if (key.Selection != EditCurveSelections.None)
+                {
                     Select(key.Id, key.Selection);
+                }
             }
         }
 
@@ -41,7 +43,7 @@ namespace Editor.Tools.CurveEditor
         }
 
         protected EditCurveKeySelection(SerializationInfo info,
-            StreamingContext context): base(info, context)
+            StreamingContext context) : base(info, context)
         {
         }
 
@@ -51,7 +53,10 @@ namespace Editor.Tools.CurveEditor
             bool isSame = false;
             EditCurveKeySelection other = obj as EditCurveKeySelection;
             if (other != null)
+            {
                 isSame = Equals(other);
+            }
+
             return isSame;
         }
 
@@ -64,15 +69,29 @@ namespace Editor.Tools.CurveEditor
             return hashCode;
         }
 
-        public bool  Equals(EditCurveKeySelection other)
+        public bool Equals(EditCurveKeySelection other)
         {
-            if (other == null) return false;
+            if (other == null)
+            {
+                return false;
+            }
 
-            if (this.Count != other.Count) return false;
+            if (Count != other.Count)
+            {
+                return false;
+            }
+
             foreach (long key in Keys)
             {
-                if (!other.ContainsKey(key)) return false;
-                if (this[key] != other[key]) return false;
+                if (!other.ContainsKey(key))
+                {
+                    return false;
+                }
+
+                if (this[key] != other[key])
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -88,9 +107,13 @@ namespace Editor.Tools.CurveEditor
             // Update selectTypes if it already in selection, otherwise,
             // just add to selection.
             if (ContainsKey(id))
+            {
                 this[id] = this[id] | selectTypes;
+            }
             else
+            {
                 Add(id, selectTypes);
+            }
         }
 
         /// <summary>
@@ -114,12 +137,22 @@ namespace Editor.Tools.CurveEditor
         /// otherwise it returns false.</returns>
         public bool CompareSelection(ICollection<EditCurveKey> editCurveKeys)
         {
-            if (this.Count != editCurveKeys.Count) return false;
-
-            foreach ( EditCurveKey key in editCurveKeys )
+            if (Count != editCurveKeys.Count)
             {
-                if (!ContainsKey(key.Id)) return false;
-                if (this[key.Id] != key.Selection) return false;
+                return false;
+            }
+
+            foreach (EditCurveKey key in editCurveKeys)
+            {
+                if (!ContainsKey(key.Id))
+                {
+                    return false;
+                }
+
+                if (this[key.Id] != key.Selection)
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -149,7 +182,10 @@ namespace Editor.Tools.CurveEditor
                     Select(key.Id, EditCurveSelections.Key);
                     selected = true;
 
-                    if (singleSelect) break;
+                    if (singleSelect)
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -176,7 +212,10 @@ namespace Editor.Tools.CurveEditor
                 CurveKey orgKey = key.OriginalKey;
 
                 // User can't select stepped continuity key tangents.
-                if (orgKey.Continuity == CurveContinuity.Step) continue;
+                if (orgKey.Continuity == CurveContinuity.Step)
+                {
+                    continue;
+                }
 
                 Vector3 rayOrigin = new Vector3(orgKey.Position, orgKey.Value, 0);
                 for (int i = 0; i < 2; ++i)
@@ -196,12 +235,15 @@ namespace Editor.Tools.CurveEditor
                     selectRegion.Intersects(ref ray, out result);
                     if (result.HasValue && result.Value < length)
                     {
-                        Select( key.Id, (i==0)?
-                            EditCurveSelections.TangentIn:
+                        Select(key.Id, (i == 0) ?
+                            EditCurveSelections.TangentIn :
                             EditCurveSelections.TangentOut);
                         selected = true;
 
-                        if (singleSelect) break;
+                        if (singleSelect)
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -229,9 +271,13 @@ namespace Editor.Tools.CurveEditor
                     s = s ^ newSelection[key];
 
                     if (s != EditCurveSelections.None)
+                    {
                         result[key] = s;
+                    }
                     else
+                    {
                         result.Remove(key);
+                    }
                 }
                 else
                 {

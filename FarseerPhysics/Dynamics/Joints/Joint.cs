@@ -126,8 +126,8 @@ namespace FarseerPhysics.Dynamics.Joints
         /// </summary>
         public float Breakpoint = float.MaxValue;
 
-        internal JointEdge EdgeA = new JointEdge();
-        internal JointEdge EdgeB = new JointEdge();
+        internal JointEdge EdgeA = new();
+        internal JointEdge EdgeB = new();
         public bool Enabled = true;
         protected float InvIA;
         protected float InvIB;

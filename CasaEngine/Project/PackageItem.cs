@@ -27,9 +27,9 @@ namespace CasaEngine.Project
             private set;
         }
 
-        public string DirectoryPath => System.IO.Path.GetDirectoryName(FullPath);
+        public string DirectoryPath => Path.GetDirectoryName(FullPath);
 
-        public string Name => System.IO.Path.GetFileName(FullPath);
+        public string Name => Path.GetFileName(FullPath);
 
         public List<string> Tags { get; internal set; }
 

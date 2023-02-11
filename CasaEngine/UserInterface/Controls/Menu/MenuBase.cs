@@ -18,7 +18,7 @@ namespace XNAFinalEngine.UserInterface
 
 
         private int _itemIndex = -1;
-        private readonly List<MenuItem> _items = new List<MenuItem>();
+        private readonly List<MenuItem> _items = new();
 
 
 

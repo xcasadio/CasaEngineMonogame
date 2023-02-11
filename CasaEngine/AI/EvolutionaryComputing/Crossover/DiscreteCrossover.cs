@@ -14,7 +14,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             Chromosome<T> chromosome;
 
             if (parents.Count < 2)
+            {
                 throw new Exception("The number of parents must be at least 2.");
+            }
 
             list = new List<Chromosome<T>>();
 
@@ -30,7 +32,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //Get each gene from the genotype at random from the parents
             for (int i = 0; i < parents[0].Genotype.Count; i++)
+            {
                 chromosome.Genotype.Add(parents[Generator.Next(0, parents.Count - 1)][i]);
+            }
 
             list.Add(chromosome);
 

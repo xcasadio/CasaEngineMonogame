@@ -44,7 +44,7 @@ namespace FarseerPhysics.Dynamics
         private int _bodyCapacity;
         private int _contactCapacity;
         private ContactManager _contactManager;
-        private ContactSolver _contactSolver = new ContactSolver();
+        private ContactSolver _contactSolver = new();
         private Contact[] _contacts;
         private int _jointCapacity;
         private Joint[] _joints;
@@ -54,7 +54,7 @@ namespace FarseerPhysics.Dynamics
         private const float AngTolSqr = Settings.AngularSleepTolerance * Settings.AngularSleepTolerance;
 
 #if (!SILVERLIGHT)
-        private Stopwatch _watch = new Stopwatch();
+        private Stopwatch _watch = new();
 #endif
 
         public void Reset(int bodyCapacity, int contactCapacity, int jointCapacity, ContactManager contactManager)

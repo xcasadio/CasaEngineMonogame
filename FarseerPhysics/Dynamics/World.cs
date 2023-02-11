@@ -177,7 +177,7 @@ namespace FarseerPhysics.Dynamics
         /// </summary>
         public BodyDelegate BodyRemoved;
 
-        internal Queue<Contact> ContactPool = new Queue<Contact>(256);
+        internal Queue<Contact> ContactPool = new(256);
 
         /// <summary>
         /// Fires whenever a fixture has been added
@@ -189,7 +189,8 @@ namespace FarseerPhysics.Dynamics
         /// </summary>
         public FixtureDelegate FixtureRemoved;
 
-        /*internal*/public WorldFlags Flags;
+        /*internal*/
+        public WorldFlags Flags;
 
         /// <summary>
         /// Fires whenever a joint has been added
@@ -206,14 +207,14 @@ namespace FarseerPhysics.Dynamics
         public ControllerDelegate ControllerRemoved;
 
         private float _invDt0;
-        public Island Island = new Island();
+        public Island Island = new();
         private Body[] _stack = new Body[64];
         private bool _stepComplete;
-        private HashSet<Body> _bodyAddList = new HashSet<Body>();
-        private HashSet<Body> _bodyRemoveList = new HashSet<Body>();
-        private HashSet<Joint> _jointAddList = new HashSet<Joint>();
-        private HashSet<Joint> _jointRemoveList = new HashSet<Joint>();
-        private TOIInput _input = new TOIInput();
+        private HashSet<Body> _bodyAddList = new();
+        private HashSet<Body> _bodyRemoveList = new();
+        private HashSet<Joint> _jointAddList = new();
+        private HashSet<Joint> _jointRemoveList = new();
+        private TOIInput _input = new();
 
         /// <summary>
         /// If false, the whole simulation stops. It still processes added and removed geometries.
@@ -221,7 +222,7 @@ namespace FarseerPhysics.Dynamics
         public bool Enabled = true;
 
 #if (!SILVERLIGHT)
-        private Stopwatch _watch = new Stopwatch();
+        private Stopwatch _watch = new();
 #endif
 
         /// <summary>
@@ -357,7 +358,8 @@ namespace FarseerPhysics.Dynamics
         /// Add a rigid body.
         /// </summary>
         /// <returns></returns>
-        /*internal*/public void AddBody(Body body)
+        /*internal*/
+        public void AddBody(Body body)
         {
             Debug.Assert(!_bodyAddList.Contains(body), "You are adding the same body more than once.");
 

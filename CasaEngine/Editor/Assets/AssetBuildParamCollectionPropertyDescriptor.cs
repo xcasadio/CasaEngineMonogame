@@ -11,24 +11,24 @@ namespace CasaEngine.Editor.Assets
         public AssetBuildParamCollectionPropertyDescriptor(AssetBuildParamCollection coll, int idx) :
             base("#" + idx.ToString(), null)
         {
-            this._collection = coll;
-            this._index = idx;
+            _collection = coll;
+            _index = idx;
         }
 
-        public override AttributeCollection Attributes => new AttributeCollection(null);
+        public override AttributeCollection Attributes => new(null);
 
         public override bool CanResetValue(object component)
         {
             return true;
         }
 
-        public override Type ComponentType => this._collection.GetType();
+        public override Type ComponentType => _collection.GetType();
 
         public override string DisplayName
         {
             get
             {
-                AssetBuildParam emp = this._collection[_index];
+                AssetBuildParam emp = _collection[_index];
                 return emp.Name;
             }
         }
@@ -37,21 +37,21 @@ namespace CasaEngine.Editor.Assets
         {
             get
             {
-                AssetBuildParam b = this._collection[_index];
+                AssetBuildParam b = _collection[_index];
                 return b.Name + ":" + b.Value;
             }
         }
 
         public override object GetValue(object component)
         {
-            return this._collection[_index];
+            return _collection[_index];
         }
 
         public override bool IsReadOnly => false;
 
         public override string Name => "#" + _index.ToString();
 
-        public override Type PropertyType => this._collection[_index].GetType();
+        public override Type PropertyType => _collection[_index].GetType();
 
         public override void ResetValue(object component)
         {

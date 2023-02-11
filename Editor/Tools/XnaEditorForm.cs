@@ -57,8 +57,8 @@ namespace Editor.Tools
             m_XnaControlHandle = m_Form.XnaPanel.Handle;
             win.FormClosed += new FormClosedEventHandler(OnFormClosed);
             win.Disposed += new EventHandler(OnFormDisposed);
-            win.Activated += new System.EventHandler(this.OnActivated);
-            win.Deactivate += new System.EventHandler(this.OnDeactivate);
+            win.Activated += new EventHandler(OnActivated);
+            win.Deactivate += new EventHandler(OnDeactivate);
             m_Game = new CustomGameEditor(m_Form.XnaPanel, m_Form.XnaPanel.Handle);
 
             m_EventWaitHandle = new AutoResetEvent(true);

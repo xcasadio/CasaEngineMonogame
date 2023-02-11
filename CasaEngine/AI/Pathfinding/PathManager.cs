@@ -11,7 +11,7 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        private static readonly PathManager<T> Manager = new PathManager<T>();
+        private static readonly PathManager<T> Manager = new();
 
         internal List<PathPlanner<T>> SearchRequests;
 
@@ -29,8 +29,8 @@ namespace CasaEngine.AI.Pathfinding
         {
             SearchRequests = new List<PathPlanner<T>>();
 
-            this.AllocatedCycles = int.MaxValue;
-            this.AllocatedTime = long.MaxValue;
+            AllocatedCycles = int.MaxValue;
+            AllocatedTime = long.MaxValue;
 
             UpdateMethod = UpdateWithCycles;
         }
@@ -62,7 +62,9 @@ namespace CasaEngine.AI.Pathfinding
         public void Register(PathPlanner<T> planner)
         {
             if (SearchRequests.Contains(planner) == true)
+            {
                 return;
+            }
 
             SearchRequests.Add(planner);
         }
@@ -104,7 +106,9 @@ namespace CasaEngine.AI.Pathfinding
 
                 //If the last search request is reached, start again
                 if (i == SearchRequests.Count)
+                {
                     i = 0;
+                }
 
                 elapsedCycles++;
             }
@@ -137,7 +141,9 @@ namespace CasaEngine.AI.Pathfinding
 
                 //If the last search request is reached, start again
                 if (i == SearchRequests.Count)
+                {
                     i = 0;
+                }
 
                 elapsedTime = DateTime.Today.Ticks - initialTime;
             }

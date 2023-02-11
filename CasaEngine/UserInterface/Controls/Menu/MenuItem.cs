@@ -23,7 +23,7 @@ namespace XNAFinalEngine.UserInterface
         private bool _enabled = true;
 
         // Children Items.
-        private List<MenuItem> _items = new List<MenuItem>();
+        private List<MenuItem> _items = new();
 
 
 

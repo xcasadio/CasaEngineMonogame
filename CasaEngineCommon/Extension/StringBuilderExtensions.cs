@@ -143,7 +143,9 @@ namespace CasaEngineCommon.Extension
             int decimalPos = idx - decimalCount;
 
             if (decimalPos == idx)
+            {
                 decimalPos = idx + 1;
+            }
 
             int numberGroupIdx = 0;
             int numberGroupCount = numberGroupSizes[numberGroupIdx] + decimalCount;
@@ -152,7 +154,7 @@ namespace CasaEngineCommon.Extension
             bool showPositiveSign = (options & AppendNumberOptions.PositiveSign) != 0;
 
             bool isNegative = number < 0;
-            number = System.Math.Abs(number);
+            number = Math.Abs(number);
 
             // Converting from smallest digit.
             do
@@ -169,7 +171,9 @@ namespace CasaEngineCommon.Extension
                     numberString[--idx] = nfi.NumberGroupSeparator[0];
 
                     if (numberGroupIdx < numberGroupSizes.Length - 1)
+                    {
                         numberGroupIdx++;
+                    }
 
                     numberGroupCount = numberGroupSizes[numberGroupIdx] - 1;
                 }

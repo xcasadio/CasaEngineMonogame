@@ -45,7 +45,9 @@ namespace Editor.WinForm
             {
                 StackPanel stackPanel = container as StackPanel;
                 if (stackPanel == null)
+                {
                     return false;
+                }
 
                 // Use DisplayRectangle so that parent.Padding is honored.
                 Rectangle displayRectangle = stackPanel.DisplayRectangle;
@@ -55,7 +57,9 @@ namespace Editor.WinForm
                 {
                     // Only apply layout to visible controls
                     if (control.Visible == false)
+                    {
                         continue;
+                    }
 
                     // Respect the margin of the control: shift over the left and the top.
                     nextControlLocation.Offset(control.Margin.Left, control.Margin.Top);
@@ -64,7 +68,10 @@ namespace Editor.WinForm
                     control.Location = nextControlLocation;
                     Size size = control.GetPreferredSize(displayRectangle.Size);
                     if (!control.AutoSize)
+                    {
                         size.Width = displayRectangle.Width - control.Margin.Left - control.Margin.Right;
+                    }
+
                     control.Size = size;
 
                     // Move X back to the display rectangle origin.
@@ -84,7 +91,10 @@ namespace Editor.WinForm
                         {
                             Size size = control.GetPreferredSize(displayRectangle.Size);
                             if (!control.AutoSize)
+                            {
                                 size.Width = displayRectangle.Width - control.Margin.Left - control.Margin.Right;
+                            }
+
                             control.Size = size;
                         }
                     }

@@ -18,7 +18,7 @@ namespace CasaEngine.Math.Shape2D
     {
 
 #if EDITOR
-        readonly List<Vector2> _points = new List<Vector2>();
+        readonly List<Vector2> _points = new();
 #else
         Vector2[] _Points;
 #endif

@@ -21,7 +21,7 @@ namespace Editor.WinForm.Controls
 
             try
             {
-                LogManager.Instance.AddLogger(new LogEditor(this.richTextBox_Log));
+                LogManager.Instance.AddLogger(new LogEditor(richTextBox_Log));
             }
             catch (Exception ex)
             {

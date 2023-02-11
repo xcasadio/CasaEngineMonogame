@@ -13,8 +13,8 @@ using System.Security;
 
 namespace Editor.WinForm.DocToolkit
 {
-    using StringList = List<String>;
-    using StringEnumerator = IEnumerator<String>;
+    using StringList = List<string>;
+    using StringEnumerator = IEnumerator<string>;
 
     /// <summary>
     /// MRU manager - manages Most Recently Used Files list
@@ -61,15 +61,15 @@ namespace Editor.WinForm.DocToolkit
 
 
 
-		/// <summary>
-		/// Gets the first file name in the list, otherwise return null
-		/// </summary>
-		public string GetFirstFileName
-		{
-			get { return mruList.Count == 0 ? null : mruList[0]; }
-		}
+        /// <summary>
+        /// Gets the first file name in the list, otherwise return null
+        /// </summary>
+        public string GetFirstFileName
+        {
+            get { return mruList.Count == 0 ? null : mruList[0]; }
+        }
 
-		/// <summary>
+        /// <summary>
         /// Maximum length of displayed file name in menu (default is 40).
         /// 
         /// Set this property to change default value (optional).
@@ -81,7 +81,9 @@ namespace Editor.WinForm.DocToolkit
                 maxDisplayLength = value;
 
                 if (maxDisplayLength < 10)
+                {
                     maxDisplayLength = 10;
+                }
             }
 
             get
@@ -102,10 +104,14 @@ namespace Editor.WinForm.DocToolkit
                 maxNumberOfFiles = value;
 
                 if (maxNumberOfFiles < 1)
+                {
                     maxNumberOfFiles = 1;
+                }
 
                 if (mruList.Count > maxNumberOfFiles)
+                {
                     mruList.RemoveRange(maxNumberOfFiles - 1, mruList.Count - maxNumberOfFiles);
+                }
             }
 
             get
@@ -159,16 +165,20 @@ namespace Editor.WinForm.DocToolkit
             // keep Registry path adding MRU key to it
             registryPath = regPath;
             if (registryPath.EndsWith("\\"))
+            {
                 registryPath += "MRU";
+            }
             else
+            {
                 registryPath += "\\MRU";
+            }
 
 
             // keep current directory in the time of initialization
             currentDirectory = Directory.GetCurrentDirectory();
 
             // subscribe to MRU parent Popup event
-            menuItemParent.DropDownOpening += new EventHandler(this.OnMRUParentPopup);
+            menuItemParent.DropDownOpening += new EventHandler(OnMRUParentPopup);
 
             // subscribe to owner form Closing event
             ownerForm.Closing += OnOwnerClosing;
@@ -189,7 +199,9 @@ namespace Editor.WinForm.DocToolkit
 
             // if array has maximum length, remove last element
             if (mruList.Count == maxNumberOfFiles)
+            {
                 mruList.RemoveAt(maxNumberOfFiles - 1);
+            }
 
             // add new file name to the start of array
             mruList.Insert(0, file);
@@ -354,7 +366,9 @@ namespace Editor.WinForm.DocToolkit
                         s = (string)key.GetValue(sKey, "");
 
                         if (s.Length == 0)
+                        {
                             break;
+                        }
 
                         mruList.Add(s);
                     }
@@ -397,7 +411,9 @@ namespace Editor.WinForm.DocToolkit
             FileInfo fileInfo = new FileInfo(fullName);
 
             if (fileInfo.DirectoryName == currentDirectory)
+            {
                 return GetShortDisplayName(fileInfo.Name, maxDisplayLength);
+            }
 
             return GetShortDisplayName(fullName, maxDisplayLength);
         }
@@ -432,7 +448,7 @@ namespace Editor.WinForm.DocToolkit
 
     public delegate void MruFileOpenEventHandler(object sender, MruFileOpenEventArgs e);
 
-    public class MruFileOpenEventArgs : System.EventArgs
+    public class MruFileOpenEventArgs : EventArgs
     {
         private string fileName;
 

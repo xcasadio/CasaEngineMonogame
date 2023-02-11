@@ -1,15 +1,11 @@
 using Microsoft.Xna.Framework;
 
-
 namespace CasaEngine.AI.Graphs
 {
     [Serializable]
     public class NavigationNode : Node
     {
-
-        protected internal Vector3 Position;
-
-
+        protected internal Vector3 position;
 
         public NavigationNode() : base()
         { }
@@ -19,15 +15,11 @@ namespace CasaEngine.AI.Graphs
             this.position = position;
         }
 
-
-
         public Vector3 Position
         {
             get => position;
             set => position = value;
         }
-
-
 
         protected internal override bool IsNeighbour(int spacePartitionSector, Vector3 searchPosition, float searchRange)
         {

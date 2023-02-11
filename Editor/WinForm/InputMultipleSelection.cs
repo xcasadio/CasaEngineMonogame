@@ -16,11 +16,11 @@ namespace Editor.WinForm
         /// </summary>
         public string[] SelectedItems
         {
-            get 
-            { 
+            get
+            {
                 string[] a = new string[listBox1.SelectedItems.Count];
                 listBox1.SelectedItems.CopyTo(a, 0);
-                return a; 
+                return a;
             }
         }
 
@@ -39,12 +39,12 @@ namespace Editor.WinForm
         /// <param name="labelText_"></param>
         /// <param name="inputList_"></param>
         public InputMultipleSelection(string title_, string labelText_, string[] inputList_, bool multiSelection = false)
-			: this()
-		{
-			this.Text = title_;
-			label1.Text = labelText_;
+            : this()
+        {
+            Text = title_;
+            label1.Text = labelText_;
             listBox1.Items.AddRange(inputList_);
             listBox1.SelectionMode = multiSelection == false ? SelectionMode.One : SelectionMode.MultiExtended;
-		}
+        }
     }
 }

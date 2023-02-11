@@ -9,31 +9,31 @@ using System.Windows.Forms;
 
 namespace Editor.WinForm
 {
-	public partial class InputComboBox : Form
-	{
-		public string SelectedItem
-		{
-			get { return comboBoxInput.SelectedItem as string; }
-		}
+    public partial class InputComboBox : Form
+    {
+        public string SelectedItem
+        {
+            get { return comboBoxInput.SelectedItem as string; }
+        }
 
-		public InputComboBox(string title_, string label_, string[] comboItem_)
-		{
-			if (comboItem_.Length == 0)
-			{
-				throw new ArgumentException("InputComboBox() : comboItem is empty");
-			}
+        public InputComboBox(string title_, string label_, string[] comboItem_)
+        {
+            if (comboItem_.Length == 0)
+            {
+                throw new ArgumentException("InputComboBox() : comboItem is empty");
+            }
 
-			InitializeComponent();
+            InitializeComponent();
 
-			this.Text = title_;
-			labelText.Text = label_;
+            Text = title_;
+            labelText.Text = label_;
 
-			foreach (string str in comboItem_)
-			{
-				comboBoxInput.Items.Add(str);
-			}
+            foreach (string str in comboItem_)
+            {
+                comboBoxInput.Items.Add(str);
+            }
 
-			comboBoxInput.SelectedIndex = 0;
-		}
-	}
+            comboBoxInput.SelectedIndex = 0;
+        }
+    }
 }

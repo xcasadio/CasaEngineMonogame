@@ -15,7 +15,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
 
             //Check the population sizes
             if (NewPopulationSize > children.Genome.Count)
+            {
                 throw new Exception("The new population size can´t be greater than the number of children.");
+            }
 
             //Sort children
             children.Genome.Sort(new ChromosomeComparer<T>(Objective));

@@ -18,15 +18,15 @@ namespace Editor.Tools.Graphics2D
         /// <summary>
         /// 
         /// </summary>
-        public CasaEngine.Math.Shape2D.ShapeRectangle ShapeRectangle
+        public ShapeRectangle ShapeRectangle
         {
             get
             {
-                return (ShapeRectangle)base.Shape2DObject;
+                return (ShapeRectangle)Shape2DObject;
             }
             internal set
             {
-                base.Shape2DObject = value;
+                Shape2DObject = value;
             }
         }
 

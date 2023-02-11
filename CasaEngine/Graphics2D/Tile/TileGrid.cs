@@ -142,22 +142,47 @@ namespace CasaEngine.Graphics2D.Tile
                 (int)((right) / (scaledTileWidth)) - _visibleTiles.X + 1;
 
             //clamp the "upper left" values to 0
-            if (_visibleTiles.X < 0) _visibleTiles.X = 0;
-            if (_visibleTiles.X > (_width - 1)) _visibleTiles.X = _width;
-            if (_visibleTiles.Y < 0) _visibleTiles.Y = 0;
-            if (_visibleTiles.Y > (_height - 1)) _visibleTiles.Y = _height;
+            if (_visibleTiles.X < 0)
+            {
+                _visibleTiles.X = 0;
+            }
+
+            if (_visibleTiles.X > (_width - 1))
+            {
+                _visibleTiles.X = _width;
+            }
+
+            if (_visibleTiles.Y < 0)
+            {
+                _visibleTiles.Y = 0;
+            }
+
+            if (_visibleTiles.Y > (_height - 1))
+            {
+                _visibleTiles.Y = _height;
+            }
 
 
             //clamp the "lower right" values to the gameboard size
             if (_visibleTiles.Right > (_width - 1))
+            {
                 _visibleTiles.Width = (_width - _visibleTiles.X);
+            }
 
-            if (_visibleTiles.Right < 0) _visibleTiles.Width = 0;
+            if (_visibleTiles.Right < 0)
+            {
+                _visibleTiles.Width = 0;
+            }
 
             if (_visibleTiles.Bottom > (_height - 1))
+            {
                 _visibleTiles.Height = (_height - _visibleTiles.Y);
+            }
 
-            if (_visibleTiles.Bottom < 0) _visibleTiles.Height = 0;
+            if (_visibleTiles.Bottom < 0)
+            {
+                _visibleTiles.Height = 0;
+            }
         }
 
         protected override void DrawTiles(SpriteBatch batch)

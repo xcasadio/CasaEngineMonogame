@@ -12,9 +12,9 @@ namespace CasaEngine.Math.Curves
         }
 
 
-        private readonly List<Vector2> _controlPoints = new List<Vector2>();
-        private readonly List<float> _modalNodes = new List<float>();
-        private readonly List<Vector2> _curvePoints = new List<Vector2>();
+        private readonly List<Vector2> _controlPoints = new();
+        private readonly List<float> _modalNodes = new();
+        private readonly List<Vector2> _curvePoints = new();
 
         private readonly int _degree = 3;
         private readonly bool _closed = false;

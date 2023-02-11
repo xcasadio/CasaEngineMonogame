@@ -15,8 +15,8 @@ namespace CasaEngine.Debugger
         {
             public CharPair(char normalChar, Nullable<char> shiftChar)
             {
-                this.NormalChar = normalChar;
-                this.ShiftChar = shiftChar;
+                NormalChar = normalChar;
+                ShiftChar = shiftChar;
             }
 
             public readonly char NormalChar;
@@ -24,8 +24,7 @@ namespace CasaEngine.Debugger
         }
 
         // key:Keys, value:CharPair
-        static private readonly Dictionary<Keys, CharPair> KeyMap =
-                                                    new Dictionary<Keys, CharPair>();
+        static private readonly Dictionary<Keys, CharPair> KeyMap = new();
 
 
         public static bool KeyToString(Keys key, bool shitKeyPressed,
@@ -38,7 +37,7 @@ namespace CasaEngine.Debugger
             if ((Keys.A <= key && key <= Keys.Z) || key == Keys.Space)
             {
                 // Use as is if it is A～Z, or Space key.
-                character = (shitKeyPressed) ? (char)key : Char.ToLower((char)key);
+                character = (shitKeyPressed) ? (char)key : char.ToLower((char)key);
                 result = true;
             }
             else if (KeyMap.TryGetValue(key, out charPair))
@@ -117,7 +116,9 @@ namespace CasaEngine.Debugger
             char char1 = charPair[0];
             Nullable<char> char2 = null;
             if (charPair.Length > 1)
+            {
                 char2 = charPair[1];
+            }
 
             KeyMap.Add(key, new CharPair(char1, char2));
         }

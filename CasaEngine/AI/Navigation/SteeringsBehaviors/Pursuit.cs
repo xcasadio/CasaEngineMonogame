@@ -1,28 +1,19 @@
 using Microsoft.Xna.Framework;
 
-
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Pursuit : SteeringBehavior
     {
-
-        protected internal MovingEntity Evader;
-
+        protected internal MovingEntity evader;
         protected internal Seek Seek;
+        protected internal Vector3 force;
+        protected internal Vector3 targetPosition;
 
-        protected internal Vector3 Force;
-
-        protected internal Vector3 TargetPosition;
-
-
-
-        public Pursuit(String name, MovingEntity owner, float modifier)
+        public Pursuit(string name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
             Seek = new Seek(name + "Seek", owner, 0);
         }
-
-
 
         public override bool IgnoreX
         {
@@ -64,7 +55,6 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
         public Vector3 TargetPosition => targetPosition;
 
-
         public override Vector3 Calculate()
         {
             Vector3 toEvader;
@@ -89,7 +79,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             //If the pursuer needs to turn
             if (owner.MaxTurnRate != 0.0f)
+            {
                 lookAheadTime += TurnTime(owner, evader.Position);
+            }
 
             //Seek to the estimated future position
             targetPosition = evader.Position + evader.Velocity * lookAheadTime;
@@ -98,8 +90,6 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             force = Seek.Calculate();
             return force;
         }
-
-
 
         private float TurnTime(MovingEntity agent, Vector3 position)
         {

@@ -43,10 +43,10 @@ namespace Poly2Tri.Triangulation.Delaunay.Sweep
         // PointSet width to both left and right.
         private const float ALPHA = 0.3f;
 
-        public DTSweepBasin Basin = new DTSweepBasin();
-        public DTSweepEdgeEvent EdgeEvent = new DTSweepEdgeEvent();
+        public DTSweepBasin Basin = new();
+        public DTSweepEdgeEvent EdgeEvent = new();
 
-        private DTSweepPointComparator _comparator = new DTSweepPointComparator();
+        private DTSweepPointComparator _comparator = new();
         public AdvancingFront aFront;
 
         public DTSweepContext()
@@ -184,8 +184,8 @@ namespace Poly2Tri.Triangulation.Delaunay.Sweep
                     ymin = p.Y;
             }
 
-            double deltaX = ALPHA*(xmax - xmin);
-            double deltaY = ALPHA*(ymax - ymin);
+            double deltaX = ALPHA * (xmax - xmin);
+            double deltaY = ALPHA * (ymax - ymin);
             TriangulationPoint p1 = new TriangulationPoint(xmax + deltaX, ymin - deltaY);
             TriangulationPoint p2 = new TriangulationPoint(xmin - deltaX, ymin - deltaY);
 

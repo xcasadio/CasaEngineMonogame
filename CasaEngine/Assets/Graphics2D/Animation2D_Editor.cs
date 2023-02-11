@@ -164,8 +164,8 @@ namespace CasaEngine.Assets.Graphics2D
             {
                 Animation2D o = other as Animation2D;
 
-                if (this._animation2DType != o._animation2DType
-                    || this._frames.Count != o._frames.Count)
+                if (_animation2DType != o._animation2DType
+                    || _frames.Count != o._frames.Count)
                 {
                     return false;
                 }

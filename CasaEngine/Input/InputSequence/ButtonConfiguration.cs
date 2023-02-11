@@ -6,7 +6,7 @@ namespace CasaEngine.Input
 {
     public class ButtonConfiguration
     {
-        readonly Dictionary<int, ButtonMapper> _buttonsConfig = new Dictionary<int, ButtonMapper>();
+        readonly Dictionary<int, ButtonMapper> _buttonsConfig = new();
 
 
 

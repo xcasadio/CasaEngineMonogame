@@ -28,7 +28,7 @@ namespace XNAFinalEngine.UserInterface
         private readonly Button _btnUp;
         private readonly Button _btnDown;
         private SpinBoxMode _mode = SpinBoxMode.List;
-        private readonly List<object> _items = new List<object>();
+        private readonly List<object> _items = new();
         private float _value;
         private int _rounding = 2;
         private int _itemIndex = -1;
@@ -61,9 +61,9 @@ namespace XNAFinalEngine.UserInterface
             get => _value;
             set
             {
-                if (this._value != value)
+                if (_value != value)
                 {
-                    this._value = value;
+                    _value = value;
                     Invalidate();
                 }
             }
@@ -113,7 +113,7 @@ namespace XNAFinalEngine.UserInterface
             Step = 0.25f;
             Maximum = 100;
             Minimum = 0;
-            this._mode = mode;
+            _mode = mode;
             ReadOnly = true;
 
             Height = 20;

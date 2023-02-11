@@ -23,11 +23,11 @@ namespace CasaEngine.Gameplay.Actor
             if (add == true)
             {
                 objectRegistryStatus.Id = _unusedId++;
-                ob.ID = objectRegistryStatus.Id;
+                ob.Id = objectRegistryStatus.Id;
             }
             else
             {
-                objectRegistryStatus.Id = ob.ID;
+                objectRegistryStatus.Id = ob.Id;
             }
 
             return objectRegistryStatus;
@@ -267,11 +267,11 @@ namespace CasaEngine.Gameplay.Actor
 				this.FileLength = o_.FileLength;
 				this.PositionInFile = o_.PositionInFile;
 #endif
-                this.ClassName = o.ClassName;
-                this._isLoaded = o._isLoaded;
-                this.Name = o.Name;
-                this.Id = o.Id;
-                this._baseObject = o._baseObject;
+                ClassName = o.ClassName;
+                _isLoaded = o._isLoaded;
+                Name = o.Name;
+                Id = o.Id;
+                _baseObject = o._baseObject;
             }
 
 
@@ -286,7 +286,7 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        private readonly List<ObjectRegistryStatus> _objectRegistry = new List<ObjectRegistryStatus>();
+        private readonly List<ObjectRegistryStatus> _objectRegistry = new();
 
         private int _unusedId = 1; // 0 => unassigned
 
@@ -484,7 +484,7 @@ namespace CasaEngine.Gameplay.Actor
 #if EDITOR
             //objectRegistryStatus_.BaseObject.Name = objectRegistryStatus_.Name;
 #endif
-            objectRegistryStatus.BaseObject.ID = objectRegistryStatus.Id;
+            objectRegistryStatus.BaseObject.Id = objectRegistryStatus.Id;
         }
 
         public void CloseAllObjects()

@@ -21,13 +21,15 @@ namespace CasaEngine.AI.Pathfinding
 
         protected GraphSearchAlgorithm(Graph<T, TK> graph)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateGraph(graph, ref message) == false)
-                throw new AiException("graph", this.GetType().ToString(), message);
+            {
+                throw new AiException("graph", GetType().ToString(), message);
+            }
 
-            this.Graph = graph;
-            this.Found = SearchState.NotCompleted;
+            Graph = graph;
+            Found = SearchState.NotCompleted;
         }
 
 
@@ -70,17 +72,21 @@ namespace CasaEngine.AI.Pathfinding
 
         public virtual void Initialize(int source, int target)
         {
-            String message = String.Empty;
+            string message = string.Empty;
 
             if (ValidateNode(source, ref message) == false)
-                throw new AiException("source", this.GetType().ToString(), message);
+            {
+                throw new AiException("source", GetType().ToString(), message);
+            }
 
             if (ValidateNode(target, ref message) == false)
-                throw new AiException("target", this.GetType().ToString(), message);
+            {
+                throw new AiException("target", GetType().ToString(), message);
+            }
 
-            this.Source = source;
-            this.Target = target;
-            this.Found = SearchState.NotCompleted;
+            Source = source;
+            Target = target;
+            Found = SearchState.NotCompleted;
         }
 
         public abstract SearchState Search();

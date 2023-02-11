@@ -14,12 +14,9 @@ namespace CasaEngine.FrontEnd.Screen
     class UiScreen
         : Screen
     {
-        readonly List<Control> _controls = new List<Control>();
-
-
+        readonly List<Control> _controls = new();
 
         public Control[] Gagdets => _controls.ToArray();
-
 
         public UiScreen(string name)
             : base(name)
@@ -34,8 +31,6 @@ namespace CasaEngine.FrontEnd.Screen
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
         }
-
-
 
         public override void LoadContent(Renderer2DComponent r)
         {
@@ -69,7 +64,6 @@ namespace CasaEngine.FrontEnd.Screen
                 g.Update(elapsedTime);
             }
         }
-
 
         public Control GetGadget(string name)
         {

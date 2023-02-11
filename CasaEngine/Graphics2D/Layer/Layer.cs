@@ -5,7 +5,7 @@ namespace CasaEngine.Graphics2D.Layer
     public class Layer
     {
 
-        private readonly List<IRenderable> _objectList = new List<IRenderable>();
+        private readonly List<IRenderable> _objectList = new();
         private int _min, _max;
 
 

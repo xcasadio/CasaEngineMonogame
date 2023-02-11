@@ -12,7 +12,7 @@ namespace CasaEngine.Editor.Manipulation
         private Vector2 _position;
         private Vector2 _mouseStart;
         private bool _mousePressed = false;
-        private readonly List<Anchor> _anchors = new List<Anchor>();
+        private readonly List<Anchor> _anchors = new();
 
         public event EventHandler<AnchorLocationChangedEventArgs> LocationChanged;
         public event EventHandler StartManipulating, FinishManipulating;
@@ -53,7 +53,7 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-        public Rectangle Bounds => new Rectangle((int)(_position.X + Offset.X), (int)(_position.Y + Offset.Y), Width, Height);
+        public Rectangle Bounds => new((int)(_position.X + Offset.X), (int)(_position.Y + Offset.Y), Width, Height);
 
         public bool IsManipulating
         {
@@ -160,7 +160,7 @@ namespace CasaEngine.Editor.Manipulation
                 }
             }
 
-            if (mouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
+            if (mouseState.LeftButton == ButtonState.Released)
             {
                 if (IsManipulating == true)
                 {
@@ -174,7 +174,7 @@ namespace CasaEngine.Editor.Manipulation
 
             if (Bounds.Contains(mouseX, mouseY) == true)
             {
-                if (mouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed
+                if (mouseState.LeftButton == ButtonState.Pressed
                     && _mousePressed == false
                     && CanManipulate == true)
                 {
@@ -237,7 +237,7 @@ namespace CasaEngine.Editor.Manipulation
 
             _mouseStart = new Vector2(mouseState.X, mouseState.Y);
 
-            _mousePressed = Mouse.GetState().LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
+            _mousePressed = Mouse.GetState().LeftButton == ButtonState.Pressed;
         }
 
         public void Draw(Renderer2DComponent r)

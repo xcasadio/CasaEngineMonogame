@@ -19,15 +19,15 @@ namespace Editor.Tools.Graphics2D
         /// <summary>
         /// 
         /// </summary>
-        public CasaEngine.Math.Shape2D.ShapeCircle ShapeCircle
+        public ShapeCircle ShapeCircle
         {
             get
             {
-                return (ShapeCircle)base.Shape2DObject;
+                return (ShapeCircle)Shape2DObject;
             }
             internal set
             {
-                base.Shape2DObject = value;
+                Shape2DObject = value;
             }
         }
 

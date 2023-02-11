@@ -5,7 +5,7 @@
     {
 
         //an instance of this class may AND together up to 4 terms
-        readonly List<IFuzzyTerm> _terms = new List<IFuzzyTerm>();
+        readonly List<IFuzzyTerm> _terms = new();
 
         //disallow assignment
         //FzAND operator=(FzAND&);
@@ -91,7 +91,7 @@
     {
 
         //an instance of this class may AND together up to 4 terms
-        readonly List<IFuzzyTerm> _terms = new List<IFuzzyTerm>();
+        readonly List<IFuzzyTerm> _terms = new();
 
         //disallow assignment
         //FzAND operator=(FzAND&);

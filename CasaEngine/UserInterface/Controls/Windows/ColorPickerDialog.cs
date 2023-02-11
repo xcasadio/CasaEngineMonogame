@@ -275,8 +275,8 @@ namespace XNAFinalEngine.UserInterface
 
 
             _background.BringToFront();
-            this._oldColor = oldColor;
-            Color = this._oldColor;
+            _oldColor = oldColor;
+            Color = _oldColor;
             _positionSquareColor = PositionFromColor(Color);
 
 

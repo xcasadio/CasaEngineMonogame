@@ -12,7 +12,7 @@ namespace CasaEngine.SourceControl
         private const int Version = 1;
         private readonly string _file = "SourceControl.ini";
         private ISourceControl _sourceControl;
-        private Dictionary<string, Dictionary<SourceControlKeyWord, string>> _filesStatus = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
+        private Dictionary<string, Dictionary<SourceControlKeyWord, string>> _filesStatus = new();
 
 
 
@@ -109,7 +109,7 @@ namespace CasaEngine.SourceControl
                     string[] files = Directory.GetFiles(projectPath, "*.*", SearchOption.AllDirectories);
                     _filesStatus = _sourceControl.FileStatus(files);
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
                     LogManager.Instance.WriteException(e, false);
                 }
@@ -124,7 +124,7 @@ namespace CasaEngine.SourceControl
             {
                 IniFile ini = new IniFile(filePath);
 
-                int version = Int32.Parse(ini.GetValue("Config", "Version"));
+                int version = int.Parse(ini.GetValue("Config", "Version"));
                 Server = ini.GetValue("Config", "Server");
                 User = ini.GetValue("Config", "User");
                 Workspace = ini.GetValue("Config", "Workspace");

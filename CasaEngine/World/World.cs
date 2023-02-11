@@ -1,4 +1,5 @@
-﻿using CasaEngine.Game;
+﻿using CasaEngine.Front_End;
+using CasaEngine.Game;
 using CasaEngine.Gameplay;
 using CasaEngine.Gameplay.Actor;
 using CasaEngine.Physics2D;
@@ -9,8 +10,8 @@ namespace CasaEngine.World
     public class World
     {
 
-        private readonly List<Actor2D> _actors = new List<Actor2D>(30);
-        private readonly List<Actor2D> _actorsToAdd = new List<Actor2D>();
+        private readonly List<Actor2D> _actors = new(30);
+        private readonly List<Actor2D> _actorsToAdd = new();
 
         private readonly FarseerPhysics.Dynamics.World _physicWorld;
         private HudBase _hud = null;
@@ -18,8 +19,6 @@ namespace CasaEngine.World
         public event EventHandler Initializing;
         public event EventHandler LoadingContent;
         public event EventHandler Starting;
-
-
 
         public Actor2D[] Actors => _actors.ToArray();
 
@@ -31,8 +30,6 @@ namespace CasaEngine.World
             set => _hud = value;
         }
 
-
-
         public World(bool usePhysics = true)
         {
             if (usePhysics == true)
@@ -40,9 +37,6 @@ namespace CasaEngine.World
                 _physicWorld = new FarseerPhysics.Dynamics.World(GameInfo.Instance.WorldInfo.WorldGravity);
             }
         }
-
-
-
 
         public void AddObject(Actor2D actor2D)
         {
@@ -54,10 +48,8 @@ namespace CasaEngine.World
             _actorsToAdd.Add(actor2D);
         }
 
-
         public void Initialize()
         {
-
 
             if (Initializing != null)
             {

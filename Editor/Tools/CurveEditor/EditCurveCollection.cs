@@ -48,10 +48,14 @@ namespace Editor.Tools.CurveEditor
         protected override void RemoveItem(int index)
         {
             if (RemovingCurve != null)
+            {
                 RemovingCurve(this, new EditCurveEventArgs(Items[index]));
+            }
 
             if (Changed != null)
+            {
                 Changed(this, EventArgs.Empty);
+            }
 
             base.RemoveItem(index);
         }
@@ -64,17 +68,25 @@ namespace Editor.Tools.CurveEditor
                     RemovingCurve(this, new EditCurveEventArgs(item));
             }
 
-            if (Changed != null) Changed(this, EventArgs.Empty);
+            if (Changed != null)
+            {
+                Changed(this, EventArgs.Empty);
+            }
+
             base.ClearItems();
         }
 
         protected override void InsertItem(int index, EditCurve item)
         {
             if (AddingCurve != null)
+            {
                 AddingCurve(this, new EditCurveEventArgs(item));
+            }
 
             if (Changed != null)
+            {
                 Changed(this, EventArgs.Empty);
+            }
 
             base.InsertItem(index, item);
         }
@@ -82,12 +94,19 @@ namespace Editor.Tools.CurveEditor
         protected override void SetItem(int index, EditCurve item)
         {
             if (RemovingCurve != null)
+            {
                 RemovingCurve(this, new EditCurveEventArgs(Items[index]));
+            }
 
             if (AddingCurve != null)
+            {
                 AddingCurve(this, new EditCurveEventArgs(item));
+            }
 
-            if (Changed != null) Changed(this, EventArgs.Empty);
+            if (Changed != null)
+            {
+                Changed(this, EventArgs.Empty);
+            }
 
             base.SetItem(index, item);
         }

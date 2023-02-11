@@ -54,7 +54,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             public SpriteSheetBuild Copy()
             {
                 SpriteSheetBuild b = new SpriteSheetBuild();
-                b.SpriteSheetName = SpriteSheetName;                
+                b.SpriteSheetName = SpriteSheetName;
                 b.DetectAnimations = DetectAnimations;
                 b.SpriteSheetWidth = SpriteSheetWidth;
                 b.SpriteSheetHeight = SpriteSheetHeight;
@@ -134,7 +134,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         }
 
 
-        private List<SpriteSheetBuild> m_SpriteSheet = new List<SpriteSheetBuild>();
+        private List<SpriteSheetBuild> m_SpriteSheet = new();
 
 
 
@@ -248,7 +248,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 SpriteSheetBuild b = new SpriteSheetBuild();
                 b.Load((XmlElement)node);
                 AddBuild(b);
-            } 
+            }
         }
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 XmlElement buildNode = el_.OwnerDocument.CreateElement("Build");
                 nodeList.AppendChild(buildNode);
                 b.Save(buildNode);
-            }            
+            }
         }
 
         /// <summary>

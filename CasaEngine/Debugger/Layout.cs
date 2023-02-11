@@ -124,16 +124,24 @@ namespace CasaEngine.Debugger
 
             // Make sure layout region is in the safe area.
             if (region.Left < SafeArea.Left)
+            {
                 region.X = SafeArea.Left;
+            }
 
             if (region.Right > SafeArea.Right)
+            {
                 region.X = SafeArea.Right - region.Width;
+            }
 
             if (region.Top < SafeArea.Top)
+            {
                 region.Y = SafeArea.Top;
+            }
 
             if (region.Bottom > SafeArea.Bottom)
+            {
                 region.Y = SafeArea.Bottom - region.Height;
+            }
 
             return region;
         }

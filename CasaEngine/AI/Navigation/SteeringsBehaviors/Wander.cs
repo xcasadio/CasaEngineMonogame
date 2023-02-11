@@ -1,55 +1,41 @@
 using Microsoft.Xna.Framework;
 
-
-
-
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Wander : SteeringBehavior
     {
+        protected internal float distance;
+        protected internal float radius;
+        protected internal float jitter;
+        protected internal Vector3 wanderTarget;
+        protected internal Random generator;
+        protected internal Vector3 force;
+        protected internal Vector3 targetPosition;
 
-        protected internal float Distance;
-
-        protected internal float Radius;
-
-        protected internal float Jitter;
-
-        protected internal Vector3 WanderTarget;
-
-        protected internal Random Generator;
-
-        protected internal Vector3 Force;
-
-        protected internal Vector3 TargetPosition;
-
-
-
-        public Wander(String name, MovingEntity owner, float modifier)
+        public Wander(string name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
-            Generator = new Random();
+            generator = new Random();
         }
 
-        public Wander(String name, MovingEntity owner, float modifier, float radius, float distance, float jitter)
+        public Wander(string name, MovingEntity owner, float modifier, float radius, float distance, float jitter)
             : base(name, owner, modifier)
         {
             double alfa, beta, theta;
 
-            Generator = new Random();
+            generator = new Random();
 
             this.radius = radius;
             this.distance = distance;
             this.jitter = jitter;
 
             //Create a vector to a target position on the wander circle						
-            alfa = Generator.NextDouble() * System.Math.PI * 2;
-            beta = Generator.NextDouble() * System.Math.PI * 2;
-            theta = Generator.NextDouble() * System.Math.PI * 2;
+            alfa = generator.NextDouble() * System.Math.PI * 2;
+            beta = generator.NextDouble() * System.Math.PI * 2;
+            theta = generator.NextDouble() * System.Math.PI * 2;
 
             wanderTarget = new Vector3(radius * (float)System.Math.Cos(alfa), radius * (float)System.Math.Cos(beta), radius * (float)System.Math.Cos(theta));
         }
-
-
 
         public float Distance
         {
@@ -67,9 +53,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
                 radius = value;
 
                 //Create a vector to a target position on the wander circle						
-                alfa = Generator.NextDouble() * System.Math.PI * 2;
-                beta = Generator.NextDouble() * System.Math.PI * 2;
-                theta = Generator.NextDouble() * System.Math.PI * 2;
+                alfa = generator.NextDouble() * System.Math.PI * 2;
+                beta = generator.NextDouble() * System.Math.PI * 2;
+                theta = generator.NextDouble() * System.Math.PI * 2;
 
                 wanderTarget = new Vector3(radius * (float)System.Math.Cos(alfa), radius * (float)System.Math.Cos(beta), radius * (float)System.Math.Cos(theta));
             }
@@ -85,16 +71,14 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
         public Vector3 WanderTarget => wanderTarget;
 
-
         public Vector3 TargetPosition => targetPosition;
-
 
         public override Vector3 Calculate()
         {
             Vector3 displacement;
 
             //Randomize a little the wander target
-            wanderTarget += new Vector3(jitter * (float)(Generator.NextDouble() * 2 - 1), jitter * (float)(Generator.NextDouble() * 2 - 1), jitter * (float)(Generator.NextDouble() * 2 - 1));
+            wanderTarget += new Vector3(jitter * (float)(generator.NextDouble() * 2 - 1), jitter * (float)(generator.NextDouble() * 2 - 1), jitter * (float)(generator.NextDouble() * 2 - 1));
             ConstraintVector(ref wanderTarget);
 
             //Normalize it and reproject it again

@@ -60,7 +60,7 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly List<TabPage> _tabPages = new List<TabPage>();
+        private readonly List<TabPage> _tabPages = new();
         private int _selectedIndex;
         private int _hoveredIndex = -1;
 

@@ -1,33 +1,21 @@
 using Microsoft.Xna.Framework;
 
-
-
-
 namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Flee : SteeringBehavior
     {
-
         public const float AlwaysFlee = -1.0f;
+        protected internal float fleeDistance;
+        protected internal Vector3 fleePosition;
 
-
-
-        protected internal float FleeDistance;
-
-        protected internal Vector3 FleePosition;
-
-
-
-        public Flee(String name, MovingEntity owner, float modifier)
+        public Flee(string name, MovingEntity owner, float modifier)
             : this(name, owner, modifier, AlwaysFlee) { }
 
-        public Flee(String name, MovingEntity owner, float modifier, float fleeDistance)
+        public Flee(string name, MovingEntity owner, float modifier, float fleeDistance)
             : base(name, owner, modifier)
         {
             this.fleeDistance = fleeDistance;
         }
-
-
 
         public float FleeDistance
         {
@@ -41,8 +29,6 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             set => fleePosition = ConstraintVector(value);
         }
 
-
-
         public override Vector3 Calculate()
         {
             Vector3 desiredVelocity;
@@ -52,7 +38,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             //If the flee position is too far away, don´t flee from it
             if ((fleeDistance != AlwaysFlee) && toTarget.Length() > fleeDistance)
+            {
                 return Vector3.Zero;
+            }
 
             //If the entity should flee, calculate the velocity
             desiredVelocity = Vector3.Normalize(toTarget) * owner.MaxSpeed;

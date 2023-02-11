@@ -19,7 +19,7 @@ namespace CasaEngine.Assets.Graphics2D
 
         private string _name = string.Empty;
 #if EDITOR
-        private readonly List<Frame2D> _frames = new List<Frame2D>();
+        private readonly List<Frame2D> _frames = new();
 #else
         private Frame2D[] _Frames;
 #endif
@@ -34,7 +34,7 @@ namespace CasaEngine.Assets.Graphics2D
         public event EventHandler<Animation2DFrameChangedEventArgs> OnFrameChanged;
         public event EventHandler OnEndAnimationReached;
 
-        private readonly Animation2DFrameChangedEventArgs _animation2DFrameChangedEventArgs = new Animation2DFrameChangedEventArgs(null, 0, 0);
+        private readonly Animation2DFrameChangedEventArgs _animation2DFrameChangedEventArgs = new(null, 0, 0);
 
 
 
@@ -201,11 +201,11 @@ namespace CasaEngine.Assets.Graphics2D
             _endAnimReached = false;
         }
 
-        public override void Load(XmlElement node, SaveOption option)
+        public override void Load(XmlElement element, SaveOption option)
         {
-            base.Load(node, option);
+            base.Load(element, option);
 
-            XmlNode animNode = node.SelectSingleNode("Animation2D");
+            XmlNode animNode = element.SelectSingleNode("Animation2D");
 
             uint version = uint.Parse(animNode.Attributes["version"].Value);
 

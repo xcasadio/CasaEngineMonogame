@@ -65,10 +65,10 @@ namespace XNAFinalEngine.Helpers
 
         public RectangleF(float x, float y, float width, float height)
         {
-            this._x = x;
-            this._y = y;
-            this._width = width;
-            this._height = height;
+            _x = x;
+            _y = y;
+            _width = width;
+            _height = height;
         } // RectangleF
 
 
@@ -83,7 +83,7 @@ namespace XNAFinalEngine.Helpers
             return !(x == y);
         } // Not Equal
 
-        public override bool Equals(System.Object obj)
+        public override bool Equals(Object obj)
         {
             return obj is RectangleF && this == (RectangleF)obj;
         } // Equals

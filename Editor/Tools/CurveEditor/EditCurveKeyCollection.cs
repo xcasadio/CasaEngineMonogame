@@ -52,7 +52,10 @@ namespace Editor.Tools.CurveEditor
         {
             for (int i = 0; i < keys.Count; ++i)
             {
-                if (keys[i].Id == item.Id) return i;
+                if (keys[i].Id == item.Id)
+                {
+                    return i;
+                }
             }
 
             return -1;
@@ -87,7 +90,7 @@ namespace Editor.Tools.CurveEditor
             {
                 if (value == null)
                 {
-                    throw new System.ArgumentNullException();
+                    throw new ArgumentNullException();
                 }
 
                 // If new value has same position, it just change values.
@@ -117,7 +120,9 @@ namespace Editor.Tools.CurveEditor
         public void Add(EditCurveKey item)
         {
             if (item == null)
-                throw new System.ArgumentNullException("item");
+            {
+                throw new ArgumentNullException("item");
+            }
 
             // Add CurveKey to original curve.
             owner.OriginalCurve.Keys.Add(item.OriginalKey);
@@ -153,7 +158,9 @@ namespace Editor.Tools.CurveEditor
         public bool Contains(EditCurveKey item)
         {
             if (item == null)
-                throw new System.ArgumentNullException("item");
+            {
+                throw new ArgumentNullException("item");
+            }
 
             return keys.Contains(item);
         }
@@ -193,7 +200,9 @@ namespace Editor.Tools.CurveEditor
         public bool Remove(EditCurveKey item)
         {
             if (item == null)
-                throw new System.ArgumentNullException("item");
+            {
+                throw new ArgumentNullException("item");
+            }
 
             bool result = owner.OriginalCurve.Keys.Remove(item.OriginalKey);
             idToKeyMap.Remove(item.Id);
@@ -271,13 +280,12 @@ namespace Editor.Tools.CurveEditor
         /// <summary>
         /// EditCurveKey that contains EditCurveKey
         /// </summary>
-        private List<EditCurveKey>  keys = new List<EditCurveKey>();
+        private List<EditCurveKey> keys = new();
 
         /// <summary>
         /// Id to EditCurveKey map.
         /// </summary>
-        private Dictionary<long, EditCurveKey> idToKeyMap =
-                                                new Dictionary<long, EditCurveKey>();
+        private Dictionary<long, EditCurveKey> idToKeyMap = new();
 
     }
 }

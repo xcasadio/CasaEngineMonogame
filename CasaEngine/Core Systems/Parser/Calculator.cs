@@ -18,7 +18,7 @@ namespace CasaEngine.Design.Parser
             set => _root = value;
         }
 
-        public CasaEngine.Design.Parser.Parser Parser => _parser;
+        public Parser Parser => _parser;
 
 
         public Calculator(Parser parser)

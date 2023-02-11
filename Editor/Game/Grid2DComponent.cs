@@ -18,7 +18,7 @@ namespace Editor.Game
 
         private Line2DRenderer m_Line2DRenderer;
         private SpriteBatch m_SpriteBatch;
-        private Microsoft.Xna.Framework.Color m_ColorLine = new Microsoft.Xna.Framework.Color(1.0f, 1.0f, 1.0f, 0.5f);
+        private Microsoft.Xna.Framework.Color m_ColorLine = new(1.0f, 1.0f, 1.0f, 0.5f);
 
 
 

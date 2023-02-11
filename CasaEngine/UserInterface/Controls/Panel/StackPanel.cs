@@ -19,7 +19,7 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public XNAFinalEngine.UserInterface.Orientation Orientation
+        public Orientation Orientation
         {
             get => _orientation;
             set => _orientation = value;
@@ -30,7 +30,7 @@ namespace XNAFinalEngine.UserInterface
         public StackPanel(UserInterfaceManager userInterfaceManager)
             : base(userInterfaceManager)
         {
-            this._orientation = Orientation.Horizontal;
+            _orientation = Orientation.Horizontal;
             Color = Color.Transparent;
         } // StackPanel
 

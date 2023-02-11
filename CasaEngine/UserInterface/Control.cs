@@ -10,18 +10,14 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Asset;
 
 using XNAFinalEngine.Helpers;
 using Cursor = CasaEngine.Asset.Cursors.Cursor;
 
-
-
 namespace XNAFinalEngine.UserInterface
 {
-
 
     public class ControlsList : EventedList<Control>
     {
@@ -33,20 +29,15 @@ namespace XNAFinalEngine.UserInterface
 
     } // ControlsList
 
-
     public class Control : Disposable
     {
-
-
-        public static readonly Color UndefinedColor = new Color(255, 255, 255, 0);
-
-
+        public static readonly Color UndefinedColor = new(255, 255, 255, 0);
 
         // List of all controls.
-        private static readonly ControlsList ControlList = new ControlsList();
+        private static readonly ControlsList controlList = new();
 
         // List of all child controls.
-        private readonly ControlsList _childrenControls = new ControlsList();
+        private readonly ControlsList _childrenControls = new();
 
         // Specifies how many pixels is used for edges (and corners) allowing resizing of the control.
         private int _resizerSize = 4;
@@ -79,7 +70,7 @@ namespace XNAFinalEngine.UserInterface
         private bool _outlineMoving;
 
         // Indicates the distance from another control. Usable with StackPanel control.
-        private Margins _margins = new Margins(4, 4, 4, 4);
+        private Margins _margins = new(4, 4, 4, 4);
 
         // Indicates whether the control outline is displayed only for certain edges. 
         private bool _partialOutline = true;
@@ -91,7 +82,7 @@ namespace XNAFinalEngine.UserInterface
         private bool _stayOnTop;
 
         // Control's tool tip.
-        internal ToolTip ToolTip;
+        internal ToolTip toolTip;
 
         // The area where is the control supposed to be drawn.
         private Rectangle _drawingRect = Rectangle.Empty;
@@ -145,7 +136,7 @@ namespace XNAFinalEngine.UserInterface
         private int _maximumHeight = 4096;
 
         // Stack that stores new controls.
-        private static readonly Queue<Control> NewControls = new Queue<Control>();
+        private static readonly Queue<Control> NewControls = new();
 
         private Anchors _resizeEdge = Anchors.All;
         private string _text = "Control";
@@ -163,10 +154,7 @@ namespace XNAFinalEngine.UserInterface
         private Margins _anchorMargins;
         private Rectangle _outlineRectangle = Rectangle.Empty;
 
-
-
         public static ControlsList ControlList => controlList;
-
 
         internal virtual int VirtualHeight
         {
@@ -218,8 +206,6 @@ namespace XNAFinalEngine.UserInterface
                 return Width;
             }
         } // VirtualWidth
-
-
 
         public virtual int Left
         {
@@ -320,8 +306,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Height
 
-
-
         public virtual int MinimumWidth
         {
             get => _minimumWidth;
@@ -390,13 +374,9 @@ namespace XNAFinalEngine.UserInterface
             }
         } // MaximumHeight
 
-
-
         internal virtual int HorizontalScrollingAmount { get; set; }
 
         internal virtual int VerticalScrollingAmount { get; set; }
-
-
 
         internal virtual int ControlLeftAbsoluteCoordinate
         {
@@ -442,8 +422,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlAndMarginsTopAbsoluteCoordinate
 
-
-
         internal virtual int ControlAndMarginsWidth
         {
             get
@@ -464,8 +442,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ControlAndMarginsHeight
 
-
-
         public virtual Margins ClientMargins { get; set; }
 
         public virtual int ClientLeft => ClientMargins.Left;
@@ -484,15 +460,13 @@ namespace XNAFinalEngine.UserInterface
             set => Height = value + ClientMargins.Vertical - _skinControl.OriginMargins.Vertical;
         } // ClientHeight
 
+        internal virtual Rectangle ControlRectangle => new(ControlLeftAbsoluteCoordinate, ControlTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight); // ControlRectangle
 
+        protected virtual Rectangle ControlAndMarginsRectangle => new(ControlAndMarginsLeftAbsoluteCoordinate, ControlAndMarginsTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight); // ControlAndMarginsRectangle
 
-        internal virtual Rectangle ControlRectangle => new Rectangle(ControlLeftAbsoluteCoordinate, ControlTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight); // ControlRectangle
+        protected virtual Rectangle ClientRectangle => new(ClientLeft, ClientTop, ClientWidth, ClientHeight); // ClientRectangle
 
-        protected virtual Rectangle ControlAndMarginsRectangle => new Rectangle(ControlAndMarginsLeftAbsoluteCoordinate, ControlAndMarginsTopAbsoluteCoordinate, ControlAndMarginsWidth, ControlAndMarginsHeight); // ControlAndMarginsRectangle
-
-        protected virtual Rectangle ClientRectangle => new Rectangle(ClientLeft, ClientTop, ClientWidth, ClientHeight); // ClientRectangle
-
-        internal virtual Rectangle ControlRectangleRelativeToParent => new Rectangle(Left, Top, Width, Height); // ControlRectangleRelativeToParent
+        internal virtual Rectangle ControlRectangleRelativeToParent => new(Left, Top, Width, Height); // ControlRectangleRelativeToParent
 
         private Rectangle OutlineRectangle
         {
@@ -510,7 +484,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // OutlineRectangle
 
-
         internal virtual Margins DefaultDistanceFromAnotherControl
         {
             get => _margins;
@@ -519,11 +492,9 @@ namespace XNAFinalEngine.UserInterface
 
         internal void SetPosition(int left, int top)
         {
-            this._left = left;
-            this._top = top;
+            _left = left;
+            _top = top;
         } // SetPosition
-
-
 
         public UserInterfaceManager UserInterfaceManager { get; private set; }
 
@@ -862,9 +833,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Root
 
-
-
-
         // Mouse //
         public event EventHandler Click;
         public event EventHandler DoubleClick;
@@ -909,8 +877,6 @@ namespace XNAFinalEngine.UserInterface
         public event EventHandler ParentChanged;
         public event EventHandler RootChanged;
 
-
-
         public Control(UserInterfaceManager userInterfaceManager)
         {
             UserInterfaceManager = userInterfaceManager;
@@ -936,8 +902,6 @@ namespace XNAFinalEngine.UserInterface
             UserInterfaceManager.SkinChanging += OnSkinChanging;
             UserInterfaceManager.SkinChanged += OnSkinChanged;
         } // Control
-
-
 
         protected void CheckLayer(SkinControlInformation skinControl, string layer)
         {
@@ -980,15 +944,12 @@ namespace XNAFinalEngine.UserInterface
             MinimumHeight = _skinControl.MinimumSize.Height > 0 ? _skinControl.MinimumSize.Height : minimumHeight;
         } // SetMinimumSize
 
-
-
         protected override void DisposeManagedResources()
         {
             // Remove events.
             UserInterfaceManager.DeviceReset -= OnDeviceReset;
             UserInterfaceManager.SkinChanging -= OnSkinChanging;
             UserInterfaceManager.SkinChanged -= OnSkinChanged;
-
 
             // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
             Click = null;
@@ -1025,7 +986,6 @@ namespace XNAFinalEngine.UserInterface
             SkinChanged = null;
             ParentChanged = null;
             RootChanged = null;
-
 
             if (_parent != null)
                 _parent.Remove(this);
@@ -1076,8 +1036,6 @@ namespace XNAFinalEngine.UserInterface
                 _renderTarget.Dispose();
         } // DisposeManagedResources
 
-
-
         protected internal virtual void Update(float elapsedTime)
         {
             ToolTipUpdate();
@@ -1114,8 +1072,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // Update
 
-
-
         private void ToolTipUpdate()
         {
             if (UserInterfaceManager.ToolTipsEnabled && toolTip != null && _tooltipTimer > 0 &&
@@ -1145,8 +1101,6 @@ namespace XNAFinalEngine.UserInterface
                 UserInterfaceManager.Remove(toolTip);
             }
         } // ToolTipOut
-
-
 
         internal virtual void PreDrawControlOntoOwnTexture()
         {
@@ -1426,8 +1380,6 @@ namespace XNAFinalEngine.UserInterface
             return c.Detached;
         } // CheckDetached
 
-
-
         public virtual void Add(Control control)
         {
             if (control != null)
@@ -1507,16 +1459,12 @@ namespace XNAFinalEngine.UserInterface
             return ret;
         } // SearchChildControlByName
 
-
-
         public virtual void Invalidate()
         {
             _invalidated = true;
             if (_parent != null)
                 _parent.Invalidate();
         } // Invalidate
-
-
 
         public void BringToFront()
         {
@@ -1527,8 +1475,6 @@ namespace XNAFinalEngine.UserInterface
         {
             UserInterfaceManager.SendToBack(this);
         } // SendToBack
-
-
 
         public virtual void Show()
         {
@@ -1545,8 +1491,6 @@ namespace XNAFinalEngine.UserInterface
             OnMove(new MoveEventArgs(_left, _top, _left, _top));
             OnResize(new ResizeEventArgs(_width, _height, _width, _height));
         } // Refresh
-
-
 
         internal virtual void SendMessage(Message message, EventArgs e)
         {
@@ -1605,8 +1549,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SendMessage
 
-
-
         private void KeyPressProcess(KeyEventArgs e)
         {
             Invalidate();
@@ -1619,7 +1561,7 @@ namespace XNAFinalEngine.UserInterface
 
             ToolTipOut();
 
-            if (e.Key == Microsoft.Xna.Framework.Input.Keys.Space && !IsPressed)
+            if (e.Key == Keys.Space && !IsPressed)
             {
                 _pressed[(int)MouseButton.None] = true;
             }
@@ -1631,14 +1573,14 @@ namespace XNAFinalEngine.UserInterface
         {
             Invalidate();
 
-            if (e.Key == Microsoft.Xna.Framework.Input.Keys.Space && _pressed[(int)MouseButton.None])
+            if (e.Key == Keys.Space && _pressed[(int)MouseButton.None])
             {
                 _pressed[(int)MouseButton.None] = false;
             }
 
             if (!Suspended) OnKeyUp(e);
 
-            if (e.Key == Microsoft.Xna.Framework.Input.Keys.Apps && !e.Handled)
+            if (e.Key == Keys.Apps && !e.Handled)
             {
                 if (ContextMenu != null)
                 {
@@ -1646,8 +1588,6 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
         } // KeyUpProcess
-
-
 
         private void MouseDownProcess(MouseEventArgs e)
         {
@@ -1907,8 +1847,6 @@ namespace XNAFinalEngine.UserInterface
             return ee;
         } // TransformPosition
 
-
-
         private void SetAnchorMargins()
         {
             if (Parent != null)
@@ -1981,8 +1919,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ProcessAnchor
 
-
-
         private void PerformResize(MouseEventArgs e)
         {
             if (_resizable && !IsMoving)
@@ -1999,7 +1935,6 @@ namespace XNAFinalEngine.UserInterface
                 {
                     _invalidated = true;
 
-
                     bool top = false;
                     bool bottom = false;
                     bool left = false;
@@ -2014,7 +1949,6 @@ namespace XNAFinalEngine.UserInterface
                         left = true;
                     else if ((_resizeArea == Alignment.MiddleRight || _resizeArea == Alignment.BottomRight || _resizeArea == Alignment.TopRight) && (_resizeEdge & Anchors.Right) == Anchors.Right)
                         right = true;
-
 
                     int newWidth = Width;
                     int newHeight = Height;
@@ -2196,8 +2130,6 @@ namespace XNAFinalEngine.UserInterface
                 _resizeArea = Alignment.None;
             }
         } // ResizePosition
-
-
 
         protected internal void OnDeviceReset(object sender, EventArgs e)
         {
@@ -2417,8 +2349,6 @@ namespace XNAFinalEngine.UserInterface
                 FocusGained.Invoke(this, new EventArgs());
         } // OnFocusGained
 
-
-
         internal static void InitializeNewControls()
         {
             while (NewControls.Count > 0)
@@ -2427,7 +2357,6 @@ namespace XNAFinalEngine.UserInterface
                 NewControls.Dequeue();
             }
         } // InitializeNewControls
-
 
     } // Control
 } // XNAFinalEngine.UserInterface

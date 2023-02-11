@@ -53,7 +53,7 @@ namespace CasaEngine.Editor.Assets
 
         public void GetNewId()
         {
-            this.Id = ++_freeId;
+            Id = ++_freeId;
         }
     }
 }

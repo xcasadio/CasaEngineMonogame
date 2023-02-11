@@ -2,7 +2,7 @@
 {
     public class PackageManager
     {
-        readonly List<Package> _packages = new List<Package>();
+        readonly List<Package> _packages = new();
 
 
 

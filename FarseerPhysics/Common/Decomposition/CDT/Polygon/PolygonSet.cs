@@ -41,7 +41,7 @@ namespace Poly2Tri.Triangulation.Polygon
 {
     public class PolygonSet
     {
-        protected List<Polygon> _polygons = new List<Polygon>();
+        protected List<Polygon> _polygons = new();
 
         public PolygonSet()
         {

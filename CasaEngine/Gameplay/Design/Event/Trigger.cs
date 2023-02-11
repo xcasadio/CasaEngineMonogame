@@ -11,7 +11,7 @@ namespace CasaEngine.Design.Event
     class Trigger
     {
 
-        private readonly List<ITriggerEvent> _events = new List<ITriggerEvent>();
+        private readonly List<ITriggerEvent> _events = new();
         private bool _activated = false;
         private int _iterationMax = 1;
         private int _iteration = 0;

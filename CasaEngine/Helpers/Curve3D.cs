@@ -37,9 +37,9 @@ namespace XNAFinalEngine.Helpers
     {
 
 
-        private Curve _curveX = new Curve();
-        private Curve _curveY = new Curve();
-        private Curve _curveZ = new Curve();
+        private Curve _curveX = new();
+        private Curve _curveY = new();
+        private Curve _curveZ = new();
 
 
 
@@ -159,7 +159,9 @@ namespace XNAFinalEngine.Helpers
                         border = true;
                     }
                     else
+                    {
                         prevIndex = i;
+                    }
                 }
 
                 nextIndex = i + 1;
@@ -171,7 +173,9 @@ namespace XNAFinalEngine.Helpers
                         border = true;
                     }
                     else
+                    {
                         nextIndex = i;
+                    }
                 }
                 // Build the x tangent
                 prev = _curveX.Keys[prevIndex];
@@ -200,9 +204,13 @@ namespace XNAFinalEngine.Helpers
             float dv;
 
             if (border)
+            {
                 dv = prev.Value - next.Value;
+            }
             else
+            {
                 dv = next.Value - prev.Value;
+            }
 
             if (Math.Abs(dv) < float.Epsilon)
             {
@@ -262,7 +270,9 @@ namespace XNAFinalEngine.Helpers
             poly.Close();
             // Build tangents?
             if (buildTangents)
+            {
                 poly.BuildTangents();
+            }
 
             return poly;
         } // Polygon
@@ -297,13 +307,17 @@ namespace XNAFinalEngine.Helpers
 
             // add Points
             for (int indexer = 0; indexer < coords.Length; indexer++)
+            {
                 hexagon.AddPoint(Vector3.Transform(coords[indexer], worldMatrix), indexer);
+            }
 
             hexagon.Close();
 
             // Build tangents?
             if (buildTangents)
+            {
                 hexagon.BuildTangents();
+            }
 
             return hexagon;
         } // Hexagon

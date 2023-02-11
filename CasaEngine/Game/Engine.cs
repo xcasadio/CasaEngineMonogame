@@ -12,16 +12,13 @@ using XNAFinalEngine.UserInterface;
 #if EDITOR
 using CasaEngine.Editor.Tools;
 using CasaEngine.Editor.Assets;
-
 #endif
-
 
 namespace CasaEngine.Game
 {
     public class Engine
     {
-
-        static readonly private Engine MsEngine = new Engine();
+        static readonly private Engine MsEngine = new();
 
         private Microsoft.Xna.Framework.Game _game;
         private readonly Asset2DManager _asset2DManager;
@@ -44,9 +41,6 @@ namespace CasaEngine.Game
         private List<string> _Errors = new List<string>();
 		private List<string> _Warnings = new List<string>();
 		private string[] _Arguments = null;*/
-
-
-
 
         static public Engine Instance => MsEngine;
 
@@ -82,9 +76,7 @@ namespace CasaEngine.Game
 
         public UserInterfaceManager UiManager => _uiManager;
 
-
         public int MultiSampleQuality { get; set; }
-
 
         public Microsoft.Xna.Framework.Game Game
         {
@@ -148,8 +140,6 @@ namespace CasaEngine.Game
             set;
         }
 
-
-
         public Engine()
         {
             _game = null;
@@ -171,8 +161,6 @@ namespace CasaEngine.Game
             _effect = null;
 #endif
         }
-
-
 
     }
 }

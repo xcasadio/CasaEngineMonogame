@@ -37,7 +37,7 @@ namespace CasaEngine.Design.Parser
 
         public override float Evaluate()
         {
-            return this.Calculator.Parser.EvaluateKeyword(_keyword);
+            return Calculator.Parser.EvaluateKeyword(_keyword);
         }
 
 
