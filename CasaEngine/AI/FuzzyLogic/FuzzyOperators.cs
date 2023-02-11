@@ -1,28 +1,28 @@
 ﻿namespace CasaEngine.AI.Fuzzy
 {
-    public class FzAND
-        : FuzzyTerm
+    public class FzAnd
+        : IFuzzyTerm
     {
 
         //an instance of this class may AND together up to 4 terms
-        readonly List<FuzzyTerm> m_Terms = new List<FuzzyTerm>();
+        readonly List<IFuzzyTerm> _terms = new List<IFuzzyTerm>();
 
         //disallow assignment
         //FzAND operator=(FzAND&);
 
 
 
-        public double DOM
+        public double Dom
         {
             get
             {
                 double smallest = double.MaxValue;
 
-                foreach (FuzzyTerm t in m_Terms)
+                foreach (IFuzzyTerm t in _terms)
                 {
-                    if (t.DOM < smallest)
+                    if (t.Dom < smallest)
                     {
-                        smallest = t.DOM;
+                        smallest = t.Dom;
                     }
                 }
 
@@ -32,83 +32,83 @@
 
 
 
-        public FzAND(FzAND fa)
+        public FzAnd(FzAnd fa)
         {
-            foreach (FuzzyTerm f in fa.m_Terms)
+            foreach (IFuzzyTerm f in fa._terms)
             {
-                m_Terms.Add(f.Clone());
+                _terms.Add(f.Clone());
             }
         }
 
-        public FzAND(FuzzyTerm op1, FuzzyTerm op2)
+        public FzAnd(IFuzzyTerm op1, IFuzzyTerm op2)
         {
-            m_Terms.Add(op1.Clone());
-            m_Terms.Add(op2.Clone());
+            _terms.Add(op1.Clone());
+            _terms.Add(op2.Clone());
         }
 
-        public FzAND(FuzzyTerm op1, FuzzyTerm op2, FuzzyTerm op3)
+        public FzAnd(IFuzzyTerm op1, IFuzzyTerm op2, IFuzzyTerm op3)
         {
-            m_Terms.Add(op1.Clone());
-            m_Terms.Add(op2.Clone());
-            m_Terms.Add(op3.Clone());
+            _terms.Add(op1.Clone());
+            _terms.Add(op2.Clone());
+            _terms.Add(op3.Clone());
         }
 
-        public FzAND(FuzzyTerm op1, FuzzyTerm op2, FuzzyTerm op3, FuzzyTerm op4)
+        public FzAnd(IFuzzyTerm op1, IFuzzyTerm op2, IFuzzyTerm op3, IFuzzyTerm op4)
         {
-            m_Terms.Add(op1.Clone());
-            m_Terms.Add(op2.Clone());
-            m_Terms.Add(op3.Clone());
-            m_Terms.Add(op4.Clone());
+            _terms.Add(op1.Clone());
+            _terms.Add(op2.Clone());
+            _terms.Add(op3.Clone());
+            _terms.Add(op4.Clone());
         }
 
 
 
-        public void ORwithDOM(double val)
+        public void ORwithDom(double val)
         {
-            foreach (FuzzyTerm t in m_Terms)
+            foreach (IFuzzyTerm t in _terms)
             {
-                t.ORwithDOM(val);
+                t.ORwithDom(val);
             }
         }
 
-        public void ClearDOM()
+        public void ClearDom()
         {
-            foreach (FuzzyTerm t in m_Terms)
+            foreach (IFuzzyTerm t in _terms)
             {
-                t.ClearDOM();
+                t.ClearDom();
             }
         }
 
-        public FuzzyTerm Clone()
+        public IFuzzyTerm Clone()
         {
-            return new FzAND(this);
+            return new FzAnd(this);
         }
 
     }
 
-    public class FzOR
-        : FuzzyTerm
+    public class FzOr
+        : IFuzzyTerm
     {
 
         //an instance of this class may AND together up to 4 terms
-        readonly List<FuzzyTerm> m_Terms = new List<FuzzyTerm>();
+        readonly List<IFuzzyTerm> _terms = new List<IFuzzyTerm>();
 
         //disallow assignment
         //FzAND operator=(FzAND&);
 
 
 
-        public double DOM
+        public double Dom
         {
             get
             {
                 double largest = float.MinValue;
 
-                foreach (FuzzyTerm t in m_Terms)
+                foreach (IFuzzyTerm t in _terms)
                 {
-                    if (t.DOM > largest)
+                    if (t.Dom > largest)
                     {
-                        largest = t.DOM;
+                        largest = t.Dom;
                     }
                 }
 
@@ -118,50 +118,50 @@
 
 
 
-        public FzOR(FzOR fa)
+        public FzOr(FzOr fa)
         {
-            foreach (FuzzyTerm f in fa.m_Terms)
+            foreach (IFuzzyTerm f in fa._terms)
             {
-                m_Terms.Add(f.Clone());
+                _terms.Add(f.Clone());
             }
         }
 
-        public FzOR(FuzzyTerm op1, FuzzyTerm op2)
+        public FzOr(IFuzzyTerm op1, IFuzzyTerm op2)
         {
-            m_Terms.Add(op1.Clone());
-            m_Terms.Add(op2.Clone());
+            _terms.Add(op1.Clone());
+            _terms.Add(op2.Clone());
         }
 
-        public FzOR(FuzzyTerm op1, FuzzyTerm op2, FuzzyTerm op3)
+        public FzOr(IFuzzyTerm op1, IFuzzyTerm op2, IFuzzyTerm op3)
         {
-            m_Terms.Add(op1.Clone());
-            m_Terms.Add(op2.Clone());
-            m_Terms.Add(op3.Clone());
+            _terms.Add(op1.Clone());
+            _terms.Add(op2.Clone());
+            _terms.Add(op3.Clone());
         }
 
-        public FzOR(FuzzyTerm op1, FuzzyTerm op2, FuzzyTerm op3, FuzzyTerm op4)
+        public FzOr(IFuzzyTerm op1, IFuzzyTerm op2, IFuzzyTerm op3, IFuzzyTerm op4)
         {
-            m_Terms.Add(op1.Clone());
-            m_Terms.Add(op2.Clone());
-            m_Terms.Add(op3.Clone());
-            m_Terms.Add(op4.Clone());
+            _terms.Add(op1.Clone());
+            _terms.Add(op2.Clone());
+            _terms.Add(op3.Clone());
+            _terms.Add(op4.Clone());
         }
 
 
 
-        public void ClearDOM()
+        public void ClearDom()
         {
             throw new InvalidOperationException("FzOR.ClearDOM() : invalid context");
         }
 
-        public void ORwithDOM(double val)
+        public void ORwithDom(double val)
         {
             throw new InvalidOperationException("FzOR.ORwithDOM() : invalid context");
         }
 
-        public FuzzyTerm Clone()
+        public IFuzzyTerm Clone()
         {
-            return new FzOR(this);
+            return new FzOr(this);
         }
 
     }

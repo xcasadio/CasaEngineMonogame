@@ -19,10 +19,10 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
             survivors.Genome.AddRange(children.Genome);
 
             //Sort the survivors
-            survivors.Genome.Sort(new ChromosomeComparer<T>(objective));
+            survivors.Genome.Sort(new ChromosomeComparer<T>(Objective));
 
             // Remove the less fit chromosomes
-            survivors.Genome.RemoveRange(newPopulationSize, survivors.Genome.Count - newPopulationSize);
+            survivors.Genome.RemoveRange(NewPopulationSize, survivors.Genome.Count - NewPopulationSize);
 
             return survivors;
         }

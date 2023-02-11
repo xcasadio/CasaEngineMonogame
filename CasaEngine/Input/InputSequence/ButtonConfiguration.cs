@@ -6,7 +6,7 @@ namespace CasaEngine.Input
 {
     public class ButtonConfiguration
     {
-        readonly Dictionary<int, ButtonMapper> m_ButtonsConfig = new Dictionary<int, ButtonMapper>();
+        readonly Dictionary<int, ButtonMapper> _buttonsConfig = new Dictionary<int, ButtonMapper>();
 
 
 
@@ -16,47 +16,47 @@ namespace CasaEngine.Input
             set;
         }
 
-        public int ButtonCount => m_ButtonsConfig.Count;
+        public int ButtonCount => _buttonsConfig.Count;
 
-        public Dictionary<int, ButtonMapper>.Enumerator Buttons => m_ButtonsConfig.GetEnumerator();
+        public Dictionary<int, ButtonMapper>.Enumerator Buttons => _buttonsConfig.GetEnumerator();
 
 
-        public ButtonMapper GetButton(int code_)
+        public ButtonMapper GetButton(int code)
         {
-            return m_ButtonsConfig[code_];
+            return _buttonsConfig[code];
         }
 
-        public void AddButton(int code_, ButtonMapper but_)
+        public void AddButton(int code, ButtonMapper but)
         {
-            m_ButtonsConfig.Add(code_, but_);
+            _buttonsConfig.Add(code, but);
         }
 
-        public void ReplaceButton(int code_, ButtonMapper newBut_)
+        public void ReplaceButton(int code, ButtonMapper newBut)
         {
-            m_ButtonsConfig[code_] = newBut_;
+            _buttonsConfig[code] = newBut;
         }
 
-        public void DeleteButton(int code_)
+        public void DeleteButton(int code)
         {
-            m_ButtonsConfig.Remove(code_);
+            _buttonsConfig.Remove(code);
         }
 
-        public void Save(XmlElement el_, SaveOption option_)
-        {
-
-        }
-
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el, SaveOption option)
         {
 
         }
 
-        public void Save(BinaryWriter bw_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
 
         }
 
-        public void Load(BinaryReader br_, SaveOption option_)
+        public void Save(BinaryWriter bw, SaveOption option)
+        {
+
+        }
+
+        public void Load(BinaryReader br, SaveOption option)
         {
 
         }

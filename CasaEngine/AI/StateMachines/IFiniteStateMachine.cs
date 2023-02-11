@@ -3,7 +3,7 @@ using CasaEngine.AI.Messaging;
 
 namespace CasaEngine.AI.StateMachines
 {
-    public interface IFiniteStateMachine<T> : IMessageable where T : /*BaseEntity,*/ IFSMCapable<T>
+    public interface IFiniteStateMachine<T> : IMessageable where T : /*BaseEntity,*/ IFsmCapable<T>
     {
 
         IState<T> CurrentState
@@ -20,7 +20,7 @@ namespace CasaEngine.AI.StateMachines
 
 
 
-        void Update(float elpasedTime_);
+        void Update(float elpasedTime);
 
         void Transition(IState<T> newState);
 

@@ -41,7 +41,7 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        private Accessor[] accessors;
+        private Accessor[] _accessors;
 
         public T[] Elements;
 
@@ -74,10 +74,10 @@ namespace XNAFinalEngine.Helpers
                 Elements[i] = new T();
             }
             // They are created using another for sentence because we want memory locality.
-            accessors = new Accessor[capacity];
+            _accessors = new Accessor[capacity];
             for (int i = 0; i < capacity; i++)
             {
-                accessors[i] = new Accessor { Index = i };
+                _accessors[i] = new Accessor { Index = i };
             }
         } // Pool
 
@@ -90,7 +90,7 @@ namespace XNAFinalEngine.Helpers
                 ResizePool(Capacity + 25); // This could be a relative number.
             }
             Count++;
-            return accessors[Count - 1];
+            return _accessors[Count - 1];
         } // Fetch
 
 
@@ -117,14 +117,14 @@ namespace XNAFinalEngine.Helpers
             {
                 if (i < oldCapacity)
                 {
-                    newAccessors[i] = accessors[i];
+                    newAccessors[i] = _accessors[i];
                 }
                 else
                 {
                     newAccessors[i] = new Accessor { Index = i };
                 }
             }
-            accessors = newAccessors;
+            _accessors = newAccessors;
         } // ResizePool
 
 
@@ -141,11 +141,11 @@ namespace XNAFinalEngine.Helpers
             // The indices have the wrong value.The last has to index its new place and vice versa.
             int accesorOldIndex = accessor.Index;
             accessor.Index = Count - 1;
-            accessors[Count - 1].Index = accesorOldIndex;
+            _accessors[Count - 1].Index = accesorOldIndex;
             // Also the accessor array has to be sorted. If not the fetch method will give a used accessor element.
-            Accessor lastActiveAccessor = accessors[Count - 1]; // Accessor is a reference type.
-            accessors[Count - 1] = accessor;
-            accessors[accesorOldIndex] = lastActiveAccessor;
+            Accessor lastActiveAccessor = _accessors[Count - 1]; // Accessor is a reference type.
+            _accessors[Count - 1] = accessor;
+            _accessors[accesorOldIndex] = lastActiveAccessor;
 
             Count--;
         } // Release
@@ -158,13 +158,13 @@ namespace XNAFinalEngine.Helpers
             Elements[i] = Elements[j];
             Elements[j] = temp;
             // The indices have the wrong value.The last has to index its new place and vice versa.
-            int accesorOldIndex = accessors[i].Index;
-            accessors[i].Index = j;
-            accessors[j].Index = accesorOldIndex;
+            int accesorOldIndex = _accessors[i].Index;
+            _accessors[i].Index = j;
+            _accessors[j].Index = accesorOldIndex;
             // Also the accessor array has to be sorted. If not the fetch method will give a used accessor element.
-            Accessor lastActiveAccessor = accessors[i]; // Accessor is a reference type.
-            accessors[i] = accessors[j];
-            accessors[j] = lastActiveAccessor;
+            Accessor lastActiveAccessor = _accessors[i]; // Accessor is a reference type.
+            _accessors[i] = _accessors[j];
+            _accessors[j] = lastActiveAccessor;
         } // Swap
 
 

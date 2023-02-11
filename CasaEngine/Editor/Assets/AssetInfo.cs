@@ -4,9 +4,9 @@ namespace CasaEngine.Editor.Assets
 {
     public struct AssetInfo
     {
-        static private int FreeID = 0;
+        static private int _freeId = 0;
 
-        public int ID;
+        public int Id;
         public string Name;
         public string FileName;
         public AssetType Type;
@@ -14,12 +14,12 @@ namespace CasaEngine.Editor.Assets
         [TypeConverter(typeof(AssetBuildParamCollectionConverter))]
         public AssetBuildParamCollection Params;
 
-        public AssetInfo(int id_, string name_, AssetType type_, string fileName_)
+        public AssetInfo(int id, string name, AssetType type, string fileName)
         {
-            ID = id_;
-            Name = name_;
-            Type = type_;
-            FileName = fileName_;
+            Id = id;
+            Name = name;
+            Type = type;
+            FileName = fileName;
             Params = new AssetBuildParamCollection();
         }
 
@@ -38,22 +38,22 @@ namespace CasaEngine.Editor.Assets
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode() + Type.GetHashCode() + ID.GetHashCode();
+            return Name.GetHashCode() + Type.GetHashCode() + Id.GetHashCode();
         }
 
-        public void SetID(int id_)
+        public void SetId(int id)
         {
-            ID = id_;
+            Id = id;
 
-            if (ID >= FreeID)
+            if (Id >= _freeId)
             {
-                FreeID = ID + 1;
+                _freeId = Id + 1;
             }
         }
 
-        public void GetNewID()
+        public void GetNewId()
         {
-            this.ID = ++FreeID;
+            this.Id = ++_freeId;
         }
     }
 }

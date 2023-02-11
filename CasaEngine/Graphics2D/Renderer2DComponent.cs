@@ -51,22 +51,22 @@ namespace CasaEngine.Graphics2D
 
         static public bool DrawDebug = false;
 
-        readonly List<SpriteDisplayData> m_ListSprite2D = new List<SpriteDisplayData>(50);
+        readonly List<SpriteDisplayData> _listSprite2D = new List<SpriteDisplayData>(50);
         //used to create a resource pool
-        readonly Stack<SpriteDisplayData> m_ListFreeSpriteDisplayData = new Stack<SpriteDisplayData>(50);
+        readonly Stack<SpriteDisplayData> _listFreeSpriteDisplayData = new Stack<SpriteDisplayData>(50);
 
-        readonly List<Text2DDisplayData> m_ListText2D = new List<Text2DDisplayData>(50);
+        readonly List<Text2DDisplayData> _listText2D = new List<Text2DDisplayData>(50);
         //used to create a resource pool
-        readonly Stack<Text2DDisplayData> m_ListFreeTextDisplayData = new Stack<Text2DDisplayData>(50);
+        readonly Stack<Text2DDisplayData> _listFreeTextDisplayData = new Stack<Text2DDisplayData>(50);
 
-        readonly List<Line2DDisplayData> m_ListLine2D = new List<Line2DDisplayData>(50);
+        readonly List<Line2DDisplayData> _listLine2D = new List<Line2DDisplayData>(50);
         //used to create a resource pool
-        readonly Stack<Line2DDisplayData> m_ListFreeLine2DDisplayData = new Stack<Line2DDisplayData>(50);
+        readonly Stack<Line2DDisplayData> _listFreeLine2DDisplayData = new Stack<Line2DDisplayData>(50);
 
-        //List<RoundLine> m_RoundLines = new List<RoundLine>();		
-        //RoundLineManager m_RoundLineManager = null;
+        //List<RoundLine> _RoundLines = new List<RoundLine>();		
+        //RoundLineManager _RoundLineManager = null;
 
-        readonly Line2DRenderer m_Line2DRenderer = new Line2DRenderer();
+        readonly Line2DRenderer _line2DRenderer = new Line2DRenderer();
 
 
 
@@ -86,17 +86,17 @@ namespace CasaEngine.Graphics2D
 
 
 
-        public Renderer2DComponent(Microsoft.Xna.Framework.Game game_)
-            : base(game_)
+        public Renderer2DComponent(Microsoft.Xna.Framework.Game game)
+            : base(game)
         {
-            if (game_ == null)
+            if (game == null)
             {
                 throw new ArgumentNullException("Renderer2DComponent() : Game is null");
             }
 
-            game_.Components.Add(this);
+            game.Components.Add(this);
 
-            //m_RoundLineManager = new RoundLineManager();
+            //_RoundLineManager = new RoundLineManager();
 
             UpdateOrder = (int)ComponentUpdateOrder.Renderer2DComponent;
             DrawOrder = (int)ComponentDrawOrder.Renderer2DComponent;
@@ -108,7 +108,7 @@ namespace CasaEngine.Graphics2D
         public override void Initialize()
         {
             base.Initialize();
-            m_Line2DRenderer.Init(this.GraphicsDevice);
+            _line2DRenderer.Init(this.GraphicsDevice);
         }
 
         protected override void Dispose(bool disposing)
@@ -133,9 +133,9 @@ namespace CasaEngine.Graphics2D
 
         public override void Draw(GameTime gameTime)
         {
-            if (m_ListSprite2D.Count == 0
-                && m_ListText2D.Count == 0
-                && m_ListLine2D.Count == 0)
+            if (_listSprite2D.Count == 0
+                && _listText2D.Count == 0
+                && _listLine2D.Count == 0)
             {
                 return;
             }
@@ -154,7 +154,7 @@ namespace CasaEngine.Graphics2D
                 RasterizerState.CullCounterClockwise);
 
             //sprite2D
-            foreach (SpriteDisplayData sprite in m_ListSprite2D)
+            foreach (SpriteDisplayData sprite in _listSprite2D)
             {
                 switch (sprite.SpriteEffect)
                 {
@@ -219,7 +219,7 @@ namespace CasaEngine.Graphics2D
             }
 
             //Text2D
-            foreach (Text2DDisplayData text2D in m_ListText2D)
+            foreach (Text2DDisplayData text2D in _listText2D)
             {
                 tmpVec2.X = (int)text2D.Position.X;
                 tmpVec2.Y = (int)text2D.Position.Y;
@@ -231,15 +231,15 @@ namespace CasaEngine.Graphics2D
             }
 
             //Line2D
-            foreach (Line2DDisplayData line2D in m_ListLine2D)
+            foreach (Line2DDisplayData line2D in _listLine2D)
             {
-                m_Line2DRenderer.DrawLine(SpriteBatch, line2D.Color, line2D.Start, line2D.End, line2D.ZOrder);
+                _line2DRenderer.DrawLine(SpriteBatch, line2D.Color, line2D.Start, line2D.End, line2D.ZOrder);
             }
 
             SpriteBatch.End();
 
             //RoundLine
-            //m_RoundLineManager.Draw(m_RoundLines, 1.0f, Color.Red, GameInfo);
+            //_RoundLineManager.Draw(_RoundLines, 1.0f, Color.Red, GameInfo);
 
             //GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
@@ -248,59 +248,59 @@ namespace CasaEngine.Graphics2D
 
 
 
-        public void AddSprite2D(int spriteId_, Vector2 pos_, float rot_, Vector2 scale_, Color color_, float ZOrder_, SpriteEffects effects_)
+        public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
         {
-            AddSprite2D(spriteId_, pos_, rot_, scale_, color_, ZOrder_, effects_, GraphicsDevice.ScissorRectangle);
+            AddSprite2D(spriteId, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
         }
 
-        public void AddSprite2D(int spriteId_, Vector2 pos_, float rot_, Vector2 scale_, Color color_, float ZOrder_, SpriteEffects effects_, Rectangle scissorRectangle)
+        public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
         {
-            Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectByID(spriteId_);
-            AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos_, rot_, scale_, color_, ZOrder_, effects_, scissorRectangle);
+            Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(spriteId);
+            AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
         }
 
-        public void AddSprite2D(Texture2D tex_, Vector2 pos_, float rot_, Vector2 scale_, Color color_, float ZOrder_, SpriteEffects effects_)
+        public void AddSprite2D(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
         {
-            AddSprite2D(tex_, tex_.Bounds, Point.Zero, pos_, rot_, scale_, color_, ZOrder_, effects_, GraphicsDevice.ScissorRectangle);
+            AddSprite2D(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
         }
 
-        public void AddSprite2D(Texture2D tex_, Vector2 pos_, float rot_, Vector2 scale_, Color color_, float ZOrder_, SpriteEffects effects_, Rectangle scissorRectangle)
+        public void AddSprite2D(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
         {
-            AddSprite2D(tex_, tex_.Bounds, Point.Zero, pos_, rot_, scale_, color_, ZOrder_, effects_, scissorRectangle);
+            AddSprite2D(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, scissorRectangle);
         }
 
-        public void AddSprite2D(Texture2D tex_, Rectangle src_, Point origin, Vector2 pos_, float rot_,
-            Vector2 scale_, Color color_, float ZOrder_, SpriteEffects effects_)
+        public void AddSprite2D(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
+            Vector2 scale, Color color, float zOrder, SpriteEffects effects)
         {
-            AddSprite2D(tex_, src_, origin, pos_, rot_, scale_, color_, ZOrder_, effects_, GraphicsDevice.ScissorRectangle);
+            AddSprite2D(tex, src, origin, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
         }
 
-        public void AddSprite2D(Texture2D tex_, Rectangle src_, Point origin, Vector2 pos_, float rot_,
-            Vector2 scale_, Color color_, float ZOrder_, SpriteEffects effects_, Rectangle scissorRectangle_)
+        public void AddSprite2D(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
+            Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
         {
-            if (tex_ == null)
+            if (tex == null)
             {
                 throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is null");
             }
 
-            if (tex_.IsDisposed == true)
+            if (tex.IsDisposed == true)
             {
                 throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is disposed");
             }
 
             SpriteDisplayData sprite = GetSpriteDisplayData();
-            sprite.Texture2D = tex_;
-            sprite.PositionInTexture = src_;
-            sprite.Position = pos_;
-            sprite.Rotation = rot_;
-            sprite.Scale = scale_;
-            sprite.Color = color_;
-            sprite.ZOrder = ZOrder_;
-            sprite.SpriteEffect = effects_;
+            sprite.Texture2D = tex;
+            sprite.PositionInTexture = src;
+            sprite.Position = pos;
+            sprite.Rotation = rot;
+            sprite.Scale = scale;
+            sprite.Color = color;
+            sprite.ZOrder = zOrder;
+            sprite.SpriteEffect = effects;
             sprite.Origin = origin;
-            sprite.ScissorRectangle = scissorRectangle_;
+            sprite.ScissorRectangle = scissorRectangle;
 
-            m_ListSprite2D.Add(sprite);
+            _listSprite2D.Add(sprite);
         }
 
 
@@ -317,96 +317,96 @@ namespace CasaEngine.Graphics2D
 				throw new ArgumentException("Graphic2DComponent.AddText2D() : SpriteFont is null");
 			}
 
-			m_ListText2D.Add(text2D_);
+			_ListText2D.Add(text2D_);
 		}*/
 
-        public void AddText2D(SpriteFont font_, string text_, Vector2 pos_, float rot_, Vector2 scale_, Color color_, float ZOrder_)
+        public void AddText2D(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder)
         {
-            AddText2D(font_, text_, pos_, rot_, scale_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
+            AddText2D(font, text, pos, rot, scale, color, zOrder, GraphicsDevice.ScissorRectangle);
         }
 
-        public void AddText2D(SpriteFont font_, string text_, Vector2 pos_, float rot_, Vector2 scale_, Color color_, float ZOrder_, Rectangle scissorRectangle_)
+        public void AddText2D(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, Rectangle scissorRectangle)
         {
-            if (font_ == null)
+            if (font == null)
             {
                 throw new ArgumentException("Graphic2DComponent.AddText2D() : SpriteFont is null");
             }
 
-            if (string.IsNullOrEmpty(text_) == true)
+            if (string.IsNullOrEmpty(text) == true)
             {
                 throw new ArgumentException("Graphic2DComponent.AddText2D() : text is null");
             }
 
             Text2DDisplayData text2D = GetText2DDisplayData();
-            text2D.SpriteFont = font_;
-            text2D.Text = text_;
-            text2D.Position = pos_;
-            text2D.Rotation = rot_;
-            text2D.Scale = scale_;
-            text2D.Color = color_;
-            text2D.ZOrder = ZOrder_;
-            text2D.ScissorRectangle = scissorRectangle_;
+            text2D.SpriteFont = font;
+            text2D.Text = text;
+            text2D.Position = pos;
+            text2D.Rotation = rot;
+            text2D.Scale = scale;
+            text2D.Color = color;
+            text2D.ZOrder = zOrder;
+            text2D.ScissorRectangle = scissorRectangle;
 
-            m_ListText2D.Add(text2D);
+            _listText2D.Add(text2D);
         }
 
 
 
-        public void AddLine2D(Vector2 start_, Vector2 end_, Color color_, float ZOrder_, Rectangle scissorRectangle_)
+        public void AddLine2D(Vector2 start, Vector2 end, Color color, float zOrder, Rectangle scissorRectangle)
         {
             Line2DDisplayData line2D = GetLine2DDisplayData();
-            line2D.Start = start_;
-            line2D.End = end_;
-            line2D.Color = color_;
-            line2D.ZOrder = ZOrder_;
-            line2D.ScissorRectangle = scissorRectangle_;
+            line2D.Start = start;
+            line2D.End = end;
+            line2D.Color = color;
+            line2D.ZOrder = zOrder;
+            line2D.ScissorRectangle = scissorRectangle;
 
-            m_ListLine2D.Add(line2D);
+            _listLine2D.Add(line2D);
         }
 
-        public void AddLine2D(Vector2 start_, Vector2 end_, Color color_, float ZOrder_ = 0.0f)
+        public void AddLine2D(Vector2 start, Vector2 end, Color color, float zOrder = 0.0f)
         {
-            AddLine2D(start_, end_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
+            AddLine2D(start, end, color, zOrder, GraphicsDevice.ScissorRectangle);
         }
 
-        public void AddLine2D(float startX_, float startY_, float endX_, float endY_, Color color_, float ZOrder_, Rectangle scissorRectangle_)
+        public void AddLine2D(float startX, float startY, float endX, float endY, Color color, float zOrder, Rectangle scissorRectangle)
         {
-            AddLine2D(new Vector2(startX_, startY_), new Vector2(endX_, endY_), color_, ZOrder_, scissorRectangle_);
+            AddLine2D(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, scissorRectangle);
         }
 
-        public void AddLine2D(float startX_, float startY_, float endX_, float endY_, Color color_, float ZOrder_ = 0.0f)
+        public void AddLine2D(float startX, float startY, float endX, float endY, Color color, float zOrder = 0.0f)
         {
-            AddLine2D(new Vector2(startX_, startY_), new Vector2(endX_, endY_), color_, ZOrder_, GraphicsDevice.ScissorRectangle);
+            AddLine2D(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, GraphicsDevice.ScissorRectangle);
         }
 
-        public void AddBox(float x_, float y_, float width_, float height_, Color color_, float ZOrder_ = 0.0f)
+        public void AddBox(float x, float y, float width, float height, Color color, float zOrder = 0.0f)
         {
-            AddBox(x_, y_, width_, height_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
+            AddBox(x, y, width, height, color, zOrder, GraphicsDevice.ScissorRectangle);
         }
 
-        public void AddBox(float x_, float y_, float width_, float height_, Color color_, float ZOrder_, Rectangle scissorRectangle_)
+        public void AddBox(float x, float y, float width, float height, Color color, float zOrder, Rectangle scissorRectangle)
         {
-            AddLine2D(x_, y_, x_ + width_, y_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
-            AddLine2D(x_, y_, x_, y_ + height_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
-            AddLine2D(x_ + width_, y_, x_ + width_, y_ + height_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
-            AddLine2D(x_, y_ + height_, x_ + width_, y_ + height_, color_, ZOrder_, GraphicsDevice.ScissorRectangle);
+            AddLine2D(x, y, x + width, y, color, zOrder, GraphicsDevice.ScissorRectangle);
+            AddLine2D(x, y, x, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
+            AddLine2D(x + width, y, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
+            AddLine2D(x, y + height, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
         }
 
 
 
-        private void DrawCross(Vector2 pos_, int size_, Color color_)
+        private void DrawCross(Vector2 pos, int size, Color color)
         {
-            AddLine2D(pos_.X - size_, pos_.Y, pos_.X + size_, pos_.Y, color_, 0.0f);
-            AddLine2D(pos_.X, pos_.Y - size_, pos_.X, pos_.Y + size_, color_, 0.0f);
+            AddLine2D(pos.X - size, pos.Y, pos.X + size, pos.Y, color, 0.0f);
+            AddLine2D(pos.X, pos.Y - size, pos.X, pos.Y + size, color, 0.0f);
         }
 
 
 
         private SpriteDisplayData GetSpriteDisplayData()
         {
-            if (m_ListFreeSpriteDisplayData.Count > 0)
+            if (_listFreeSpriteDisplayData.Count > 0)
             {
-                return m_ListFreeSpriteDisplayData.Pop();
+                return _listFreeSpriteDisplayData.Pop();
             }
 
             return new SpriteDisplayData();
@@ -414,9 +414,9 @@ namespace CasaEngine.Graphics2D
 
         private Text2DDisplayData GetText2DDisplayData()
         {
-            if (m_ListFreeTextDisplayData.Count > 0)
+            if (_listFreeTextDisplayData.Count > 0)
             {
-                return m_ListFreeTextDisplayData.Pop();
+                return _listFreeTextDisplayData.Pop();
             }
 
             return new Text2DDisplayData();
@@ -424,9 +424,9 @@ namespace CasaEngine.Graphics2D
 
         private Line2DDisplayData GetLine2DDisplayData()
         {
-            if (m_ListFreeLine2DDisplayData.Count > 0)
+            if (_listFreeLine2DDisplayData.Count > 0)
             {
-                return m_ListFreeLine2DDisplayData.Pop();
+                return _listFreeLine2DDisplayData.Pop();
             }
 
             return new Line2DDisplayData();
@@ -435,26 +435,26 @@ namespace CasaEngine.Graphics2D
 
         public void Clear()
         {
-            foreach (SpriteDisplayData sprite in m_ListSprite2D)
+            foreach (SpriteDisplayData sprite in _listSprite2D)
             {
-                m_ListFreeSpriteDisplayData.Push(sprite);
+                _listFreeSpriteDisplayData.Push(sprite);
             }
 
-            m_ListSprite2D.Clear();
+            _listSprite2D.Clear();
 
-            foreach (Text2DDisplayData t in m_ListText2D)
+            foreach (Text2DDisplayData t in _listText2D)
             {
-                m_ListFreeTextDisplayData.Push(t);
+                _listFreeTextDisplayData.Push(t);
             }
 
-            m_ListText2D.Clear();
+            _listText2D.Clear();
 
-            foreach (Line2DDisplayData t in m_ListLine2D)
+            foreach (Line2DDisplayData t in _listLine2D)
             {
-                m_ListFreeLine2DDisplayData.Push(t);
+                _listFreeLine2DDisplayData.Push(t);
             }
 
-            m_ListLine2D.Clear();
+            _listLine2D.Clear();
         }
 
     }

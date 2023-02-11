@@ -7,7 +7,7 @@ namespace CasaEngine.Gameplay
     {
         //ICharacter
         void DoANewAttack();
-        bool CanAttackHim(IAttackable other_);
+        bool CanAttackHim(IAttackable other);
         TeamInfo TeamInfo { get; }
     }
 }

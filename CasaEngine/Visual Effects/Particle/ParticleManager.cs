@@ -3,8 +3,8 @@
     public class ParticleManager
     {
 
-        private List<ParticleSystem> m_ParticleSystem = new List<ParticleSystem>();
-        private Stack<ParticleSystem> m_FreeParticleSystem = new Stack<ParticleSystem>();
+        private List<ParticleSystem> _particleSystem = new List<ParticleSystem>();
+        private Stack<ParticleSystem> _freeParticleSystem = new Stack<ParticleSystem>();
 
 
 
@@ -12,9 +12,9 @@
 
 
 
-        public void AddParticleSystem(ParticleSystem particleSystem_)
+        public void AddParticleSystem(ParticleSystem particleSyste)
         {
-            m_ParticleSystem.Add(particleSystem_);
+            _particleSystem.Add(particleSyste);
         }
 
     }

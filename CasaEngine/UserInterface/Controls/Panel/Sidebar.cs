@@ -12,15 +12,15 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 namespace XNAFinalEngine.UserInterface
 {
-    
+
     public class SideBar : Panel
     {
-        public SideBar(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public SideBar(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
 
         }
-  
+
         protected internal override void InitSkin()
         {
             base.InitSkin();

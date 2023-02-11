@@ -4,19 +4,19 @@ namespace CasaEngine.Editor.Assets
 {
     class Asset
     {
-        private bool m_IsLoaded = false;
-        private bool m_IsBuild = false;
+        private bool _isLoaded = false;
+        private bool _isBuild = false;
 
-        private BaseObject m_Item;
+        private BaseObject _item;
 
         public BaseObject LoadItem()
         {
-            if (m_Item == null)
+            if (_item == null)
             {
-                //m_Item = AssetFactory.Create()
+                //_Item = AssetFactory.Create()
             }
 
-            return m_Item;
+            return _item;
         }
     }
 }

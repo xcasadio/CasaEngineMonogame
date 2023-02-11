@@ -22,7 +22,7 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public List<Vector2> PointList
         {
-            get { return m_Points; }
+            get { return _points; }
         }
 
 #if EDITOR
@@ -30,24 +30,24 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public Vector2[] Points
         {
-            get { return m_Points.ToArray(); }
+            get { return _points.ToArray(); }
         }
 
 
 
-        public ShapePolygone(Vector2 p1_, Vector2 p2_, Vector2 p3_)
+        public ShapePolygone(Vector2 p1, Vector2 p2, Vector2 p3)
             : base(Shape2DType.Polygone)
         {
-            m_Points.Add(p1_);
-            m_Points.Add(p2_);
-            m_Points.Add(p3_);
+            _points.Add(p1);
+            _points.Add(p2);
+            _points.Add(p3);
         }
 
 
 
-        public void AddPoint(Vector2 p_)
+        public void AddPoint(Vector2 p)
         {
-            m_Points.Add(p_);
+            _points.Add(p);
 
             if (OnPointAdded != null)
             {
@@ -55,9 +55,9 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        public void AddPoint(int index_, Vector2 p_)
+        public void AddPoint(int index, Vector2 p)
         {
-            m_Points.Insert(index_, p_);
+            _points.Insert(index, p);
 
             if (OnPointAdded != null)
             {
@@ -65,9 +65,9 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        public void ModifyPoint(int index_, Vector2 p_)
+        public void ModifyPoint(int index, Vector2 p)
         {
-            m_Points[index_] = p_;
+            _points[index] = p;
 
             /*if (OnPointAdded != null)
             {
@@ -75,9 +75,9 @@ namespace CasaEngine.Math.Shape2D
             }*/
         }
 
-        public void RemovePoint(Vector2 p_)
+        public void RemovePoint(Vector2 p)
         {
-            m_Points.Remove(p_);
+            _points.Remove(p);
 
             if (OnPointDeleted != null)
             {
@@ -85,9 +85,9 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-        public void RemovePointAt(int index_)
+        public void RemovePointAt(int index)
         {
-            m_Points.RemoveAt(index_);
+            _points.RemoveAt(index);
 
             if (OnPointDeleted != null)
             {
@@ -97,7 +97,7 @@ namespace CasaEngine.Math.Shape2D
 
         public void DeleteAllPoints()
         {
-            m_Points.Clear();
+            _points.Clear();
 
             if (OnPointDeleted != null)
             {
@@ -109,24 +109,24 @@ namespace CasaEngine.Math.Shape2D
         {
             int i1, i2;
 
-            Vertices v = new Vertices(m_Points);
+            Vertices v = new Vertices(_points);
             v = SimplifyTools.MergeIdenticalPoints(v);
             v = SimplifyTools.CollinearSimplify(v);
-            m_Points.Clear();
-            m_Points.AddRange(v);
+            _points.Clear();
+            _points.AddRange(v);
 
             List<int> p = new List<int>();
 
             // Ensure the polygon is convex and the interior
             // is to the left of each edge.
-            for (int i = 0; i < m_Points.Count; ++i)
+            for (int i = 0; i < _points.Count; ++i)
             {
                 i1 = i;
-                i2 = i + 1 < m_Points.Count ? i + 1 : 0;
+                i2 = i + 1 < _points.Count ? i + 1 : 0;
 
-                Vector2 edge = m_Points[i2] - m_Points[i1];
+                Vector2 edge = _points[i2] - _points[i1];
 
-                for (int j = 0; j < m_Points.Count; ++j)
+                for (int j = 0; j < _points.Count; ++j)
                 {
                     // Don't check vertices on the current edge.
                     if (j == i1 || j == i2)
@@ -134,7 +134,7 @@ namespace CasaEngine.Math.Shape2D
                         continue;
                     }
 
-                    Vector2 r = m_Points[j] - m_Points[i1];
+                    Vector2 r = _points[j] - _points[i1];
 
                     // Your polygon is non-convex (it has an indentation) or
                     // has colinear edges.
@@ -148,9 +148,9 @@ namespace CasaEngine.Math.Shape2D
             }
 
             //normal a gauche a l'interieur du polygone
-            if (p.Count == m_Points.Count)
+            if (p.Count == _points.Count)
             {
-                m_Points.Reverse();
+                _points.Reverse();
             }
             else
             {
@@ -158,75 +158,75 @@ namespace CasaEngine.Math.Shape2D
 
                 foreach (int i in p)
                 {
-                    i1 = i == 0 ? m_Points.Count - 1 : i - 1;
-                    i2 = i == m_Points.Count - 1 ? 0 : i + 1;
+                    i1 = i == 0 ? _Points.Count - 1 : i - 1;
+                    i2 = i == _Points.Count - 1 ? 0 : i + 1;
 
-                    tmp = m_Points[i1];
-                    m_Points[i1] = m_Points[i2];
-                    m_Points[i2] = tmp;
+                    tmp = _Points[i1];
+                    _Points[i1] = _Points[i2];
+                    _Points[i2] = tmp;
                 }*/
             }
         }
 
-        public override bool CompareTo(Shape2DObject o_)
+        public override bool CompareTo(Shape2DObject o)
         {
-            if (o_ is ShapePolygone)
+            if (o is ShapePolygone)
             {
-                ShapePolygone p = (ShapePolygone)o_;
+                ShapePolygone p = (ShapePolygone)o;
 
-                if (m_IsABox != p.m_IsABox)
+                if (_isABox != p._isABox)
                 {
                     return false;
                 }
 
-                if (m_Points.Count != p.m_Points.Count)
+                if (_points.Count != p._points.Count)
                 {
                     return false;
                 }
 
-                for (int i = 0; i < m_Points.Count; i++)
+                for (int i = 0; i < _points.Count; i++)
                 {
-                    if (m_Points[i] != p.m_Points[i])
+                    if (_points[i] != p._points[i])
                     {
                         return false;
                     }
                 }
 
-                return base.CompareTo(o_);
+                return base.CompareTo(o);
             }
 
             return false;
         }
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            base.Save(el_, option_);
+            base.Save(el, option);
 
-            XmlElement box = el_.OwnerDocument.CreateElementWithText("IsABox", m_IsABox.ToString());
-            el_.AppendChild(box);
+            XmlElement box = el.OwnerDocument.CreateElementWithText("IsABox", _isABox.ToString());
+            el.AppendChild(box);
 
-            XmlElement pointList = el_.OwnerDocument.CreateElement("PointList");
-            el_.AppendChild(pointList);
+            XmlElement pointList = el.OwnerDocument.CreateElement("PointList");
+            el.AppendChild(pointList);
 
-            foreach (Vector2 p in m_Points)
+            foreach (Vector2 p in _points)
             {
-                XmlElement point = el_.OwnerDocument.CreateElement("Point", p);
+                XmlElement point = el.OwnerDocument.CreateElement("Point", p);
                 pointList.AppendChild(point);
             }
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            base.Save(bw_, option_);
+            base.Save(bw, option);
 
             //VerticesCorrection();
 
-            bw_.Write(m_IsABox);
-            bw_.Write(m_Points.Count);
+            bw.Write(_isABox);
+            bw.Write(_points.Count);
 
-            foreach (Vector2 p in m_Points)
+            foreach (Vector2 p in _points)
             {
-                bw_.Write(p);
+                bw.Write(p);
             }
         }
 

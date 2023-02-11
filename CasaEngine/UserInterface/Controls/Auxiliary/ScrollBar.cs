@@ -18,37 +18,37 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private int range = 100;
-        private int value;
-        private int pageSize = 50;
-        private int stepSize = 1;
-        private readonly Orientation orientation;
+        private int _range = 100;
+        private int _value;
+        private int _pageSize = 50;
+        private int _stepSize = 1;
+        private readonly Orientation _orientation;
         // Buttons
-        private readonly Button buttonMinus;
-        private readonly Button buttonPlus;
-        private readonly Button buttonSlider;
+        private readonly Button _buttonMinus;
+        private readonly Button _buttonPlus;
+        private readonly Button _buttonSlider;
         // Skin information
-        private readonly string skinButton = "ScrollBar.ButtonVert";
-        private readonly string skinRail = "ScrollBar.RailVert";
-        private readonly string skinSlider = "ScrollBar.SliderVert";
-        private readonly string skinGlyph = "ScrollBar.GlyphVert";
-        private readonly string skinMinus = "ScrollBar.ArrowUp";
-        private readonly string skinPlus = "ScrollBar.ArrowDown";
+        private readonly string _skinButton = "ScrollBar.ButtonVert";
+        private readonly string _skinRail = "ScrollBar.RailVert";
+        private readonly string _skinSlider = "ScrollBar.SliderVert";
+        private readonly string _skinGlyph = "ScrollBar.GlyphVert";
+        private readonly string _skinMinus = "ScrollBar.ArrowUp";
+        private readonly string _skinPlus = "ScrollBar.ArrowDown";
 
 
 
         public virtual int Value
         {
-            get => value;
+            get => _value;
             set
             {
-                if (this.value != value)
+                if (this._value != value)
                 {
-                    this.value = value;
-                    if (this.value < 0)
-                        this.value = 0;
-                    if (this.value > range - pageSize)
-                        this.value = range - pageSize;
+                    this._value = value;
+                    if (this._value < 0)
+                        this._value = 0;
+                    if (this._value > _range - _pageSize)
+                        this._value = _range - _pageSize;
                     Invalidate();
                     if (!Suspended)
                         OnValueChanged(new EventArgs());
@@ -58,13 +58,13 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual int Range
         {
-            get => range;
+            get => _range;
             set
             {
-                if (range != value)
+                if (_range != value)
                 {
-                    range = value;
-                    if (pageSize > range) pageSize = range;
+                    _range = value;
+                    if (_pageSize > _range) _pageSize = _range;
                     RecalculateParameters();
                     if (!Suspended) OnRangeChanged(new EventArgs());
                 }
@@ -73,13 +73,13 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual int PageSize
         {
-            get => pageSize;
+            get => _pageSize;
             set
             {
-                if (pageSize != value)
+                if (_pageSize != value)
                 {
-                    pageSize = value;
-                    if (pageSize > range) pageSize = range;
+                    _pageSize = value;
+                    if (_pageSize > _range) _pageSize = _range;
                     RecalculateParameters();
                     if (!Suspended) OnPageSizeChanged(new EventArgs());
                 }
@@ -88,12 +88,12 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual int StepSize
         {
-            get => stepSize;
+            get => _stepSize;
             set
             {
-                if (stepSize != value)
+                if (_stepSize != value)
                 {
-                    stepSize = value;
+                    _stepSize = value;
                     if (!Suspended) OnStepSizeChanged(new EventArgs());
                 }
             }
@@ -108,20 +108,20 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ScrollBar(UserInterfaceManager userInterfaceManager_, Orientation orientation)
-            : base(userInterfaceManager_)
+        public ScrollBar(UserInterfaceManager userInterfaceManager, Orientation orientation)
+            : base(userInterfaceManager)
         {
-            this.orientation = orientation;
+            this._orientation = orientation;
             CanFocus = false;
 
             if (orientation == Orientation.Horizontal)
             {
-                skinButton = "ScrollBar.ButtonHorz";
-                skinRail = "ScrollBar.RailHorz";
-                skinSlider = "ScrollBar.SliderHorz";
-                skinGlyph = "ScrollBar.GlyphHorz";
-                skinMinus = "ScrollBar.ArrowLeft";
-                skinPlus = "ScrollBar.ArrowRight";
+                _skinButton = "ScrollBar.ButtonHorz";
+                _skinRail = "ScrollBar.RailHorz";
+                _skinSlider = "ScrollBar.SliderHorz";
+                _skinGlyph = "ScrollBar.GlyphHorz";
+                _skinMinus = "ScrollBar.ArrowLeft";
+                _skinPlus = "ScrollBar.ArrowRight";
 
                 MinimumHeight = 16;
                 MinimumWidth = 46;
@@ -130,12 +130,12 @@ namespace XNAFinalEngine.UserInterface
             }
             else
             {
-                skinButton = "ScrollBar.ButtonVert";
-                skinRail = "ScrollBar.RailVert";
-                skinSlider = "ScrollBar.SliderVert";
-                skinGlyph = "ScrollBar.GlyphVert";
-                skinMinus = "ScrollBar.ArrowUp";
-                skinPlus = "ScrollBar.ArrowDown";
+                _skinButton = "ScrollBar.ButtonVert";
+                _skinRail = "ScrollBar.RailVert";
+                _skinSlider = "ScrollBar.SliderVert";
+                _skinGlyph = "ScrollBar.GlyphVert";
+                _skinMinus = "ScrollBar.ArrowUp";
+                _skinPlus = "ScrollBar.ArrowDown";
 
                 MinimumHeight = 46;
                 MinimumWidth = 16;
@@ -144,31 +144,31 @@ namespace XNAFinalEngine.UserInterface
             }
 
 
-            buttonMinus = new Button(UserInterfaceManager)
+            _buttonMinus = new Button(UserInterfaceManager)
             {
                 Text = "",
                 CanFocus = false
             };
-            buttonMinus.MousePress += ArrowPress;
-            Add(buttonMinus);
+            _buttonMinus.MousePress += ArrowPress;
+            Add(_buttonMinus);
 
-            buttonSlider = new Button(UserInterfaceManager)
+            _buttonSlider = new Button(UserInterfaceManager)
             {
                 Text = "",
                 CanFocus = false,
                 MinimumHeight = 16,
                 MinimumWidth = 16
             };
-            buttonSlider.Move += ButtonSliderMove;
-            Add(buttonSlider);
+            _buttonSlider.Move += ButtonSliderMove;
+            Add(_buttonSlider);
 
-            buttonPlus = new Button(UserInterfaceManager)
+            _buttonPlus = new Button(UserInterfaceManager)
             {
                 Text = "",
                 CanFocus = false
             };
-            buttonPlus.MousePress += ArrowPress;
-            Add(buttonPlus);
+            _buttonPlus.MousePress += ArrowPress;
+            Add(_buttonPlus);
 
 
         } // ScrollBar
@@ -179,29 +179,29 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
 
-            SkinControlInformation sc = new SkinControlInformation(buttonPlus.SkinInformation);
-            sc.Layers["Control"] = new SkinLayer(SkinInformation.Layers[skinButton]);
-            sc.Layers[skinButton].Name = "Control";
-            buttonPlus.SkinInformation = buttonMinus.SkinInformation = sc;
+            SkinControlInformation sc = new SkinControlInformation(_buttonPlus.SkinInformation);
+            sc.Layers["Control"] = new SkinLayer(SkinInformation.Layers[_skinButton]);
+            sc.Layers[_skinButton].Name = "Control";
+            _buttonPlus.SkinInformation = _buttonMinus.SkinInformation = sc;
 
-            SkinControlInformation ss = new SkinControlInformation(buttonSlider.SkinInformation);
-            ss.Layers["Control"] = new SkinLayer(SkinInformation.Layers[skinSlider]);
-            ss.Layers[skinSlider].Name = "Control";
-            buttonSlider.SkinInformation = ss;
+            SkinControlInformation ss = new SkinControlInformation(_buttonSlider.SkinInformation);
+            ss.Layers["Control"] = new SkinLayer(SkinInformation.Layers[_skinSlider]);
+            ss.Layers[_skinSlider].Name = "Control";
+            _buttonSlider.SkinInformation = ss;
 
-            buttonMinus.Glyph = new Glyph(SkinInformation.Layers[skinMinus].Image.Texture)
+            _buttonMinus.Glyph = new Glyph(SkinInformation.Layers[_skinMinus].Image.Texture)
             {
                 SizeMode = SizeMode.Centered,
                 Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
             };
 
-            buttonPlus.Glyph = new Glyph(SkinInformation.Layers[skinPlus].Image.Texture)
+            _buttonPlus.Glyph = new Glyph(SkinInformation.Layers[_skinPlus].Image.Texture)
             {
                 SizeMode = SizeMode.Centered,
                 Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
             };
 
-            buttonSlider.Glyph = new Glyph(SkinInformation.Layers[skinGlyph].Image.Texture) { SizeMode = SizeMode.Centered };
+            _buttonSlider.Glyph = new Glyph(SkinInformation.Layers[_skinGlyph].Image.Texture) { SizeMode = SizeMode.Centered };
         } // Init
 
         protected internal override void InitSkin()
@@ -228,7 +228,7 @@ namespace XNAFinalEngine.UserInterface
         {
             RecalculateParameters();
 
-            SkinLayer bg = SkinInformation.Layers[skinRail];
+            SkinLayer bg = SkinInformation.Layers[_skinRail];
             UserInterfaceManager.Renderer.DrawLayer(bg, rect, Color.White, bg.States.Enabled.Index);
         } // DrawControl
 
@@ -238,15 +238,15 @@ namespace XNAFinalEngine.UserInterface
         {
             if (e.Button == MouseButton.Left)
             {
-                if (sender == buttonMinus)
+                if (sender == _buttonMinus)
                 {
                     Value -= StepSize;
                     if (Value < 0) Value = 0;
                 }
-                else if (sender == buttonPlus)
+                else if (sender == _buttonPlus)
                 {
                     Value += StepSize;
-                    if (Value > range - pageSize) Value = range - pageSize - 1;
+                    if (Value > _range - _pageSize) Value = _range - _pageSize - 1;
                 }
             }
         } // ArrowPress
@@ -255,55 +255,55 @@ namespace XNAFinalEngine.UserInterface
 
         private void RecalculateParameters()
         {
-            if (buttonMinus != null && buttonPlus != null && buttonSlider != null)
+            if (_buttonMinus != null && _buttonPlus != null && _buttonSlider != null)
             {
-                if (orientation == Orientation.Horizontal)
+                if (_orientation == Orientation.Horizontal)
                 {
-                    buttonMinus.Width = Height;
-                    buttonMinus.Height = Height;
+                    _buttonMinus.Width = Height;
+                    _buttonMinus.Height = Height;
 
-                    buttonPlus.Width = Height;
-                    buttonPlus.Height = Height;
-                    buttonPlus.Left = Width - Height;
-                    buttonPlus.Top = 0;
+                    _buttonPlus.Width = Height;
+                    _buttonPlus.Height = Height;
+                    _buttonPlus.Left = Width - Height;
+                    _buttonPlus.Top = 0;
 
-                    buttonSlider.Movable = true;
-                    int size = buttonMinus.Width + SkinInformation.Layers[skinSlider].OffsetX;
+                    _buttonSlider.Movable = true;
+                    int size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
 
-                    buttonSlider.MinimumWidth = Height;
+                    _buttonSlider.MinimumWidth = Height;
                     int w = (Width - 2 * size);
-                    buttonSlider.Width = (int)Math.Ceiling((pageSize * w) / (float)range);
-                    buttonSlider.Height = Height;
+                    _buttonSlider.Width = (int)Math.Ceiling((_pageSize * w) / (float)_range);
+                    _buttonSlider.Height = Height;
 
 
-                    float px = (float)(Range - PageSize) / (float)(w - buttonSlider.Width);
+                    float px = (float)(Range - PageSize) / (float)(w - _buttonSlider.Width);
                     int pos = (int)(Math.Ceiling(Value / (float)px));
-                    buttonSlider.SetPosition(size + pos, 0);
-                    if (buttonSlider.Left < size) buttonSlider.SetPosition(size, 0);
-                    if (buttonSlider.Left + buttonSlider.Width + size > Width) buttonSlider.SetPosition(Width - size - buttonSlider.Width, 0);
+                    _buttonSlider.SetPosition(size + pos, 0);
+                    if (_buttonSlider.Left < size) _buttonSlider.SetPosition(size, 0);
+                    if (_buttonSlider.Left + _buttonSlider.Width + size > Width) _buttonSlider.SetPosition(Width - size - _buttonSlider.Width, 0);
                 }
                 else
                 {
-                    buttonMinus.Width = Width;
-                    buttonMinus.Height = Width;
+                    _buttonMinus.Width = Width;
+                    _buttonMinus.Height = Width;
 
-                    buttonPlus.Width = Width;
-                    buttonPlus.Height = Width;
-                    buttonPlus.Top = Height - Width;
+                    _buttonPlus.Width = Width;
+                    _buttonPlus.Height = Width;
+                    _buttonPlus.Top = Height - Width;
 
-                    buttonSlider.Movable = true;
-                    int size = buttonMinus.Height + SkinInformation.Layers[skinSlider].OffsetY;
+                    _buttonSlider.Movable = true;
+                    int size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
 
-                    buttonSlider.MinimumHeight = Width;
+                    _buttonSlider.MinimumHeight = Width;
                     int h = (Height - 2 * size);
-                    buttonSlider.Height = (int)Math.Ceiling((pageSize * h) / (float)range);
-                    buttonSlider.Width = Width;
+                    _buttonSlider.Height = (int)Math.Ceiling((_pageSize * h) / (float)_range);
+                    _buttonSlider.Width = Width;
 
-                    float px = (float)(Range - PageSize) / (float)(h - buttonSlider.Height);
+                    float px = (float)(Range - PageSize) / (float)(h - _buttonSlider.Height);
                     int pos = (int)(Math.Ceiling(Value / (float)px));
-                    buttonSlider.SetPosition(0, size + pos);
-                    if (buttonSlider.Top < size) buttonSlider.SetPosition(0, size);
-                    if (buttonSlider.Top + buttonSlider.Height + size > Height) buttonSlider.SetPosition(0, Height - size - buttonSlider.Height);
+                    _buttonSlider.SetPosition(0, size + pos);
+                    if (_buttonSlider.Top < size) _buttonSlider.SetPosition(0, size);
+                    if (_buttonSlider.Top + _buttonSlider.Height + size > Height) _buttonSlider.SetPosition(0, Height - size - _buttonSlider.Height);
                 }
             }
         } // RecalculateParameters
@@ -312,34 +312,34 @@ namespace XNAFinalEngine.UserInterface
 
         private void ButtonSliderMove(object sender, MoveEventArgs e)
         {
-            if (orientation == Orientation.Horizontal)
+            if (_orientation == Orientation.Horizontal)
             {
-                int size = buttonMinus.Width + SkinInformation.Layers[skinSlider].OffsetX;
-                buttonSlider.SetPosition(e.Left, 0);
-                if (buttonSlider.Left < size) buttonSlider.SetPosition(size, 0);
-                if (buttonSlider.Left + buttonSlider.Width + size > Width) buttonSlider.SetPosition(Width - size - buttonSlider.Width, 0);
+                int size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
+                _buttonSlider.SetPosition(e.Left, 0);
+                if (_buttonSlider.Left < size) _buttonSlider.SetPosition(size, 0);
+                if (_buttonSlider.Left + _buttonSlider.Width + size > Width) _buttonSlider.SetPosition(Width - size - _buttonSlider.Width, 0);
             }
             else
             {
-                int size = buttonMinus.Height + SkinInformation.Layers[skinSlider].OffsetY;
-                buttonSlider.SetPosition(0, e.Top);
-                if (buttonSlider.Top < size) buttonSlider.SetPosition(0, size);
-                if (buttonSlider.Top + buttonSlider.Height + size > Height) buttonSlider.SetPosition(0, Height - size - buttonSlider.Height);
+                int size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
+                _buttonSlider.SetPosition(0, e.Top);
+                if (_buttonSlider.Top < size) _buttonSlider.SetPosition(0, size);
+                if (_buttonSlider.Top + _buttonSlider.Height + size > Height) _buttonSlider.SetPosition(0, Height - size - _buttonSlider.Height);
             }
 
-            if (orientation == Orientation.Horizontal)
+            if (_orientation == Orientation.Horizontal)
             {
-                int size = buttonMinus.Width + SkinInformation.Layers[skinSlider].OffsetX;
-                int w = (Width - 2 * size) - buttonSlider.Width;
+                int size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
+                int w = (Width - 2 * size) - _buttonSlider.Width;
                 float px = (float)(Range - PageSize) / (float)w;
-                Value = (int)(Math.Ceiling((buttonSlider.Left - size) * px));
+                Value = (int)(Math.Ceiling((_buttonSlider.Left - size) * px));
             }
             else
             {
-                int size = buttonMinus.Height + SkinInformation.Layers[skinSlider].OffsetY;
-                int h = (Height - 2 * size) - buttonSlider.Height;
+                int size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
+                int h = (Height - 2 * size) - _buttonSlider.Height;
                 float px = (float)(Range - PageSize) / (float)h;
-                Value = (int)(Math.Ceiling((buttonSlider.Top - size) * px));
+                Value = (int)(Math.Ceiling((_buttonSlider.Top - size) * px));
             }
         } // ButtonSliderMove
 
@@ -347,7 +347,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            buttonSlider.Passive = false;
+            _buttonSlider.Passive = false;
             base.OnMouseUp(e);
         } // OnMouseUp
 
@@ -355,38 +355,38 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseDown(e);
 
-            buttonSlider.Passive = true;
+            _buttonSlider.Passive = true;
 
             if (e.Button == MouseButton.Left)
             {
-                if (orientation == Orientation.Horizontal)
+                if (_orientation == Orientation.Horizontal)
                 {
                     int pos = e.Position.X;
 
-                    if (pos < buttonSlider.Left)
+                    if (pos < _buttonSlider.Left)
                     {
-                        Value -= pageSize;
+                        Value -= _pageSize;
                         if (Value < 0) Value = 0;
                     }
-                    else if (pos >= buttonSlider.Left + buttonSlider.Width)
+                    else if (pos >= _buttonSlider.Left + _buttonSlider.Width)
                     {
-                        Value += pageSize;
-                        if (Value > range - pageSize) Value = range - pageSize;
+                        Value += _pageSize;
+                        if (Value > _range - _pageSize) Value = _range - _pageSize;
                     }
                 }
                 else
                 {
                     int pos = e.Position.Y;
 
-                    if (pos < buttonSlider.Top)
+                    if (pos < _buttonSlider.Top)
                     {
-                        Value -= pageSize;
+                        Value -= _pageSize;
                         if (Value < 0) Value = 0;
                     }
-                    else if (pos >= buttonSlider.Top + buttonSlider.Height)
+                    else if (pos >= _buttonSlider.Top + _buttonSlider.Height)
                     {
-                        Value += pageSize;
-                        if (Value > range - pageSize) Value = range - pageSize;
+                        Value += _pageSize;
+                        if (Value > _range - _pageSize) Value = _range - _pageSize;
                     }
                 }
             }

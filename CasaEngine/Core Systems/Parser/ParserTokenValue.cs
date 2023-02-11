@@ -4,39 +4,39 @@
         : ParserToken
     {
 
-        float m_Value;
+        float _value;
 
 
 
 
 
-        public ParserTokenValue(Parser parser_)
-            : base(parser_, string.Empty)
+        public ParserTokenValue(Parser parser)
+            : base(parser, string.Empty)
         {
 
         }
 
 
 
-        public override bool Check(string sentence_)
+        public override bool Check(string sentence)
         {
             //int value;
 
-            if (string.IsNullOrEmpty(sentence_) == true)
+            if (string.IsNullOrEmpty(sentence) == true)
             {
                 return false;
             }
 
-            if (float.TryParse(sentence_, out m_Value) == true)
+            if (float.TryParse(sentence, out _value) == true)
             {
-                Parser.AddCalculator(new CalculatorTokenValue(Parser.Calculator, m_Value));
+                Parser.AddCalculator(new CalculatorTokenValue(Parser.Calculator, _value));
             }
             else
             {
-                Parser.AddCalculator(new CalculatorTokenValue(Parser.Calculator, sentence_));
+                Parser.AddCalculator(new CalculatorTokenValue(Parser.Calculator, sentence));
             }
 
-            m_Token = sentence_;
+            Token = sentence;
 
 
             return true;

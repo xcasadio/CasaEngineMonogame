@@ -17,8 +17,8 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        public GroupPanel(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public GroupPanel(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Passive = true;

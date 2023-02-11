@@ -9,11 +9,11 @@ namespace CasaEngine.World
     public class World
     {
 
-        private readonly List<Actor2D> m_Actors = new List<Actor2D>(30);
-        private readonly List<Actor2D> m_ActorsToAdd = new List<Actor2D>();
+        private readonly List<Actor2D> _actors = new List<Actor2D>(30);
+        private readonly List<Actor2D> _actorsToAdd = new List<Actor2D>();
 
-        private readonly FarseerPhysics.Dynamics.World m_PhysicWorld;
-        private HUDBase m_HUD = null;
+        private readonly FarseerPhysics.Dynamics.World _physicWorld;
+        private HudBase _hud = null;
 
         public event EventHandler Initializing;
         public event EventHandler LoadingContent;
@@ -21,14 +21,14 @@ namespace CasaEngine.World
 
 
 
-        public Actor2D[] Actors => m_Actors.ToArray();
+        public Actor2D[] Actors => _actors.ToArray();
 
-        public FarseerPhysics.Dynamics.World PhysicWorld => m_PhysicWorld;
+        public FarseerPhysics.Dynamics.World PhysicWorld => _physicWorld;
 
-        public HUDBase HUD
+        public HudBase Hud
         {
-            get => m_HUD;
-            set => m_HUD = value;
+            get => _hud;
+            set => _hud = value;
         }
 
 
@@ -37,21 +37,21 @@ namespace CasaEngine.World
         {
             if (usePhysics == true)
             {
-                m_PhysicWorld = new FarseerPhysics.Dynamics.World(GameInfo.Instance.WorldInfo.WorldGravity);
+                _physicWorld = new FarseerPhysics.Dynamics.World(GameInfo.Instance.WorldInfo.WorldGravity);
             }
         }
 
 
 
 
-        public void AddObject(Actor2D actor2D_)
+        public void AddObject(Actor2D actor2D)
         {
-            m_Actors.Add(actor2D_);
+            _actors.Add(actor2D);
         }
 
-        public void PushObject(Actor2D actor2D_)
+        public void PushObject(Actor2D actor2D)
         {
-            m_ActorsToAdd.Add(actor2D_);
+            _actorsToAdd.Add(actor2D);
         }
 
 
@@ -67,9 +67,9 @@ namespace CasaEngine.World
 
         public void LoadContent()
         {
-            if (m_HUD != null)
+            if (_hud != null)
             {
-                //m_HUD.LoadContent(GraphicsDevice);
+                //_HUD.LoadContent(GraphicsDevice);
             }
 
             if (LoadingContent != null)
@@ -80,9 +80,9 @@ namespace CasaEngine.World
 
         public void Start()
         {
-            if (m_HUD != null)
+            if (_hud != null)
             {
-                m_HUD.Start();
+                _hud.Start();
             }
 
             if (Starting != null)
@@ -91,27 +91,27 @@ namespace CasaEngine.World
             }
         }
 
-        public virtual void Update(float elapsedTime_)
+        public virtual void Update(float elapsedTime)
         {
             List<Actor2D> toRemove = new List<Actor2D>();
 
-            foreach (Actor2D a in m_ActorsToAdd)
+            foreach (Actor2D a in _actorsToAdd)
             {
-                m_Actors.Add(a);
+                _actors.Add(a);
             }
 
-            m_ActorsToAdd.Clear();
+            _actorsToAdd.Clear();
 
-            GameInfo.Instance.WorldInfo.Update(elapsedTime_);
+            GameInfo.Instance.WorldInfo.Update(elapsedTime);
 
-            if (m_PhysicWorld != null)
+            if (_physicWorld != null)
             {
-                m_PhysicWorld.Step(elapsedTime_);
+                _physicWorld.Step(elapsedTime);
             }
 
-            foreach (Actor2D a in m_Actors)
+            foreach (Actor2D a in _actors)
             {
-                a.Update(elapsedTime_);
+                a.Update(elapsedTime);
 
                 if (a.Remove == true)
                 {
@@ -121,30 +121,30 @@ namespace CasaEngine.World
 
             foreach (Actor2D a in toRemove)
             {
-                m_Actors.Remove(a);
+                _actors.Remove(a);
             }
 
-            if (m_HUD != null)
+            if (_hud != null)
             {
-                m_HUD.Update(elapsedTime_);
+                _hud.Update(elapsedTime);
             }
 
             Collision2DManager.Instance.Update();
         }
 
-        public virtual void Draw(float elapsedTime_)
+        public virtual void Draw(float elapsedTime)
         {
-            foreach (Actor2D a in m_Actors)
+            foreach (Actor2D a in _actors)
             {
                 if (a is IRenderable)
                 {
-                    ((IRenderable)a).Draw(elapsedTime_);
+                    ((IRenderable)a).Draw(elapsedTime);
                 }
             }
 
-            if (m_HUD != null)
+            if (_hud != null)
             {
-                m_HUD.Draw(elapsedTime_);
+                _hud.Draw(elapsedTime);
             }
         }
 

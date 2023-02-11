@@ -26,30 +26,30 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private int range = 100;
+        private int _range = 100;
 
-        private int value;
+        private int _value;
 
-        private ProgressBarMode mode = ProgressBarMode.Default;
+        private ProgressBarMode _mode = ProgressBarMode.Default;
 
-        private double time;
+        private double _time;
 
-        private int sign = 1;
+        private int _sign = 1;
 
 
 
         public int Value
         {
-            get => value;
+            get => _value;
             set
             {
-                if (mode == ProgressBarMode.Default)
+                if (_mode == ProgressBarMode.Default)
                 {
-                    if (this.value != value)
+                    if (this._value != value)
                     {
-                        this.value = value;
-                        if (this.value > range) this.value = range;
-                        if (this.value < 0) this.value = 0;
+                        this._value = value;
+                        if (this._value > _range) this._value = _range;
+                        if (this._value < 0) this._value = 0;
                         Invalidate();
 
                         if (!Suspended) OnValueChanged(new EventArgs());
@@ -60,23 +60,23 @@ namespace XNAFinalEngine.UserInterface
 
         public ProgressBarMode Mode
         {
-            get => mode;
+            get => _mode;
             set
             {
-                if (mode != value)
+                if (_mode != value)
                 {
-                    mode = value;
-                    if (mode == ProgressBarMode.Infinite)
+                    _mode = value;
+                    if (_mode == ProgressBarMode.Infinite)
                     {
-                        range = 100;
-                        this.value = 0;
-                        time = 0;
-                        sign = 1;
+                        _range = 100;
+                        this._value = 0;
+                        _time = 0;
+                        _sign = 1;
                     }
                     else
                     {
-                        this.value = 0;
-                        range = 100;
+                        this._value = 0;
+                        _range = 100;
                     }
                     Invalidate();
 
@@ -87,16 +87,16 @@ namespace XNAFinalEngine.UserInterface
 
         public int Range
         {
-            get => range;
+            get => _range;
             set
             {
-                if (range != value)
+                if (_range != value)
                 {
-                    if (mode == ProgressBarMode.Default)
+                    if (_mode == ProgressBarMode.Default)
                     {
-                        range = value;
-                        if (range < 0) range = 0;
-                        if (range < this.value) this.value = range;
+                        _range = value;
+                        if (_range < 0) _range = 0;
+                        if (_range < this._value) this._value = _range;
                         Invalidate();
 
                         if (!Suspended) OnRangeChanged(new EventArgs());
@@ -113,8 +113,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ProgressBar(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ProgressBar(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Width = 128;
             Height = 16;
@@ -144,7 +144,7 @@ namespace XNAFinalEngine.UserInterface
 
             base.DrawControl(rect);
 
-            if (Value > 0 || mode == ProgressBarMode.Infinite)
+            if (Value > 0 || _mode == ProgressBarMode.Infinite)
             {
                 SkinLayer p = SkinInformation.Layers["Control"];
                 SkinLayer l = SkinInformation.Layers["Scale"];
@@ -153,10 +153,10 @@ namespace XNAFinalEngine.UserInterface
                                             rect.Width - p.ContentMargins.Vertical,
                                             rect.Height - p.ContentMargins.Horizontal);
 
-                float perc = ((float)value / range) * 100;
+                float perc = ((float)_value / _range) * 100;
                 int w = (int)((perc / 100) * r.Width);
                 Rectangle rx;
-                if (mode == ProgressBarMode.Default)
+                if (_mode == ProgressBarMode.Default)
                 {
                     if (w < l.SizingMargins.Vertical) w = l.SizingMargins.Vertical;
                     rx = new Rectangle(r.Left, r.Top, w, r.Height);
@@ -174,27 +174,27 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        protected internal override void Update(float elapsedTime_)
+        protected internal override void Update(float elapsedTime)
         {
-            base.Update(elapsedTime_);
+            base.Update(elapsedTime);
 
-            if (mode == ProgressBarMode.Infinite && Enabled && Visible)
+            if (_mode == ProgressBarMode.Infinite && Enabled && Visible)
             {
-                time += elapsedTime_; // From seconds to milliseconds.
-                if (time >= 33f)
+                _time += elapsedTime; // From seconds to milliseconds.
+                if (_time >= 33f)
                 {
-                    value += sign * (int)Math.Ceiling(time / 20f);
-                    if (value >= Range - (Range / 4))
+                    _value += _sign * (int)Math.Ceiling(_time / 20f);
+                    if (_value >= Range - (Range / 4))
                     {
-                        value = Range - (Range / 4);
-                        sign = -1;
+                        _value = Range - (Range / 4);
+                        _sign = -1;
                     }
-                    else if (value <= 0)
+                    else if (_value <= 0)
                     {
-                        value = 0;
-                        sign = 1;
+                        _value = 0;
+                        _sign = 1;
                     }
-                    time = 0;
+                    _time = 0;
                     Invalidate();
                 }
             }

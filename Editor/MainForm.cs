@@ -293,9 +293,9 @@ namespace Editor
 
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(Sprite2D).FullName, typeof(Sprite2DEditorForm));
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(Animation2D).FullName, typeof(Animation2DEditorForm));
-            Engine.Instance.ExternalToolManager.RegisterEditor(typeof(UIScreen).FullName, typeof(UIScreenEditorForm));
+            Engine.Instance.ExternalToolManager.RegisterEditor(typeof(UiScreen).FullName, typeof(UIScreenEditorForm));
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(Font).FullName, typeof(FontPreviewForm));
-            Engine.Instance.ExternalToolManager.RegisterEditor(typeof(SkinUI).FullName, typeof(SkinUIEditorForm));
+            Engine.Instance.ExternalToolManager.RegisterEditor(typeof(SkinUi).FullName, typeof(SkinUIEditorForm));
 
             ContentBrowserForm.SetCustomObjectNames(Engine.Instance.ExternalToolManager.GetAllCustomObjectNames());
         }

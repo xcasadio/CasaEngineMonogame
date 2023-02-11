@@ -21,7 +21,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             //Test to see if there´s a crossover or not
             if (base.Crossover(parents) != null)
             {
-                list.Add((Chromosome<T>)parents[generator.Next(0, parents.Count - 1)].Clone());
+                list.Add((Chromosome<T>)parents[Generator.Next(0, parents.Count - 1)].Clone());
 
                 return list;
             }
@@ -30,7 +30,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //Get each gene from the genotype at random from the parents
             for (int i = 0; i < parents[0].Genotype.Count; i++)
-                chromosome.Genotype.Add(parents[generator.Next(0, parents.Count - 1)][i]);
+                chromosome.Genotype.Add(parents[Generator.Next(0, parents.Count - 1)][i]);
 
             list.Add(chromosome);
 

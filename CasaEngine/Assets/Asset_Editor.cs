@@ -16,12 +16,12 @@ namespace CasaEngine.Asset
 
 
 
-        public virtual void Save(BinaryWriter br_, SaveOption option_)
+        public virtual void Save(BinaryWriter br, SaveOption option)
         {
 
         }
 
-        public virtual void Save(XmlElement el_, SaveOption option_)
+        public virtual void Save(XmlElement el, SaveOption option)
         {
 
         }

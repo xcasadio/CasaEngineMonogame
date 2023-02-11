@@ -2,7 +2,7 @@
 {
     public class QPolicy
     {
-        readonly Dictionary<KeyValuePair<string, string>, float> m_QValues = new Dictionary<KeyValuePair<string, string>, float>();
+        readonly Dictionary<KeyValuePair<string, string>, float> _qValues = new Dictionary<KeyValuePair<string, string>, float>();
 
 
 
@@ -10,21 +10,21 @@
 
 
 
-        public float GetQValues(string state_, string action_)
+        public float GetQValues(string state, string action)
         {
-            return m_QValues[new KeyValuePair<string, string>(state_, action_)];
+            return _qValues[new KeyValuePair<string, string>(state, action)];
         }
 
-        public float GetQValues(string state_, int numAction_)
+        public float GetQValues(string state, int numAction)
         {
             int action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in m_QValues)
+            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state_) == true)
+                if (pair.Key.Key.Equals(state) == true)
                 {
                     //if (pair.Value != 0.0f) //check if action is possible
-                    if (action == numAction_)
+                    if (action == numAction)
                     {
                         return pair.Value;
                     }
@@ -36,18 +36,18 @@
             throw new ArgumentException("GetQValues() : numAction_ is too high");
         }
 
-        public void SetQValue(string state_, string action_, float value_)
+        public void SetQValue(string state, string action, float value)
         {
-            m_QValues[new KeyValuePair<string, string>(state_, action_)] = value_;
+            _qValues[new KeyValuePair<string, string>(state, action)] = value;
         }
 
-        public int GetNumberOfActions(IQAgent agent_, string state_)
+        public int GetNumberOfActions(IQAgent agent, string state)
         {
             int action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in m_QValues)
+            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state_) == true && agent_.IsActionIsPossible(pair.Key.Value))
+                if (pair.Key.Key.Equals(state) == true && agent.IsActionIsPossible(pair.Key.Value))
                 {
                     //if (pair.Value != 0.0f) //check if action is possible
                     action++;
@@ -57,15 +57,15 @@
             return action;
         }
 
-        public string GetNewStateFromAction(IQAgent agent_, string state_, int numAction_)
+        public string GetNewStateFromAction(IQAgent agent, string state, int numAction)
         {
             int action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in m_QValues)
+            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state_) == true && agent_.IsActionIsPossible(pair.Key.Value))
+                if (pair.Key.Key.Equals(state) == true && agent.IsActionIsPossible(pair.Key.Value))
                 {
-                    if (action == numAction_)
+                    if (action == numAction)
                     {
                         return pair.Key.Key;
                     }
@@ -78,15 +78,15 @@
             throw new ArgumentException("GetNewStateFromAction() : numAction_ is too high");
         }
 
-        public string GetActionNumber(IQAgent agent_, string state_, int numAction_)
+        public string GetActionNumber(IQAgent agent, string state, int numAction)
         {
             int action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in m_QValues)
+            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state_) == true && agent_.IsActionIsPossible(pair.Key.Value))
+                if (pair.Key.Key.Equals(state) == true && agent.IsActionIsPossible(pair.Key.Value))
                 {
-                    if (action == numAction_)
+                    if (action == numAction)
                     {
                         return pair.Key.Value;
                     }
@@ -99,16 +99,16 @@
             throw new ArgumentException("GetNewStateFromAction() : numAction_ is too high");
         }
 
-        public void CreateStatesAndActions(KeyValuePair<string, string>[] states_, float[] values_)
+        public void CreateStatesAndActions(KeyValuePair<string, string>[] states, float[] values)
         {
-            if (states_.Length != values_.Length)
+            if (states.Length != values.Length)
             {
                 throw new ArgumentException("CreateStatesAndActions() : states_.Length != values_.Length");
             }
 
-            for (int i = 0; i < states_.Length; i++)
+            for (int i = 0; i < states.Length; i++)
             {
-                m_QValues.Add(states_[i], values_[i]);
+                _qValues.Add(states[i], values[i]);
             }
         }
 

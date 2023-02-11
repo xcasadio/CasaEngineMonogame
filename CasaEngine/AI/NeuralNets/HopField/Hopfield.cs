@@ -3,22 +3,22 @@
     class Hopfield
     {
 
-        int m_NumUnits;
+        int _numUnits;
 
-        readonly List<int[]> m_Pattern = new List<int[]>();
+        readonly List<int[]> _pattern = new List<int[]>();
 
-        int[] m_Output;
+        int[] _output;
 
-        int[] m_Threshold;
+        int[] _threshold;
 
-        int[,] m_Weights;
+        int[,] _weights;
 
 
 
         public int[] Output
         {
-            get => m_Output;
-            private set => m_Output = value;
+            get => _output;
+            private set => _output = value;
         }
 
 
@@ -26,63 +26,63 @@
 
 
 
-        public void GenerateNetwork(int num_)
+        public void GenerateNetwork(int nu)
         {
             int i;
 
-            m_NumUnits = num_;
-            m_Output = new int[num_];
-            m_Threshold = new int[num_];
-            m_Weights = new int[num_, num_];
+            _numUnits = nu;
+            _output = new int[nu];
+            _threshold = new int[nu];
+            _weights = new int[nu, nu];
 
-            for (i = 0; i < num_; i++)
+            for (i = 0; i < nu; i++)
             {
-                m_Threshold[i] = 0;
+                _threshold[i] = 0;
             }
         }
 
-        public void AddPattern(int[] pattern_)
+        public void AddPattern(int[] pattern)
         {
-            if (pattern_.Length != m_NumUnits)
+            if (pattern.Length != _numUnits)
             {
-                throw new ArgumentException("HopField.SetInput() : input_.Length != m_NumUnits");
+                throw new ArgumentException("HopField.SetInput() : input_.Length != _NumUnits");
             }
 
-            m_Pattern.Add(pattern_);
+            _pattern.Add(pattern);
         }
 
         public void CalculateWeights()
         {
             int i, j, n;
-            int Weight;
+            int weight;
 
-            for (i = 0; i < m_NumUnits; i++)
+            for (i = 0; i < _numUnits; i++)
             {
-                for (j = 0; j < m_NumUnits; j++)
+                for (j = 0; j < _numUnits; j++)
                 {
-                    Weight = 0;
+                    weight = 0;
 
                     if (i != j)
                     {
-                        for (n = 0; n < m_Pattern.Count; n++)
+                        for (n = 0; n < _pattern.Count; n++)
                         {
-                            Weight += m_Pattern[n][i] * m_Pattern[n][j];
+                            weight += _pattern[n][i] * _pattern[n][j];
                         }
                     }
 
-                    this.m_Weights[i, j] = Weight;
+                    this._weights[i, j] = weight;
                 }
             }
         }
 
-        public void SetInput(ref int[] input_)
+        public void SetInput(ref int[] input)
         {
-            if (input_.Length != m_NumUnits)
+            if (input.Length != _numUnits)
             {
-                throw new ArgumentException("HopField.SetInput() : input_.Length != m_NumUnits");
+                throw new ArgumentException("HopField.SetInput() : input_.Length != _NumUnits");
             }
 
-            m_Output = input_;
+            _output = input;
         }
 
 
@@ -90,49 +90,49 @@
         private bool PropagateUnit(int i)
         {
             int j;
-            int Sum, Out = 0;
-            bool Changed;
+            int sum, @out = 0;
+            bool changed;
 
-            Changed = false;
-            Sum = 0;
+            changed = false;
+            sum = 0;
 
-            for (j = 0; j < m_NumUnits; j++)
+            for (j = 0; j < _numUnits; j++)
             {
-                Sum += m_Weights[i, j] * m_Output[j];
+                sum += _weights[i, j] * _output[j];
             }
 
-            if (Sum != m_Threshold[i])
+            if (sum != _threshold[i])
             {
-                if (Sum < m_Threshold[i]) Out = -1;
-                if (Sum >= m_Threshold[i]) Out = 1;
-                if (Out != m_Output[i])
+                if (sum < _threshold[i]) @out = -1;
+                if (sum >= _threshold[i]) @out = 1;
+                if (@out != _output[i])
                 {
-                    Changed = true;
-                    m_Output[i] = Out;
+                    changed = true;
+                    _output[i] = @out;
                 }
             }
 
-            return Changed;
+            return changed;
         }
 
         public void PropagateNet()
         {
-            int Iteration, IterationOfLastChange;
+            int iteration, iterationOfLastChange;
 
-            Iteration = 0;
-            IterationOfLastChange = 0;
+            iteration = 0;
+            iterationOfLastChange = 0;
 
             Random rand = new Random();
 
             do
             {
-                Iteration++;
-                if (PropagateUnit(rand.Next(0, m_NumUnits - 1)))
+                iteration++;
+                if (PropagateUnit(rand.Next(0, _numUnits - 1)))
                 {
-                    IterationOfLastChange = Iteration;
+                    iterationOfLastChange = iteration;
                 }
             }
-            while (Iteration - IterationOfLastChange < 10 * m_NumUnits);
+            while (iteration - iterationOfLastChange < 10 * _numUnits);
         }
 
 

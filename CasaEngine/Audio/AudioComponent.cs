@@ -9,21 +9,21 @@ namespace CasaEngine.Audio
 
         // The listener describes the ear which is hearing 3D sounds.
         // This is usually set to match the camera.
-        public AudioListener Listener => listener;
+        public AudioListener Listener => _listener;
 
-        readonly AudioListener listener = new AudioListener();
+        readonly AudioListener _listener = new AudioListener();
 
 
         // The emitter describes an entity which is making a 3D sound.
-        readonly AudioEmitter emitter = new AudioEmitter();
+        readonly AudioEmitter _emitter = new AudioEmitter();
 
 
         // Store all the sound effects that are available to be played.
-        readonly Dictionary<string, SoundEffect> soundEffects = new Dictionary<string, SoundEffect>();
+        readonly Dictionary<string, SoundEffect> _soundEffects = new Dictionary<string, SoundEffect>();
 
 
         // Keep track of all the 3D sounds that are currently playing.
-        readonly List<ActiveSound> activeSounds = new List<ActiveSound>();
+        readonly List<ActiveSound> _activeSounds = new List<ActiveSound>();
 
 
 
@@ -49,19 +49,19 @@ namespace CasaEngine.Audio
             base.Initialize();
         }
 
-        public void AddSound(string soundName_)
+        public void AddSound(string soundName)
         {
-            soundEffects.Add(soundName_, Game.Content.Load<SoundEffect>(soundName_));
+            _soundEffects.Add(soundName, Game.Content.Load<SoundEffect>(soundName));
         }
 
         public void Clear()
         {
-            foreach (SoundEffect soundEffect in soundEffects.Values)
+            foreach (SoundEffect soundEffect in _soundEffects.Values)
             {
                 soundEffect.Dispose();
             }
 
-            soundEffects.Clear();
+            _soundEffects.Clear();
         }
 
         protected override void Dispose(bool disposing)
@@ -85,9 +85,9 @@ namespace CasaEngine.Audio
             // Loop over all the currently playing 3D sounds.
             int index = 0;
 
-            while (index < activeSounds.Count)
+            while (index < _activeSounds.Count)
             {
-                ActiveSound activeSound = activeSounds[index];
+                ActiveSound activeSound = _activeSounds[index];
 
                 if (activeSound.Instance.State == SoundState.Stopped)
                 {
@@ -95,7 +95,7 @@ namespace CasaEngine.Audio
                     activeSound.Instance.Dispose();
 
                     // Remove it from the active list.
-                    activeSounds.RemoveAt(index);
+                    _activeSounds.RemoveAt(index);
                 }
                 else
                 {
@@ -115,7 +115,7 @@ namespace CasaEngine.Audio
             ActiveSound activeSound = new ActiveSound();
 
             // Fill in the instance and emitter fields.
-            activeSound.Instance = soundEffects[soundName].CreateInstance();
+            activeSound.Instance = _soundEffects[soundName].CreateInstance();
             activeSound.Instance.IsLooped = isLooped;
 
             activeSound.Emitter = emitter;
@@ -126,7 +126,7 @@ namespace CasaEngine.Audio
             activeSound.Instance.Play();
 
             // Remember that this sound is now active.
-            activeSounds.Add(activeSound);
+            _activeSounds.Add(activeSound);
 
             return activeSound.Instance;
         }
@@ -134,12 +134,12 @@ namespace CasaEngine.Audio
 
         private void Apply3D(ActiveSound activeSound)
         {
-            emitter.Position = activeSound.Emitter.Position;
-            emitter.Forward = activeSound.Emitter.Forward;
-            emitter.Up = activeSound.Emitter.Up;
-            emitter.Velocity = activeSound.Emitter.Velocity;
+            _emitter.Position = activeSound.Emitter.Position;
+            _emitter.Forward = activeSound.Emitter.Forward;
+            _emitter.Up = activeSound.Emitter.Up;
+            _emitter.Velocity = activeSound.Emitter.Velocity;
 
-            activeSound.Instance.Apply3D(listener, emitter);
+            activeSound.Instance.Apply3D(_listener, _emitter);
         }
 
 

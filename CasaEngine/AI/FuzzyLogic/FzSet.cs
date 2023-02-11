@@ -1,36 +1,36 @@
 ﻿namespace CasaEngine.AI.Fuzzy
 {
     public class FzSet
-        : FuzzyTerm
+        : IFuzzyTerm
     {
 
-        internal FuzzySet m_Set;
+        internal FuzzySet Set;
 
 
 
-        public double DOM => m_Set.DOM;
+        public double Dom => Set.Dom;
 
 
         public FzSet(FuzzySet fs)
         {
-            m_Set = fs;
+            Set = fs;
         }
 
 
 
-        public FuzzyTerm Clone()
+        public IFuzzyTerm Clone()
         {
-            return new FzSet(m_Set);
+            return new FzSet(Set);
         }
 
-        public void ClearDOM()
+        public void ClearDom()
         {
-            m_Set.ClearDOM();
+            Set.ClearDom();
         }
 
-        public void ORwithDOM(double val)
+        public void ORwithDom(double val)
         {
-            m_Set.ORwithDOM(val);
+            Set.ORwithDom(val);
         }
 
     }

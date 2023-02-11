@@ -28,8 +28,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Dialog(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Dialog(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             TopPanel = new Panel(UserInterfaceManager)
             {

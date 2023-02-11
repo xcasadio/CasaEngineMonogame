@@ -4,15 +4,15 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
     public class ScalingMapping<T>
     {
 
-        internal int position;
+        internal int Position;
 
-        internal double[] fitness;
+        internal double[] Fitness;
 
-        internal Chromosome<T>[] chromosomes;
+        internal Chromosome<T>[] Chromosomes;
 
-        internal double minFitness;
+        internal double MinFitness;
 
-        internal double totalFitness;
+        internal double TotalFitness;
 
 
 
@@ -21,9 +21,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
             fitness = new double[size];
             chromosomes = new Chromosome<T>[size];
 
-            minFitness = double.MaxValue;
+            MinFitness = double.MaxValue;
             totalFitness = 0;
-            position = 0;
+            Position = 0;
         }
 
 
@@ -38,23 +38,23 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
         public void AddChromosome(Chromosome<T> chromosome, double fitness)
         {
             //Adds the new values
-            this.chromosomes[position] = chromosome;
-            this.fitness[position] = fitness;
+            this.chromosomes[Position] = chromosome;
+            this.fitness[Position] = fitness;
 
             //Checks to see if we have a new minimum value
-            if (fitness < minFitness)
-                minFitness = fitness;
+            if (fitness < MinFitness)
+                MinFitness = fitness;
 
             //Update total fitness and insert position
             totalFitness += fitness;
-            position++;
+            Position++;
         }
 
         public void Normalize()
         {
-            if (minFitness < 0)
+            if (MinFitness < 0)
                 for (int i = 0; i < fitness.Length - 1; i++)
-                    fitness[i] -= minFitness;
+                    fitness[i] -= MinFitness;
         }
 
     }

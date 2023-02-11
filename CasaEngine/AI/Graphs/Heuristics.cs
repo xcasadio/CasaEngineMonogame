@@ -5,16 +5,16 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Graphs
 {
-    public static class Heuristics<T, K>
+    public static class Heuristics<T, TK>
         where T : NavigationNode
-        where K : WeightedEdge
+        where TK : WeightedEdge
     {
-        public static double EuclideanDistance(Graph<T, K> graph, int node1, int node2)
+        public static double EuclideanDistance(Graph<T, TK> graph, int node1, int node2)
         {
             return (graph.GetNode(node1).Position - graph.GetNode(node2).Position).LengthSquared();
         }
 
-        public static double ManhattanDistance(Graph<T, K> graph, int node1, int node2)
+        public static double ManhattanDistance(Graph<T, TK> graph, int node1, int node2)
         {
             Vector3 aux;
 
@@ -22,7 +22,7 @@ namespace CasaEngine.AI.Graphs
             return System.Math.Abs(aux.X) + System.Math.Abs(aux.Y) + System.Math.Abs(aux.Z);
         }
 
-        public static double DjisktraDistance(Graph<T, K> graph, int node1, int node2)
+        public static double DjisktraDistance(Graph<T, TK> graph, int node1, int node2)
         {
             return 0;
         }

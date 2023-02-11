@@ -34,16 +34,16 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly TextBox textBoxR, textBoxG, textBoxB;
-        private readonly TrackBar sliderR, sliderG, sliderB;
+        private readonly TextBox _textBoxR, _textBoxG, _textBoxB;
+        private readonly TrackBar _sliderR, _sliderG, _sliderB;
 
         // If the system is updating the color, then the color won't be updated by the RGB sliders.
-        private bool updatingColor;
+        private bool _updatingColor;
 
         // If the system is updating the RGB sliders, then the RGB sliders won't be updated by the color.
-        private bool updatingRGB;
+        private bool _updatingRgb;
 
-        private ColorPickerDialog colorPickerDialog;
+        private ColorPickerDialog _colorPickerDialog;
 
 
 
@@ -53,8 +53,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public SliderColor(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public SliderColor(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
 
             Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
@@ -86,39 +86,39 @@ namespace XNAFinalEngine.UserInterface
             Add(squareColor);
             squareColor.MouseDown += delegate
                                     {
-                                        colorPickerDialog = new ColorPickerDialog(UserInterfaceManager, Color);
-                                        UserInterfaceManager.Add(colorPickerDialog);
-                                        colorPickerDialog.SquareColorDown += OnSliderDown;
-                                        colorPickerDialog.SquareColorUp += OnSliderUp;
-                                        colorPickerDialog.SquareColorPress += OnSliderPress;
+                                        _colorPickerDialog = new ColorPickerDialog(UserInterfaceManager, Color);
+                                        UserInterfaceManager.Add(_colorPickerDialog);
+                                        _colorPickerDialog.SquareColorDown += OnSliderDown;
+                                        _colorPickerDialog.SquareColorUp += OnSliderUp;
+                                        _colorPickerDialog.SquareColorPress += OnSliderPress;
 
-                                        colorPickerDialog.Closed += delegate
+                                        _colorPickerDialog.Closed += delegate
                                         {
                                             Focused = true;
-                                            colorPickerDialog.SquareColorDown -= OnSliderDown;
-                                            colorPickerDialog.SquareColorUp -= OnSliderUp;
-                                            colorPickerDialog.SquareColorPress -= OnSliderPress;
+                                            _colorPickerDialog.SquareColorDown -= OnSliderDown;
+                                            _colorPickerDialog.SquareColorUp -= OnSliderUp;
+                                            _colorPickerDialog.SquareColorPress -= OnSliderPress;
                                         };
 
 
                                         int left = squareColor.ControlLeftAbsoluteCoordinate;
-                                        if (left + colorPickerDialog.Width > UserInterfaceManager.Screen.Width)
-                                            left -= colorPickerDialog.Width;
+                                        if (left + _colorPickerDialog.Width > UserInterfaceManager.Screen.Width)
+                                            left -= _colorPickerDialog.Width;
                                         int top = squareColor.ControlTopAbsoluteCoordinate + squareColor.Height;
-                                        if (top + colorPickerDialog.Height > UserInterfaceManager.Screen.Height)
-                                            top -= colorPickerDialog.Height + squareColor.Height;
-                                        colorPickerDialog.SetPosition(left, top);
+                                        if (top + _colorPickerDialog.Height > UserInterfaceManager.Screen.Height)
+                                            top -= _colorPickerDialog.Height + squareColor.Height;
+                                        _colorPickerDialog.SetPosition(left, top);
 
 
-                                        colorPickerDialog.ColorChanged += delegate
+                                        _colorPickerDialog.ColorChanged += delegate
                                         {
-                                            Color = colorPickerDialog.Color;
+                                            Color = _colorPickerDialog.Color;
                                         };
                                     };
 
 
 
-            textBoxR = new TextBox(UserInterfaceManager)
+            _textBoxR = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Top = 4,
@@ -126,11 +126,11 @@ namespace XNAFinalEngine.UserInterface
                 Left = label.Left + label.Width + 5 + 45,
                 Text = "1",
             };
-            sliderR = new TrackBar(UserInterfaceManager)
+            _sliderR = new TrackBar(UserInterfaceManager)
             {
                 Parent = this,
                 Anchor = Anchors.Left | Anchors.Top | Anchors.Right,
-                Left = textBoxR.Left + textBoxR.Width + 4,
+                Left = _textBoxR.Left + _textBoxR.Width + 4,
                 Top = 6,
                 MinimumWidth = 100,
                 Height = 15,
@@ -141,70 +141,70 @@ namespace XNAFinalEngine.UserInterface
                 IfOutOfRangeRescale = false,
                 ScaleBarColor = ScaleColor.Red,
             };
-            sliderR.ValueChanged += delegate
+            _sliderR.ValueChanged += delegate
                                     {
-                                        updatingRGB = true;
-                                        textBoxR.Text = Math.Round(sliderR.Value, 3).ToString();
-                                        if (!updatingColor)
+                                        _updatingRgb = true;
+                                        _textBoxR.Text = Math.Round(_sliderR.Value, 3).ToString();
+                                        if (!_updatingColor)
                                         {
                                             if (XNAFinalEngine.Input.Keyboard.KeyPressed(Keys.LeftControl))
                                             {
-                                                sliderG.Value = sliderR.Value;
-                                                sliderB.Value = sliderR.Value;
+                                                _sliderG.Value = _sliderR.Value;
+                                                _sliderB.Value = _sliderR.Value;
                                             }
-                                            UpdateColorFromRGB();
+                                            UpdateColorFromRgb();
                                         }
-                                        updatingRGB = false;
+                                        _updatingRgb = false;
                                     };
-            textBoxR.KeyDown += delegate (object sender, KeyEventArgs e)
+            _textBoxR.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
-                    updatingRGB = true;
+                    _updatingRgb = true;
                     try
                     {
-                        sliderR.Value = (float)double.Parse(textBoxR.Text);
-                        UpdateColorFromRGB();
+                        _sliderR.Value = (float)double.Parse(_textBoxR.Text);
+                        UpdateColorFromRgb();
                     }
                     catch // If not numeric
                     {
-                        textBoxR.Text = sliderR.Value.ToString();
+                        _textBoxR.Text = _sliderR.Value.ToString();
                     }
-                    updatingRGB = false;
+                    _updatingRgb = false;
                 }
             };
             // For tabs and other not so common things.
-            textBoxR.FocusLost += delegate
+            _textBoxR.FocusLost += delegate
             {
-                updatingRGB = true;
+                _updatingRgb = true;
                 try
                 {
-                    sliderR.Value = (float)double.Parse(textBoxR.Text);
-                    UpdateColorFromRGB();
+                    _sliderR.Value = (float)double.Parse(_textBoxR.Text);
+                    UpdateColorFromRgb();
                 }
                 catch // If not numeric
                 {
-                    textBoxR.Text = sliderR.Value.ToString();
+                    _textBoxR.Text = _sliderR.Value.ToString();
                 }
-                updatingRGB = false;
+                _updatingRgb = false;
             };
 
 
 
-            textBoxG = new TextBox(UserInterfaceManager)
+            _textBoxG = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
-                Top = 4 + textBoxR.Top + textBoxR.Height,
+                Top = 4 + _textBoxR.Top + _textBoxR.Height,
                 Width = 40,
                 Left = label.Left + label.Width + 4 + 45,
                 Text = "1"
             };
-            sliderG = new TrackBar(UserInterfaceManager)
+            _sliderG = new TrackBar(UserInterfaceManager)
             {
                 Parent = this,
                 Anchor = Anchors.Left | Anchors.Top | Anchors.Right,
-                Left = textBoxG.Left + textBoxG.Width + 4,
-                Top = 6 + textBoxR.Top + textBoxR.Height,
+                Left = _textBoxG.Left + _textBoxG.Width + 4,
+                Top = 6 + _textBoxR.Top + _textBoxR.Height,
                 Height = 15,
                 MinimumWidth = 100,
                 MinimumValue = 0,
@@ -214,70 +214,70 @@ namespace XNAFinalEngine.UserInterface
                 IfOutOfRangeRescale = false,
                 ScaleBarColor = ScaleColor.Green,
             };
-            sliderG.ValueChanged += delegate
+            _sliderG.ValueChanged += delegate
                                         {
-                                            updatingRGB = true;
-                                            textBoxG.Text = Math.Round(sliderG.Value, 3).ToString();
-                                            if (!updatingColor)
+                                            _updatingRgb = true;
+                                            _textBoxG.Text = Math.Round(_sliderG.Value, 3).ToString();
+                                            if (!_updatingColor)
                                             {
                                                 if (XNAFinalEngine.Input.Keyboard.KeyPressed(Keys.LeftControl))
                                                 {
-                                                    sliderR.Value = sliderG.Value;
-                                                    sliderB.Value = sliderG.Value;
+                                                    _sliderR.Value = _sliderG.Value;
+                                                    _sliderB.Value = _sliderG.Value;
                                                 }
-                                                UpdateColorFromRGB();
+                                                UpdateColorFromRgb();
                                             }
-                                            updatingRGB = false;
+                                            _updatingRgb = false;
                                         };
-            textBoxG.KeyDown += delegate (object sender, KeyEventArgs e)
+            _textBoxG.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
-                    updatingRGB = true;
+                    _updatingRgb = true;
                     try
                     {
-                        sliderG.Value = (float)double.Parse(textBoxG.Text);
-                        UpdateColorFromRGB();
+                        _sliderG.Value = (float)double.Parse(_textBoxG.Text);
+                        UpdateColorFromRgb();
                     }
                     catch // If not numeric
                     {
-                        textBoxG.Text = sliderG.Value.ToString();
+                        _textBoxG.Text = _sliderG.Value.ToString();
                     }
-                    updatingRGB = false;
+                    _updatingRgb = false;
                 }
             };
             // For tabs and other not so common things.
-            textBoxG.FocusLost += delegate
+            _textBoxG.FocusLost += delegate
             {
-                updatingRGB = true;
+                _updatingRgb = true;
                 try
                 {
-                    sliderG.Value = (float)double.Parse(textBoxG.Text);
-                    UpdateColorFromRGB();
+                    _sliderG.Value = (float)double.Parse(_textBoxG.Text);
+                    UpdateColorFromRgb();
                 }
                 catch // If not numeric
                 {
-                    textBoxG.Text = sliderG.Value.ToString();
+                    _textBoxG.Text = _sliderG.Value.ToString();
                 }
-                updatingRGB = false;
+                _updatingRgb = false;
             };
 
 
 
-            textBoxB = new TextBox(UserInterfaceManager)
+            _textBoxB = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
-                Top = 4 + textBoxG.Top + textBoxG.Height,
+                Top = 4 + _textBoxG.Top + _textBoxG.Height,
                 Width = 40,
                 Left = label.Left + label.Width + 4 + 45,
                 Text = "1"
             };
-            sliderB = new TrackBar(UserInterfaceManager)
+            _sliderB = new TrackBar(UserInterfaceManager)
             {
                 Parent = this,
                 Anchor = Anchors.Left | Anchors.Top | Anchors.Right,
-                Left = textBoxB.Left + textBoxB.Width + 4,
-                Top = 6 + textBoxG.Top + textBoxG.Height,
+                Left = _textBoxB.Left + _textBoxB.Width + 4,
+                Top = 6 + _textBoxG.Top + _textBoxG.Height,
                 Height = 15,
                 MinimumWidth = 100,
                 MinimumValue = 0,
@@ -287,78 +287,78 @@ namespace XNAFinalEngine.UserInterface
                 IfOutOfRangeRescale = false,
                 ScaleBarColor = ScaleColor.Blue,
             };
-            sliderB.ValueChanged += delegate
+            _sliderB.ValueChanged += delegate
                                     {
-                                        updatingRGB = true;
-                                        textBoxB.Text = Math.Round(sliderB.Value, 3).ToString();
-                                        if (!updatingColor)
+                                        _updatingRgb = true;
+                                        _textBoxB.Text = Math.Round(_sliderB.Value, 3).ToString();
+                                        if (!_updatingColor)
                                         {
                                             if (XNAFinalEngine.Input.Keyboard.KeyPressed(Keys.LeftControl))
                                             {
-                                                sliderR.Value = sliderB.Value;
-                                                sliderG.Value = sliderB.Value;
+                                                _sliderR.Value = _sliderB.Value;
+                                                _sliderG.Value = _sliderB.Value;
                                             }
-                                            UpdateColorFromRGB();
+                                            UpdateColorFromRgb();
                                         }
-                                        updatingRGB = false;
+                                        _updatingRgb = false;
                                     };
-            textBoxB.KeyDown += delegate (object sender, KeyEventArgs e)
+            _textBoxB.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
-                    updatingRGB = true;
+                    _updatingRgb = true;
                     try
                     {
-                        sliderB.Value = (float)double.Parse(textBoxB.Text);
-                        UpdateColorFromRGB();
+                        _sliderB.Value = (float)double.Parse(_textBoxB.Text);
+                        UpdateColorFromRgb();
                     }
                     catch // If not numeric
                     {
-                        textBoxB.Text = sliderB.Value.ToString();
+                        _textBoxB.Text = _sliderB.Value.ToString();
                     }
-                    updatingRGB = false;
+                    _updatingRgb = false;
                 }
             };
             // For tabs and other not so common things.
-            textBoxB.FocusLost += delegate
+            _textBoxB.FocusLost += delegate
             {
-                updatingRGB = true;
+                _updatingRgb = true;
                 try
                 {
-                    sliderB.Value = (float)double.Parse(textBoxB.Text);
-                    UpdateColorFromRGB();
+                    _sliderB.Value = (float)double.Parse(_textBoxB.Text);
+                    UpdateColorFromRgb();
                 }
                 catch // If not numeric
                 {
-                    textBoxB.Text = sliderB.Value.ToString();
+                    _textBoxB.Text = _sliderB.Value.ToString();
                 }
-                updatingRGB = false;
+                _updatingRgb = false;
             };
 
 
             ColorChanged += delegate
             {
-                updatingColor = true;
+                _updatingColor = true;
                 squareColor.Color = Color;
-                if (!updatingRGB)
-                    UpdateRGBFromColor();
-                updatingColor = false;
-                if (colorPickerDialog != null && !colorPickerDialog.IsDisposed && colorPickerDialog.Color != Color)
-                    colorPickerDialog.Color = Color;
+                if (!_updatingRgb)
+                    UpdateRgbFromColor();
+                _updatingColor = false;
+                if (_colorPickerDialog != null && !_colorPickerDialog.IsDisposed && _colorPickerDialog.Color != Color)
+                    _colorPickerDialog.Color = Color;
             };
 
             // To init all values with a color
             Color = Color.Gray;
 
-            sliderR.SliderDown += OnSliderDown;
-            sliderR.SliderUp += OnSliderUp;
-            sliderR.SliderPress += OnSliderPress;
-            sliderG.SliderDown += OnSliderDown;
-            sliderG.SliderUp += OnSliderUp;
-            sliderG.SliderPress += OnSliderPress;
-            sliderB.SliderDown += OnSliderDown;
-            sliderB.SliderUp += OnSliderUp;
-            sliderB.SliderPress += OnSliderPress;
+            _sliderR.SliderDown += OnSliderDown;
+            _sliderR.SliderUp += OnSliderUp;
+            _sliderR.SliderPress += OnSliderPress;
+            _sliderG.SliderDown += OnSliderDown;
+            _sliderG.SliderUp += OnSliderUp;
+            _sliderG.SliderPress += OnSliderPress;
+            _sliderB.SliderDown += OnSliderDown;
+            _sliderB.SliderUp += OnSliderUp;
+            _sliderB.SliderPress += OnSliderPress;
 
         } // SliderColor
 
@@ -375,16 +375,16 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        private void UpdateColorFromRGB()
+        private void UpdateColorFromRgb()
         {
-            Color = new Color(sliderR.Value, sliderG.Value, sliderB.Value);
+            Color = new Color(_sliderR.Value, _sliderG.Value, _sliderB.Value);
         } // UpdateColorFromRGB
 
-        private void UpdateRGBFromColor()
+        private void UpdateRgbFromColor()
         {
-            sliderR.Value = Color.R / 255f;
-            sliderG.Value = Color.G / 255f;
-            sliderB.Value = Color.B / 255f;
+            _sliderR.Value = Color.R / 255f;
+            _sliderG.Value = Color.G / 255f;
+            _sliderB.Value = Color.B / 255f;
         } // UpdateRGBFromColor
 
 

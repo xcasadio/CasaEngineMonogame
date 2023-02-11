@@ -4,11 +4,11 @@ namespace CasaEngine.AI.EvolutionaryComputing
     public class Population<T> : ICloneable
     {
 
-        protected internal List<Chromosome<T>> genome;
+        protected internal List<Chromosome<T>> Genome;
 
-        protected internal bool hasPerfectSolution;
+        protected internal bool HasPerfectSolution;
 
-        protected internal int perfectSolutionIndex;
+        protected internal int PerfectSolutionIndex;
 
 
 
@@ -29,7 +29,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateGenome(value, ref message) == false)
-                    throw new AIException("genome", this.GetType().ToString(), message);
+                    throw new AiException("genome", this.GetType().ToString(), message);
 
                 genome = value;
             }

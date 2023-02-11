@@ -131,7 +131,7 @@ namespace Editor.Tools.UIScreenEditor
         /// 
         /// </summary>
         /// <param name="screen_"></param>
-        public void SetCurrentScreen(UIScreen screen_)
+        public void SetCurrentScreen(UiScreen screen_)
         {
             //m_Screen.LoadFromScreen(screen_);
         }
@@ -169,7 +169,7 @@ namespace Editor.Tools.UIScreenEditor
         /// 
         /// </summary>
         /// <param name="screen_"></param>
-        public void ApplyChanges(UIScreen screen_)
+        public void ApplyChanges(UiScreen screen_)
         {
             //screen_.CopyFrom(m_Screen);
         }

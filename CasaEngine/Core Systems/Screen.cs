@@ -19,9 +19,9 @@ namespace CasaEngine.CoreSystems
 
 
 
-        public Screen(GraphicsDevice graphicsDevice_)
+        public Screen(GraphicsDevice graphicsDevice)
         {
-            GraphicsDevice = graphicsDevice_;
+            GraphicsDevice = graphicsDevice;
         }
 
 

@@ -11,19 +11,19 @@ namespace CasaEngine.Design.Event
     class Trigger
     {
 
-        private readonly List<TriggerEvent> m_Events = new List<TriggerEvent>();
-        private bool m_Activated = false;
-        private int m_IterationMax = 1;
-        private int m_Iteration = 0;
+        private readonly List<ITriggerEvent> _events = new List<ITriggerEvent>();
+        private bool _activated = false;
+        private int _iterationMax = 1;
+        private int _iteration = 0;
 
 
 
-        public bool Activated => m_Activated;
+        public bool Activated => _activated;
 
         public int IterationMax
         {
-            get => m_IterationMax;
-            set => m_IterationMax = value;
+            get => _iterationMax;
+            set => _iterationMax = value;
         }
 
 #if EDITOR
@@ -31,9 +31,9 @@ namespace CasaEngine.Design.Event
 #else
 		protected
 #endif
-        List<TriggerEvent> Events
+        List<ITriggerEvent> Events
         {
-            get { return m_Events; }
+            get { return _events; }
         }
 
 
@@ -42,68 +42,68 @@ namespace CasaEngine.Design.Event
         {
         }
 
-        public Trigger(int iteration_)
+        public Trigger(int iteration)
         {
-            m_IterationMax = iteration_;
+            _iterationMax = iteration;
         }
 
-        public Trigger(XmlElement el_, SaveOption option_)
+        public Trigger(XmlElement el, SaveOption option)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
 
 
-        public virtual void Load(XmlElement el_, SaveOption option_)
+        public virtual void Load(XmlElement el, SaveOption option)
         {
-            uint loadedVersion = uint.Parse(el_.Attributes["version"].Value);
+            uint loadedVersion = uint.Parse(el.Attributes["version"].Value);
 
-            foreach (XmlNode node in el_.SelectSingleNode("EventList").ChildNodes)
+            foreach (XmlNode node in el.SelectSingleNode("EventList").ChildNodes)
             {
                 string assemblyFullName = node.Attributes["assemblyName"].Value;
                 string typeFullName = node.Attributes["fullName"].Value;
 
                 Type t = Type.GetType(typeFullName);
-                TriggerEvent ev = (TriggerEvent)Activator.CreateInstance(t
+                ITriggerEvent ev = (ITriggerEvent)Activator.CreateInstance(t
 #if EDITOR
-                , new object[] { el_, option_ }
+                , new object[] { el, option }
 #endif
                 );
 
-                m_Events.Add(ev);
+                _events.Add(ev);
             }
         }
 
-        public virtual void Load(BinaryReader br_, SaveOption option_)
+        public virtual void Load(BinaryReader br, SaveOption option)
         {
 
         }
 
-        public abstract bool Activate(float TotalElapsedTime_);
+        public abstract bool Activate(float totalElapsedTime);
 
-        public void AddEvent(TriggerEvent event_)
+        public void AddEvent(ITriggerEvent @event)
         {
-            m_Events.Add(event_);
+            _events.Add(@event);
         }
 
-        public void Update(float TotalElapsedTime_)
+        public void Update(float totalElapsedTime)
         {
-            if (Activate(TotalElapsedTime_) == true && (m_Iteration < m_IterationMax || m_IterationMax == -1))
+            if (Activate(totalElapsedTime) == true && (_iteration < _iterationMax || _iterationMax == -1))
             {
-                foreach (TriggerEvent ev in m_Events.ToArray())
+                foreach (ITriggerEvent ev in _events.ToArray())
                 {
                     ev.Do();
                 }
 
-                m_Activated = true;
-                m_Iteration++;
+                _activated = true;
+                _iteration++;
             }
         }
 
         public void Reset()
         {
-            m_Iteration = 0;
-            m_Activated = false;
+            _iteration = 0;
+            _activated = false;
         }
 
     }

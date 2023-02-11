@@ -66,10 +66,10 @@ namespace CasaEngine.Project
 
 
 
-        public Package(string name_, Package parent_ = null)
+        public Package(string name, Package parent = null)
         {
-            Parent = parent_;
-            Name = name_;
+            Parent = parent;
+            Name = name;
             Items = new List<PackageItem>();
             Children = new List<Package>();
         }
@@ -77,16 +77,16 @@ namespace CasaEngine.Project
 
 
 
-        public void AddItem(PackageItem item_, string subDirectory_ = "")
+        public void AddItem(PackageItem ite, string subDirectory = "")
         {
-            Items.Add(item_);
+            Items.Add(ite);
         }
 
-        public T GetItem<T>(string name_) where T : class
+        public T GetItem<T>(string name) where T : class
         {
             foreach (PackageItem item in Items)
             {
-                if (item.Name.Equals(name_) == true)
+                if (item.Name.Equals(name) == true)
                 {
                     return item as T;
                 }
@@ -98,21 +98,21 @@ namespace CasaEngine.Project
 
 
 
-        public void LoadXml(string file_, SaveOption opt_)
+        public void LoadXml(string file, SaveOption opt)
         {
-            if (File.Exists(file_) == false)
+            if (File.Exists(file) == false)
             {
-                LogManager.Instance.WriteLineError("Package.Load() : Can't open the package file " + file_);
+                LogManager.Instance.WriteLineError("Package.Load() : Can't open the package file " + file);
                 return;
             }
 
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(file_);
+            xmlDoc.Load(file);
 
-            PackageFileName = file_;
+            PackageFileName = file;
         }
 
-        public void SaveXml(string file_, SaveOption opt_)
+        public void SaveXml(string file, SaveOption opt)
         {
             XmlDocument xmlDoc = new XmlDocument();
 
@@ -121,42 +121,42 @@ namespace CasaEngine.Project
             /*if (SourceControl.SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
             {
                 string wrkspc = SourceControl.SourceControlManager.Instance.Workspace;
-                Directory.CreateDirectory(wrkspc + Path.DirectorySeparatorChar + item_.DirectoryPath);
+                Directory.CreateDirectory(wrkspc + Path.DirectorySeparatorChar + ite_.DirectoryPath);
              
                 string fullPath = GameInfo.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.PackageDirPath + Path.DirectorySeparatorChar;
                 fullPath += path_.Replace('.', Path.DirectorySeparatorChar);
                 Directory.CreateDirectory(Path.GetFullPath(fullPath));
             }*/
 
-            xmlDoc.Save(file_);
+            xmlDoc.Save(file);
 
-            PackageFileName = file_;
+            PackageFileName = file;
         }
 
 
 
-        public void LoadBinary(string file_, SaveOption opt_)
+        public void LoadBinary(string file, SaveOption opt)
         {
-            if (File.Exists(file_) == false)
+            if (File.Exists(file) == false)
             {
-                LogManager.Instance.WriteLineError("Package.Load() : Can't open the package file " + file_);
+                LogManager.Instance.WriteLineError("Package.Load() : Can't open the package file " + file);
                 return;
             }
 
-            BinaryReader br = new BinaryReader(File.Open(file_, FileMode.Open));
+            BinaryReader br = new BinaryReader(File.Open(file, FileMode.Open));
 
             br.Close();
 
-            PackageFileName = file_;
+            PackageFileName = file;
         }
 
-        public void SaveBinary(string file_, SaveOption opt_)
+        public void SaveBinary(string file, SaveOption opt)
         {
-            BinaryWriter bw = new BinaryWriter(File.Open(file_, FileMode.Create));
+            BinaryWriter bw = new BinaryWriter(File.Open(file, FileMode.Create));
 
             bw.Close();
 
-            PackageFileName = file_;
+            PackageFileName = file;
         }
 
 

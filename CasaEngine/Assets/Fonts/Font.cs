@@ -25,8 +25,8 @@ namespace CasaEngine.Asset.Fonts
         , INotifyPropertyChanged, IAssetable
 #endif
     {
-        readonly Dictionary<char, FontChar> m_CharsDic;
-        readonly List<string> m_TexturesFileNames;
+        readonly Dictionary<char, FontChar> _charsDic;
+        readonly List<string> _texturesFileNames;
 
 
         public GraphicsDevice GraphicsDevice { get; private set; }
@@ -97,24 +97,24 @@ namespace CasaEngine.Asset.Fonts
 
         private Font()
         {
-            m_CharsDic = new Dictionary<char, FontChar>();
-            m_TexturesFileNames = new List<string>();
+            _charsDic = new Dictionary<char, FontChar>();
+            _texturesFileNames = new List<string>();
             Pages = new List<FontPage>();
             Chars = new List<FontChar>();
             Kernings = new List<FontKerning>();
         }
 
-        public Font(XmlElement node_, SaveOption option_)
+        public Font(XmlElement node, SaveOption option)
             : this()
         {
-            Load(node_, option_);
+            Load(node, option);
         }
 
 
 
-        public Vector2 MeasureString(StringBuilder str_)
+        public Vector2 MeasureString(StringBuilder str)
         {
-            return MeasureString(str_.ToString());
+            return MeasureString(str.ToString());
         }
 
         public Vector2 MeasureString(string text)
@@ -123,9 +123,9 @@ namespace CasaEngine.Asset.Fonts
 
             foreach (char c in text.ToCharArray())
             {
-                if (m_CharsDic.ContainsKey(c) == true)
+                if (_charsDic.ContainsKey(c) == true)
                 {
-                    width += m_CharsDic[c].Width;
+                    width += _charsDic[c].Width;
                 }
                 else
                 {
@@ -136,22 +136,22 @@ namespace CasaEngine.Asset.Fonts
             return new Vector2(width, Common.LineHeight);
         }
 
-        public void LoadTexture(string path_, GraphicsDevice graphicsDevice_)
+        public void LoadTexture(string path, GraphicsDevice graphicsDevice)
         {
-            GraphicsDevice = graphicsDevice_;
+            GraphicsDevice = graphicsDevice;
 
             if (Textures == null)
             {
-                Textures = new Texture[m_TexturesFileNames.Count];
+                Textures = new Texture[_texturesFileNames.Count];
             }
 
             int i = 0;
 
-            foreach (string texFileName in m_TexturesFileNames)
+            foreach (string texFileName in _texturesFileNames)
             {
                 //string fileName = path_ + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + texFileName;
                 //fileName = fileName.Replace(Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar, "");
-                Textures[i] = new Texture(graphicsDevice_, texFileName); //fileName);
+                Textures[i] = new Texture(graphicsDevice, texFileName); //fileName);
                 i++;
             }
 
@@ -160,49 +160,49 @@ namespace CasaEngine.Asset.Fonts
 
 #if EDITOR
             assetFile = Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
-                ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + m_AssetFileName;
+                ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
 #else
-            assetFile = Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + m_AssetFileName;
+            assetFile = Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
 #endif
 
-            if (m_Texture2D != null
-                && m_Texture2D.IsDisposed == false
-                && m_Texture2D.GraphicsDevice.IsDisposed == false)
+            if (_Texture2D != null
+                && _Texture2D.IsDisposed == false
+                && _Texture2D.GraphicsDevice.IsDisposed == false)
             {
                 return;
             }
 
-            m_Texture2D = Texture2D.FromStream(device_, File.OpenRead(assetFile));
+            _Texture2D = Texture2D.FromStream(device_, File.OpenRead(assetFile));
             */
         }
 
 
 
-        public override void Load(XmlElement el_, SaveOption opt_)
+        public override void Load(XmlElement el, SaveOption opt)
         {
-            base.Load(el_, opt_);
+            base.Load(el, opt);
 
-            Common = new FontCommon(el_.SelectSingleNode("Font/Common"));
+            Common = new FontCommon(el.SelectSingleNode("Font/Common"));
 
-            foreach (XmlNode n in el_.SelectNodes("Font/Pages/Page"))
+            foreach (XmlNode n in el.SelectNodes("Font/Pages/Page"))
             {
-                m_TexturesFileNames.Add(n.Attributes["file"].Value);
+                _texturesFileNames.Add(n.Attributes["file"].Value);
             }
 
-            foreach (XmlNode n in el_.SelectNodes("Font/Chars/Char"))
+            foreach (XmlNode n in el.SelectNodes("Font/Chars/Char"))
             {
                 FontChar f = new FontChar(n);
                 Chars.Add(f);
-                m_CharsDic.Add((char)f.ID, f);
+                _charsDic.Add((char)f.Id, f);
             }
 
-            foreach (XmlNode n in el_.SelectNodes("Font/Kernings/Kerning"))
+            foreach (XmlNode n in el.SelectNodes("Font/Kernings/Kerning"))
             {
                 Kernings.Add(new FontKerning(n));
             }
         }
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
             throw new Exception("The method or operation is not implemented.");
         }
@@ -210,15 +210,15 @@ namespace CasaEngine.Asset.Fonts
 
         internal FontChar GetFontChar(char c)
         {
-            if (m_CharsDic.ContainsKey(c) == true)
+            if (_charsDic.ContainsKey(c) == true)
             {
-                return m_CharsDic[c];
+                return _charsDic[c];
             }
 
             return null;
         }
 
-        protected override void CopyFrom(BaseObject ob_)
+        protected override void CopyFrom(BaseObject ob)
         {
             throw new Exception("The method or operation is not implemented.");
         }
@@ -330,19 +330,19 @@ namespace CasaEngine.Asset.Fonts
             set;
         }
 
-        public FontInfo(XmlNode node_)
+        public FontInfo(XmlNode node)
         {
 
         }
 
-        public void Load(XmlNode node_)
+        public void Load(XmlNode node)
         {
             //face="Arial" size="32" bold="0" italic="0" charset="" unicode="1" stretchH="100" smooth="1" aa="1" padding="0,0,0,0" spacing="1,1" outline="0"
 
-            String[] padding = node_.Attributes["padding"].Value.Split(',');
+            String[] padding = node.Attributes["padding"].Value.Split(',');
             Padding = new Rectangle(Convert.ToInt32(padding[0]), Convert.ToInt32(padding[1]), Convert.ToInt32(padding[2]), Convert.ToInt32(padding[3]));
 
-            String[] spacing = node_.Attributes["spacing"].Value.Split(',');
+            String[] spacing = node.Attributes["spacing"].Value.Split(',');
             Spacing = new Point(Convert.ToInt32(spacing[0]), Convert.ToInt32(spacing[1]));
         }
     }
@@ -420,23 +420,23 @@ namespace CasaEngine.Asset.Fonts
         }
 
 
-        public FontCommon(XmlNode node_)
+        public FontCommon(XmlNode node)
         {
-            Load(node_);
+            Load(node);
         }
 
-        public void Load(XmlNode node_)
+        public void Load(XmlNode node)
         {
             // lineHeight="32" base="26" scaleW="512" scaleH="512" pages="1" packed="0" alphaChnl="0" redChnl="4" greenChnl="4" blueChnl="4"
 
-            LineHeight = int.Parse(node_.Attributes["lineHeight"].Value);
-            Base = int.Parse(node_.Attributes["base"].Value);
+            LineHeight = int.Parse(node.Attributes["lineHeight"].Value);
+            Base = int.Parse(node.Attributes["base"].Value);
         }
 
-        public void Save(XmlNode node_, SaveOption option_)
+        public void Save(XmlNode node, SaveOption option)
         {
-            XmlNode fontNode = node_.OwnerDocument.CreateElement("Common");
-            node_.AppendChild(fontNode);
+            XmlNode fontNode = node.OwnerDocument.CreateElement("Common");
+            node.AppendChild(fontNode);
 
             fontNode.OwnerDocument.AddAttribute((XmlElement)fontNode, "lineHeight", LineHeight.ToString());
             fontNode.OwnerDocument.AddAttribute((XmlElement)fontNode, "base", Base.ToString());
@@ -446,7 +446,7 @@ namespace CasaEngine.Asset.Fonts
     public class FontPage
     {
         [XmlAttribute("id")]
-        public Int32 ID
+        public Int32 Id
         {
             get;
             set;
@@ -463,7 +463,7 @@ namespace CasaEngine.Asset.Fonts
     public class FontChar
     {
         [XmlAttribute("id")]
-        public Int32 ID
+        public Int32 Id
         {
             get;
             set;
@@ -534,31 +534,31 @@ namespace CasaEngine.Asset.Fonts
             set;
         }
 
-        public FontChar(XmlNode node_)
+        public FontChar(XmlNode node)
         {
-            Load(node_);
+            Load(node);
         }
 
-        public void Load(XmlNode node_)
+        public void Load(XmlNode node)
         {
-            ID = int.Parse(node_.Attributes["id"].Value);
-            Char = (char)ID;
+            Id = int.Parse(node.Attributes["id"].Value);
+            Char = (char)Id;
 
-            X = int.Parse(node_.Attributes["x"].Value);
-            Y = int.Parse(node_.Attributes["y"].Value);
-            Width = int.Parse(node_.Attributes["width"].Value);
-            Height = int.Parse(node_.Attributes["height"].Value);
-            XOffset = int.Parse(node_.Attributes["xoffset"].Value);
-            YOffset = int.Parse(node_.Attributes["yoffset"].Value);
-            XAdvance = int.Parse(node_.Attributes["xadvance"].Value);
+            X = int.Parse(node.Attributes["x"].Value);
+            Y = int.Parse(node.Attributes["y"].Value);
+            Width = int.Parse(node.Attributes["width"].Value);
+            Height = int.Parse(node.Attributes["height"].Value);
+            XOffset = int.Parse(node.Attributes["xoffset"].Value);
+            YOffset = int.Parse(node.Attributes["yoffset"].Value);
+            XAdvance = int.Parse(node.Attributes["xadvance"].Value);
         }
 
-        public void Save(XmlNode node_, SaveOption option_)
+        public void Save(XmlNode node, SaveOption option)
         {
-            XmlNode charNode = node_.OwnerDocument.CreateElement("Char");
-            node_.AppendChild(charNode);
+            XmlNode charNode = node.OwnerDocument.CreateElement("Char");
+            node.AppendChild(charNode);
 
-            charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "id", ID.ToString());
+            charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "id", Id.ToString());
             charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "x", X.ToString());
             charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "y", Y.ToString());
             charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "width", Width.ToString());
@@ -589,22 +589,22 @@ namespace CasaEngine.Asset.Fonts
             set;
         }
 
-        public FontKerning(XmlNode node_)
+        public FontKerning(XmlNode node)
         {
 
         }
 
-        public void Load(XmlNode node_)
+        public void Load(XmlNode node)
         {
-            First = int.Parse(node_.Attributes["first"].Value);
-            Second = int.Parse(node_.Attributes["second"].Value);
-            Amount = int.Parse(node_.Attributes["amount"].Value);
+            First = int.Parse(node.Attributes["first"].Value);
+            Second = int.Parse(node.Attributes["second"].Value);
+            Amount = int.Parse(node.Attributes["amount"].Value);
         }
 
-        public void Save(XmlNode node_, SaveOption option_)
+        public void Save(XmlNode node, SaveOption option)
         {
-            XmlNode kerningNode = node_.OwnerDocument.CreateElement("Kerning");
-            node_.AppendChild(kerningNode);
+            XmlNode kerningNode = node.OwnerDocument.CreateElement("Kerning");
+            node.AppendChild(kerningNode);
 
             kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "first", First.ToString());
             kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "second", Second.ToString());

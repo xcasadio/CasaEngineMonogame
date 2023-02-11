@@ -5,8 +5,8 @@ namespace CasaEngine.Game
 {
     class WindowsGameTimer
     {
-        private readonly Stopwatch stopwatch;
-        private TimeSpan lastElapsed;
+        private readonly Stopwatch _stopwatch;
+        private TimeSpan _lastElapsed;
 
 
         public WindowsGameTimer()
@@ -15,31 +15,31 @@ namespace CasaEngine.Game
             {
                 LogManager.Instance.WriteLineWarning("Created " + this.GetType().FullName + ", but it is not high resolution. Maybe the underlying platform doesn't support high resolution timers?");
             }
-            stopwatch = Stopwatch.StartNew();
+            _stopwatch = Stopwatch.StartNew();
             Reset();
         }
 
         public void Update()
         {
-            TimeSpan elapsed = stopwatch.Elapsed;
-            ElapsedTime = elapsed - lastElapsed;
-            lastElapsed = elapsed;
+            TimeSpan elapsed = _stopwatch.Elapsed;
+            ElapsedTime = elapsed - _lastElapsed;
+            _lastElapsed = elapsed;
         }
 
         public void Reset()
         {
-            stopwatch.Restart();
-            lastElapsed = stopwatch.Elapsed;
+            _stopwatch.Restart();
+            _lastElapsed = _stopwatch.Elapsed;
         }
 
         public void Suspend()
         {
-            stopwatch.Stop();
+            _stopwatch.Stop();
         }
 
         public void Resume()
         {
-            stopwatch.Start();
+            _stopwatch.Start();
         }
 
         public TimeSpan ElapsedTime

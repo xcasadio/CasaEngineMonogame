@@ -5,7 +5,7 @@ namespace CasaEngine.AI.Graphs
     public class WeightedEdge : Edge
     {
 
-        protected internal float cost = 0.0f;
+        protected internal float Cost = 0.0f;
 
 
 
@@ -17,7 +17,7 @@ namespace CasaEngine.AI.Graphs
             String message = String.Empty;
 
             if (ValidateCost(cost, ref message) == false)
-                throw new AIException("cost", this.GetType().ToString(), message);
+                throw new AiException("cost", this.GetType().ToString(), message);
 
             this.cost = cost;
         }
@@ -32,7 +32,7 @@ namespace CasaEngine.AI.Graphs
                 String message = String.Empty;
 
                 if (ValidateCost(value, ref message) == false)
-                    throw new AIException("cost", this.GetType().ToString(), message);
+                    throw new AiException("cost", this.GetType().ToString(), message);
 
                 cost = value;
             }

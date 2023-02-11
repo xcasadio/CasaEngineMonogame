@@ -2,8 +2,8 @@
 {
     public interface ICommand
     {
-        void Execute(object arg1_);
+        void Execute(object arg1);
 
-        void Undo(object arg1_);
+        void Undo(object arg1);
     }
 }

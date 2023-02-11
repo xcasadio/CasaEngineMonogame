@@ -241,10 +241,10 @@ namespace Editor.Tools.Graphics2D
         {
             m_ListViewSubControls = new System.Windows.Forms.Control[] {
                                     null,
-									comboBoxFrameSprite2DName,
-									numericUpDownFrameDelayForListViewEx,
+                                    comboBoxFrameSprite2DName,
+                                    numericUpDownFrameDelayForListViewEx,
                                     buttonEventForListViewEx
-									};
+                                    };
         }
 
 
@@ -256,18 +256,18 @@ namespace Editor.Tools.Graphics2D
             listViewFrame.Items.Clear();
             int i = 0;
             //curveEditor
-            Curve curve = new Curve();            
+            Curve curve = new Curve();
 
             foreach (Frame2D f in anim2D_.GetFrames())
             {
                 listViewFrame.Items.Add(
-                    new ListViewItem(new string[] 
-						{
+                    new ListViewItem(new string[]
+                        {
                             (i + 1).ToString(),
-							Engine.Instance.ObjectManager.GetObjectNameByID(f.spriteID),
-							f.time.ToString(),
+                            Engine.Instance.ObjectManager.GetObjectNameById(f.SpriteId),
+                            f.Time.ToString(),
                             f.EventsToString()
-						}));
+                        }));
 
                 CurveKey key = new CurveKey((float)i, anim2D_.GetFrameTime(i));
                 curve.Keys.Add(key);
@@ -633,7 +633,7 @@ namespace Editor.Tools.Graphics2D
                     anim.SetCurrentFrame(index);
                     labelCurrentFrame2.Text = (index + 1) + "/" + anim.FrameCount;
                 }
-            }            
+            }
         }
 
         /// <summary>
@@ -686,16 +686,16 @@ namespace Editor.Tools.Graphics2D
             if (obj_ is Animation2D)
             {
                 Animation2D anim2D = obj_ as Animation2D;
-                
+
                 CheckAnimationChanges();
                 m_Animation2DComponent.SetCurrentAnimation2D(path_, anim2D);
                 FillControlFromAnimation2D(anim2D);
                 Text = "Animation2D Editor - " + path_;
-              }
+            }
             else
             {
                 LogManager.Instance.WriteLineError("Sprite2DEditorForm.SetCurrentObject() : BaseObject is not a Animation2D");
-            }             
+            }
         }
 
         /// <summary>

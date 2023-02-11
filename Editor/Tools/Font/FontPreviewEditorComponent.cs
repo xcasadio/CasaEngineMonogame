@@ -40,7 +40,7 @@ namespace Editor.Tools.Font
                     StringBuilder strbld = new StringBuilder();
                     foreach (FontChar c in m_NewFont.Chars)
                     {
-                        strbld.Append((char)c.ID);
+                        strbld.Append((char)c.Id);
                     }
 
                     m_Text = strbld.ToString();

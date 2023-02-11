@@ -14,13 +14,13 @@ namespace CasaEngine.Asset
 
         // Thanks Hans Passant!
         // http://stackoverflow.com/questions/4305800/using-custom-colored-cursors-in-a-c-windows-application
-        public object LoadAsset(string fileName_, GraphicsDevice device_)
+        public object LoadAsset(string fileName, GraphicsDevice device)
         {
-            IntPtr handle = LoadCursorFromFile(fileName_);
+            IntPtr handle = LoadCursorFromFile(fileName);
 
             if (handle == null)
             {
-                throw new Win32Exception("CursorLoader.LoadAsset() : can't load the file " + fileName_);
+                throw new Win32Exception("CursorLoader.LoadAsset() : can't load the file " + fileName);
             }
 
             System.Windows.Forms.Cursor curs = new System.Windows.Forms.Cursor(handle);

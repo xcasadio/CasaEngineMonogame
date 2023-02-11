@@ -18,7 +18,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         : ISaveLoad
     {
 
-        private Texture2D m_WhiteTexture;
+        private Texture2D _whiteTexture;
 
         public event EventHandler Click;
         public event EventHandler MouseEnter;
@@ -26,13 +26,13 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         public event EventHandler MouseLeave;
         public event EventHandler SelectedChanged;
 
-        private Renderer2DComponent m_Renderer2DComponent;
-        private int m_Width;
-        private int m_Height;
-        private Vector2 m_Location;
+        private Renderer2DComponent _renderer2DComponent;
+        private int _width;
+        private int _height;
+        private Vector2 _location;
 
-        private bool m_MouseLeftPressed = false;
-        private bool m_MouseOver = false;
+        private bool _mouseLeftPressed = false;
+        private bool _mouseOver = false;
 
 
 
@@ -42,9 +42,9 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             protected set;
         }
 
-        protected Texture2D WhiteTexture => m_WhiteTexture;
+        protected Texture2D WhiteTexture => _whiteTexture;
 
-        public Renderer2DComponent Renderer2DComponent => m_Renderer2DComponent;
+        public Renderer2DComponent Renderer2DComponent => _renderer2DComponent;
 
         public bool AutoSize
         {
@@ -102,30 +102,30 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
         public Vector2 Location
         {
-            get => m_Location;
+            get => _location;
             set
             {
-                m_Location = value;
+                _location = value;
                 UpdateBounds();
             }
         }
 
         public int Width
         {
-            get => m_Width;
+            get => _width;
             set
             {
-                m_Width = value;
+                _width = value;
                 UpdateBounds();
             }
         }
 
         public int Height
         {
-            get => m_Height;
+            get => _height;
             set
             {
-                m_Height = value;
+                _height = value;
                 UpdateBounds();
             }
         }
@@ -138,34 +138,34 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        protected ScreenGadget(XmlElement el_, SaveOption opt_)
+        protected ScreenGadget(XmlElement el, SaveOption opt)
         {
-            Load(el_, opt_);
+            Load(el, opt);
         }
 
 
 
-        public virtual void Initialize(Microsoft.Xna.Framework.Game game_)
+        public virtual void Initialize(Microsoft.Xna.Framework.Game game)
         {
-            m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(game_);
+            _renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(game);
 
             //TODO : faire autrement
-            m_WhiteTexture = new Texture2D(game_.GraphicsDevice, 1, 1);
+            _whiteTexture = new Texture2D(game.GraphicsDevice, 1, 1);
             Color[] whitePixels = new Color[] { Color.White };
-            m_WhiteTexture.SetData<Color>(whitePixels);
+            _whiteTexture.SetData<Color>(whitePixels);
 
             Font = Engine.Instance.DefaultSpriteFont;
             //Font = game_.Content.Load<SpriteFont>(FontName);
         }
 
-        public virtual void Update(float elapsedTime_)
+        public virtual void Update(float elapsedTime)
         {
             int mouseX = Mouse.GetState().X, mouseY = Mouse.GetState().Y;
             bool mouseOver = Bounds.Contains(mouseX, mouseY);
 
             if (Mouse.GetState().LeftButton == ButtonState.Pressed)
             {
-                if (m_MouseLeftPressed == false
+                if (_mouseLeftPressed == false
                     && mouseOver == true)
                 {
                     if (Click != null)
@@ -174,15 +174,15 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                     }
                 }
 
-                m_MouseLeftPressed = true;
+                _mouseLeftPressed = true;
             }
             else
             {
-                m_MouseLeftPressed = false;
+                _mouseLeftPressed = false;
             }
 
             if (mouseOver == true
-                && m_MouseOver == false)
+                && _mouseOver == false)
             {
                 if (MouseEnter != null)
                 {
@@ -190,7 +190,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 }
             }
             else if (mouseOver == false
-                && m_MouseOver == true)
+                && _mouseOver == true)
             {
                 if (MouseLeave != null)
                 {
@@ -208,9 +208,9 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
             }
         }
 
-        public void Draw(float elapsedTime_)
+        public void Draw(float elapsedTime)
         {
-            DrawGadget(elapsedTime_);
+            DrawGadget(elapsedTime);
         }
 
 #if EDITOR
@@ -218,34 +218,34 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 #else
         protected
 #endif
-        abstract void DrawGadget(float elapsedTime_);
+        abstract void DrawGadget(float elapsedTime);
 
 
-        public virtual void Load(XmlElement el_, SaveOption opt_)
+        public virtual void Load(XmlElement el, SaveOption opt)
         {
             Color c = Color.White;
             Vector2 v = Vector2.Zero;
 
-            int version = int.Parse(el_.Attributes["version"].Value);
+            int version = int.Parse(el.Attributes["version"].Value);
 
-            AutoSize = bool.Parse(el_.SelectSingleNode("AutoSize").InnerText);
-            ((XmlElement)el_.SelectSingleNode("BackgroundColor")).Read(ref c);
+            AutoSize = bool.Parse(el.SelectSingleNode("AutoSize").InnerText);
+            ((XmlElement)el.SelectSingleNode("BackgroundColor")).Read(ref c);
             BackgroundColor = c;
-            FontName = el_.SelectSingleNode("FontName").InnerText;
-            ((XmlElement)el_.SelectSingleNode("FontColor")).Read(ref c);
+            FontName = el.SelectSingleNode("FontName").InnerText;
+            ((XmlElement)el.SelectSingleNode("FontColor")).Read(ref c);
             FontColor = c;
-            Width = int.Parse(el_.SelectSingleNode("Width").InnerText);
-            Height = int.Parse(el_.SelectSingleNode("Height").InnerText);
-            TabIndex = int.Parse(el_.SelectSingleNode("TabIndex").InnerText);
-            ((XmlElement)el_.SelectSingleNode("Location")).Read(ref v);
+            Width = int.Parse(el.SelectSingleNode("Width").InnerText);
+            Height = int.Parse(el.SelectSingleNode("Height").InnerText);
+            TabIndex = int.Parse(el.SelectSingleNode("TabIndex").InnerText);
+            ((XmlElement)el.SelectSingleNode("Location")).Read(ref v);
             Location = v;
-            ((XmlElement)el_.SelectSingleNode("Scale")).Read(ref v);
+            ((XmlElement)el.SelectSingleNode("Scale")).Read(ref v);
             Scale = v;
-            Name = el_.SelectSingleNode("Name").InnerText;
-            Text = el_.SelectSingleNode("Text").InnerText;
+            Name = el.SelectSingleNode("Name").InnerText;
+            Text = el.SelectSingleNode("Text").InnerText;
         }
 
-        public virtual void Load(BinaryReader br_, SaveOption opt_)
+        public virtual void Load(BinaryReader br, SaveOption opt)
         {
             throw new NotImplementedException();
         }
@@ -253,38 +253,38 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
         private void UpdateBounds()
         {
-            Bounds = new Rectangle((int)Location.X, (int)Location.Y, m_Width, m_Height);
+            Bounds = new Rectangle((int)Location.X, (int)Location.Y, _width, _height);
         }
 
-        public bool Compare(ScreenGadget g_)
+        public bool Compare(ScreenGadget g)
         {
-            return m_Width == g_.m_Width
-                && m_Height == g_.m_Height
-                && m_Location == g_.m_Location
-                && AutoSize == g_.AutoSize
-                && CanSelect == g_.CanSelect
-                && TabIndex == g_.TabIndex
-                && BackgroundColor == g_.BackgroundColor
-                && FontColor == g_.FontColor
-                && Font == g_.Font
-                && Text == g_.Text
-                && Name == g_.Name
-                && Scale == g_.Scale;
+            return _width == g._width
+                && _height == g._height
+                && _location == g._location
+                && AutoSize == g.AutoSize
+                && CanSelect == g.CanSelect
+                && TabIndex == g.TabIndex
+                && BackgroundColor == g.BackgroundColor
+                && FontColor == g.FontColor
+                && Font == g.Font
+                && Text == g.Text
+                && Name == g.Name
+                && Scale == g.Scale;
         }
 
 
 
-        static public ScreenGadget LoadScreenGadget(XmlElement el_, SaveOption opt_)
+        static public ScreenGadget LoadScreenGadget(XmlElement el, SaveOption opt)
         {
-            string typeName = el_.Attributes["typeName"].Value;
+            string typeName = el.Attributes["typeName"].Value;
 
             switch (typeName)
             {
                 case "Label":
-                    return new ScreenGadgetLabel(el_, opt_);
+                    return new ScreenGadgetLabel(el, opt);
 
                 case "Button":
-                    return new ScreenGadgetButton(el_, opt_);
+                    return new ScreenGadgetButton(el, opt);
 
                 default:
                     throw new InvalidOperationException("ScreenGadget.LoadScreen() : the screen type " + typeName + " is not supported.");

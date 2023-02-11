@@ -15,7 +15,7 @@ namespace CasaEngine.Math.Shape2D
         : Shape2DObject
     {
 
-        Point m_Start, m_End;
+        Point _start, _end;
 
 
 
@@ -24,10 +24,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public Point Start
         {
-            get { return m_Start; }
+            get { return _start; }
             set
             {
-                m_Start = value;
+                _start = value;
 #if EDITOR
                 NotifyPropertyChanged("Start");
 #endif
@@ -39,10 +39,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public Point End
         {
-            get { return m_End; }
+            get { return _end; }
             set
             {
-                m_End = value;
+                _end = value;
 #if EDITOR
                 NotifyPropertyChanged("End");
 #endif
@@ -53,19 +53,19 @@ namespace CasaEngine.Math.Shape2D
 
         public ShapeLine() { }
 
-        public ShapeLine(ShapeLine o_)
-            : base(o_)
+        public ShapeLine(ShapeLine o)
+            : base(o)
         { }
 
 
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            base.Load(el_, option_);
-            m_Start.X = int.Parse(el_.Attributes["startX"].Value);
-            m_Start.Y = int.Parse(el_.Attributes["startY"].Value);
-            m_End.X = int.Parse(el_.Attributes["endX"].Value);
-            m_End.Y = int.Parse(el_.Attributes["endY"].Value);
+            base.Load(el, option);
+            _start.X = int.Parse(el.Attributes["startX"].Value);
+            _start.Y = int.Parse(el.Attributes["startY"].Value);
+            _end.X = int.Parse(el.Attributes["endX"].Value);
+            _end.Y = int.Parse(el.Attributes["endY"].Value);
         }
 
         public override Shape2DObject Clone()
@@ -73,30 +73,30 @@ namespace CasaEngine.Math.Shape2D
             return new ShapeLine(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob_)
+        public override void CopyFrom(Shape2DObject ob)
         {
-            if (ob_ is ShapeLine == false)
+            if (ob is ShapeLine == false)
             {
                 throw new ArgumentException("ShapeLine.CopyFrom() : Shape2DObject is not a ShapeLine");
             }
 
-            base.CopyFrom(ob_);
-            m_Start = ((ShapeLine)ob_).m_Start;
-            m_End = ((ShapeLine)ob_).m_End;
+            base.CopyFrom(ob);
+            _start = ((ShapeLine)ob)._start;
+            _end = ((ShapeLine)ob)._end;
         }
 
         public override void FlipHorizontally()
         {
-            int x = m_End.X - m_Start.X;
-            m_Start.X += x;
-            m_End.X -= x;
+            int x = _end.X - _start.X;
+            _start.X += x;
+            _end.X -= x;
         }
 
         public override void FlipVertically()
         {
-            int y = m_End.Y - m_Start.Y;
-            m_Start.Y += y;
-            m_End.Y -= y;
+            int y = _end.Y - _start.Y;
+            _start.Y += y;
+            _end.Y -= y;
         }
 
     }

@@ -3,16 +3,16 @@
     public class CustomEditor
         : Attribute
     {
-        private readonly Type m_Type;
+        private readonly Type _type;
 
-        public CustomEditor(Type type_)
+        public CustomEditor(Type type)
         {
-            m_Type = type_;
+            _type = type;
         }
 
         public override string ToString()
         {
-            return m_Type.FullName;
+            return _type.FullName;
         }
     }
 }

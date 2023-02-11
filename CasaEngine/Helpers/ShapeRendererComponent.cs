@@ -17,29 +17,29 @@ namespace CasaEngine.Helper
         static public bool DisplayCollisions = true;
         static public bool DisplayPhysics = false;
 
-        private ShapeRenderer m_ShapeRenderer;
-        Matrix m_ProjectionMatrix, m_WorldMatrix, m_View;
-        private FarseerPhysics.Dynamics.World m_World;
-        private readonly List<DisplayCollisionData> m_DisplayCollisionData = new List<DisplayCollisionData>();
+        private ShapeRenderer _shapeRenderer;
+        Matrix _projectionMatrix, _worldMatrix, _view;
+        private FarseerPhysics.Dynamics.World _world;
+        private readonly List<DisplayCollisionData> _displayCollisionData = new List<DisplayCollisionData>();
 
         //to avoid GC
-        private readonly Stack<DisplayCollisionData> m_FreeDisplayCollisionData = new Stack<DisplayCollisionData>();
-        private Vector2 vector2D1 = new Vector2();
+        private readonly Stack<DisplayCollisionData> _freeDisplayCollisionData = new Stack<DisplayCollisionData>();
+        private Vector2 _vector2D1 = new Vector2();
 
 
 
-        public ShapeRenderer ShapeRenderer => m_ShapeRenderer;
+        public ShapeRenderer ShapeRenderer => _shapeRenderer;
 
 
-        public ShapeRendererComponent(Microsoft.Xna.Framework.Game game_)
-            : base(game_)
+        public ShapeRendererComponent(Microsoft.Xna.Framework.Game game)
+            : base(game)
         {
-            if (game_ == null)
+            if (game == null)
             {
                 throw new ArgumentException("ScreenManagerComponent : Game is null");
             }
 
-            game_.Components.Add(this);
+            game.Components.Add(this);
 
             //Enabled = false;
             //Visible = false;
@@ -56,83 +56,83 @@ namespace CasaEngine.Helper
             base.LoadContent();
         }
 
-        public void SetCurrentPhysicsWorld(FarseerPhysics.Dynamics.World world_)
+        public void SetCurrentPhysicsWorld(FarseerPhysics.Dynamics.World world)
         {
-            m_World = world_;
+            _world = world;
 
-            //if (m_World != null)
+            //if (_World != null)
             {
-                m_ShapeRenderer = new ShapeRenderer(world_);
+                _shapeRenderer = new ShapeRenderer(world);
             }
         }
 
         /*public void AddShape2DObject(IEnumerable<Shape2DObject> a_)
         {
-            m_DisplayCollisionData.AddRange(a_);
+            _DisplayCollisionData.AddRange(a_);
         }*/
 
-        public void AddShape2DObject(Shape2DObject g_, Color color_)
+        public void AddShape2DObject(Shape2DObject g, Color color)
         {
             DisplayCollisionData data = GetDisplayCollisionData();
-            data.Shape2DObject = g_;
-            data.Color = color_;
-            m_DisplayCollisionData.Add(data);
+            data.Shape2DObject = g;
+            data.Color = color;
+            _displayCollisionData.Add(data);
         }
 
         public override void Update(GameTime gameTime)
         {
-            foreach (DisplayCollisionData d in m_DisplayCollisionData)
+            foreach (DisplayCollisionData d in _displayCollisionData)
             {
-                m_FreeDisplayCollisionData.Push(d);
+                _freeDisplayCollisionData.Push(d);
             }
 
-            m_DisplayCollisionData.Clear();
+            _displayCollisionData.Clear();
 
             base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
         {
-            if (m_ShapeRenderer == null)
+            if (_shapeRenderer == null)
             {
                 return;
             }
 
             if (DisplayCollisions == true)
             {
-                m_ShapeRenderer.BeginCustomDraw(ref m_ProjectionMatrix, ref m_View, ref m_WorldMatrix);
+                _shapeRenderer.BeginCustomDraw(ref _projectionMatrix, ref _view, ref _worldMatrix);
 
-                foreach (DisplayCollisionData d in m_DisplayCollisionData)
+                foreach (DisplayCollisionData d in _displayCollisionData)
                 {
                     DisplayShape2D(d);
                 }
 
-                m_ShapeRenderer.EndCustomDraw();
+                _shapeRenderer.EndCustomDraw();
             }
 
             if (DisplayPhysics == true)
             {
-                m_ShapeRenderer.RenderDebugData(ref m_ProjectionMatrix, ref m_View, ref m_WorldMatrix);
+                _shapeRenderer.RenderDebugData(ref _projectionMatrix, ref _view, ref _worldMatrix);
             }
         }
 
-        private void DisplayShape2D(DisplayCollisionData data_)
+        private void DisplayShape2D(DisplayCollisionData data)
         {
-            vector2D1.X = data_.Shape2DObject.Location.X;
-            vector2D1.Y = data_.Shape2DObject.Location.Y;
+            _vector2D1.X = data.Shape2DObject.Location.X;
+            _vector2D1.Y = data.Shape2DObject.Location.Y;
 
-            switch (data_.Shape2DObject.Shape2DType)
+            switch (data.Shape2DObject.Shape2DType)
             {
                 case Shape2DType.Circle:
-                    ShapeCircle c = (ShapeCircle)data_.Shape2DObject;
-                    m_ShapeRenderer.DrawCircle(
-                        vector2D1,
+                    ShapeCircle c = (ShapeCircle)data.Shape2DObject;
+                    _shapeRenderer.DrawCircle(
+                        _vector2D1,
                         c.Radius,
-                        data_.Color);
+                        data.Color);
                     break;
 
                 case Shape2DType.Polygone:
-                    ShapePolygone p = (ShapePolygone)data_.Shape2DObject;
+                    ShapePolygone p = (ShapePolygone)data.Shape2DObject;
 
 #if EDITOR
                     Vector2[] vec = p.Points.ToArray();
@@ -143,29 +143,29 @@ namespace CasaEngine.Helper
 
                     for (int i = 0; i < vec.Length; i++)
                     {
-                        vec[i] = Vector2.Add(vec[i], vector2D1);
+                        vec[i] = Vector2.Add(vec[i], _vector2D1);
                     }
 
-                    m_ShapeRenderer.DrawPolygon(vec, vec.Length, data_.Color);
+                    _shapeRenderer.DrawPolygon(vec, vec.Length, data.Color);
 
                     break;
 
                 case Shape2DType.Rectangle:
-                    ShapeRectangle r = (ShapeRectangle)data_.Shape2DObject;
+                    ShapeRectangle r = (ShapeRectangle)data.Shape2DObject;
 
                     Vector2[] vecs = new Vector2[4];
                     float w = r.Width / 2.0f;
                     float h = r.Height / 2.0f;
-                    vecs[0] = new Vector2(vector2D1.X - w, vector2D1.Y - h);
-                    vecs[1] = new Vector2(vector2D1.X + w, vector2D1.Y - h);
-                    vecs[2] = new Vector2(vector2D1.X + w, vector2D1.Y + h);
-                    vecs[3] = new Vector2(vector2D1.X - w, vector2D1.Y + h);
+                    vecs[0] = new Vector2(_vector2D1.X - w, _vector2D1.Y - h);
+                    vecs[1] = new Vector2(_vector2D1.X + w, _vector2D1.Y - h);
+                    vecs[2] = new Vector2(_vector2D1.X + w, _vector2D1.Y + h);
+                    vecs[3] = new Vector2(_vector2D1.X - w, _vector2D1.Y + h);
 
-                    m_ShapeRenderer.DrawPolygon(vecs, 4, data_.Color);
+                    _shapeRenderer.DrawPolygon(vecs, 4, data.Color);
                     break;
 
                 default:
-                    throw new InvalidOperationException("ShapeRendererComponent.Draw() : Shape2DType '" + Enum.GetName(typeof(Shape2DType), data_.Shape2DObject.Shape2DType) + "' not supported.");
+                    throw new InvalidOperationException("ShapeRendererComponent.Draw() : Shape2DType '" + Enum.GetName(typeof(Shape2DType), data.Shape2DObject.Shape2DType) + "' not supported.");
             }
         }
 
@@ -189,28 +189,28 @@ namespace CasaEngine.Helper
             Vector2 upper = viewCenter + extents;
 
             // L/R/B/T
-            //m_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(lower.X, upper.X, lower.Y, upper.Y, -1, 1);
+            //_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(lower.X, upper.X, lower.Y, upper.Y, -1, 1);
             float ww = (float)tw / 2.0f;
             float hh = (float)th / 2.0f;
 
             //pour jeux utilisant le spritebatch (screen coordinate)
-            m_ProjectionMatrix = Matrix.CreateOrthographicOffCenter(
+            _projectionMatrix = Matrix.CreateOrthographicOffCenter(
                 0, ww * 2,
                 -hh * 2, 0,
                 0f, 1f);
 
-            m_WorldMatrix = Matrix.CreateScale(new Vector3(1, -1, 1));
-            m_View = Matrix.Identity;
+            _worldMatrix = Matrix.CreateScale(new Vector3(1, -1, 1));
+            _view = Matrix.Identity;
 
             //jeux utilisant le world coordinate (3D)
-            //m_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(0, ww * 2, 0, hh * 2, 0f, 1f);
+            //_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(0, ww * 2, 0, hh * 2, 0f, 1f);
         }
 
         private DisplayCollisionData GetDisplayCollisionData()
         {
-            if (m_FreeDisplayCollisionData.Count > 0)
+            if (_freeDisplayCollisionData.Count > 0)
             {
-                return m_FreeDisplayCollisionData.Pop();
+                return _freeDisplayCollisionData.Pop();
             }
 
             return new DisplayCollisionData();

@@ -2,9 +2,9 @@
 {
     public class FuzzyVariable
     {
-        readonly Dictionary<string, FuzzySet> m_MemberSets = new Dictionary<string, FuzzySet>();
-        double m_dMinRange = 0.0;
-        double m_dMaxRange = 0.0;
+        readonly Dictionary<string, FuzzySet> _memberSets = new Dictionary<string, FuzzySet>();
+        double _dMinRange = 0.0;
+        double _dMaxRange = 0.0;
 
 
 
@@ -15,15 +15,15 @@
         public void Fuzzify(double val)
         {
             //make sure the value is within the bounds of this variable
-            if ((val < m_dMinRange) && (val > m_dMaxRange))
+            if ((val < _dMinRange) && (val > _dMaxRange))
             {
                 throw new ArgumentException("FuzzyVariable.Fuzzify() : value out of bounds");
             }
 
             //for each set in the flv calculate the DOM for the given value
-            foreach (KeyValuePair<string, FuzzySet> pair in m_MemberSets)
+            foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
             {
-                pair.Value.DOM = pair.Value.CalculateDOM(val);
+                pair.Value.Dom = pair.Value.CalculateDom(val);
             }
         }
 
@@ -32,11 +32,11 @@
             double bottom = 0.0;
             double top = 0.0;
 
-            foreach (KeyValuePair<string, FuzzySet> pair in m_MemberSets)
+            foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
             {
-                bottom += pair.Value.DOM;
+                bottom += pair.Value.Dom;
 
-                top += pair.Value.RepresentativeValue * pair.Value.DOM;
+                top += pair.Value.RepresentativeValue * pair.Value.Dom;
             }
 
             //make sure bottom is not equal to zero
@@ -45,13 +45,13 @@
             return top / bottom;
         }
 
-        public double DeFuzzifyCentroid(int NumSamples)
+        public double DeFuzzifyCentroid(int numSamples)
         {
             //calculate the step size
-            double StepSize = (m_dMaxRange - m_dMinRange) / (double)NumSamples;
+            double stepSize = (_dMaxRange - _dMinRange) / (double)numSamples;
 
-            double TotalArea = 0.0;
-            double SumOfMoments = 0.0;
+            double totalArea = 0.0;
+            double sumOfMoments = 0.0;
 
             //step through the range of this variable in increments equal to StepSize
             //adding up the contribution (lower of CalculateDOM or the actual DOM of this
@@ -63,84 +63,84 @@
             //in addition the moment of each slice is calculated and summed. Dividing
             //the total area by the sum of the moments gives the centroid. (Just like
             //calculating the center of mass of an object)
-            for (int samp = 1; samp <= NumSamples; ++samp)
+            for (int samp = 1; samp <= numSamples; ++samp)
             {
                 //for each set get the contribution to the area. This is the lower of the 
                 //value returned from CalculateDOM or the actual DOM of the fuzzified 
                 //value itself   
-                foreach (KeyValuePair<string, FuzzySet> pair in m_MemberSets)
+                foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
                 {
                     double contribution =
-                        System.Math.Min(pair.Value.CalculateDOM(m_dMinRange + samp * StepSize), pair.Value.DOM);
+                        System.Math.Min(pair.Value.CalculateDom(_dMinRange + samp * stepSize), pair.Value.Dom);
 
-                    TotalArea += contribution;
+                    totalArea += contribution;
 
-                    SumOfMoments += (m_dMinRange + samp * StepSize) * contribution;
+                    sumOfMoments += (_dMinRange + samp * stepSize) * contribution;
                 }
             }
 
             //make sure total area is not equal to zero
-            if (0 == TotalArea) return 0.0;
+            if (0 == totalArea) return 0.0;
 
-            return (SumOfMoments / TotalArea);
+            return (sumOfMoments / totalArea);
         }
 
         public FzSet AddTriangularSet(string name, double minBound, double peak, double maxBound)
         {
-            m_MemberSets[name] = new FuzzySet_Triangle(peak,
+            _memberSets[name] = new FuzzySetTriangle(peak,
                                                        peak - minBound,
                                                        maxBound - peak);
             //adjust range if necessary
             AdjustRangeToFit(minBound, maxBound);
 
-            return new FzSet(m_MemberSets[name]);
+            return new FzSet(_memberSets[name]);
         }
 
         public FzSet AddLeftShoulderSet(string name, double minBound, double peak, double maxBound)
         {
-            m_MemberSets[name] = new FuzzySet_LeftShoulder(peak, peak - minBound, maxBound - peak);
+            _memberSets[name] = new FuzzySetLeftShoulder(peak, peak - minBound, maxBound - peak);
 
             //adjust range if necessary
             AdjustRangeToFit(minBound, maxBound);
 
-            return new FzSet(m_MemberSets[name]);
+            return new FzSet(_memberSets[name]);
         }
 
         public FzSet AddRightShoulderSet(string name, double minBound, double peak, double maxBound)
         {
-            m_MemberSets[name] = new FuzzySet_RightShoulder(peak, peak - minBound, maxBound - peak);
+            _memberSets[name] = new FuzzySetRightShoulder(peak, peak - minBound, maxBound - peak);
 
             //adjust range if necessary
             AdjustRangeToFit(minBound, maxBound);
 
-            return new FzSet(m_MemberSets[name]);
+            return new FzSet(_memberSets[name]);
         }
 
         public FzSet AddSingletonSet(string name, double minBound, double peak, double maxBound)
         {
-            m_MemberSets[name] = new FuzzySet_Singleton(peak,
+            _memberSets[name] = new FuzzySetSingleton(peak,
                                                         peak - minBound,
                                                         maxBound - peak);
 
             AdjustRangeToFit(minBound, maxBound);
 
-            return new FzSet(m_MemberSets[name]);
+            return new FzSet(_memberSets[name]);
         }
 
         private void AdjustRangeToFit(double minBound, double maxBound)
         {
-            if (minBound < m_dMinRange) m_dMinRange = minBound;
-            if (maxBound > m_dMaxRange) m_dMaxRange = maxBound;
+            if (minBound < _dMinRange) _dMinRange = minBound;
+            if (maxBound > _dMaxRange) _dMaxRange = maxBound;
         }
 
-        public void WriteDOMs(BinaryWriter binW_)
+        public void WriteDoMs(BinaryWriter binW)
         {
-            foreach (KeyValuePair<string, FuzzySet> pair in m_MemberSets)
+            foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
             {
-                binW_.Write("\n" + pair.Key + " is " + pair.Value.DOM);
+                binW.Write("\n" + pair.Key + " is " + pair.Value.Dom);
             }
 
-            binW_.Write("\nMin Range: " + m_dMinRange + "\nMax Range: " + m_dMaxRange);
+            binW.Write("\nMin Range: " + _dMinRange + "\nMax Range: " + _dMaxRange);
         }
 
     }

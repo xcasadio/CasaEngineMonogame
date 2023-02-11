@@ -17,23 +17,23 @@ namespace CasaEngine.Asset.Fonts
 
 
 
-        public Font(string fileName_)
+        public Font(string fileName)
             : this()
         {
-            ImportFromFile(fileName_);
+            ImportFromFile(fileName);
         }
 
 
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        private void ImportFromFile(string fileName_)
+        private void ImportFromFile(string fileName)
         {
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(fileName_);
+            xmlDoc.Load(fileName);
 
             XmlNode fontNode = xmlDoc.SelectSingleNode("font");
 
@@ -42,15 +42,15 @@ namespace CasaEngine.Asset.Fonts
 
             foreach (XmlNode n in xmlDoc.SelectNodes("font/pages/page"))
             {
-                m_TexturesFileNames.Add(n.Attributes["file"].Value);
+                _texturesFileNames.Add(n.Attributes["file"].Value);
             }
-            //m_TextureFileName = xmlDoc.SelectSingleNode("font/pages/page").Attributes["file"].Value;
+            //_TextureFileName = xmlDoc.SelectSingleNode("font/pages/page").Attributes["file"].Value;
 
             foreach (XmlNode n in xmlDoc.SelectNodes("font/chars/char"))
             {
                 FontChar f = new FontChar(n);
                 Chars.Add(f);
-                m_CharsDic.Add((char)f.ID, f);
+                _charsDic.Add((char)f.Id, f);
             }
 
             foreach (XmlNode n in xmlDoc.SelectNodes("font/kernings/kerning"))
@@ -59,48 +59,48 @@ namespace CasaEngine.Asset.Fonts
             }
         }
 
-        public override void Save(XmlElement el_, SaveOption opt_)
+        public override void Save(XmlElement el, SaveOption opt)
         {
-            base.Save(el_, opt_);
+            base.Save(el, opt);
 
-            XmlNode fontNode = el_.OwnerDocument.CreateElement("Font");
-            el_.AppendChild(fontNode);
+            XmlNode fontNode = el.OwnerDocument.CreateElement("Font");
+            el.AppendChild(fontNode);
 
-            Common.Save(fontNode, opt_);
+            Common.Save(fontNode, opt);
 
-            XmlNode pagesNode = el_.OwnerDocument.CreateElement("Pages");
+            XmlNode pagesNode = el.OwnerDocument.CreateElement("Pages");
             fontNode.AppendChild(pagesNode);
 
-            foreach (string file in m_TexturesFileNames)
+            foreach (string file in _texturesFileNames)
             {
-                XmlNode pageNode = el_.OwnerDocument.CreateElement("Page");
+                XmlNode pageNode = el.OwnerDocument.CreateElement("Page");
                 pagesNode.AppendChild(pageNode);
-                el_.OwnerDocument.AddAttribute((XmlElement)pageNode, "file", file);
+                el.OwnerDocument.AddAttribute((XmlElement)pageNode, "file", file);
             }
 
-            XmlNode charsNode = el_.OwnerDocument.CreateElement("Chars");
+            XmlNode charsNode = el.OwnerDocument.CreateElement("Chars");
             fontNode.AppendChild(charsNode);
 
             foreach (FontChar f in Chars)
             {
-                f.Save(charsNode, opt_);
+                f.Save(charsNode, opt);
             }
 
-            XmlNode kerningsNode = el_.OwnerDocument.CreateElement("Kernings");
+            XmlNode kerningsNode = el.OwnerDocument.CreateElement("Kernings");
             fontNode.AppendChild(kerningsNode);
 
             foreach (FontKerning kerning in Kernings)
             {
-                kerning.Save(kerningsNode, opt_);
+                kerning.Save(kerningsNode, opt);
             }
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
 
-        public List<string> AssetFileNames => m_TexturesFileNames;
+        public List<string> AssetFileNames => _texturesFileNames;
     }
 }

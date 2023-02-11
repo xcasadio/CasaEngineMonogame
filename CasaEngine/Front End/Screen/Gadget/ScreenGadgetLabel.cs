@@ -17,8 +17,8 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        public ScreenGadgetLabel(XmlElement el_, SaveOption opt_)
-            : base(el_, opt_)
+        public ScreenGadgetLabel(XmlElement el, SaveOption opt)
+            : base(el, opt)
         {
 
         }
@@ -30,7 +30,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 #else
         protected
 #endif
-        override void DrawGadget(float elapsedTime_)
+        override void DrawGadget(float elapsedTime)
         {
             Renderer2DComponent.AddSprite2D(
                 WhiteTexture,

@@ -9,24 +9,24 @@ namespace CasaEngine.Graphics2D
         static public float AnimationSpeed = 1.0f;
 #endif
 
-        private readonly Dictionary<int, Animation2D> m_Animations;
-        private Animation2D m_CurrentAnimation = null;
+        private readonly Dictionary<int, Animation2D> _animations;
+        private Animation2D _currentAnimation = null;
 
         public event EventHandler OnEndAnimationReached;
         public event EventHandler<Animation2DFrameChangedEventArgs> OnFrameChanged;
 
-        private int m_CurrentAnimationIndex = -1;
+        private int _currentAnimationIndex = -1;
 
 
 
-        public Animation2D CurrentAnimation => m_CurrentAnimation;
+        public Animation2D CurrentAnimation => _currentAnimation;
 
 
-        public Animation2DPlayer(Dictionary<int, Animation2D> animations_)
+        public Animation2DPlayer(Dictionary<int, Animation2D> animations)
         {
-            m_Animations = animations_;
+            _animations = animations;
 
-            foreach (KeyValuePair<int, Animation2D> pair in animations_)
+            foreach (KeyValuePair<int, Animation2D> pair in animations)
             {
                 pair.Value.OnFrameChanged += new EventHandler<Animation2DFrameChangedEventArgs>(FrameChanging);
                 pair.Value.OnEndAnimationReached += new EventHandler(EventHandler_OnEndAnimationReached);
@@ -51,42 +51,42 @@ namespace CasaEngine.Graphics2D
             }
         }
 
-        public void SetCurrentAnimationByID(int id_)
+        public void SetCurrentAnimationById(int id)
         {
-            if (m_CurrentAnimationIndex != id_)
+            if (_currentAnimationIndex != id)
             {
-                m_CurrentAnimationIndex = id_;
-                m_CurrentAnimation = m_Animations[id_];
-                m_CurrentAnimation.ResetTime();
+                _currentAnimationIndex = id;
+                _currentAnimation = _animations[id];
+                _currentAnimation.ResetTime();
             }
         }
 
-        public void SetCurrentAnimationByName(string name_)
+        public void SetCurrentAnimationByName(string name)
         {
             int index = -1;
 
-            foreach (KeyValuePair<int, Animation2D> pair in m_Animations)
+            foreach (KeyValuePair<int, Animation2D> pair in _animations)
             {
-                if (pair.Value.Name.Equals(name_) == true)
+                if (pair.Value.Name.Equals(name) == true)
                 {
                     index = pair.Key;
                 }
             }
 
-            if (m_CurrentAnimationIndex != index)
+            if (_currentAnimationIndex != index)
             {
-                m_CurrentAnimationIndex = index;
-                m_CurrentAnimation = m_Animations[index];
-                m_CurrentAnimation.ResetTime();
+                _currentAnimationIndex = index;
+                _currentAnimation = _animations[index];
+                _currentAnimation.ResetTime();
             }
         }
 
-        public void Update(float elpasedTime_)
+        public void Update(float elpasedTime)
         {
 #if !FINAL
-            m_CurrentAnimation.Update(elpasedTime_ * AnimationSpeed);
+            _currentAnimation.Update(elpasedTime * AnimationSpeed);
 #else
-            m_CurrentAnimation.Update(elpasedTime_);
+            _CurrentAnimation.Update(elpasedTime_);
 #endif
         }
 

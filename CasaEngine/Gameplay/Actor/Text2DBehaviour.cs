@@ -3,7 +3,7 @@
     public abstract class Text2DBehaviour
     {
 
-        Text2DActor2D m_Text2D;
+        Text2DActor2D _text2D;
 
 
 
@@ -11,7 +11,7 @@
 
 
 
-        public abstract void Update(float elapsedTime_);
+        public abstract void Update(float elapsedTime);
 
     }
 }

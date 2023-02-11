@@ -13,73 +13,73 @@ namespace CasaEngine.Editor.Assets
     public class AssetManager
     {
 
-        static private readonly uint m_Version = 1;
+        static private readonly uint Version = 1;
 
-        private readonly ContentBuilder m_ContentBuilder = null;
-        private ContentBuilder m_ContentBuilderTempFiles = null;
+        private readonly ContentBuilder _contentBuilder = null;
+        private ContentBuilder _contentBuilderTempFiles = null;
 
-        private readonly List<AssetInfo> m_Assets = new List<AssetInfo>();
-        private readonly List<AssetBuildInfo> m_AssetBuildInfo = new List<AssetBuildInfo>();
+        private readonly List<AssetInfo> _assets = new List<AssetInfo>();
+        private readonly List<AssetBuildInfo> _assetBuildInfo = new List<AssetBuildInfo>();
 
         //for temporary task
-        private readonly FileSystemWatcher m_FileWatcher;
-        private readonly List<string> m_AssetToCopy = new List<string>();
+        private readonly FileSystemWatcher _fileWatcher;
+        private readonly List<string> _assetToCopy = new List<string>();
 
 
 
-        public AssetInfo[] Assets => m_Assets.ToArray();
+        public AssetInfo[] Assets => _assets.ToArray();
 
 
         public AssetManager()
         {
-            m_ContentBuilder = new ContentBuilder();
-            m_ContentBuilderTempFiles = new ContentBuilder();
+            _contentBuilder = new ContentBuilder();
+            _contentBuilderTempFiles = new ContentBuilder();
 
-            m_FileWatcher = new FileSystemWatcher(m_ContentBuilder.OutputDirectory.Replace("bin/Content", ""), "*.xnb");
-            m_FileWatcher.IncludeSubdirectories = true;
-            m_FileWatcher.EnableRaisingEvents = true;
-            m_FileWatcher.Created += new FileSystemEventHandler(m_FileWatcher_Created);
+            _fileWatcher = new FileSystemWatcher(_contentBuilder.OutputDirectory.Replace("bin/Content", ""), "*.xnb");
+            _fileWatcher.IncludeSubdirectories = true;
+            _fileWatcher.EnableRaisingEvents = true;
+            _fileWatcher.Created += new FileSystemEventHandler(_FileWatcher_Created);
         }
 
 
 
-        void m_FileWatcher_Created(object sender, FileSystemEventArgs e)
+        void _FileWatcher_Created(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType == WatcherChangeTypes.Created)
             {
-                m_AssetToCopy.Add(e.FullPath);
+                _assetToCopy.Add(e.FullPath);
             }
         }
 
 
-        public void AddAssetToBuild(string fileName_, string assetName_, AssetType assetType_)
+        public void AddAssetToBuild(string fileName, string assetName, AssetType assetType)
         {
             ProjectItem item;
 
             // Build this new model data.
-            switch (assetType_)
+            switch (assetType)
             {
                 case AssetType.Audio:
-                    item = m_ContentBuilder.Add(fileName_, assetName_, "WavImporter", "SoundEffectProcessor");
+                    item = _contentBuilder.Add(fileName, assetName, "WavImporter", "SoundEffectProcessor");
                     break;
 
                 case AssetType.Texture:
-                    item = m_ContentBuilder.Add(fileName_, assetName_, "TextureImporter", "TextureProcessor");
+                    item = _contentBuilder.Add(fileName, assetName, "TextureImporter", "TextureProcessor");
                     break;
 
                 case AssetType.None:
-                    item = m_ContentBuilder.Add(fileName_, assetName_);
+                    item = _contentBuilder.Add(fileName, assetName);
                     break;
 
                 case AssetType.All:
-                    item = m_ContentBuilder.Add(fileName_, assetName_);
+                    item = _contentBuilder.Add(fileName, assetName);
                     break;
             }
         }
 
-        public void BuildAll(string destPath_)
+        public void BuildAll(string destPath)
         {
-            string buildError = m_ContentBuilder.Build();
+            string buildError = _contentBuilder.Build();
 
             if (string.IsNullOrEmpty(buildError) == false)
             {
@@ -87,9 +87,9 @@ namespace CasaEngine.Editor.Assets
                 return;
             }
 
-            string contentDir = m_ContentBuilder.OutputDirectory.Replace("/", "\\");
+            string contentDir = _contentBuilder.OutputDirectory.Replace("/", "\\");
 
-            foreach (string file in m_AssetToCopy)
+            foreach (string file in _assetToCopy)
             {
                 string fileDest = file.Replace(contentDir, file);
                 File.Copy(
@@ -98,40 +98,40 @@ namespace CasaEngine.Editor.Assets
                     true);
             }
 
-            m_AssetToCopy.Clear();
-            m_ContentBuilder.Clear();
+            _assetToCopy.Clear();
+            _contentBuilder.Clear();
         }
 
 
 
 
-        public bool BuildAsset(string fileName_, AssetInfo info_, bool copy = true)
+        public bool BuildAsset(string fileName, AssetInfo info, bool copy = true)
         {
             ProjectItem item;
 
-            m_ContentBuilder.Clear();
+            _contentBuilder.Clear();
 
             // Build this new model data.
-            switch (info_.Type)
+            switch (info.Type)
             {
                 case AssetType.Audio:
-                    item = m_ContentBuilder.Add(fileName_, info_.Name, "WavImporter", "SoundEffectProcessor");
+                    item = _contentBuilder.Add(fileName, info.Name, "WavImporter", "SoundEffectProcessor");
                     break;
 
                 case AssetType.Texture:
-                    item = m_ContentBuilder.Add(fileName_, info_.Name, "TextureImporter", "TextureProcessor");
+                    item = _contentBuilder.Add(fileName, info.Name, "TextureImporter", "TextureProcessor");
                     break;
 
                 case AssetType.None:
-                    item = m_ContentBuilder.Add(fileName_, info_.Name);
+                    item = _contentBuilder.Add(fileName, info.Name);
                     break;
 
                 case AssetType.All:
-                    item = m_ContentBuilder.Add(fileName_, info_.Name);
+                    item = _contentBuilder.Add(fileName, info.Name);
                     break;
             }
 
-            string buildError = m_ContentBuilder.Build();
+            string buildError = _contentBuilder.Build();
 
             if (string.IsNullOrEmpty(buildError) == false)
             {
@@ -143,7 +143,7 @@ namespace CasaEngine.Editor.Assets
 #endif
             }
 
-            foreach (string file in m_AssetToCopy)
+            foreach (string file in _assetToCopy)
             {
                 File.Copy(
                     file,
@@ -152,86 +152,86 @@ namespace CasaEngine.Editor.Assets
                     true);
             }
 
-            m_AssetToCopy.Clear();
-            m_ContentBuilder.Clear();
+            _assetToCopy.Clear();
+            _contentBuilder.Clear();
 
-            SetBuildSucceed(info_);
+            SetBuildSucceed(info);
 
-            LogManager.Instance.WriteLine("Build asset '" + info_.Name + "' successfull");
+            LogManager.Instance.WriteLine("Build asset '" + info.Name + "' successfull");
 
             return true;
         }
 
-        public bool RebuildAsset(AssetInfo info_)
+        public bool RebuildAsset(AssetInfo info)
         {
-            m_Assets.Remove(info_);
+            _assets.Remove(info);
 
-            string file = GetAssetXNBFullPath(info_);
+            string file = GetAssetXnbFullPath(info);
             File.Delete(file);
 
-            string fullpath = GetAssetFullPath(info_);
+            string fullpath = GetAssetFullPath(info);
 
             //FileInfo fileInfo = new FileInfo(fullpath);
             //info_.ModificationDate = fileInfo.LastWriteTime;
 
-            m_Assets.Add(info_);
+            _assets.Add(info);
 
-            return BuildAsset(fullpath, info_);
+            return BuildAsset(fullpath, info);
         }
 
-        private void SetBuildSucceed(AssetInfo info_)
+        private void SetBuildSucceed(AssetInfo info)
         {
-            FileInfo fi = new FileInfo(GetAssetFullPath(info_));
+            FileInfo fi = new FileInfo(GetAssetFullPath(info));
             int i;
 
-            for (i = 0; i < m_AssetBuildInfo.Count; i++)
+            for (i = 0; i < _assetBuildInfo.Count; i++)
             {
-                if (m_AssetBuildInfo[i].ID == info_.ID)
+                if (_assetBuildInfo[i].Id == info.Id)
                 {
                     break;
                 }
             }
 
-            if (i == m_AssetBuildInfo.Count)
+            if (i == _assetBuildInfo.Count)
             {
                 AssetBuildInfo b1 = new AssetBuildInfo();
-                b1.ID = info_.ID;
+                b1.Id = info.Id;
                 b1.ModificationTime = fi.LastAccessTime;
-                b1.Params = info_.Params;
-                m_AssetBuildInfo.Add(b1);
+                b1.Params = info.Params;
+                _assetBuildInfo.Add(b1);
             }
             else
             {
-                AssetBuildInfo b = m_AssetBuildInfo[i];
+                AssetBuildInfo b = _assetBuildInfo[i];
                 b.ModificationTime = fi.LastAccessTime;
-                b.Params = info_.Params;
-                m_AssetBuildInfo[i] = b;
+                b.Params = info.Params;
+                _assetBuildInfo[i] = b;
             }
         }
 
-        public bool AssetNeedToBeRebuild(AssetInfo info_)
+        public bool AssetNeedToBeRebuild(AssetInfo info)
         {
-            FileInfo fi = new FileInfo(GetAssetFullPath(info_));
+            FileInfo fi = new FileInfo(GetAssetFullPath(info));
             int i;
 
-            for (i = 0; i < m_AssetBuildInfo.Count; i++)
+            for (i = 0; i < _assetBuildInfo.Count; i++)
             {
-                if (m_AssetBuildInfo[i].ID == info_.ID)
+                if (_assetBuildInfo[i].Id == info.Id)
                 {
                     break;
                 }
             }
 
-            if (i < m_AssetBuildInfo.Count)
+            if (i < _assetBuildInfo.Count)
             {
-                return fi.LastAccessTime > m_AssetBuildInfo[i].ModificationTime
-                    && AssetBuildParamCollection.Compare(m_AssetBuildInfo[i].Params, info_.Params) != 0;
+                return fi.LastAccessTime > _assetBuildInfo[i].ModificationTime
+                    && AssetBuildParamCollection.Compare(_assetBuildInfo[i].Params, info.Params) != 0;
             }
 
             return true;
         }
 
-        public string GetAssetFullPath(AssetInfo info_)
+        public string GetAssetFullPath(AssetInfo info)
         {
             string fullpath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
@@ -268,14 +268,14 @@ namespace CasaEngine.Editor.Assets
                     throw new InvalidOperationException("RebuildAsset() : The AssetType " + Enum.GetName(typeof(AssetType), info_.Type) + " is not handle");
             }*/
 
-            fullpath += info_.FileName;
+            fullpath += info.FileName;
 
             return fullpath;
         }
 
-        public string GetAssetXNBFullPath(AssetInfo info_)
+        public string GetAssetXnbFullPath(AssetInfo info)
         {
-            return Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info_.Name + ".xnb";
+            return Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info.Name + ".xnb";
         }
 
         /*private string GetPrefix(AssetType type_)
@@ -305,9 +305,9 @@ namespace CasaEngine.Editor.Assets
             throw new ArgumentException("AssetManager.GetPrefix() : wrong AssetType");
         }*/
 
-        public string GetProcessorName(AssetType type_)
+        public string GetProcessorName(AssetType type)
         {
-            switch (type_)
+            switch (type)
             {
                 case AssetType.Animation:
                     return "AnimationProcessor";//"SkinnedModelProcessor";
@@ -338,16 +338,16 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        public AssetInfo? GetAssetByName(string name_)
+        public AssetInfo? GetAssetByName(string name)
         {
-            if (string.IsNullOrEmpty(name_) == true)
+            if (string.IsNullOrEmpty(name) == true)
             {
                 throw new ArgumentNullException("AssetManager.GetAssetByName() : the name is null or empty");
             }
 
-            foreach (AssetInfo info in m_Assets)
+            foreach (AssetInfo info in _assets)
             {
-                if (info.Name.Equals(name_) == true)
+                if (info.Name.Equals(name) == true)
                 {
                     return info;
                 }
@@ -356,13 +356,13 @@ namespace CasaEngine.Editor.Assets
             return null;
         }
 
-        public bool AddAsset(string fileName_, string name_, AssetType type_, ref string assetFileName_)
+        public bool AddAsset(string fileName, string name, AssetType type, ref string assetFileName)
         {
-            AssetInfo info = new AssetInfo(0, name_, type_, Path.GetFileName(fileName_));
-            info.GetNewID();
+            AssetInfo info = new AssetInfo(0, name, type, Path.GetFileName(fileName));
+            info.GetNewId();
             AddBuildParams(ref info);
 
-            foreach (AssetInfo i in m_Assets)
+            foreach (AssetInfo i in _assets)
             {
                 if (i.Equals(info) == true)
                 {
@@ -392,27 +392,27 @@ namespace CasaEngine.Editor.Assets
                 LogManager.Instance.WriteLineDebug("Asset copied : " + fileName_ + " -> " + assetFile);
                 AddFileInSourceControl(assetFileName_);
 
-                m_Assets.Add(info);
+                _Assets.Add(info);
             }
             else
             {
                 return false;
             }*/
 
-            string assetFile = GetPathFromType(type_);
-            assetFile += Path.DirectorySeparatorChar + Path.GetFileName(fileName_);
-            assetFileName_ = assetFile;
+            string assetFile = GetPathFromType(type);
+            assetFile += Path.DirectorySeparatorChar + Path.GetFileName(fileName);
+            assetFileName = assetFile;
 
-            File.Copy(fileName_, assetFile, true);
-            LogManager.Instance.WriteLineDebug("Asset copied : " + fileName_ + " -> " + assetFile);
-            AddFileInSourceControl(assetFileName_);
+            File.Copy(fileName, assetFile, true);
+            LogManager.Instance.WriteLineDebug("Asset copied : " + fileName + " -> " + assetFile);
+            AddFileInSourceControl(assetFileName);
 
-            m_Assets.Add(info);
+            _assets.Add(info);
 
             return true;
         }
 
-        public string GetPathFromType(AssetType type_)
+        public string GetPathFromType(AssetType type)
         {
             string assetFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
@@ -455,82 +455,82 @@ namespace CasaEngine.Editor.Assets
             return assetFile;
         }
 
-        public void DeleteAsset(string name_, AssetType type_)
+        public void DeleteAsset(string name, AssetType type)
         {
-            foreach (AssetInfo info in m_Assets)
+            foreach (AssetInfo info in _assets)
             {
-                if (info.Name.Equals(name_)
-                    && info.Type == type_)
+                if (info.Name.Equals(name)
+                    && info.Type == type)
                 {
                     DeleteAsset(info);
                 }
             }
         }
 
-        public void DeleteAsset(AssetInfo info_)
+        public void DeleteAsset(AssetInfo info)
         {
-            m_Assets.Remove(info_);
-            LogManager.Instance.WriteLineDebug("Delete asset " + info_.Name + "(" + info_.FileName + ")");
+            _assets.Remove(info);
+            LogManager.Instance.WriteLineDebug("Delete asset " + info.Name + "(" + info.FileName + ")");
         }
 
         public void Clear()
         {
-            m_Assets.Clear();
+            _assets.Clear();
             LogManager.Instance.WriteLineDebug("Asset.Clear()");
         }
 
-        public void AddFileInSourceControl(string fileName_)
+        public void AddFileInSourceControl(string fileName)
         {
             if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
             {
-                SourceControlManager.Instance.SourceControl.MarkFileForAdd(fileName_);
+                SourceControlManager.Instance.SourceControl.MarkFileForAdd(fileName);
             }
         }
 
-        public void DeleteFileInSourceControl(string fileName_)
+        public void DeleteFileInSourceControl(string fileName)
         {
             if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
             {
-                Dictionary<string, Dictionary<SourceControlKeyWord, string>> dic = SourceControlManager.Instance.SourceControl.FileStatus(new string[] { fileName_ });
+                Dictionary<string, Dictionary<SourceControlKeyWord, string>> dic = SourceControlManager.Instance.SourceControl.FileStatus(new string[] { fileName });
 
-                if (dic.ContainsKey(fileName_) == true)
+                if (dic.ContainsKey(fileName) == true)
                 {
-                    if (dic[fileName_].ContainsKey(SourceControlKeyWord.Action) == true)
+                    if (dic[fileName].ContainsKey(SourceControlKeyWord.Action) == true)
                     {
-                        if (dic[fileName_][SourceControlKeyWord.Action].ToLower().Equals("add") == true)
+                        if (dic[fileName][SourceControlKeyWord.Action].ToLower().Equals("add") == true)
                         {
-                            SourceControlManager.Instance.SourceControl.RevertFile(fileName_);
-                            File.Delete(fileName_);
+                            SourceControlManager.Instance.SourceControl.RevertFile(fileName);
+                            File.Delete(fileName);
                         }
-                        else if (dic[fileName_][SourceControlKeyWord.Action].ToLower().Equals("edit") == true)
+                        else if (dic[fileName][SourceControlKeyWord.Action].ToLower().Equals("edit") == true)
                         {
-                            SourceControlManager.Instance.SourceControl.RevertFile(fileName_);
-                            SourceControlManager.Instance.SourceControl.MarkFileForDelete(fileName_);
+                            SourceControlManager.Instance.SourceControl.RevertFile(fileName);
+                            SourceControlManager.Instance.SourceControl.MarkFileForDelete(fileName);
                         }
                     }
                     else
                     {
-                        SourceControlManager.Instance.SourceControl.MarkFileForDelete(fileName_);
+                        SourceControlManager.Instance.SourceControl.MarkFileForDelete(fileName);
                     }
                 }
                 else
                 {
-                    File.Delete(fileName_);
+                    File.Delete(fileName);
                 }
             }
             else
             {
-                File.Delete(fileName_);
+                File.Delete(fileName);
             }
         }
 
-        public string[] GetAllAssetByType(AssetType type_)
+        public string[] GetAllAssetByType(AssetType type)
         {
             List<string> res = new List<string>();
 
-            foreach (AssetInfo info in m_Assets)
+            foreach (AssetInfo info in _assets)
             {
-                if (info.Type == type_)
+                if (info.Type == type)
                 {
                     res.Add(info.Name);
                 }
@@ -541,31 +541,31 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        public bool Save(XmlElement el_, SaveOption option_)
+        public bool Save(XmlElement el, SaveOption option)
         {
-            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
+            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
             XmlElement xmlEl;
 
-            foreach (AssetInfo info in m_Assets)
+            foreach (AssetInfo info in _assets)
             {
-                xmlEl = el_.OwnerDocument.CreateElement(ProjectManager.NodeAssetName);
-                el_.OwnerDocument.AddAttribute(xmlEl, "id", info.ID.ToString());
-                el_.OwnerDocument.AddAttribute(xmlEl, "name", info.Name);
-                el_.OwnerDocument.AddAttribute(xmlEl, "fileName", info.FileName);
+                xmlEl = el.OwnerDocument.CreateElement(ProjectManager.NodeAssetName);
+                el.OwnerDocument.AddAttribute(xmlEl, "id", info.Id.ToString());
+                el.OwnerDocument.AddAttribute(xmlEl, "name", info.Name);
+                el.OwnerDocument.AddAttribute(xmlEl, "fileName", info.FileName);
                 //el_.OwnerDocument.AddAttribute(xmlEl, "modificationDate", info.ModificationDate.ToString());
-                el_.OwnerDocument.AddAttribute(xmlEl, "type", ((int)info.Type).ToString());
+                el.OwnerDocument.AddAttribute(xmlEl, "type", ((int)info.Type).ToString());
 
-                XmlElement paramNodes = el_.OwnerDocument.CreateElement("BuildParameterList");
+                XmlElement paramNodes = el.OwnerDocument.CreateElement("BuildParameterList");
                 xmlEl.AppendChild(paramNodes);
 
                 foreach (AssetBuildParam param in info.Params)
                 {
-                    XmlElement buildNode = el_.OwnerDocument.CreateElement("BuildParameter");
+                    XmlElement buildNode = el.OwnerDocument.CreateElement("BuildParameter");
                     param.Save(buildNode);
                     paramNodes.AppendChild(buildNode);
                 }
 
-                el_.AppendChild(xmlEl);
+                el.AppendChild(xmlEl);
             }
 
 #if !DEBUG
@@ -583,13 +583,13 @@ namespace CasaEngine.Editor.Assets
             return true;
         }
 
-        public bool Load(XmlElement el_, SaveOption option_)
+        public bool Load(XmlElement el, SaveOption option)
         {
-            uint version = uint.Parse(el_.Attributes["version"].Value);
+            uint version = uint.Parse(el.Attributes["version"].Value);
 
-            m_Assets.Clear();
+            _assets.Clear();
 
-            foreach (XmlNode node in el_.SelectNodes(ProjectManager.NodeAssetName))
+            foreach (XmlNode node in el.SelectNodes(ProjectManager.NodeAssetName))
             {
                 AssetInfo info = new AssetInfo(
                     0,
@@ -606,20 +606,20 @@ namespace CasaEngine.Editor.Assets
 
                     if (version > 2)
                     {
-                        info.SetID(int.Parse(node.Attributes["id"].Value));
+                        info.SetId(int.Parse(node.Attributes["id"].Value));
                     }
                     else
                     {
-                        info.GetNewID();
+                        info.GetNewId();
                     }
                 }
                 else
                 {
                     AddBuildParams(ref info);
-                    info.GetNewID();
+                    info.GetNewId();
                 }
 
-                m_Assets.Add(info);
+                _assets.Add(info);
 
                 /*try
                 {
@@ -636,7 +636,7 @@ namespace CasaEngine.Editor.Assets
                     LogManager.Instance.WriteLineWarning("Can't get info from the asset " + info.FileName + "\n" + e.Message);
                 }*/
 
-                m_AssetBuildInfo.Clear();
+                _assetBuildInfo.Clear();
 
 #if !DEBUG
                 try
@@ -672,7 +672,7 @@ namespace CasaEngine.Editor.Assets
             foreach (XmlNode node in elRoot.SelectNodes("BuildInfo"))
             {
                 AssetBuildInfo info = new AssetBuildInfo();
-                info.ID = int.Parse(node.Attributes["id"].Value);
+                info.Id = int.Parse(node.Attributes["id"].Value);
                 info.ModificationTime = DateTime.Parse(node.Attributes["date"].Value);
                 info.Params = new AssetBuildParamCollection();
 
@@ -681,7 +681,7 @@ namespace CasaEngine.Editor.Assets
                     info.Params.Add(AssetBuildParamFactory.Load((XmlElement)n));
                 }
 
-                m_AssetBuildInfo.Add(info);
+                _assetBuildInfo.Add(info);
             }
         }
 
@@ -709,12 +709,12 @@ namespace CasaEngine.Editor.Assets
             XmlDocument xmlDoc = new XmlDocument();
             XmlElement elRoot = xmlDoc.AddRootNode("AssetBuildInfo");
 
-            foreach (AssetBuildInfo info in m_AssetBuildInfo)
+            foreach (AssetBuildInfo info in _assetBuildInfo)
             {
                 XmlElement node = xmlDoc.CreateElement("BuildInfo");
                 elRoot.AppendChild(node);
 
-                xmlDoc.AddAttribute(node, "id", info.ID.ToString());
+                xmlDoc.AddAttribute(node, "id", info.Id.ToString());
                 xmlDoc.AddAttribute(node, "date", info.ModificationTime.ToString());
 
                 XmlElement paramNodes = xmlDoc.CreateElement("BuildParameterList");
@@ -739,33 +739,33 @@ namespace CasaEngine.Editor.Assets
         }
 
 
-        private void AddBuildParams(ref AssetInfo assetInfo_)
+        private void AddBuildParams(ref AssetInfo assetInfo)
         {
-            switch (assetInfo_.Type)
+            switch (assetInfo.Type)
             {
                 case AssetType.Audio:
-                    AssetBuildParamFactory.SetBuildParams(ref assetInfo_.Params, AssetBuildParamFactory.AssetBuildParamType.Audio);
+                    AssetBuildParamFactory.SetBuildParams(ref assetInfo.Params, AssetBuildParamFactory.AssetBuildParamType.Audio);
                     break;
 
                 case AssetType.Effect:
-                    AssetBuildParamFactory.SetBuildParams(ref assetInfo_.Params, AssetBuildParamFactory.AssetBuildParamType.Effect);
+                    AssetBuildParamFactory.SetBuildParams(ref assetInfo.Params, AssetBuildParamFactory.AssetBuildParamType.Effect);
                     break;
 
                 case AssetType.SkinnedMesh:
                 case AssetType.StaticMesh:
-                    AssetBuildParamFactory.SetBuildParams(ref assetInfo_.Params, AssetBuildParamFactory.AssetBuildParamType.Model);
+                    AssetBuildParamFactory.SetBuildParams(ref assetInfo.Params, AssetBuildParamFactory.AssetBuildParamType.Model);
                     break;
 
                 case AssetType.Texture:
-                    AssetBuildParamFactory.SetBuildParams(ref assetInfo_.Params, AssetBuildParamFactory.AssetBuildParamType.Texture);
+                    AssetBuildParamFactory.SetBuildParams(ref assetInfo.Params, AssetBuildParamFactory.AssetBuildParamType.Texture);
                     break;
 
                 case AssetType.Video:
-                    AssetBuildParamFactory.SetBuildParams(ref assetInfo_.Params, AssetBuildParamFactory.AssetBuildParamType.Video);
+                    AssetBuildParamFactory.SetBuildParams(ref assetInfo.Params, AssetBuildParamFactory.AssetBuildParamType.Video);
                     break;
 
                 default:
-                    throw new NotImplementedException("AssetManager.Load() : the type '" + Enum.GetName(typeof(AssetType), assetInfo_.Type) + "' is not supported.");
+                    throw new NotImplementedException("AssetManager.Load() : the type '" + Enum.GetName(typeof(AssetType), assetInfo.Type) + "' is not supported.");
             }
         }
 

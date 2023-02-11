@@ -95,16 +95,16 @@ namespace CasaEngine.Editor.Assets
         }
 
 
-        static public int Compare(AssetBuildParamCollection c1_, AssetBuildParamCollection c2_)
+        static public int Compare(AssetBuildParamCollection c1, AssetBuildParamCollection c2)
         {
-            if (c1_.Count != c2_.Count)
+            if (c1.Count != c2.Count)
             {
                 return -1;
             }
 
-            for (int i = 0; i < c1_.Count; i++)
+            for (int i = 0; i < c1.Count; i++)
             {
-                if (c1_[i].Compare(c2_[i]) == false)
+                if (c1[i].Compare(c2[i]) == false)
                 {
                     return -1;
                 }

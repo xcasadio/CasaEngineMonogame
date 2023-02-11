@@ -5,14 +5,14 @@ namespace CasaEngine.Editor.Assets
     public class AssetBuildParamCollectionPropertyDescriptor
         : PropertyDescriptor
     {
-        private readonly AssetBuildParamCollection collection = null;
-        private readonly int index = -1;
+        private readonly AssetBuildParamCollection _collection = null;
+        private readonly int _index = -1;
 
         public AssetBuildParamCollectionPropertyDescriptor(AssetBuildParamCollection coll, int idx) :
             base("#" + idx.ToString(), null)
         {
-            this.collection = coll;
-            this.index = idx;
+            this._collection = coll;
+            this._index = idx;
         }
 
         public override AttributeCollection Attributes => new AttributeCollection(null);
@@ -22,13 +22,13 @@ namespace CasaEngine.Editor.Assets
             return true;
         }
 
-        public override Type ComponentType => this.collection.GetType();
+        public override Type ComponentType => this._collection.GetType();
 
         public override string DisplayName
         {
             get
             {
-                AssetBuildParam emp = this.collection[index];
+                AssetBuildParam emp = this._collection[_index];
                 return emp.Name;
             }
         }
@@ -37,21 +37,21 @@ namespace CasaEngine.Editor.Assets
         {
             get
             {
-                AssetBuildParam b = this.collection[index];
+                AssetBuildParam b = this._collection[_index];
                 return b.Name + ":" + b.Value;
             }
         }
 
         public override object GetValue(object component)
         {
-            return this.collection[index];
+            return this._collection[_index];
         }
 
         public override bool IsReadOnly => false;
 
-        public override string Name => "#" + index.ToString();
+        public override string Name => "#" + _index.ToString();
 
-        public override Type PropertyType => this.collection[index].GetType();
+        public override Type PropertyType => this._collection[_index].GetType();
 
         public override void ResetValue(object component)
         {

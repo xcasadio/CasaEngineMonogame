@@ -32,9 +32,9 @@ namespace XNAFinalEngine.Helpers
     public abstract class Disposable : IDisposable
     {
 
-        private bool disposed = false;
+        private bool _disposed = false;
 
-        public bool IsDisposed => disposed;
+        public bool IsDisposed => _disposed;
 
         ~Disposable()
         {
@@ -55,7 +55,7 @@ namespace XNAFinalEngine.Helpers
         private void Dispose(bool disposing)
         {
             // Check to see if Dispose has already been called.
-            if (!disposed)
+            if (!_disposed)
             {
                 // If disposing equals true, dispose all managed and unmanaged resources.
                 if (disposing)
@@ -69,7 +69,7 @@ namespace XNAFinalEngine.Helpers
                 DisposeUnmanagedResources();
 
                 // disposing has been done.
-                disposed = true;
+                _disposed = true;
             }
         } // Dispose
 

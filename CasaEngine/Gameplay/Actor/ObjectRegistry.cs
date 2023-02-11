@@ -11,70 +11,70 @@ namespace CasaEngine.Gameplay.Actor
     public class ObjectRegistry
     {
 #if EDITOR
-        static private readonly uint m_Version = 1;
+        static private readonly uint Version = 1;
 
-        private ObjectRegistryStatus CreateObjectRegistryStatus(BaseObject ob_, bool add_)
+        private ObjectRegistryStatus CreateObjectRegistryStatus(BaseObject ob, bool add)
         {
             ObjectRegistryStatus objectRegistryStatus = new ObjectRegistryStatus();
-            objectRegistryStatus.ClassName = ob_.GetType().FullName;
-            objectRegistryStatus.BaseObject = ob_;
+            objectRegistryStatus.ClassName = ob.GetType().FullName;
+            objectRegistryStatus.BaseObject = ob;
             //objectRegistryStatus.Name = ob_.Name;
 
-            if (add_ == true)
+            if (add == true)
             {
-                objectRegistryStatus.ID = m_UnusedId++;
-                ob_.ID = objectRegistryStatus.ID;
+                objectRegistryStatus.Id = _unusedId++;
+                ob.ID = objectRegistryStatus.Id;
             }
             else
             {
-                objectRegistryStatus.ID = ob_.ID;
+                objectRegistryStatus.Id = ob.ID;
             }
 
             return objectRegistryStatus;
         }
 
-        public void AddObject(BaseObject obj_, string name_)
+        public void AddObject(BaseObject obj, string name)
         {
             //obj_.Name = name_;
-            ObjectRegistryStatus o = CreateObjectRegistryStatus(obj_, true);
-            m_ObjectRegistry.Add(o);
+            ObjectRegistryStatus o = CreateObjectRegistryStatus(obj, true);
+            _objectRegistry.Add(o);
         }
 
-        public void AddObject(BaseObject obj_)
+        public void AddObject(BaseObject obj)
         {
             //AddObject(obj_, obj_.Name);
         }
 
-        public void RemoveObject(string name_)
+        public void RemoveObject(string name)
         {
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (o.Name.Equals(name_) == true)
+                if (o.Name.Equals(name) == true)
                 {
-                    m_ObjectRegistry.Remove(o);
+                    _objectRegistry.Remove(o);
                     break;
                 }
             }
         }
 
-        public void RenameObject(string name_, string newName_)
+        public void RenameObject(string name, string newName)
         {
-            if (ContainsObjectNamed(newName_) == true)
+            if (ContainsObjectNamed(newName) == true)
             {
-                throw new Exception("m_ObjectRegistry.RenameObject() : an object named " + newName_ + " already exist.");
+                throw new Exception("_ObjectRegistry.RenameObject() : an object named " + newName + " already exist.");
             }
 
-            if (ContainsObjectNamed(name_) == false)
+            if (ContainsObjectNamed(name) == false)
             {
-                throw new Exception("m_ObjectRegistry.RenameObject() : the object named " + name_ + " doesn't exist.");
+                throw new Exception("_ObjectRegistry.RenameObject() : the object named " + name + " doesn't exist.");
             }
 
-            for (int i = 0; i < m_ObjectRegistry.Count; i++)
+            for (int i = 0; i < _objectRegistry.Count; i++)
             {
-                if (m_ObjectRegistry[i].Name.Equals(name_) == true)
+                if (_objectRegistry[i].Name.Equals(name) == true)
                 {
-                    ObjectRegistryStatus o = new ObjectRegistryStatus(m_ObjectRegistry[i]);
-                    o.Name = newName_;
+                    ObjectRegistryStatus o = new ObjectRegistryStatus(_objectRegistry[i]);
+                    o.Name = newName;
 
                     bool loaded = o.IsLoaded;
                     if (o.IsLoaded == false)
@@ -88,7 +88,7 @@ namespace CasaEngine.Gameplay.Actor
                         o.Close();
                     }
 
-                    m_ObjectRegistry[i] = o;
+                    _objectRegistry[i] = o;
                     break;
                 }
             }
@@ -96,14 +96,14 @@ namespace CasaEngine.Gameplay.Actor
 
         public void Clear()
         {
-            m_ObjectRegistry.Clear();
+            _objectRegistry.Clear();
         }
 
         public List<string> GetAllObjectName()
         {
             List<string> res = new List<string>();
 
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
                 res.Add(o.Name);
             }
@@ -111,11 +111,11 @@ namespace CasaEngine.Gameplay.Actor
             return res;
         }
 
-        public bool IsValidName(string name_)
+        public bool IsValidName(string name)
         {
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (o.Name.Equals(name_) == true)
+                if (o.Name.Equals(name) == true)
                 {
                     return false;
                 }
@@ -124,27 +124,27 @@ namespace CasaEngine.Gameplay.Actor
             return true;
         }
 
-        public int GetObjectIDByName(string name_)
+        public int GetObjectIdByName(string name)
         {
-            if (string.IsNullOrEmpty(name_))
+            if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentNullException("Please give a valid no empty string");
             }
 
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (o.Name.Equals(name_) == true)
+                if (o.Name.Equals(name) == true)
                 {
-                    return o.ID;
+                    return o.Id;
                 }
             }
 
-            throw new Exception("The object named " + name_ + " doesn't exist");
+            throw new Exception("The object named " + name + " doesn't exist");
         }
 
-        public void Save(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el, SaveOption option)
         {
-            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
+            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
             XmlDocument xmlDocLast = null;
             if (string.IsNullOrEmpty(Engine.Instance.ProjectManager.ProjectFileOpened) == false
@@ -154,9 +154,9 @@ namespace CasaEngine.Gameplay.Actor
                 xmlDocLast.Load(Engine.Instance.ProjectManager.ProjectFileOpened);
             }
 
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                XmlElement objectNode = CreateObjectNode(el_, o);
+                XmlElement objectNode = CreateObjectNode(el, o);
 
                 if (o.IsLoaded == true)
                 {
@@ -169,7 +169,7 @@ namespace CasaEngine.Gameplay.Actor
                 //(on ne peut pas sauvegarder les autres mondes sinon il faudrait les chargés a chaque fois)
                 else if (xmlDocLast != null)
                 {
-                    XmlNode oldNode = xmlDocLast.SelectSingleNode("Project/ObjectRegistry/Object[@id='" + o.ID + "']");
+                    XmlNode oldNode = xmlDocLast.SelectSingleNode("Project/ObjectRegistry/Object[@id='" + o.Id + "']");
 
                     if (oldNode != null)
                     {
@@ -204,26 +204,26 @@ namespace CasaEngine.Gameplay.Actor
             }
         }
 
-        private XmlElement CreateObjectNode(XmlElement el_, ObjectRegistryStatus o)
+        private XmlElement CreateObjectNode(XmlElement el, ObjectRegistryStatus o)
         {
-            XmlElement objectNode = el_.OwnerDocument.CreateElement("Object");
-            el_.AppendChild(objectNode);
+            XmlElement objectNode = el.OwnerDocument.CreateElement("Object");
+            el.AppendChild(objectNode);
 
-            el_.OwnerDocument.AddAttribute(objectNode, "id", o.ID.ToString());
-            el_.OwnerDocument.AddAttribute(objectNode, "name", o.Name);
-            el_.OwnerDocument.AddAttribute(objectNode, "className", o.ClassName);
+            el.OwnerDocument.AddAttribute(objectNode, "id", o.Id.ToString());
+            el.OwnerDocument.AddAttribute(objectNode, "name", o.Name);
+            el.OwnerDocument.AddAttribute(objectNode, "className", o.ClassName);
 
             return objectNode;
         }
 
-        public XmlElement CreateObjectNode(XmlElement el_, BaseObject ob_)
+        public XmlElement CreateObjectNode(XmlElement el, BaseObject ob)
         {
-            return CreateObjectNode(el_, CreateObjectRegistryStatus(ob_, false));
+            return CreateObjectNode(el, CreateObjectRegistryStatus(ob, false));
         }
 
-        private void Save(XmlElement el_, BaseObject o_)
+        private void Save(XmlElement el, BaseObject o)
         {
-            o_.Save(el_, 0);
+            o.Save(el, 0);
         }
 
 #endif
@@ -236,24 +236,24 @@ namespace CasaEngine.Gameplay.Actor
 			public long FileLength;
 #endif
             public string ClassName = string.Empty;
-            private bool m_IsLoaded = false;
+            private bool _isLoaded = false;
 
             public string Name = string.Empty;
-            public int ID = -1;
+            public int Id = -1;
 
-            private BaseObject m_BaseObject;
+            private BaseObject _baseObject;
 
 
 
-            public bool IsLoaded => m_IsLoaded;
+            public bool IsLoaded => _isLoaded;
 
             public BaseObject BaseObject
             {
-                get => m_BaseObject;
+                get => _baseObject;
                 set
                 {
-                    m_BaseObject = value;
-                    m_IsLoaded = m_BaseObject != null ? true : false;
+                    _baseObject = value;
+                    _isLoaded = _baseObject != null ? true : false;
                 }
             }
 
@@ -261,46 +261,46 @@ namespace CasaEngine.Gameplay.Actor
 
             public ObjectRegistryStatus() { }
 
-            public ObjectRegistryStatus(ObjectRegistryStatus o_)
+            public ObjectRegistryStatus(ObjectRegistryStatus o)
             {
 #if !EDITOR
 				this.FileLength = o_.FileLength;
 				this.PositionInFile = o_.PositionInFile;
 #endif
-                this.ClassName = o_.ClassName;
-                this.m_IsLoaded = o_.m_IsLoaded;
-                this.Name = o_.Name;
-                this.ID = o_.ID;
-                this.m_BaseObject = o_.m_BaseObject;
+                this.ClassName = o.ClassName;
+                this._isLoaded = o._isLoaded;
+                this.Name = o.Name;
+                this.Id = o.Id;
+                this._baseObject = o._baseObject;
             }
 
 
 
             public void Close()
             {
-                m_BaseObject = null;
-                m_IsLoaded = false;
+                _baseObject = null;
+                _isLoaded = false;
             }
 
         }
 
 
 
-        private readonly List<ObjectRegistryStatus> m_ObjectRegistry = new List<ObjectRegistryStatus>();
+        private readonly List<ObjectRegistryStatus> _objectRegistry = new List<ObjectRegistryStatus>();
 
-        private int m_UnusedId = 1; // 0 => unassigned
-
-
+        private int _unusedId = 1; // 0 => unassigned
 
 
 
 
 
-        public BaseObject GetObjectByID(uint id_)
+
+
+        public BaseObject GetObjectById(uint id)
         {
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (o.ID == id_)
+                if (o.Id == id)
                 {
                     if (o.IsLoaded == false)
                     {
@@ -319,11 +319,11 @@ namespace CasaEngine.Gameplay.Actor
             return null;
         }
 
-        public BaseObject GetObjectByName(string name_)
+        public BaseObject GetObjectByName(string name)
         {
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (o.Name.Equals(name_) == true)
+                if (o.Name.Equals(name) == true)
                 {
                     if (o.IsLoaded == false)
                     {
@@ -337,13 +337,13 @@ namespace CasaEngine.Gameplay.Actor
             return null;
         }
 
-        public BaseObject[] GetObjectByType(string className_)
+        public BaseObject[] GetObjectByType(string className)
         {
             List<BaseObject> res = new List<BaseObject>();
 
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (className_.Equals(o.ClassName))
+                if (className.Equals(o.ClassName))
                 {
                     if (o.IsLoaded == false)
                     {
@@ -357,11 +357,11 @@ namespace CasaEngine.Gameplay.Actor
             return res.ToArray();
         }
 
-        public bool ContainsObjectID(uint id_)
+        public bool ContainsObjectId(uint id)
         {
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (o.ID == id_)
+                if (o.Id == id)
                 {
                     return true;
                 }
@@ -370,11 +370,11 @@ namespace CasaEngine.Gameplay.Actor
             return false;
         }
 
-        public bool ContainsObjectNamed(string name_)
+        public bool ContainsObjectNamed(string name)
         {
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
-                if (o.Name.Equals(name_))
+                if (o.Name.Equals(name))
                 {
                     return true;
                 }
@@ -383,33 +383,33 @@ namespace CasaEngine.Gameplay.Actor
             return false;
         }
 
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
 #if EDITOR
             Engine.Instance.ObjectRegistry.Clear();
 #endif
 
-            uint version = uint.Parse(el_.Attributes["version"].Value);
+            uint version = uint.Parse(el.Attributes["version"].Value);
 
-            foreach (XmlNode node in el_.ChildNodes)
+            foreach (XmlNode node in el.ChildNodes)
             {
                 ObjectRegistryStatus o = new ObjectRegistryStatus();
 
-                o.ID = int.Parse(node.Attributes["id"].Value);
+                o.Id = int.Parse(node.Attributes["id"].Value);
 
-                if (m_UnusedId <= o.ID)
+                if (_unusedId <= o.Id)
                 {
-                    m_UnusedId = o.ID + 1;
+                    _unusedId = o.Id + 1;
                 }
 
                 o.Name = node.Attributes["name"].Value;
                 o.ClassName = node.Attributes["className"].Value;
 
-                m_ObjectRegistry.Add(o);
+                _objectRegistry.Add(o);
             }
         }
 
-        private BaseObject CreateFromClassName(string className_)
+        private BaseObject CreateFromClassName(string className)
         {
             Type t = null;// = Type.GetType(className_);
 
@@ -417,7 +417,7 @@ namespace CasaEngine.Gameplay.Actor
 
             foreach (Assembly a in assemblies)
             {
-                t = a.GetType(className_, false, true);
+                t = a.GetType(className, false, true);
 
                 if (t != null)
                 {
@@ -431,14 +431,14 @@ namespace CasaEngine.Gameplay.Actor
             }
             else
             {
-                throw new Exception("Can't retrieve the type " + className_);
+                throw new Exception("Can't retrieve the type " + className);
             }
         }
 
 
-        private void Load(ObjectRegistryStatus objectRegistryStatus_)
+        private void Load(ObjectRegistryStatus objectRegistryStatus)
         {
-            if (objectRegistryStatus_.IsLoaded == true)
+            if (objectRegistryStatus.IsLoaded == true)
             {
                 return;
             }
@@ -460,7 +460,7 @@ namespace CasaEngine.Gameplay.Actor
                 xmlFile = "Content\\" + game.ProjectFile;
                 xmlDoc.Load(xmlFile);
 #endif
-                string xmlPath = ProjectManager.NodeRootName + "/" + ProjectManager.NodeObjectRegistryName + "/" + ProjectManager.NodeObjectName + "[@id='" + objectRegistryStatus_.ID + "']";
+                string xmlPath = ProjectManager.NodeRootName + "/" + ProjectManager.NodeObjectRegistryName + "/" + ProjectManager.NodeObjectName + "[@id='" + objectRegistryStatus.Id + "']";
                 XmlElement el = (XmlElement)xmlDoc.SelectSingleNode(xmlPath);
 
                 if (el == null)
@@ -468,8 +468,8 @@ namespace CasaEngine.Gameplay.Actor
                     throw new Exception("Can't find the node '" + xmlPath + "' in the xml file " + xmlFile);
                 }
 
-                objectRegistryStatus_.BaseObject = CreateFromClassName(objectRegistryStatus_.ClassName);
-                objectRegistryStatus_.BaseObject.Load(el, SaveOption.Editor);
+                objectRegistryStatus.BaseObject = CreateFromClassName(objectRegistryStatus.ClassName);
+                objectRegistryStatus.BaseObject.Load(el, SaveOption.Editor);
 
             }
 
@@ -484,12 +484,12 @@ namespace CasaEngine.Gameplay.Actor
 #if EDITOR
             //objectRegistryStatus_.BaseObject.Name = objectRegistryStatus_.Name;
 #endif
-            objectRegistryStatus_.BaseObject.ID = objectRegistryStatus_.ID;
+            objectRegistryStatus.BaseObject.ID = objectRegistryStatus.Id;
         }
 
         public void CloseAllObjects()
         {
-            foreach (ObjectRegistryStatus o in m_ObjectRegistry)
+            foreach (ObjectRegistryStatus o in _objectRegistry)
             {
                 o.Close();
             }

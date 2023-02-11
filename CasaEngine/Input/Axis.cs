@@ -47,15 +47,15 @@ namespace XNAFinalEngine.Input
 
 
         // The value of the axis.
-        private float value;
+        private float _value;
 
         // The value of the axis with no smoothing filtering applied.
         // The value will be in the range -1...1 for keyboard and joystick input.
         // Since input is not smoothed, keyboard input will always be either -1, 0 or 1. 
-        private float valueRaw;
+        private float _valueRaw;
 
         // Previous values. Used for smooth input calculations.
-        private readonly float[] previousValues = new float[] { 0, 0 };
+        private readonly float[] _previousValues = new float[] { 0, 0 };
 
 
 
@@ -113,7 +113,7 @@ namespace XNAFinalEngine.Input
 
 
 
-        internal void Update(float elapsedTime_)
+        internal void Update(float elapsedTime)
         {
 
 
@@ -124,37 +124,37 @@ namespace XNAFinalEngine.Input
                 bool negativeButtonPressed = NegativeKeyButton.Pressed(GamePadNumber) || AlternativeNegativeKeyButton.Pressed(GamePadNumber);
 
                 // Raw value.
-                valueRaw = 0;
+                _valueRaw = 0;
                 if (positiveButtonPressed)
-                    valueRaw += 1;
+                    _valueRaw += 1;
                 if (negativeButtonPressed)
-                    valueRaw -= 1;
+                    _valueRaw -= 1;
 
                 // Invert if necessary.
                 if (Invert)
-                    valueRaw *= -1;
+                    _valueRaw *= -1;
 
                 // Snap: If enabled, the axis value will reset to zero when pressing a button of the opposite direction.
                 if (Snap)
                 {
-                    if ((value > 0 && valueRaw == -1) || (value < 0 && valueRaw == 1)) // Opposite direction
-                        value = 0;
+                    if ((_value > 0 && _valueRaw == -1) || (_value < 0 && _valueRaw == 1)) // Opposite direction
+                        _value = 0;
                 }
 
                 // Gravity: Speed in units per second that the axis falls toward neutral when no buttons are pressed. 
-                if (valueRaw == 0)
+                if (_valueRaw == 0)
                 {
-                    if (value > Gravity * elapsedTime_)
-                        value = value - Gravity * elapsedTime_;
-                    else if (value < -Gravity * elapsedTime_)
-                        value = value + Gravity * elapsedTime_;
+                    if (_value > Gravity * elapsedTime)
+                        _value = _value - Gravity * elapsedTime;
+                    else if (_value < -Gravity * elapsedTime)
+                        _value = _value + Gravity * elapsedTime;
                     else
-                        value = 0;
+                        _value = 0;
                 }
                 else // Sensitivity: Speed in units per second that the the axis will move toward the target value. This is for digital devices only.
                 {
-                    value = value + Sensitivity * elapsedTime_ * valueRaw;
-                    value = MathHelper.Clamp(value, -1, 1);
+                    _value = _value + Sensitivity * elapsedTime * _valueRaw;
+                    _value = MathHelper.Clamp(_value, -1, 1);
                 }
             }
 
@@ -162,20 +162,20 @@ namespace XNAFinalEngine.Input
 
             else if (AxisBehavior == AxisBehaviors.AnalogInput)
             {
-                valueRaw = 0;
+                _valueRaw = 0;
 
 
                 if (AnalogAxis == AnalogAxes.MouseX)
                 {
-                    valueRaw = Mouse.DeltaX;
+                    _valueRaw = Mouse.DeltaX;
                 }
                 else if (AnalogAxis == AnalogAxes.MouseY)
                 {
-                    valueRaw = Mouse.DeltaY;
+                    _valueRaw = Mouse.DeltaY;
                 }
                 else if (AnalogAxis == AnalogAxes.MouseWheel)
                 {
-                    valueRaw = Mouse.WheelDelta;
+                    _valueRaw = Mouse.WheelDelta;
                 }
 
 
@@ -183,65 +183,65 @@ namespace XNAFinalEngine.Input
                 else if (AnalogAxis == AnalogAxes.LeftStickX)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
-                        valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickX;
+                        _valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickX;
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
-                                valueRaw = GamePad.Player(i).LeftStickX;
+                            if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
+                                _valueRaw = GamePad.Player(i).LeftStickX;
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.LeftStickY)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
-                        valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickY;
+                        _valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickY;
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
-                                valueRaw = GamePad.Player(i).LeftStickY;
+                            if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
+                                _valueRaw = GamePad.Player(i).LeftStickY;
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.RightStickX)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
-                        valueRaw = GamePad.Player(GamePadNumber - 1).RightStickX;
+                        _valueRaw = GamePad.Player(GamePadNumber - 1).RightStickX;
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
-                                valueRaw = GamePad.Player(i).RightStickX;
+                            if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
+                                _valueRaw = GamePad.Player(i).RightStickX;
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.RightStickY)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
-                        valueRaw = GamePad.Player(GamePadNumber - 1).RightStickY;
+                        _valueRaw = GamePad.Player(GamePadNumber - 1).RightStickY;
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
-                                valueRaw = GamePad.Player(i).RightStickY;
+                            if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
+                                _valueRaw = GamePad.Player(i).RightStickY;
                         }
                     }
                 }
                 else if (AnalogAxis == AnalogAxes.Triggers)
                 {
                     if (GamePadNumber > 0 && GamePadNumber < 5)
-                        valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger + GamePad.Player(GamePadNumber - 1).RightTrigger;
+                        _valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger + GamePad.Player(GamePadNumber - 1).RightTrigger;
                     else
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            if (Math.Abs(valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
-                                valueRaw = -GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger;
+                            if (Math.Abs(_valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
+                                _valueRaw = -GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger;
                         }
                     }
                 }
@@ -249,26 +249,26 @@ namespace XNAFinalEngine.Input
 
                 // Invert if necessary.
                 if (Invert)
-                    valueRaw *= -1;
+                    _valueRaw *= -1;
 
                 // Mouse
                 if (AnalogAxis == AnalogAxes.MouseX || AnalogAxis == AnalogAxes.MouseY || AnalogAxis == AnalogAxes.MouseWheel)
                 {
-                    value = valueRaw * Sensitivity;
+                    _value = _valueRaw * Sensitivity;
                 }
                 // GamePad
                 else
                 {
-                    float valueRawWithDeadZone = valueRaw;
+                    float valueRawWithDeadZone = _valueRaw;
                     // Dead Zone: Size of the analog dead zone. All analog device values within this range result map to neutral.
-                    if (valueRaw > -DeadZone && valueRaw < DeadZone)
+                    if (_valueRaw > -DeadZone && _valueRaw < DeadZone)
                     {
                         valueRawWithDeadZone = 0;
                     }
                     // For gamepad axes, sensitivity is an inverted exponential value that transforms the axis curve from linear to gamma (rawvalue ^ (1 / sensitivity)).
-                    value = (float)Math.Pow(Math.Abs(valueRawWithDeadZone), 1 / Sensitivity);
+                    _value = (float)Math.Pow(Math.Abs(valueRawWithDeadZone), 1 / Sensitivity);
                     if (valueRawWithDeadZone < 0)
-                        value *= -1;
+                        _value *= -1;
                 }
             }
 
@@ -276,10 +276,10 @@ namespace XNAFinalEngine.Input
             if (TemporalSmoothing)
             {
                 // Average the input of the current frame with the previous values.
-                float storeValue = value;
-                value = (previousValues[0] + previousValues[1] + value) / (previousValues.Length + 1);
-                previousValues[1] = previousValues[0];
-                previousValues[0] = storeValue;
+                float storeValue = _value;
+                _value = (_previousValues[0] + _previousValues[1] + _value) / (_previousValues.Length + 1);
+                _previousValues[1] = _previousValues[0];
+                _previousValues[0] = storeValue;
             }
 
         } // Update
@@ -292,10 +292,10 @@ namespace XNAFinalEngine.Input
             bool foundAxis = false;
             foreach (var axis in Axes)
             {
-                if (axis.Name == axisName && Math.Abs(axis.value) >= Math.Abs(maxValue))
+                if (axis.Name == axisName && Math.Abs(axis._value) >= Math.Abs(maxValue))
                 {
                     foundAxis = true;
-                    maxValue = axis.value;
+                    maxValue = axis._value;
                 }
             }
             if (!foundAxis)
@@ -309,10 +309,10 @@ namespace XNAFinalEngine.Input
             bool foundAxis = false;
             foreach (var axis in Axes)
             {
-                if (axis.Name == axisName && Math.Abs(axis.valueRaw) >= Math.Abs(maxValue))
+                if (axis.Name == axisName && Math.Abs(axis._valueRaw) >= Math.Abs(maxValue))
                 {
                     foundAxis = true;
-                    maxValue = axis.valueRaw;
+                    maxValue = axis._valueRaw;
                 }
             }
             if (!foundAxis)

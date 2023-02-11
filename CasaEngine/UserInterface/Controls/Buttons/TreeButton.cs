@@ -17,16 +17,16 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private bool isChecked;
+        private bool _isChecked;
 
 
 
         public virtual bool Checked
         {
-            get => isChecked;
+            get => _isChecked;
             set
             {
-                isChecked = value;
+                _isChecked = value;
                 Invalidate();
                 if (!Suspended)
                     OnCheckedChanged(new EventArgs());
@@ -39,8 +39,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public TreeButton(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public TreeButton(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CheckLayer(SkinInformation, "Control");
 
@@ -71,7 +71,7 @@ namespace XNAFinalEngine.UserInterface
         {
             SkinLayer layer = SkinInformation.Layers["Checked"];
 
-            if (!isChecked)
+            if (!_isChecked)
             {
                 layer = SkinInformation.Layers["Control"];
             }

@@ -21,21 +21,21 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private long timer;
-        private Control sender;
+        private long _timer;
+        private Control _sender;
 
 
 
         protected internal Control Sender
         {
-            get => sender;
-            set => sender = value;
+            get => _sender;
+            set => _sender = value;
         }
 
 
 
-        public ContextMenu(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ContextMenu(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Visible = false;
             Detached = true;
@@ -270,7 +270,7 @@ namespace XNAFinalEngine.UserInterface
 
                         Focused = true;
                         ItemIndex = i;
-                        timer = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
+                        _timer = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
                     }
                     else if (!Items[i].Enabled && ChildMenu == null)
                     {
@@ -283,15 +283,15 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        protected internal override void Update(float elapsedTime_)
+        protected internal override void Update(float elapsedTime)
         {
-            base.Update(elapsedTime_);
+            base.Update(elapsedTime);
 
             AutoSize();
 
             long time = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
 
-            if (timer != 0 && time - timer >= UserInterfaceManager.MenuDelay && ItemIndex >= 0 && Items[ItemIndex].Items.Count > 0 && ChildMenu == null)
+            if (_timer != 0 && time - _timer >= UserInterfaceManager.MenuDelay && ItemIndex >= 0 && Items[ItemIndex].Items.Count > 0 && ChildMenu == null)
             {
                 OnClick(new MouseEventArgs(new MouseState(), MouseButton.Left, Point.Zero));
             }
@@ -317,9 +317,9 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnClick(EventArgs e)
         {
-            if (sender != null && !(sender is MenuBase)) sender.Focused = true;
+            if (_sender != null && !(_sender is MenuBase)) _sender.Focused = true;
             base.OnClick(e);
-            timer = 0;
+            _timer = 0;
 
             MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
@@ -334,12 +334,12 @@ namespace XNAFinalEngine.UserInterface
                             ChildMenu = new ContextMenu(UserInterfaceManager);
                             (ChildMenu as ContextMenu).RootMenu = RootMenu;
                             (ChildMenu as ContextMenu).ParentMenu = this;
-                            (ChildMenu as ContextMenu).sender = sender;
+                            (ChildMenu as ContextMenu)._sender = _sender;
                             ChildMenu.Items.AddRange(Items[ItemIndex].Items);
                             (ChildMenu as ContextMenu).AutoSize();
                         }
                         int y = ControlTopAbsoluteCoordinate + SkinInformation.Layers["Control"].ContentMargins.Top + (ItemIndex * LineHeight());
-                        ((ContextMenu)ChildMenu).Show(sender, ControlLeftAbsoluteCoordinate + Width - 1, y);
+                        ((ContextMenu)ChildMenu).Show(_sender, ControlLeftAbsoluteCoordinate + Width - 1, y);
                         if (ex.Button == MouseButton.None) (ChildMenu as ContextMenu).ItemIndex = 0;
                     }
                     else
@@ -362,7 +362,7 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnKeyPress(e);
 
-            timer = 0;
+            _timer = 0;
 
             if (e.Key == Keys.Down || (e.Key == Keys.Tab && !e.Shift))
             {
@@ -438,7 +438,7 @@ namespace XNAFinalEngine.UserInterface
                 UserInterfaceManager.Add(this);
             }
 
-            this.sender = sender;
+            this._sender = sender;
 
             if (sender != null && sender.Root != null && sender.Root is Container)
             {

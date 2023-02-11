@@ -17,28 +17,28 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private Alignment alignment = Alignment.MiddleLeft;
+        private Alignment _alignment = Alignment.MiddleLeft;
 
-        private bool ellipsis = true;
+        private bool _ellipsis = true;
 
 
 
         public virtual Alignment Alignment
         {
-            get => alignment;
-            set => alignment = value;
+            get => _alignment;
+            set => _alignment = value;
         } // Alignment
 
         public virtual bool Ellipsis
         {
-            get => ellipsis;
-            set => ellipsis = value;
+            get => _ellipsis;
+            set => _ellipsis = value;
         } // Ellipsis
 
 
 
-        public Label(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Label(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Passive = true;
@@ -51,7 +51,7 @@ namespace XNAFinalEngine.UserInterface
         protected override void DrawControl(Rectangle rect)
         {
             SkinLayer skinLayer = SkinInformation.Layers[0];
-            UserInterfaceManager.Renderer.DrawString(this, skinLayer, Text, rect, true, 0, 0, ellipsis);
+            UserInterfaceManager.Renderer.DrawString(this, skinLayer, Text, rect, true, 0, 0, _ellipsis);
         } // DrawControl
 
 

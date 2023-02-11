@@ -33,49 +33,49 @@ namespace XNAFinalEngine.Helpers
     {
 
 
-        private float x, y, width, height;
+        private float _x, _y, _width, _height;
 
 
 
         public float X
         {
-            get => x;
-            set => x = value;
+            get => _x;
+            set => _x = value;
         }
 
         public float Y
         {
-            get => y;
-            set => y = value;
+            get => _y;
+            set => _y = value;
         }
 
         public float Width
         {
-            get => width;
-            set => width = value;
+            get => _width;
+            set => _width = value;
         }
 
         public float Height
         {
-            get => height;
-            set => height = value;
+            get => _height;
+            set => _height = value;
         }
 
 
 
         public RectangleF(float x, float y, float width, float height)
         {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
+            this._x = x;
+            this._y = y;
+            this._width = width;
+            this._height = height;
         } // RectangleF
 
 
 
         public static bool operator ==(RectangleF x, RectangleF y)
         {
-            return x.x == y.x && x.y == y.y && x.width == y.width && x.height == y.height;
+            return x._x == y._x && x._y == y._y && x._width == y._width && x._height == y._height;
         } // Equal
 
         public static bool operator !=(RectangleF x, RectangleF y)
@@ -90,7 +90,7 @@ namespace XNAFinalEngine.Helpers
 
         public override int GetHashCode()
         {
-            return width.GetHashCode() ^ height.GetHashCode();
+            return _width.GetHashCode() ^ _height.GetHashCode();
         } // GetHashCode
 
 

@@ -11,47 +11,47 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        public ShapeRectangle(int x_, int y_, int w_, int h_)
+        public ShapeRectangle(int x, int y, int w, int h)
             : base(Shape2DType.Rectangle)
         {
-            Location = new Point(x_, y_);
-            m_Width = w_;
-            m_Height = h_;
+            Location = new Point(x, y);
+            _width = w;
+            _height = h;
         }
 
 
 
-        public override bool CompareTo(Shape2DObject o_)
+        public override bool CompareTo(Shape2DObject o)
         {
-            if (o_ is ShapeRectangle)
+            if (o is ShapeRectangle)
             {
-                ShapeRectangle l = (ShapeRectangle)o_;
-                return m_Height == l.m_Height
-                    && m_Width == l.m_Width
-                    && base.CompareTo(o_);
+                ShapeRectangle l = (ShapeRectangle)o;
+                return _height == l._height
+                    && _width == l._width
+                    && base.CompareTo(o);
             }
 
             return false;
         }
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            base.Save(el_, option_);
-            el_.OwnerDocument.AddAttribute(el_, "width", m_Width.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "height", m_Height.ToString());
+            base.Save(el, option);
+            el.OwnerDocument.AddAttribute(el, "width", _width.ToString());
+            el.OwnerDocument.AddAttribute(el, "height", _height.ToString());
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            base.Save(bw_, option_);
+            base.Save(bw, option);
 
-            bw_.Write(m_Width);
-            bw_.Write(m_Height);
+            bw.Write(_width);
+            bw.Write(_height);
         }
 
         public override string ToString()
         {
-            return "Rectangle " + m_Width.ToString() + " - " + m_Height.ToString();
+            return "Rectangle " + _width.ToString() + " - " + _height.ToString();
         }
 
     }

@@ -7,7 +7,7 @@ namespace CasaEngine.FrontEnd.Screen
     public partial class ScreenManager
     {
 
-        static private readonly int m_Version = 1;
+        static private readonly int Version = 1;
 
 
 
@@ -15,11 +15,11 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        public bool IsValidName(string name_)
+        public bool IsValidName(string name)
         {
-            foreach (UIScreen screen in m_Screens)
+            foreach (UiScreen screen in _screens)
             {
-                if (screen.Name.Equals(name_) == true)
+                if (screen.Name.Equals(name) == true)
                 {
                     return false;
                 }
@@ -28,69 +28,69 @@ namespace CasaEngine.FrontEnd.Screen
             return true;
         }
 
-        public UIScreen GetScreen(string name_)
+        public UiScreen GetScreen(string name)
         {
-            foreach (UIScreen screen in m_Screens)
+            foreach (UiScreen screen in _screens)
             {
-                if (screen.Name.Equals(name_) == true)
+                if (screen.Name.Equals(name) == true)
                 {
                     return screen;
                 }
             }
 
-            throw new InvalidOperationException("Screenmanager.GetScreen() : can't find the screen " + name_);
+            throw new InvalidOperationException("Screenmanager.GetScreen() : can't find the screen " + name);
         }
 
-        public void AddScreen(UIScreen screen_)
+        public void AddScreen(UiScreen screen)
         {
-            m_Screens.Add(screen_);
+            _screens.Add(screen);
         }
 
-        public void RemoveScreen(UIScreen screen_)
+        public void RemoveScreen(UiScreen screen)
         {
-            m_Screens.Remove(screen_);
+            _screens.Remove(screen);
         }
 
-        public void RemoveScreen(string name_)
+        public void RemoveScreen(string name)
         {
-            UIScreen s = null;
+            UiScreen s = null;
 
-            foreach (UIScreen screen in m_Screens)
+            foreach (UiScreen screen in _screens)
             {
-                if (screen.Name.Equals(name_) == true)
+                if (screen.Name.Equals(name) == true)
                 {
                     RemoveScreen(s);
                     return;
                 }
             }
 
-            throw new InvalidOperationException("Screenmanager.RemoveScreen() : can't find the screen " + name_);
+            throw new InvalidOperationException("Screenmanager.RemoveScreen() : can't find the screen " + name);
         }
 
-        public void Save(XmlElement el_, SaveOption opt_)
+        public void Save(XmlElement el, SaveOption opt)
         {
-            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
+            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
-            XmlElement nodeList = el_.OwnerDocument.CreateElement("ScreenList");
-            el_.AppendChild(nodeList);
+            XmlElement nodeList = el.OwnerDocument.CreateElement("ScreenList");
+            el.AppendChild(nodeList);
 
-            foreach (UIScreen screen in m_Screens)
+            foreach (UiScreen screen in _screens)
             {
-                XmlElement node = el_.OwnerDocument.CreateElement("Screen");
+                XmlElement node = el.OwnerDocument.CreateElement("Screen");
                 nodeList.AppendChild(node);
 
-                screen.Save(node, opt_);
+                screen.Save(node, opt);
             }
         }
 
-        public void Save(BinaryWriter bw_, SaveOption opt_)
+        public void Save(BinaryWriter bw, SaveOption opt)
         {
-            bw_.Write(m_Version);
-            bw_.Write(m_Screens.Count);
+            bw.Write(Version);
+            bw.Write(_screens.Count);
 
-            foreach (UIScreen screen in m_Screens)
+            foreach (UiScreen screen in _screens)
             {
-                screen.Save(bw_, opt_);
+                screen.Save(bw, opt);
             }
         }
 

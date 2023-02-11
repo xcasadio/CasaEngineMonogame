@@ -4,9 +4,9 @@ namespace CasaEngine.AI.Navigation
 {
     public interface IPhysicEngine
     {
-        bool NearBodyWorldRayCast(ref Vector3 position_, ref Vector3 feelers_, out Vector3 contactPoint_, out Vector3 ContactNormal_);
+        bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers, out Vector3 contactPoint, out Vector3 contactNormal);
 
-        bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir_);
+        bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir);
     }
 
     public static class PhysicEngine

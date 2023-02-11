@@ -3,57 +3,57 @@
 namespace CasaEngine.Gameplay
 {
     public abstract class Controller
-        : IFSMCapable<Controller>
+        : IFsmCapable<Controller>
     {
 
-        private readonly FiniteStateMachine<Controller> m_FSM;
-        private readonly Dictionary<int, IState<Controller>> m_States = new Dictionary<int, IState<Controller>>();
-        private CharacterActor2D m_Character;
+        private readonly FiniteStateMachine<Controller> _fsm;
+        private readonly Dictionary<int, IState<Controller>> _states = new Dictionary<int, IState<Controller>>();
+        private CharacterActor2D _character;
 
 
 
         public IFiniteStateMachine<Controller> StateMachine
         {
-            get => m_FSM;
+            get => _fsm;
             set => throw new NotImplementedException();
         }
 
         public CharacterActor2D Character
         {
-            get => m_Character;
-            set => m_Character = value;
+            get => _character;
+            set => _character = value;
         }
 
 
 
-        protected Controller(CharacterActor2D character_)
+        protected Controller(CharacterActor2D character)
         {
-            m_FSM = new FiniteStateMachine<Controller>(this);
-            Character = character_;
+            _fsm = new FiniteStateMachine<Controller>(this);
+            Character = character;
         }
 
 
 
-        public IState<Controller> GetState(int stateId_)
+        public IState<Controller> GetState(int stateId)
         {
-            return m_States[stateId_];
+            return _states[stateId];
         }
 
-        public void AddState(int stateId_, IState<Controller> state_)
+        public void AddState(int stateId, IState<Controller> state)
         {
-            m_States.Add(stateId_, state_);
+            _states.Add(stateId, state);
         }
 
         public abstract void Initialize();
 
-        public virtual void Update(float elapsedTime_)
+        public virtual void Update(float elapsedTime)
         {
-            m_FSM.Update(elapsedTime_);
+            _fsm.Update(elapsedTime);
         }
 
         /*public override string ToString()
         {
-            return m_FSM.CurrentState.ToString();
+            return _FSM.CurrentState.ToString();
         }*/
 
     }

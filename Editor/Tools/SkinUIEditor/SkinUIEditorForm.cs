@@ -63,7 +63,7 @@ namespace Editor.Tools.SkinUIEditor
         /// <param name="obj_"></param>
         public void SetCurrentObject(string path_, CasaEngine.Gameplay.Actor.Object.BaseObject obj_)
         {
-            if (obj_ is SkinUI)
+            if (obj_ is SkinUi)
             {
                 propertyGrid1.SelectedObject = obj_;
                 //m_FontPreviewEditorComponent.Font = obj_ as CasaEngine.Asset.Fonts.Font;

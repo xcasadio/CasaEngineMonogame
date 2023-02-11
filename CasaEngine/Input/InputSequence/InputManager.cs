@@ -16,11 +16,11 @@ namespace CasaEngine.Input
             public ButtonState State;
             public float Time;
 
-            public bool Match(KeyState other_)
+            public bool Match(KeyState other)
             {
-                return Key == other_.Key
-                    && State == other_.State
-                    && Time >= other_.Time;
+                return Key == other.Key
+                    && State == other.State
+                    && Time >= other.Time;
             }
         }
 
@@ -29,22 +29,22 @@ namespace CasaEngine.Input
             public float GlobalTime;
             public List<KeyState> KeysState;
 
-            public KeyStateFrame(float time_)
+            public KeyStateFrame(float time)
             {
-                GlobalTime = time_;
+                GlobalTime = time;
                 KeysState = new List<KeyState>();
             }
         }
 
-        public List<KeyStateFrame> m_Buffer = new List<KeyStateFrame>(50);
+        public List<KeyStateFrame> _buffer = new List<KeyStateFrame>(50);
 
-        public KeyStateFrame[] Buffer => m_Buffer.ToArray();
+        public KeyStateFrame[] Buffer => _buffer.ToArray();
 
         //public readonly TimeSpan MergeInputTime = TimeSpan.FromMilliseconds(100);
         public readonly float MergeInputTime = 0.1f;
 
-        /*public InputConfigurations m_InputConfigurations = new InputConfigurations();
-		public string m_CurrentInputConfig;
+        /*public InputConfigurations _InputConfigurations = new InputConfigurations();
+		public string _CurrentInputConfig;
 
         public PlayerIndex PlayerIndex { get; private set; }
 
@@ -154,15 +154,15 @@ namespace CasaEngine.Input
             }
         }*/
 
-        public void Update(KeyState[] keysState_, float globalTime_)
+        public void Update(KeyState[] keysState, float globalTime)
         {
-            List<KeyState> keyStateList = new List<KeyState>(keysState_);
+            List<KeyState> keyStateList = new List<KeyState>(keysState);
             List<KeyStateFrame> toDelete = new List<KeyStateFrame>();
 
             // Delete old frame (> 2 secondes)
-            foreach (KeyStateFrame keyStateFrame in m_Buffer)
+            foreach (KeyStateFrame keyStateFrame in _buffer)
             {
-                if (globalTime_ - keyStateFrame.GlobalTime >= 2.0f)
+                if (globalTime - keyStateFrame.GlobalTime >= 2.0f)
                 {
                     toDelete.Add(keyStateFrame);
                 }
@@ -170,29 +170,29 @@ namespace CasaEngine.Input
 
             foreach (KeyStateFrame keyStateFrame in toDelete)
             {
-                m_Buffer.Remove(keyStateFrame);
+                _buffer.Remove(keyStateFrame);
             }
 
             //check buffer no empty
-            bool IsEntryEmpty = true;
+            bool isEntryEmpty = true;
 
-            foreach (KeyState k in keysState_)
+            foreach (KeyState k in keysState)
             {
                 if (k.State != ButtonState.Released)
                 {
-                    IsEntryEmpty = false;
+                    isEntryEmpty = false;
                     break;
                 }
             }
 
-            int last = m_Buffer.Count - 1;
+            int last = _buffer.Count - 1;
             // It is very hard to press two buttons on exactly the same frame.
             // If they are close enough, consider them pressed at the same time.
             bool merged = false;
 
-            if (m_Buffer.Count > 0)
+            if (_buffer.Count > 0)
             {
-                merged = globalTime_ - m_Buffer[m_Buffer.Count - 1].GlobalTime <= MergeInputTime
+                merged = globalTime - _buffer[_buffer.Count - 1].GlobalTime <= MergeInputTime
                     && CheckDirectionCollisionForMerge(keyStateList) == true
                     && CheckIfReleasedButtonCollisionForMerge(keyStateList) == false;
             }
@@ -202,12 +202,12 @@ namespace CasaEngine.Input
 
             if (merged == true)
             {
-                foreach (KeyState k2 in keysState_)
+                foreach (KeyState k2 in keysState)
                 {
                     found = false;
                     i = 0;
 
-                    foreach (KeyState k1 in m_Buffer[last].KeysState)
+                    foreach (KeyState k1 in _buffer[last].KeysState)
                     {
                         if (k1.Key == k2.Key)
                         {
@@ -215,7 +215,7 @@ namespace CasaEngine.Input
 
                             KeyState k = k1;
                             k.Time += k2.Time;
-                            m_Buffer[last].KeysState[i] = k;
+                            _buffer[last].KeysState[i] = k;
                             break;
                         }
 
@@ -226,24 +226,24 @@ namespace CasaEngine.Input
                         && k2.State == ButtonState.Pressed)
                     {
                         //verif elapsedTime
-                        m_Buffer[last].KeysState.Add(k2);
+                        _buffer[last].KeysState.Add(k2);
                     }
                 }
             }
-            else if (IsEntryEmpty == false)
+            else if (isEntryEmpty == false)
             {
                 List<KeyState> keysToAdd = new List<KeyState>();
 
-                if (m_Buffer.Count > 0)
+                if (_buffer.Count > 0)
                 {
                     Dictionary<int, KeyState> tmp = new Dictionary<int, KeyState>();
 
-                    foreach (KeyState k2 in keysState_)
+                    foreach (KeyState k2 in keysState)
                     {
                         i = 0;
                         found = false;
 
-                        foreach (KeyState k1 in m_Buffer[last].KeysState)
+                        foreach (KeyState k1 in _buffer[last].KeysState)
                         {
                             if (k1.Key == k2.Key)
                             {
@@ -283,13 +283,13 @@ namespace CasaEngine.Input
 
                     // remove old button => moved in new frame
                     //if same buttons (case hold button)
-                    if (m_Buffer[last].KeysState.Count == tmp.Count)
+                    if (_buffer[last].KeysState.Count == tmp.Count)
                     {
                         foreach (KeyValuePair<int, KeyState> pair in tmp)
                         {
                             found = false;
 
-                            foreach (KeyState k in m_Buffer[last].KeysState)
+                            foreach (KeyState k in _buffer[last].KeysState)
                             {
                                 if (k.Key == pair.Value.Key)
                                 {
@@ -308,23 +308,23 @@ namespace CasaEngine.Input
                         {
                             foreach (KeyValuePair<int, KeyState> pair in tmp)
                             {
-                                m_Buffer[last].KeysState.Remove(pair.Value);
+                                _buffer[last].KeysState.Remove(pair.Value);
                             }
                         }
                     }
 
                     //Check empty buffer (can append if held button is detected)
-                    if (m_Buffer[last].KeysState.Count == 0)
+                    if (_buffer[last].KeysState.Count == 0)
                     {
-                        m_Buffer.RemoveAt(last);
+                        _buffer.RemoveAt(last);
                     }
 
                     //ajout new frame
                     if (keysToAdd.Count > 0)
                     {
-                        KeyStateFrame ksf = new KeyStateFrame(globalTime_); // factory
+                        KeyStateFrame ksf = new KeyStateFrame(globalTime); // factory
                         ksf.KeysState = keysToAdd;
-                        m_Buffer.Add(ksf);
+                        _buffer.Add(ksf);
                     }
                 }
                 // first element
@@ -340,21 +340,21 @@ namespace CasaEngine.Input
 
                     if (keysToAdd.Count > 0)
                     {
-                        KeyStateFrame ksf = new KeyStateFrame(globalTime_); // factory
+                        KeyStateFrame ksf = new KeyStateFrame(globalTime); // factory
                         ksf.KeysState = keysToAdd;
-                        m_Buffer.Add(ksf);
+                        _buffer.Add(ksf);
                     }
                 }
             }
         }
 
-        private bool CheckDirectionCollisionForMerge(IEnumerable<KeyState> keys_)
+        private bool CheckDirectionCollisionForMerge(IEnumerable<KeyState> keys)
         {
-            /*int last = m_Buffer.Count - 1;
+            /*int last = _buffer.Count - 1;
             int updown = 0;
             int leftRight = 0;
 
-            foreach (KeyState key in m_Buffer[last].KeysState)
+            foreach (KeyState key in _buffer[last].KeysState)
             {
                 if (key.)
             }*/
@@ -363,7 +363,7 @@ namespace CasaEngine.Input
             return true; // false;
         }
 
-        private bool CheckIfReleasedButtonCollisionForMerge(IEnumerable<KeyState> keys_)
+        private bool CheckIfReleasedButtonCollisionForMerge(IEnumerable<KeyState> keys)
         {
             return false; //false;
         }
@@ -379,13 +379,13 @@ namespace CasaEngine.Input
 #endif
 
             // If the move is longer than the buffer, it can't possibly match.
-            if (m_Buffer.Count < moveSequencecount)
+            if (_buffer.Count < moveSequencecount)
                 return false;
 
             // Loop backwards to match against the most recent input.
             for (int i = 1; i <= moveSequencecount; ++i)
             {
-                if (move.Match(moveSequencecount - i, m_Buffer[m_Buffer.Count - i].KeysState.ToArray()) == false)
+                if (move.Match(moveSequencecount - i, _buffer[_buffer.Count - i].KeysState.ToArray()) == false)
                 {
                     return false;
                 }
@@ -395,7 +395,7 @@ namespace CasaEngine.Input
             if (!move.IsSubMove)
             {
                 // consume the used inputs.
-                m_Buffer.Clear();
+                _buffer.Clear();
             }
 
             return true;

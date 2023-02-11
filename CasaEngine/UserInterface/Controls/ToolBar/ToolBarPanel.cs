@@ -16,9 +16,9 @@ namespace XNAFinalEngine.UserInterface
     public class ToolBarPanel : Control
     {
 
-   
-        public ToolBarPanel(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+
+        public ToolBarPanel(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Width = 64;
@@ -26,7 +26,7 @@ namespace XNAFinalEngine.UserInterface
         } // ToolBarPanel
 
 
-                      
+
         protected internal override void InitSkin()
         {
             base.InitSkin();
@@ -35,9 +35,9 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        protected internal override void Update(float elapsedTime_)
+        protected internal override void Update(float elapsedTime)
         {
-            base.Update(elapsedTime_);
+            base.Update(elapsedTime);
             AlignBars();
         } // Update
 

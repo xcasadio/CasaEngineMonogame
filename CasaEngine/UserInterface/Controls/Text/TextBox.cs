@@ -32,30 +32,30 @@ namespace XNAFinalEngine.UserInterface
 
         private struct Selection
         {
-            private int start;
+            private int _start;
 
-            private int end;
+            private int _end;
 
             public int Start
             {
                 get
                 {
-                    if (start > end && start != -1 && end != -1)
-                        return end;
-                    return start;
+                    if (_start > _end && _start != -1 && _end != -1)
+                        return _end;
+                    return _start;
                 }
-                set => start = value;
+                set => _start = value;
             } // Start
 
             public int End
             {
                 get
                 {
-                    if (end < start && start != -1 && end != -1)
-                        return start;
-                    return end;
+                    if (_end < _start && _start != -1 && _end != -1)
+                        return _start;
+                    return _end;
                 }
-                set => end = value;
+                set => _end = value;
             } // End
 
             public bool IsEmpty => Start == -1 && End == -1; // IsEmpty
@@ -64,8 +64,8 @@ namespace XNAFinalEngine.UserInterface
 
             public Selection(int start, int end)
             {
-                this.start = start;
-                this.end = end;
+                this._start = start;
+                this._end = end;
             } // Selection
 
             public void Clear()
@@ -77,70 +77,70 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        private int positionX;
-        private int positionY;
+        private int _positionX;
+        private int _positionY;
 
-        private ScrollBarType scrollBarType = ScrollBarType.Both;
+        private ScrollBarType _scrollBarType = ScrollBarType.Both;
 
-        private readonly ScrollBar horizontalScrollBar;
-        private readonly ScrollBar verticalScrollBar;
+        private readonly ScrollBar _horizontalScrollBar;
+        private readonly ScrollBar _verticalScrollBar;
 
-        private char passwordCharacter = '•';
+        private char _passwordCharacter = '•';
 
-        private bool caretVisible = true;
+        private bool _caretVisible = true;
 
-        private bool autoSelection = true;
+        private bool _autoSelection = true;
 
-        private TextBoxMode mode = TextBoxMode.Normal;
+        private TextBoxMode _mode = TextBoxMode.Normal;
 
-        private bool readOnly;
+        private bool _readOnly;
 
-        private bool drawBorders = true;
+        private bool _drawBorders = true;
 
-        private bool showCursor;
-        private double flashTime;
-        private string shownText = "";
-        private Selection selection = new Selection(-1, -1);
-        private List<string> lines = new List<string>();
-        private int linesDrawn;
-        private int charsDrawn;
-        private CasaEngine.Asset.Fonts.Font font;
-        private bool wordWrap;
+        private bool _showCursor;
+        private double _flashTime;
+        private string _shownText = "";
+        private Selection _selection = new Selection(-1, -1);
+        private List<string> _lines = new List<string>();
+        private int _linesDrawn;
+        private int _charsDrawn;
+        private CasaEngine.Asset.Fonts.Font _font;
+        private bool _wordWrap;
         private const string Separator = "\n";
-        private string text = "";
-        private string buffer = "";
+        private string _text = "";
+        private string _buffer = "";
 
-        private string initialText;
+        private string _initialText;
 
 
 
 
         private int PositionX
         {
-            get => positionX;
+            get => _positionX;
             set
             {
-                positionX = value;
-                if (positionX < 0)
-                    positionX = 0;
-                if (positionX > lines[PositionY].Length)
-                    positionX = lines[PositionY].Length;
+                _positionX = value;
+                if (_positionX < 0)
+                    _positionX = 0;
+                if (_positionX > _lines[PositionY].Length)
+                    _positionX = _lines[PositionY].Length;
             }
         } // positionX
 
         private int PositionY
         {
-            get => positionY;
+            get => _positionY;
             set
             {
-                positionY = value;
+                _positionY = value;
 
-                if (positionY < 0)
-                    positionY = 0;
-                if (positionY > lines.Count - 1)
-                    positionY = lines.Count - 1;
-                if (positionX > lines[PositionY].Length)
-                    positionX = lines[PositionY].Length;
+                if (_positionY < 0)
+                    _positionY = 0;
+                if (_positionY > _lines.Count - 1)
+                    _positionY = _lines.Count - 1;
+                if (_positionX > _lines[PositionY].Length)
+                    _positionX = _lines[PositionY].Length;
             }
         } // PositionY
 
@@ -157,37 +157,37 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual ScrollBarType ScrollBars
         {
-            get => scrollBarType;
+            get => _scrollBarType;
             set
             {
-                scrollBarType = value;
+                _scrollBarType = value;
                 SetupScrollBars();
             }
         } // ScrollBars
 
         public virtual char PasswordCharacter
         {
-            get => passwordCharacter;
-            set { passwordCharacter = value; if (ClientArea != null) ClientArea.Invalidate(); }
+            get => _passwordCharacter;
+            set { _passwordCharacter = value; if (ClientArea != null) ClientArea.Invalidate(); }
         } // PasswordCharacter
 
         public virtual bool CaretVisible
         {
-            get => caretVisible;
-            set => caretVisible = value;
+            get => _caretVisible;
+            set => _caretVisible = value;
         } // CaretVisible
 
         public virtual TextBoxMode Mode
         {
-            get => mode;
+            get => _mode;
             set
             {
                 if (value != TextBoxMode.Multiline)
                 {
                     Text = Text.Replace(Separator, "");
                 }
-                mode = value;
-                selection.Clear();
+                _mode = value;
+                _selection.Clear();
 
                 if (ClientArea != null) ClientArea.Invalidate();
                 SetupScrollBars();
@@ -196,14 +196,14 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual bool ReadOnly
         {
-            get => readOnly;
-            set => readOnly = value;
+            get => _readOnly;
+            set => _readOnly = value;
         } // ReadOnly
 
         public virtual bool DrawBorders
         {
-            get => drawBorders;
-            set { drawBorders = value; if (ClientArea != null) ClientArea.Invalidate(); }
+            get => _drawBorders;
+            set { _drawBorders = value; if (ClientArea != null) ClientArea.Invalidate(); }
         } // DrawBorders
 
 
@@ -211,11 +211,11 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                if (selection.IsEmpty)
+                if (_selection.IsEmpty)
                 {
                     return "";
                 }
-                return Text.Substring(selection.Start, selection.Length);
+                return Text.Substring(_selection.Start, _selection.Length);
             }
         } // SelectedText
 
@@ -223,52 +223,52 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                if (selection.IsEmpty)
+                if (_selection.IsEmpty)
                     return Position;
-                return selection.Start;
+                return _selection.Start;
             }
             set
             {
                 Position = value;
                 if (Position < 0) Position = 0;
                 if (Position > Text.Length) Position = Text.Length;
-                selection.Start = Position;
-                if (selection.End == -1) selection.End = Position;
+                _selection.Start = Position;
+                if (_selection.End == -1) _selection.End = Position;
                 ClientArea.Invalidate();
             }
         } // SelectionStart
 
         public virtual bool AutoSelection
         {
-            get => autoSelection;
-            set => autoSelection = value;
+            get => _autoSelection;
+            set => _autoSelection = value;
         } // AutoSelection
 
         public virtual int SelectionLength
         {
-            get => selection.Length;
+            get => _selection.Length;
             set
             {
                 if (value == 0)
                 {
-                    selection.End = selection.Start;
+                    _selection.End = _selection.Start;
                 }
-                else if (selection.IsEmpty)
+                else if (_selection.IsEmpty)
                 {
-                    selection.Start = 0;
-                    selection.End = value;
+                    _selection.Start = 0;
+                    _selection.End = value;
                 }
-                else if (!selection.IsEmpty)
+                else if (!_selection.IsEmpty)
                 {
-                    selection.End = selection.Start + value;
+                    _selection.End = _selection.Start + value;
                 }
 
-                if (!selection.IsEmpty)
+                if (!_selection.IsEmpty)
                 {
-                    if (selection.Start < 0) selection.Start = 0;
-                    if (selection.Start > Text.Length) selection.Start = Text.Length;
-                    if (selection.End < 0) selection.End = 0;
-                    if (selection.End > Text.Length) selection.End = Text.Length;
+                    if (_selection.Start < 0) _selection.Start = 0;
+                    if (_selection.Start > Text.Length) _selection.Start = Text.Length;
+                    if (_selection.End < 0) _selection.End = 0;
+                    if (_selection.End > Text.Length) _selection.End = Text.Length;
                 }
                 ClientArea.Invalidate();
             }
@@ -277,19 +277,19 @@ namespace XNAFinalEngine.UserInterface
 
         public override string Text
         {
-            get => text;
+            get => _text;
             set
             {
-                if (mode != TextBoxMode.Multiline && value != null)
+                if (_mode != TextBoxMode.Multiline && value != null)
                 {
                     value = value.Replace(Separator, "");
                 }
 
-                text = value;
+                _text = value;
 
                 if (!Suspended) OnTextChanged(new EventArgs());
 
-                lines = SplitLines(text);
+                _lines = SplitLines(_text);
                 if (ClientArea != null) ClientArea.Invalidate();
 
                 SetupScrollBars();
@@ -299,15 +299,15 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public TextBox(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public TextBox(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CheckLayer(SkinInformation, "Cursor");
 
             SetDefaultSize(128, 20);
-            lines.Add("");
+            _lines.Add("");
 
-            verticalScrollBar = new ScrollBar(UserInterfaceManager, Orientation.Vertical)
+            _verticalScrollBar = new ScrollBar(UserInterfaceManager, Orientation.Vertical)
             {
                 Range = 1,
                 PageSize = 1,
@@ -315,7 +315,7 @@ namespace XNAFinalEngine.UserInterface
                 Anchor = Anchors.Top | Anchors.Right | Anchors.Bottom,
                 Visible = false
             };
-            horizontalScrollBar = new ScrollBar(UserInterfaceManager, Orientation.Horizontal)
+            _horizontalScrollBar = new ScrollBar(UserInterfaceManager, Orientation.Horizontal)
             {
                 Range = ClientArea.Width,
                 PageSize = ClientArea.Width,
@@ -331,11 +331,11 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
             ClientArea.Draw += ClientAreaDraw;
-            verticalScrollBar.ValueChanged += ScrollBarValueChanged;
-            horizontalScrollBar.ValueChanged += ScrollBarValueChanged;
-            Add(verticalScrollBar, false);
-            Add(horizontalScrollBar, false);
-            FocusGained += delegate { initialText = Text; };
+            _verticalScrollBar.ValueChanged += ScrollBarValueChanged;
+            _horizontalScrollBar.ValueChanged += ScrollBarValueChanged;
+            Add(_verticalScrollBar, false);
+            Add(_horizontalScrollBar, false);
+            FocusGained += delegate { _initialText = Text; };
         } // Init
 
         protected internal override void InitSkin()
@@ -347,14 +347,14 @@ namespace XNAFinalEngine.UserInterface
             Cursor = UserInterfaceManager.Skin.Cursors["Text"].Cursor;
 #endif
 
-            font = (SkinInformation.Layers["Control"].Text != null) ? SkinInformation.Layers["Control"].Text.Font.Font : null;
+            _font = (SkinInformation.Layers["Control"].Text != null) ? SkinInformation.Layers["Control"].Text.Font.Font : null;
         } // InitSkin
 
 
 
         protected override void DrawControl(Rectangle rect)
         {
-            if (drawBorders)
+            if (_drawBorders)
             {
                 base.DrawControl(rect);
             }
@@ -364,11 +364,11 @@ namespace XNAFinalEngine.UserInterface
         {
             if (ClientArea != null)
             {
-                int sizey = font.LineSpacing;
-                linesDrawn = ClientArea.Height / sizey;
-                if (linesDrawn > lines.Count) linesDrawn = lines.Count;
+                int sizey = _font.LineSpacing;
+                _linesDrawn = ClientArea.Height / sizey;
+                if (_linesDrawn > _lines.Count) _linesDrawn = _lines.Count;
 
-                charsDrawn = ClientArea.Width - 1;
+                _charsDrawn = ClientArea.Width - 1;
             }
         } // DeterminePages
 
@@ -377,50 +377,50 @@ namespace XNAFinalEngine.UserInterface
             int max = 0;
             int x = 0;
 
-            for (int i = 0; i < lines.Count; i++)
+            for (int i = 0; i < _lines.Count; i++)
             {
-                if (lines[i].Length > max)
+                if (_lines[i].Length > max)
                 {
-                    max = lines[i].Length;
+                    max = _lines[i].Length;
                     x = i;
                 }
             }
-            return lines.Count > 0 ? lines[x] : "";
+            return _lines.Count > 0 ? _lines[x] : "";
         } // GetMaxLine
 
         private void ClientAreaDraw(object sender, DrawEventArgs e)
         {
             Color col = SkinInformation.Layers["Control"].Text.Colors.Enabled;
             SkinLayer cursor = SkinInformation.Layers["Cursor"];
-            Alignment al = mode == TextBoxMode.Multiline ? Alignment.TopLeft : Alignment.MiddleLeft;
+            Alignment al = _mode == TextBoxMode.Multiline ? Alignment.TopLeft : Alignment.MiddleLeft;
             Rectangle r = e.Rectangle;
-            bool drawsel = !selection.IsEmpty;
+            bool drawsel = !_selection.IsEmpty;
             string tmpText;
 
-            font = (SkinInformation.Layers["Control"].Text != null) ? SkinInformation.Layers["Control"].Text.Font.Font : null;
+            _font = (SkinInformation.Layers["Control"].Text != null) ? SkinInformation.Layers["Control"].Text.Font.Font : null;
 
-            if (Text != null && font != null)
+            if (Text != null && _font != null)
             {
                 DeterminePages();
 
-                if (mode == TextBoxMode.Multiline)
+                if (_mode == TextBoxMode.Multiline)
                 {
-                    shownText = Text;
-                    tmpText = lines[PositionY];
+                    _shownText = Text;
+                    tmpText = _lines[PositionY];
                 }
-                else if (mode == TextBoxMode.Password)
+                else if (_mode == TextBoxMode.Password)
                 {
-                    shownText = "";
+                    _shownText = "";
                     foreach (char character in Text)
                     {
-                        shownText = shownText + passwordCharacter;
+                        _shownText = _shownText + _passwordCharacter;
                     }
-                    tmpText = shownText;
+                    tmpText = _shownText;
                 }
                 else
                 {
-                    shownText = Text;
-                    tmpText = lines[PositionY];
+                    _shownText = Text;
+                    tmpText = _lines[PositionY];
                 }
 
                 if (TextColor != UndefinedColor && ControlState != ControlState.Disabled)
@@ -428,10 +428,10 @@ namespace XNAFinalEngine.UserInterface
                     col = TextColor;
                 }
 
-                if (mode != TextBoxMode.Multiline)
+                if (_mode != TextBoxMode.Multiline)
                 {
-                    linesDrawn = 0;
-                    verticalScrollBar.Value = 0;
+                    _linesDrawn = 0;
+                    _verticalScrollBar.Value = 0;
                 }
 
                 if (drawsel)
@@ -439,48 +439,48 @@ namespace XNAFinalEngine.UserInterface
                     DrawSelection(r);
                 }
 
-                int sizey = font.LineSpacing;
+                int sizey = _font.LineSpacing;
 
-                if (showCursor && caretVisible)
+                if (_showCursor && _caretVisible)
                 {
                     Vector2 size = Vector2.Zero;
                     if (PositionX > 0 && PositionX <= tmpText.Length)
                     {
-                        size = font.MeasureString(tmpText.Substring(0, PositionX));
+                        size = _font.MeasureString(tmpText.Substring(0, PositionX));
                     }
                     if (size.Y == 0)
                     {
-                        size = font.MeasureString(" ");
+                        size = _font.MeasureString(" ");
                         size.X = 0;
                     }
 
-                    int m = r.Height - font.LineSpacing;
+                    int m = r.Height - _font.LineSpacing;
 
-                    Rectangle rc = new Rectangle(r.Left - horizontalScrollBar.Value + (int)size.X, r.Top + m / 2, cursor.Width, font.LineSpacing);
+                    Rectangle rc = new Rectangle(r.Left - _horizontalScrollBar.Value + (int)size.X, r.Top + m / 2, cursor.Width, _font.LineSpacing);
 
-                    if (mode == TextBoxMode.Multiline)
+                    if (_mode == TextBoxMode.Multiline)
                     {
-                        rc = new Rectangle(r.Left + (int)size.X - horizontalScrollBar.Value, r.Top + (int)((PositionY - verticalScrollBar.Value) * font.LineSpacing), cursor.Width, font.LineSpacing);
+                        rc = new Rectangle(r.Left + (int)size.X - _horizontalScrollBar.Value, r.Top + (int)((PositionY - _verticalScrollBar.Value) * _font.LineSpacing), cursor.Width, _font.LineSpacing);
                     }
                     cursor.Alignment = al;
                     UserInterfaceManager.Renderer.DrawLayer(cursor, rc, col, 0);
                 }
 
-                for (int i = 0; i < linesDrawn + 1; i++)
+                for (int i = 0; i < _linesDrawn + 1; i++)
                 {
-                    int ii = i + verticalScrollBar.Value;
-                    if (ii >= lines.Count || ii < 0) break;
+                    int ii = i + _verticalScrollBar.Value;
+                    if (ii >= _lines.Count || ii < 0) break;
 
-                    if (lines[ii] != "")
+                    if (_lines[ii] != "")
                     {
-                        if (mode == TextBoxMode.Multiline)
+                        if (_mode == TextBoxMode.Multiline)
                         {
-                            UserInterfaceManager.Renderer.DrawString(font, lines[ii], r.Left - horizontalScrollBar.Value, r.Top + (i * sizey), col);
+                            UserInterfaceManager.Renderer.DrawString(_font, _lines[ii], r.Left - _horizontalScrollBar.Value, r.Top + (i * sizey), col);
                         }
                         else
                         {
-                            Rectangle rx = new Rectangle(r.Left - horizontalScrollBar.Value, r.Top, r.Width, r.Height);
-                            UserInterfaceManager.Renderer.DrawString(font, shownText, rx, col, al, false);
+                            Rectangle rx = new Rectangle(r.Left - _horizontalScrollBar.Value, r.Top, r.Width, r.Height);
+                            UserInterfaceManager.Renderer.DrawString(_font, _shownText, rx, col, al, false);
                         }
                     }
                 }
@@ -489,44 +489,44 @@ namespace XNAFinalEngine.UserInterface
 
         private void DrawSelection(Rectangle rect)
         {
-            if (!selection.IsEmpty)
+            if (!_selection.IsEmpty)
             {
-                int s = selection.Start;
-                int e = selection.End;
+                int s = _selection.Start;
+                int e = _selection.End;
 
                 int sl = GetPosY(s);
                 int el = GetPosY(e);
                 int sc = GetPosX(s);
                 int ec = GetPosX(e);
 
-                int hgt = font.LineSpacing;
+                int hgt = _font.LineSpacing;
 
                 int start = sl;
                 int end = el;
 
-                if (start < verticalScrollBar.Value) start = verticalScrollBar.Value;
-                if (end > verticalScrollBar.Value + linesDrawn) end = verticalScrollBar.Value + linesDrawn;
+                if (start < _verticalScrollBar.Value) start = _verticalScrollBar.Value;
+                if (end > _verticalScrollBar.Value + _linesDrawn) end = _verticalScrollBar.Value + _linesDrawn;
 
                 for (int i = start; i <= end; i++)
                 {
                     Rectangle r = Rectangle.Empty;
 
-                    if (mode == TextBoxMode.Normal)
+                    if (_mode == TextBoxMode.Normal)
                     {
-                        int m = ClientArea.Height - font.LineSpacing;
-                        r = new Rectangle(rect.Left - horizontalScrollBar.Value + (int)font.MeasureString(lines[i].Substring(0, sc)).X, rect.Top + m / 2,
-                                         (int)font.MeasureString(lines[i].Substring(0, ec + 0)).X - (int)font.MeasureString(lines[i].Substring(0, sc)).X, hgt);
+                        int m = ClientArea.Height - _font.LineSpacing;
+                        r = new Rectangle(rect.Left - _horizontalScrollBar.Value + (int)_font.MeasureString(_lines[i].Substring(0, sc)).X, rect.Top + m / 2,
+                                         (int)_font.MeasureString(_lines[i].Substring(0, ec + 0)).X - (int)_font.MeasureString(_lines[i].Substring(0, sc)).X, hgt);
                     }
                     else if (sl == el)
                     {
-                        r = new Rectangle(rect.Left - horizontalScrollBar.Value + (int)font.MeasureString(lines[i].Substring(0, sc)).X, rect.Top + (i - verticalScrollBar.Value) * hgt,
-                                          (int)font.MeasureString(lines[i].Substring(0, ec + 0)).X - (int)font.MeasureString(lines[i].Substring(0, sc)).X, hgt);
+                        r = new Rectangle(rect.Left - _horizontalScrollBar.Value + (int)_font.MeasureString(_lines[i].Substring(0, sc)).X, rect.Top + (i - _verticalScrollBar.Value) * hgt,
+                                          (int)_font.MeasureString(_lines[i].Substring(0, ec + 0)).X - (int)_font.MeasureString(_lines[i].Substring(0, sc)).X, hgt);
                     }
                     else
                     {
-                        if (i == sl) r = new Rectangle(rect.Left - horizontalScrollBar.Value + (int)font.MeasureString(lines[i].Substring(0, sc)).X, rect.Top + (i - verticalScrollBar.Value) * hgt, (int)font.MeasureString(lines[i]).X - (int)font.MeasureString(lines[i].Substring(0, sc)).X, hgt);
-                        else if (i == el) r = new Rectangle(rect.Left - horizontalScrollBar.Value, rect.Top + (i - verticalScrollBar.Value) * hgt, (int)font.MeasureString(lines[i].Substring(0, ec + 0)).X, hgt);
-                        else r = new Rectangle(rect.Left - horizontalScrollBar.Value, rect.Top + (i - verticalScrollBar.Value) * hgt, (int)font.MeasureString(lines[i]).X, hgt);
+                        if (i == sl) r = new Rectangle(rect.Left - _horizontalScrollBar.Value + (int)_font.MeasureString(_lines[i].Substring(0, sc)).X, rect.Top + (i - _verticalScrollBar.Value) * hgt, (int)_font.MeasureString(_lines[i]).X - (int)_font.MeasureString(_lines[i].Substring(0, sc)).X, hgt);
+                        else if (i == el) r = new Rectangle(rect.Left - _horizontalScrollBar.Value, rect.Top + (i - _verticalScrollBar.Value) * hgt, (int)_font.MeasureString(_lines[i].Substring(0, ec + 0)).X, hgt);
+                        else r = new Rectangle(rect.Left - _horizontalScrollBar.Value, rect.Top + (i - _verticalScrollBar.Value) * hgt, (int)_font.MeasureString(_lines[i]).X, hgt);
                     }
 
                     UserInterfaceManager.Renderer.Draw(UserInterfaceManager.Skin.Images["Control"].Texture.Resource, r, Color.FromNonPremultiplied(160, 160, 160, 128));
@@ -539,55 +539,55 @@ namespace XNAFinalEngine.UserInterface
         private int GetStringWidth(string text, int count)
         {
             if (count > text.Length) count = text.Length;
-            return (int)font.MeasureString(text.Substring(0, count)).X;
+            return (int)_font.MeasureString(text.Substring(0, count)).X;
         } // GetStringWidth
 
         private void ProcessScrolling()
         {
-            if (verticalScrollBar != null && horizontalScrollBar != null)
+            if (_verticalScrollBar != null && _horizontalScrollBar != null)
             {
-                verticalScrollBar.PageSize = linesDrawn;
-                horizontalScrollBar.PageSize = charsDrawn;
+                _verticalScrollBar.PageSize = _linesDrawn;
+                _horizontalScrollBar.PageSize = _charsDrawn;
 
-                if (horizontalScrollBar.PageSize > horizontalScrollBar.Range) horizontalScrollBar.PageSize = horizontalScrollBar.Range;
+                if (_horizontalScrollBar.PageSize > _horizontalScrollBar.Range) _horizontalScrollBar.PageSize = _horizontalScrollBar.Range;
 
-                if (PositionY >= verticalScrollBar.Value + verticalScrollBar.PageSize)
+                if (PositionY >= _verticalScrollBar.Value + _verticalScrollBar.PageSize)
                 {
-                    verticalScrollBar.Value = (PositionY + 1) - verticalScrollBar.PageSize;
+                    _verticalScrollBar.Value = (PositionY + 1) - _verticalScrollBar.PageSize;
                 }
-                else if (PositionY < verticalScrollBar.Value)
+                else if (PositionY < _verticalScrollBar.Value)
                 {
-                    verticalScrollBar.Value = PositionY;
+                    _verticalScrollBar.Value = PositionY;
                 }
 
-                if (GetStringWidth(lines[PositionY], PositionX) >= horizontalScrollBar.Value + horizontalScrollBar.PageSize)
+                if (GetStringWidth(_lines[PositionY], PositionX) >= _horizontalScrollBar.Value + _horizontalScrollBar.PageSize)
                 {
-                    horizontalScrollBar.Value = (GetStringWidth(lines[PositionY], PositionX) + 1) - horizontalScrollBar.PageSize;
+                    _horizontalScrollBar.Value = (GetStringWidth(_lines[PositionY], PositionX) + 1) - _horizontalScrollBar.PageSize;
                 }
-                else if (GetStringWidth(lines[PositionY], PositionX) < horizontalScrollBar.Value)
+                else if (GetStringWidth(_lines[PositionY], PositionX) < _horizontalScrollBar.Value)
                 {
-                    horizontalScrollBar.Value = GetStringWidth(lines[PositionY], PositionX) - horizontalScrollBar.PageSize;
+                    _horizontalScrollBar.Value = GetStringWidth(_lines[PositionY], PositionX) - _horizontalScrollBar.PageSize;
                 }
             }
         } // ProcessScrolling
 
 
 
-        protected internal override void Update(float elapsedTime_)
+        protected internal override void Update(float elapsedTime)
         {
-            base.Update(elapsedTime_);
+            base.Update(elapsedTime);
 
-            bool showCursorTemp = showCursor;
+            bool showCursorTemp = _showCursor;
 
-            showCursor = Focused;
+            _showCursor = Focused;
 
             if (Focused)
             {
-                flashTime += elapsedTime_;
-                showCursor = flashTime < 0.5;
-                if (flashTime > 1) flashTime = 0;
+                _flashTime += elapsedTime;
+                _showCursor = _flashTime < 0.5;
+                if (_flashTime > 1) _flashTime = 0;
             }
-            if (showCursorTemp != showCursor) ClientArea.Invalidate();
+            if (showCursorTemp != _showCursor) ClientArea.Invalidate();
         } // Update
 
 
@@ -638,12 +638,12 @@ namespace XNAFinalEngine.UserInterface
 
         private int GetPosY(int pos)
         {
-            if (pos >= Text.Length) return lines.Count - 1;
+            if (pos >= Text.Length) return _lines.Count - 1;
 
             int p = pos;
-            for (int i = 0; i < lines.Count; i++)
+            for (int i = 0; i < _lines.Count; i++)
             {
-                p -= lines[i].Length + Separator.Length;
+                p -= _lines[i].Length + Separator.Length;
                 if (p < 0)
                 {
                     return i;
@@ -654,15 +654,15 @@ namespace XNAFinalEngine.UserInterface
 
         private int GetPosX(int pos)
         {
-            if (pos >= Text.Length) return lines[lines.Count - 1].Length;
+            if (pos >= Text.Length) return _lines[_lines.Count - 1].Length;
 
             int p = pos;
-            for (int i = 0; i < lines.Count; i++)
+            for (int i = 0; i < _lines.Count; i++)
             {
-                p -= lines[i].Length + Separator.Length;
+                p -= _lines[i].Length + Separator.Length;
                 if (p < 0)
                 {
-                    p = p + lines[i].Length + Separator.Length;
+                    p = p + _lines[i].Length + Separator.Length;
                     return p;
                 }
             }
@@ -675,7 +675,7 @@ namespace XNAFinalEngine.UserInterface
 
             for (int i = 0; i < y; i++)
             {
-                p += lines[i].Length + Separator.Length;
+                p += _lines[i].Length + Separator.Length;
             }
             p += x;
 
@@ -689,31 +689,31 @@ namespace XNAFinalEngine.UserInterface
             int px = 0;
             int py = 0;
 
-            if (mode == TextBoxMode.Multiline)
+            if (_mode == TextBoxMode.Multiline)
             {
-                py = verticalScrollBar.Value + (int)((y - ClientTop) / font.LineSpacing);
+                py = _verticalScrollBar.Value + (int)((y - ClientTop) / _font.LineSpacing);
                 if (py < 0) py = 0;
-                if (py >= lines.Count) py = lines.Count - 1;
+                if (py >= _lines.Count) py = _lines.Count - 1;
             }
             else
             {
                 py = 0;
             }
 
-            string str = mode == TextBoxMode.Multiline ? lines[py] : shownText;
+            string str = _mode == TextBoxMode.Multiline ? _lines[py] : _shownText;
 
             if (!string.IsNullOrEmpty(str))
             {
-                for (int i = 1; i <= lines[py].Length; i++)
+                for (int i = 1; i <= _lines[py].Length; i++)
                 {
-                    Vector2 v = font.MeasureString(str.Substring(0, i)) - (font.MeasureString(str[i - 1].ToString()) / 3);
-                    if (x <= (ClientLeft + (int)v.X) - horizontalScrollBar.Value)
+                    Vector2 v = _font.MeasureString(str.Substring(0, i)) - (_font.MeasureString(str[i - 1].ToString()) / 3);
+                    if (x <= (ClientLeft + (int)v.X) - _horizontalScrollBar.Value)
                     {
                         px = i - 1;
                         break;
                     }
                 }
-                if (x > ClientLeft + ((int)font.MeasureString(str).X) - horizontalScrollBar.Value - (font.MeasureString(str[str.Length - 1].ToString()).X / 3)) px = str.Length;
+                if (x > ClientLeft + ((int)_font.MeasureString(str).X) - _horizontalScrollBar.Value - (_font.MeasureString(str[str.Length - 1].ToString()).X / 3)) px = str.Length;
             }
 
             return GetPos(px, py);
@@ -725,15 +725,15 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseDown(e);
 
-            flashTime = 0;
+            _flashTime = 0;
 
             Position = CharAtPos(e.Position);
-            selection.Clear();
+            _selection.Clear();
 
-            if (e.Button == MouseButton.Left && caretVisible && mode != TextBoxMode.Password)
+            if (e.Button == MouseButton.Left && _caretVisible && _mode != TextBoxMode.Password)
             {
-                selection.Start = Position;
-                selection.End = Position;
+                _selection.Start = Position;
+                _selection.End = Position;
             }
             ClientArea.Invalidate();
         } // OnMouseDown
@@ -744,10 +744,10 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseMove(e);
 
-            if (e.Button == MouseButton.Left && !selection.IsEmpty && mode != TextBoxMode.Password && selection.Length < Text.Length)
+            if (e.Button == MouseButton.Left && !_selection.IsEmpty && _mode != TextBoxMode.Password && _selection.Length < Text.Length)
             {
                 int pos = CharAtPos(e.Position);
-                selection.End = CharAtPos(e.Position);
+                _selection.End = CharAtPos(e.Position);
                 Position = pos;
 
                 ClientArea.Invalidate();
@@ -762,9 +762,9 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseUp(e);
 
-            if (e.Button == MouseButton.Left && !selection.IsEmpty && mode != TextBoxMode.Password)
+            if (e.Button == MouseButton.Left && !_selection.IsEmpty && _mode != TextBoxMode.Password)
             {
-                if (selection.Length == 0) selection.Clear();
+                if (_selection.Length == 0) _selection.Clear();
             }
         } // OnMouseUp
 
@@ -772,24 +772,24 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnKeyPress(KeyEventArgs e)
         {
-            flashTime = 0;
+            _flashTime = 0;
 
             if (!e.Handled)
             {
-                if (e.Key == Keys.Enter && mode != TextBoxMode.Multiline && !readOnly)
+                if (e.Key == Keys.Enter && _mode != TextBoxMode.Multiline && !_readOnly)
                 {
-                    initialText = Text;
-                    selection = new Selection(-1, -1);
+                    _initialText = Text;
+                    _selection = new Selection(-1, -1);
                     Focused = false;
                 }
                 if (e.Key == Keys.Escape)
                 {
-                    if (initialText != null)
-                        Text = initialText;
-                    selection = new Selection(-1, -1);
+                    if (_initialText != null)
+                        Text = _initialText;
+                    _selection = new Selection(-1, -1);
                     Focused = false;
                 }
-                if (e.Key == Keys.A && e.Control && mode != TextBoxMode.Password)
+                if (e.Key == Keys.A && e.Control && _mode != TextBoxMode.Password)
                 {
                     SelectAll();
                 }
@@ -797,9 +797,9 @@ namespace XNAFinalEngine.UserInterface
                 {
                     e.Handled = true;
 
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
@@ -809,50 +809,50 @@ namespace XNAFinalEngine.UserInterface
                 else if (e.Key == Keys.Down)
                 {
                     e.Handled = true;
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
                         PositionY += 1;
                     }
                 }
-                else if (e.Key == Keys.Back && !readOnly)
+                else if (e.Key == Keys.Back && !_readOnly)
                 {
                     e.Handled = true;
-                    if (!selection.IsEmpty)
+                    if (!_selection.IsEmpty)
                     {
-                        Text = Text.Remove(selection.Start, selection.Length);
-                        Position = selection.Start;
+                        Text = Text.Remove(_selection.Start, _selection.Length);
+                        Position = _selection.Start;
                     }
                     else if (Text.Length > 0 && Position > 0)
                     {
                         Position -= 1;
                         Text = Text.Remove(Position, 1);
                     }
-                    selection.Clear();
+                    _selection.Clear();
                 }
-                else if (e.Key == Keys.Delete && !readOnly)
+                else if (e.Key == Keys.Delete && !_readOnly)
                 {
                     e.Handled = true;
-                    if (!selection.IsEmpty)
+                    if (!_selection.IsEmpty)
                     {
-                        Text = Text.Remove(selection.Start, selection.Length);
-                        Position = selection.Start;
+                        Text = Text.Remove(_selection.Start, _selection.Length);
+                        Position = _selection.Start;
                     }
                     else if (Position < Text.Length)
                     {
                         Text = Text.Remove(Position, 1);
                     }
-                    selection.Clear();
+                    _selection.Clear();
                 }
                 else if (e.Key == Keys.Left)
                 {
                     e.Handled = true;
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
@@ -860,15 +860,15 @@ namespace XNAFinalEngine.UserInterface
                     }
                     if (e.Control)
                     {
-                        Position = FindPreviousWord(shownText);
+                        Position = FindPreviousWord(_shownText);
                     }
                 }
                 else if (e.Key == Keys.Right)
                 {
                     e.Handled = true;
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
@@ -876,15 +876,15 @@ namespace XNAFinalEngine.UserInterface
                     }
                     if (e.Control)
                     {
-                        Position = FindNextWord(shownText);
+                        Position = FindNextWord(_shownText);
                     }
                 }
                 else if (e.Key == Keys.Home)
                 {
                     e.Handled = true;
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
@@ -898,13 +898,13 @@ namespace XNAFinalEngine.UserInterface
                 else if (e.Key == Keys.End)
                 {
                     e.Handled = true;
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
-                        PositionX = lines[PositionY].Length;
+                        PositionX = _lines[PositionY].Length;
                     }
                     if (e.Control)
                     {
@@ -914,28 +914,28 @@ namespace XNAFinalEngine.UserInterface
                 else if (e.Key == Keys.PageUp)
                 {
                     e.Handled = true;
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
-                        PositionY -= linesDrawn;
+                        PositionY -= _linesDrawn;
                     }
                 }
                 else if (e.Key == Keys.PageDown)
                 {
                     e.Handled = true;
-                    if (e.Shift && selection.IsEmpty && mode != TextBoxMode.Password)
+                    if (e.Shift && _selection.IsEmpty && _mode != TextBoxMode.Password)
                     {
-                        selection.Start = Position;
+                        _selection.Start = Position;
                     }
                     if (!e.Control)
                     {
-                        PositionY += linesDrawn;
+                        PositionY += _linesDrawn;
                     }
                 }
-                else if (e.Key == Keys.Enter && mode == TextBoxMode.Multiline && !readOnly)
+                else if (e.Key == Keys.Enter && _mode == TextBoxMode.Multiline && !_readOnly)
                 {
                     e.Handled = true;
                     Text = Text.Insert(Position, Separator);
@@ -945,10 +945,10 @@ namespace XNAFinalEngine.UserInterface
                 else if (e.Key == Keys.Tab)
                 {
                 }
-                else if (!readOnly && !e.Control)
+                else if (!_readOnly && !e.Control)
                 {
                     string c = Keyboard.KeyToString(e.Key, e.Shift, e.Caps);
-                    if (selection.IsEmpty)
+                    if (_selection.IsEmpty)
                     {
                         Text = Text.Insert(Position, c);
                         if (c != "") PositionX += 1;
@@ -958,47 +958,47 @@ namespace XNAFinalEngine.UserInterface
                         if (Text.Length > 0)
                         {
                             // Avoid out of range.
-                            if (selection.Start + selection.Length > Text.Length)
-                                Text = Text.Remove(selection.Start, Text.Length - selection.Start);
+                            if (_selection.Start + _selection.Length > Text.Length)
+                                Text = Text.Remove(_selection.Start, Text.Length - _selection.Start);
                             else
-                                Text = Text.Remove(selection.Start, selection.Length);
-                            Text = Text.Insert(selection.Start, c);
-                            Position = selection.Start + 1;
+                                Text = Text.Remove(_selection.Start, _selection.Length);
+                            Text = Text.Insert(_selection.Start, c);
+                            Position = _selection.Start + 1;
                         }
-                        selection.Clear();
+                        _selection.Clear();
                     }
                 }
 
-                if (e.Shift && !selection.IsEmpty)
+                if (e.Shift && !_selection.IsEmpty)
                 {
-                    selection.End = Position;
+                    _selection.End = Position;
                 }
 
 
                 // Windows only because it uses the Clipboard class. Of course this could be implemented manually in the XBOX 360 if you want it.
 #if (WINDOWS)
-                if (e.Control && e.Key == Keys.C && mode != TextBoxMode.Password)
+                if (e.Control && e.Key == Keys.C && _mode != TextBoxMode.Password)
                 {
                     System.Windows.Forms.Clipboard.Clear();
-                    if (mode != TextBoxMode.Password && !selection.IsEmpty)
+                    if (_mode != TextBoxMode.Password && !_selection.IsEmpty)
                     {
-                        System.Windows.Forms.Clipboard.SetText((Text.Substring(selection.Start, selection.Length)).Replace("\n", Environment.NewLine));
+                        System.Windows.Forms.Clipboard.SetText((Text.Substring(_selection.Start, _selection.Length)).Replace("\n", Environment.NewLine));
                     }
                 }
-                else if (e.Control && e.Key == Keys.V && !readOnly && mode != TextBoxMode.Password)
+                else if (e.Control && e.Key == Keys.V && !_readOnly && _mode != TextBoxMode.Password)
                 {
                     string t = System.Windows.Forms.Clipboard.GetText().Replace(Environment.NewLine, "\n");
-                    if (selection.IsEmpty)
+                    if (_selection.IsEmpty)
                     {
                         Text = Text.Insert(Position, t);
                         Position = Position + t.Length;
                     }
                     else
                     {
-                        Text = Text.Remove(selection.Start, selection.Length);
-                        Text = Text.Insert(selection.Start, t);
-                        PositionX = selection.Start + t.Length;
-                        selection.Clear();
+                        Text = Text.Remove(_selection.Start, _selection.Length);
+                        Text = Text.Insert(_selection.Start, t);
+                        PositionX = _selection.Start + t.Length;
+                        _selection.Clear();
                     }
                 }
 #endif
@@ -1006,7 +1006,7 @@ namespace XNAFinalEngine.UserInterface
 
                 if ((!e.Shift && !e.Control) || Text.Length <= 0)
                 {
-                    selection.Clear();
+                    _selection.Clear();
                 }
 
                 if (e.Control && e.Key == Keys.Down)
@@ -1014,7 +1014,7 @@ namespace XNAFinalEngine.UserInterface
                     e.Handled = true;
                     HandleGuide(PlayerIndex.One);
                 }
-                flashTime = 0;
+                _flashTime = 0;
                 if (ClientArea != null) ClientArea.Invalidate();
 
                 DeterminePages();
@@ -1046,45 +1046,45 @@ namespace XNAFinalEngine.UserInterface
         {
             DeterminePages();
 
-            if (verticalScrollBar != null) verticalScrollBar.Range = lines.Count;
-            if (horizontalScrollBar != null)
+            if (_verticalScrollBar != null) _verticalScrollBar.Range = _lines.Count;
+            if (_horizontalScrollBar != null)
             {
-                horizontalScrollBar.Range = (int)font.MeasureString(GetMaxLine()).X;
-                if (horizontalScrollBar.Range == 0) horizontalScrollBar.Range = ClientArea.Width;
+                _horizontalScrollBar.Range = (int)_font.MeasureString(GetMaxLine()).X;
+                if (_horizontalScrollBar.Range == 0) _horizontalScrollBar.Range = ClientArea.Width;
             }
 
-            if (verticalScrollBar != null)
+            if (_verticalScrollBar != null)
             {
-                verticalScrollBar.Left = Width - 16 - 2;
-                verticalScrollBar.Top = 2;
-                verticalScrollBar.Height = Height - 4 - 16;
+                _verticalScrollBar.Left = Width - 16 - 2;
+                _verticalScrollBar.Top = 2;
+                _verticalScrollBar.Height = Height - 4 - 16;
 
-                if (Height < 50 || (scrollBarType != ScrollBarType.Both && scrollBarType != ScrollBarType.Vertical)) verticalScrollBar.Visible = false;
-                else if ((scrollBarType == ScrollBarType.Vertical || scrollBarType == ScrollBarType.Both) && mode == TextBoxMode.Multiline) verticalScrollBar.Visible = true;
+                if (Height < 50 || (_scrollBarType != ScrollBarType.Both && _scrollBarType != ScrollBarType.Vertical)) _verticalScrollBar.Visible = false;
+                else if ((_scrollBarType == ScrollBarType.Vertical || _scrollBarType == ScrollBarType.Both) && _mode == TextBoxMode.Multiline) _verticalScrollBar.Visible = true;
             }
-            if (horizontalScrollBar != null)
+            if (_horizontalScrollBar != null)
             {
-                horizontalScrollBar.Left = 2;
-                horizontalScrollBar.Top = Height - 16 - 2;
-                horizontalScrollBar.Width = Width - 4 - 16;
+                _horizontalScrollBar.Left = 2;
+                _horizontalScrollBar.Top = Height - 16 - 2;
+                _horizontalScrollBar.Width = Width - 4 - 16;
 
-                if (Width < 50 || wordWrap || (scrollBarType != ScrollBarType.Both && scrollBarType != ScrollBarType.Horizontal)) horizontalScrollBar.Visible = false;
-                else if ((scrollBarType == ScrollBarType.Horizontal || scrollBarType == ScrollBarType.Both) && mode == TextBoxMode.Multiline && !wordWrap) horizontalScrollBar.Visible = true;
+                if (Width < 50 || _wordWrap || (_scrollBarType != ScrollBarType.Both && _scrollBarType != ScrollBarType.Horizontal)) _horizontalScrollBar.Visible = false;
+                else if ((_scrollBarType == ScrollBarType.Horizontal || _scrollBarType == ScrollBarType.Both) && _mode == TextBoxMode.Multiline && !_wordWrap) _horizontalScrollBar.Visible = true;
             }
 
             AdjustMargins();
 
-            if (verticalScrollBar != null) verticalScrollBar.PageSize = linesDrawn;
-            if (horizontalScrollBar != null) horizontalScrollBar.PageSize = charsDrawn;
+            if (_verticalScrollBar != null) _verticalScrollBar.PageSize = _linesDrawn;
+            if (_horizontalScrollBar != null) _horizontalScrollBar.PageSize = _charsDrawn;
         } // SetupScrollBars
 
 
 
         protected override void AdjustMargins()
         {
-            if (horizontalScrollBar != null && !horizontalScrollBar.Visible)
+            if (_horizontalScrollBar != null && !_horizontalScrollBar.Visible)
             {
-                verticalScrollBar.Height = Height - 4;
+                _verticalScrollBar.Height = Height - 4;
                 ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, ClientMargins.Right, SkinInformation.ClientMargins.Bottom);
             }
             else
@@ -1092,9 +1092,9 @@ namespace XNAFinalEngine.UserInterface
                 ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, ClientMargins.Right, 18 + SkinInformation.ClientMargins.Bottom);
             }
 
-            if (verticalScrollBar != null && !verticalScrollBar.Visible)
+            if (_verticalScrollBar != null && !_verticalScrollBar.Visible)
             {
-                horizontalScrollBar.Width = Width - 4;
+                _horizontalScrollBar.Width = Width - 4;
                 ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, SkinInformation.ClientMargins.Right, ClientMargins.Bottom);
             }
             else
@@ -1109,7 +1109,7 @@ namespace XNAFinalEngine.UserInterface
         protected override void OnResize(ResizeEventArgs e)
         {
             base.OnResize(e);
-            selection.Clear();
+            _selection.Clear();
             SetupScrollBars();
         } // OnResize
 
@@ -1117,10 +1117,10 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual void SelectAll()
         {
-            if (text.Length > 0)
+            if (_text.Length > 0)
             {
-                selection.Start = 0;
-                selection.End = Text.Length;
+                _selection.Start = 0;
+                _selection.End = Text.Length;
             }
         } // SelectAll
 
@@ -1128,24 +1128,24 @@ namespace XNAFinalEngine.UserInterface
 
         private List<string> SplitLines(string text)
         {
-            if (buffer != text)
+            if (_buffer != text)
             {
-                buffer = text;
+                _buffer = text;
                 List<string> list = new List<string>();
                 string[] s = text.Split(new char[] { Separator[0] });
                 list.Clear();
 
                 list.AddRange(s);
 
-                if (positionY < 0) positionY = 0;
-                if (positionY > list.Count - 1) positionY = list.Count - 1;
+                if (_positionY < 0) _positionY = 0;
+                if (_positionY > list.Count - 1) _positionY = list.Count - 1;
 
-                if (positionX < 0) positionX = 0;
-                if (positionX > list[PositionY].Length) positionX = list[PositionY].Length;
+                if (_positionX < 0) _positionX = 0;
+                if (_positionX > list[PositionY].Length) _positionX = list[PositionY].Length;
 
                 return list;
             }
-            return lines;
+            return _lines;
         } // SplitLines
 
 
@@ -1159,14 +1159,14 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnFocusLost()
         {
-            selection.Clear();
+            _selection.Clear();
             ClientArea.Invalidate();
             base.OnFocusLost();
         } // OnFocusLost
 
         protected override void OnFocusGained()
         {
-            if (!readOnly && autoSelection
+            if (!_readOnly && _autoSelection
                 && ClientArea != null)
             {
                 SelectAll();

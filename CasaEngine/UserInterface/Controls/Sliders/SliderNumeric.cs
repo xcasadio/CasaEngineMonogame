@@ -35,51 +35,51 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Controls
-        private readonly TextBox textBox;
-        private readonly TrackBar slider;
+        private readonly TextBox _textBox;
+        private readonly TrackBar _slider;
 
 
 
         public virtual float MinimumValue
         {
-            get => slider.MinimumValue;
-            set => slider.MinimumValue = value;
+            get => _slider.MinimumValue;
+            set => _slider.MinimumValue = value;
         } // MinimumValue
 
         public virtual float MaximumValue
         {
-            get => slider.MaximumValue;
-            set => slider.MaximumValue = value;
+            get => _slider.MaximumValue;
+            set => _slider.MaximumValue = value;
         } // MaximumValue
 
         public virtual bool IfOutOfRangeRescale
         {
-            get => slider.IfOutOfRangeRescale;
-            set => slider.IfOutOfRangeRescale = value;
+            get => _slider.IfOutOfRangeRescale;
+            set => _slider.IfOutOfRangeRescale = value;
         } // IfOutOfRangeRescale
 
         public virtual bool ValueCanBeOutOfRange
         {
-            get => slider.ValueCanBeOutOfRange;
-            set => slider.ValueCanBeOutOfRange = value;
+            get => _slider.ValueCanBeOutOfRange;
+            set => _slider.ValueCanBeOutOfRange = value;
         } // ValueCanBeOutOfRange
 
         public virtual float Value
         {
-            get => slider.Value;
-            set => slider.Value = value;
+            get => _slider.Value;
+            set => _slider.Value = value;
         } // Value
 
         public virtual int PageSize
         {
-            get => slider.PageSize;
-            set => slider.PageSize = value;
+            get => _slider.PageSize;
+            set => _slider.PageSize = value;
         } // PageSize
 
         public virtual int StepSize
         {
-            get => slider.StepSize;
-            set => slider.StepSize = value;
+            get => _slider.StepSize;
+            set => _slider.StepSize = value;
         } // StepSize
 
 
@@ -94,8 +94,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public SliderNumeric(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public SliderNumeric(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
             Width = 420;
@@ -109,17 +109,17 @@ namespace XNAFinalEngine.UserInterface
                 Height = 25,
             };
             TextChanged += delegate { label.Text = Text; };
-            textBox = new TextBox(UserInterfaceManager)
+            _textBox = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Width = 60,
                 Left = label.Width + 4,
                 Text = "1",
             };
-            slider = new TrackBar(UserInterfaceManager)
+            _slider = new TrackBar(UserInterfaceManager)
             {
                 Parent = this,
-                Left = textBox.Left + textBox.Width + 4,
+                Left = _textBox.Left + _textBox.Width + 4,
                 MinimumValue = 0,
                 MaximumValue = 1,
                 Width = 200,
@@ -130,43 +130,43 @@ namespace XNAFinalEngine.UserInterface
             };
 
 
-            slider.ValueChanged += delegate { textBox.Text = Math.Round(slider.Value, 3).ToString(); };
-            textBox.KeyDown += delegate (object sender, KeyEventArgs e)
+            _slider.ValueChanged += delegate { _textBox.Text = Math.Round(_slider.Value, 3).ToString(); };
+            _textBox.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
                     try
                     {
-                        slider.Value = (float)double.Parse(textBox.Text);
+                        _slider.Value = (float)double.Parse(_textBox.Text);
                     }
                     catch // If not numeric
                     {
-                        textBox.Text = slider.Value.ToString();
+                        _textBox.Text = _slider.Value.ToString();
                     }
                 }
             };
             // For tabs and other not so common things.
-            textBox.FocusLost += delegate
+            _textBox.FocusLost += delegate
             {
                 try
                 {
-                    slider.Value = (float)double.Parse(textBox.Text);
+                    _slider.Value = (float)double.Parse(_textBox.Text);
                 }
                 catch // If not numeric
                 {
-                    textBox.Text = slider.Value.ToString();
+                    _textBox.Text = _slider.Value.ToString();
                 }
             };
-            textBox.Text = Math.Round(slider.Value, 3).ToString();
+            _textBox.Text = Math.Round(_slider.Value, 3).ToString();
 
 
-            slider.ValueChanged += OnValueChanged;
-            slider.RangeChanged += OnRangeChanged;
-            slider.StepSizeChanged += OnStepSizeChanged;
-            slider.PageSizeChanged += OnPageSizeChanged;
-            slider.SliderDown += OnSliderDown;
-            slider.SliderUp += OnSliderUp;
-            slider.SliderPress += OnSliderPress;
+            _slider.ValueChanged += OnValueChanged;
+            _slider.RangeChanged += OnRangeChanged;
+            _slider.StepSizeChanged += OnStepSizeChanged;
+            _slider.PageSizeChanged += OnPageSizeChanged;
+            _slider.SliderDown += OnSliderDown;
+            _slider.SliderUp += OnSliderUp;
+            _slider.SliderPress += OnSliderPress;
 
         } // SliderNumeric
 

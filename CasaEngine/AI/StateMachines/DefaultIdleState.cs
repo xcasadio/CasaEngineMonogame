@@ -1,7 +1,7 @@
 namespace CasaEngine.AI.StateMachines
 {
     [Serializable]
-    public class DefaultIdleState<T> : IState<T> where T : /*BaseEntity,*/ IFSMCapable<T>
+    public class DefaultIdleState<T> : IState<T> where T : /*BaseEntity,*/ IFsmCapable<T>
     {
 
         public string Name => "DefaultIdleState";
@@ -10,7 +10,7 @@ namespace CasaEngine.AI.StateMachines
 
         public void Exit(T entity) { }
 
-        public void Update(T entity, float elpasedTime_) { }
+        public void Update(T entity, float elpasedTime) { }
 
         public bool HandleMessage(T entity, Message message)
         {

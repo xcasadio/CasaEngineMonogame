@@ -4,6 +4,6 @@ namespace CasaEngine.Asset
 {
     public interface IAssetLoader
     {
-        object LoadAsset(string fileName_, GraphicsDevice device_);
+        object LoadAsset(string fileName, GraphicsDevice device);
     }
 }

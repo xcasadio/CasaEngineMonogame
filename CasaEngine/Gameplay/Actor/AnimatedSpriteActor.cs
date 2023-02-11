@@ -15,25 +15,25 @@ namespace CasaEngine.Gameplay.Actor
     {
 
 #if EDITOR
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
-            if (other_ is AnimatedSpriteActor)
+            if (other is AnimatedSpriteActor)
             {
-                AnimatedSpriteActor asa = (AnimatedSpriteActor)other_;
-                //asa.m_Animations
+                AnimatedSpriteActor asa = (AnimatedSpriteActor)other;
+                //asa._Animations
             }
 
             return false;
         }
 #endif
 
-        private Dictionary<int, Animation2D> m_Animations = new Dictionary<int, Animation2D>();
-        private Animation2DPlayer m_Animation2DPlayer;
-        private Renderer2DComponent m_Renderer2DComponent;
+        private Dictionary<int, Animation2D> _animations = new Dictionary<int, Animation2D>();
+        private Animation2DPlayer _animation2DPlayer;
+        private Renderer2DComponent _renderer2DComponent;
 
 
 
-        public Animation2DPlayer Animation2DPlayer => m_Animation2DPlayer;
+        public Animation2DPlayer Animation2DPlayer => _animation2DPlayer;
 
         public int Depth
         {
@@ -61,7 +61,7 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        public AnimatedSpriteActor(AnimatedSpriteActor src_)
+        public AnimatedSpriteActor(AnimatedSpriteActor src)
         {
             //return new 
         }
@@ -73,51 +73,51 @@ namespace CasaEngine.Gameplay.Actor
             throw new NotImplementedException();
         }
 
-        protected override void CopyFrom(BaseObject ob_)
+        protected override void CopyFrom(BaseObject ob)
         {
-            base.CopyFrom(ob_);
+            base.CopyFrom(ob);
 
-            AnimatedSpriteActor src = ob_ as AnimatedSpriteActor;
+            AnimatedSpriteActor src = ob as AnimatedSpriteActor;
 
-            m_Animations = new Dictionary<int, Animation2D>();
+            _animations = new Dictionary<int, Animation2D>();
 
-            foreach (KeyValuePair<int, Animation2D> pair in src.m_Animations)
+            foreach (KeyValuePair<int, Animation2D> pair in src._animations)
             {
-                m_Animations.Add(pair.Key, (Animation2D)pair.Value.Clone());
+                _animations.Add(pair.Key, (Animation2D)pair.Value.Clone());
             }
 
-            m_Animation2DPlayer = new Animation2DPlayer(m_Animations);
-            m_Renderer2DComponent = src.m_Renderer2DComponent;
+            _animation2DPlayer = new Animation2DPlayer(_animations);
+            _renderer2DComponent = src._renderer2DComponent;
         }
 
-        public override void Update(float elapsedTime_)
+        public override void Update(float elapsedTime)
         {
-            m_Animation2DPlayer.Update(elapsedTime_);
+            _animation2DPlayer.Update(elapsedTime);
         }
 
-        public virtual void Draw(float elapsedTime_)
+        public virtual void Draw(float elapsedTime)
         {
-            m_Renderer2DComponent.AddSprite2D(
-                m_Animation2DPlayer.CurrentAnimation.CurrentSpriteId,
+            _renderer2DComponent.AddSprite2D(
+                _animation2DPlayer.CurrentAnimation.CurrentSpriteId,
                 Position, 0.0f, Vector2.One, Color.White,
                 1 - Position.Y / Engine.Instance.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects.None);
         }
 
-        public override void Load(XmlElement el_, SaveOption opt_)
+        public override void Load(XmlElement el, SaveOption opt)
         {
-            base.Load(el_, opt_);
+            base.Load(el, opt);
 
-            XmlElement animListNode = (XmlElement)el_.SelectSingleNode("AnimationList");
+            XmlElement animListNode = (XmlElement)el.SelectSingleNode("AnimationList");
 
-            m_Animations.Clear();
+            _animations.Clear();
 
             foreach (XmlNode node in animListNode.ChildNodes)
             {
                 Animation2D anim2d = Engine.Instance.Asset2DManager.GetAnimation2DByName(node.Attributes["name"].Value);
                 if (anim2d != null)
                 {
-                    m_Animations.Add(int.Parse(node.Attributes["index"].Value), anim2d);
+                    _animations.Add(int.Parse(node.Attributes["index"].Value), anim2d);
                 }
                 else
                 {
@@ -126,25 +126,25 @@ namespace CasaEngine.Gameplay.Actor
             }
         }
 
-        public void LoadAnimation(int index_, string anim2DName_)
+        public void LoadAnimation(int index, string anim2DName)
         {
-            m_Animations.Add(
-                index_,
-                (Animation2D)Engine.Instance.ObjectManager.GetObjectByPath(anim2DName_));
+            _animations.Add(
+                index,
+                (Animation2D)Engine.Instance.ObjectManager.GetObjectByPath(anim2DName));
 
-            foreach (var frame in m_Animations[index_].GetFrames())
+            foreach (var frame in _animations[index].GetFrames())
             {
-                Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectByID(frame.spriteID);
+                Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(frame.SpriteId);
                 //sprite.LoadTextureFile(Engine.Instance.Game.GraphicsDevice);
                 sprite.LoadTexture(Engine.Instance.Game.Content);
             }
 
-            m_Animation2DPlayer = new Animation2DPlayer(m_Animations);
+            _animation2DPlayer = new Animation2DPlayer(_animations);
         }
 
         public virtual void Initialize()
         {
-            m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
     }

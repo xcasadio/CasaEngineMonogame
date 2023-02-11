@@ -25,20 +25,20 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private RadioButtonMode mode = RadioButtonMode.Auto;
+        private RadioButtonMode _mode = RadioButtonMode.Auto;
 
 
 
         public RadioButtonMode Mode
         {
-            get => mode;
-            set => mode = value;
+            get => _mode;
+            set => _mode = value;
         } // Mode
 
 
 
-        public RadioButton(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public RadioButton(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
 
         }
@@ -57,7 +57,7 @@ namespace XNAFinalEngine.UserInterface
         {
             MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
-            if (ex.Button == MouseButton.Left && mode == RadioButtonMode.Auto)
+            if (ex.Button == MouseButton.Left && _mode == RadioButtonMode.Auto)
             {
                 if (Parent != null)
                 {

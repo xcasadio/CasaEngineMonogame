@@ -8,19 +8,19 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
     public abstract class SteeringBehavior
     {
 
-        protected internal String name;
+        protected internal String Name;
 
-        protected internal MovingEntity owner;
+        protected internal MovingEntity Owner;
 
-        protected internal float modifier;
+        protected internal float Modifier;
 
-        protected internal bool active;
+        protected internal bool Active;
 
-        protected internal bool ignoreX;
+        protected internal bool IgnoreX;
 
-        protected internal bool ignoreY;
+        protected internal bool IgnoreY;
 
-        protected internal bool ignoreZ;
+        protected internal bool IgnoreZ;
 
 
 

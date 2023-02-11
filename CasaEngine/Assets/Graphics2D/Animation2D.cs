@@ -17,53 +17,53 @@ namespace CasaEngine.Assets.Graphics2D
         : BaseObject, ISaveLoad
     {
 
-        private string m_Name = string.Empty;
+        private string _name = string.Empty;
 #if EDITOR
-        private readonly List<Frame2D> m_Frames = new List<Frame2D>();
+        private readonly List<Frame2D> _frames = new List<Frame2D>();
 #else
-        private Frame2D[] m_Frames;
+        private Frame2D[] _Frames;
 #endif
 
-        private float m_TotalTime = 0;
-        private Animation2DType m_Animation2DType = Animation2DType.Loop;
+        private float _totalTime = 0;
+        private Animation2DType _animation2DType = Animation2DType.Loop;
 
-        private float m_CurrentTime = 0;
-        private int m_CurrentFrame = 0;
-        private bool m_EndAnimReached = false;
+        private float _currentTime = 0;
+        private int _currentFrame = 0;
+        private bool _endAnimReached = false;
 
         public event EventHandler<Animation2DFrameChangedEventArgs> OnFrameChanged;
         public event EventHandler OnEndAnimationReached;
 
-        private readonly Animation2DFrameChangedEventArgs m_Animation2DFrameChangedEventArgs = new Animation2DFrameChangedEventArgs(null, 0, 0);
+        private readonly Animation2DFrameChangedEventArgs _animation2DFrameChangedEventArgs = new Animation2DFrameChangedEventArgs(null, 0, 0);
 
 
 
         public string Name
         {
-            get { return m_Name; }
+            get { return _name; }
 #if EDITOR
-            set { m_Name = value; }
+            set { _name = value; }
 #endif
         }
 
         public Animation2DType Animation2DType
         {
-            get { return m_Animation2DType; }
+            get { return _animation2DType; }
 #if EDITOR
-            set { m_Animation2DType = value; }
+            set { _animation2DType = value; }
 #endif
         }
 
-        public int CurrentFrameIndex => m_CurrentFrame;
+        public int CurrentFrameIndex => _currentFrame;
 
-        public int CurrentSpriteId => m_Frames[m_CurrentFrame].spriteID;
+        public int CurrentSpriteId => _frames[_currentFrame].SpriteId;
 
-        public float TotalTime => m_TotalTime;
+        public float TotalTime => _totalTime;
 
 
-        public Animation2D(XmlElement xmlNode_, SaveOption option_)
+        public Animation2D(XmlElement xmlNode, SaveOption option)
         {
-            Load(xmlNode_, option_);
+            Load(xmlNode, option);
         }
 
 #if EDITOR
@@ -74,7 +74,7 @@ namespace CasaEngine.Assets.Graphics2D
         Animation2D()
         {
 #if EDITOR
-            //m_ID = m_UnusedID++;
+            //_ID = _UnusedID++;
             ComputeTotalTime();
 #endif
         }
@@ -84,25 +84,25 @@ namespace CasaEngine.Assets.Graphics2D
         public Frame2D[] GetFrames()
         {
 #if EDITOR
-            return m_Frames.ToArray();
+            return _frames.ToArray();
 #else
-            return m_Frames;
+            return _Frames;
 #endif
         }
 
         public void ComputeTotalTime()
         {
-            m_TotalTime = 0;
+            _totalTime = 0;
 
-            foreach (Frame2D frame in m_Frames)
+            foreach (Frame2D frame in _frames)
             {
-                m_TotalTime += frame.time;
+                _totalTime += frame.Time;
             }
         }
 
-        public void Update(float elapsedTime_)
+        public void Update(float elapsedTime)
         {
-            m_CurrentTime += elapsedTime_;
+            _currentTime += elapsedTime;
             ComputeCurrentFrame();
         }
 
@@ -110,29 +110,29 @@ namespace CasaEngine.Assets.Graphics2D
         {
             bool endAnim = false;
 
-            switch (m_Animation2DType)
+            switch (_animation2DType)
             {
                 case Animation2DType.Loop:
-                    float r = m_CurrentTime / m_TotalTime;
+                    float r = _currentTime / _totalTime;
 
                     if (r >= 1.0f)
                     {
-                        m_CurrentTime -= m_TotalTime * (float)r;
+                        _currentTime -= _totalTime * (float)r;
                         endAnim = true;
                     }
 
-                    while (m_CurrentTime > m_TotalTime)
+                    while (_currentTime > _totalTime)
                     {
-                        m_CurrentTime -= m_TotalTime;
+                        _currentTime -= _totalTime;
                     }
                     break;
 
                 case Animation2DType.Once:
-                    if (m_CurrentTime >= m_TotalTime)
+                    if (_currentTime >= _totalTime)
                     {
-                        m_CurrentTime = m_TotalTime;
-                        endAnim = m_EndAnimReached == false;
-                        m_EndAnimReached = true;
+                        _currentTime = _totalTime;
+                        endAnim = _endAnimReached == false;
+                        _endAnimReached = true;
                     }
                     break;
 
@@ -140,7 +140,7 @@ namespace CasaEngine.Assets.Graphics2D
                     throw new NotImplementedException("Animation2D.ComputeCurrentFrame() : Animation2DType.PingPong is not supported");
 
                 default:
-                    throw new NotImplementedException("Animation2D.ComputeCurrentFrame() : Animation2DType '" + Enum.GetName(typeof(Animation2DType), m_Animation2DType) + "' is not supported");
+                    throw new NotImplementedException("Animation2D.ComputeCurrentFrame() : Animation2DType '" + Enum.GetName(typeof(Animation2DType), _animation2DType) + "' is not supported");
             }
 
             if (endAnim == true
@@ -152,11 +152,11 @@ namespace CasaEngine.Assets.Graphics2D
             int index = 0;
             float time = 0;
 
-            foreach (Frame2D frame in m_Frames)
+            foreach (Frame2D frame in _frames)
             {
-                time += frame.time;
+                time += frame.Time;
 
-                if (time >= m_CurrentTime)
+                if (time >= _currentTime)
                 {
                     break;
                 }
@@ -164,15 +164,15 @@ namespace CasaEngine.Assets.Graphics2D
                 index++;
             }
 
-            if (index != m_CurrentFrame)
+            if (index != _currentFrame)
             {
-                int old = m_CurrentFrame;
-                m_CurrentFrame = index;
+                int old = _currentFrame;
+                _currentFrame = index;
 
                 //@todo : check if skip frame
                 //and active event from the skipped frame
 #if !EDITOR
-                foreach (EventActor e in m_Frames[m_CurrentFrame].Events)
+                foreach (EventActor e in _Frames[_CurrentFrame].Events)
                 {
                     e.Do();
                 }
@@ -180,53 +180,53 @@ namespace CasaEngine.Assets.Graphics2D
 
                 if (OnFrameChanged != null)
                 {
-                    m_Animation2DFrameChangedEventArgs.Animation2D = this;
-                    m_Animation2DFrameChangedEventArgs.OldFrame = old;
-                    m_Animation2DFrameChangedEventArgs.NewFrame = m_CurrentFrame;
-                    OnFrameChanged.Invoke(this, m_Animation2DFrameChangedEventArgs);
+                    _animation2DFrameChangedEventArgs.Animation2D = this;
+                    _animation2DFrameChangedEventArgs.OldFrame = old;
+                    _animation2DFrameChangedEventArgs.NewFrame = _currentFrame;
+                    OnFrameChanged.Invoke(this, _animation2DFrameChangedEventArgs);
                 }
             }
         }
 
         public Sprite2D GetCurrentSprite()
         {
-            int id = m_Frames[m_CurrentFrame].spriteID;
-            return Engine.Instance.Asset2DManager.GetSprite2DByID(id);
+            int id = _frames[_currentFrame].SpriteId;
+            return Engine.Instance.Asset2DManager.GetSprite2DById(id);
         }
 
         public void ResetTime()
         {
-            m_CurrentTime = 0;
-            m_CurrentFrame = 0;
-            m_EndAnimReached = false;
+            _currentTime = 0;
+            _currentFrame = 0;
+            _endAnimReached = false;
         }
 
-        public override void Load(XmlElement node_, SaveOption option_)
+        public override void Load(XmlElement node, SaveOption option)
         {
-            base.Load(node_, option_);
+            base.Load(node, option);
 
-            XmlNode animNode = node_.SelectSingleNode("Animation2D");
+            XmlNode animNode = node.SelectSingleNode("Animation2D");
 
             uint version = uint.Parse(animNode.Attributes["version"].Value);
 
-            //m_ID = uint.Parse(node_.Attributes["id"].Value);
-            m_Name = animNode.Attributes["name"].Value;
+            //_ID = uint.Parse(node_.Attributes["id"].Value);
+            _name = animNode.Attributes["name"].Value;
 
-            m_Animation2DType = (Animation2DType)Enum.Parse(typeof(Animation2DType), animNode.Attributes["type"].Value);
+            _animation2DType = (Animation2DType)Enum.Parse(typeof(Animation2DType), animNode.Attributes["type"].Value);
 
-            int spriteID;
+            int spriteId;
             float delay;
             List<EventActor> list = new List<EventActor>();
 
 #if !EDITOR
-            m_Frames = new Frame2D[animNode.SelectSingleNode("FrameList").ChildNodes.Count];
+            _Frames = new Frame2D[animNode.SelectSingleNode("FrameList").ChildNodes.Count];
             int i = 0;
 #endif
 
             //frames
             foreach (XmlNode node in animNode.SelectSingleNode("FrameList").ChildNodes)
             {
-                spriteID = int.Parse(node.Attributes["spriteID"].Value);
+                spriteId = int.Parse(node.Attributes["spriteID"].Value);
                 delay = float.Parse(node.Attributes["time"].Value);
                 list.Clear();
 
@@ -235,16 +235,16 @@ namespace CasaEngine.Assets.Graphics2D
                 {
                     foreach (XmlNode eventNode in node.SelectSingleNode("EventNodeList").ChildNodes)
                     {
-                        list.Add(EventActorFactory.LoadEvent((XmlElement)eventNode, option_));
+                        list.Add(EventActorFactory.LoadEvent((XmlElement)eventNode, option));
                     }
                 }
 
 #if EDITOR
-                AddFrame(spriteID, delay, list.ToArray());
+                AddFrame(spriteId, delay, list.ToArray());
                 ComputeTotalTime();
 #else
-                m_Frames[i] = new Frame2D(spriteID, delay);
-                m_Frames[i].Events = list.ToArray();
+                _Frames[i] = new Frame2D(spriteID, delay);
+                _Frames[i].Events = list.ToArray();
                 i++;
 #endif
             }
@@ -252,26 +252,26 @@ namespace CasaEngine.Assets.Graphics2D
             ComputeTotalTime();
         }
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
-            base.Load(br_, option_);
+            base.Load(br, option);
             throw new NotImplementedException();
         }
 
         public override BaseObject Clone()
         {
             Animation2D anim2D = new Animation2D();
-            anim2D.m_Animation2DType = m_Animation2DType;
-            anim2D.m_CurrentFrame = m_CurrentFrame;
-            anim2D.m_CurrentTime = m_CurrentTime;
+            anim2D._animation2DType = _animation2DType;
+            anim2D._currentFrame = _currentFrame;
+            anim2D._currentTime = _currentTime;
 #if EDITOR
-            anim2D.m_Frames.AddRange(m_Frames);
+            anim2D._frames.AddRange(_frames);
 #else
-            //anim2D.m_Frames = m_Frames;
-            anim2D.m_Frames = (Frame2D[]) m_Frames.Clone();
+            //anim2D._Frames = _Frames;
+            anim2D._Frames = (Frame2D[]) _Frames.Clone();
 #endif
-            anim2D.m_Name = m_Name;
-            anim2D.m_TotalTime = m_TotalTime;
+            anim2D._name = _name;
+            anim2D._totalTime = _totalTime;
 
             anim2D.CopyFrom(this);
 
@@ -282,14 +282,14 @@ namespace CasaEngine.Assets.Graphics2D
         {
             int count =
 #if EDITOR
-                m_Frames.Count;
+                _frames.Count;
 #else
-                m_Frames.Length;
+                _Frames.Length;
 #endif
 
             for (int i = 0; i < count; i++)
             {
-                foreach (EventActor e in m_Frames[i].Events)
+                foreach (EventActor e in _frames[i].Events)
                 {
                     e.Initialize();
                 }

@@ -10,16 +10,16 @@ namespace CasaEngine.Game
     public class GameInfo
     {
 
-        static readonly private GameInfo m_GameInfo = new GameInfo();
+        static readonly private GameInfo GameInfo = new GameInfo();
 
-        private readonly WorldInfo m_WorldInfo;
-
-
-
-        static public GameInfo Instance => m_GameInfo;
+        private readonly WorldInfo _worldInfo;
 
 
-        public WorldInfo WorldInfo => m_WorldInfo;
+
+        static public GameInfo Instance => GameInfo;
+
+
+        public WorldInfo WorldInfo => _worldInfo;
 
 
         public int MaximumPlayers
@@ -39,7 +39,7 @@ namespace CasaEngine.Game
 
         public GameInfo()
         {
-            m_WorldInfo = new WorldInfo();
+            _worldInfo = new WorldInfo();
         }
 
 

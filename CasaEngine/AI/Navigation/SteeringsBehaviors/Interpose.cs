@@ -8,18 +8,18 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
     public class Interpose : SteeringBehavior
     {
 
-        protected MovingEntity agentA;
+        protected MovingEntity AgentA;
 
-        protected MovingEntity agentB;
+        protected MovingEntity AgentB;
 
-        protected Arrive arrive;
+        protected Arrive Arrive;
 
 
 
         public Interpose(String name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
-            arrive = new Arrive(name + "Arrive", owner, 0, 0.1f);
+            Arrive = new Arrive(name + "Arrive", owner, 0, 0.1f);
         }
 
 
@@ -53,9 +53,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             //Calculate the mid point of the estimated positions and asap to it
             midPoint = (posA + posB) * 0.5f;
-            arrive.TargetPosition = midPoint;
+            Arrive.TargetPosition = midPoint;
 
-            return arrive.Calculate();
+            return Arrive.Calculate();
         }
 
     }

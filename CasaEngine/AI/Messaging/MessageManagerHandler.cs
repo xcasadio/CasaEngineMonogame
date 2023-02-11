@@ -6,11 +6,11 @@ namespace CasaEngine.AI.Messaging
     public sealed class MessageManagerHandler : IMessageManager
     {
 
-        private static readonly MessageManagerHandler manager = new MessageManagerHandler();
+        private static readonly MessageManagerHandler Manager = new MessageManagerHandler();
 
-        internal UniquePriorityQueue<Message> messageQueue;
+        internal UniquePriorityQueue<Message> MessageQueue;
 
-        internal Dictionary<int, Dictionary<int, MessageHandlerDelegate>> registeredEntities;
+        internal Dictionary<int, Dictionary<int, MessageHandlerDelegate>> RegisteredEntities;
 
 
 
@@ -18,66 +18,66 @@ namespace CasaEngine.AI.Messaging
 
         private MessageManagerHandler()
         {
-            messageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
-            registeredEntities = new Dictionary<int, Dictionary<int, MessageHandlerDelegate>>();
+            MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
+            RegisteredEntities = new Dictionary<int, Dictionary<int, MessageHandlerDelegate>>();
         }
 
 
 
-        public static MessageManagerHandler Instance => manager;
+        public static MessageManagerHandler Instance => Manager;
 
 
         public void ResetManager(double precision)
         {
-            messageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
-            registeredEntities = new Dictionary<int, Dictionary<int, MessageHandlerDelegate>>();
+            MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
+            RegisteredEntities = new Dictionary<int, Dictionary<int, MessageHandlerDelegate>>();
         }
 
-        public void RegisterForMessage(int type, int entityID, MessageHandlerDelegate handler)
+        public void RegisterForMessage(int type, int entityId, MessageHandlerDelegate handler)
         {
             //If the table for this type of message didn´t exist we set it up and register ourselves
-            if (registeredEntities[type] == null)
+            if (RegisteredEntities[type] == null)
             {
-                registeredEntities[type] = new Dictionary<int, MessageHandlerDelegate>();
-                registeredEntities[type][entityID] = handler;
+                RegisteredEntities[type] = new Dictionary<int, MessageHandlerDelegate>();
+                RegisteredEntities[type][entityId] = handler;
                 return;
             }
 
             //If another handler existed it will be overriden
-            registeredEntities[type][entityID] = handler;
+            RegisteredEntities[type][entityId] = handler;
         }
 
-        public void UnregisterForMessage(int type, int entityID)
+        public void UnregisterForMessage(int type, int entityId)
         {
-            if (registeredEntities[type] == null)
+            if (RegisteredEntities[type] == null)
                 return;
 
-            registeredEntities[type].Remove(entityID);
+            RegisteredEntities[type].Remove(entityId);
         }
 
-        public void SendMessage(int senderID, int recieverID, double delayTime, int type, object extraInfo)
+        public void SendMessage(int senderId, int recieverId, double delayTime, int type, object extraInfo)
         {
             Message message;
 
-            message = new Message(senderID, recieverID, type, delayTime, extraInfo);
+            message = new Message(senderId, recieverId, type, delayTime, extraInfo);
 
             //If the message has no delay then call the delegate handler
             if (delayTime == 0)
             {
-                if (registeredEntities[type] == null)
+                if (RegisteredEntities[type] == null)
                     return;
 
-                if (registeredEntities[type][recieverID] == null)
+                if (RegisteredEntities[type][recieverId] == null)
                     return;
 
-                registeredEntities[type][recieverID](message);
+                RegisteredEntities[type][recieverId](message);
             }
 
             //If the messaged was a delayed one, calculate its future time and put it in the message queue
             else
             {
-                message.dispatchTime = System.DateTime.Now.Ticks + delayTime;
-                messageQueue.Enqueue(message);
+                message.DispatchTime = System.DateTime.Now.Ticks + delayTime;
+                MessageQueue.Enqueue(message);
             }
         }
 
@@ -88,17 +88,17 @@ namespace CasaEngine.AI.Messaging
 
             currentTime = System.DateTime.Now.Ticks;
 
-            while (messageQueue.Count != 0 && messageQueue.Peek().dispatchTime < currentTime)
+            while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
             {
-                message = messageQueue.Dequeue();
+                message = MessageQueue.Dequeue();
 
-                if (registeredEntities[message.type] == null)
+                if (RegisteredEntities[message.Type] == null)
                     return;
 
-                if (registeredEntities[message.type][message.recieverID] == null)
+                if (RegisteredEntities[message.Type][message.RecieverID] == null)
                     return;
 
-                registeredEntities[message.type][message.recieverID](message);
+                RegisteredEntities[message.Type][message.RecieverID](message);
             }
         }
 

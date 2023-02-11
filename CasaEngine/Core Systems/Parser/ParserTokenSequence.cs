@@ -4,23 +4,23 @@
         : ParserToken
     {
 
-        static public readonly string sequence = "`";
+        static public readonly string Sequence = "`";
 
 
 
 
 
-        public ParserTokenSequence(Parser parser_)
-            : base(parser_, sequence)
+        public ParserTokenSequence(Parser parser)
+            : base(parser, Sequence)
         {
 
         }
 
 
 
-        public override bool Check(string sentence_)
+        public override bool Check(string sentence)
         {
-            if (m_Token.Equals(sentence_) == true)
+            if (Token.Equals(sentence) == true)
             {
                 Parser.AddCalculator(new CalculatorTokenSequence(Parser.Calculator, CalculatorTokenSequence.TokenSequence.Sequence));
                 return true;

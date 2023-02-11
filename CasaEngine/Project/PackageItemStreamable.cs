@@ -9,15 +9,15 @@ namespace CasaEngine.Project
         : PackageItem
     {
 
-        private IPackageable m_Item;
+        private IPackageable _item;
 
-        private long m_FilePosition; //use for binary loading
-        private readonly string m_XmlPath; //use for xml loading
-        private Type m_ItemType;
+        private long _filePosition; //use for binary loading
+        private readonly string _xmlPath; //use for xml loading
+        private Type _itemType;
 
 
 
-        public IPackageable Item => m_Item;
+        public IPackageable Item => _item;
 
         public string ClassName
         {
@@ -29,39 +29,39 @@ namespace CasaEngine.Project
         {
             get
             {
-                if (m_ItemType == null)
+                if (_itemType == null)
                 {
                     Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
                     foreach (Assembly a in assemblies)
                     {
-                        m_ItemType = a.GetType(ClassName, false, true);
+                        _itemType = a.GetType(ClassName, false, true);
 
-                        if (m_ItemType != null)
+                        if (_itemType != null)
                         {
                             break;
                         }
                     }
 
-                    if (m_ItemType == null)
+                    if (_itemType == null)
                     {
                         throw new Exception("Can't retrieve the type " + ClassName);
                     }
                 }
 
-                return m_ItemType;
+                return _itemType;
             }
         }
 
 
 
-        public PackageItemStreamable(Package package_, int id_, string name_, string className_, IPackageable item_, long filePosition_ = -1)
-            : base(package_, id_, name_)
+        public PackageItemStreamable(Package package, int id, string name, string className, IPackageable ite, long filePosition = -1)
+            : base(package, id, name)
         {
-            ClassName = className_;
-            m_XmlPath = "Project/Packages/Package[name='" + Package.Name + "']/PackageItem[id='" + ID + "']";
-            m_FilePosition = filePosition_;
-            m_Item = item_;
+            ClassName = className;
+            _xmlPath = "Project/Packages/Package[name='" + Package.Name + "']/PackageItem[id='" + Id + "']";
+            _filePosition = filePosition;
+            _item = ite;
         }
 
 
@@ -70,17 +70,17 @@ namespace CasaEngine.Project
         {
             //throw new NotImplementedException();
 
-            if (m_Item == null)
+            if (_item == null)
             {
                 try
                 {
                     //if (XML)
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.Load(Package.PackageFileName);
-                    XmlElement el = (XmlElement)xmlDoc.SelectSingleNode(m_XmlPath);
+                    XmlElement el = (XmlElement)xmlDoc.SelectSingleNode(_xmlPath);
                     //else (Binary)
 
-                    m_Item = (IPackageable)Activator.CreateInstance(ItemType,
+                    _item = (IPackageable)Activator.CreateInstance(ItemType,
                     new object[] { el, SaveOption.Editor });
                 }
                 catch (System.Exception ex)
@@ -89,12 +89,12 @@ namespace CasaEngine.Project
                 }
             }
 
-            if ((m_Item is T) == false)
+            if ((_item is T) == false)
             {
                 throw new InvalidOperationException("PackageItemStreamable : item is not a '" + typeof(T).Name + "' object.");
             }
 
-            return (T)m_Item;
+            return (T)_item;
         }
 
     }

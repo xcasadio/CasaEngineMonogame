@@ -15,7 +15,7 @@ namespace CasaEngine.Math.Shape2D
         : Shape2DObject
     {
 
-        int m_Width, m_Height;
+        int _width, _height;
 
 
 
@@ -24,10 +24,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public int Width
         {
-            get { return m_Width; }
+            get { return _width; }
             set
             {
-                m_Width = value;
+                _width = value;
 #if EDITOR
                 NotifyPropertyChanged("Width");
 #endif
@@ -39,10 +39,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public int Height
         {
-            get { return m_Height; }
+            get { return _height; }
             set
             {
-                m_Height = value;
+                _height = value;
 #if EDITOR
                 NotifyPropertyChanged("Height");
 #endif
@@ -53,18 +53,18 @@ namespace CasaEngine.Math.Shape2D
 
         public ShapeRectangle() { }
 
-        public ShapeRectangle(ShapeRectangle o_)
-            : base(o_)
+        public ShapeRectangle(ShapeRectangle o)
+            : base(o)
         { }
 
 
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            base.Load(el_, option_);
+            base.Load(el, option);
 
-            m_Width = int.Parse(el_.Attributes["width"].Value);
-            m_Height = int.Parse(el_.Attributes["height"].Value);
+            _width = int.Parse(el.Attributes["width"].Value);
+            _height = int.Parse(el.Attributes["height"].Value);
         }
 
         public override Shape2DObject Clone()
@@ -72,16 +72,16 @@ namespace CasaEngine.Math.Shape2D
             return new ShapeRectangle(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob_)
+        public override void CopyFrom(Shape2DObject ob)
         {
-            if (ob_ is ShapeRectangle == false)
+            if (ob is ShapeRectangle == false)
             {
                 throw new ArgumentException("ShapeRectangle.CopyFrom() : Shape2DObject is not a ShapeRectangle");
             }
 
-            base.CopyFrom(ob_);
-            m_Width = ((ShapeRectangle)ob_).m_Width;
-            m_Height = ((ShapeRectangle)ob_).m_Height;
+            base.CopyFrom(ob);
+            _width = ((ShapeRectangle)ob)._width;
+            _height = ((ShapeRectangle)ob)._height;
         }
 
     }

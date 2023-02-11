@@ -38,14 +38,14 @@ namespace CasaEngine.Asset
 
 
         // XNA Texture.
-        protected Microsoft.Xna.Framework.Graphics.TextureCube xnaTextureCube;
+        protected Microsoft.Xna.Framework.Graphics.TextureCube XnaTextureCube;
 
         // Simple and small textures filled with a constant color.
-        private static TextureCube blackTexture, whiteTexture;
+        private static TextureCube _blackTexture, _whiteTexture;
 
 
 
-        public virtual Microsoft.Xna.Framework.Graphics.TextureCube Resource => xnaTextureCube;
+        public virtual Microsoft.Xna.Framework.Graphics.TextureCube Resource => XnaTextureCube;
 
         public int Size { get; protected set; }
 
@@ -60,11 +60,11 @@ namespace CasaEngine.Asset
         {
             get
             {
-                if (blackTexture == null)
+                if (_blackTexture == null)
                 {
-                    blackTexture = new TextureCube("BlackCube");
+                    _blackTexture = new TextureCube("BlackCube");
                 }
-                return blackTexture;
+                return _blackTexture;
             }
         } // BlackTexture
 
@@ -72,11 +72,11 @@ namespace CasaEngine.Asset
         {
             get
             {
-                if (whiteTexture == null)
+                if (_whiteTexture == null)
                 {
-                    whiteTexture = new TextureCube("WhiteCube");
+                    _whiteTexture = new TextureCube("WhiteCube");
                 }
-                return whiteTexture;
+                return _whiteTexture;
             }
         } // WhiteTexture
 
@@ -95,8 +95,8 @@ namespace CasaEngine.Asset
             }
             try
             {
-                xnaTextureCube = Engine.Instance.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, Engine.Instance.Game.GraphicsDevice);
-                Size = xnaTextureCube.Size;
+                XnaTextureCube = Engine.Instance.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, Engine.Instance.Game.GraphicsDevice);
+                Size = XnaTextureCube.Size;
                 Resource.Name = filename;
             }
             catch (ObjectDisposedException)
@@ -113,9 +113,9 @@ namespace CasaEngine.Asset
 
 
 
-        internal override void OnDeviceReset(GraphicsDevice device_)
+        internal override void OnDeviceReset(GraphicsDevice device)
         {
-            xnaTextureCube = Engine.Instance.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, device_);
+            XnaTextureCube = Engine.Instance.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, device);
         } // RecreateResource
 
 

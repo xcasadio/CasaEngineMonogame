@@ -17,15 +17,15 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private int itemIndex = -1;
-        private readonly List<MenuItem> items = new List<MenuItem>();
+        private int _itemIndex = -1;
+        private readonly List<MenuItem> _items = new List<MenuItem>();
 
 
 
         protected internal int ItemIndex
         {
-            get => itemIndex;
-            set => itemIndex = value;
+            get => _itemIndex;
+            set => _itemIndex = value;
         }
 
         protected internal MenuBase ChildMenu { get; set; }
@@ -34,11 +34,11 @@ namespace XNAFinalEngine.UserInterface
 
         protected internal MenuBase ParentMenu { get; set; }
 
-        public List<MenuItem> Items => items;
+        public List<MenuItem> Items => _items;
 
 
-        protected MenuBase(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        protected MenuBase(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             RootMenu = this;
         } // MenuBase

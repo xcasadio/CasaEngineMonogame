@@ -6,9 +6,9 @@ namespace CasaEngine.Asset
         : IAssetLoader
     {
 
-        public object LoadAsset(string fileName_, GraphicsDevice device_)
+        public object LoadAsset(string fileName, GraphicsDevice device)
         {
-            return Texture2D.FromStream(device_, new FileStream(fileName_, FileMode.Open));
+            return Texture2D.FromStream(device, new FileStream(fileName, FileMode.Open));
         }
 
     }

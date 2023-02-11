@@ -7,9 +7,9 @@ namespace CasaEngine.Game
         IUpdateable,
         IDisposable
     {
-        private bool enabled = true;
-        private int updateOrder;
-        private readonly CustomGame game;
+        private bool _enabled = true;
+        private int _updateOrder;
+        private readonly CustomGame _game;
 
         public event EventHandler<EventArgs> EnabledChanged;
         public event EventHandler<EventArgs> UpdateOrderChanged;
@@ -17,12 +17,12 @@ namespace CasaEngine.Game
 
         public bool Enabled
         {
-            get => enabled;
+            get => _enabled;
             set
             {
-                if (enabled != value)
+                if (_enabled != value)
                 {
-                    enabled = value;
+                    _enabled = value;
                     OnEnabledChanged(this, EventArgs.Empty);
                 }
             }
@@ -30,22 +30,22 @@ namespace CasaEngine.Game
 
         public int UpdateOrder
         {
-            get => updateOrder;
+            get => _updateOrder;
             set
             {
-                if (updateOrder != value)
+                if (_updateOrder != value)
                 {
-                    updateOrder = value;
+                    _updateOrder = value;
                     OnUpdateOrderChanged(this, EventArgs.Empty);
                 }
             }
         }
 
-        public CustomGame Game => game;
+        public CustomGame Game => _game;
 
         public GameComponent(CustomGame game)
         {
-            this.game = game;
+            this._game = game;
         }
 
         ~GameComponent()

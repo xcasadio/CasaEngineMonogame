@@ -19,13 +19,13 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private Rectangle[] rectangle;
-        private int lastIndex = -1;
+        private Rectangle[] _rectangle;
+        private int _lastIndex = -1;
 
 
 
-        public MainMenu(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public MainMenu(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Left = 0;
             Top = 0;
@@ -49,7 +49,7 @@ namespace XNAFinalEngine.UserInterface
         {
             SkinLayer layerControl = SkinInformation.Layers["Control"];
             SkinLayer layerSelection = SkinInformation.Layers["Selection"];
-            rectangle = new Rectangle[Items.Count];
+            _rectangle = new Rectangle[Items.Count];
 
             UserInterfaceManager.Renderer.DrawLayer(this, layerControl, rect, ControlState.Enabled);
 
@@ -61,27 +61,27 @@ namespace XNAFinalEngine.UserInterface
                 MenuItem menuItem = Items[i];
 
                 int textWidth = (int)layerControl.Text.Font.Font.MeasureString(menuItem.Text).X + layerControl.ContentMargins.Horizontal;
-                rectangle[i] = new Rectangle(rect.Left + prev, rect.Top + layerControl.ContentMargins.Top, textWidth, Height - layerControl.ContentMargins.Vertical);
+                _rectangle[i] = new Rectangle(rect.Left + prev, rect.Top + layerControl.ContentMargins.Top, textWidth, Height - layerControl.ContentMargins.Vertical);
                 prev += textWidth;
 
                 if (ItemIndex != i)
                 {
                     if (menuItem.Enabled && Enabled)
-                        UserInterfaceManager.Renderer.DrawString(this, layerControl, menuItem.Text, rectangle[i], ControlState.Enabled, false);
+                        UserInterfaceManager.Renderer.DrawString(this, layerControl, menuItem.Text, _rectangle[i], ControlState.Enabled, false);
                     else
-                        UserInterfaceManager.Renderer.DrawString(this, layerControl, menuItem.Text, rectangle[i], ControlState.Disabled, false);
+                        UserInterfaceManager.Renderer.DrawString(this, layerControl, menuItem.Text, _rectangle[i], ControlState.Disabled, false);
                 }
                 else
                 {
                     if (Items[i].Enabled && Enabled)
                     {
-                        UserInterfaceManager.Renderer.DrawLayer(this, layerSelection, rectangle[i], ControlState.Enabled);
-                        UserInterfaceManager.Renderer.DrawString(this, layerSelection, menuItem.Text, rectangle[i], ControlState.Enabled, false);
+                        UserInterfaceManager.Renderer.DrawLayer(this, layerSelection, _rectangle[i], ControlState.Enabled);
+                        UserInterfaceManager.Renderer.DrawString(this, layerSelection, menuItem.Text, _rectangle[i], ControlState.Enabled, false);
                     }
                     else
                     {
-                        UserInterfaceManager.Renderer.DrawLayer(this, layerSelection, rectangle[i], ControlState.Disabled);
-                        UserInterfaceManager.Renderer.DrawString(this, layerSelection, menuItem.Text, rectangle[i], ControlState.Disabled, false);
+                        UserInterfaceManager.Renderer.DrawLayer(this, layerSelection, _rectangle[i], ControlState.Disabled);
+                        UserInterfaceManager.Renderer.DrawString(this, layerSelection, menuItem.Text, _rectangle[i], ControlState.Disabled, false);
                     }
                 }
             }
@@ -92,14 +92,14 @@ namespace XNAFinalEngine.UserInterface
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            int i = lastIndex;
+            int i = _lastIndex;
 
             TrackItem(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
 
             if (ItemIndex >= 0 && (i == -1 || i != ItemIndex) && Items[ItemIndex].Items != null && Items[ItemIndex].Items.Count > 0 && ChildMenu != null)
             {
                 HideSubMenu();
-                lastIndex = ItemIndex;
+                _lastIndex = ItemIndex;
                 OnClick(e);
             }
             else if (ChildMenu != null && i != ItemIndex)
@@ -111,12 +111,12 @@ namespace XNAFinalEngine.UserInterface
 
         private void TrackItem(int x, int y)
         {
-            if (Items != null && Items.Count > 0 && rectangle != null)
+            if (Items != null && Items.Count > 0 && _rectangle != null)
             {
                 Invalidate();
-                for (int i = 0; i < rectangle.Length; i++)
+                for (int i = 0; i < _rectangle.Length; i++)
                 {
-                    if (rectangle[i].Contains(x, y))
+                    if (_rectangle[i].Contains(x, y))
                     {
                         if (i >= 0 && i != ItemIndex)
                         {
@@ -190,8 +190,8 @@ namespace XNAFinalEngine.UserInterface
                         (ChildMenu as ContextMenu).Sender = Root;
                         ChildMenu.Items.AddRange(Items[ItemIndex].Items);
 
-                        int y = Root.ControlTopAbsoluteCoordinate + rectangle[ItemIndex].Bottom + 1;
-                        (ChildMenu as ContextMenu).Show(Root, Root.ControlLeftAbsoluteCoordinate + rectangle[ItemIndex].Left, y);
+                        int y = Root.ControlTopAbsoluteCoordinate + _rectangle[ItemIndex].Bottom + 1;
+                        (ChildMenu as ContextMenu).Show(Root, Root.ControlLeftAbsoluteCoordinate + _rectangle[ItemIndex].Left, y);
                         if (ex.Button == MouseButton.None)
                             (ChildMenu as ContextMenu).ItemIndex = 0;
                     }

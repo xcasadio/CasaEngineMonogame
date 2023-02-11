@@ -2,47 +2,47 @@
 {
     public enum DefuzzifyMethod
     {
-        MAX_AV,
-        CENTROID
+        MaxAv,
+        Centroid
     };
 
     public class FuzzyModule
     {
-        static public readonly int NUM_SAMPLES = 15;
+        static public readonly int NumSamples = 15;
 
 
-        private readonly Dictionary<string, FuzzyVariable> m_Variables = new Dictionary<string, FuzzyVariable>();
+        private readonly Dictionary<string, FuzzyVariable> _variables = new Dictionary<string, FuzzyVariable>();
 
-        private readonly List<FuzzyRule> m_Rules = new List<FuzzyRule>();
-
-
+        private readonly List<FuzzyRule> _rules = new List<FuzzyRule>();
 
 
 
-        public void Fuzzify(string NameOfFLV, double val)
+
+
+        public void Fuzzify(string nameOfFlv, double val)
         {
-            if (m_Variables.ContainsKey(NameOfFLV) == false)
+            if (_variables.ContainsKey(nameOfFlv) == false)
             {
-                throw new KeyNotFoundException("FuzzyModule.Fuzzify() : " + "key " + NameOfFLV + " not found");
+                throw new KeyNotFoundException("FuzzyModule.Fuzzify() : " + "key " + nameOfFlv + " not found");
             }
 
-            m_Variables[NameOfFLV].Fuzzify(val);
+            _variables[nameOfFlv].Fuzzify(val);
         }
 
 
 
-        public double DeFuzzify(string NameOfFLV, DefuzzifyMethod method)
+        public double DeFuzzify(string nameOfFlv, DefuzzifyMethod method)
         {
-            if (m_Variables.ContainsKey(NameOfFLV) == false)
+            if (_variables.ContainsKey(nameOfFlv) == false)
             {
-                throw new KeyNotFoundException("FuzzyModule.DeFuzzify() : " + "key " + NameOfFLV + " not found");
+                throw new KeyNotFoundException("FuzzyModule.DeFuzzify() : " + "key " + nameOfFlv + " not found");
             }
 
             //clear the DOMs of all the consequents of all the rules
             SetConfidencesOfConsequentsToZero();
 
             //process the rules
-            foreach (FuzzyRule rule in m_Rules)
+            foreach (FuzzyRule rule in _rules)
             {
                 rule.Calculate();
             }
@@ -50,15 +50,15 @@
             //now defuzzify the resultant conclusion using the specified method
             switch (method)
             {
-                case DefuzzifyMethod.CENTROID:
+                case DefuzzifyMethod.Centroid:
 
-                    return m_Variables[NameOfFLV].DeFuzzifyCentroid(NUM_SAMPLES);
+                    return _variables[nameOfFlv].DeFuzzifyCentroid(NumSamples);
 
                 //break;
 
-                case DefuzzifyMethod.MAX_AV:
+                case DefuzzifyMethod.MaxAv:
 
-                    return m_Variables[NameOfFLV].DeFuzzifyMaxAv();
+                    return _variables[nameOfFlv].DeFuzzifyMaxAv();
 
                     //break;
             }
@@ -68,34 +68,34 @@
 
         private void SetConfidencesOfConsequentsToZero()
         {
-            foreach (FuzzyRule rule in m_Rules)
+            foreach (FuzzyRule rule in _rules)
             {
                 rule.SetConfidenceOfConsequentToZero();
             }
         }
 
-        public void AddRule(FuzzyTerm antecedent, FuzzyTerm consequence)
+        public void AddRule(IFuzzyTerm antecedent, IFuzzyTerm consequence)
         {
-            m_Rules.Add(new FuzzyRule(antecedent, consequence));
+            _rules.Add(new FuzzyRule(antecedent, consequence));
         }
 
-        public FuzzyVariable CreateFLV(string VarName)
+        public FuzzyVariable CreateFlv(string varName)
         {
-            m_Variables[VarName] = new FuzzyVariable();
+            _variables[varName] = new FuzzyVariable();
 
-            return m_Variables[VarName];
+            return _variables[varName];
         }
 
-        public void WriteAllDOMs(BinaryWriter binW_)
+        public void WriteAllDoMs(BinaryWriter binW)
         {
-            binW_.Write("\n\n");
+            binW.Write("\n\n");
 
-            foreach (KeyValuePair<string, FuzzyVariable> pair in m_Variables)
+            foreach (KeyValuePair<string, FuzzyVariable> pair in _variables)
             {
-                binW_.Write("\n--------------------------- " + pair.Key);
-                pair.Value.WriteDOMs(binW_);
+                binW.Write("\n--------------------------- " + pair.Key);
+                pair.Value.WriteDoMs(binW);
 
-                binW_.Write("\n");
+                binW.Write("\n");
             }
         }
 

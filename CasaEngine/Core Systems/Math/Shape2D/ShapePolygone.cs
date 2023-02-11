@@ -18,19 +18,19 @@ namespace CasaEngine.Math.Shape2D
     {
 
 #if EDITOR
-        readonly List<Vector2> m_Points = new List<Vector2>();
+        readonly List<Vector2> _points = new List<Vector2>();
 #else
-        Vector2[] m_Points;
+        Vector2[] _Points;
 #endif
 
-        bool m_IsABox = false;
+        bool _isABox = false;
 
 
 
 #if !EDITOR
         public Vector2[] Points
         {
-            get { return m_Points; }
+            get { return _Points; }
         }
 #endif
 
@@ -39,36 +39,36 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public bool IsABox
         {
-            get { return m_IsABox; }
+            get { return _isABox; }
         }
 
 
 
         public ShapePolygone() { }
 
-        public ShapePolygone(ShapePolygone o_)
-            : base(o_)
+        public ShapePolygone(ShapePolygone o)
+            : base(o)
         { }
 
 
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            base.Load(el_, option_);
+            base.Load(el, option);
 
-            int version = int.Parse(el_.Attributes["version"].Value);
+            int version = int.Parse(el.Attributes["version"].Value);
 
             if (version > 2)
             {
-                m_IsABox = bool.Parse(el_.Attributes["isABox"].Value);
+                _isABox = bool.Parse(el.Attributes["isABox"].Value);
             }
 
-            XmlElement pointList = (XmlElement)el_.SelectSingleNode("PointList");
+            XmlElement pointList = (XmlElement)el.SelectSingleNode("PointList");
 
 #if EDITOR
-            m_Points.Clear();
+            _points.Clear();
 #else
-            m_Points = new Vector2[pointList.ChildNodes.Count];
+            _Points = new Vector2[pointList.ChildNodes.Count];
             int i = 0;
 #endif
 
@@ -77,9 +77,9 @@ namespace CasaEngine.Math.Shape2D
                 Vector2 p = new Vector2();
                 ((XmlElement)node).Read(ref p);
 #if EDITOR
-                m_Points.Add(p);
+                _points.Add(p);
 #else
-                m_Points[i++] = p;
+                _Points[i++] = p;
 #endif
             }
         }
@@ -89,59 +89,59 @@ namespace CasaEngine.Math.Shape2D
             return new ShapePolygone(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob_)
+        public override void CopyFrom(Shape2DObject ob)
         {
-            if (ob_ is ShapePolygone == false)
+            if (ob is ShapePolygone == false)
             {
                 throw new ArgumentException("ShapePolygone.CopyFrom() : Shape2DObject is not a ShapePolygone");
             }
 
-            base.CopyFrom(ob_);
+            base.CopyFrom(ob);
 
-            ShapePolygone s = (ShapePolygone)ob_;
+            ShapePolygone s = (ShapePolygone)ob;
 
 #if EDITOR
-            m_Points.AddRange(s.m_Points);
+            _points.AddRange(s._points);
 #else
-            m_Points = new Vector2[s.m_Points.Length];
-            s.m_Points.CopyTo(m_Points, 0);
+            _Points = new Vector2[s._Points.Length];
+            s._Points.CopyTo(_Points, 0);
 #endif
         }
 
         public override void FlipHorizontally()
         {
 #if EDITOR
-            int c = m_Points.Count;
+            int c = _points.Count;
 #else
-            int c = m_Points.Length;
+            int c = _Points.Length;
 #endif
 
             for (int i = 0; i < c; i++)
             {
 #if EDITOR
-                m_Points[i] = new Vector2(-m_Points[i].X, m_Points[i].Y);
+                _points[i] = new Vector2(-_points[i].X, _points[i].Y);
 #else
-                m_Points[i].X = -m_Points[i].X;
+                _Points[i].X = -_Points[i].X;
 #endif
             }
 
-            m_Points.Reverse();
+            _points.Reverse();
         }
 
         public override void FlipVertically()
         {
 #if EDITOR
-            int c = m_Points.Count;
+            int c = _points.Count;
 #else
-            int c = m_Points.Length;
+            int c = _Points.Length;
 #endif
 
             for (int i = 0; i < c; i++)
             {
 #if EDITOR
-                m_Points[i] = new Vector2(m_Points[i].X, -m_Points[i].Y);
+                _points[i] = new Vector2(_points[i].X, -_points[i].Y);
 #else
-                m_Points[i].Y = -m_Points[i].Y;
+                _Points[i].Y = -_Points[i].Y;
 #endif
             }
         }

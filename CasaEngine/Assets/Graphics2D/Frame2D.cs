@@ -4,8 +4,8 @@ namespace CasaEngine.Assets.Graphics2D
 {
     public struct Frame2D
     {
-        public int spriteID;
-        public float time;
+        public int SpriteId;
+        public float Time;
 
 #if EDITOR
         public List<EventActor> Events;
@@ -13,10 +13,10 @@ namespace CasaEngine.Assets.Graphics2D
         public EventActor[] Events;
 #endif
 
-        public Frame2D(int spriteID_, float time_)
+        public Frame2D(int spriteId, float time)
         {
-            spriteID = spriteID_;
-            time = time_;
+            SpriteId = spriteId;
+            Time = time;
 
 #if EDITOR
             Events = new List<EventActor>();
@@ -37,18 +37,18 @@ namespace CasaEngine.Assets.Graphics2D
             return Events.Count + " event" + (Events.Count <= 1 ? "" : "s");
         }
 
-        public bool CompareTo(Frame2D other_)
+        public bool CompareTo(Frame2D other)
         {
-            if (spriteID != other_.spriteID
-                || time != other_.time
-                || Events.Count != other_.Events.Count)
+            if (SpriteId != other.SpriteId
+                || Time != other.Time
+                || Events.Count != other.Events.Count)
             {
                 return false;
             }
 
             for (int i = 0; i < Events.Count; i++)
             {
-                if (Events[i].CompareTo(other_.Events[i]) == false)
+                if (Events[i].CompareTo(other.Events[i]) == false)
                 {
                     return false;
                 }

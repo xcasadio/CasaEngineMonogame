@@ -14,12 +14,12 @@ namespace CasaEngine.FrontEnd.Screen
     {
         public PlayerIndexEventArgs(PlayerIndex playerIndex)
         {
-            this.playerIndex = playerIndex;
+            this._playerIndex = playerIndex;
         }
 
 
-        public PlayerIndex PlayerIndex => playerIndex;
+        public PlayerIndex PlayerIndex => _playerIndex;
 
-        readonly PlayerIndex playerIndex;
+        readonly PlayerIndex _playerIndex;
     }
 }

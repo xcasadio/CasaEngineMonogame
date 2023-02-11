@@ -9,26 +9,26 @@ namespace CasaEngine.FrontEnd.Screen
     public class MenuScreen
         : Screen
     {
-        readonly List<MenuEntry> menuEntries = new List<MenuEntry>();
-        int selectedEntry = 0;
-        readonly string menuTitle;
+        readonly List<MenuEntry> _menuEntries = new List<MenuEntry>();
+        int _selectedEntry = 0;
+        readonly string _menuTitle;
 
-        readonly Renderer2DComponent m_Renderer2DComponent = null;
-
-
-
-        protected IList<MenuEntry> MenuEntries => menuEntries;
+        readonly Renderer2DComponent _renderer2DComponent = null;
 
 
-        public MenuScreen(string menuTitle, string menuName_)
-            : base(menuName_)
+
+        protected IList<MenuEntry> MenuEntries => _menuEntries;
+
+
+        public MenuScreen(string menuTitle, string menuName)
+            : base(menuName)
         {
-            this.menuTitle = menuTitle;
+            this._menuTitle = menuTitle;
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
 
@@ -38,19 +38,19 @@ namespace CasaEngine.FrontEnd.Screen
             // Move to the previous menu entry?
             if (input.IsMenuUp(ControllingPlayer))
             {
-                selectedEntry--;
+                _selectedEntry--;
 
-                if (selectedEntry < 0)
-                    selectedEntry = menuEntries.Count - 1;
+                if (_selectedEntry < 0)
+                    _selectedEntry = _menuEntries.Count - 1;
             }
 
             // Move to the next menu entry?
             if (input.IsMenuDown(ControllingPlayer))
             {
-                selectedEntry++;
+                _selectedEntry++;
 
-                if (selectedEntry >= menuEntries.Count)
-                    selectedEntry = 0;
+                if (_selectedEntry >= _menuEntries.Count)
+                    _selectedEntry = 0;
             }
 
             // Accept or cancel the menu? We pass in our ControllingPlayer, which may
@@ -62,7 +62,7 @@ namespace CasaEngine.FrontEnd.Screen
 
             if (input.IsMenuSelect(ControllingPlayer, out playerIndex))
             {
-                OnSelectEntry(selectedEntry, playerIndex);
+                OnSelectEntry(_selectedEntry, playerIndex);
             }
             else if (input.IsMenuCancel(ControllingPlayer, out playerIndex))
             {
@@ -72,12 +72,12 @@ namespace CasaEngine.FrontEnd.Screen
 
         protected virtual void OnSelectEntry(int entryIndex, PlayerIndex playerIndex)
         {
-            if (selectedEntry < 0 || selectedEntry >= menuEntries.Count)
+            if (_selectedEntry < 0 || _selectedEntry >= _menuEntries.Count)
             {
                 return;
             }
 
-            menuEntries[selectedEntry].OnSelectEntry(playerIndex);
+            _menuEntries[_selectedEntry].OnSelectEntry(playerIndex);
         }
 
         protected virtual void OnCancel(PlayerIndex playerIndex)
@@ -98,15 +98,15 @@ namespace CasaEngine.FrontEnd.Screen
             base.Update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen);
 
             // Update each nested MenuEntry object.
-            for (int i = 0; i < menuEntries.Count; i++)
+            for (int i = 0; i < _menuEntries.Count; i++)
             {
-                bool isSelected = IsActive && (i == selectedEntry);
+                bool isSelected = IsActive && (i == _selectedEntry);
 
-                menuEntries[i].Update(this, isSelected, elapsedTime);
+                _menuEntries[i].Update(this, isSelected, elapsedTime);
             }
         }
 
-        public override void Draw(float elapsedTime_)
+        public override void Draw(float elapsedTime)
         {
             SpriteBatch spriteBatch = Engine.Instance.SpriteBatch;
             SpriteFont font = Engine.Instance.DefaultSpriteFont;
@@ -126,27 +126,27 @@ namespace CasaEngine.FrontEnd.Screen
             //spriteBatch.Begin();
 
             // Draw each menu entry in turn.
-            for (int i = 0; i < menuEntries.Count; i++)
+            for (int i = 0; i < _menuEntries.Count; i++)
             {
-                MenuEntry menuEntry = menuEntries[i];
+                MenuEntry menuEntry = _menuEntries[i];
 
-                bool isSelected = IsActive && (i == selectedEntry);
+                bool isSelected = IsActive && (i == _selectedEntry);
 
-                menuEntry.Draw(this, position, isSelected, elapsedTime_);
+                menuEntry.Draw(this, position, isSelected, elapsedTime);
 
                 position.Y += menuEntry.GetHeight(this);
             }
 
             // Draw the menu title.
             Vector2 titlePosition = new Vector2(426, 80);
-            Vector2 titleOrigin = font.MeasureString(menuTitle) / 2.0f;
+            Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2.0f;
             titlePosition = Vector2.Subtract(titlePosition, titleOrigin);
             Color titleColor = new Color((byte)192, (byte)192, (byte)192, TransitionAlpha);
             float titleScale = 1.25f;
 
             titlePosition.Y -= transitionOffset * 100;
 
-            m_Renderer2DComponent.AddText2D(font, menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
+            _renderer2DComponent.AddText2D(font, _menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
             //spriteBatch.DrawString(font, menuTitle, titlePosition, titleColor, 0,
             //					   titleOrigin, titleScale, SpriteEffects.None, 0);
 

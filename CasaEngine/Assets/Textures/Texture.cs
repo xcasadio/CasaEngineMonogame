@@ -41,13 +41,13 @@ namespace CasaEngine.Asset
     {
 
 
-        protected Texture2D xnaTexture;
+        protected Texture2D XnaTexture;
 
         // Default value.
-        private SamplerState preferedSamplerState = SamplerState.AnisotropicWrap;
+        private SamplerState _preferedSamplerState = SamplerState.AnisotropicWrap;
 
         // Simple and small textures filled with a constant color.
-        private static Texture blackTexture, greyTexture, whiteTexture;
+        private static Texture _blackTexture, _greyTexture, _whiteTexture;
 
 
 
@@ -62,16 +62,16 @@ namespace CasaEngine.Asset
                 // For that reason the nullified resources could be accessed.
                 //if (xnaTexture != null && xnaTexture.IsDisposed)
                 //xnaTexture = null;
-                xnaTexture;
+                XnaTexture;
             // This is only allowed for videos. 
             // Doing something to avoid this “set” is unnecessary and probably will make more complex some classes just for this special case. 
             // Besides, an internal statement elegantly prevents a bad use of this set.
             // Just don’t dispose this texture because the resource is managed by the video.
             internal set
             {
-                xnaTexture = value;
+                XnaTexture = value;
                 Size = value == null ?
-                    new Size(0, 0, new Screen(GraphicsDevice)) : new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
+                    new Size(0, 0, new Screen(GraphicsDevice)) : new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
             }
         } // Resource
 
@@ -79,8 +79,8 @@ namespace CasaEngine.Asset
 
         public virtual SamplerState PreferredSamplerState
         {
-            get => preferedSamplerState;
-            set => preferedSamplerState = value;
+            get => _preferedSamplerState;
+            set => _preferedSamplerState = value;
         } // PreferredSamplerState
 
 
@@ -96,9 +96,9 @@ namespace CasaEngine.Asset
 
 
 
-        internal Texture(GraphicsDevice graphicsDevice_)
+        internal Texture(GraphicsDevice graphicsDevice)
         {
-            GraphicsDevice = graphicsDevice_;
+            GraphicsDevice = graphicsDevice;
             Name = "Empty Texture";
         } // Texture
 
@@ -106,13 +106,13 @@ namespace CasaEngine.Asset
         {
             GraphicsDevice = xnaTexture.GraphicsDevice;
             Name = "Texture";
-            this.xnaTexture = xnaTexture;
+            this.XnaTexture = xnaTexture;
             Size = new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
         } // Texture
 
-        public Texture(GraphicsDevice graphicsDevice_, string filename)
+        public Texture(GraphicsDevice graphicsDevice, string filename)
         {
-            GraphicsDevice = graphicsDevice_;
+            GraphicsDevice = graphicsDevice;
             Name = filename;
             Filename = Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
             if (File.Exists(Filename) == false)
@@ -121,8 +121,8 @@ namespace CasaEngine.Asset
             }
             try
             {
-                xnaTexture = Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, GraphicsDevice);
-                Size = new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
+                XnaTexture = Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, GraphicsDevice);
+                Size = new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
                 Resource.Name = filename;
             }
             catch (ObjectDisposedException)
@@ -141,32 +141,32 @@ namespace CasaEngine.Asset
         protected override void DisposeManagedResources()
         {
             base.DisposeManagedResources();
-            if (xnaTexture != null && !xnaTexture.IsDisposed)
+            if (XnaTexture != null && !XnaTexture.IsDisposed)
                 Resource.Dispose();
         } // DisposeManagedResources
 
 
 
-        internal override void OnDeviceReset(GraphicsDevice device_)
+        internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (Resource == null)
                 return;
             if (string.IsNullOrEmpty(Filename))
-                xnaTexture = new Texture2D(device_, Size.Width, Size.Height);
-            else if (xnaTexture.IsDisposed == true)
-                xnaTexture = Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, device_);
+                XnaTexture = new Texture2D(device, Size.Width, Size.Height);
+            else if (XnaTexture.IsDisposed == true)
+                XnaTexture = Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, device);
 
-            GraphicsDevice = device_;
+            GraphicsDevice = device;
         } // RecreateResource
 
 
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
 
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
 
         }

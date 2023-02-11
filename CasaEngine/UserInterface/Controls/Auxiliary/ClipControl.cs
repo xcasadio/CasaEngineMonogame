@@ -63,8 +63,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ClipControl(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ClipControl(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             ClientArea = new ClipBox(UserInterfaceManager)
             {

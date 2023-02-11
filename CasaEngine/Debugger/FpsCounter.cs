@@ -38,7 +38,7 @@ namespace CasaEngine.Debugger
 
         public float FpsMax { get; private set; }
 
-        public float FpsAvg => m_FpsAverage / (float)m_NumberOfFPSCount;
+        public float FpsAvg => _fpsAverage / (float)_numberOfFpsCount;
 
         public int TotalNumberOfFrames { get; private set; }
 
@@ -47,27 +47,27 @@ namespace CasaEngine.Debugger
 
 
         // Reference for debug manager.
-        private DebugManager debugManager;
+        private DebugManager _debugManager;
 
         // Stopwatch for fps measuring.
-        private Stopwatch stopwatch;
+        private Stopwatch _stopwatch;
 
-        private int sampleFrames;
+        private int _sampleFrames;
 
         // stringBuilder for FPS counter draw.
-        private readonly StringBuilder stringBuilder = new StringBuilder(16);
+        private readonly StringBuilder _stringBuilder = new StringBuilder(16);
 
-        private Renderer2DComponent m_Renderer2DComponent = null;
+        private Renderer2DComponent _renderer2DComponent = null;
 
-        private readonly Color m_ColorBackground = new Color(0, 0, 0, 128);
+        private readonly Color _colorBackground = new Color(0, 0, 0, 128);
 
-        private readonly List<CasaEngineCommon.Design.IObserver<FpsCounter>> m_ListObserver = new List<CasaEngineCommon.Design.IObserver<FpsCounter>>();
+        private readonly List<CasaEngineCommon.Design.IObserver<FpsCounter>> _listObserver = new List<CasaEngineCommon.Design.IObserver<FpsCounter>>();
 
-        private float m_FpsAverage = 0.0f;
+        private float _fpsAverage = 0.0f;
 
-        private int m_NumberOfFPSCount = 0;
+        private int _numberOfFpsCount = 0;
 
-        private bool m_FirstCompute = true;
+        private bool _firstCompute = true;
 
 
 
@@ -83,10 +83,10 @@ namespace CasaEngine.Debugger
         public override void Initialize()
         {
             // Get debug manager from game service.
-            debugManager =
+            _debugManager =
                 Game.Services.GetService(typeof(DebugManager)) as DebugManager;
 
-            if (debugManager == null)
+            if (_debugManager == null)
                 throw new InvalidOperationException("DebugManaer is not registered.");
 
             // Register 'fps' command if debug command is registered as a service.
@@ -107,9 +107,9 @@ namespace CasaEngine.Debugger
 
         protected override void LoadContent()
         {
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
 
-            if (m_Renderer2DComponent == null)
+            if (_renderer2DComponent == null)
             {
                 throw new InvalidOperationException("FpsCounter.LoadContent() : Renderer2DComponent is null");
             }
@@ -124,11 +124,11 @@ namespace CasaEngine.Debugger
             FpsMin = Single.MaxValue;
             FpsMax = Single.MinValue;
             TotalNumberOfFrames = 0;
-            m_FirstCompute = true;
-            m_FpsAverage = 0.0f;
-            sampleFrames = 0;
-            stopwatch = Stopwatch.StartNew();
-            stringBuilder.Length = 0;
+            _firstCompute = true;
+            _fpsAverage = 0.0f;
+            _sampleFrames = 0;
+            _stopwatch = Stopwatch.StartNew();
+            _stringBuilder.Length = 0;
         }
 
         private void CommandExecute(IDebugCommandHost host,
@@ -154,11 +154,11 @@ namespace CasaEngine.Debugger
 
         public override void Update(GameTime gameTime)
         {
-            if (stopwatch.Elapsed > SampleSpan)
+            if (_stopwatch.Elapsed > SampleSpan)
             {
-                if (m_FirstCompute == false)
+                if (_firstCompute == false)
                 {
-                    Fps = (float)sampleFrames / (float)stopwatch.Elapsed.TotalSeconds;
+                    Fps = (float)_sampleFrames / (float)_stopwatch.Elapsed.TotalSeconds;
 
                     if (FpsMin > Fps)
                     {
@@ -170,28 +170,28 @@ namespace CasaEngine.Debugger
                         FpsMax = Fps;
                     }
 
-                    m_FpsAverage += Fps;
-                    m_NumberOfFPSCount++;
+                    _fpsAverage += Fps;
+                    _numberOfFpsCount++;
                 }
 
-                m_FirstCompute = false;
-                sampleFrames = 0;
+                _firstCompute = false;
+                _sampleFrames = 0;
 
                 // Update draw string.
-                stringBuilder.Length = 0;
-                stringBuilder.Append("FPS: ");
-                stringBuilder.AppendNumber(Fps);
+                _stringBuilder.Length = 0;
+                _stringBuilder.Append("FPS: ");
+                _stringBuilder.AppendNumber(Fps);
 
-                foreach (CasaEngineCommon.Design.IObserver<FpsCounter> ob in m_ListObserver)
+                foreach (CasaEngineCommon.Design.IObserver<FpsCounter> ob in _listObserver)
                 {
                     ob.OnNotify(this);
                 }
 
-                stopwatch.Reset();
-                stopwatch.Start();
+                _stopwatch.Reset();
+                _stopwatch.Start();
             }
 
-            sampleFrames++;
+            _sampleFrames++;
             TotalNumberOfFrames++;
         }
 
@@ -208,13 +208,13 @@ namespace CasaEngine.Debugger
             rc = layout.Place(rc, 0.01f, 0.01f, Alignment.TopLeft);
 
             // Place FPS string in border area.
-            size = font.MeasureString(stringBuilder);
+            size = font.MeasureString(_stringBuilder);
             layout.ClientArea = rc;
             Vector2 pos = layout.Place(size, 0, 0.1f, Alignment.Center);
 
             // Draw
-            m_Renderer2DComponent.AddSprite2D(debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, m_ColorBackground, 0.001f, SpriteEffects.None);
-            m_Renderer2DComponent.AddText2D(Engine.Instance.DefaultSpriteFont, stringBuilder.ToString(),
+            _renderer2DComponent.AddSprite2D(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
+            _renderer2DComponent.AddText2D(Engine.Instance.DefaultSpriteFont, _stringBuilder.ToString(),
                 pos, 0.0f, Vector2.One, Color.White, 0f);
 
             base.Draw(gameTime);
@@ -222,20 +222,20 @@ namespace CasaEngine.Debugger
 
 
 
-        public void RegisterObserver(CasaEngineCommon.Design.IObserver<FpsCounter> arg_)
+        public void RegisterObserver(CasaEngineCommon.Design.IObserver<FpsCounter> arg)
         {
-            m_ListObserver.Add(arg_);
+            _listObserver.Add(arg);
         }
 
-        public void UnRegisterObserver(CasaEngineCommon.Design.IObserver<FpsCounter> arg_)
+        public void UnRegisterObserver(CasaEngineCommon.Design.IObserver<FpsCounter> arg)
         {
-            m_ListObserver.Remove(arg_);
-            arg_.OnUnregister(this);
+            _listObserver.Remove(arg);
+            arg.OnUnregister(this);
         }
 
         public void NotifyObservers()
         {
-            foreach (CasaEngineCommon.Design.IObserver<FpsCounter> ob in m_ListObserver)
+            foreach (CasaEngineCommon.Design.IObserver<FpsCounter> ob in _listObserver)
             {
                 ob.OnNotify(this);
             }

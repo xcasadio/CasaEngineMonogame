@@ -9,7 +9,7 @@ namespace CasaEngine.FrontEnd.Screen
 #endif
     class ScreenManager
     {
-        readonly List<UIScreen> m_Screens = new List<UIScreen>();
+        readonly List<UiScreen> _screens = new List<UiScreen>();
 
 
 
@@ -18,17 +18,17 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        public void Load(XmlElement el_, SaveOption opt_)
+        public void Load(XmlElement el, SaveOption opt)
         {
-            int version = int.Parse(el_.Attributes["version"].Value);
+            int version = int.Parse(el.Attributes["version"].Value);
 
-            XmlNode nodeList = el_.SelectSingleNode("ScreenList");
+            XmlNode nodeList = el.SelectSingleNode("ScreenList");
 
-            m_Screens.Clear();
+            _screens.Clear();
 
             foreach (XmlNode node in nodeList)
             {
-                m_Screens.Add(new UIScreen((XmlElement)node, opt_));
+                _screens.Add(new UiScreen((XmlElement)node, opt));
             }
         }
 

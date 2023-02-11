@@ -72,20 +72,20 @@ namespace XNAFinalEngine.Assets
 
 
 
-        internal override void OnDeviceReset(GraphicsDevice device_)
+        internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (Resource == null)
-                Resource = Engine.Instance.AssetContentManager.Load<XDocument>(Filename, device_);
+                Resource = Engine.Instance.AssetContentManager.Load<XDocument>(Filename, device);
         } // RecreateResource
 
 
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
 
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
 
         }

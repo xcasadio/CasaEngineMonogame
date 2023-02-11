@@ -3,24 +3,24 @@
     public abstract class BehaviourTreeNode<T>
         : BaseEntity
     {
-        readonly string m_Name;
-        readonly BehaviourTreeNode<T> m_Parent = null;
+        readonly string _name;
+        readonly BehaviourTreeNode<T> _parent = null;
 
-        readonly List<BehaviourTreeNode<T>> m_Children = new List<BehaviourTreeNode<T>>();
+        readonly List<BehaviourTreeNode<T>> _children = new List<BehaviourTreeNode<T>>();
         //condition script
 
 
 
-        public string Name => m_Name;
+        public string Name => _name;
 
-        public BehaviourTreeNode<T> Parent => m_Parent;
+        public BehaviourTreeNode<T> Parent => _parent;
 
-        public List<BehaviourTreeNode<T>> Children => m_Children;
+        public List<BehaviourTreeNode<T>> Children => _children;
 
 
-        public BehaviourTreeNode(string name_)
+        public BehaviourTreeNode(string name)
         {
-            m_Name = name_;
+            _name = name;
         }
 
 

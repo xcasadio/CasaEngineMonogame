@@ -6,65 +6,65 @@ using CasaEngineCommon.Design;
 namespace CasaEngine.Design.Parser
 {
     class CalculatorTokenKeyword
-        : ICalculatorToken
+        : CalculatorToken
     {
 
-        string m_Keyword;
+        string _keyword;
 
 
 
 
 
-        public CalculatorTokenKeyword(Calculator calculator_, string keyword_)
-            : base(calculator_)
+        public CalculatorTokenKeyword(Calculator calculator, string keyword)
+            : base(calculator)
         {
-            m_Keyword = keyword_;
+            _keyword = keyword;
         }
 
-        public CalculatorTokenKeyword(Calculator calculator_, XmlElement el_, SaveOption option_)
-            : base(calculator_)
+        public CalculatorTokenKeyword(Calculator calculator, XmlElement el, SaveOption option)
+            : base(calculator)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
-        public CalculatorTokenKeyword(Calculator calculator_, BinaryReader br_, SaveOption option_)
-            : base(calculator_)
+        public CalculatorTokenKeyword(Calculator calculator, BinaryReader br, SaveOption option)
+            : base(calculator)
         {
-            Load(br_, option_);
+            Load(br, option);
         }
 
 
 
         public override float Evaluate()
         {
-            return this.Calculator.Parser.EvaluateKeyword(m_Keyword);
+            return this.Calculator.Parser.EvaluateKeyword(_keyword);
         }
 
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            XmlElement node = (XmlElement)el_.OwnerDocument.CreateElement("Node");
-            el_.AppendChild(node);
-            el_.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Keyword).ToString());
-            XmlElement valueNode = (XmlElement)el_.OwnerDocument.CreateElementWithText("Keyword", m_Keyword);
+            XmlElement node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            el.AppendChild(node);
+            el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Keyword).ToString());
+            XmlElement valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Keyword", _keyword);
             node.AppendChild(valueNode);
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            m_Keyword = el_.SelectSingleNode("Keyword").InnerText;
+            _keyword = el.SelectSingleNode("Keyword").InnerText;
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write((int)CalculatorTokenType.Keyword);
-            bw_.Write(m_Keyword);
+            bw.Write((int)CalculatorTokenType.Keyword);
+            bw.Write(_keyword);
         }
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
-            br_.ReadInt32();
-            m_Keyword = br_.ReadString();
+            br.ReadInt32();
+            _keyword = br.ReadString();
         }
 
 

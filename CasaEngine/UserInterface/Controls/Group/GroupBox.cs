@@ -26,20 +26,20 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private GroupBoxType type = GroupBoxType.Normal;
+        private GroupBoxType _type = GroupBoxType.Normal;
 
 
 
         public virtual GroupBoxType Type
         {
-            get => type;
-            set { type = value; Invalidate(); }
+            get => _type;
+            set { _type = value; Invalidate(); }
         } // Type
 
 
 
-        public GroupBox(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public GroupBox(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CheckLayer(SkinInformation, "Control");
             CheckLayer(SkinInformation, "Flat");
@@ -55,7 +55,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer layer = type == GroupBoxType.Normal ? SkinInformation.Layers["Control"] : SkinInformation.Layers["Flat"];
+            SkinLayer layer = _type == GroupBoxType.Normal ? SkinInformation.Layers["Control"] : SkinInformation.Layers["Flat"];
             Font font = layer.Text.Font.Font;
             Point offset = new Point(layer.Text.OffsetX, layer.Text.OffsetY);
             Vector2 size = font.MeasureString(Text);

@@ -21,23 +21,23 @@ namespace XNAFinalEngine.UserInterface
     internal class Renderer
     {
 
-        private SpriteBatch spriteBatch;
+        private SpriteBatch _spriteBatch;
 
-        private RasterizerState rasterizerState;
+        private RasterizerState _rasterizerState;
 
 
 
-        internal void Initialize(GraphicsDevice graphicsDevice_)
+        internal void Initialize(GraphicsDevice graphicsDevice)
         {
             // Handle the dipose device sittuation.
-            if (spriteBatch != null && spriteBatch.GraphicsDevice.IsDisposed)
+            if (_spriteBatch != null && _spriteBatch.GraphicsDevice.IsDisposed)
             {
-                spriteBatch.Dispose();
+                _spriteBatch.Dispose();
             }
-            spriteBatch = new SpriteBatch(graphicsDevice_);
+            _spriteBatch = new SpriteBatch(graphicsDevice);
 
             // The scissor test is very important, so a custom rasterizer state is created.
-            rasterizerState = new RasterizerState
+            _rasterizerState = new RasterizerState
             {
                 CullMode = RasterizerState.CullNone.CullMode,
                 DepthBias = RasterizerState.CullNone.DepthBias,
@@ -52,18 +52,18 @@ namespace XNAFinalEngine.UserInterface
 
         public void Begin()
         {
-            spriteBatch.Begin(SpriteSortMode.Immediate,
+            _spriteBatch.Begin(SpriteSortMode.Immediate,
                               BlendState.NonPremultiplied, // AlphaBlend
                               SamplerState.LinearClamp,
                               DepthStencilState.None,
-                              rasterizerState);
+                              _rasterizerState);
         } // Begin
 
 
 
         public void End()
         {
-            spriteBatch.End();
+            _spriteBatch.End();
         } // End
 
 
@@ -72,7 +72,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (destination.Width > 0 && destination.Height > 0)
             {
-                spriteBatch.Draw(texture, destination, null, color, 0.0f, Vector2.Zero, SpriteEffects.None, 0);
+                _spriteBatch.Draw(texture, destination, null, color, 0.0f, Vector2.Zero, SpriteEffects.None, 0);
             }
         } // Draw
 
@@ -80,20 +80,20 @@ namespace XNAFinalEngine.UserInterface
         {
             if (source.Width > 0 && source.Height > 0 && destination.Width > 0 && destination.Height > 0)
             {
-                spriteBatch.Draw(texture, destination, source, color, 0.0f, Vector2.Zero, SpriteEffects.None, 0);
+                _spriteBatch.Draw(texture, destination, source, color, 0.0f, Vector2.Zero, SpriteEffects.None, 0);
             }
         } // Draw
 
         public void Draw(Texture2D texture, int left, int top, Color color)
         {
-            spriteBatch.Draw(texture, new Vector2(left, top), null, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0);
+            _spriteBatch.Draw(texture, new Vector2(left, top), null, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0);
         } // Draw
 
         public void Draw(Texture2D texture, int left, int top, Rectangle source, Color color)
         {
             if (source.Width > 0 && source.Height > 0)
             {
-                spriteBatch.Draw(texture, new Vector2(left, top), source, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0);
+                _spriteBatch.Draw(texture, new Vector2(left, top), source, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0);
             }
         } // Draw
 
@@ -102,7 +102,7 @@ namespace XNAFinalEngine.UserInterface
         public void DrawString(Font font, string text, int left, int top, Color color)
         {
             //spriteBatch.DrawString(font, text, new Vector2(left, top), color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0);
-            BmFontRenderer.DrawString(spriteBatch, font, text, new Vector2(left, top), color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0);
+            BmFontRenderer.DrawString(_spriteBatch, font, text, new Vector2(left, top), color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0);
         } // DrawString
 
         public void DrawString(Font font, string text, Rectangle rect, Color color, Alignment alignment)

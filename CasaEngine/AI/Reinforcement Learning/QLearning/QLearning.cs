@@ -3,56 +3,56 @@
     public class QLearning
     {
 
-        protected float m_Gamma = 0.8f;
-        protected float m_Alpha = 0.9f;
-        protected float m_Epsilon = 0.8f;
+        protected float Gamma = 0.8f;
+        protected float Alpha = 0.9f;
+        protected float Epsilon = 0.8f;
 
-        public string m_State = "Idle";
-        public string m_Action = "Idling";
+        public string State = "Idle";
+        public string Action = "Idling";
 
-        /*protected AgentInitInfo m_Info; //< initialization info
-		protected Approximator m_Approximator; //< function approximator we are using
-		protected Sensors m_PrevState;                  //< previous state
-		protected Actions m_PrevAction;                 //< previous action taken
-		protected Actions m_newAction;           //< new action*/
+        /*protected AgentInitInfo _Info; //< initialization info
+		protected Approximator _Approximator; //< function approximator we are using
+		protected Sensors _PrevState;                  //< previous state
+		protected Actions _PrevAction;                 //< previous action taken
+		protected Actions _newAction;           //< new action*/
 
-        readonly QPolicy m_Policy = new QPolicy();
+        readonly QPolicy _policy = new QPolicy();
 
-        List<KeyValuePair<string, string>> m_PastActions = new List<KeyValuePair<string, string>>();
-        readonly float[] m_PastReward = new float[50];
+        List<KeyValuePair<string, string>> _pastActions = new List<KeyValuePair<string, string>>();
+        readonly float[] _pastReward = new float[50];
 
 
 
         public float Epsilon
         {
-            get => m_Epsilon;
-            set => m_Epsilon = value;
+            get => _Epsilon;
+            set => _Epsilon = value;
         }
 
         public float Gamma
         {
-            get => m_Gamma;
-            set => m_Gamma = value;
+            get => _Gamma;
+            set => _Gamma = value;
         }
 
         public float Alpha
         {
-            get => m_Alpha;
-            set => m_Alpha = value;
+            get => _Alpha;
+            set => _Alpha = value;
         }
 
-        public QPolicy Policy => m_Policy;
+        public QPolicy Policy => _policy;
 
-        public string CurrentState => m_State;
+        public string CurrentState => State;
 
-        public string CurrentAction => m_Action;
+        public string CurrentAction => Action;
 
 
         public QLearning()
         {
-            for (int i = 0; i < m_PastReward.Length; i++)
+            for (int i = 0; i < _pastReward.Length; i++)
             {
-                m_PastReward[i] = 0.0f;
+                _pastReward[i] = 0.0f;
             }
         }
 
@@ -61,7 +61,7 @@
         // predicts reinforcement for current round
         //protected abstract double predict(Sensors new_state);
 
-        public void Learn(IQAgent agent_, string currentState_)
+        public void Learn(IQAgent agent, string currentState)
         {
             float reward = 1.0f;
             float newQvalue = 0.0f, res;
@@ -70,17 +70,17 @@
             string maxAction = string.Empty;
             string action = string.Empty;
 
-            //float newQvalue = (1.0f - m_Alpha) * m_Policy.GetQValues(currentState_, action_) + m_Alpha * (reward * m_Gamma * ValueState(newState_, action_));
-            //m_Policy.SetQValue(currentState_, action_, newQvalue);
+            //float newQvalue = (1.0f - _Alpha) * _Policy.GetQValues(currentState_, action_) + _Alpha * (reward * _Gamma * ValueState(newState_, action_));
+            //_Policy.SetQValue(currentState_, action_, newQvalue);
 
-            for (int i = 0; i < m_Policy.GetNumberOfActions(agent_, currentState_); i++)
+            for (int i = 0; i < _policy.GetNumberOfActions(agent, currentState); i++)
             {
-                newState = m_Policy.GetNewStateFromAction(agent_, currentState_, i);
-                action = m_Policy.GetActionNumber(agent_, currentState_, i);
+                newState = _policy.GetNewStateFromAction(agent, currentState, i);
+                action = _policy.GetActionNumber(agent, currentState, i);
 
-                reward = agent_.GetReward(action);
+                reward = agent.GetReward(action);
 
-                res = (1.0f - m_Alpha) * m_Policy.GetQValues(currentState_, i) + (reward + m_Gamma * MaxValueState(agent_, /*newState*/currentState_));
+                res = (1.0f - _Alpha) * _policy.GetQValues(currentState, i) + (reward + _Gamma * MaxValueState(agent, /*newState*/currentState));
 
                 if (res > newQvalue)
                 {
@@ -91,30 +91,30 @@
             }
 
             //on change les reward ou probabilité ??
-            m_Policy.SetQValue(currentState_, maxAction, newQvalue);
+            _policy.SetQValue(currentState, maxAction, newQvalue);
 
-            m_State = maxNewState;
-            m_Action = maxAction;
+            State = maxNewState;
+            Action = maxAction;
         }
 
-        float ValueState(string state_, string action_)
+        float ValueState(string state, string action)
         {
-            return m_Policy.GetQValues(state_, action_);
+            return _policy.GetQValues(state, action);
         }
 
-        float ValueState(string state_, int numAction_)
+        float ValueState(string state, int numAction)
         {
-            return m_Policy.GetQValues(state_, numAction_);
+            return _policy.GetQValues(state, numAction);
         }
 
-        float MaxValueState(IQAgent agent_, string state_)
+        float MaxValueState(IQAgent agent, string state)
         {
             float res = 0.0f;
             float r;
 
-            for (int i = 0; i < m_Policy.GetNumberOfActions(agent_, state_); i++)
+            for (int i = 0; i < _policy.GetNumberOfActions(agent, state); i++)
             {
-                r = ValueState(state_, i);
+                r = ValueState(state, i);
                 if (r > res)
                 {
                     res = r;

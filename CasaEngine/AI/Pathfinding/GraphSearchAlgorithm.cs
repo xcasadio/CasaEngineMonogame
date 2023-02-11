@@ -4,35 +4,35 @@ using CasaEngine.AI.Graphs;
 
 namespace CasaEngine.AI.Pathfinding
 {
-    public abstract class GraphSearchAlgorithm<T, K> : IGraphSearchAlgorithm<K>
+    public abstract class GraphSearchAlgorithm<T, TK> : IGraphSearchAlgorithm<TK>
         where T : Node
-        where K : Edge
+        where TK : Edge
     {
 
-        protected internal Graph<T, K> graph;
+        protected internal Graph<T, TK> Graph;
 
-        protected internal int source;
+        protected internal int Source;
 
-        protected internal int target;
+        protected internal int Target;
 
-        protected internal SearchState found;
+        protected internal SearchState Found;
 
 
 
-        protected GraphSearchAlgorithm(Graph<T, K> graph)
+        protected GraphSearchAlgorithm(Graph<T, TK> graph)
         {
             String message = String.Empty;
 
             if (ValidateGraph(graph, ref message) == false)
-                throw new AIException("graph", this.GetType().ToString(), message);
+                throw new AiException("graph", this.GetType().ToString(), message);
 
-            this.graph = graph;
-            this.found = SearchState.NotCompleted;
+            this.Graph = graph;
+            this.Found = SearchState.NotCompleted;
         }
 
 
 
-        public static bool ValidateGraph(Graph<T, K> graph, ref string message)
+        public static bool ValidateGraph(Graph<T, TK> graph, ref string message)
         {
             if (graph == null)
             {
@@ -61,7 +61,7 @@ namespace CasaEngine.AI.Pathfinding
             get;
         }
 
-        public abstract List<K> PathOfEdges
+        public abstract List<TK> PathOfEdges
         {
             get;
         }
@@ -73,14 +73,14 @@ namespace CasaEngine.AI.Pathfinding
             String message = String.Empty;
 
             if (ValidateNode(source, ref message) == false)
-                throw new AIException("source", this.GetType().ToString(), message);
+                throw new AiException("source", this.GetType().ToString(), message);
 
             if (ValidateNode(target, ref message) == false)
-                throw new AIException("target", this.GetType().ToString(), message);
+                throw new AiException("target", this.GetType().ToString(), message);
 
-            this.source = source;
-            this.target = target;
-            this.found = SearchState.NotCompleted;
+            this.Source = source;
+            this.Target = target;
+            this.Found = SearchState.NotCompleted;
         }
 
         public abstract SearchState Search();

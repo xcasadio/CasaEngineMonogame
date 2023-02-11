@@ -8,19 +8,19 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
     public abstract class SelectionAlgorithm<T>
     {
 
-        protected internal int numberParents;
+        protected internal int NumberParents;
 
-        protected internal Random generator;
+        protected internal Random Generator;
 
-        protected internal EvolutionObjective objective;
+        protected internal EvolutionObjective Objective;
 
-        protected internal CrossoverMethod<T> crossover;
+        protected internal CrossoverMethod<T> Crossover;
 
-        protected internal ScalingMethod<T> scaling;
+        protected internal ScalingMethod<T> Scaling;
 
-        protected internal Population<T> population;
+        protected internal Population<T> Population;
 
-        protected internal ScalingMapping<T> scaledPopulation;
+        protected internal ScalingMapping<T> ScaledPopulation;
 
 
 
@@ -29,19 +29,19 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             String message = String.Empty;
 
             if (ValidateNumberParents(numberParents, ref message) == false)
-                throw new AIException("numberParents", this.GetType().ToString(), message);
+                throw new AiException("numberParents", this.GetType().ToString(), message);
 
             if (ValidateGenerator(generator, ref message) == false)
-                throw new AIException("generator", this.GetType().ToString(), message);
+                throw new AiException("generator", this.GetType().ToString(), message);
 
             if (ValidateCrossover(crossover, ref message) == false)
-                throw new AIException("crossover", this.GetType().ToString(), message);
+                throw new AiException("crossover", this.GetType().ToString(), message);
 
-            this.numberParents = numberParents;
-            this.generator = generator;
-            this.objective = objective;
-            this.crossover = crossover;
-            this.scaling = scaling;
+            this.NumberParents = numberParents;
+            this.Generator = generator;
+            this.Objective = objective;
+            this.Crossover = crossover;
+            this.Scaling = scaling;
         }
 
 
@@ -52,19 +52,19 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             List<Chromosome<T>> selected;
 
             //Save the parents
-            this.population = population;
+            this.Population = population;
 
             offsprings = population.FastEmptyInstance();
 
             //Test if scaling is used
-            if (scaling != null)
-                scaledPopulation = scaling(population);
+            if (Scaling != null)
+                ScaledPopulation = Scaling(population);
 
             //Generate the offsprings
             while (offsprings.Genome.Count < offspringPopulationSize)
             {
                 selected = Select();
-                offsprings.Genome.AddRange(crossover(selected));
+                offsprings.Genome.AddRange(Crossover(selected));
             }
 
             //Eliminate the excess offsprings

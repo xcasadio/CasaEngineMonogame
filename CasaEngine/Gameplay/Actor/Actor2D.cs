@@ -9,15 +9,15 @@ namespace CasaEngine.Gameplay.Actor
          : BaseObject, CasaEngineCommon.Design.IUpdateable
     {
 
-        //protected Body m_Body;
-        private Vector2 m_Position = new Vector2();
+        //protected Body _Body;
+        private Vector2 _position = new Vector2();
 
 
 
         public Vector2 Position
         {
-            get => m_Position;
-            set => m_Position = value;
+            get => _position;
+            set => _position = value;
         }
 
         public bool Delete
@@ -34,8 +34,8 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        protected Actor2D(XmlElement el_, SaveOption opt_)
-            : base(el_, opt_)
+        protected Actor2D(XmlElement el, SaveOption opt)
+            : base(el, opt)
         {
 
         }
@@ -48,7 +48,7 @@ namespace CasaEngine.Gameplay.Actor
             throw new NotImplementedException();
         }
 
-        public virtual void Update(float elapsedTime_)
+        public virtual void Update(float elapsedTime)
         {
 
         }

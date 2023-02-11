@@ -12,28 +12,28 @@ namespace CasaEngine.Gameplay.Actor
         : AnimatedSpriteActor, IAttackable
     {
 
-        private Body m_Body;
-        private List<Shape2DObject> m_Shape2DObjectList = new List<Shape2DObject>();
-        private TeamInfo m_TeamInfo;
+        private Body _body;
+        private List<Shape2DObject> _shape2DObjectList = new List<Shape2DObject>();
+        private TeamInfo _teamInfo;
 
 #if !FINAL
-        private ShapeRendererComponent m_ShapeRendererComponent;
+        private ShapeRendererComponent _shapeRendererComponent;
 #endif
 
         //life?
         //distance Max
-        Vector3 m_Start;
+        Vector3 _start;
 
 
 
-        public Shape2DObject[] Shape2DObjectList => m_Shape2DObjectList.ToArray();
+        public Shape2DObject[] Shape2DObjectList => _shape2DObjectList.ToArray();
 
-        public new Vector2 Position => m_Body.Position;
+        public new Vector2 Position => _body.Position;
 
         public TeamInfo TeamInfo
         {
-            get => m_TeamInfo;
-            set => m_TeamInfo = value;
+            get => _teamInfo;
+            set => _teamInfo = value;
         }
 
         public Actor2D Owner
@@ -55,9 +55,9 @@ namespace CasaEngine.Gameplay.Actor
         {
         }
 
-        public ProjectilActor(ProjectilActor src_)
+        public ProjectilActor(ProjectilActor src)
         {
-            CopyFrom(src_);
+            CopyFrom(src);
         }
 
 
@@ -67,35 +67,35 @@ namespace CasaEngine.Gameplay.Actor
             return new ProjectilActor(this);
         }
 
-        protected override void CopyFrom(BaseObject ob_)
+        protected override void CopyFrom(BaseObject ob)
         {
-            base.CopyFrom(ob_);
+            base.CopyFrom(ob);
 
-            ProjectilActor src = ob_ as ProjectilActor;
+            ProjectilActor src = ob as ProjectilActor;
 
-            //m_Body
-            //m_Shape2DObjectList
-            m_TeamInfo = src.TeamInfo;
-            m_ShapeRendererComponent = src.m_ShapeRendererComponent;
-            m_Start = src.m_Start;
+            //_Body
+            //_Shape2DObjectList
+            _teamInfo = src.TeamInfo;
+            _shapeRendererComponent = src._shapeRendererComponent;
+            _start = src._start;
             Owner = src.Owner;
             Velocity = src.Velocity;
         }
 
-        public virtual void Initialize(FarseerPhysics.Dynamics.World world_)
+        public virtual void Initialize(FarseerPhysics.Dynamics.World world)
         {
             base.Initialize();
 
-            m_Body = new Body(world_);
-            m_Body.IsBullet = true;
+            _body = new Body(world);
+            _body.IsBullet = true;
 
-            m_Body.Restitution = 0.0f;
-            m_Body.SleepingAllowed = false;
-            m_Body.IgnoreGravity = true;
-            m_Body.Friction = 0.0f;
-            m_Body.IsStatic = false;
-            m_Body.FixedRotation = true;
-            m_Body.UserData = world_;
+            _body.Restitution = 0.0f;
+            _body.SleepingAllowed = false;
+            _body.IgnoreGravity = true;
+            _body.Friction = 0.0f;
+            _body.IsStatic = false;
+            _body.FixedRotation = true;
+            _body.UserData = world;
         }
 
         public void DoANewAttack()
@@ -103,7 +103,7 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        public bool CanAttackHim(IAttackable other_)
+        public bool CanAttackHim(IAttackable other)
         {
             return true;
         }
@@ -117,7 +117,7 @@ namespace CasaEngine.Gameplay.Actor
                     Remove = true;
                     break;
 
-                case (int)MessageType.IHitSomeone:
+                case (int)MessageType.HitSomeone:
                     HitInfo hitInfo = (HitInfo)message.ExtraInfo;
                     Remove = true;
                     break;
@@ -126,16 +126,16 @@ namespace CasaEngine.Gameplay.Actor
             return true;
         }
 
-        public override void Update(float elapsedTime_)
+        public override void Update(float elapsedTime)
         {
-            base.Update(elapsedTime_);
-            base.Position = m_Body.Position;
-            m_Body.LinearVelocity = Velocity;
+            base.Update(elapsedTime);
+            base.Position = _body.Position;
+            _body.LinearVelocity = Velocity;
         }
 
-        public override void Draw(float elapsedTime_)
+        public override void Draw(float elapsedTime)
         {
-            base.Draw(elapsedTime_);
+            base.Draw(elapsedTime);
 
             if (ShapeRendererComponent.DisplayCollisions == true)
             {
@@ -144,16 +144,16 @@ namespace CasaEngine.Gameplay.Actor
                 {
                     foreach (Shape2DObject g in geometry2DObjectList)
                     {
-                        m_ShapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
+                        _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
                     }
                 }
             }
         }
 
-        public void SetTransform(Vector2 position, Vector2 direction_)
+        public void SetTransform(Vector2 position, Vector2 direction)
         {
-            float rot = Vector2Helper.GetAngleBetweenVectors(Vector2.UnitX, direction_);
-            m_Body.SetTransform(ref position, rot);
+            float rot = Vector2Helper.GetAngleBetweenVectors(Vector2.UnitX, direction);
+            _body.SetTransform(ref position, rot);
         }
 
     }

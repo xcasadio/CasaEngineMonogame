@@ -3,7 +3,7 @@
     public class TeamInfo
     {
 
-        public Color m_Color;
+        public Color Color;
         public int Numero;
         public bool AllowFriendlyDamage = false;
 
@@ -13,9 +13,9 @@
 
 
 
-        public bool CanAttack(TeamInfo teamInfo_)
+        public bool CanAttack(TeamInfo teamInfo)
         {
-            return !(teamInfo_.Numero == Numero && teamInfo_.AllowFriendlyDamage == false);
+            return !(teamInfo.Numero == Numero && teamInfo.AllowFriendlyDamage == false);
         }
 
     }

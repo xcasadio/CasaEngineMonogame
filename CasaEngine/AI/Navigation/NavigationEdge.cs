@@ -8,11 +8,11 @@ namespace CasaEngine.AI.Navigation
     public class NavigationEdge
     {
 
-        protected internal Vector3 start;
+        protected internal Vector3 Start;
 
-        protected internal Vector3 end;
+        protected internal Vector3 End;
 
-        protected internal EdgeInformation information;
+        protected internal EdgeInformation Information;
 
 
 

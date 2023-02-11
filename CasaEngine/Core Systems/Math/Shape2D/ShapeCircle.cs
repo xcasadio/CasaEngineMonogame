@@ -15,7 +15,7 @@ namespace CasaEngine.Math.Shape2D
         : Shape2DObject
     {
 
-        int m_Radius;
+        int _radius;
 
 
 
@@ -24,10 +24,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public int Radius
         {
-            get { return m_Radius; }
+            get { return _radius; }
             set
             {
-                m_Radius = value;
+                _radius = value;
 #if EDITOR
                 NotifyPropertyChanged("Radius");
 #endif
@@ -38,16 +38,16 @@ namespace CasaEngine.Math.Shape2D
 
         public ShapeCircle() { }
 
-        public ShapeCircle(ShapeCircle o_)
-            : base(o_)
+        public ShapeCircle(ShapeCircle o)
+            : base(o)
         { }
 
 
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            base.Load(el_, option_);
-            m_Radius = int.Parse(el_.Attributes["radius"].Value);
+            base.Load(el, option);
+            _radius = int.Parse(el.Attributes["radius"].Value);
         }
 
         public override Shape2DObject Clone()
@@ -55,15 +55,15 @@ namespace CasaEngine.Math.Shape2D
             return new ShapeCircle(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob_)
+        public override void CopyFrom(Shape2DObject ob)
         {
-            if (ob_ is ShapeCircle == false)
+            if (ob is ShapeCircle == false)
             {
                 throw new ArgumentException("ShapeCircle.CopyFrom() : Shape2DObject is not a ShapeCircle");
             }
 
-            base.CopyFrom(ob_);
-            m_Radius = ((ShapeCircle)ob_).m_Radius;
+            base.CopyFrom(ob);
+            _radius = ((ShapeCircle)ob)._radius;
         }
 
 

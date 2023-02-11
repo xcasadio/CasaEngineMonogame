@@ -6,10 +6,10 @@ namespace CasaEngine.Physics2D
     public sealed class Sprite2DPhysicsManager
     {
 
-        private static Sprite2DPhysicsManager m_Instance;
-        private HashSet<Sprite2D> m_PhysicToAddInWorld = new HashSet<Sprite2D>();
+        private static Sprite2DPhysicsManager _instance;
+        private HashSet<Sprite2D> _physicToAddInWorld = new HashSet<Sprite2D>();
 
-        private Vector2 m_Vector2Tmp = new Vector2();
+        private Vector2 _vector2Tmp = new Vector2();
 
 
 
@@ -17,12 +17,12 @@ namespace CasaEngine.Physics2D
         {
             get
             {
-                if (m_Instance == null)
+                if (_instance == null)
                 {
-                    m_Instance = new Sprite2DPhysicsManager();
+                    _instance = new Sprite2DPhysicsManager();
                 }
 
-                return m_Instance;
+                return _instance;
             }
         }
 
@@ -59,9 +59,9 @@ namespace CasaEngine.Physics2D
                     throw new NotImplementedException();
             }
 
-            m_Vector2Tmp.X = g_.Location.X;
-            m_Vector2Tmp.Y = g_.Location.Y;
-            body_.Position = m_Vector2Tmp;
+            _Vector2Tmp.X = g_.Location.X;
+            _Vector2Tmp.Y = g_.Location.Y;
+            body_.Position = _Vector2Tmp;
             body_.UserData = g_;
             item.AttachToBody(body_, shape);
 
@@ -77,17 +77,17 @@ namespace CasaEngine.Physics2D
 
         /*public void AddSprite2DPhysicsToWorldByID(uint id_)
         {
-            m_PhysicToAddInWorld.Add(GameInfo.Instance.Asset2DManager.GetSprite2DByID(id_));
+            _PhysicToAddInWorld.Add(GameInfo.Instance.Asset2DManager.GetSprite2DByID(id_));
         }
 
         public void AddPhysicsToWorld(FarseerPhysics.Dynamics.World world_)
         {
-            foreach (Sprite2D sprite2D in m_PhysicToAddInWorld)
+            foreach (Sprite2D sprite2D in _PhysicToAddInWorld)
             {
                 AddSprite2DPhysicsToWorld(world_, sprite2D);
             }
 
-            m_PhysicToAddInWorld.Clear();
+            _PhysicToAddInWorld.Clear();
         }
 
         private void AddSprite2DPhysicsToWorld(FarseerPhysics.Dynamics.World world_, Sprite2D sprite2D_)
@@ -103,7 +103,7 @@ namespace CasaEngine.Physics2D
 
         private PoolItem<BodyDef> CreateBodyDefFromShape2DObject(Shape2DObject g_)
         {
-            PoolItem<BodyDef> p = m_ResourcePool_BodyDef.GetItem();
+            PoolItem<BodyDef> p = _ResourcePool_BodyDef.GetItem();
             BodyDef bd = p.Resource;
 
             SetBodyDefFromShape2DObject(ref bd, g_);

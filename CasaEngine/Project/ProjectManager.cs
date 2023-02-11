@@ -79,15 +79,15 @@ namespace CasaEngine.Project
         }
 
 
-        public void Load(string fileName_)
+        public void Load(string fileName)
         {
 #if EDITOR
             Clear();
-            ProjectFileOpened = fileName_;
+            ProjectFileOpened = fileName;
 #endif
 
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(fileName_);
+            xmlDoc.Load(fileName);
 
             XmlElement projectNode = (XmlElement)xmlDoc.SelectSingleNode(NodeRootName);
 

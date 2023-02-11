@@ -18,10 +18,10 @@ namespace XNAFinalEngine.UserInterface
 
 
         // It stores the previous modal when this modal is activated.
-        private ModalContainer lastModal;
+        private ModalContainer _lastModal;
 
         // Default value.
-        private ModalResult modalResult = ModalResult.None;
+        private ModalResult _modalResult = ModalResult.None;
 
 
 
@@ -40,8 +40,8 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual ModalResult ModalResult
         {
-            get => modalResult;
-            set => modalResult = value;
+            get => _modalResult;
+            set => _modalResult = value;
         } // ModalResult
 
 
@@ -51,8 +51,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        protected ModalContainer(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        protected ModalContainer(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
 
         }
@@ -74,7 +74,7 @@ namespace XNAFinalEngine.UserInterface
             // You can't activate the modal mode twice at the same time.
             if (UserInterfaceManager.ModalWindow == this)
                 return;
-            lastModal = UserInterfaceManager.ModalWindow;
+            _lastModal = UserInterfaceManager.ModalWindow;
             UserInterfaceManager.ModalWindow = this;
             // This allow to close the modal window with the escape key.
             UserInterfaceManager.InputSystem.KeyDown += InputKeyDown;
@@ -93,9 +93,9 @@ namespace XNAFinalEngine.UserInterface
                 // Remove the event link to prevent garbage.
                 UserInterfaceManager.InputSystem.KeyDown -= InputKeyDown;
                 // Restore previous modal window.
-                UserInterfaceManager.ModalWindow = lastModal;
-                if (lastModal != null)
-                    lastModal.Focused = true;
+                UserInterfaceManager.ModalWindow = _lastModal;
+                if (_lastModal != null)
+                    _lastModal.Focused = true;
                 else
                     UserInterfaceManager.FocusedControl = null;
                 Hide();

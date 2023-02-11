@@ -18,51 +18,51 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Texture.
-        private CasaEngine.Asset.Texture texture;
+        private CasaEngine.Asset.Texture _texture;
 
         // Size Mode (Normal, Streched, Centered and Auto).
         // Auto mode changes the control's width and height to the texture's dimentions.
-        private SizeMode sizeMode = SizeMode.Normal;
+        private SizeMode _sizeMode = SizeMode.Normal;
 
         // Allows to cut the texture.
-        private Rectangle sourceRectangle = Rectangle.Empty;
+        private Rectangle _sourceRectangle = Rectangle.Empty;
 
         // Color.
-        private Color color = Color.White;
+        private Color _color = Color.White;
 
         // Offset.
-        private Point offset = Point.Zero;
+        private Point _offset = Point.Zero;
 
 
 
         public Color Color
         {
-            get => color;
-            set => color = value;
+            get => _color;
+            set => _color = value;
         }
 
         public Point Offset
         {
-            get => offset;
-            set => offset = value;
+            get => _offset;
+            set => _offset = value;
         }
 
         public CasaEngine.Asset.Texture Texture
         {
-            get => texture;
+            get => _texture;
             set
             {
-                texture = value;
-                sourceRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
+                _texture = value;
+                _sourceRectangle = new Rectangle(0, 0, _texture.Width, _texture.Height);
             }
         } // Texture
 
         public Rectangle SourceRectangle
         {
-            get => sourceRectangle;
+            get => _sourceRectangle;
             set
             {
-                if (texture != null)
+                if (_texture != null)
                 {
                     int left = value.Left;
                     int top = value.Top;
@@ -73,35 +73,35 @@ namespace XNAFinalEngine.UserInterface
                         left = 0;
                     if (top < 0)
                         top = 0;
-                    if (width > texture.Width)
-                        width = texture.Width;
-                    if (height > texture.Height)
-                        height = texture.Height;
-                    if (left + width > texture.Width)
-                        width = (texture.Width - left);
-                    if (top + height > texture.Height)
-                        height = (texture.Height - top);
+                    if (width > _texture.Width)
+                        width = _texture.Width;
+                    if (height > _texture.Height)
+                        height = _texture.Height;
+                    if (left + width > _texture.Width)
+                        width = (_texture.Width - left);
+                    if (top + height > _texture.Height)
+                        height = (_texture.Height - top);
 
-                    sourceRectangle = new Rectangle(left, top, width, height);
+                    _sourceRectangle = new Rectangle(left, top, width, height);
                 }
                 else
                 {
-                    sourceRectangle = Rectangle.Empty;
+                    _sourceRectangle = Rectangle.Empty;
                 }
             }
         } // SourceRectangle
 
         public SizeMode SizeMode
         {
-            get => sizeMode;
-            set => sizeMode = value;
+            get => _sizeMode;
+            set => _sizeMode = value;
         } // SizeMode
 
 
 
-        public Glyph(CasaEngine.Asset.Texture _texture)
+        public Glyph(CasaEngine.Asset.Texture texture)
         {
-            Texture = _texture;
+            Texture = texture;
         } // Glyph
 
 

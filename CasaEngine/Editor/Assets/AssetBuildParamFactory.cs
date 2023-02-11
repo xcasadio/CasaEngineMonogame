@@ -15,49 +15,49 @@ namespace CasaEngine.Editor.Assets
             Xml
         }
 
-        static public void SetBuildParams(ref AssetBuildParamCollection params_, AssetBuildParamType type_)
+        static public void SetBuildParams(ref AssetBuildParamCollection @params, AssetBuildParamType type)
         {
-            switch (type_)
+            switch (type)
             {
                 case AssetBuildParamType.Texture:
-                    params_.Add(new AssetBuildParamColor());
-                    params_.Add(new AssetBuildParamColorKeyEnabled());
-                    params_.Add(new AssetBuildParamGenerateMipmaps());
-                    params_.Add(new AssetBuildParamPremultiplyAlpha());
-                    params_.Add(new AssetBuildParamResizeToPowerOfTwo());
-                    params_.Add(new AssetBuildParamTextureFormat());
+                    @params.Add(new AssetBuildParamColor());
+                    @params.Add(new AssetBuildParamColorKeyEnabled());
+                    @params.Add(new AssetBuildParamGenerateMipmaps());
+                    @params.Add(new AssetBuildParamPremultiplyAlpha());
+                    @params.Add(new AssetBuildParamResizeToPowerOfTwo());
+                    @params.Add(new AssetBuildParamTextureFormat());
                     break;
 
                 case AssetBuildParamType.Effect:
-                    params_.Add(new AssetBuildParamDebuggingOptions());
-                    params_.Add(new AssetBuildParamDefines());
+                    @params.Add(new AssetBuildParamDebuggingOptions());
+                    @params.Add(new AssetBuildParamDefines());
                     break;
 
                 case AssetBuildParamType.Model:
-                    params_.Add(new AssetBuildParamColor());
-                    params_.Add(new AssetBuildParamColorKeyEnabled());
-                    params_.Add(new AssetBuildParamGenerateMipmaps());
-                    params_.Add(new AssetBuildParamPremultiplyAlpha());
-                    params_.Add(new AssetBuildParamResizeToPowerOfTwo());
-                    params_.Add(new AssetBuildParamTextureFormat());
+                    @params.Add(new AssetBuildParamColor());
+                    @params.Add(new AssetBuildParamColorKeyEnabled());
+                    @params.Add(new AssetBuildParamGenerateMipmaps());
+                    @params.Add(new AssetBuildParamPremultiplyAlpha());
+                    @params.Add(new AssetBuildParamResizeToPowerOfTwo());
+                    @params.Add(new AssetBuildParamTextureFormat());
 
-                    params_.Add(new AssetBuildParamDefaultEffect());
-                    params_.Add(new AssetBuildParamPremultiplyTextureAlpha());
-                    params_.Add(new AssetBuildParamPremultiplyVertexColor());
-                    params_.Add(new AssetBuildParamGenerateTangentFrames());
-                    params_.Add(new AssetBuildParamScale());
-                    params_.Add(new AssetBuildParamSwapWindingOrder());
-                    params_.Add(new AssetBuildParamXRotation());
-                    params_.Add(new AssetBuildParamYRotation());
-                    params_.Add(new AssetBuildParamZRotation());
+                    @params.Add(new AssetBuildParamDefaultEffect());
+                    @params.Add(new AssetBuildParamPremultiplyTextureAlpha());
+                    @params.Add(new AssetBuildParamPremultiplyVertexColor());
+                    @params.Add(new AssetBuildParamGenerateTangentFrames());
+                    @params.Add(new AssetBuildParamScale());
+                    @params.Add(new AssetBuildParamSwapWindingOrder());
+                    @params.Add(new AssetBuildParamXRotation());
+                    @params.Add(new AssetBuildParamYRotation());
+                    @params.Add(new AssetBuildParamZRotation());
                     break;
 
                 case AssetBuildParamType.Audio:
-                    params_.Add(new AssetBuildParamCompressionQuality());
+                    @params.Add(new AssetBuildParamCompressionQuality());
                     break;
 
                 case AssetBuildParamType.Video:
-                    params_.Add(new AssetBuildParamVideoSoundTrackType());
+                    @params.Add(new AssetBuildParamVideoSoundTrackType());
                     break;
 
                 case AssetBuildParamType.Font:
@@ -70,92 +70,92 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        static public AssetBuildParam Load(XmlElement el_)
+        static public AssetBuildParam Load(XmlElement el)
         {
             AssetBuildParam param;
 
-            string name = el_.SelectSingleNode("Name").InnerText;
+            string name = el.SelectSingleNode("Name").InnerText;
 
             switch (name)
             {
                 case "ColorKeyColor":
-                    param = new AssetBuildParamColor(el_);
+                    param = new AssetBuildParamColor(el);
                     break;
 
                 case "ColorKeyEnabled":
-                    param = new AssetBuildParamColorKeyEnabled(el_);
+                    param = new AssetBuildParamColorKeyEnabled(el);
                     break;
 
                 case "GenerateMipmaps":
-                    param = new AssetBuildParamGenerateMipmaps(el_);
+                    param = new AssetBuildParamGenerateMipmaps(el);
                     break;
 
                 case "PremultiplyAlpha":
-                    param = new AssetBuildParamPremultiplyAlpha(el_);
+                    param = new AssetBuildParamPremultiplyAlpha(el);
                     break;
 
                 case "ResizeToPowerOfTwo":
-                    param = new AssetBuildParamResizeToPowerOfTwo(el_);
+                    param = new AssetBuildParamResizeToPowerOfTwo(el);
                     break;
 
                 case "TextureFormat":
-                    param = new AssetBuildParamTextureFormat(el_);
+                    param = new AssetBuildParamTextureFormat(el);
                     break;
 
                 case "DebuggingOptions":
-                    param = new AssetBuildParamDebuggingOptions(el_);
+                    param = new AssetBuildParamDebuggingOptions(el);
                     break;
 
                 case "Defines":
-                    param = new AssetBuildParamDefines(el_);
+                    param = new AssetBuildParamDefines(el);
                     break;
 
                 case "FirstCharacter":
-                    param = new AssetBuildParamFirstCharacter(el_);
+                    param = new AssetBuildParamFirstCharacter(el);
                     break;
 
                 case "DefaultEffect":
-                    param = new AssetBuildParamDefaultEffect(el_);
+                    param = new AssetBuildParamDefaultEffect(el);
                     break;
 
                 case "PremultiplyTextureAlpha":
-                    param = new AssetBuildParamPremultiplyTextureAlpha(el_);
+                    param = new AssetBuildParamPremultiplyTextureAlpha(el);
                     break;
 
                 case "PremultiplyVertexColor":
-                    param = new AssetBuildParamPremultiplyVertexColor(el_);
+                    param = new AssetBuildParamPremultiplyVertexColor(el);
                     break;
 
                 case "GenerateTangentFrames":
-                    param = new AssetBuildParamGenerateTangentFrames(el_);
+                    param = new AssetBuildParamGenerateTangentFrames(el);
                     break;
 
                 case "Scale":
-                    param = new AssetBuildParamScale(el_);
+                    param = new AssetBuildParamScale(el);
                     break;
 
                 case "SwapWindingOrder":
-                    param = new AssetBuildParamSwapWindingOrder(el_);
+                    param = new AssetBuildParamSwapWindingOrder(el);
                     break;
 
                 case "XRotation":
-                    param = new AssetBuildParamXRotation(el_);
+                    param = new AssetBuildParamXRotation(el);
                     break;
 
                 case "YRotation":
-                    param = new AssetBuildParamYRotation(el_);
+                    param = new AssetBuildParamYRotation(el);
                     break;
 
                 case "ZRotation":
-                    param = new AssetBuildParamZRotation(el_);
+                    param = new AssetBuildParamZRotation(el);
                     break;
 
                 case "CompressionQuality":
-                    param = new AssetBuildParamCompressionQuality(el_);
+                    param = new AssetBuildParamCompressionQuality(el);
                     break;
 
                 case "VideoSoundTrackType":
-                    param = new AssetBuildParamVideoSoundTrackType(el_);
+                    param = new AssetBuildParamVideoSoundTrackType(el);
                     break;
 
                 default:

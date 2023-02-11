@@ -6,7 +6,7 @@ using CasaEngineCommon.Design;
 namespace CasaEngine.Design.Parser
 {
     class CalculatorTokenBinaryOperator
-        : ICalculatorToken
+        : CalculatorToken
     {
         public enum BinaryOperator
         {
@@ -26,42 +26,42 @@ namespace CasaEngine.Design.Parser
         }
 
 
-        BinaryOperator m_Operator;
-        ICalculatorToken m_Left;
-        ICalculatorToken m_Right;
+        BinaryOperator _operator;
+        CalculatorToken _left;
+        CalculatorToken _right;
 
 
 
-        public ICalculatorToken Left
+        public CalculatorToken Left
         {
-            get => m_Left;
-            set => m_Left = value;
+            get => _left;
+            set => _left = value;
         }
 
-        public ICalculatorToken Right
+        public CalculatorToken Right
         {
-            get => m_Right;
-            set => m_Right = value;
+            get => _right;
+            set => _right = value;
         }
 
 
 
-        public CalculatorTokenBinaryOperator(Calculator calculator_, BinaryOperator operator_)
-            : base(calculator_)
+        public CalculatorTokenBinaryOperator(Calculator calculator, BinaryOperator @operator)
+            : base(calculator)
         {
-            m_Operator = operator_;
+            _operator = @operator;
         }
 
-        public CalculatorTokenBinaryOperator(Calculator calculator_, XmlElement el_, SaveOption option_)
-            : base(calculator_)
+        public CalculatorTokenBinaryOperator(Calculator calculator, XmlElement el, SaveOption option)
+            : base(calculator)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
-        public CalculatorTokenBinaryOperator(Calculator calculator_, BinaryReader br_, SaveOption option_)
-            : base(calculator_)
+        public CalculatorTokenBinaryOperator(Calculator calculator, BinaryReader br, SaveOption option)
+            : base(calculator)
         {
-            Load(br_, option_);
+            Load(br, option);
         }
 
 
@@ -70,54 +70,54 @@ namespace CasaEngine.Design.Parser
         {
             float res;
 
-            switch (m_Operator)
+            switch (_operator)
             {
                 case BinaryOperator.Plus:
-                    res = m_Left.Evaluate() + m_Right.Evaluate();
+                    res = _left.Evaluate() + _right.Evaluate();
                     break;
 
                 case BinaryOperator.Minus:
-                    res = m_Left.Evaluate() - m_Right.Evaluate();
+                    res = _left.Evaluate() - _right.Evaluate();
                     break;
 
                 case BinaryOperator.Multiply:
-                    res = m_Left.Evaluate() * m_Right.Evaluate();
+                    res = _left.Evaluate() * _right.Evaluate();
                     break;
 
                 case BinaryOperator.Divide:
-                    res = m_Left.Evaluate() / m_Right.Evaluate();
+                    res = _left.Evaluate() / _right.Evaluate();
                     break;
 
                 case BinaryOperator.Equal:
-                    res = System.Convert.ToSingle(m_Left.Evaluate() == m_Right.Evaluate());
+                    res = System.Convert.ToSingle(_left.Evaluate() == _right.Evaluate());
                     break;
 
                 case BinaryOperator.Different:
-                    res = System.Convert.ToSingle(m_Left.Evaluate() != m_Right.Evaluate());
+                    res = System.Convert.ToSingle(_left.Evaluate() != _right.Evaluate());
                     break;
 
                 case BinaryOperator.Superior:
-                    res = System.Convert.ToSingle(m_Left.Evaluate() > m_Right.Evaluate());
+                    res = System.Convert.ToSingle(_left.Evaluate() > _right.Evaluate());
                     break;
 
                 case BinaryOperator.Inferior:
-                    res = System.Convert.ToSingle(m_Left.Evaluate() < m_Right.Evaluate());
+                    res = System.Convert.ToSingle(_left.Evaluate() < _right.Evaluate());
                     break;
 
                 case BinaryOperator.SupEqual:
-                    res = System.Convert.ToSingle(m_Left.Evaluate() >= m_Right.Evaluate());
+                    res = System.Convert.ToSingle(_left.Evaluate() >= _right.Evaluate());
                     break;
 
                 case BinaryOperator.InfEqual:
-                    res = System.Convert.ToSingle(m_Left.Evaluate() <= m_Right.Evaluate());
+                    res = System.Convert.ToSingle(_left.Evaluate() <= _right.Evaluate());
                     break;
 
                 case BinaryOperator.Or:
-                    res = System.Convert.ToSingle(System.Convert.ToBoolean(m_Left.Evaluate()) || System.Convert.ToBoolean(m_Right.Evaluate()));
+                    res = System.Convert.ToSingle(System.Convert.ToBoolean(_left.Evaluate()) || System.Convert.ToBoolean(_right.Evaluate()));
                     break;
 
                 case BinaryOperator.And:
-                    res = System.Convert.ToSingle(System.Convert.ToBoolean(m_Left.Evaluate()) && System.Convert.ToBoolean(m_Right.Evaluate()));
+                    res = System.Convert.ToSingle(System.Convert.ToBoolean(_left.Evaluate()) && System.Convert.ToBoolean(_right.Evaluate()));
                     break;
 
                 default:
@@ -128,47 +128,47 @@ namespace CasaEngine.Design.Parser
         }
 
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            XmlElement node = (XmlElement)el_.OwnerDocument.CreateElement("Node");
-            el_.AppendChild(node);
-            el_.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.BinaryOperator).ToString());
-            el_.OwnerDocument.AddAttribute(node, "operator", ((int)m_Operator).ToString());
+            XmlElement node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            el.AppendChild(node);
+            el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.BinaryOperator).ToString());
+            el.OwnerDocument.AddAttribute(node, "operator", ((int)_operator).ToString());
 
-            XmlElement child = (XmlElement)el_.OwnerDocument.CreateElement("Left");
+            XmlElement child = (XmlElement)el.OwnerDocument.CreateElement("Left");
             node.AppendChild(child);
-            m_Left.Save(child, option_);
+            _left.Save(child, option);
 
-            child = (XmlElement)el_.OwnerDocument.CreateElement("Right");
+            child = (XmlElement)el.OwnerDocument.CreateElement("Right");
             node.AppendChild(child);
-            m_Right.Save(child, option_);
+            _right.Save(child, option);
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            m_Operator = (BinaryOperator)int.Parse(el_.Attributes["operator"].Value);
+            _operator = (BinaryOperator)int.Parse(el.Attributes["operator"].Value);
 
-            XmlElement child = (XmlElement)el_.SelectSingleNode("Left/Node");
-            m_Left = Calculator.CreateCalculatorToken(Calculator, child, option_);
+            XmlElement child = (XmlElement)el.SelectSingleNode("Left/Node");
+            _left = Calculator.CreateCalculatorToken(Calculator, child, option);
 
-            child = (XmlElement)el_.SelectSingleNode("Right/Node");
-            m_Right = Calculator.CreateCalculatorToken(Calculator, child, option_);
+            child = (XmlElement)el.SelectSingleNode("Right/Node");
+            _right = Calculator.CreateCalculatorToken(Calculator, child, option);
 
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write((int)CalculatorTokenType.BinaryOperator);
-            bw_.Write((int)m_Operator);
-            m_Left.Save(bw_, option_);
-            m_Right.Save(bw_, option_);
+            bw.Write((int)CalculatorTokenType.BinaryOperator);
+            bw.Write((int)_operator);
+            _left.Save(bw, option);
+            _right.Save(bw, option);
         }
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
-            m_Operator = (BinaryOperator)br_.ReadInt32();
-            m_Left = Calculator.CreateCalculatorToken(Calculator, br_, option_);
-            m_Right = Calculator.CreateCalculatorToken(Calculator, br_, option_);
+            _operator = (BinaryOperator)br.ReadInt32();
+            _left = Calculator.CreateCalculatorToken(Calculator, br, option);
+            _right = Calculator.CreateCalculatorToken(Calculator, br, option);
         }
 
 

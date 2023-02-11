@@ -13,19 +13,19 @@ namespace CasaEngine.Gameplay.Actor.Event
 
 
 
-        public virtual void Save(XmlElement el_, SaveOption option_)
+        public virtual void Save(XmlElement el, SaveOption option)
         {
-            el_.OwnerDocument.AddAttribute(el_, "type", Enum.GetName(typeof(EventActorType), m_EventActorType));
+            el.OwnerDocument.AddAttribute(el, "type", Enum.GetName(typeof(EventActorType), _eventActorType));
         }
 
-        public virtual void Save(BinaryWriter bw_, SaveOption option_)
+        public virtual void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write((int)m_EventActorType);
+            bw.Write((int)_eventActorType);
         }
 
-        public virtual bool CompareTo(EventActor other_)
+        public virtual bool CompareTo(EventActor other)
         {
-            return m_EventActorType == other_.m_EventActorType;
+            return _eventActorType == other._eventActorType;
         }
 
     }

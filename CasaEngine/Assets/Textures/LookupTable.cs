@@ -28,7 +28,7 @@ namespace CasaEngine.Asset
 
 
 
-        public LookupTable(GraphicsDevice graphicsDevice_, string filename)
+        public LookupTable(GraphicsDevice graphicsDevice, string filename)
         {
             Name = filename;
             Filename = Engine.Instance.ProjectManager.ProjectPath + filename;
@@ -38,7 +38,7 @@ namespace CasaEngine.Asset
             }
             try
             {
-                Create(graphicsDevice_, filename);
+                Create(graphicsDevice, filename);
             }
             catch (ObjectDisposedException)
             {
@@ -58,16 +58,16 @@ namespace CasaEngine.Asset
 
 
 
-        private void Create(GraphicsDevice graphicsDevice_, string filename)
+        private void Create(GraphicsDevice graphicsDevice, string filename)
         {
-            Texture lookupTableTexture2D = new Texture(graphicsDevice_, filename);
+            Texture lookupTableTexture2D = new Texture(graphicsDevice, filename);
             // SideSize is inaccurate because Math.Pow is a bad way to calculate cube roots.
             int sideSize = (int)System.Math.Pow(lookupTableTexture2D.Width * lookupTableTexture2D.Height, 1 / 3.0);
             // hence this second step to snap to nearest power of 2.
             Size = (int)System.Math.Pow(2, System.Math.Round(System.Math.Log(sideSize, 2)));
             //Create the cube lut and dump the 2d lut into it
             Color[] colors = new Color[Size * Size * Size];
-            Resource = new Texture3D(graphicsDevice_, Size, Size, Size, false, SurfaceFormat.Color);
+            Resource = new Texture3D(graphicsDevice, Size, Size, Size, false, SurfaceFormat.Color);
             lookupTableTexture2D.Resource.GetData(colors);
             Resource.SetData(colors);
             Resource.Name = filename;
@@ -80,15 +80,15 @@ namespace CasaEngine.Asset
 
 
 
-        public static LookupTable Identity(GraphicsDevice graphicsDevice_, int size)
+        public static LookupTable Identity(GraphicsDevice graphicsDevice, int size)
         {
-            return new LookupTable { Name = "Identity", Filename = "", Resource = IdentityTexture(graphicsDevice_, size), Size = size };
+            return new LookupTable { Name = "Identity", Filename = "", Resource = IdentityTexture(graphicsDevice, size), Size = size };
         } // Identity
 
-        private static Texture3D IdentityTexture(GraphicsDevice graphicsDevice_, int size)
+        private static Texture3D IdentityTexture(GraphicsDevice graphicsDevice, int size)
         {
             Color[] colors = new Color[size * size * size];
-            Texture3D lookupTableTexture = new Texture3D(graphicsDevice_, size, size, size, false, SurfaceFormat.Color);
+            Texture3D lookupTableTexture = new Texture3D(graphicsDevice, size, size, size, false, SurfaceFormat.Color);
             for (int redIndex = 0; redIndex < size; redIndex++)
             {
                 for (int greenIndex = 0; greenIndex < size; greenIndex++)
@@ -109,7 +109,7 @@ namespace CasaEngine.Asset
 
 
 
-        public static Texture LookupTableToTexture(GraphicsDevice graphicsDevice_, LookupTable lookupTable)
+        public static Texture LookupTableToTexture(GraphicsDevice graphicsDevice, LookupTable lookupTable)
         {
             // Calculate closest to square proportions for 2d table
             // We assume power-of-two sides, otherwise I don't know
@@ -124,7 +124,7 @@ namespace CasaEngine.Asset
 
             // Dump 3D texture into 2D texture.
             Color[] colors = new Color[size * size * size];
-            Texture2D lookupTable2DTexture = new Texture2D(graphicsDevice_, side1, side2, false, SurfaceFormat.Color);
+            Texture2D lookupTable2DTexture = new Texture2D(graphicsDevice, side1, side2, false, SurfaceFormat.Color);
             lookupTable.Resource.GetData(colors);
             lookupTable2DTexture.SetData(colors);
             return new Texture(lookupTable2DTexture) { Name = lookupTable.Name + "-Texture" };
@@ -141,16 +141,16 @@ namespace CasaEngine.Asset
 
 
 
-        internal override void OnDeviceReset(GraphicsDevice device_)
+        internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (string.IsNullOrEmpty(Filename))
             {
-                Resource = IdentityTexture(device_, Size);
+                Resource = IdentityTexture(device, Size);
             }
             else
-                Create(device_, Filename.Substring(30)); // Removes "Textures\\"
+                Create(device, Filename.Substring(30)); // Removes "Textures\\"
 
-            GraphicsDevice = device_;
+            GraphicsDevice = device;
         } // RecreateResource
 
 

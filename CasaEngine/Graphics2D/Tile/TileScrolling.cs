@@ -10,9 +10,9 @@ namespace CasaEngine.Graphics2D.Tile
         : TileLayer
     {
 
-        private List<Sprite2D> m_Sprites = new List<Sprite2D>();
-        private List<Sprite2D> m_DisplaySprites = new List<Sprite2D>();
-        private Rectangle visibleTiles;
+        private List<Sprite2D> _sprites = new List<Sprite2D>();
+        private List<Sprite2D> _displaySprites = new List<Sprite2D>();
+        private Rectangle _visibleTiles;
 
 
 
@@ -25,25 +25,25 @@ namespace CasaEngine.Graphics2D.Tile
 
 
 
-        public void AddTile(Sprite2D sprite_)
+        public void AddTile(Sprite2D sprite)
         {
-            m_Sprites.Add(sprite_);
+            _sprites.Add(sprite);
         }
 
         protected override void DetermineVisibility()
         {
             base.DetermineVisibility();
 
-            visibleTiles.X = (int)CameraPosition.X;
-            visibleTiles.Y = (int)CameraPosition.Y;
-            visibleTiles.Width = (int)(DisplaySize.X / CameraZoom);
-            visibleTiles.Height = (int)(DisplaySize.Y / CameraZoom);
+            _visibleTiles.X = (int)CameraPosition.X;
+            _visibleTiles.Y = (int)CameraPosition.Y;
+            _visibleTiles.Width = (int)(DisplaySize.X / CameraZoom);
+            _visibleTiles.Height = (int)(DisplaySize.Y / CameraZoom);
 
             //PooItem released in Renderer2DComponent
-            m_DisplaySprites.Clear();
+            _displaySprites.Clear();
 
             throw new NotImplementedException();
-            /*foreach (Sprite2D s in m_Sprites)
+            /*foreach (Sprite2D s in _Sprites)
 			{
 				Rectangle rect = new Rectangle();
 
@@ -61,14 +61,14 @@ namespace CasaEngine.Graphics2D.Tile
                     sprite.Resource.HotSpot = new Point((int)((float)s.HotSpot.X * CameraZoom), (int)((float)s.HotSpot.Y * CameraZoom));
                     sprite.Resource.Scale = new Vector2(CameraZoom);
                     sprite.Resource.Color = s.Color;
-					m_DisplaySprites.Add(sprite);
+					_DisplaySprites.Add(sprite);
 				}
 			}*/
         }
 
         protected override void DrawTiles(SpriteBatch batch)
         {
-            foreach (Sprite2D s in m_DisplaySprites)
+            foreach (Sprite2D s in _displaySprites)
             {
                 //SpriteRenderer.Draw(batch, s);
             }

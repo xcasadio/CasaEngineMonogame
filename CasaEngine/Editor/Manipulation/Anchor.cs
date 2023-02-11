@@ -9,17 +9,17 @@ namespace CasaEngine.Editor.Manipulation
     public class Anchor
     {
 
-        private Vector2 m_Position;
-        private Vector2 mouseStart;
-        private bool m_MousePressed = false;
-        private readonly List<Anchor> m_Anchors = new List<Anchor>();
+        private Vector2 _position;
+        private Vector2 _mouseStart;
+        private bool _mousePressed = false;
+        private readonly List<Anchor> _anchors = new List<Anchor>();
 
         public event EventHandler<AnchorLocationChangedEventArgs> LocationChanged;
         public event EventHandler StartManipulating, FinishManipulating;
 
         public event EventHandler CursorChanged;
-        private bool m_IsOver = false;
-        private bool m_shiftPressed = false, controlPressed = false;
+        private bool _isOver = false;
+        private bool _shiftPressed = false, _controlPressed = false;
 
 
 
@@ -53,7 +53,7 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-        public Rectangle Bounds => new Rectangle((int)(m_Position.X + Offset.X), (int)(m_Position.Y + Offset.Y), Width, Height);
+        public Rectangle Bounds => new Rectangle((int)(_position.X + Offset.X), (int)(_position.Y + Offset.Y), Width, Height);
 
         public bool IsManipulating
         {
@@ -65,7 +65,7 @@ namespace CasaEngine.Editor.Manipulation
         {
             get
             {
-                foreach (Anchor a in m_Anchors)
+                foreach (Anchor a in _anchors)
                 {
                     if (a.IsManipulating == true)
                     {
@@ -120,11 +120,11 @@ namespace CasaEngine.Editor.Manipulation
 
 
 
-        public Anchor(int x_, int y_, int width_, int height_)
+        public Anchor(int x, int y, int width, int height)
         {
-            m_Position = new Vector2(x_ - width_ / 2, y_ - height_ / 2);
-            Width = width_;
-            Height = height_;
+            _position = new Vector2(x - width / 2, y - height / 2);
+            Width = width;
+            Height = height;
             IsManipulating = true;
 
             MoveOnX = true;
@@ -135,24 +135,24 @@ namespace CasaEngine.Editor.Manipulation
 
 
 
-        public void LinkWithAnchor(Anchor a_)
+        public void LinkWithAnchor(Anchor a)
         {
-            m_Anchors.Add(a_);
+            _anchors.Add(a);
         }
 
-        public void Update(MouseState mouseState_, bool shiftKeyPressed_, bool controlKeyPressed_, bool altKeyPressed_)
+        public void Update(MouseState mouseState, bool shiftKeyPressed, bool controlKeyPressed, bool altKeyPressed)
         {
-            int mouseX = mouseState_.X, mouseY = mouseState_.Y;
+            int mouseX = mouseState.X, mouseY = mouseState.Y;
 
             if (Selected && IsManipulating
-                && shiftKeyPressed_ == false
-                && controlKeyPressed_ == false
-                && altKeyPressed_ == false)
+                && shiftKeyPressed == false
+                && controlKeyPressed == false
+                && altKeyPressed == false)
             {
-                int offsetX = MoveOnX ? mouseState_.X - (int)mouseStart.X : 0;
-                int offsetY = MoveOnY ? mouseState_.Y - (int)mouseStart.Y : 0;
+                int offsetX = MoveOnX ? mouseState.X - (int)_mouseStart.X : 0;
+                int offsetY = MoveOnY ? mouseState.Y - (int)_mouseStart.Y : 0;
 
-                m_Position = new Vector2(m_Position.X + offsetX, m_Position.Y + offsetY);
+                _position = new Vector2(_position.X + offsetX, _position.Y + offsetY);
 
                 if (LocationChanged != null)
                 {
@@ -160,7 +160,7 @@ namespace CasaEngine.Editor.Manipulation
                 }
             }
 
-            if (mouseState_.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
+            if (mouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
             {
                 if (IsManipulating == true)
                 {
@@ -174,8 +174,8 @@ namespace CasaEngine.Editor.Manipulation
 
             if (Bounds.Contains(mouseX, mouseY) == true)
             {
-                if (mouseState_.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed
-                    && m_MousePressed == false
+                if (mouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed
+                    && _mousePressed == false
                     && CanManipulate == true)
                 {
                     if (IsManipulating == false
@@ -188,7 +188,7 @@ namespace CasaEngine.Editor.Manipulation
                     Selected = true;
                 }
 
-                m_IsOver = true;
+                _isOver = true;
 
                 if (IsManipulating == true)
                 {
@@ -202,113 +202,113 @@ namespace CasaEngine.Editor.Manipulation
             else
             {
                 if (IsManipulating == false
-                    && m_IsOver == true)
+                    && _isOver == true)
                 {
                     InvokeCursorChanged(Cursors.Default);
-                    m_IsOver = false;
+                    _isOver = false;
                 }
 
-                if (shiftKeyPressed_
-                    && m_shiftPressed == false)
+                if (shiftKeyPressed
+                    && _shiftPressed == false)
                 {
                     InvokeCursorChanged(CursorOverShiftPressed);
-                    m_shiftPressed = true;
+                    _shiftPressed = true;
                 }
-                else if (shiftKeyPressed_ == false
-                    && m_shiftPressed == true)
+                else if (shiftKeyPressed == false
+                    && _shiftPressed == true)
                 {
                     InvokeCursorChanged(Cursors.Default);
-                    m_shiftPressed = false;
+                    _shiftPressed = false;
                 }
 
-                if (controlKeyPressed_
-                    && controlPressed == false)
+                if (controlKeyPressed
+                    && _controlPressed == false)
                 {
                     InvokeCursorChanged(CursorOverControlPressed);
-                    controlPressed = true;
+                    _controlPressed = true;
                 }
-                else if (controlKeyPressed_ == false
-                    && controlPressed == true)
+                else if (controlKeyPressed == false
+                    && _controlPressed == true)
                 {
                     InvokeCursorChanged(Cursors.Default);
-                    controlPressed = false;
+                    _controlPressed = false;
                 }
             }
 
-            mouseStart = new Vector2(mouseState_.X, mouseState_.Y);
+            _mouseStart = new Vector2(mouseState.X, mouseState.Y);
 
-            m_MousePressed = Mouse.GetState().LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
+            _mousePressed = Mouse.GetState().LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
         }
 
-        public void Draw(Renderer2DComponent r_)
+        public void Draw(Renderer2DComponent r)
         {
-            r_.AddBox(m_Position.X + Offset.X, m_Position.Y + Offset.Y, Width, Height, Color.Black);
+            r.AddBox(_position.X + Offset.X, _position.Y + Offset.Y, Width, Height, Color.Black);
         }
 
-        public void Draw(Line2DRenderer lineRenderer_, SpriteBatch spriteBatch_, Color color_)
+        public void Draw(Line2DRenderer lineRenderer, SpriteBatch spriteBatch, Color color)
         {
-            lineRenderer_.DrawLine(spriteBatch_, color_,
-                new Vector2(m_Position.X + Offset.X, m_Position.Y + Offset.Y),
-                new Vector2(m_Position.X + Offset.X + Width, m_Position.Y + Offset.Y));
+            lineRenderer.DrawLine(spriteBatch, color,
+                new Vector2(_position.X + Offset.X, _position.Y + Offset.Y),
+                new Vector2(_position.X + Offset.X + Width, _position.Y + Offset.Y));
 
-            lineRenderer_.DrawLine(spriteBatch_, color_,
-                new Vector2(m_Position.X + Offset.X + Width, m_Position.Y + Offset.Y),
-                new Vector2(m_Position.X + Offset.X + Width, m_Position.Y + Offset.Y + Height));
+            lineRenderer.DrawLine(spriteBatch, color,
+                new Vector2(_position.X + Offset.X + Width, _position.Y + Offset.Y),
+                new Vector2(_position.X + Offset.X + Width, _position.Y + Offset.Y + Height));
 
-            lineRenderer_.DrawLine(spriteBatch_, color_,
-                new Vector2(m_Position.X + Offset.X + Width, m_Position.Y + Offset.Y + Height),
-                new Vector2(m_Position.X + Offset.X, m_Position.Y + Offset.Y + Height));
+            lineRenderer.DrawLine(spriteBatch, color,
+                new Vector2(_position.X + Offset.X + Width, _position.Y + Offset.Y + Height),
+                new Vector2(_position.X + Offset.X, _position.Y + Offset.Y + Height));
 
-            lineRenderer_.DrawLine(spriteBatch_, color_,
-                new Vector2(m_Position.X + Offset.X, m_Position.Y + Offset.Y + Height),
-                new Vector2(m_Position.X + Offset.X, m_Position.Y + Offset.Y));
+            lineRenderer.DrawLine(spriteBatch, color,
+                new Vector2(_position.X + Offset.X, _position.Y + Offset.Y + Height),
+                new Vector2(_position.X + Offset.X, _position.Y + Offset.Y));
         }
 
-        public void SetLocation(int x_, int y_, bool callHandler_)
+        public void SetLocation(int x, int y, bool callHandler)
         {
-            m_Position.X = x_;
-            m_Position.Y = y_;
+            _position.X = x;
+            _position.Y = y;
 
-            if (callHandler_ == true
+            if (callHandler == true
                 && LocationChanged != null)
             {
-                LocationChanged.Invoke(this, new AnchorLocationChangedEventArgs(x_, y_));
+                LocationChanged.Invoke(this, new AnchorLocationChangedEventArgs(x, y));
             }
         }
 
-        public void SetLocationOffSet(int offsetX_, int offsetY_, bool callHandler_)
+        public void SetLocationOffSet(int offsetX, int offsetY, bool callHandler)
         {
-            m_Position.X += offsetX_;
-            m_Position.Y += offsetY_;
+            _position.X += offsetX;
+            _position.Y += offsetY;
 
-            if (callHandler_ == true
+            if (callHandler == true
                 && LocationChanged != null)
             {
-                LocationChanged.Invoke(this, new AnchorLocationChangedEventArgs(offsetX_, offsetY_));
+                LocationChanged.Invoke(this, new AnchorLocationChangedEventArgs(offsetX, offsetY));
             }
         }
 
-        private void InvokeCursorChanged(Cursor cursor_)
+        private void InvokeCursorChanged(Cursor cursor)
         {
             if (CursorChanged != null)
             {
-                CursorChanged.Invoke(cursor_, EventArgs.Empty);
+                CursorChanged.Invoke(cursor, EventArgs.Empty);
             }
         }
 
-        public bool IsInside(int x_, int y_)
+        public bool IsInside(int x, int y)
         {
-            return Bounds.Contains(x_, y_);
+            return Bounds.Contains(x, y);
         }
 
-        public bool IsInside(Point p_)
+        public bool IsInside(Point p)
         {
-            return IsInside(p_.X, p_.Y);
+            return IsInside(p.X, p.Y);
         }
 
-        public bool IsInside(Vector2 v_)
+        public bool IsInside(Vector2 v)
         {
-            return IsInside((int)v_.X, (int)v_.Y);
+            return IsInside((int)v.X, (int)v.Y);
         }
 
     }

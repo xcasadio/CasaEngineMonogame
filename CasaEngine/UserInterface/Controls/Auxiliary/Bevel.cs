@@ -42,20 +42,20 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private BevelBorder border = BevelBorder.All;
+        private BevelBorder _border = BevelBorder.All;
 
-        private BevelStyle style = BevelStyle.Etched;
+        private BevelStyle _style = BevelStyle.Etched;
 
 
 
         public BevelBorder Border
         {
-            get => border;
+            get => _border;
             set
             {
-                if (border != value)
+                if (_border != value)
                 {
-                    border = value;
+                    _border = value;
                     if (!Suspended) OnBorderChanged(new EventArgs());
                 }
             }
@@ -63,12 +63,12 @@ namespace XNAFinalEngine.UserInterface
 
         public BevelStyle Style
         {
-            get => style;
+            get => _style;
             set
             {
-                if (style != value)
+                if (_style != value)
                 {
-                    style = value;
+                    _style = value;
                     if (!Suspended) OnStyleChanged(new EventArgs());
                 }
             }
@@ -81,8 +81,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Bevel(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Bevel(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Passive = true;

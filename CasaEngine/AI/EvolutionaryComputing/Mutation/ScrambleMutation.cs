@@ -12,7 +12,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public override void Mutate(Population<int> population)
         {
             for (int i = 0; i < population.Genome.Count; i++)
-                if (generator.NextDouble() <= this.probability)
+                if (Generator.NextDouble() <= this.Probability)
                     population[i] = Mutate(population[i]);
         }
 
@@ -22,11 +22,11 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             Chromosome<int> finalChromosome;
 
             //Get the indexes to scramble
-            first = generator.Next(0, chromosome.Genotype.Count - 1);
-            second = generator.Next(0, chromosome.Genotype.Count - 1);
+            first = Generator.Next(0, chromosome.Genotype.Count - 1);
+            second = Generator.Next(0, chromosome.Genotype.Count - 1);
 
             while (second == first)
-                second = generator.Next(0, chromosome.Genotype.Count - 1);
+                second = Generator.Next(0, chromosome.Genotype.Count - 1);
 
             //Order the indexes
             if (first > second)
@@ -48,7 +48,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             //Scramble the selected genes
             for (int i = 0; i < second - first; i++)
             {
-                temp = generator.Next(0, second - first - i);
+                temp = Generator.Next(0, second - first - i);
                 finalChromosome.Genotype.Add(chromosome[temp]);
                 chromosome.Genotype.RemoveAt(temp);
             }

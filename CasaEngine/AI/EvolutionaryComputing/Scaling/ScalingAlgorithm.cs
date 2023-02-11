@@ -4,13 +4,13 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
     public abstract class ScalingAlgorithm<T>
     {
 
-        protected internal EvolutionObjective objective;
+        protected internal EvolutionObjective Objective;
 
 
 
         protected ScalingAlgorithm(EvolutionObjective objective)
         {
-            this.objective = objective;
+            this.Objective = objective;
         }
 
 

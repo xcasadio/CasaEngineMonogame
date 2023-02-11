@@ -8,11 +8,11 @@ namespace CasaEngine.SourceControl
     public class SourceControlManager
     {
 
-        static private SourceControlManager m_Instance;
-        private const int m_Version = 1;
-        private readonly string m_File = "SourceControl.ini";
-        private ISourceControl m_SourceControl;
-        private Dictionary<string, Dictionary<SourceControlKeyWord, string>> m_FilesStatus = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
+        static private SourceControlManager _instance;
+        private const int Version = 1;
+        private readonly string _file = "SourceControl.ini";
+        private ISourceControl _sourceControl;
+        private Dictionary<string, Dictionary<SourceControlKeyWord, string>> _filesStatus = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
 
 
 
@@ -46,35 +46,35 @@ namespace CasaEngine.SourceControl
         }
 
         [Category("Data Source Control")]
-        public string CWD
+        public string Cwd
         {
             get;
             set;
         }
 
 
-        public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FilesStatus => m_FilesStatus;
+        public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FilesStatus => _filesStatus;
 
         public ISourceControl SourceControl
         {
-            get => m_SourceControl;
-            set => m_SourceControl = value;
+            get => _sourceControl;
+            set => _sourceControl = value;
         }
 
         static public SourceControlManager Instance
         {
             get
             {
-                if (m_Instance == null)
+                if (_instance == null)
                 {
-                    m_Instance = new SourceControlManager();
-                    m_Instance.Server = "Server";
-                    m_Instance.User = "User";
-                    m_Instance.Password = "Password";
-                    m_Instance.Workspace = "Workspace";
+                    _instance = new SourceControlManager();
+                    _instance.Server = "Server";
+                    _instance.User = "User";
+                    _instance.Password = "Password";
+                    _instance.Workspace = "Workspace";
                 }
 
-                return m_Instance;
+                return _instance;
             }
         }
 
@@ -86,19 +86,19 @@ namespace CasaEngine.SourceControl
 
 
 
-        public void Initialize(ISourceControl control_)
+        public void Initialize(ISourceControl control)
         {
-            if (control_ == null)
+            if (control == null)
             {
                 throw new ArgumentNullException("SourceControlManager.Initialize() : ISourceControl is null");
             }
 
-            m_SourceControl = control_;
+            _sourceControl = control;
         }
 
         public void CheckProjectFiles()
         {
-            m_FilesStatus.Clear();
+            _filesStatus.Clear();
 
             if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectManager.ProjectPath) == false)
             {
@@ -107,7 +107,7 @@ namespace CasaEngine.SourceControl
                 try
                 {
                     string[] files = Directory.GetFiles(projectPath, "*.*", SearchOption.AllDirectories);
-                    m_FilesStatus = m_SourceControl.FileStatus(files);
+                    _filesStatus = _sourceControl.FileStatus(files);
                 }
                 catch (System.Exception e)
                 {
@@ -116,9 +116,9 @@ namespace CasaEngine.SourceControl
             }
         }
 
-        public void LoadConfig(string path_)
+        public void LoadConfig(string path)
         {
-            string filePath = Path.Combine(path_, m_File);
+            string filePath = Path.Combine(path, _file);
 
             if (File.Exists(filePath) == true)
             {
@@ -129,19 +129,19 @@ namespace CasaEngine.SourceControl
                 User = ini.GetValue("Config", "User");
                 Workspace = ini.GetValue("Config", "Workspace");
                 Password = ini.GetValue("Config", "Password");
-                CWD = ini.GetValue("Config", "Directory");
+                Cwd = ini.GetValue("Config", "Directory");
             }
         }
 
-        public void SaveConfig(string path_)
+        public void SaveConfig(string path)
         {
             IniFile ini = new IniFile();
-            ini.AddSection("Config", "Version", m_Version.ToString());
+            ini.AddSection("Config", "Version", Version.ToString());
             ini.AddSection("Config", "Server", Server);
             ini.AddSection("Config", "User", User);
             ini.AddSection("Config", "Workspace", Workspace);
-            ini.AddSection("Config", "Directory", CWD);
-            ini.Save(Path.Combine(path_, m_File));
+            ini.AddSection("Config", "Directory", Cwd);
+            ini.Save(Path.Combine(path, _file));
         }
 
     }

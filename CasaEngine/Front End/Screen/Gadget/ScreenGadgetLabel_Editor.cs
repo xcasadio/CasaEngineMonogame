@@ -3,14 +3,14 @@
     public partial class ScreenGadgetLabel
     {
 
-        public static int num = 0;
+        public static int Num = 0;
 
 
 
 
 
         public ScreenGadgetLabel()
-            : base("Label" + (num++))
+            : base("Label" + (Num++))
         {
             Width = 100;
             Height = 80;

@@ -17,8 +17,8 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        public ToolBarButton(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ToolBarButton(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Text = "";

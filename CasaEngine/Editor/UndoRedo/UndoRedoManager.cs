@@ -4,13 +4,13 @@
     {
         struct UndoRedoParam
         {
-            public object arg;
-            public ICommand command;
+            public object Arg;
+            public ICommand Command;
         }
 
 
-        readonly Stack<UndoRedoParam> m_Undo = new Stack<UndoRedoParam>();
-        readonly Stack<UndoRedoParam> m_Redo = new Stack<UndoRedoParam>();
+        readonly Stack<UndoRedoParam> _undo = new Stack<UndoRedoParam>();
+        readonly Stack<UndoRedoParam> _redo = new Stack<UndoRedoParam>();
 
         public event EventHandler UndoRedoCommandAdded;
         public event EventHandler EventCommandDone;
@@ -19,19 +19,19 @@
 
 
 
-        public bool CanUndo => m_Undo.Count == 0 ? false : true;
+        public bool CanUndo => _undo.Count == 0 ? false : true;
 
-        public bool CanRedo => m_Redo.Count == 0 ? false : true;
+        public bool CanRedo => _redo.Count == 0 ? false : true;
 
 
-        public void Add(ICommand command_, object arg_)
+        public void Add(ICommand command, object arg)
         {
             UndoRedoParam param = new UndoRedoParam();
-            param.arg = arg_;
-            param.command = command_;
+            param.Arg = arg;
+            param.Command = command;
 
-            m_Undo.Push(param);
-            m_Redo.Clear();
+            _undo.Push(param);
+            _redo.Clear();
 
             if (UndoRedoCommandAdded != null)
             {
@@ -41,8 +41,8 @@
 
         public void Clear()
         {
-            m_Undo.Clear();
-            m_Redo.Clear();
+            _undo.Clear();
+            _redo.Clear();
 
             if (UndoRedoCommandAdded != null)
             {
@@ -54,9 +54,9 @@
         {
             if (CanUndo)
             {
-                UndoRedoParam param = m_Undo.Pop();
-                param.command.Undo(param.arg);
-                m_Redo.Push(param);
+                UndoRedoParam param = _undo.Pop();
+                param.Command.Undo(param.Arg);
+                _redo.Push(param);
 
                 if (EventCommandDone != null)
                 {
@@ -69,9 +69,9 @@
         {
             if (CanRedo)
             {
-                UndoRedoParam param = m_Redo.Pop();
-                param.command.Execute(param.arg);
-                m_Undo.Push(param);
+                UndoRedoParam param = _redo.Pop();
+                param.Command.Execute(param.Arg);
+                _undo.Push(param);
 
                 if (EventCommandDone != null)
                 {
@@ -85,13 +85,13 @@
             RemoveLastCommands(0);
         }
 
-        public void RemoveLastCommands(int num_)
+        public void RemoveLastCommands(int nu)
         {
-            for (int i = 0; i < num_; i++)
+            for (int i = 0; i < nu; i++)
             {
                 if (CanUndo)
                 {
-                    m_Undo.Pop();
+                    _undo.Pop();
                 }
                 else
                 {

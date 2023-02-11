@@ -39,7 +39,7 @@ namespace XNAFinalEngine.UserInterface
         {
             public Keys Key = Keys.None;
             public bool Pressed;
-            public double Countdown = repeatDelay;
+            public double Countdown = RepeatDelay;
         } // InputKey
 
         private class InputMouseButton
@@ -50,14 +50,14 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        private const int repeatDelay = 500;
-        private const int repeatRate = 50;
+        private const int RepeatDelay = 500;
+        private const int RepeatRate = 50;
 
 
 
-        private readonly List<InputKey> keys = new List<InputKey>();
-        private readonly List<InputMouseButton> mouseButtons = new List<InputMouseButton>();
-        private readonly Rectangle m_GameWindowClientBounds;
+        private readonly List<InputKey> _keys = new List<InputKey>();
+        private readonly List<InputMouseButton> _mouseButtons = new List<InputMouseButton>();
+        private readonly Rectangle _gameWindowClientBounds;
 
 
 
@@ -72,15 +72,15 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Input(Rectangle gameWindowClientBounds_)
+        public Input(Rectangle gameWindowClientBounds)
         {
-            m_GameWindowClientBounds = gameWindowClientBounds_;
+            _gameWindowClientBounds = gameWindowClientBounds;
 
 #if (WINDOWS)
             foreach (string keyName in Enum.GetNames(typeof(Keys)))
             {
                 InputKey key = new InputKey { Key = (Keys)Enum.Parse(typeof(Keys), keyName) };
-                keys.Add(key);
+                _keys.Add(key);
             }
 
             foreach (string mouseButtonName in Enum.GetNames(typeof(MouseButton)))
@@ -89,24 +89,24 @@ namespace XNAFinalEngine.UserInterface
                 {
                     Button = (MouseButton)Enum.Parse(typeof(MouseButton), mouseButtonName)
                 };
-                mouseButtons.Add(mouseButton);
+                _mouseButtons.Add(mouseButton);
             }
 #endif
         } // InputSystem
 
 
 
-        public virtual void Update(float elapsedTime_)
+        public virtual void Update(float elapsedTime)
         {
 #if (WINDOWS)
             UpdateMouse();
-            UpdateKeys(elapsedTime_);
+            UpdateKeys(elapsedTime);
 #endif
         } // Update
 
 
 
-        private void UpdateKeys(float elapsedTime_)
+        private void UpdateKeys(float elapsedTime)
         {
             Keyboard.Update();
 
@@ -119,7 +119,7 @@ namespace XNAFinalEngine.UserInterface
                 else if (key == Keys.LeftControl || key == Keys.RightControl) e.Control = true;
             }
 
-            foreach (InputKey key in keys)
+            foreach (InputKey key in _keys)
             {
                 if (key.Key == Keys.LeftAlt || key.Key == Keys.RightAlt ||
                     key.Key == Keys.LeftShift || key.Key == Keys.RightShift ||
@@ -130,7 +130,7 @@ namespace XNAFinalEngine.UserInterface
 
                 bool pressed = Keyboard.State.IsKeyDown(key.Key);
 
-                double frameTimeInMilliseconds = elapsedTime_; // From seconds to milliseconds.
+                double frameTimeInMilliseconds = elapsedTime; // From seconds to milliseconds.
                 if (pressed) key.Countdown -= frameTimeInMilliseconds;
 
                 if ((pressed) && (!key.Pressed))
@@ -144,14 +144,14 @@ namespace XNAFinalEngine.UserInterface
                 else if ((!pressed) && (key.Pressed))
                 {
                     key.Pressed = false;
-                    key.Countdown = repeatDelay;
+                    key.Countdown = RepeatDelay;
                     e.Key = key.Key;
 
                     if (KeyUp != null) KeyUp.Invoke(this, e);
                 }
                 else if (key.Pressed && key.Countdown < 0)
                 {
-                    key.Countdown = repeatRate;
+                    key.Countdown = RepeatRate;
                     e.Key = key.Key;
 
                     if (KeyPress != null) KeyPress.Invoke(this, e);
@@ -179,7 +179,7 @@ namespace XNAFinalEngine.UserInterface
                 else if (Mouse.State.XButton1 == ButtonState.Pressed) btn = MouseButton.XButton1;
                 else if (Mouse.State.XButton2 == ButtonState.Pressed) btn = MouseButton.XButton2;
 
-                BuildMouseEvent(btn, ref e, m_GameWindowClientBounds);
+                BuildMouseEvent(btn, ref e, _gameWindowClientBounds);
                 if (MouseMove != null)
                 {
                     MouseMove.Invoke(this, e);
@@ -192,7 +192,7 @@ namespace XNAFinalEngine.UserInterface
         {
             MouseEventArgs e = new MouseEventArgs();
 
-            foreach (InputMouseButton btn in mouseButtons)
+            foreach (InputMouseButton btn in _mouseButtons)
             {
                 ButtonState bs = ButtonState.Released;
 
@@ -208,7 +208,7 @@ namespace XNAFinalEngine.UserInterface
                 if (pressed && !btn.Pressed) // If is pressed and the last frame wasn't pressed.
                 {
                     btn.Pressed = true;
-                    BuildMouseEvent(btn.Button, ref e, m_GameWindowClientBounds);
+                    BuildMouseEvent(btn.Button, ref e, _gameWindowClientBounds);
 
                     if (MouseDown != null) MouseDown.Invoke(this, e);
                     if (MousePress != null) MousePress.Invoke(this, e);
@@ -216,22 +216,22 @@ namespace XNAFinalEngine.UserInterface
                 else if (!pressed && btn.Pressed) // If isn't pressed and the last frame was pressed.
                 {
                     btn.Pressed = false;
-                    BuildMouseEvent(btn.Button, ref e, m_GameWindowClientBounds);
+                    BuildMouseEvent(btn.Button, ref e, _gameWindowClientBounds);
 
                     if (MouseUp != null) MouseUp.Invoke(this, e);
                 }
                 else if (pressed && btn.Pressed) // If is pressed and was pressed.
                 {
                     e.Button = btn.Button;
-                    BuildMouseEvent(btn.Button, ref e, m_GameWindowClientBounds);
+                    BuildMouseEvent(btn.Button, ref e, _gameWindowClientBounds);
                     if (MousePress != null) MousePress.Invoke(this, e);
                 }
             }
         } // UpdateButtons
 
-        private static void AdjustPosition(Rectangle gameWindowClientBounds_, ref MouseEventArgs e)
+        private static void AdjustPosition(Rectangle gameWindowClientBounds, ref MouseEventArgs e)
         {
-            Rectangle screen = gameWindowClientBounds_;
+            Rectangle screen = gameWindowClientBounds;
 
             if (e.Position.X < 0) e.Position.X = 0;
             if (e.Position.Y < 0) e.Position.Y = 0;
@@ -239,13 +239,13 @@ namespace XNAFinalEngine.UserInterface
             if (e.Position.Y >= screen.Height) e.Position.Y = screen.Height - 1;
         } // AdjustPosition
 
-        private static void BuildMouseEvent(MouseButton button, ref MouseEventArgs e, Rectangle gameWindowClientBounds_)
+        private static void BuildMouseEvent(MouseButton button, ref MouseEventArgs e, Rectangle gameWindowClientBounds)
         {
             e.State = Mouse.State;
             e.Button = button;
 
             e.Position = new Point(Mouse.State.X, Mouse.State.Y);
-            AdjustPosition(gameWindowClientBounds_, ref e);
+            AdjustPosition(gameWindowClientBounds, ref e);
 
             e.State = new MouseState(e.Position.X, e.Position.Y, e.State.ScrollWheelValue, e.State.LeftButton, e.State.MiddleButton, e.State.RightButton, e.State.XButton1, e.State.XButton2);
 

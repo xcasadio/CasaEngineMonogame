@@ -3,153 +3,153 @@
     public class NeuralNetworkLayer
     {
 
-        int m_NumberOfNodes;
-        int m_NumberOfChildNodes;
-        int m_NumberOfParentNodes;
-        double[,] m_Weights;
-        double[,] m_WeightChanges;
-        double[] m_NeuronValues;
-        double[] m_DesiredValues;
-        double[] m_Errors;
-        double[] m_BiasWeights;
-        double[] m_BiasValues;
-        double m_LearningRate;
+        int _numberOfNodes;
+        int _numberOfChildNodes;
+        int _numberOfParentNodes;
+        double[,] _weights;
+        double[,] _weightChanges;
+        double[] _neuronValues;
+        double[] _desiredValues;
+        double[] _errors;
+        double[] _biasWeights;
+        double[] _biasValues;
+        double _learningRate;
 
-        bool m_LinearOutput = false;
-        bool m_UseMomentum = false;
-        double m_MomentumFactor = 0.9;
+        bool _linearOutput = false;
+        bool _useMomentum = false;
+        double _momentumFactor = 0.9;
 
-        NeuralNetworkLayer m_ParentLayer;
-        NeuralNetworkLayer m_ChildLayer;
+        NeuralNetworkLayer _parentLayer;
+        NeuralNetworkLayer _childLayer;
 
 
 
         public int NumberOfNodes
         {
-            get => m_NumberOfNodes;
-            set => m_NumberOfNodes = value;
+            get => _numberOfNodes;
+            set => _numberOfNodes = value;
         }
 
         public int NumberOfChildNodes
         {
-            get => m_NumberOfChildNodes;
-            set => m_NumberOfChildNodes = value;
+            get => _numberOfChildNodes;
+            set => _numberOfChildNodes = value;
         }
 
         public int NumberOfParentNodes
         {
-            get => m_NumberOfParentNodes;
-            set => m_NumberOfParentNodes = value;
+            get => _numberOfParentNodes;
+            set => _numberOfParentNodes = value;
         }
 
-        public double[,] Weights => m_Weights;
+        public double[,] Weights => _weights;
 
-        public double[,] WeightChanges => m_WeightChanges;
+        public double[,] WeightChanges => _weightChanges;
 
-        public double[] NeuronValues => m_NeuronValues;
+        public double[] NeuronValues => _neuronValues;
 
-        public double[] DesiredValues => m_DesiredValues;
+        public double[] DesiredValues => _desiredValues;
 
-        public double[] Errors => m_Errors;
+        public double[] Errors => _errors;
 
-        public double[] BiasWeights => m_BiasWeights;
+        public double[] BiasWeights => _biasWeights;
 
-        public double[] BiasValues => m_BiasValues;
+        public double[] BiasValues => _biasValues;
 
         public double LearningRate
         {
-            get => m_LearningRate;
-            set => m_LearningRate = value;
+            get => _learningRate;
+            set => _learningRate = value;
         }
 
         public bool LinearOutput
         {
-            get => m_LinearOutput;
-            set => m_LinearOutput = value;
+            get => _linearOutput;
+            set => _linearOutput = value;
         }
 
         public bool UseMomentum
         {
-            get => m_UseMomentum;
-            set => m_UseMomentum = value;
+            get => _useMomentum;
+            set => _useMomentum = value;
         }
 
         public double MomentumFactor
         {
-            get => m_MomentumFactor;
-            set => m_MomentumFactor = value;
+            get => _momentumFactor;
+            set => _momentumFactor = value;
         }
 
-        public NeuralNetworkLayer ParentLayer => m_ParentLayer;
+        public NeuralNetworkLayer ParentLayer => _parentLayer;
 
-        public NeuralNetworkLayer ChildLayer => m_ChildLayer;
+        public NeuralNetworkLayer ChildLayer => _childLayer;
 
 
-        public void Initialize(int NumNodes, NeuralNetworkLayer parent, NeuralNetworkLayer child)
+        public void Initialize(int numNodes, NeuralNetworkLayer parent, NeuralNetworkLayer child)
         {
             int i, j;
 
-            m_NeuronValues = new double[m_NumberOfNodes];
-            m_DesiredValues = new double[m_NumberOfNodes];
-            m_Errors = new double[m_NumberOfNodes];
+            _neuronValues = new double[_numberOfNodes];
+            _desiredValues = new double[_numberOfNodes];
+            _errors = new double[_numberOfNodes];
 
             if (parent != null)
             {
-                m_ParentLayer = parent;
+                _parentLayer = parent;
             }
 
             if (child != null)
             {
-                m_ChildLayer = child;
+                _childLayer = child;
 
-                m_Weights = new double[m_NumberOfNodes, m_NumberOfChildNodes];
-                m_WeightChanges = new double[m_NumberOfNodes, m_NumberOfChildNodes];
+                _weights = new double[_numberOfNodes, _numberOfChildNodes];
+                _weightChanges = new double[_numberOfNodes, _numberOfChildNodes];
 
-                m_BiasValues = new double[m_NumberOfChildNodes];
-                m_BiasWeights = new double[m_NumberOfChildNodes];
+                _biasValues = new double[_numberOfChildNodes];
+                _biasWeights = new double[_numberOfChildNodes];
             }
             else
             {
-                m_Weights = null;
-                m_BiasValues = null;
-                m_BiasWeights = null;
+                _weights = null;
+                _biasValues = null;
+                _biasWeights = null;
             }
 
             // Make sure everything contains zeros
-            for (i = 0; i < m_NumberOfNodes; i++)
+            for (i = 0; i < _numberOfNodes; i++)
             {
-                m_NeuronValues[i] = 0;
-                m_DesiredValues[i] = 0;
-                m_Errors[i] = 0;
+                _neuronValues[i] = 0;
+                _desiredValues[i] = 0;
+                _errors[i] = 0;
 
-                if (m_ChildLayer != null)
-                    for (j = 0; j < m_NumberOfChildNodes; j++)
+                if (_childLayer != null)
+                    for (j = 0; j < _numberOfChildNodes; j++)
                     {
-                        m_Weights[i, j] = 0;
-                        m_WeightChanges[i, j] = 0;
+                        _weights[i, j] = 0;
+                        _weightChanges[i, j] = 0;
                     }
             }
 
-            if (m_ChildLayer != null)
-                for (j = 0; j < m_NumberOfChildNodes; j++)
+            if (_childLayer != null)
+                for (j = 0; j < _numberOfChildNodes; j++)
                 {
-                    m_BiasValues[j] = -1;
-                    m_BiasWeights[j] = 0;
+                    _biasValues[j] = -1;
+                    _biasWeights[j] = 0;
                 }
 
         }
 
         public void CleanUp()
         {
-            m_NeuronValues = null;
-            m_DesiredValues = null;
-            m_Errors = null;
+            _neuronValues = null;
+            _desiredValues = null;
+            _errors = null;
 
-            m_Weights = null;
-            m_WeightChanges = null;
+            _weights = null;
+            _weightChanges = null;
 
-            m_BiasValues = null;
-            m_BiasWeights = null;
+            _biasValues = null;
+            _biasWeights = null;
         }
 
         public void RandomizeWeights()
@@ -161,9 +161,9 @@
 
             Random rand = new Random();
 
-            for (i = 0; i < m_NumberOfNodes; i++)
+            for (i = 0; i < _numberOfNodes; i++)
             {
-                for (j = 0; j < m_NumberOfChildNodes; j++)
+                for (j = 0; j < _numberOfChildNodes; j++)
                 {
                     number = rand.Next(min, max);
 
@@ -173,11 +173,11 @@
                     if (number < min)
                         number = min;
 
-                    m_Weights[i, j] = number / 100.0f - 1;
+                    _weights[i, j] = number / 100.0f - 1;
                 }
             }
 
-            for (j = 0; j < m_NumberOfChildNodes; j++)
+            for (j = 0; j < _numberOfChildNodes; j++)
             {
                 number = rand.Next(min, max);
 
@@ -187,7 +187,7 @@
                 if (number < min)
                     number = min;
 
-                m_BiasWeights[j] = number / 100.0f - 1;
+                _biasWeights[j] = number / 100.0f - 1;
             }
         }
 
@@ -196,31 +196,31 @@
             int i, j;
             double sum;
 
-            if (m_ChildLayer == null) // output layer
+            if (_childLayer == null) // output layer
             {
-                for (i = 0; i < m_NumberOfNodes; i++)
+                for (i = 0; i < _numberOfNodes; i++)
                 {
-                    m_Errors[i] = (m_DesiredValues[i] - m_NeuronValues[i]) * m_NeuronValues[i] * (1.0f - m_NeuronValues[i]);
+                    _errors[i] = (_desiredValues[i] - _neuronValues[i]) * _neuronValues[i] * (1.0f - _neuronValues[i]);
                 }
             }
-            else if (m_ParentLayer == null)
+            else if (_parentLayer == null)
             { // input layer
-                for (i = 0; i < m_NumberOfNodes; i++)
+                for (i = 0; i < _numberOfNodes; i++)
                 {
-                    m_Errors[i] = 0.0f;
+                    _errors[i] = 0.0f;
                 }
             }
             else
             { // hidden layer
-                for (i = 0; i < m_NumberOfNodes; i++)
+                for (i = 0; i < _numberOfNodes; i++)
                 {
                     sum = 0;
 
-                    for (j = 0; j < m_NumberOfChildNodes; j++)
+                    for (j = 0; j < _numberOfChildNodes; j++)
                     {
-                        sum += m_ChildLayer.Errors[j] * m_Weights[i, j];
+                        sum += _childLayer.Errors[j] * _weights[i, j];
                     }
-                    m_Errors[i] = sum * m_NeuronValues[i] * (1.0f - m_NeuronValues[i]);
+                    _errors[i] = sum * _neuronValues[i] * (1.0f - _neuronValues[i]);
                 }
             }
         }
@@ -230,21 +230,21 @@
             int i, j;
             double dw;
 
-            if (m_ChildLayer != null)
+            if (_childLayer != null)
             {
-                for (i = 0; i < m_NumberOfNodes; i++)
+                for (i = 0; i < _numberOfNodes; i++)
                 {
-                    for (j = 0; j < m_NumberOfChildNodes; j++)
+                    for (j = 0; j < _numberOfChildNodes; j++)
                     {
-                        dw = m_LearningRate * m_ChildLayer.Errors[j] * m_NeuronValues[i];
-                        m_Weights[i, j] += dw + m_MomentumFactor * m_WeightChanges[i, j];
-                        m_WeightChanges[i, j] = dw;
+                        dw = _learningRate * _childLayer.Errors[j] * _neuronValues[i];
+                        _weights[i, j] += dw + _momentumFactor * _weightChanges[i, j];
+                        _weightChanges[i, j] = dw;
                     }
                 }
 
-                for (j = 0; j < m_NumberOfChildNodes; j++)
+                for (j = 0; j < _numberOfChildNodes; j++)
                 {
-                    m_BiasWeights[j] += m_LearningRate * m_ChildLayer.Errors[j] * m_BiasValues[j];
+                    _biasWeights[j] += _learningRate * _childLayer.Errors[j] * _biasValues[j];
                 }
             }
         }
@@ -254,23 +254,23 @@
             int i, j;
             double x;
 
-            if (m_ParentLayer != null)
+            if (_parentLayer != null)
             {
-                for (j = 0; j < m_NumberOfNodes; j++)
+                for (j = 0; j < _numberOfNodes; j++)
                 {
                     x = 0.0;
 
-                    for (i = 0; i < m_NumberOfParentNodes; i++)
+                    for (i = 0; i < _numberOfParentNodes; i++)
                     {
-                        x += m_ParentLayer.NeuronValues[i] * m_ParentLayer.Weights[i, j];
+                        x += _parentLayer.NeuronValues[i] * _parentLayer.Weights[i, j];
                     }
 
-                    x += m_ParentLayer.BiasValues[j] * m_ParentLayer.BiasWeights[j];
+                    x += _parentLayer.BiasValues[j] * _parentLayer.BiasWeights[j];
 
-                    if ((m_ChildLayer == null) && m_LinearOutput)
-                        m_NeuronValues[j] = x;
+                    if ((_childLayer == null) && _linearOutput)
+                        _neuronValues[j] = x;
                     else
-                        m_NeuronValues[j] = 1.0f / (1 + System.Math.Exp(-x));
+                        _neuronValues[j] = 1.0f / (1 + System.Math.Exp(-x));
                 }
             }
         }

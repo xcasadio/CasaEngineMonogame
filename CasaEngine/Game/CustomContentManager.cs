@@ -6,8 +6,8 @@ namespace CasaEngine.Game
         : ContentManager
     {
         // Cache of all the loaded content
-        readonly Dictionary<string, object> loaded = new Dictionary<string, object>();
-        readonly List<IDisposable> disposableAssets = new List<IDisposable>();
+        readonly Dictionary<string, object> _loaded = new Dictionary<string, object>();
+        readonly List<IDisposable> _disposableAssets = new List<IDisposable>();
 
         public CustomContentManager(IServiceProvider services)
             : base(services)
@@ -23,12 +23,12 @@ namespace CasaEngine.Game
         public override T Load<T>(string assetName)
         {
             // Return the stored instance if there is one
-            if (loaded.ContainsKey(assetName))
-                return (T)loaded[assetName];
+            if (_loaded.ContainsKey(assetName))
+                return (T)_loaded[assetName];
 
             // If there isn't, load a new one
             T read = base.ReadAsset<T>(assetName, RecordDisposableAsset);
-            loaded.Add(assetName, read);
+            _loaded.Add(assetName, read);
 
             return read;
         }
@@ -43,32 +43,32 @@ namespace CasaEngine.Game
 
         void RecordDisposableAsset(IDisposable disposable)
         {
-            disposableAssets.Add(disposable);
+            _disposableAssets.Add(disposable);
         }
 
         // Unload everything
         public override void Unload()
         {
-            foreach (IDisposable disposable in disposableAssets)
+            foreach (IDisposable disposable in _disposableAssets)
                 disposable.Dispose();
 
-            loaded.Clear();
-            disposableAssets.Clear();
+            _loaded.Clear();
+            _disposableAssets.Clear();
         }
 
         // Unload a single asset
         public void UnloadAsset(string name)
         {
-            if (loaded.ContainsKey(name))
+            if (_loaded.ContainsKey(name))
             {
-                if (loaded[name] is IDisposable && disposableAssets.Contains((IDisposable)loaded[name]))
+                if (_loaded[name] is IDisposable && _disposableAssets.Contains((IDisposable)_loaded[name]))
                 {
-                    IDisposable disp = (IDisposable)loaded[name];
-                    disposableAssets.Remove(disp);
+                    IDisposable disp = (IDisposable)_loaded[name];
+                    _disposableAssets.Remove(disp);
                     disp.Dispose();
                 }
 
-                loaded.Remove(name);
+                _loaded.Remove(name);
             }
         }
     }

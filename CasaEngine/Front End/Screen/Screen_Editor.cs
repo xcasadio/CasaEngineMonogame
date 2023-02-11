@@ -13,12 +13,12 @@ namespace CasaEngine.FrontEnd.Screen
 {
     public abstract partial class Screen
     {
-        public override void Save(XmlElement el_, SaveOption opt_)
+        public override void Save(XmlElement el, SaveOption opt)
         {
 
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption opt_)
+        public override void Save(BinaryWriter bw, SaveOption opt)
         {
 
         }

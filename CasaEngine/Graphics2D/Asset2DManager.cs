@@ -12,10 +12,10 @@ namespace CasaEngine.Graphics2D
     class Asset2DManager
     {
 
-        private readonly Dictionary<int, Sprite2D> m_Sprite2DList = new Dictionary<int, Sprite2D>();
-        private readonly Dictionary<int, Animation2D> m_Animation2DList = new Dictionary<int, Animation2D>();
-        private readonly List<int> m_Sprite2DLoadingList = new List<int>();
-        //private Game m_Game = null;
+        private readonly Dictionary<int, Sprite2D> _sprite2DList = new Dictionary<int, Sprite2D>();
+        private readonly Dictionary<int, Animation2D> _animation2DList = new Dictionary<int, Animation2D>();
+        private readonly List<int> _sprite2DLoadingList = new List<int>();
+        //private Game _Game = null;
 
 
 
@@ -25,87 +25,87 @@ namespace CasaEngine.Graphics2D
 
         public void ClearLoadingList()
         {
-            foreach (int id in m_Sprite2DLoadingList)
+            foreach (int id in _sprite2DLoadingList)
             {
-                m_Sprite2DList[id].UnloadTexture();
+                _sprite2DList[id].UnloadTexture();
             }
 
-            m_Sprite2DLoadingList.Clear();
+            _sprite2DLoadingList.Clear();
         }
 
-        public void LoadLoadingList(ContentManager content_)
+        public void LoadLoadingList(ContentManager content)
         {
-            foreach (int id in m_Sprite2DLoadingList)
+            foreach (int id in _sprite2DLoadingList)
             {
-                m_Sprite2DList[id].LoadTexture(content_);
+                _sprite2DList[id].LoadTexture(content);
             }
 
-            m_Sprite2DLoadingList.Clear();
+            _sprite2DLoadingList.Clear();
         }
 
-        public void AddSprite2DToLoadingList(int spriteId_)
+        public void AddSprite2DToLoadingList(int spriteId)
         {
-            if (m_Sprite2DList.ContainsKey(spriteId_) == false)
+            if (_sprite2DList.ContainsKey(spriteId) == false)
             {
-                throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Sprite2D with the id " + spriteId_ + " doesn't exist.");
+                throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Sprite2D with the id " + spriteId + " doesn't exist.");
             }
 
-            if (m_Sprite2DLoadingList.Contains(spriteId_) == false)
+            if (_sprite2DLoadingList.Contains(spriteId) == false)
             {
-                m_Sprite2DLoadingList.Add(spriteId_);
+                _sprite2DLoadingList.Add(spriteId);
             }
         }
 
-        public void AddSprite2DToLoadingList(Sprite2D sprite2D_)
+        public void AddSprite2DToLoadingList(Sprite2D sprite2D)
         {
-            if (sprite2D_ == null)
+            if (sprite2D == null)
             {
                 throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Sprite2D is null.");
             }
 
-            AddSprite2DToLoadingList(sprite2D_.ID);
+            AddSprite2DToLoadingList(sprite2D.ID);
         }
 
-        public void AddSprite2DToLoadingList(Animation2D anim2D_)
+        public void AddSprite2DToLoadingList(Animation2D anim2D)
         {
-            if (anim2D_ == null)
+            if (anim2D == null)
             {
                 throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Animation2D is null.");
             }
 
-            foreach (Frame2D frame in anim2D_.GetFrames())
+            foreach (Frame2D frame in anim2D.GetFrames())
             {
-                AddSprite2DToLoadingList(frame.spriteID);
+                AddSprite2DToLoadingList(frame.SpriteId);
             }
         }
 
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
-            uint version = uint.Parse(el_.Attributes["version"].Value);
+            uint version = uint.Parse(el.Attributes["version"].Value);
 
-            XmlNode sprite2DListNode = el_.SelectSingleNode("Sprite2DList");
+            XmlNode sprite2DListNode = el.SelectSingleNode("Sprite2DList");
 
             foreach (XmlNode node in sprite2DListNode.ChildNodes)
             {
-                AddSprite2D(new Sprite2D((XmlElement)node, option_));
+                AddSprite2D(new Sprite2D((XmlElement)node, option));
             }
 
-            XmlNode animation2DListNode = el_.SelectSingleNode("Animation2DList");
+            XmlNode animation2DListNode = el.SelectSingleNode("Animation2DList");
 
             foreach (XmlNode node in animation2DListNode.ChildNodes)
             {
-                AddAnimation2D(new Animation2D((XmlElement)node, option_));
+                AddAnimation2D(new Animation2D((XmlElement)node, option));
             }
         }
 
-        public Sprite2D GetSprite2DByID(int id_)
+        public Sprite2D GetSprite2DById(int id)
         {
-            return m_Sprite2DList[id_];
+            return _sprite2DList[id];
         }
 
-        public Sprite2D GetSprite2DByName(string name_, StringComparison compare_ = StringComparison.InvariantCultureIgnoreCase)
+        public Sprite2D GetSprite2DByName(string name, StringComparison compare = StringComparison.InvariantCultureIgnoreCase)
         {
-            /*foreach (KeyValuePair<uint, Sprite2D> pair in m_Sprite2DList)
+            /*foreach (KeyValuePair<uint, Sprite2D> pair in _Sprite2DList)
 			{
                 if (pair.Value.Name.Equals(name_, compare_) == true)
 				{
@@ -116,11 +116,11 @@ namespace CasaEngine.Graphics2D
             return null;
         }
 
-        public Animation2D GetAnimation2DByName(string name_, StringComparison compare_ = StringComparison.InvariantCultureIgnoreCase)
+        public Animation2D GetAnimation2DByName(string name, StringComparison compare = StringComparison.InvariantCultureIgnoreCase)
         {
-            foreach (KeyValuePair<int, Animation2D> pair in m_Animation2DList)
+            foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
             {
-                if (pair.Value.Name.Equals(name_, compare_) == true)
+                if (pair.Value.Name.Equals(name, compare) == true)
                 {
                     return pair.Value;
                 }
@@ -134,9 +134,9 @@ namespace CasaEngine.Graphics2D
 #else
 		private
 #endif
-        void AddSprite2D(Sprite2D sprite2D_)
+        void AddSprite2D(Sprite2D sprite2D)
         {
-            m_Sprite2DList.Add(sprite2D_.ID, sprite2D_);
+            _sprite2DList.Add(sprite2D.ID, sprite2D);
 
             //TODO : Perforce
 
@@ -153,14 +153,14 @@ namespace CasaEngine.Graphics2D
 #else
 		private
 #endif
-        void AddAnimation2D(Animation2D anim_)
+        void AddAnimation2D(Animation2D ani)
         {
-            m_Animation2DList.Add(anim_.ID, anim_);
+            _animation2DList.Add(ani.ID, ani);
 
 #if EDITOR
             if (AnimationAdded != null)
             {
-                AnimationAdded.Invoke(this, new Asset2DEventArg(anim_.Name));
+                AnimationAdded.Invoke(this, new Asset2DEventArg(ani.Name));
             }
 #endif
         }

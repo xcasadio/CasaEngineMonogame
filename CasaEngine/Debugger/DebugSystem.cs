@@ -36,13 +36,13 @@ namespace CasaEngine.Debugger
 {
     public sealed class DebugSystem
     {
-        private static DebugSystem singletonInstance;
+        private static DebugSystem _singletonInstance;
 
-        public static DebugSystem Instance => singletonInstance;
+        public static DebugSystem Instance => _singletonInstance;
 
         public DebugManager DebugManager { get; private set; }
 
-        public DebugCommandUI DebugCommandUI { get; private set; }
+        public DebugCommandUi DebugCommandUi { get; private set; }
 
         public FpsCounter FpsCounter { get; private set; }
 
@@ -51,26 +51,26 @@ namespace CasaEngine.Debugger
         public static DebugSystem Initialize(Microsoft.Xna.Framework.Game game)
         {
             // if the singleton exists, return that; we don't want two systems being created for a game
-            if (singletonInstance != null)
-                return singletonInstance;
+            if (_singletonInstance != null)
+                return _singletonInstance;
 
             // Create the system
-            singletonInstance = new DebugSystem();
+            _singletonInstance = new DebugSystem();
 
             // Create all of the system components
-            singletonInstance.DebugManager = new DebugManager(game);
-            game.Components.Add(singletonInstance.DebugManager);
+            _singletonInstance.DebugManager = new DebugManager(game);
+            game.Components.Add(_singletonInstance.DebugManager);
 
-            singletonInstance.DebugCommandUI = new DebugCommandUI(game);
-            game.Components.Add(singletonInstance.DebugCommandUI);
+            _singletonInstance.DebugCommandUi = new DebugCommandUi(game);
+            game.Components.Add(_singletonInstance.DebugCommandUi);
 
-            singletonInstance.FpsCounter = new FpsCounter(game);
-            game.Components.Add(singletonInstance.FpsCounter);
+            _singletonInstance.FpsCounter = new FpsCounter(game);
+            game.Components.Add(_singletonInstance.FpsCounter);
 
-            singletonInstance.TimeRuler = new TimeRuler(game);
-            game.Components.Add(singletonInstance.TimeRuler);
+            _singletonInstance.TimeRuler = new TimeRuler(game);
+            game.Components.Add(_singletonInstance.TimeRuler);
 
-            return singletonInstance;
+            return _singletonInstance;
         }
 
         // Private constructor; games should use Initialize

@@ -10,7 +10,7 @@ namespace CasaEngine.Input
 {
     public class MoveManager
     {
-        private readonly Move[] moves;
+        private readonly Move[] _moves;
 
         public MoveManager(IEnumerable<Move> moves)
         {
@@ -18,7 +18,7 @@ namespace CasaEngine.Input
             // This greatly simplifies the logic of the DetectMove method.
 
 #if EDITOR
-            this.moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
+            this._moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
 #else
             this.moves = moves.OrderByDescending(m => m.Sequence.Length).ToArray();
 #endif
@@ -28,7 +28,7 @@ namespace CasaEngine.Input
         {
             // Perform a linear search for a move which matches the input. This relies
             // on the moves array being in order of decreasing sequence length.
-            foreach (Move move in moves)
+            foreach (Move move in _moves)
             {
                 if (input.Matches(move))
                 {
@@ -45,7 +45,7 @@ namespace CasaEngine.Input
                 // Since they are in decreasing order,
                 // the first move is the longest.
 #if EDITOR
-                return moves[0].Sequence.Count;
+                return _moves[0].Sequence.Count;
 #else
                 return moves[0].Sequence.Length;
 #endif

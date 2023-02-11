@@ -5,22 +5,22 @@ using CasaEngine.AI.Graphs;
 
 namespace CasaEngine.AI.Pathfinding
 {
-    public class DijkstraSearch<T, K> : GraphSearchAlgorithm<T, K>
+    public class DijkstraSearch<T, TK> : GraphSearchAlgorithm<T, TK>
         where T : Node
-        where K : WeightedEdge
+        where TK : WeightedEdge
     {
 
-        protected internal List<double> costToNode;
+        protected internal List<double> CostToNode;
 
-        protected internal List<K> shortestPathTree;
+        protected internal List<TK> ShortestPathTree;
 
-        protected internal List<K> frontier;
+        protected internal List<TK> Frontier;
 
-        protected internal IndexedPriorityQueue<double> queue;
+        protected internal IndexedPriorityQueue<double> Queue;
 
 
 
-        public DijkstraSearch(Graph<T, K> graph) : base(graph)
+        public DijkstraSearch(Graph<T, TK> graph) : base(graph)
         { }
 
 
@@ -34,15 +34,15 @@ namespace CasaEngine.AI.Pathfinding
 
                 //If the search didn´t find anything, return an empty path
                 path = new List<int>();
-                if (found != SearchState.CompletedAndFound)
+                if (Found != SearchState.CompletedAndFound)
                     return path;
 
                 //Get the list of nodes from source to target. The shortest patrh tree is visited in reverse order
-                path.Insert(0, target);
-                aux = target;
-                while (aux != source)
+                path.Insert(0, Target);
+                aux = Target;
+                while (aux != Source)
                 {
-                    aux = shortestPathTree[aux].Start;
+                    aux = ShortestPathTree[aux].Start;
                     path.Insert(0, aux);
                 }
 
@@ -50,24 +50,24 @@ namespace CasaEngine.AI.Pathfinding
             }
         }
 
-        public override List<K> PathOfEdges
+        public override List<TK> PathOfEdges
         {
             get
             {
-                List<K> path;
+                List<TK> path;
                 int aux;
 
                 //If the search didn´t find anything, return an empty path
-                path = new List<K>();
-                if (found != SearchState.CompletedAndFound)
+                path = new List<TK>();
+                if (Found != SearchState.CompletedAndFound)
                     return path;
 
                 //Get the list of edges from source to target. The shortest patrh tree is visited in reverse order
-                aux = target;
-                while (aux != source)
+                aux = Target;
+                while (aux != Source)
                 {
-                    path.Insert(0, shortestPathTree[aux]);
-                    aux = shortestPathTree[aux].start;
+                    path.Insert(0, ShortestPathTree[aux]);
+                    aux = ShortestPathTree[aux].start;
                 }
 
                 return path;
@@ -79,23 +79,23 @@ namespace CasaEngine.AI.Pathfinding
         public override void Initialize(int source, int target)
         {
             //Create the auxiliary lists
-            costToNode = new List<double>(graph.NodeCount);
-            shortestPathTree = new List<K>(graph.NodeCount);
-            frontier = new List<K>(graph.NodeCount);
+            CostToNode = new List<double>(Graph.NodeCount);
+            ShortestPathTree = new List<TK>(Graph.NodeCount);
+            Frontier = new List<TK>(Graph.NodeCount);
 
             //Initialize the values
-            for (int i = 0; i < graph.NodeCount; i++)
+            for (int i = 0; i < Graph.NodeCount; i++)
             {
-                costToNode.Add(Double.MaxValue);
-                shortestPathTree.Add(default(K));
-                frontier.Add(default(K));
+                CostToNode.Add(Double.MaxValue);
+                ShortestPathTree.Add(default(TK));
+                Frontier.Add(default(TK));
             }
 
-            costToNode[source] = 0;
+            CostToNode[source] = 0;
 
             //Initialize the indexed priority queue and enqueue the first node
-            queue = new IndexedPriorityQueue<double>(costToNode);
-            queue.Enqueue(source);
+            Queue = new IndexedPriorityQueue<double>(CostToNode);
+            Queue.Enqueue(source);
 
             //Initialize the base
             base.Initialize(source, target);
@@ -104,105 +104,105 @@ namespace CasaEngine.AI.Pathfinding
         public override SearchState Search()
         {
             int closestNode;
-            List<K> edges;
+            List<TK> edges;
             double newCost;
 
-            while (queue.Count != 0)
+            while (Queue.Count != 0)
             {
                 //Dequeue the first node (the one with the lower cost) and add it to the shortest path tree
-                closestNode = queue.Dequeue();
-                shortestPathTree[closestNode] = frontier[closestNode];
+                closestNode = Queue.Dequeue();
+                ShortestPathTree[closestNode] = Frontier[closestNode];
 
                 //If it´s the target, return
-                if (closestNode == target)
+                if (closestNode == Target)
                 {
-                    found = SearchState.CompletedAndFound;
-                    return found;
+                    Found = SearchState.CompletedAndFound;
+                    return Found;
                 }
 
                 //Get all edges that start from the current node
-                edges = graph.GetEdgesFromNode(closestNode);
+                edges = Graph.GetEdgesFromNode(closestNode);
                 for (int i = 0; i < edges.Count; i++)
                 {
                     //Calculate the cost to reach the next node with the current one and the edge
-                    newCost = costToNode[closestNode] + edges[i].Cost;
+                    newCost = CostToNode[closestNode] + edges[i].Cost;
 
                     //If the node wasn´t in the frontier, add it
-                    if (frontier[edges[i].End] == null)
+                    if (Frontier[edges[i].End] == null)
                     {
-                        costToNode[edges[i].End] = newCost;
-                        queue.Enqueue(edges[i].End);
-                        frontier[edges[i].End] = edges[i];
+                        CostToNode[edges[i].End] = newCost;
+                        Queue.Enqueue(edges[i].End);
+                        Frontier[edges[i].End] = edges[i];
                     }
 
                     else //If it was, see if the new way of reaching the node is shorter or not. If it´s shorter, update the cost to reach it
                     {
-                        if ((newCost < costToNode[edges[i].End]) && (shortestPathTree[edges[i].End] == null))
+                        if ((newCost < CostToNode[edges[i].End]) && (ShortestPathTree[edges[i].End] == null))
                         {
-                            costToNode[edges[i].End] = newCost;
-                            queue.ChangePriority(edges[i].End);
-                            frontier[edges[i].End] = edges[i];
+                            CostToNode[edges[i].End] = newCost;
+                            Queue.ChangePriority(edges[i].End);
+                            Frontier[edges[i].End] = edges[i];
                         }
                     }
                 }
             }
 
-            found = SearchState.CompletedAndNotFound;
-            return found;
+            Found = SearchState.CompletedAndNotFound;
+            return Found;
         }
 
         public override SearchState CycleOnce()
         {
             int closestNode;
-            List<K> edges;
+            List<TK> edges;
             double newCost;
 
             //If there aren´t nodes left in the queue, the search failed
-            if (queue.Count == 0)
+            if (Queue.Count == 0)
             {
-                found = SearchState.CompletedAndNotFound;
-                return found;
+                Found = SearchState.CompletedAndNotFound;
+                return Found;
             }
 
             //Dequeue the first node (the one with the lower cost) and add it to the shortest path tree
-            closestNode = queue.Dequeue();
-            shortestPathTree[closestNode] = frontier[closestNode];
+            closestNode = Queue.Dequeue();
+            ShortestPathTree[closestNode] = Frontier[closestNode];
 
             //If it´s the target, return
-            if (closestNode == target)
+            if (closestNode == Target)
             {
-                found = SearchState.CompletedAndFound;
-                return found;
+                Found = SearchState.CompletedAndFound;
+                return Found;
             }
 
             //Get all edges that start from the current node
-            edges = graph.GetEdgesFromNode(closestNode);
+            edges = Graph.GetEdgesFromNode(closestNode);
             for (int i = 0; i < edges.Count; i++)
             {
                 //Calculate the cost to reach the next node with the current one and the edge
-                newCost = costToNode[closestNode] + edges[i].Cost;
+                newCost = CostToNode[closestNode] + edges[i].Cost;
 
                 //If the node wasn´t in the frontier, add it
-                if (frontier[edges[i].End] == null)
+                if (Frontier[edges[i].End] == null)
                 {
-                    costToNode[edges[i].End] = newCost;
-                    queue.Enqueue(edges[i].End);
-                    frontier[edges[i].End] = edges[i];
+                    CostToNode[edges[i].End] = newCost;
+                    Queue.Enqueue(edges[i].End);
+                    Frontier[edges[i].End] = edges[i];
                 }
 
                 else //If it was, see if the new way of reaching the node is shorter or not. If it´s shorter, update the cost to reach it
                 {
-                    if ((newCost < costToNode[edges[i].End]) && (shortestPathTree[edges[i].End] == null))
+                    if ((newCost < CostToNode[edges[i].End]) && (ShortestPathTree[edges[i].End] == null))
                     {
-                        costToNode[edges[i].End] = newCost;
-                        queue.ChangePriority(edges[i].End);
-                        frontier[edges[i].End] = edges[i];
+                        CostToNode[edges[i].End] = newCost;
+                        Queue.ChangePriority(edges[i].End);
+                        Frontier[edges[i].End] = edges[i];
                     }
                 }
             }
 
-            found = SearchState.NotCompleted;
-            return found;
+            Found = SearchState.NotCompleted;
+            return Found;
         }
 
     }

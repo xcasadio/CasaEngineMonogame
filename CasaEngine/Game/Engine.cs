@@ -21,34 +21,34 @@ namespace CasaEngine.Game
     public class Engine
     {
 
-        static readonly private Engine ms_Engine = new Engine();
+        static readonly private Engine MsEngine = new Engine();
 
-        private Microsoft.Xna.Framework.Game m_Game;
-        private readonly Asset2DManager m_Asset2DManager;
-        private SpriteFont m_DefaultSpriteFont;
-        private SpriteBatch m_SpriteBatch;
-        private readonly ProjectConfig m_ProjectConfig;
-        private readonly ObjectRegistry m_ObjectRegistry;
-        private readonly ProjectManager m_ProjectManager;
-        //private PackageManager m_PackageManager;
-        private readonly ObjectManager m_ObjectManager;
-        private readonly ScreenManager m_ScreenManager;
-        private readonly UserInterfaceManager m_UIManager;
+        private Microsoft.Xna.Framework.Game _game;
+        private readonly Asset2DManager _asset2DManager;
+        private SpriteFont _defaultSpriteFont;
+        private SpriteBatch _spriteBatch;
+        private readonly ProjectConfig _projectConfig;
+        private readonly ObjectRegistry _objectRegistry;
+        private readonly ProjectManager _projectManager;
+        //private PackageManager _PackageManager;
+        private readonly ObjectManager _objectManager;
+        private readonly ScreenManager _screenManager;
+        private readonly UserInterfaceManager _uiManager;
 
 #if EDITOR
-        private readonly ExternalToolManager m_ExternalToolManager;
-        private readonly AssetManager m_AssetManager;
-        private BasicEffect m_Effect;
+        private readonly ExternalToolManager _externalToolManager;
+        private readonly AssetManager _assetManager;
+        private BasicEffect _effect;
 #endif
         /*
-        private List<string> m_Errors = new List<string>();
-		private List<string> m_Warnings = new List<string>();
-		private string[] m_Arguments = null;*/
+        private List<string> _Errors = new List<string>();
+		private List<string> _Warnings = new List<string>();
+		private string[] _Arguments = null;*/
 
 
 
 
-        static public Engine Instance => ms_Engine;
+        static public Engine Instance => MsEngine;
 
         internal bool ResetDevice
         {
@@ -56,9 +56,9 @@ namespace CasaEngine.Game
             set;
         }
 
-        public GraphicsDeviceManager GraphicsDeviceManager => (GraphicsDeviceManager)GameHelper.GetService<IGraphicsDeviceManager>(m_Game);
+        public GraphicsDeviceManager GraphicsDeviceManager => (GraphicsDeviceManager)GameHelper.GetService<IGraphicsDeviceManager>(_game);
 
-        public GraphicsProfile GraphicsProfile => m_Game.GraphicsDevice.GraphicsProfile;
+        public GraphicsProfile GraphicsProfile => _game.GraphicsDevice.GraphicsProfile;
 
         public AssetContentManager AssetContentManager
         {
@@ -66,21 +66,21 @@ namespace CasaEngine.Game
             internal set;
         }
 
-        public Asset2DManager Asset2DManager => m_Asset2DManager;
+        public Asset2DManager Asset2DManager => _asset2DManager;
 
-        public ProjectConfig ProjectConfig => m_ProjectConfig;
+        public ProjectConfig ProjectConfig => _projectConfig;
 
-        public ProjectManager ProjectManager => m_ProjectManager;
+        public ProjectManager ProjectManager => _projectManager;
 
         /*public PackageManager PackageManager
         {
-            get { return m_PackageManager; }
+            get { return _PackageManager; }
         }*/
-        public ObjectManager ObjectManager => m_ObjectManager;
+        public ObjectManager ObjectManager => _objectManager;
 
-        public ScreenManager ScreenManager => m_ScreenManager;
+        public ScreenManager ScreenManager => _screenManager;
 
-        public UserInterfaceManager UIManager => m_UIManager;
+        public UserInterfaceManager UiManager => _uiManager;
 
 
         public int MultiSampleQuality { get; set; }
@@ -88,15 +88,15 @@ namespace CasaEngine.Game
 
         public Microsoft.Xna.Framework.Game Game
         {
-            get => m_Game;
+            get => _game;
             set
             {
-                if (m_Game != null)
+                if (_game != null)
                 {
                     throw new InvalidOperationException("GameInfo.Instance.Game : Game is already set!");
                 }
 
-                m_Game = value;
+                _game = value;
             }
         }
 
@@ -104,8 +104,8 @@ namespace CasaEngine.Game
 
         public SpriteFont DefaultSpriteFont
         {
-            get => m_DefaultSpriteFont;
-            set => m_DefaultSpriteFont = value;
+            get => _defaultSpriteFont;
+            set => _defaultSpriteFont = value;
         }
 
 #endif
@@ -114,32 +114,32 @@ namespace CasaEngine.Game
 
         public BasicEffect BasicEffect
         {
-            get => m_Effect;
-            set => m_Effect = value;
+            get => _effect;
+            set => _effect = value;
         }
 
-        public AssetManager AssetManager => m_AssetManager;
+        public AssetManager AssetManager => _assetManager;
 
-        public ExternalToolManager ExternalToolManager => m_ExternalToolManager;
+        public ExternalToolManager ExternalToolManager => _externalToolManager;
 
 #endif
 
         public SpriteBatch SpriteBatch
         {
-            get => m_SpriteBatch;
-            set => m_SpriteBatch = value;
+            get => _spriteBatch;
+            set => _spriteBatch = value;
         }
 
-        public ObjectRegistry ObjectRegistry => m_ObjectRegistry;
+        public ObjectRegistry ObjectRegistry => _objectRegistry;
 
         /*public List<string> Errors
         {
-            get { return m_Errors; }
+            get { return _Errors; }
         }
 
         public List<string> Warnings
         {
-            get { return m_Warnings; }
+            get { return _Warnings; }
         }*/
 
         public string[] Arguments
@@ -152,23 +152,23 @@ namespace CasaEngine.Game
 
         public Engine()
         {
-            m_Game = null;
-            m_Asset2DManager = new Asset2DManager();
-            m_DefaultSpriteFont = null;
-            m_SpriteBatch = null;
-            m_ProjectConfig = new ProjectConfig();
-            m_ObjectRegistry = new ObjectRegistry();
-            m_ProjectManager = new ProjectManager();
-            //m_PackageManager = new PackageManager(m_ProjectManager);
-            m_ObjectManager = new ObjectManager();
-            m_ScreenManager = new ScreenManager();
+            _game = null;
+            _asset2DManager = new Asset2DManager();
+            _defaultSpriteFont = null;
+            _spriteBatch = null;
+            _projectConfig = new ProjectConfig();
+            _objectRegistry = new ObjectRegistry();
+            _projectManager = new ProjectManager();
+            //_PackageManager = new PackageManager(_ProjectManager);
+            _objectManager = new ObjectManager();
+            _screenManager = new ScreenManager();
 
-            m_UIManager = new UserInterfaceManager();
+            _uiManager = new UserInterfaceManager();
 
 #if EDITOR
-            m_ExternalToolManager = new ExternalToolManager();
-            m_AssetManager = new AssetManager();
-            m_Effect = null;
+            _externalToolManager = new ExternalToolManager();
+            _assetManager = new AssetManager();
+            _effect = null;
 #endif
         }
 

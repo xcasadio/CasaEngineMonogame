@@ -4,9 +4,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
     public abstract class MutationAlgorithm<T>
     {
 
-        protected internal double probability;
+        protected internal double Probability;
 
-        protected internal Random generator;
+        protected internal Random Generator;
 
 
 
@@ -16,13 +16,13 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
             //Validate the params
             if (ValidateProbability(probability, ref message) == false)
-                throw new AIException("probability", this.GetType().ToString(), message);
+                throw new AiException("probability", this.GetType().ToString(), message);
 
             if (ValidateGenerator(generator, ref message) == false)
-                throw new AIException("generator", this.GetType().ToString(), message);
+                throw new AiException("generator", this.GetType().ToString(), message);
 
-            this.probability = probability;
-            this.generator = generator;
+            this.Probability = probability;
+            this.Generator = generator;
         }
 
 

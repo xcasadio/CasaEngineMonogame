@@ -6,36 +6,36 @@ namespace CasaEngine.Design.Parser
 {
     public abstract class Parser
     {
-        readonly Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator> m_MapBinaryOperator = new Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator>();
+        readonly Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator> _mapBinaryOperator = new Dictionary<string, CalculatorTokenBinaryOperator.BinaryOperator>();
 
-        Dictionary<int, List<ParserToken>> m_Tokens = new Dictionary<int, List<ParserToken>>();
+        Dictionary<int, List<ParserToken>> _tokens = new Dictionary<int, List<ParserToken>>();
 
-        readonly List<ICalculatorToken> m_CalculatorList = new List<ICalculatorToken>();
-        readonly Calculator m_Calculator;
+        readonly List<CalculatorToken> _calculatorList = new List<CalculatorToken>();
+        readonly Calculator _calculator;
 
-        readonly List<string> m_TokensValue = new List<string>();
+        readonly List<string> _tokensValue = new List<string>();
 
 
 
-        internal CasaEngine.Design.Parser.Calculator Calculator => m_Calculator;
+        internal CasaEngine.Design.Parser.Calculator Calculator => _calculator;
 
-        internal string[] TokensValue => m_TokensValue.ToArray();
+        internal string[] TokensValue => _tokensValue.ToArray();
 
 
         public Parser()
         {
-            m_MapBinaryOperator.Add("+", CalculatorTokenBinaryOperator.BinaryOperator.Plus);
-            m_MapBinaryOperator.Add("-", CalculatorTokenBinaryOperator.BinaryOperator.Minus);
-            m_MapBinaryOperator.Add("/", CalculatorTokenBinaryOperator.BinaryOperator.Divide);
-            m_MapBinaryOperator.Add("*", CalculatorTokenBinaryOperator.BinaryOperator.Multiply);
-            m_MapBinaryOperator.Add("==", CalculatorTokenBinaryOperator.BinaryOperator.Equal);
-            m_MapBinaryOperator.Add("!=", CalculatorTokenBinaryOperator.BinaryOperator.Different);
-            m_MapBinaryOperator.Add(">", CalculatorTokenBinaryOperator.BinaryOperator.Superior);
-            m_MapBinaryOperator.Add("<", CalculatorTokenBinaryOperator.BinaryOperator.Inferior);
-            m_MapBinaryOperator.Add(">=", CalculatorTokenBinaryOperator.BinaryOperator.SupEqual);
-            m_MapBinaryOperator.Add("<=", CalculatorTokenBinaryOperator.BinaryOperator.InfEqual);
-            m_MapBinaryOperator.Add("||", CalculatorTokenBinaryOperator.BinaryOperator.Or);
-            m_MapBinaryOperator.Add("&&", CalculatorTokenBinaryOperator.BinaryOperator.And);
+            _mapBinaryOperator.Add("+", CalculatorTokenBinaryOperator.BinaryOperator.Plus);
+            _mapBinaryOperator.Add("-", CalculatorTokenBinaryOperator.BinaryOperator.Minus);
+            _mapBinaryOperator.Add("/", CalculatorTokenBinaryOperator.BinaryOperator.Divide);
+            _mapBinaryOperator.Add("*", CalculatorTokenBinaryOperator.BinaryOperator.Multiply);
+            _mapBinaryOperator.Add("==", CalculatorTokenBinaryOperator.BinaryOperator.Equal);
+            _mapBinaryOperator.Add("!=", CalculatorTokenBinaryOperator.BinaryOperator.Different);
+            _mapBinaryOperator.Add(">", CalculatorTokenBinaryOperator.BinaryOperator.Superior);
+            _mapBinaryOperator.Add("<", CalculatorTokenBinaryOperator.BinaryOperator.Inferior);
+            _mapBinaryOperator.Add(">=", CalculatorTokenBinaryOperator.BinaryOperator.SupEqual);
+            _mapBinaryOperator.Add("<=", CalculatorTokenBinaryOperator.BinaryOperator.InfEqual);
+            _mapBinaryOperator.Add("||", CalculatorTokenBinaryOperator.BinaryOperator.Or);
+            _mapBinaryOperator.Add("&&", CalculatorTokenBinaryOperator.BinaryOperator.And);
 
             AddParserToken(new ParserTokenSequence(this), 1);
             AddParserToken(new ParserTokenDelimiter(this, "(", ")"), 2);
@@ -55,52 +55,52 @@ namespace CasaEngine.Design.Parser
             //AddToken(new ParserTokenKeyword(this, ""), 10);
             AddParserToken(new ParserTokenValue(this), 12);
 
-            m_Calculator = new Calculator(this);
+            _calculator = new Calculator(this);
         }
 
 
 
-        private void AddParserToken(ParserToken token_, int priority_)
+        private void AddParserToken(ParserToken token, int priority)
         {
-            if (m_Tokens.ContainsKey(priority_) == true)
+            if (_tokens.ContainsKey(priority) == true)
             {
-                m_Tokens[priority_].Add(token_);
+                _tokens[priority].Add(token);
             }
             else
             {
                 List<ParserToken> list = new List<ParserToken>();
-                list.Add(token_);
-                m_Tokens.Add(priority_, list);
+                list.Add(token);
+                _tokens.Add(priority, list);
             }
         }
 
-        public void AddKeywordToken(string keyword_)
+        public void AddKeywordToken(string keyword)
         {
-            AddParserToken(new ParserTokenKeyword(this, keyword_), 11);
+            AddParserToken(new ParserTokenKeyword(this, keyword), 11);
         }
 
-        public void AddFunctionToken(string functionName_)
+        public void AddFunctionToken(string functionName)
         {
-            AddParserToken(new ParserTokenFunction(this, functionName_), 10);
+            AddParserToken(new ParserTokenFunction(this, functionName), 10);
         }
 
-        public bool Check(string sentence_)
+        public bool Check(string sentence)
         {
-            sentence_ = sentence_.Trim();
+            sentence = sentence.Trim();
 
-            if (string.IsNullOrEmpty(sentence_) == true)
+            if (string.IsNullOrEmpty(sentence) == true)
             {
                 return false;
             }
 
             //trie le dictionnaire par priorité
-            m_Tokens = m_Tokens.OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            _tokens = _tokens.OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            foreach (KeyValuePair<int, List<ParserToken>> pair in m_Tokens)
+            foreach (KeyValuePair<int, List<ParserToken>> pair in _tokens)
             {
                 foreach (ParserToken token in pair.Value)
                 {
-                    if (token.Check(sentence_) == true)
+                    if (token.Check(sentence) == true)
                     {
                         return true;
                     }
@@ -110,32 +110,32 @@ namespace CasaEngine.Design.Parser
             return false;
         }
 
-        public bool Compile(string sentence_)
+        public bool Compile(string sentence)
         {
-            m_CalculatorList.Clear();
+            _calculatorList.Clear();
 
-            if (Check(sentence_) == true)
+            if (Check(sentence) == true)
             {
-                ICalculatorToken root;
+                CalculatorToken root;
                 CompileCalculatorToken(out root, 0);
 
-                m_Calculator.Root = root;
+                _calculator.Root = root;
                 return true;
             }
 
-            m_CalculatorList.Clear();
-            m_Calculator.Root = null;
+            _calculatorList.Clear();
+            _calculator.Root = null;
 
             return false;
         }
 
-        public float Evaluate(string sentence_)
+        public float Evaluate(string sentence)
         {
-            sentence_ = sentence_.ToLower();
+            sentence = sentence.ToLower();
 
-            if (Compile(sentence_) == true)
+            if (Compile(sentence) == true)
             {
-                return m_Calculator.Evaluate();
+                return _calculator.Evaluate();
             }
 
             throw new InvalidOperationException("Can't Compile!; Please check your sentence");
@@ -143,70 +143,70 @@ namespace CasaEngine.Design.Parser
 
         public float Evaluate()
         {
-            if (m_Calculator.Root == null)
+            if (_calculator.Root == null)
             {
                 throw new InvalidOperationException("Compile before use Evaluate()");
             }
 
-            return m_Calculator.Evaluate();
+            return _calculator.Evaluate();
         }
 
-        public abstract float EvaluateKeyword(string keyword_);
+        public abstract float EvaluateKeyword(string keyword);
 
-        public abstract float EvaluateFunction(string functionName_, string[] args_);
+        public abstract float EvaluateFunction(string functionName, string[] args);
 
 
-        internal void AddToken(string token_)
+        internal void AddToken(string token)
         {
-            m_TokensValue.Add(token_);
+            _tokensValue.Add(token);
         }
 
-        private int CompileCalculatorToken(out ICalculatorToken token_, int index_)
+        private int CompileCalculatorToken(out CalculatorToken token, int index)
         {
-            token_ = m_CalculatorList[index_];
+            token = _calculatorList[index];
 
-            if (token_ is CalculatorTokenBinaryOperator)
+            if (token is CalculatorTokenBinaryOperator)
             {
-                index_ = CompileBinaryOperator(token_ as CalculatorTokenBinaryOperator, index_ + 1);
+                index = CompileBinaryOperator(token as CalculatorTokenBinaryOperator, index + 1);
             }
-            else if (token_ is CalculatorTokenSequence)
+            else if (token is CalculatorTokenSequence)
             {
-                ICalculatorToken res;
-                index_ = CompileSequence(token_ as CalculatorTokenSequence, out res, index_ + 1);
-                token_ = res;
+                CalculatorToken res;
+                index = CompileSequence(token as CalculatorTokenSequence, out res, index + 1);
+                token = res;
             }
 
-            return index_;
+            return index;
         }
 
-        private int CompileBinaryOperator(CalculatorTokenBinaryOperator parent_, int index_)
+        private int CompileBinaryOperator(CalculatorTokenBinaryOperator parent, int index)
         {
-            ICalculatorToken left, right;
-            CompileCalculatorToken(out left, index_);
-            index_ = CompileCalculatorToken(out right, index_ + 1);
+            CalculatorToken left, right;
+            CompileCalculatorToken(out left, index);
+            index = CompileCalculatorToken(out right, index + 1);
 
-            parent_.Left = left;
-            parent_.Right = right;
+            parent.Left = left;
+            parent.Right = right;
 
-            return index_ + 1;
+            return index + 1;
         }
 
-        private int CompileSequence(ICalculatorToken parent_, out ICalculatorToken res_, int index_)
+        private int CompileSequence(CalculatorToken parent, out CalculatorToken res, int index)
         {
             CalculatorTokenSequence seq;
             int end = -1;
-            res_ = null;
+            res = null;
 
-            for (int i = index_; i < m_CalculatorList.Count; i++)
+            for (int i = index; i < _calculatorList.Count; i++)
             {
-                if (m_CalculatorList[i] is CalculatorTokenSequence)
+                if (_calculatorList[i] is CalculatorTokenSequence)
                 {
-                    seq = (CalculatorTokenSequence)m_CalculatorList[i];
+                    seq = (CalculatorTokenSequence)_calculatorList[i];
 
                     if (seq.Sequence == CalculatorTokenSequence.TokenSequence.StartSequence)
                     {
-                        end = CompileCalculatorToken(out res_, i + 1) + 1;
-                        m_CalculatorList.RemoveRange(i, end - i);
+                        end = CompileCalculatorToken(out res, i + 1) + 1;
+                        _calculatorList.RemoveRange(i, end - i);
                         return i;
                     }
                 }
@@ -215,36 +215,36 @@ namespace CasaEngine.Design.Parser
             return end;
         }
 
-        internal void AddCalculator(ICalculatorToken token_)
+        internal void AddCalculator(CalculatorToken token)
         {
-            m_CalculatorList.Add(token_);
+            _calculatorList.Add(token);
         }
 
-        internal ICalculatorToken GetCalculatorByBinaryOperator(string operator_)
+        internal CalculatorToken GetCalculatorByBinaryOperator(string @operator)
         {
-            return new CalculatorTokenBinaryOperator(m_Calculator, m_MapBinaryOperator[operator_]);
+            return new CalculatorTokenBinaryOperator(_calculator, _mapBinaryOperator[@operator]);
         }
 
 
 
-        public void Save(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el, SaveOption option)
         {
-            m_Calculator.Save(el_, option_);
+            _calculator.Save(el, option);
         }
 
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
-            m_Calculator.Load(el_, option_);
+            _calculator.Load(el, option);
         }
 
-        public void Save(BinaryWriter bw_, SaveOption option_)
+        public void Save(BinaryWriter bw, SaveOption option)
         {
-            m_Calculator.Save(bw_, option_);
+            _calculator.Save(bw, option);
         }
 
-        public void Load(BinaryReader br_, SaveOption option_)
+        public void Load(BinaryReader br, SaveOption option)
         {
-            //m_Calculator.Load(br_, option_);
+            //_Calculator.Load(br_, option_);
         }
 
 

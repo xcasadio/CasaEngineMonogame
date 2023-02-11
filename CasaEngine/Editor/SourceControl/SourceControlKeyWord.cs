@@ -5,7 +5,7 @@
         IsMapped,
         FileSize,
         ClientFile,
-        MD5,
+        Md5,
         Action,
         ActionOwner,
         HeadTime,

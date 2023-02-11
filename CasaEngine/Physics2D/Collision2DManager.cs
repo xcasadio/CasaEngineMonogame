@@ -11,18 +11,18 @@ namespace CasaEngine.Physics2D
     public class Collision2DManager
     {
 
-        static private Collision2DManager m_Instance = null;
+        static private Collision2DManager _instance = null;
 
-        private readonly List<IAttackable> m_Objects = new List<IAttackable>();
-        private readonly Message m_Message1 = new Message(0, 0, (int)MessageType.Hit, 0, null);
-        private readonly Message m_Message2 = new Message(0, 0, (int)MessageType.Hit, 0, null);
-        private HitInfo m_HitInfo = new HitInfo();
+        private readonly List<IAttackable> _objects = new List<IAttackable>();
+        private readonly Message _message1 = new Message(0, 0, (int)MessageType.Hit, 0, null);
+        private readonly Message _message2 = new Message(0, 0, (int)MessageType.Hit, 0, null);
+        private HitInfo _hitInfo = new HitInfo();
 
         //to avoid GC
         private Vector2
-            v1 = new Vector2(),
-            v2 = new Vector2(),
-            contactPoint = new Vector2();
+            _v1 = new Vector2(),
+            _v2 = new Vector2(),
+            _contactPoint = new Vector2();
 
 
 
@@ -30,12 +30,12 @@ namespace CasaEngine.Physics2D
         {
             get
             {
-                if (m_Instance == null)
+                if (_instance == null)
                 {
-                    m_Instance = new Collision2DManager();
+                    _instance = new Collision2DManager();
                 }
 
-                return m_Instance;
+                return _instance;
             }
         }
 
@@ -44,23 +44,23 @@ namespace CasaEngine.Physics2D
 
 
 
-        public void RegisterObject(IAttackable object_)
+        public void RegisterObject(IAttackable @object)
         {
-            m_Objects.Add(object_);
+            _objects.Add(@object);
         }
 
-        public void UnregisterObject(IAttackable object_)
+        public void UnregisterObject(IAttackable @object)
         {
-            m_Objects.Remove(object_);
+            _objects.Remove(@object);
         }
 
         public void Update()
         {
             Shape2DObject g1, g2;
 
-            for (int i = 0; i < m_Objects.Count; i++)
+            for (int i = 0; i < _objects.Count; i++)
             {
-                Shape2DObject[] g1List = m_Objects[i].Shape2DObjectList;
+                Shape2DObject[] g1List = _objects[i].Shape2DObjectList;
 
                 if (g1List == null)
                 {
@@ -71,9 +71,9 @@ namespace CasaEngine.Physics2D
                 {
                     g1 = g1List[a];
 
-                    for (int j = i + 1; j < m_Objects.Count; j++)
+                    for (int j = i + 1; j < _objects.Count; j++)
                     {
-                        Shape2DObject[] g2List = m_Objects[j].Shape2DObjectList;
+                        Shape2DObject[] g2List = _objects[j].Shape2DObjectList;
 
                         if (g2List == null)
                         {
@@ -86,11 +86,11 @@ namespace CasaEngine.Physics2D
 
                             if (g1.Flag != g2.Flag)
                             {
-                                v1.X = g1.Location.X;
-                                v1.Y = g1.Location.Y;
+                                _v1.X = g1.Location.X;
+                                _v1.Y = g1.Location.Y;
 
-                                v2.X = g2.Location.X;
-                                v2.Y = g2.Location.Y;
+                                _v2.X = g2.Location.X;
+                                _v2.Y = g2.Location.Y;
 
                                 switch (g1.Shape2DType)
                                 {
@@ -100,38 +100,38 @@ namespace CasaEngine.Physics2D
                                         {
                                             case Shape2DType.Circle:
 
-                                                if (Collision2D.CollideCircles(ref contactPoint, (ShapeCircle)g1, ref v1, (ShapeCircle)g2, ref v2) == true)
+                                                if (Collision2D.CollideCircles(ref _contactPoint, (ShapeCircle)g1, ref _v1, (ShapeCircle)g2, ref _v2) == true)
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && m_Objects[j].CanAttackHim(m_Objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
                                                     {
-                                                        SendMessage(m_Objects[j], m_Objects[i], ref contactPoint);
+                                                        SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
                                                     else if (g1.Flag == 1 // attack
                                                         && g2.Flag == 0
-                                                        && m_Objects[i].CanAttackHim(m_Objects[j])) // defense
+                                                        && _objects[i].CanAttackHim(_objects[j])) // defense
                                                     {
-                                                        SendMessage(m_Objects[i], m_Objects[j], ref contactPoint);
+                                                        SendMessage(_objects[i], _objects[j], ref _contactPoint);
                                                     }
                                                 }
                                                 break;
 
                                             case Shape2DType.Polygone:
 
-                                                if (Collision2D.CollidePolygonAndCircle(ref contactPoint, (ShapePolygone)g2, ref v2, (ShapeCircle)g1, ref v1) == true)
+                                                if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g2, ref _v2, (ShapeCircle)g1, ref _v1) == true)
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && m_Objects[j].CanAttackHim(m_Objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
                                                     {
-                                                        SendMessage(m_Objects[j], m_Objects[i], ref contactPoint);
+                                                        SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
                                                     else if (g1.Flag == 1 // attack
                                                         && g2.Flag == 0
-                                                        && m_Objects[i].CanAttackHim(m_Objects[j])) // defense
+                                                        && _objects[i].CanAttackHim(_objects[j])) // defense
                                                     {
-                                                        SendMessage(m_Objects[i], m_Objects[j], ref contactPoint);
+                                                        SendMessage(_objects[i], _objects[j], ref _contactPoint);
                                                     }
                                                 }
                                                 break;
@@ -147,57 +147,57 @@ namespace CasaEngine.Physics2D
                                         {
                                             case Shape2DType.Circle:
 
-                                                if (Collision2D.CollidePolygonAndCircle(ref contactPoint, (ShapePolygone)g1, ref v1, (ShapeCircle)g2, ref v2) == true)
+                                                if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g1, ref _v1, (ShapeCircle)g2, ref _v2) == true)
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && m_Objects[j].CanAttackHim(m_Objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
                                                     {
-                                                        SendMessage(m_Objects[j], m_Objects[i], ref contactPoint);
+                                                        SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
                                                     else if (g1.Flag == 1 // attack
                                                         && g2.Flag == 0
-                                                        && m_Objects[i].CanAttackHim(m_Objects[j])) // defense
+                                                        && _objects[i].CanAttackHim(_objects[j])) // defense
                                                     {
-                                                        SendMessage(m_Objects[i], m_Objects[j], ref contactPoint);
+                                                        SendMessage(_objects[i], _objects[j], ref _contactPoint);
                                                     }
                                                 }
                                                 break;
 
                                             case Shape2DType.Polygone:
 
-                                                if (Collision2D.CollidePolygons((ShapePolygone)g2, ref v2, (ShapePolygone)g1, ref v1) == true)
+                                                if (Collision2D.CollidePolygons((ShapePolygone)g2, ref _v2, (ShapePolygone)g1, ref _v1) == true)
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && m_Objects[j].CanAttackHim(m_Objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
                                                     {
-                                                        SendMessage(m_Objects[j], m_Objects[i], ref contactPoint);
+                                                        SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
                                                     else if (g1.Flag == 1 // attack
                                                         && g2.Flag == 0
-                                                        && m_Objects[i].CanAttackHim(m_Objects[j])) // defense
+                                                        && _objects[i].CanAttackHim(_objects[j])) // defense
                                                     {
-                                                        SendMessage(m_Objects[i], m_Objects[j], ref contactPoint);
+                                                        SendMessage(_objects[i], _objects[j], ref _contactPoint);
                                                     }
                                                 }
                                                 break;
 
                                             case Shape2DType.Rectangle:
 
-                                                if (Collision2D.CollidePolygonAndRectangle((ShapePolygone)g1, ref v1, (ShapeRectangle)g2, ref v2) == true)
+                                                if (Collision2D.CollidePolygonAndRectangle((ShapePolygone)g1, ref _v1, (ShapeRectangle)g2, ref _v2) == true)
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && m_Objects[j].CanAttackHim(m_Objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
                                                     {
-                                                        SendMessage(m_Objects[j], m_Objects[i], ref contactPoint);
+                                                        SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
                                                     else if (g1.Flag == 1 // attack
                                                         && g2.Flag == 0
-                                                        && m_Objects[i].CanAttackHim(m_Objects[j])) // defense
+                                                        && _objects[i].CanAttackHim(_objects[j])) // defense
                                                     {
-                                                        SendMessage(m_Objects[i], m_Objects[j], ref contactPoint);
+                                                        SendMessage(_objects[i], _objects[j], ref _contactPoint);
                                                     }
                                                 }
                                                 break;
@@ -217,26 +217,26 @@ namespace CasaEngine.Physics2D
             }
         }
 
-        private void SendMessage(IAttackable attacker_, IAttackable hit_, ref Vector2 contactPoint)
+        private void SendMessage(IAttackable attacker, IAttackable hit, ref Vector2 contactPoint)
         {
-            m_HitInfo.ActorHit = (Actor2D)hit_;
-            m_HitInfo.ActorAttacking = (Actor2D)attacker_;
-            m_HitInfo.Direction = Vector2.Subtract(m_HitInfo.ActorHit.Position, m_HitInfo.ActorAttacking.Position);
-            m_HitInfo.Direction.Normalize();
-            m_HitInfo.ContactPoint = contactPoint;
+            _hitInfo.ActorHit = (Actor2D)hit;
+            _hitInfo.ActorAttacking = (Actor2D)attacker;
+            _hitInfo.Direction = Vector2.Subtract(_hitInfo.ActorHit.Position, _hitInfo.ActorAttacking.Position);
+            _hitInfo.Direction.Normalize();
+            _hitInfo.ContactPoint = contactPoint;
 
-            m_Message1.SenderID = -1;
-            m_Message1.RecieverID = -1; //hit_.ID
-            m_Message1.Type = (int)MessageType.Hit;
-            m_Message1.ExtraInfo = m_HitInfo;
+            _message1.SenderID = -1;
+            _message1.RecieverID = -1; //hit_.ID
+            _message1.Type = (int)MessageType.Hit;
+            _message1.ExtraInfo = _hitInfo;
 
-            m_Message2.SenderID = -1;
-            m_Message2.RecieverID = -1; //attacker_.ID
-            m_Message2.Type = (int)MessageType.IHitSomeone;
-            m_Message2.ExtraInfo = m_HitInfo;
+            _message2.SenderID = -1;
+            _message2.RecieverID = -1; //attacker_.ID
+            _message2.Type = (int)MessageType.HitSomeone;
+            _message2.ExtraInfo = _hitInfo;
 
-            hit_.HandleMessage(m_Message1);
-            attacker_.HandleMessage(m_Message2);
+            hit.HandleMessage(_message1);
+            attacker.HandleMessage(_message2);
         }
 
     }

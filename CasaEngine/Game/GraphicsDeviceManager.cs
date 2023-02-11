@@ -9,18 +9,18 @@ namespace CasaEngine.Game
         public static readonly int DefaultBackBufferHeight = 480;
         private const string RuntimeProfileResourceName = "Microsoft.Xna.Framework.RuntimeProfile";
 
-        private readonly CustomGame? game;
-        private GraphicsDevice? graphicsDevice;
-        private int backBufferWidth = DefaultBackBufferWidth;
-        private int backBufferHeight = DefaultBackBufferHeight;
-        private SurfaceFormat backBufferFormat = SurfaceFormat.Color;
-        private DepthFormat depthStencilFormat = DepthFormat.Depth24;
+        private readonly CustomGame? _game;
+        private GraphicsDevice? _graphicsDevice;
+        private int _backBufferWidth = DefaultBackBufferWidth;
+        private int _backBufferHeight = DefaultBackBufferHeight;
+        private SurfaceFormat _backBufferFormat = SurfaceFormat.Color;
+        private DepthFormat _depthStencilFormat = DepthFormat.Depth24;
         //private GraphicsProfile graphicsProfile;
-        private GraphicsDeviceInformation? currentGraphicsDeviceInformation;
-        private bool synchronizeWithVerticalRetrace = true;
+        private GraphicsDeviceInformation? _currentGraphicsDeviceInformation;
+        private bool _synchronizeWithVerticalRetrace = true;
 
 
-        private bool needReset = false;
+        private bool _needReset = false;
 
 
         public event EventHandler<EventArgs> Disposed;
@@ -30,57 +30,57 @@ namespace CasaEngine.Game
         public event EventHandler<EventArgs> DeviceResetting;
         public event EventHandler<PreparingDeviceSettingsEventArgs> PreparingDeviceSettings;
 
-        public GraphicsDevice GraphicsDevice => graphicsDevice;
+        public GraphicsDevice GraphicsDevice => _graphicsDevice;
 
         public GraphicsProfile GraphicsProfile
         {
-            get => currentGraphicsDeviceInformation.GraphicsProfile;
+            get => _currentGraphicsDeviceInformation.GraphicsProfile;
             set => throw new NotImplementedException();
         }
 
         public DepthFormat PreferredDepthStencilFormat
         {
-            get => currentGraphicsDeviceInformation.PresentationParameters.DepthStencilFormat;
-            set => depthStencilFormat = value;
+            get => _currentGraphicsDeviceInformation.PresentationParameters.DepthStencilFormat;
+            set => _depthStencilFormat = value;
         }
 
         public SurfaceFormat PreferredBackBufferFormat
         {
-            get => currentGraphicsDeviceInformation.PresentationParameters.BackBufferFormat;
-            set => backBufferFormat = value;
+            get => _currentGraphicsDeviceInformation.PresentationParameters.BackBufferFormat;
+            set => _backBufferFormat = value;
         }
 
         public int PreferredBackBufferWidth
         {
-            get => currentGraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
-            set => backBufferWidth = value;
+            get => _currentGraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
+            set => _backBufferWidth = value;
         }
 
         public int PreferredBackBufferHeight
         {
-            get => currentGraphicsDeviceInformation.PresentationParameters.BackBufferHeight;
-            set => backBufferHeight = value;
+            get => _currentGraphicsDeviceInformation.PresentationParameters.BackBufferHeight;
+            set => _backBufferHeight = value;
         }
 
         public bool IsFullScreen
         {
-            get => currentGraphicsDeviceInformation.PresentationParameters.IsFullScreen;
+            get => _currentGraphicsDeviceInformation.PresentationParameters.IsFullScreen;
             set => throw new NotImplementedException();
         }
 
         public bool SynchronizeWithVerticalRetrace
         {
-            get => synchronizeWithVerticalRetrace;
+            get => _synchronizeWithVerticalRetrace;
             set
             {
-                synchronizeWithVerticalRetrace = value;
+                _synchronizeWithVerticalRetrace = value;
                 throw new NotImplementedException();
             }
         }
 
         public bool PreferMultiSampling
         {
-            get => currentGraphicsDeviceInformation.PresentationParameters.MultiSampleCount > 0;
+            get => _currentGraphicsDeviceInformation.PresentationParameters.MultiSampleCount > 0;
             set => throw new NotImplementedException();
         }
 
@@ -94,7 +94,7 @@ namespace CasaEngine.Game
         {
             if (game == null)
                 throw new ArgumentNullException("game");
-            this.game = game;
+            this._game = game;
 
             if (game.Services.GetService(typeof(IGraphicsDeviceManager)) != null)
                 throw new ArgumentException("The GraphicsDeviceManager was already registered to the game class");
@@ -121,21 +121,21 @@ namespace CasaEngine.Game
 
         private void CreateDevice(GraphicsDeviceInformation deviceInformation)
         {
-            if (graphicsDevice != null)
+            if (_graphicsDevice != null)
             {
                 System.Diagnostics.Debugger.Break(); // Test this!!!
-                graphicsDevice.Dispose();
-                graphicsDevice = null;
+                _graphicsDevice.Dispose();
+                _graphicsDevice = null;
             }
 
             //TODO: validate graphics device
 
-            graphicsDevice = new GraphicsDevice(deviceInformation.Adapter, deviceInformation.GraphicsProfile, deviceInformation.PresentationParameters);
+            _graphicsDevice = new GraphicsDevice(deviceInformation.Adapter, deviceInformation.GraphicsProfile, deviceInformation.PresentationParameters);
             //GraphicsResourceTracker.Instance.UpdateGraphicsDeviceReference(this.graphicsDevice);
 
             //TODO: hookup events
-            graphicsDevice.DeviceResetting += OnDeviceResetting;
-            graphicsDevice.DeviceReset += OnDeviceReset;
+            _graphicsDevice.DeviceResetting += OnDeviceResetting;
+            _graphicsDevice.DeviceReset += OnDeviceReset;
 
             // Update the vsync value in case it was set before creation of the device
             //SynchronizeWithVerticalRetrace = synchronizeWithVerticalRetrace;
@@ -145,7 +145,7 @@ namespace CasaEngine.Game
 
         public void EndDraw()
         {
-            graphicsDevice.Present();
+            _graphicsDevice.Present();
         }
 
         public void ApplyChanges()
@@ -153,13 +153,13 @@ namespace CasaEngine.Game
             GraphicsDeviceInformation graphicsDeviceInformation = FindBestDevice(true);
             OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
 
-            if (graphicsDevice != null)
+            if (_graphicsDevice != null)
             {
                 if (CanResetDevice(graphicsDeviceInformation))
                 {
                     OnDeviceResetting(this, EventArgs.Empty);
 
-                    graphicsDevice.Reset(graphicsDeviceInformation.PresentationParameters);
+                    _graphicsDevice.Reset(graphicsDeviceInformation.PresentationParameters);
 
                     OnDeviceReset(this, EventArgs.Empty);
                 }
@@ -168,15 +168,15 @@ namespace CasaEngine.Game
                     //graphicsDevice.Dispose();
                     //graphicsDevice = null;
                     // Dispose could not be used here because all references to graphicsDevice get dirty!
-                    graphicsDevice.Reset(graphicsDeviceInformation.PresentationParameters);
+                    _graphicsDevice.Reset(graphicsDeviceInformation.PresentationParameters);
                     //graphicsDevice.Recreate(graphicsDeviceInformation.PresentationParameters);
                 }
             }
 
-            if (graphicsDevice == null)
+            if (_graphicsDevice == null)
                 CreateDevice(graphicsDeviceInformation);
 
-            currentGraphicsDeviceInformation = graphicsDeviceInformation;
+            _currentGraphicsDeviceInformation = graphicsDeviceInformation;
         }
 
         public void ToggleFullScreen()
@@ -194,13 +194,13 @@ namespace CasaEngine.Game
         {
             if (disposing)
             {
-                if (game != null && game.Services.GetService(typeof(IGraphicsDeviceService)) == this)
-                    game.Services.RemoveService(typeof(IGraphicsDeviceService));
+                if (_game != null && _game.Services.GetService(typeof(IGraphicsDeviceService)) == this)
+                    _game.Services.RemoveService(typeof(IGraphicsDeviceService));
 
-                if (graphicsDevice != null)
+                if (_graphicsDevice != null)
                 {
-                    graphicsDevice.Dispose();
-                    graphicsDevice = null;
+                    _graphicsDevice.Dispose();
+                    _graphicsDevice = null;
                 }
 
                 if (Disposed != null)
@@ -216,11 +216,11 @@ namespace CasaEngine.Game
                 GraphicsProfile = GraphicsProfile.HiDef,
                 PresentationParameters = new PresentationParameters
                 {
-                    BackBufferWidth = backBufferWidth,
-                    BackBufferHeight = backBufferHeight,
-                    BackBufferFormat = backBufferFormat,
-                    DepthStencilFormat = depthStencilFormat,
-                    DeviceWindowHandle = game.ControlHandle,
+                    BackBufferWidth = _backBufferWidth,
+                    BackBufferHeight = _backBufferHeight,
+                    BackBufferFormat = _backBufferFormat,
+                    DepthStencilFormat = _depthStencilFormat,
+                    DeviceWindowHandle = _game.ControlHandle,
                     IsFullScreen = false,
                     DisplayOrientation = DisplayOrientation.Default,
                     MultiSampleCount = 0,

@@ -6,39 +6,39 @@ namespace CasaEngine.Audio
     public class Sound
         : BaseObject
     {
-        readonly SoundEffect m_SoundEffect;
-        SoundEffectInstance m_SoundEffectInstance;
+        readonly SoundEffect _soundEffect;
+        SoundEffectInstance _soundEffectInstance;
 
 
 
         public SoundEffectInstance SoundEffectInstance
         {
-            get => m_SoundEffectInstance;
-            set => m_SoundEffectInstance = value;
+            get => _soundEffectInstance;
+            set => _soundEffectInstance = value;
         }
 
 
 
-        public Sound(SoundEffect soundEffect_)
+        public Sound(SoundEffect soundEffect)
         {
-            if (soundEffect_ == null)
+            if (soundEffect == null)
             {
                 throw new ArgumentNullException("Sound() : SoundEffect is null");
             }
 
-            m_SoundEffect = soundEffect_;
+            _soundEffect = soundEffect;
         }
 
 
 
         public void Initialize()
         {
-            m_SoundEffectInstance = m_SoundEffect.CreateInstance();
+            _soundEffectInstance = _soundEffect.CreateInstance();
         }
 
 #if EDITOR
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new Exception("The method or operation is not implemented.");
         }

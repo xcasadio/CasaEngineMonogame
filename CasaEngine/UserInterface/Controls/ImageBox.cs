@@ -20,21 +20,21 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private Texture texture;
+        private Texture _texture;
 
-        private SizeMode sizeMode = SizeMode.Normal;
+        private SizeMode _sizeMode = SizeMode.Normal;
 
-        private Rectangle sourceRectangle = Rectangle.Empty;
+        private Rectangle _sourceRectangle = Rectangle.Empty;
 
 
 
         public Texture Texture
         {
-            get => texture;
+            get => _texture;
             set
             {
-                texture = value;
-                sourceRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
+                _texture = value;
+                _sourceRectangle = new Rectangle(0, 0, _texture.Width, _texture.Height);
                 Invalidate();
                 if (!Suspended) OnImageChanged(new EventArgs());
             }
@@ -42,10 +42,10 @@ namespace XNAFinalEngine.UserInterface
 
         public Rectangle SourceRectangle
         {
-            get => sourceRectangle;
+            get => _sourceRectangle;
             set
             {
-                if (texture != null)
+                if (_texture != null)
                 {
                     int left = value.Left;
                     int top = value.Top;
@@ -54,16 +54,16 @@ namespace XNAFinalEngine.UserInterface
 
                     if (left < 0) left = 0;
                     if (top < 0) top = 0;
-                    if (width > texture.Width) width = texture.Width;
-                    if (height > texture.Height) height = texture.Height;
-                    if (left + width > texture.Width) width = (texture.Width - left);
-                    if (top + height > texture.Height) height = (texture.Height - top);
+                    if (width > _texture.Width) width = _texture.Width;
+                    if (height > _texture.Height) height = _texture.Height;
+                    if (left + width > _texture.Width) width = (_texture.Width - left);
+                    if (top + height > _texture.Height) height = (_texture.Height - top);
 
-                    sourceRectangle = new Rectangle(left, top, width, height);
+                    _sourceRectangle = new Rectangle(left, top, width, height);
                 }
                 else
                 {
-                    sourceRectangle = Rectangle.Empty;
+                    _sourceRectangle = Rectangle.Empty;
                 }
                 Invalidate();
             }
@@ -71,15 +71,15 @@ namespace XNAFinalEngine.UserInterface
 
         public SizeMode SizeMode
         {
-            get => sizeMode;
+            get => _sizeMode;
             set
             {
-                if (value == SizeMode.Auto && texture != null)
+                if (value == SizeMode.Auto && _texture != null)
                 {
-                    Width = texture.Width;
-                    Height = texture.Height;
+                    Width = _texture.Width;
+                    Height = _texture.Height;
                 }
-                sizeMode = value;
+                _sizeMode = value;
                 Invalidate();
                 if (!Suspended) OnSizeModeChanged(new EventArgs());
             }
@@ -92,8 +92,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ImageBox(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ImageBox(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Color = Color.White;
@@ -114,36 +114,36 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            if (texture != null)
+            if (_texture != null)
             {
-                switch (sizeMode)
+                switch (_sizeMode)
                 {
                     case SizeMode.Normal:
                     case SizeMode.Auto:
-                        UserInterfaceManager.Renderer.Draw(texture.Resource, rect.X, rect.Y, sourceRectangle, Color);
+                        UserInterfaceManager.Renderer.Draw(_texture.Resource, rect.X, rect.Y, _sourceRectangle, Color);
                         break;
                     case SizeMode.Stretched:
-                        UserInterfaceManager.Renderer.Draw(texture.Resource, rect, sourceRectangle, Color);
+                        UserInterfaceManager.Renderer.Draw(_texture.Resource, rect, _sourceRectangle, Color);
                         break;
                     case SizeMode.Centered:
-                        int x = (rect.Width / 2) - (texture.Width / 2);
-                        int y = (rect.Height / 2) - (texture.Height / 2);
-                        UserInterfaceManager.Renderer.Draw(texture.Resource, x, y, sourceRectangle, Color);
+                        int x = (rect.Width / 2) - (_texture.Width / 2);
+                        int y = (rect.Height / 2) - (_texture.Height / 2);
+                        UserInterfaceManager.Renderer.Draw(_texture.Resource, x, y, _sourceRectangle, Color);
                         break;
                     case SizeMode.Fit:
                         Rectangle aspectRatiorectangle = rect;
-                        if (texture.Width / texture.Height > rect.Width / rect.Height)
+                        if (_texture.Width / _texture.Height > rect.Width / rect.Height)
                         {
-                            aspectRatiorectangle.Height = (int)(rect.Height * ((float)rect.Width / rect.Height) / ((float)texture.Width / texture.Height));
+                            aspectRatiorectangle.Height = (int)(rect.Height * ((float)rect.Width / rect.Height) / ((float)_texture.Width / _texture.Height));
                             aspectRatiorectangle.Y = rect.Y + (rect.Height - aspectRatiorectangle.Height) / 2;
                         }
                         else
                         {
-                            aspectRatiorectangle.Width = (int)(rect.Width * ((float)texture.Width / texture.Height) / ((float)rect.Width / rect.Height));
+                            aspectRatiorectangle.Width = (int)(rect.Width * ((float)_texture.Width / _texture.Height) / ((float)rect.Width / rect.Height));
                             aspectRatiorectangle.X = rect.X + (rect.Width - aspectRatiorectangle.Width) / 2;
                         }
 
-                        UserInterfaceManager.Renderer.Draw(texture.Resource, aspectRatiorectangle, sourceRectangle, Color);
+                        UserInterfaceManager.Renderer.Draw(_texture.Resource, aspectRatiorectangle, _sourceRectangle, Color);
                         break;
                 }
             }

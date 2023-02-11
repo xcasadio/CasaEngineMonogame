@@ -6,18 +6,18 @@ namespace CasaEngine.AI.Graphs
     public static class GraphBuilder
     {
 
-        public static Graph<T, K> NavGraphFromMatrixFile<T, K>(string filename)
+        public static Graph<T, TK> NavGraphFromMatrixFile<T, TK>(string filename)
             where T : NavigationNode
-            where K : WeightedEdge
+            where TK : WeightedEdge
         {
             StreamReader file;
             int width, height, weight, xPos, yPos;
             String[] elements, separators;
             int[,] weights;
-            Graph<T, K> graph;
-            List<K> edges;
+            Graph<T, TK> graph;
+            List<TK> edges;
             T node;
-            K edge;
+            TK edge;
 
             using (file = new StreamReader(filename))
             {
@@ -50,7 +50,7 @@ namespace CasaEngine.AI.Graphs
                 }
 
                 //Generate all the nodes
-                graph = new Graph<T, K>(true);
+                graph = new Graph<T, TK>(true);
                 for (int i = 0; i < height; i++)
                     for (int j = 0; j < width; j++)
                     {
@@ -77,7 +77,7 @@ namespace CasaEngine.AI.Graphs
                             //The position where the edge is going to point must be a valid position
                             if (ValidatePosition(width, height, xPos + j, yPos + i))
                             {
-                                edge = Activator.CreateInstance<K>();
+                                edge = Activator.CreateInstance<TK>();
 
                                 //Set the edge values
                                 edge.Start = z;

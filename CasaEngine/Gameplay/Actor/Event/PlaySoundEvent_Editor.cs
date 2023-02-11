@@ -13,16 +13,16 @@ namespace CasaEngine.Gameplay.Actor.Event
 
 
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            base.Save(el_, option_);
-            el_.OwnerDocument.AddAttribute(el_, "asset", m_AssetName);
+            base.Save(el, option);
+            el.OwnerDocument.AddAttribute(el, "asset", _assetName);
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            base.Save(bw_, option_);
-            bw_.Write(m_AssetName);
+            base.Save(bw, option);
+            bw.Write(_assetName);
         }
 
     }

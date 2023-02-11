@@ -8,18 +8,18 @@
 
 
 
-        public ParserTokenFunction(Parser parser_, string token_)
-            : base(parser_, token_)
+        public ParserTokenFunction(Parser parser, string token)
+            : base(parser, token)
         { }
 
 
 
-        public override bool Check(string sentence_)
+        public override bool Check(string sentence)
         {
-            if (sentence_.StartsWith(m_Token.ToLower()) == true)
+            if (sentence.StartsWith(Token.ToLower()) == true)
             {
                 List<string> args = new List<string>();
-                string str = sentence_.Replace(m_Token + "=", "");
+                string str = sentence.Replace(Token + "=", "");
                 string s2 = string.Empty;
 
                 if (str.StartsWith("\"") == true)
@@ -47,7 +47,7 @@
                     }
                 }
 
-                Parser.AddCalculator(new CalculatorTokenFunction(Parser.Calculator, m_Token, args.ToArray()));
+                Parser.AddCalculator(new CalculatorTokenFunction(Parser.Calculator, Token, args.ToArray()));
 
                 /*if (string.IsNullOrEmpty(s2) == false)
 				{

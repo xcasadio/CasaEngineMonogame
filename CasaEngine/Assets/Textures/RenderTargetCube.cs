@@ -38,16 +38,16 @@ namespace CasaEngine.Asset
 
 
         // XNA Render target.
-        private Microsoft.Xna.Framework.Graphics.RenderTargetCube renderTarget;
+        private Microsoft.Xna.Framework.Graphics.RenderTargetCube _renderTarget;
 
         // Make sure we don't call xnaTexture before resolving for the first time!
-        private bool alreadyResolved;
+        private bool _alreadyResolved;
 
         // Indicates if this render target is currently used and if its information has to be preserved.
-        private bool looked;
+        private bool _looked;
 
         // Remember the last render targets we set. We can enable up to four render targets at once.
-        private static RenderTargetCube currentRenderTarget;
+        private static RenderTargetCube _currentRenderTarget;
 
 
 
@@ -55,8 +55,8 @@ namespace CasaEngine.Asset
         {
             get
             {
-                if (alreadyResolved)
-                    return renderTarget;
+                if (_alreadyResolved)
+                    return _renderTarget;
                 throw new InvalidOperationException("Render Target: Unable to return render target. Render target not resolved.");
             }
         } // Resource
@@ -69,29 +69,29 @@ namespace CasaEngine.Asset
 
         public bool MipMap { get; private set; }
 
-        public static RenderTargetCube CurrentRenderTarget => currentRenderTarget;
+        public static RenderTargetCube CurrentRenderTarget => _currentRenderTarget;
 
 
-        public RenderTargetCube(int size, SurfaceFormat _surfaceFormat, DepthFormat _depthFormat, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
+        public RenderTargetCube(int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
         {
             Name = "Render Target";
             Size = size;
 
-            SurfaceFormat = _surfaceFormat;
-            DepthFormat = _depthFormat;
+            SurfaceFormat = surfaceFormat;
+            DepthFormat = depthFormat;
             Antialiasing = antialiasingType;
             MipMap = mipMap;
 
             Create();
         } // RenderTarget
 
-        public RenderTargetCube(int size, SurfaceFormat _surfaceFormat = SurfaceFormat.Color, bool _hasDepthBuffer = true, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
+        public RenderTargetCube(int size, SurfaceFormat surfaceFormat = SurfaceFormat.Color, bool hasDepthBuffer = true, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
         {
             Name = "Render Target";
             Size = size;
 
-            SurfaceFormat = _surfaceFormat;
-            DepthFormat = _hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
+            SurfaceFormat = surfaceFormat;
+            DepthFormat = hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
             Antialiasing = antialiasingType;
             MipMap = mipMap;
 
@@ -109,8 +109,8 @@ namespace CasaEngine.Asset
                 // I use RenderTargetUsage.PlatformContents to be little more performance friendly with PC.
                 // But I assume that the system works in DiscardContents mode so that an XBOX 360 implementation works.
                 // What I lose, mostly nothing, because I made my own ZBuffer texture and the stencil buffer is deleted no matter what I do.
-                renderTarget = new Microsoft.Xna.Framework.Graphics.RenderTargetCube(Engine.Instance.Game.GraphicsDevice, Size, MipMap, SurfaceFormat, DepthFormat, RenderTarget.CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
-                alreadyResolved = true;
+                _renderTarget = new Microsoft.Xna.Framework.Graphics.RenderTargetCube(Engine.Instance.Game.GraphicsDevice, Size, MipMap, SurfaceFormat, DepthFormat, RenderTarget.CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
+                _alreadyResolved = true;
             }
             catch (Exception e)
             {
@@ -123,12 +123,12 @@ namespace CasaEngine.Asset
         protected override void DisposeManagedResources()
         {
             base.DisposeManagedResources();
-            renderTarget.Dispose();
+            _renderTarget.Dispose();
         } // DisposeManagedResources
 
 
 
-        internal override void OnDeviceReset(GraphicsDevice device_)
+        internal override void OnDeviceReset(GraphicsDevice device)
         {
             Create();
         } // RecreateResource
@@ -137,18 +137,18 @@ namespace CasaEngine.Asset
 
         public void EnableRenderTarget(CubeMapFace cubeMapFace)
         {
-            if (currentRenderTarget != null)
+            if (_currentRenderTarget != null)
                 throw new InvalidOperationException("Render Target Cube: unable to set render target. Another render target is still set. If you want to set multiple render targets use the static method called EnableRenderTargets.");
-            Engine.Instance.Game.GraphicsDevice.SetRenderTarget(renderTarget, cubeMapFace);
-            currentRenderTarget = this;
-            alreadyResolved = false;
+            Engine.Instance.Game.GraphicsDevice.SetRenderTarget(_renderTarget, cubeMapFace);
+            _currentRenderTarget = this;
+            _alreadyResolved = false;
         } // EnableRenderTarget
 
 
 
         public void Clear(Color clearColor)
         {
-            if (currentRenderTarget != this)
+            if (_currentRenderTarget != this)
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
             if (DepthFormat == DepthFormat.None)
                 Engine.Instance.Game.GraphicsDevice.Clear(clearColor);
@@ -160,9 +160,9 @@ namespace CasaEngine.Asset
 
         public static void ClearCurrentRenderTargets(Color clearColor)
         {
-            if (currentRenderTarget == null)
+            if (_currentRenderTarget == null)
                 throw new InvalidOperationException("Render Target: You can't clear a render target without first setting it");
-            currentRenderTarget.Clear(clearColor);
+            _currentRenderTarget.Clear(clearColor);
         } // Clear
 
 
@@ -170,45 +170,45 @@ namespace CasaEngine.Asset
         public void DisableRenderTarget()
         {
             // Make sure this render target is currently set!
-            if (currentRenderTarget != this)
+            if (_currentRenderTarget != this)
             {
                 throw new InvalidOperationException("Render Target: Cannot call disable to a render target without first setting it.");
             }
-            alreadyResolved = true;
-            currentRenderTarget = null;
+            _alreadyResolved = true;
+            _currentRenderTarget = null;
             Engine.Instance.Game.GraphicsDevice.SetRenderTarget(null);
         } // DisableRenderTarget
 
         public static void DisableCurrentRenderTargets()
         {
-            if (currentRenderTarget != null)
-                currentRenderTarget.alreadyResolved = true;
-            currentRenderTarget = null;
+            if (_currentRenderTarget != null)
+                _currentRenderTarget._alreadyResolved = true;
+            _currentRenderTarget = null;
             Engine.Instance.Game.GraphicsDevice.SetRenderTarget(null);
         } // DisableCurrentRenderTargets
 
 
 
         // A pool of all render targets.
-        private static readonly List<RenderTargetCube> renderTargets = new List<RenderTargetCube>(0);
+        private static readonly List<RenderTargetCube> RenderTargets = new List<RenderTargetCube>(0);
 
         public static RenderTargetCube Fetch(int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntialiasingType antialiasingType, bool mipMap = false)
         {
             RenderTargetCube renderTarget;
-            for (int i = 0; i < renderTargets.Count; i++)
+            for (int i = 0; i < RenderTargets.Count; i++)
             {
-                renderTarget = renderTargets[i];
+                renderTarget = RenderTargets[i];
                 if (renderTarget.Size == size && renderTarget.SurfaceFormat == surfaceFormat &&
-                    renderTarget.DepthFormat == depthFormat && renderTarget.Antialiasing == antialiasingType && renderTarget.MipMap == mipMap && !renderTarget.looked)
+                    renderTarget.DepthFormat == depthFormat && renderTarget.Antialiasing == antialiasingType && renderTarget.MipMap == mipMap && !renderTarget._looked)
                 {
-                    renderTarget.looked = true;
+                    renderTarget._looked = true;
                     return renderTarget;
                 }
             }
             // If there is not one unlook or present we create one.
             renderTarget = new RenderTargetCube(size, surfaceFormat, depthFormat, antialiasingType, mipMap);
-            renderTargets.Add(renderTarget);
-            renderTarget.looked = true;
+            RenderTargets.Add(renderTarget);
+            renderTarget._looked = true;
             return renderTarget;
         } // Fetch
 
@@ -216,11 +216,11 @@ namespace CasaEngine.Asset
         {
             if (rendertarget == null)
                 return;
-            for (int i = 0; i < renderTargets.Count; i++)
+            for (int i = 0; i < RenderTargets.Count; i++)
             {
-                if (rendertarget == renderTargets[i])
+                if (rendertarget == RenderTargets[i])
                 {
-                    rendertarget.looked = false;
+                    rendertarget._looked = false;
                     return;
                 }
             }
@@ -230,9 +230,9 @@ namespace CasaEngine.Asset
 
         public static void ClearRenderTargetPool()
         {
-            for (int i = 0; i < renderTargets.Count; i++)
-                renderTargets[i].Dispose();
-            renderTargets.Clear();
+            for (int i = 0; i < RenderTargets.Count; i++)
+                RenderTargets[i].Dispose();
+            RenderTargets.Clear();
         } // ClearRenderTargetPool
 
 

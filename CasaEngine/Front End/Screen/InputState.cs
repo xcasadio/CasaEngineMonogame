@@ -15,16 +15,16 @@ namespace CasaEngine.FrontEnd.Screen
 {
     public class InputState
     {
-        readonly InputComponent m_InputComponent = null;
+        readonly InputComponent _inputComponent = null;
 
 
 
 
         public InputState()
         {
-            m_InputComponent = GameHelper.GetGameComponent<InputComponent>(Engine.Instance.Game);
+            _inputComponent = GameHelper.GetGameComponent<InputComponent>(Engine.Instance.Game);
 
-            if (m_InputComponent == null)
+            if (_inputComponent == null)
             {
                 throw new NullReferenceException("InputState() : InputComponent is null");
             }
@@ -41,7 +41,7 @@ namespace CasaEngine.FrontEnd.Screen
                 // Read input from the specified player.
                 playerIndex = controllingPlayer.Value;
 
-                return m_InputComponent.IsKeyJustPressed(key);
+                return _inputComponent.IsKeyJustPressed(key);
             }
             else
             {
@@ -50,7 +50,7 @@ namespace CasaEngine.FrontEnd.Screen
                         IsNewKeyPress(key, PlayerIndex.Two, out playerIndex) ||
                         IsNewKeyPress(key, PlayerIndex.Three, out playerIndex) ||
                         IsNewKeyPress(key, PlayerIndex.Four, out playerIndex));
-                //return m_InputComponent.KeyboardKeyJustPressed(key);
+                //return _InputComponent.KeyboardKeyJustPressed(key);
             }
         }
 
@@ -64,7 +64,7 @@ namespace CasaEngine.FrontEnd.Screen
                 playerIndex = controllingPlayer.Value;
                 if (GamePad.GetCapabilities(playerIndex).IsConnected == true)
                 {
-                    return m_InputComponent.IsButtonJustPressed(playerIndex, button);
+                    return _inputComponent.IsButtonJustPressed(playerIndex, button);
                 }
 
                 return false;

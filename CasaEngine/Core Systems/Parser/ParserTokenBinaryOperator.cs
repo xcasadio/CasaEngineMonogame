@@ -8,25 +8,25 @@
 
 
 
-        public ParserTokenBinaryOperator(Parser parser_, string token_)
-            : base(parser_, token_)
+        public ParserTokenBinaryOperator(Parser parser, string token)
+            : base(parser, token)
         {
 
         }
 
 
 
-        public override bool Check(string sentence_)
+        public override bool Check(string sentence)
         {
-            int index = sentence_.IndexOf(m_Token);
+            int index = sentence.IndexOf(Token);
 
             if (index != -1)
             {
-                Parser.AddCalculator(Parser.GetCalculatorByBinaryOperator(m_Token));
+                Parser.AddCalculator(Parser.GetCalculatorByBinaryOperator(Token));
 
                 string s1, s2;
-                s1 = sentence_.Substring(0, index);
-                s2 = sentence_.Substring(index + m_Token.Length, sentence_.Length - index - m_Token.Length);
+                s1 = sentence.Substring(0, index);
+                s2 = sentence.Substring(index + Token.Length, sentence.Length - index - Token.Length);
 
                 return Parser.Check(s1) && Parser.Check(s2);
             }

@@ -9,33 +9,33 @@ namespace CasaEngine.Project
     public class ProjectConfig
     {
 
-        private string m_WindowTitle = "Game name undefined";
+        private string _windowTitle = "Game name undefined";
 
-        private string m_ProjectName = "No Project Opened";
+        private string _projectName = "No Project Opened";
 
-        private string m_FirstScreenName = string.Empty;
+        private string _firstScreenName = string.Empty;
 
-        private bool m_AllowUserResizing;
-        private bool m_IsFixedTimeStep;
-        private bool m_IsMouseVisible;
+        private bool _allowUserResizing;
+        private bool _isFixedTimeStep;
+        private bool _isMouseVisible;
 
 #if !FINAL
-        private bool m_DebugIsFullScreen = false;
-        private int m_DebugWidth = 800, m_DebugHeight = 600;
+        private bool _debugIsFullScreen = false;
+        private int _debugWidth = 800, _debugHeight = 600;
 #endif
 
 #if EDITOR
 
-        private string m_DataSrcCtrl_Server = string.Empty;
+        private string _dataSrcCtrlServer = string.Empty;
 
-        private string m_DataSrcCtrl_User = string.Empty;
+        private string _dataSrcCtrlUser = string.Empty;
 
-        private string m_DataSrcCtrl_Password = string.Empty;
+        private string _dataSrcCtrlPassword = string.Empty;
 
-        private string m_DataSrcCtrl_Workspace = string.Empty;
+        private string _dataSrcCtrlWorkspace = string.Empty;
 
 
-        static private readonly uint m_Version = 2;
+        static private readonly uint Version = 2;
 #endif
 
 
@@ -45,9 +45,9 @@ namespace CasaEngine.Project
 #endif
         public string WindowTitle
         {
-            get { return m_WindowTitle; }
+            get { return _windowTitle; }
 #if EDITOR
-            set { m_WindowTitle = value; }
+            set { _windowTitle = value; }
 #endif
         }
 
@@ -56,9 +56,9 @@ namespace CasaEngine.Project
 #endif
         public string ProjectName
         {
-            get { return m_ProjectName; }
+            get { return _projectName; }
 #if EDITOR
-            set { m_ProjectName = value; }
+            set { _projectName = value; }
 #endif
         }
 
@@ -67,9 +67,9 @@ namespace CasaEngine.Project
 #endif
         public string FirstScreenName
         {
-            get { return m_FirstScreenName; }
+            get { return _firstScreenName; }
 #if EDITOR
-            set { m_FirstScreenName = value; }
+            set { _firstScreenName = value; }
 #endif
         }
 
@@ -78,9 +78,9 @@ namespace CasaEngine.Project
 #endif
         public bool AllowUserResizing
         {
-            get { return m_AllowUserResizing; }
+            get { return _allowUserResizing; }
 #if EDITOR
-            set { m_AllowUserResizing = value; }
+            set { _allowUserResizing = value; }
 #endif
         }
 
@@ -89,9 +89,9 @@ namespace CasaEngine.Project
 #endif
         public bool IsFixedTimeStep
         {
-            get { return m_IsFixedTimeStep; }
+            get { return _isFixedTimeStep; }
 #if EDITOR
-            set { m_IsFixedTimeStep = value; }
+            set { _isFixedTimeStep = value; }
 #endif
         }
 
@@ -100,9 +100,9 @@ namespace CasaEngine.Project
 #endif
         public bool IsMouseVisible
         {
-            get { return m_IsMouseVisible; }
+            get { return _isMouseVisible; }
 #if EDITOR
-            set { m_IsMouseVisible = value; }
+            set { _isMouseVisible = value; }
 #endif
         }
 
@@ -114,9 +114,9 @@ namespace CasaEngine.Project
 #endif
         public bool DebugIsFullScreen
         {
-            get { return m_DebugIsFullScreen; }
+            get { return _debugIsFullScreen; }
 #if EDITOR
-            set { m_DebugIsFullScreen = value; }
+            set { _debugIsFullScreen = value; }
 #endif
         }
 
@@ -125,9 +125,9 @@ namespace CasaEngine.Project
 #endif
         public int DebugWidth
         {
-            get { return m_DebugWidth; }
+            get { return _debugWidth; }
 #if EDITOR
-            set { m_DebugWidth = value; }
+            set { _debugWidth = value; }
 #endif
         }
 
@@ -136,9 +136,9 @@ namespace CasaEngine.Project
 #endif
         public int DebugHeight
         {
-            get { return m_DebugHeight; }
+            get { return _debugHeight; }
 #if EDITOR
-            set { m_DebugHeight = value; }
+            set { _debugHeight = value; }
 #endif
         }
 
@@ -152,73 +152,73 @@ namespace CasaEngine.Project
 
         }
 
-        public ProjectConfig(XmlElement el_, SaveOption option_)
+        public ProjectConfig(XmlElement el, SaveOption option)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
 
 
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
-            uint version = uint.Parse(el_.Attributes["version"].Value);
+            uint version = uint.Parse(el.Attributes["version"].Value);
 
-            m_WindowTitle = el_.Attributes["windowTitle"].Value;
-            m_ProjectName = el_.Attributes["name"].Value;
-            m_FirstScreenName = el_.Attributes["firstScreenName"].Value;
+            _windowTitle = el.Attributes["windowTitle"].Value;
+            _projectName = el.Attributes["name"].Value;
+            _firstScreenName = el.Attributes["firstScreenName"].Value;
 
             if (version > 1)
             {
-                m_AllowUserResizing = bool.Parse(el_.Attributes["AllowUserResizing"].Value);
-                m_IsFixedTimeStep = bool.Parse(el_.Attributes["IsFixedTimeStep"].Value);
-                m_IsMouseVisible = bool.Parse(el_.Attributes["IsMouseVisible"].Value);
+                _allowUserResizing = bool.Parse(el.Attributes["AllowUserResizing"].Value);
+                _isFixedTimeStep = bool.Parse(el.Attributes["IsFixedTimeStep"].Value);
+                _isMouseVisible = bool.Parse(el.Attributes["IsMouseVisible"].Value);
             }
 
 #if !FINAL
-            XmlElement xmlElt = (XmlElement)el_.SelectSingleNode("Debug");
+            XmlElement xmlElt = (XmlElement)el.SelectSingleNode("Debug");
 
-            m_DebugIsFullScreen = bool.Parse(xmlElt.Attributes["debugIsFullScreen"].Value);
-            m_DebugHeight = int.Parse(xmlElt.Attributes["debugHeight"].Value);
-            m_DebugWidth = int.Parse(xmlElt.Attributes["debugWidth"].Value);
+            _debugIsFullScreen = bool.Parse(xmlElt.Attributes["debugIsFullScreen"].Value);
+            _debugHeight = int.Parse(xmlElt.Attributes["debugHeight"].Value);
+            _debugWidth = int.Parse(xmlElt.Attributes["debugWidth"].Value);
 #endif
         }
 
 #if EDITOR
 
-        public void Save(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el, SaveOption option)
         {
-            el_.OwnerDocument.AddAttribute(el_, "name", m_ProjectName);
-            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
+            el.OwnerDocument.AddAttribute(el, "name", _projectName);
+            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
-            el_.OwnerDocument.AddAttribute(el_, "windowTitle", m_WindowTitle);
-            el_.OwnerDocument.AddAttribute(el_, "firstScreenName", m_FirstScreenName);
+            el.OwnerDocument.AddAttribute(el, "windowTitle", _windowTitle);
+            el.OwnerDocument.AddAttribute(el, "firstScreenName", _firstScreenName);
 
-            el_.OwnerDocument.AddAttribute(el_, "AllowUserResizing", m_AllowUserResizing.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "IsFixedTimeStep", m_IsFixedTimeStep.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "IsMouseVisible", m_IsMouseVisible.ToString());
+            el.OwnerDocument.AddAttribute(el, "AllowUserResizing", _allowUserResizing.ToString());
+            el.OwnerDocument.AddAttribute(el, "IsFixedTimeStep", _isFixedTimeStep.ToString());
+            el.OwnerDocument.AddAttribute(el, "IsMouseVisible", _isMouseVisible.ToString());
 
             //Debug
-            XmlElement xmlElt = el_.OwnerDocument.CreateElement("Debug");
-            el_.AppendChild(xmlElt);
-            el_.OwnerDocument.AddAttribute(xmlElt, "debugIsFullScreen", m_DebugIsFullScreen.ToString());
-            el_.OwnerDocument.AddAttribute(xmlElt, "debugHeight", m_DebugHeight.ToString());
-            el_.OwnerDocument.AddAttribute(xmlElt, "debugWidth", m_DebugWidth.ToString());
+            XmlElement xmlElt = el.OwnerDocument.CreateElement("Debug");
+            el.AppendChild(xmlElt);
+            el.OwnerDocument.AddAttribute(xmlElt, "debugIsFullScreen", _debugIsFullScreen.ToString());
+            el.OwnerDocument.AddAttribute(xmlElt, "debugHeight", _debugHeight.ToString());
+            el.OwnerDocument.AddAttribute(xmlElt, "debugWidth", _debugWidth.ToString());
         }
 
-        public void Save(BinaryWriter bw_, SaveOption option_)
+        public void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write(m_Version);
-            bw_.Write(m_ProjectName);
-            bw_.Write(m_WindowTitle);
-            bw_.Write(m_FirstScreenName);
-            bw_.Write(m_AllowUserResizing);
-            bw_.Write(m_IsFixedTimeStep);
-            bw_.Write(m_IsMouseVisible);
+            bw.Write(Version);
+            bw.Write(_projectName);
+            bw.Write(_windowTitle);
+            bw.Write(_firstScreenName);
+            bw.Write(_allowUserResizing);
+            bw.Write(_isFixedTimeStep);
+            bw.Write(_isMouseVisible);
 
             //Debug
-            bw_.Write(m_DebugIsFullScreen);
-            bw_.Write(m_DebugHeight);
-            bw_.Write(m_DebugWidth);
+            bw.Write(_debugIsFullScreen);
+            bw.Write(_debugHeight);
+            bw.Write(_debugWidth);
         }
 
 #endif

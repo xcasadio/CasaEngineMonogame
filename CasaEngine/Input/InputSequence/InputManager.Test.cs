@@ -17,7 +17,7 @@ namespace CasaEngine.Input
             KeyState k;
             Move move;
 
-            m_Buffer.Clear();
+            _Buffer.Clear();
 
             List<KeyState[]> KeyStateArrayList = new List<KeyState[]>();
             List<KeyState> KeyStateList = new List<KeyState>();
@@ -65,7 +65,7 @@ namespace CasaEngine.Input
             KeyState k;
             Move move;
 
-            m_Buffer.Clear();
+            _Buffer.Clear();
 
             List<KeyState[]> KeyStateArrayList = new List<KeyState[]>();
             List<KeyState> KeyStateList = new List<KeyState>();
@@ -128,7 +128,7 @@ namespace CasaEngine.Input
         {
             KeyState k;
 
-            m_Buffer.Clear();
+            _Buffer.Clear();
 
             List<KeyState[]> KeyStateArrayList = new List<KeyState[]>();
             List<KeyState> KeyStateList = new List<KeyState>();
@@ -250,44 +250,44 @@ namespace CasaEngine.Input
                 g += MergeInputTime * 2.0f; //avoid merge
             }
 
-            Assert.AreEqual(m_Buffer.Count, 4);
+            Assert.AreEqual(_Buffer.Count, 4);
 
-            Assert.AreEqual(m_Buffer[0].KeysState.Count, 2);
-            Assert.AreEqual(m_Buffer[1].KeysState.Count, 1);
-            Assert.AreEqual(m_Buffer[2].KeysState.Count, 1);
-            Assert.AreEqual(m_Buffer[3].KeysState.Count, 2);
+            Assert.AreEqual(_Buffer[0].KeysState.Count, 2);
+            Assert.AreEqual(_Buffer[1].KeysState.Count, 1);
+            Assert.AreEqual(_Buffer[2].KeysState.Count, 1);
+            Assert.AreEqual(_Buffer[3].KeysState.Count, 2);
 
             //1
-            Assert.AreEqual(m_Buffer[0].KeysState[0].Key, 1);
-            Assert.AreEqual(m_Buffer[0].KeysState[0].State, ButtonState.Pressed);
-            Assert.AreEqual(m_Buffer[0].KeysState[0].Time, 0.016f);
-            Assert.AreEqual(m_Buffer[0].KeysState[1].Key, 2);
-            Assert.AreEqual(m_Buffer[0].KeysState[1].State, ButtonState.Pressed);
-            Assert.AreEqual(m_Buffer[0].KeysState[1].Time, 0.016f);
+            Assert.AreEqual(_Buffer[0].KeysState[0].Key, 1);
+            Assert.AreEqual(_Buffer[0].KeysState[0].State, ButtonState.Pressed);
+            Assert.AreEqual(_Buffer[0].KeysState[0].Time, 0.016f);
+            Assert.AreEqual(_Buffer[0].KeysState[1].Key, 2);
+            Assert.AreEqual(_Buffer[0].KeysState[1].State, ButtonState.Pressed);
+            Assert.AreEqual(_Buffer[0].KeysState[1].Time, 0.016f);
 
             //2
-            Assert.AreEqual(m_Buffer[1].KeysState[0].Key, 3);
-            Assert.AreEqual(m_Buffer[1].KeysState[0].State, ButtonState.Pressed);
-            Assert.AreEqual(m_Buffer[1].KeysState[0].Time, 0.016f);
+            Assert.AreEqual(_Buffer[1].KeysState[0].Key, 3);
+            Assert.AreEqual(_Buffer[1].KeysState[0].State, ButtonState.Pressed);
+            Assert.AreEqual(_Buffer[1].KeysState[0].Time, 0.016f);
 
             //3
-            Assert.AreEqual(m_Buffer[2].KeysState[0].Key, 3);
-            Assert.AreEqual(m_Buffer[2].KeysState[0].State, ButtonState.Pressed);
-            Assert.AreEqual(m_Buffer[2].KeysState[0].Time, 0.016f);
+            Assert.AreEqual(_Buffer[2].KeysState[0].Key, 3);
+            Assert.AreEqual(_Buffer[2].KeysState[0].State, ButtonState.Pressed);
+            Assert.AreEqual(_Buffer[2].KeysState[0].Time, 0.016f);
 
             //4
-            Assert.AreEqual(m_Buffer[3].KeysState[0].Key, 1);
-            Assert.AreEqual(m_Buffer[3].KeysState[0].State, ButtonState.Pressed);
-            Assert.AreEqual(m_Buffer[3].KeysState[0].Time, 0.048f);
-            Assert.AreEqual(m_Buffer[3].KeysState[1].Key, 2);
-            Assert.AreEqual(m_Buffer[3].KeysState[1].State, ButtonState.Pressed);
-            Assert.AreEqual(m_Buffer[3].KeysState[1].Time, 0.016f);
+            Assert.AreEqual(_Buffer[3].KeysState[0].Key, 1);
+            Assert.AreEqual(_Buffer[3].KeysState[0].State, ButtonState.Pressed);
+            Assert.AreEqual(_Buffer[3].KeysState[0].Time, 0.048f);
+            Assert.AreEqual(_Buffer[3].KeysState[1].Key, 2);
+            Assert.AreEqual(_Buffer[3].KeysState[1].State, ButtonState.Pressed);
+            Assert.AreEqual(_Buffer[3].KeysState[1].Time, 0.016f);
         }
 
         [Test]
         public void MergedTest()
         {
-            m_Buffer.Clear();
+            _Buffer.Clear();
 
             KeyState[][] keys;
             KeyState k;
@@ -354,7 +354,7 @@ namespace CasaEngine.Input
             KeyState k;
             Move move;
 
-            m_Buffer.Clear();
+            _Buffer.Clear();
 
             List<KeyState[]> KeyStateArrayList = new List<KeyState[]>();
             List<KeyState> KeyStateList = new List<KeyState>();

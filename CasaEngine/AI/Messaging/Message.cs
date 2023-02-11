@@ -4,102 +4,93 @@ namespace CasaEngine.AI.Messaging
     [Serializable]
     public class Message
     {
+        public const int NoSenderId = -1;
 
-        public const int NoSenderID = -1;
+        protected int _senderId;
+        protected int _recieverId;
+        protected int _type;
+        protected double _dispatchTime;
+        protected object _extraInfo;
 
-
-
-        protected internal int senderID;
-
-        protected internal int recieverID;
-
-        protected internal int type;
-
-        protected internal double dispatchTime;
-
-        protected internal object extraInfo;
-
-
-
-        public Message(int senderID, int recieverID, int type, double dispatchTime, object extraInfo)
+        public Message(int senderId, int recieverId, int type, double dispatchTime, object extraInfo)
         {
             String message = String.Empty;
 
-            if (ValidateID(senderID, ref message) == false)
-                throw new AIException("senderID", this.GetType().ToString(), message);
+            if (ValidateId(senderId, ref message) == false)
+                throw new AiException("senderID", this.GetType().ToString(), message);
 
-            if (ValidateID(recieverID, ref message) == false)
-                throw new AIException("recieverID", this.GetType().ToString(), message);
+            if (ValidateId(recieverId, ref message) == false)
+                throw new AiException("recieverID", this.GetType().ToString(), message);
 
             if (ValidateTime(dispatchTime, ref message) == false)
-                throw new AIException("dispatchTime", this.GetType().ToString(), message);
+                throw new AiException("dispatchTime", this.GetType().ToString(), message);
 
-            this.senderID = senderID;
-            this.recieverID = recieverID;
-            this.type = type;
-            this.dispatchTime = dispatchTime;
-            this.extraInfo = extraInfo;
+            _senderId = senderId;
+            _recieverId = recieverId;
+            _type = type;
+            _dispatchTime = dispatchTime;
+            _extraInfo = extraInfo;
         }
 
 
 
         public int SenderID
         {
-            get => senderID;
+            get => _senderId;
             set
             {
                 String message = String.Empty;
 
-                if (ValidateID(value, ref message) == false)
-                    throw new AIException("senderID", this.GetType().ToString(), message);
+                if (ValidateId(value, ref message) == false)
+                    throw new AiException("senderID", this.GetType().ToString(), message);
 
-                senderID = value;
+                _senderId = value;
             }
         }
 
         public int RecieverID
         {
-            get => recieverID;
+            get => _recieverId;
             set
             {
                 String message = String.Empty;
 
-                if (ValidateID(value, ref message) == false)
-                    throw new AIException("recieverID", this.GetType().ToString(), message);
+                if (ValidateId(value, ref message) == false)
+                    throw new AiException("recieverID", this.GetType().ToString(), message);
 
-                recieverID = value;
+                _recieverId = value;
             }
         }
 
         public int Type
         {
-            get => type;
-            set => type = value;
+            get => _type;
+            set => _type = value;
         }
 
         public double DispatchTime
         {
-            get => dispatchTime;
+            get => _dispatchTime;
             set
             {
                 String message = String.Empty;
 
                 if (ValidateTime(value, ref message) == false)
-                    throw new AIException("dispatchTime", this.GetType().ToString(), message);
+                    throw new AiException("dispatchTime", this.GetType().ToString(), message);
 
-                dispatchTime = value;
+                _dispatchTime = value;
             }
         }
 
         public object ExtraInfo
         {
-            get => extraInfo;
-            set => extraInfo = value;
+            get => _extraInfo;
+            set => _extraInfo = value;
         }
 
 
 
-        public static bool ValidateID(int id, ref string message)
+        public static bool ValidateId(int id, ref string message)
         {
             if (id < -1)
             {

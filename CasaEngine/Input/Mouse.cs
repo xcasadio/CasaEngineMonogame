@@ -50,28 +50,28 @@ namespace XNAFinalEngine.Input
 
 
         // Mouse state, set every frame in the Update method.
-        private static MouseState currentState, previousState;
+        private static MouseState _currentState, _previousState;
 
         // X and Y movements of the mouse in this frame.
-        private static int deltaX, deltaY;
+        private static int _deltaX, _deltaY;
 
         // Current mouse position.
-        private static int positionX, positionY;
+        private static int _positionX, _positionY;
 
         // Mouse wheel delta. XNA does report only the total scroll value, but we usually need the current delta!
-        private static int wheelDelta, wheelValue;
+        private static int _wheelDelta, _wheelValue;
 
         // Start dragging pos, will be set when we just pressed the left mouse button. Used for the MouseDraggingAmount property.
-        private static Point startDraggingPosition;
+        private static Point _startDraggingPosition;
 
         // This mode allows to track the mouse movement when the mouse reach and pass the system window border.
-        private static bool trackDeltaOutsideScreen;
+        private static bool _trackDeltaOutsideScreen;
 
 
 
-        public static MouseState State => currentState;
+        public static MouseState State => _currentState;
 
-        public static MouseState PreviousState => previousState;
+        public static MouseState PreviousState => _previousState;
 
 
         /*public static bool TrackDeltaOutsideScreen
@@ -115,40 +115,40 @@ namespace XNAFinalEngine.Input
 			}
         } // Position
         */
-        public static float DeltaX => deltaX;
+        public static float DeltaX => _deltaX;
 
-        public static float DeltaY => deltaY;
+        public static float DeltaY => _deltaY;
 
 
-        public static bool LeftButtonPressed => currentState.LeftButton == ButtonState.Pressed;
+        public static bool LeftButtonPressed => _currentState.LeftButton == ButtonState.Pressed;
 
-        public static bool RightButtonPressed => currentState.RightButton == ButtonState.Pressed;
+        public static bool RightButtonPressed => _currentState.RightButton == ButtonState.Pressed;
 
-        public static bool MiddleButtonPressed => currentState.MiddleButton == ButtonState.Pressed;
+        public static bool MiddleButtonPressed => _currentState.MiddleButton == ButtonState.Pressed;
 
-        public static bool XButton1Pressed => currentState.XButton1 == ButtonState.Pressed;
+        public static bool XButton1Pressed => _currentState.XButton1 == ButtonState.Pressed;
 
-        public static bool XButton2Pressed => currentState.XButton2 == ButtonState.Pressed;
+        public static bool XButton2Pressed => _currentState.XButton2 == ButtonState.Pressed;
 
-        public static bool LeftButtonJustPressed => currentState.LeftButton == ButtonState.Pressed && previousState.LeftButton == ButtonState.Released;
+        public static bool LeftButtonJustPressed => _currentState.LeftButton == ButtonState.Pressed && _previousState.LeftButton == ButtonState.Released;
 
-        public static bool RightButtonJustPressed => currentState.RightButton == ButtonState.Pressed && previousState.RightButton == ButtonState.Released;
+        public static bool RightButtonJustPressed => _currentState.RightButton == ButtonState.Pressed && _previousState.RightButton == ButtonState.Released;
 
-        public static bool MiddleButtonJustPressed => currentState.MiddleButton == ButtonState.Pressed && previousState.MiddleButton == ButtonState.Released;
+        public static bool MiddleButtonJustPressed => _currentState.MiddleButton == ButtonState.Pressed && _previousState.MiddleButton == ButtonState.Released;
 
-        public static bool XButton1JustPressed => currentState.XButton1 == ButtonState.Pressed && previousState.XButton1 == ButtonState.Released;
+        public static bool XButton1JustPressed => _currentState.XButton1 == ButtonState.Pressed && _previousState.XButton1 == ButtonState.Released;
 
-        public static bool XButton2JustPressed => currentState.XButton2 == ButtonState.Pressed && previousState.XButton2 == ButtonState.Released;
+        public static bool XButton2JustPressed => _currentState.XButton2 == ButtonState.Pressed && _previousState.XButton2 == ButtonState.Released;
 
-        public static bool LeftButtonJustReleased => currentState.LeftButton == ButtonState.Released && previousState.LeftButton == ButtonState.Pressed;
+        public static bool LeftButtonJustReleased => _currentState.LeftButton == ButtonState.Released && _previousState.LeftButton == ButtonState.Pressed;
 
-        public static bool RightButtonJustReleased => currentState.RightButton == ButtonState.Released && previousState.RightButton == ButtonState.Pressed;
+        public static bool RightButtonJustReleased => _currentState.RightButton == ButtonState.Released && _previousState.RightButton == ButtonState.Pressed;
 
-        public static bool MiddleButtonJustReleased => currentState.MiddleButton == ButtonState.Released && previousState.MiddleButton == ButtonState.Pressed;
+        public static bool MiddleButtonJustReleased => _currentState.MiddleButton == ButtonState.Released && _previousState.MiddleButton == ButtonState.Pressed;
 
-        public static bool XButton1JustReleased => currentState.XButton1 == ButtonState.Released && previousState.XButton1 == ButtonState.Pressed;
+        public static bool XButton1JustReleased => _currentState.XButton1 == ButtonState.Released && _previousState.XButton1 == ButtonState.Pressed;
 
-        public static bool XButton2JustReleased => currentState.XButton2 == ButtonState.Released && previousState.XButton2 == ButtonState.Pressed;
+        public static bool XButton2JustReleased => _currentState.XButton2 == ButtonState.Released && _previousState.XButton2 == ButtonState.Pressed;
 
 
         //public static Point DraggingAmount { get { return new Point(-startDraggingPosition.X + Position.X, -startDraggingPosition.Y + Position.Y); } }
@@ -186,9 +186,9 @@ namespace XNAFinalEngine.Input
 
 
 
-        public static int WheelDelta => wheelDelta;
+        public static int WheelDelta => _wheelDelta;
 
-        public static int WheelValue => wheelValue;
+        public static int WheelValue => _wheelValue;
 
 
         /*public static void ResetDragging()
@@ -200,10 +200,10 @@ namespace XNAFinalEngine.Input
 
         public static bool MouseInsideRectangle(Rectangle rectangle)
         {
-            return positionX >= rectangle.X &&
-                   positionY >= rectangle.Y &&
-                   positionX < rectangle.Right &&
-                   positionY < rectangle.Bottom;
+            return _positionX >= rectangle.X &&
+                   _positionY >= rectangle.Y &&
+                   _positionX < rectangle.Right &&
+                   _positionY < rectangle.Bottom;
         } // MouseInsideRectangle
 
 
@@ -239,17 +239,17 @@ namespace XNAFinalEngine.Input
         internal static void Update()
         {
             // Update mouse state.
-            previousState = currentState;
-            currentState = Microsoft.Xna.Framework.Input.Mouse.GetState();
+            _previousState = _currentState;
+            _currentState = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
             //if (!TrackDeltaOutsideScreen)
             {
                 // Calculate mouse movement.
-                deltaX = currentState.X - positionX; // positionX is the old position.
-                deltaY = currentState.Y - positionY;
+                _deltaX = _currentState.X - _positionX; // positionX is the old position.
+                _deltaY = _currentState.Y - _positionY;
                 // Update position.
-                positionX = currentState.X; // Now is the new one.
-                positionY = currentState.Y;
+                _positionX = _currentState.X; // Now is the new one.
+                _positionY = _currentState.Y;
             }
             /*else
             {
@@ -275,8 +275,8 @@ namespace XNAFinalEngine.Input
             }*/
 
             // Wheel
-            wheelDelta = currentState.ScrollWheelValue - wheelValue;
-            wheelValue = currentState.ScrollWheelValue;
+            _wheelDelta = _currentState.ScrollWheelValue - _wheelValue;
+            _wheelValue = _currentState.ScrollWheelValue;
         } // Update
 
     } // Mouse

@@ -12,48 +12,48 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        public ShapeLine(Point start_, Point end_)
+        public ShapeLine(Point start, Point end)
             : base(Shape2DType.Line)
         {
-            m_Start = start_;
-            m_End = end_;
+            _start = start;
+            _end = end;
         }
 
 
 
-        public override bool CompareTo(Shape2DObject o_)
+        public override bool CompareTo(Shape2DObject o)
         {
-            if (o_ is ShapeLine)
+            if (o is ShapeLine)
             {
-                ShapeLine l = (ShapeLine)o_;
-                return m_Start == l.Start
-                    && m_End == l.End
-                    && base.CompareTo(o_);
+                ShapeLine l = (ShapeLine)o;
+                return _start == l.Start
+                    && _end == l.End
+                    && base.CompareTo(o);
             }
 
             return false;
         }
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            base.Save(el_, option_);
-            el_.OwnerDocument.AddAttribute(el_, "startX", m_Start.X.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "startY", m_Start.Y.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "endX", m_End.X.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "endY", m_End.Y.ToString());
+            base.Save(el, option);
+            el.OwnerDocument.AddAttribute(el, "startX", _start.X.ToString());
+            el.OwnerDocument.AddAttribute(el, "startY", _start.Y.ToString());
+            el.OwnerDocument.AddAttribute(el, "endX", _end.X.ToString());
+            el.OwnerDocument.AddAttribute(el, "endY", _end.Y.ToString());
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            base.Save(bw_, option_);
+            base.Save(bw, option);
 
-            bw_.Write(m_Start);
-            bw_.Write(m_End);
+            bw.Write(_start);
+            bw.Write(_end);
         }
 
         public override string ToString()
         {
-            return "Line - " + m_Start.ToString() + " - " + m_End.ToString();
+            return "Line - " + _start.ToString() + " - " + _end.ToString();
         }
 
     }

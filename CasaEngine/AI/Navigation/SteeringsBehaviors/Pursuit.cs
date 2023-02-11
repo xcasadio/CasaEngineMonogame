@@ -6,51 +6,51 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
     public class Pursuit : SteeringBehavior
     {
 
-        protected internal MovingEntity evader;
+        protected internal MovingEntity Evader;
 
-        protected internal Seek seek;
+        protected internal Seek Seek;
 
-        protected internal Vector3 force;
+        protected internal Vector3 Force;
 
-        protected internal Vector3 targetPosition;
+        protected internal Vector3 TargetPosition;
 
 
 
         public Pursuit(String name, MovingEntity owner, float modifier)
             : base(name, owner, modifier)
         {
-            seek = new Seek(name + "Seek", owner, 0);
+            Seek = new Seek(name + "Seek", owner, 0);
         }
 
 
 
         public override bool IgnoreX
         {
-            get => base.IgnoreX;
+            get => IgnoreX;
             set
             {
-                base.IgnoreX = value;
-                seek.IgnoreX = value;
+                IgnoreX = value;
+                IgnoreX = value;
             }
         }
 
         public override bool IgnoreY
         {
-            get => base.IgnoreY;
+            get => IgnoreY;
             set
             {
-                base.IgnoreY = value;
-                seek.IgnoreY = value;
+                IgnoreY = value;
+                IgnoreY = value;
             }
         }
 
         public override bool IgnoreZ
         {
-            get => base.IgnoreZ;
+            get => IgnoreZ;
             set
             {
-                base.IgnoreZ = value;
-                seek.IgnoreZ = value;
+                IgnoreZ = value;
+                IgnoreZ = value;
             }
         }
 
@@ -78,9 +78,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             if ((relativeHeading < -0.95f) && (Vector3.Dot(toEvader, ConstraintVector(owner.Look)) > 0.0f))
             {
                 targetPosition = evader.Position;
-                seek.TargetPosition = targetPosition;
+                Seek.TargetPosition = targetPosition;
 
-                force = seek.Calculate();
+                force = Seek.Calculate();
                 return force;
             }
 
@@ -93,9 +93,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             //Seek to the estimated future position
             targetPosition = evader.Position + evader.Velocity * lookAheadTime;
-            seek.TargetPosition = targetPosition;
+            Seek.TargetPosition = targetPosition;
 
-            force = seek.Calculate();
+            force = Seek.Calculate();
             return force;
         }
 

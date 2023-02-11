@@ -10,12 +10,12 @@ namespace CasaEngine.FrontEnd.Screen
     public class LoadingScreen
         : Screen
     {
-        readonly bool loadingIsSlow;
-        bool otherScreensAreGone;
+        readonly bool _loadingIsSlow;
+        bool _otherScreensAreGone;
 
-        readonly Screen[] screensToLoad;
+        readonly Screen[] _screensToLoad;
 
-        readonly Renderer2DComponent m_Renderer2DComponent = null;
+        readonly Renderer2DComponent _renderer2DComponent = null;
 
 
 
@@ -23,12 +23,12 @@ namespace CasaEngine.FrontEnd.Screen
                               Screen[] screensToLoad)
             : base("LoadingScreen")
         {
-            this.loadingIsSlow = loadingIsSlow;
-            this.screensToLoad = screensToLoad;
+            this._loadingIsSlow = loadingIsSlow;
+            this._screensToLoad = screensToLoad;
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
 
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
         public static void Load(ScreenManagerComponent screenManager, bool loadingIsSlow,
@@ -49,18 +49,18 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        public override void Update(float elapsedTime_, bool otherScreenHasFocus,
+        public override void Update(float elapsedTime, bool otherScreenHasFocus,
                                                        bool coveredByOtherScreen)
         {
-            base.Update(elapsedTime_, otherScreenHasFocus, coveredByOtherScreen);
+            base.Update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen);
 
             // If all the previous screens have finished transitioning
             // off, it is time to actually perform the load.
-            if (otherScreensAreGone)
+            if (_otherScreensAreGone)
             {
                 ScreenManagerComponent.RemoveScreen(this);
 
-                foreach (Screen screen in screensToLoad)
+                foreach (Screen screen in _screensToLoad)
                 {
                     if (screen != null)
                     {
@@ -75,7 +75,7 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        public override void Draw(float elapsedTime_)
+        public override void Draw(float elapsedTime)
         {
             // If we are the only active screen, that means all the previous screens
             // must have finished transitioning off. We check for this in the Draw
@@ -85,7 +85,7 @@ namespace CasaEngine.FrontEnd.Screen
             if ((ScreenState == ScreenState.Active) &&
                 (ScreenManagerComponent.GetScreens().Length == 1))
             {
-                otherScreensAreGone = true;
+                _otherScreensAreGone = true;
             }
 
             // The gameplay screen takes a while to load, so we display a loading
@@ -94,7 +94,7 @@ namespace CasaEngine.FrontEnd.Screen
             // second while returning from the game to the menus. This parameter
             // tells us how long the loading is going to take, so we know whether
             // to bother drawing the message.
-            if (loadingIsSlow)
+            if (_loadingIsSlow)
             {
                 const string message = "Loading...";
 
@@ -110,7 +110,7 @@ namespace CasaEngine.FrontEnd.Screen
                 /*spriteBatch.Begin();
                 spriteBatch.DrawString(font, message, textPosition, color);
                 spriteBatch.End();*/
-                m_Renderer2DComponent.AddText2D(Engine.Instance.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
+                _renderer2DComponent.AddText2D(Engine.Instance.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
             }
         }
 

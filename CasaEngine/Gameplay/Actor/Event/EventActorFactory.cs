@@ -12,14 +12,14 @@ namespace CasaEngine.Gameplay.Actor.Event
 
 
 
-        static public EventActor LoadEvent(XmlElement el_, SaveOption option_)
+        static public EventActor LoadEvent(XmlElement el, SaveOption option)
         {
-            EventActorType type = (EventActorType)Enum.Parse(typeof(EventActorType), el_.Attributes["type"].Value);
+            EventActorType type = (EventActorType)Enum.Parse(typeof(EventActorType), el.Attributes["type"].Value);
 
             switch (type)
             {
                 case EventActorType.PlaySound:
-                    return new PlaySoundEvent(el_, option_);
+                    return new PlaySoundEvent(el, option);
 
                 case EventActorType.SpawnActor:
                     throw new NotImplementedException();

@@ -4,7 +4,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
     public sealed class ElitismReplacement<T> : ReplacementAlgorithm<T>
     {
 
-        internal int numberParents;
+        internal int NumberParents;
 
 
 
@@ -15,9 +15,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
 
             //Validate arguments
             if (ValidateNumberParents(newPopulationSize, numberParents, ref message) == false)
-                throw new AIException("newPopulationSize", this.GetType().ToString(), message);
+                throw new AiException("newPopulationSize", this.GetType().ToString(), message);
 
-            this.numberParents = numberParents;
+            this.NumberParents = numberParents;
         }
 
 
@@ -27,17 +27,17 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
             Population<T> survivors;
 
             //Sort parents and children
-            parents.Genome.Sort(new ChromosomeComparer<T>(objective));
-            children.Genome.Sort(new ChromosomeComparer<T>(objective));
+            parents.Genome.Sort(new ChromosomeComparer<T>(Objective));
+            children.Genome.Sort(new ChromosomeComparer<T>(Objective));
 
             //Create the survivors population
             survivors = parents.FastEmptyInstance();
 
             //Copy the elite parents
-            survivors.Genome.AddRange(parents.Genome.GetRange(0, numberParents));
+            survivors.Genome.AddRange(parents.Genome.GetRange(0, NumberParents));
 
             //Copy the best children
-            survivors.Genome.AddRange(children.Genome.GetRange(0, newPopulationSize - numberParents));
+            survivors.Genome.AddRange(children.Genome.GetRange(0, NewPopulationSize - NumberParents));
 
             return survivors;
         }

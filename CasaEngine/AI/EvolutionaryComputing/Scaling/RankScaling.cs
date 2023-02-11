@@ -4,7 +4,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
     public sealed class RankScaling<T> : ScalingAlgorithm<T>
     {
 
-        internal double alpha;
+        internal double Alpha;
 
 
 
@@ -14,9 +14,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
             String message = String.Empty;
 
             if (ValidateAlpha(alpha, ref message) == false)
-                throw new AIException("alpha", this.GetType().ToString(), message);
+                throw new AiException("alpha", this.GetType().ToString(), message);
 
-            this.alpha = alpha;
+            this.Alpha = alpha;
         }
 
 
@@ -31,7 +31,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
             mapping = new ScalingMapping<T>(population.Genome.Count);
 
             //Order the population on inverse order depending on the objective
-            if (objective == EvolutionObjective.Maximize)
+            if (Objective == EvolutionObjective.Maximize)
                 population.Genome.Sort(new ChromosomeComparer<T>(EvolutionObjective.Minimize));
 
             else
@@ -41,7 +41,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
             popSize = population.Genome.Count;
             for (int i = 0; i < popSize; i++)
             {
-                temp = ((2.0 - alpha) / popSize) + (2.0 * i * (alpha - 1.0) / (popSize * (popSize - 1.0)));
+                temp = ((2.0 - Alpha) / popSize) + (2.0 * i * (Alpha - 1.0) / (popSize * (popSize - 1.0)));
                 mapping.AddChromosome(population[i], temp);
             }
 

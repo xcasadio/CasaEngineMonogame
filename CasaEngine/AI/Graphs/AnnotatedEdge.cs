@@ -5,7 +5,7 @@ namespace CasaEngine.AI.Graphs
     public class AnnotatedEdge : WeightedEdge
     {
 
-        protected internal EdgeInformation information;
+        protected internal EdgeInformation Information;
 
 
 

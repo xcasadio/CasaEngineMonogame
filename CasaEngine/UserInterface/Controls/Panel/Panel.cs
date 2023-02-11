@@ -17,22 +17,22 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly Bevel bevel;
-        private BevelStyle bevelStyle = BevelStyle.None;
-        private BevelBorder bevelBorder = BevelBorder.None;
-        private int bevelMargin;
-        private Color bevelColor = Color.Black;
+        private readonly Bevel _bevel;
+        private BevelStyle _bevelStyle = BevelStyle.None;
+        private BevelBorder _bevelBorder = BevelBorder.None;
+        private int _bevelMargin;
+        private Color _bevelColor = Color.Black;
 
 
 
         public BevelStyle BevelStyle
         {
-            get => bevelStyle;
+            get => _bevelStyle;
             set
             {
-                if (bevelStyle != value)
+                if (_bevelStyle != value)
                 {
-                    bevelStyle = bevel.Style = value;
+                    _bevelStyle = _bevel.Style = value;
                     AdjustMargins();
                     if (!Suspended) OnBevelStyleChanged(new EventArgs());
                 }
@@ -41,13 +41,13 @@ namespace XNAFinalEngine.UserInterface
 
         public BevelBorder BevelBorder
         {
-            get => bevelBorder;
+            get => _bevelBorder;
             set
             {
-                if (bevelBorder != value)
+                if (_bevelBorder != value)
                 {
-                    bevelBorder = bevel.Border = value;
-                    bevel.Visible = bevelBorder != BevelBorder.None;
+                    _bevelBorder = _bevel.Border = value;
+                    _bevel.Visible = _bevelBorder != BevelBorder.None;
                     AdjustMargins();
                     if (!Suspended) OnBevelBorderChanged(new EventArgs());
                 }
@@ -56,12 +56,12 @@ namespace XNAFinalEngine.UserInterface
 
         public int BevelMargin
         {
-            get => bevelMargin;
+            get => _bevelMargin;
             set
             {
-                if (bevelMargin != value)
+                if (_bevelMargin != value)
                 {
-                    bevelMargin = value;
+                    _bevelMargin = value;
                     AdjustMargins();
                     if (!Suspended) OnBevelMarginChanged(new EventArgs());
                 }
@@ -70,8 +70,8 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual Color BevelColor
         {
-            get => bevelColor;
-            set => bevel.Color = bevelColor = value;
+            get => _bevelColor;
+            set => _bevel.Color = _bevelColor = value;
         } // BevelColor
 
 
@@ -82,27 +82,27 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Panel(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Panel(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Passive = false;
             CanFocus = false;
             Width = 64;
             Height = 64;
 
-            bevel = new Bevel(UserInterfaceManager)
+            _bevel = new Bevel(UserInterfaceManager)
             {
-                Style = bevelStyle,
-                Border = bevelBorder,
+                Style = _bevelStyle,
+                Border = _bevelBorder,
                 Left = 0,
                 Top = 0,
                 Width = Width,
                 Height = Height,
-                Color = bevelColor,
-                Visible = (bevelBorder != BevelBorder.None),
+                Color = _bevelColor,
+                Visible = (_bevelBorder != BevelBorder.None),
                 Anchor = Anchors.Left | Anchors.Top | Anchors.Right | Anchors.Bottom
             };
-            Add(bevel, false);
+            Add(_bevel, false);
             AdjustMargins();
         } // Panel
 
@@ -133,22 +133,22 @@ namespace XNAFinalEngine.UserInterface
             int t = 0;
             int r = 0;
             int b = 0;
-            int s = bevelMargin;
+            int s = _bevelMargin;
 
-            if (bevelBorder != BevelBorder.None)
+            if (_bevelBorder != BevelBorder.None)
             {
-                if (bevelStyle != BevelStyle.Flat)
+                if (_bevelStyle != BevelStyle.Flat)
                     s += 2;
                 else
                     s += 1;
 
-                if (bevelBorder == BevelBorder.Left || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Left || _bevelBorder == BevelBorder.All)
                     l = s;
-                if (bevelBorder == BevelBorder.Top || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Top || _bevelBorder == BevelBorder.All)
                     t = s;
-                if (bevelBorder == BevelBorder.Right || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Right || _bevelBorder == BevelBorder.All)
                     r = s;
-                if (bevelBorder == BevelBorder.Bottom || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Bottom || _bevelBorder == BevelBorder.All)
                     b = s;
             }
             ClientMargins = new Margins(SkinInformation.ClientMargins.Left + l, SkinInformation.ClientMargins.Top + t, SkinInformation.ClientMargins.Right + r, SkinInformation.ClientMargins.Bottom + b);
@@ -164,11 +164,11 @@ namespace XNAFinalEngine.UserInterface
             int y = rect.Top;
             int w = rect.Width;
             int h = rect.Height;
-            int s = bevelMargin;
+            int s = _bevelMargin;
 
-            if (bevelBorder != BevelBorder.None)
+            if (_bevelBorder != BevelBorder.None)
             {
-                if (bevelStyle != BevelStyle.Flat)
+                if (_bevelStyle != BevelStyle.Flat)
                 {
                     s += 2;
                 }
@@ -177,21 +177,21 @@ namespace XNAFinalEngine.UserInterface
                     s += 1;
                 }
 
-                if (bevelBorder == BevelBorder.Left || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Left || _bevelBorder == BevelBorder.All)
                 {
                     x += s;
                     w -= s;
                 }
-                if (bevelBorder == BevelBorder.Top || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Top || _bevelBorder == BevelBorder.All)
                 {
                     y += s;
                     h -= s;
                 }
-                if (bevelBorder == BevelBorder.Right || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Right || _bevelBorder == BevelBorder.All)
                 {
                     w -= s;
                 }
-                if (bevelBorder == BevelBorder.Bottom || bevelBorder == BevelBorder.All)
+                if (_bevelBorder == BevelBorder.Bottom || _bevelBorder == BevelBorder.All)
                 {
                     h -= s;
                 }

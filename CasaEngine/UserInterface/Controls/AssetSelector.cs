@@ -34,26 +34,26 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Controls.
-        private readonly ComboBox comboBox;
-        private readonly Button buttonAdd;
-        private readonly Button buttonEdit;
+        private readonly ComboBox _comboBox;
+        private readonly Button _buttonAdd;
+        private readonly Button _buttonEdit;
 
 
 
-        public bool ListBoxVisible => comboBox.ListBoxVisible;
+        public bool ListBoxVisible => _comboBox.ListBoxVisible;
 
-        public virtual List<object> Items => comboBox.Items; // Items
+        public virtual List<object> Items => _comboBox.Items; // Items
 
         public int MaxItemsShow
         {
-            get => comboBox.MaxItemsShow;
-            set => comboBox.MaxItemsShow = value;
+            get => _comboBox.MaxItemsShow;
+            set => _comboBox.MaxItemsShow = value;
         } // MaxItems
 
         public int ItemIndex
         {
-            get => comboBox.ItemIndex;
-            set => comboBox.ItemIndex = value;
+            get => _comboBox.ItemIndex;
+            set => _comboBox.ItemIndex = value;
         } // ItemIndex
 
         public bool EditButtonEnabled { get; set; }
@@ -67,8 +67,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public AssetSelector(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public AssetSelector(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
             Width = 420;
@@ -84,7 +84,7 @@ namespace XNAFinalEngine.UserInterface
             };
             TextChanged += delegate { label.Text = Text; };
 
-            buttonAdd = new Button(UserInterfaceManager)
+            _buttonAdd = new Button(UserInterfaceManager)
             {
                 Parent = this,
                 Anchor = Anchors.Left | Anchors.Top,
@@ -94,8 +94,8 @@ namespace XNAFinalEngine.UserInterface
                 ToolTip = { Text = "Add new asset" },
                 Text = "+"
             };
-            buttonAdd.Click += delegate { OnAssetAdded(new EventArgs()); };
-            buttonEdit = new Button(UserInterfaceManager)
+            _buttonAdd.Click += delegate { OnAssetAdded(new EventArgs()); };
+            _buttonEdit = new Button(UserInterfaceManager)
             {
                 Parent = this,
                 Anchor = Anchors.Left | Anchors.Top,
@@ -106,9 +106,9 @@ namespace XNAFinalEngine.UserInterface
                 Text = "E",
 
             };
-            buttonEdit.Click += delegate { OnAssetEdited(new EventArgs()); };
+            _buttonEdit.Click += delegate { OnAssetEdited(new EventArgs()); };
 
-            comboBox = new ComboBox(UserInterfaceManager)
+            _comboBox = new ComboBox(UserInterfaceManager)
             {
                 Parent = this,
                 Left = 180,
@@ -118,10 +118,10 @@ namespace XNAFinalEngine.UserInterface
                 Width = 235,
             };
 
-            buttonEdit.Enabled = comboBox.ItemIndex > 0;
+            _buttonEdit.Enabled = _comboBox.ItemIndex > 0;
 
-            comboBox.MaxItemsChanged += delegate { OnMaxItemsChanged(new EventArgs()); };
-            comboBox.ItemIndexChanged += delegate { OnItemIndexChanged(new EventArgs()); };
+            _comboBox.MaxItemsChanged += delegate { OnMaxItemsChanged(new EventArgs()); };
+            _comboBox.ItemIndexChanged += delegate { OnItemIndexChanged(new EventArgs()); };
 
         } // SliderNumeric
 
@@ -141,7 +141,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            buttonEdit.Enabled = EditButtonEnabled && Enabled;
+            _buttonEdit.Enabled = EditButtonEnabled && Enabled;
             // Only the children will be rendered.
         } // DrawControl
 

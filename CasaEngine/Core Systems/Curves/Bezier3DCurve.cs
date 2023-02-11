@@ -5,45 +5,45 @@ namespace CasaEngine.Math.Curves
     public class Bezier3DCurve
     {
 
-        private readonly List<Vector3> m_ControlPoints = new List<Vector3>();
-        private readonly List<Vector3> m_CurvePoints = new List<Vector3>();
+        private readonly List<Vector3> _controlPoints = new List<Vector3>();
+        private readonly List<Vector3> _curvePoints = new List<Vector3>();
 
-        private float m_Resolution = 0.1f;
+        private float _resolution = 0.1f;
 
 
 
         public float Resolution
         {
-            get => m_Resolution;
-            set => m_Resolution = value;
+            get => _resolution;
+            set => _resolution = value;
         }
 
-        public List<Vector3> CurvePoints => m_CurvePoints;
+        public List<Vector3> CurvePoints => _curvePoints;
 
-        public List<Vector3> ControlPoints => m_ControlPoints;
+        public List<Vector3> ControlPoints => _controlPoints;
 
 
         public void Compute()
         {
-            if (m_ControlPoints.Count == 0)
+            if (_controlPoints.Count == 0)
             {
                 return;
             }
 
-            m_CurvePoints.Clear();
+            _curvePoints.Clear();
 
-            int nbPoint = (int)(1.0f / (float)m_Resolution);
+            int nbPoint = (int)(1.0f / (float)_resolution);
 
             //Algo
             for (int u = 0; u <= nbPoint; u++)
             {
-                m_CurvePoints.Add(Bezier3DCurve.Casteljau(m_ControlPoints, (float)u / (float)nbPoint));
+                _curvePoints.Add(Bezier3DCurve.Casteljau(_controlPoints, (float)u / (float)nbPoint));
             }
         }
 
-        static public Vector3 Casteljau(List<Vector3> ControlPoints_, float t_)
+        static public Vector3 Casteljau(List<Vector3> controlPoints, float t)
         {
-            if (t_ > 1.0f || t_ < 0.0f)
+            if (t > 1.0f || t < 0.0f)
             {
                 throw new ArgumentOutOfRangeException("Bezier2D.Casteljau() : t must be contains in [0;1]");
             }
@@ -52,52 +52,52 @@ namespace CasaEngine.Math.Curves
             List<Vector3> pointTemp = new List<Vector3>();
             int max;
 
-            pointTemp.AddRange(ControlPoints_);
+            pointTemp.AddRange(controlPoints);
 
             //calcul des points avec reduction de l'arbre a chaque etape
-            Vector3 A, B, U;
+            Vector3 a, b, u;
 
-            for (max = ControlPoints_.Count; max > 1; max--)
+            for (max = controlPoints.Count; max > 1; max--)
             {
                 for (int i = 0; i < max - 1; i++)
                 {
-                    A = pointTemp[i];
-                    B = pointTemp[i + 1];
+                    a = pointTemp[i];
+                    b = pointTemp[i + 1];
 
-                    U.X = (1.0f - t_) * A.X + t_ * B.X;
-                    U.Y = (1.0f - t_) * A.Y + t_ * B.Y;
-                    U.Z = (1.0f - t_) * A.Z + t_ * B.Z;
+                    u.X = (1.0f - t) * a.X + t * b.X;
+                    u.Y = (1.0f - t) * a.Y + t * b.Y;
+                    u.Z = (1.0f - t) * a.Z + t * b.Z;
 
-                    pointTemp[i] = U;
+                    pointTemp[i] = u;
                 }
             }
 
             return pointTemp[0];
         }
 
-        public Vector3 GetPointFast(float percent_)
+        public Vector3 GetPointFast(float percent)
         {
-            if (percent_ < 0.0f || percent_ > 1.0f)
+            if (percent < 0.0f || percent > 1.0f)
             {
                 throw new ArgumentOutOfRangeException("percent_ has to be between 0 and 1");
             }
 
-            if (m_CurvePoints.Count == 0)
+            if (_curvePoints.Count == 0)
             {
                 throw new InvalidOperationException("Bezier3DCurve.GetPointFast() : please compute curve before call this function");
             }
 
-            return m_CurvePoints[(int)(percent_ * (float)m_CurvePoints.Count)];
+            return _curvePoints[(int)(percent * (float)_curvePoints.Count)];
         }
 
-        public Vector3 GetPoint(float percent_)
+        public Vector3 GetPoint(float percent)
         {
-            if (percent_ < 0.0f || percent_ > 1.0f)
+            if (percent < 0.0f || percent > 1.0f)
             {
                 throw new ArgumentOutOfRangeException("percent_ has to be between 0 and 1");
             }
 
-            return Bezier3DCurve.Casteljau(m_ControlPoints, percent_);
+            return Bezier3DCurve.Casteljau(_controlPoints, percent);
         }
 
     }

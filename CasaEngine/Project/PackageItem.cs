@@ -15,7 +15,7 @@ namespace CasaEngine.Project
             private set;
         }
 
-        public int ID
+        public int Id
         {
             get;
             private set;
@@ -37,11 +37,11 @@ namespace CasaEngine.Project
 
 
 
-        protected PackageItem(Package package_, int id_, string path_)
+        protected PackageItem(Package package, int id, string path)
         {
-            Package = package_;
-            ID = id_;
-            FullPath = path_;
+            Package = package;
+            Id = id;
+            FullPath = path;
         }
 
 
@@ -50,21 +50,21 @@ namespace CasaEngine.Project
 
 
 #if EDITOR
-        public void Save(BinaryWriter bw_, SaveOption option_)
+        public void Save(BinaryWriter bw, SaveOption option)
         {
 
         }
 
-        public void Save(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el, SaveOption option)
         {
 
         }
 #endif
-        public void Load(BinaryReader br_, SaveOption option_)
+        public void Load(BinaryReader br, SaveOption option)
         {
 
         }
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
 
         }

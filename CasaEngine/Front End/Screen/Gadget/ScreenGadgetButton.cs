@@ -33,8 +33,8 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        public ScreenGadgetButton(XmlElement el_, SaveOption opt_)
-            : base(el_, opt_)
+        public ScreenGadgetButton(XmlElement el, SaveOption opt)
+            : base(el, opt)
         {
 
         }
@@ -51,7 +51,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 #else
         protected
 #endif
-        override void DrawGadget(float elapsedTime_)
+        override void DrawGadget(float elapsedTime)
         {
             Rectangle area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
 
@@ -96,19 +96,19 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 area);
         }
 
-        public override void Load(XmlElement el_, SaveOption opt_)
+        public override void Load(XmlElement el, SaveOption opt)
         {
-            base.Load(el_, opt_);
+            base.Load(el, opt);
 
-            int spriteID = int.Parse(el_.SelectSingleNode("Image").InnerText);
+            int spriteId = int.Parse(el.SelectSingleNode("Image").InnerText);
 
-            if (spriteID != int.MaxValue)
+            if (spriteId != int.MaxValue)
             {
-                Image = Engine.Instance.Asset2DManager.GetSprite2DByID(spriteID);
+                Image = Engine.Instance.Asset2DManager.GetSprite2DById(spriteId);
                 Engine.Instance.Asset2DManager.AddSprite2DToLoadingList(Image);
             }
 
-            SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el_.SelectSingleNode("SizeImage").InnerText);
+            SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el.SelectSingleNode("SizeImage").InnerText);
         }
 
     }

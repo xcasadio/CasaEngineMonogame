@@ -19,16 +19,16 @@ namespace XNAFinalEngine.UserInterface
     public class ExitDialog : Dialog
     {
 
-              
-        private readonly Button buttonYes;
-        private readonly Button buttonNo;
-        private readonly Label labelMessage;
-        private readonly ImageBox imageIcon;
+
+        private readonly Button _buttonYes;
+        private readonly Button _buttonNo;
+        private readonly Label _labelMessage;
+        private readonly ImageBox _imageIcon;
 
 
-    
-        public ExitDialog(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+
+        public ExitDialog(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             string msg = "Do you really want to exit?";
             ClientWidth = (int)UserInterfaceManager.Skin.Controls["Label"].Layers[0].Text.Font.Font.MeasureString(msg).X + 48 + 16 + 16 + 16;
@@ -40,7 +40,7 @@ namespace XNAFinalEngine.UserInterface
             Text = Engine.Instance.Game.Window.Title;
             CenterWindow();
 
-            imageIcon = new ImageBox(UserInterfaceManager)
+            _imageIcon = new ImageBox(UserInterfaceManager)
             {
                 Texture = UserInterfaceManager.Skin.Images["Icon.Question"].Texture,
                 Left = 16,
@@ -50,38 +50,38 @@ namespace XNAFinalEngine.UserInterface
                 SizeMode = SizeMode.Stretched
             };
 
-            labelMessage = new Label(UserInterfaceManager)
-                {
-                    Left = 80,
-                    Top = 16,
-                    Height = 48,
-                    Alignment = Alignment.TopLeft,
-                    Text = msg
-                };
-            labelMessage.Width = ClientWidth - labelMessage.Left;
-
-            buttonYes = new Button(UserInterfaceManager)
+            _labelMessage = new Label(UserInterfaceManager)
             {
-                Top = 8, 
+                Left = 80,
+                Top = 16,
+                Height = 48,
+                Alignment = Alignment.TopLeft,
+                Text = msg
+            };
+            _labelMessage.Width = ClientWidth - _labelMessage.Left;
+
+            _buttonYes = new Button(UserInterfaceManager)
+            {
+                Top = 8,
                 Text = "Yes",
                 ModalResult = ModalResult.Yes
             };
-            buttonYes.Left = (BottomPanel.ClientWidth / 2) - buttonYes.Width - 4;
+            _buttonYes.Left = (BottomPanel.ClientWidth / 2) - _buttonYes.Width - 4;
 
-            buttonNo = new Button(UserInterfaceManager)
+            _buttonNo = new Button(UserInterfaceManager)
             {
-                Left = (BottomPanel.ClientWidth/2) + 4,
+                Left = (BottomPanel.ClientWidth / 2) + 4,
                 Top = 8,
                 Text = "No",
                 ModalResult = ModalResult.No
             };
 
-            Add(imageIcon);
-            Add(labelMessage);
-            BottomPanel.Add(buttonYes);
-            BottomPanel.Add(buttonNo);
+            Add(_imageIcon);
+            Add(_labelMessage);
+            BottomPanel.Add(_buttonYes);
+            BottomPanel.Add(_buttonNo);
 
-            DefaultControl = buttonNo;
+            DefaultControl = _buttonNo;
         } // ExitDialog
 
 

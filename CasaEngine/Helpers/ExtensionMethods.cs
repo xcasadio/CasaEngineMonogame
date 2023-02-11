@@ -81,7 +81,7 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        private static readonly char[] digits = new[] { '9', '8', '7', '6', '5', '4', '3', '2', '1', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        private static readonly char[] Digits = new[] { '9', '8', '7', '6', '5', '4', '3', '2', '1', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
         public static StringBuilder ClearXbox(this StringBuilder stringBuilder)
         {
@@ -113,7 +113,7 @@ namespace XNAFinalEngine.Helpers
                 }
                 // StringBuilder.Insert(Int32, Char) calls ToString() internally
                 // http://www.gavpugh.com/2010/04/01/xnac-avoiding-garbage-when-working-with-stringbuilder/
-                stringBuilder.Insert(index, digits, (number % 10) + 9, 1);
+                stringBuilder.Insert(index, Digits, (number % 10) + 9, 1);
                 number /= 10;
                 i++;
             }
@@ -290,21 +290,21 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        public static float ArcTanAngle(float X, float Y)
+        public static float ArcTanAngle(float x, float y)
         {
-            if (X == 0)
+            if (x == 0)
             {
-                if (Y == 1)
+                if (y == 1)
                     return MathHelper.PiOver2;
                 return -MathHelper.PiOver2;
             }
-            if (X > 0)
-                return (float)Math.Atan(Y / X);
-            if (X < 0)
+            if (x > 0)
+                return (float)Math.Atan(y / x);
+            if (x < 0)
             {
-                if (Y > 0)
-                    return (float)Math.Atan(Y / X) + MathHelper.Pi;
-                return (float)Math.Atan(Y / X) - MathHelper.Pi;
+                if (y > 0)
+                    return (float)Math.Atan(y / x) + MathHelper.Pi;
+                return (float)Math.Atan(y / x) - MathHelper.Pi;
             }
             return 0;
         } // ArcTanAngle

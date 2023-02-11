@@ -8,9 +8,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
     public class Seek : SteeringBehavior
     {
 
-        protected internal Vector3 targetPosition;
+        protected internal Vector3 TargetPosition;
 
-        protected internal Vector3 force;
+        protected internal Vector3 Force;
 
 
 

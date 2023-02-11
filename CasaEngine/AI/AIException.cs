@@ -1,25 +1,25 @@
 ﻿namespace CasaEngine.AI
 {
-    public class AIException
+    public class AiException
         : SystemException
     {
 
-        private readonly String fieldName;
+        private readonly String _fieldName;
 
-        private readonly String className;
+        private readonly String _className;
 
-        private readonly String errorMessage;
-
-
-
-        public override string Message => "Invalid value assigned to \"" + className + "." + fieldName + "\". The validation error was: " + errorMessage;
+        private readonly String _errorMessage;
 
 
-        public AIException(String fieldName, String className, String errorMessage)
+
+        public override string Message => "Invalid value assigned to \"" + _className + "." + _fieldName + "\". The validation error was: " + _errorMessage;
+
+
+        public AiException(String fieldName, String className, String errorMessage)
         {
-            this.fieldName = fieldName;
-            this.className = className;
-            this.errorMessage = errorMessage;
+            this._fieldName = fieldName;
+            this._className = className;
+            this._errorMessage = errorMessage;
         }
 
 

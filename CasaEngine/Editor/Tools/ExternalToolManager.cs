@@ -8,10 +8,10 @@ namespace CasaEngine.Editor.Tools
 {
     public class ExternalToolManager
     {
-        readonly Dictionary<string, Type> m_CustomObjects = new Dictionary<string, Type>();
-        readonly Dictionary<string, Type> m_CustomEditorsTemplate = new Dictionary<string, Type>();
-        readonly Dictionary<Type, IExternalTool> m_CustomEditors = new Dictionary<Type, IExternalTool>();
-        readonly Dictionary<string, Assembly> m_CustomObjectAssembly = new Dictionary<string, Assembly>();
+        readonly Dictionary<string, Type> _customObjects = new Dictionary<string, Type>();
+        readonly Dictionary<string, Type> _customEditorsTemplate = new Dictionary<string, Type>();
+        readonly Dictionary<Type, IExternalTool> _customEditors = new Dictionary<Type, IExternalTool>();
+        readonly Dictionary<string, Assembly> _customObjectAssembly = new Dictionary<string, Assembly>();
 
         public event EventHandler EventExternalToolChanged;
 
@@ -50,7 +50,7 @@ namespace CasaEngine.Editor.Tools
                         {
                             if (intf.Equals(typeof(IContentObject)))
                             {
-                                m_CustomObjects.Add(t.ToString(), t);
+                                _customObjects.Add(t.ToString(), t);
                                 break;
                             }
                         }
@@ -71,9 +71,9 @@ namespace CasaEngine.Editor.Tools
                         }
                     }
                 }
-                catch (ReflectionTypeLoadException RTLE)
+                catch (ReflectionTypeLoadException rtle)
                 {
-                    foreach (Exception e in RTLE.LoaderExceptions)
+                    foreach (Exception e in rtle.LoaderExceptions)
                     {
                         msg += e.Message + "\n";
                     }
@@ -88,16 +88,16 @@ namespace CasaEngine.Editor.Tools
             }
         }
 
-        public void RegisterEditor(string objectTypeName_, Type editorType_)
+        public void RegisterEditor(string objectTypeName, Type editorType)
         {
-            m_CustomEditorsTemplate.Add(objectTypeName_, editorType_);
+            _customEditorsTemplate.Add(objectTypeName, editorType);
         }
 
         public string[] GetAllCustomObjectNames()
         {
             List<string> res = new List<string>();
 
-            foreach (var pair in m_CustomObjects)
+            foreach (var pair in _customObjects)
             {
                 res.Add(pair.Key);
             }
@@ -109,7 +109,7 @@ namespace CasaEngine.Editor.Tools
 		{
 			List<string> res = new List<string>();
 
-            foreach (KeyValuePair<string, IExternalTool> pair in m_Tools)
+            foreach (KeyValuePair<string, IExternalTool> pair in _Tools)
 			{
 				res.Add(pair.Key);
 			}
@@ -117,22 +117,22 @@ namespace CasaEngine.Editor.Tools
 			return res.ToArray();
 		}*/
 
-        public BaseObject CreateCustomObjectByName(string name_)
+        public BaseObject CreateCustomObjectByName(string name)
         {
-            return (BaseObject)m_CustomObjects[name_].Assembly.CreateInstance(m_CustomObjects[name_].FullName);
+            return (BaseObject)_customObjects[name].Assembly.CreateInstance(_customObjects[name].FullName);
         }
 
         /*public void RunTool(System.Windows.Forms.Form parent, string name_)
 		{
-            if (m_Tools.ContainsKey(name_) == true)
+            if (_Tools.ContainsKey(name_) == true)
             {
-                m_Tools[name_].Run(parent);
+                _Tools[name_].Run(parent);
             }
 		}
 
 		public void CloseAllTool()
 		{
-            foreach (KeyValuePair<string, IExternalTool> pair in m_Tools)
+            foreach (KeyValuePair<string, IExternalTool> pair in _Tools)
 			{
 				pair.Value.Close();
 			}
@@ -141,33 +141,33 @@ namespace CasaEngine.Editor.Tools
         public void Clear()
         {
             CloseAllSubEditor();
-            m_CustomEditors.Clear();
-            m_CustomEditorsTemplate.Clear();
-            m_CustomObjects.Clear();
-            m_CustomObjectAssembly.Clear();
+            _customEditors.Clear();
+            _customEditorsTemplate.Clear();
+            _customObjects.Clear();
+            _customObjectAssembly.Clear();
         }
 
 
-        public void RunSubEditor(string path_, BaseObject obj_)
+        public void RunSubEditor(string path, BaseObject obj)
         {
-            if (obj_ == null)
+            if (obj == null)
             {
                 throw new ArgumentNullException("ExternalToolManager.RunSubEditor() : BaseObject is null");
             }
 
-            if (string.IsNullOrWhiteSpace(path_) == true)
+            if (string.IsNullOrWhiteSpace(path) == true)
             {
                 throw new ArgumentNullException("ExternalToolManager.RunSubEditor() : path_ is null or empty");
             }
 
-            if (m_CustomEditorsTemplate.ContainsKey(obj_.GetType().FullName) == true)
+            if (_customEditorsTemplate.ContainsKey(obj.GetType().FullName) == true)
             {
-                Type t = m_CustomEditorsTemplate[obj_.GetType().FullName];
+                Type t = _customEditorsTemplate[obj.GetType().FullName];
                 IExternalTool tool = null;
 
-                if (m_CustomEditors.ContainsKey(t) == true)
+                if (_customEditors.ContainsKey(t) == true)
                 {
-                    tool = m_CustomEditors[t];
+                    tool = _customEditors[t];
                 }
 
                 if (tool == null
@@ -180,8 +180,8 @@ namespace CasaEngine.Editor.Tools
                     tool = (IExternalTool)t.Assembly.CreateInstance(t.FullName);
                     tool.ExternalTool.Window.Show();
 
-                    m_CustomEditors.Remove(t);
-                    m_CustomEditors.Add(t, tool);
+                    _customEditors.Remove(t);
+                    _customEditors.Add(t, tool);
 #if !DEBUG
                     }
                     catch (Exception ex)
@@ -195,17 +195,17 @@ namespace CasaEngine.Editor.Tools
                     tool.ExternalTool.Window.Focus();
                 }
 
-                tool.SetCurrentObject(path_, obj_);
+                tool.SetCurrentObject(path, obj);
             }
             else
             {
-                LogManager.Instance.WriteLine("Can't find editor for type of object '" + obj_.GetType().FullName + "'");
+                LogManager.Instance.WriteLine("Can't find editor for type of object '" + obj.GetType().FullName + "'");
             }
         }
 
         private void CloseAllSubEditor()
         {
-            foreach (var p in m_CustomEditors)
+            foreach (var p in _customEditors)
             {
                 if (p.Value.ExternalTool.Window != null
                     && p.Value.ExternalTool.Window.IsDisposed == false)

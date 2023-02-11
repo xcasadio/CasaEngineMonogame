@@ -6,10 +6,10 @@ namespace CasaEngine.Game
     public class DrawableGameComponent
         : GameComponent, IDrawable
     {
-        private bool isInitialized;
-        private IGraphicsDeviceService device;
-        private int drawOrder;
-        private bool visible = true;
+        private bool _isInitialized;
+        private IGraphicsDeviceService _device;
+        private int _drawOrder;
+        private bool _visible = true;
 
 
         public event EventHandler<EventArgs> DrawOrderChanged;
@@ -26,22 +26,22 @@ namespace CasaEngine.Game
         {
             get
             {
-                if (this.device == null)
+                if (this._device == null)
                 {
                     throw new InvalidOperationException("Component is not initialized");
                 }
-                return this.device.GraphicsDevice;
+                return this._device.GraphicsDevice;
             }
         }
 
         public int DrawOrder
         {
-            get => drawOrder;
+            get => _drawOrder;
             set
             {
-                if (drawOrder != value)
+                if (_drawOrder != value)
                 {
-                    drawOrder = value;
+                    _drawOrder = value;
                     OnDrawOrderChanged(this, EventArgs.Empty);
                 }
             }
@@ -49,12 +49,12 @@ namespace CasaEngine.Game
 
         public bool Visible
         {
-            get => visible;
+            get => _visible;
             set
             {
-                if (visible != value)
+                if (_visible != value)
                 {
-                    visible = value;
+                    _visible = value;
                     OnVisibleChanged(this, EventArgs.Empty);
                 }
             }
@@ -79,23 +79,23 @@ namespace CasaEngine.Game
         public override void Initialize()
         {
             base.Initialize();
-            if (!isInitialized)
+            if (!_isInitialized)
             {
-                this.device = base.Game.Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
-                if (this.device == null)
+                this._device = base.Game.Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
+                if (this._device == null)
                 {
                     throw new InvalidOperationException("Service not found: IGraphicsDeviceService");
                 }
-                this.device.DeviceCreated += OnDeviceCreated;
-                this.device.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
-                this.device.DeviceDisposing += OnDeviceDisposing;
+                this._device.DeviceCreated += OnDeviceCreated;
+                this._device.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
+                this._device.DeviceDisposing += OnDeviceDisposing;
 
-                if (this.device.GraphicsDevice != null)
+                if (this._device.GraphicsDevice != null)
                 {
                     LoadContent();
                 }
             }
-            isInitialized = true;
+            _isInitialized = true;
         }
 
         protected override void Dispose(bool disposing)
@@ -103,10 +103,10 @@ namespace CasaEngine.Game
             if (disposing)
             {
                 this.UnloadContent();
-                if (this.device != null)
+                if (this._device != null)
                 {
-                    this.device.DeviceCreated -= OnDeviceCreated;
-                    this.device.DeviceDisposing -= OnDeviceDisposing;
+                    this._device.DeviceCreated -= OnDeviceCreated;
+                    this._device.DeviceDisposing -= OnDeviceDisposing;
                 }
             }
             base.Dispose(disposing);

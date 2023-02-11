@@ -13,7 +13,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         {
             for (int i = 0; i < population.Genome.Count; i++)
                 for (int j = 0; j < population[i].Genotype.Count; j++)
-                    if (generator.NextDouble() <= this.probability)
+                    if (Generator.NextDouble() <= this.Probability)
                         population[i][j] = !population[i][j];
         }
 

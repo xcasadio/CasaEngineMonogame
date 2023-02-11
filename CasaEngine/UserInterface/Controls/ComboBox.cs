@@ -17,17 +17,17 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly Button buttonDown;
-        private readonly List<object> items = new List<object>();
-        private readonly ListBox listCombo;
+        private readonly Button _buttonDown;
+        private readonly List<object> _items = new List<object>();
+        private readonly ListBox _listCombo;
 
-        private int maxItems = 5;
+        private int _maxItems = 5;
 
-        private bool drawSelection = true;
+        private bool _drawSelection = true;
 
 
 
-        public bool ListBoxVisible => listCombo.Visible;
+        public bool ListBoxVisible => _listCombo.Visible;
 
         public override bool ReadOnly
         {
@@ -44,8 +44,8 @@ namespace XNAFinalEngine.UserInterface
 
         public bool DrawSelection
         {
-            get => drawSelection;
-            set => drawSelection = value;
+            get => _drawSelection;
+            set => _drawSelection = value;
         } // DrawSelection
 
         public override string Text
@@ -54,23 +54,23 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 base.Text = value;
-                if (!items.Contains(value))
+                if (!_items.Contains(value))
                 {
                     ItemIndex = -1;
                 }
             }
         } // Text
 
-        public virtual List<object> Items => items; // Items
+        public virtual List<object> Items => _items; // Items
 
         public int MaxItemsShow
         {
-            get => maxItems;
+            get => _maxItems;
             set
             {
-                if (maxItems != value)
+                if (_maxItems != value)
                 {
-                    maxItems = value;
+                    _maxItems = value;
                     if (!Suspended)
                         OnMaxItemsChanged(new EventArgs());
                 }
@@ -79,17 +79,17 @@ namespace XNAFinalEngine.UserInterface
 
         public int ItemIndex
         {
-            get => listCombo.ItemIndex;
+            get => _listCombo.ItemIndex;
             set
             {
-                if (value >= 0 && value < items.Count)
+                if (value >= 0 && value < _items.Count)
                 {
-                    listCombo.ItemIndex = value;
-                    Text = listCombo.Items[value].ToString();
+                    _listCombo.ItemIndex = value;
+                    Text = _listCombo.Items[value].ToString();
                 }
                 else
                 {
-                    listCombo.ItemIndex = -1;
+                    _listCombo.ItemIndex = -1;
                 }
                 if (!Suspended)
                     OnItemIndexChanged(new EventArgs());
@@ -103,27 +103,27 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ComboBox(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ComboBox(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Height = 20;
             Width = 64;
             ReadOnly = true;
 
-            buttonDown = new Button(UserInterfaceManager)
+            _buttonDown = new Button(UserInterfaceManager)
             {
                 SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ComboBox.Button"]),
                 CanFocus = false
             };
-            buttonDown.Click += ButtonDownClick;
-            Add(buttonDown, false);
+            _buttonDown.Click += ButtonDownClick;
+            Add(_buttonDown, false);
 
-            listCombo = new ListBox(UserInterfaceManager)
+            _listCombo = new ListBox(UserInterfaceManager)
             {
                 HotTrack = true,
                 Detached = true,
                 Visible = false,
-                Items = items
+                Items = _items
             };
         } // ComboBox
 
@@ -135,9 +135,9 @@ namespace XNAFinalEngine.UserInterface
             MaxItemsChanged = null;
             ItemIndexChanged = null;
             // We added the listbox to another parent other than this control, so we dispose it manually.
-            if (listCombo != null)
+            if (_listCombo != null)
             {
-                listCombo.Dispose();
+                _listCombo.Dispose();
             }
             UserInterfaceManager.InputSystem.MouseDown -= InputMouseDown;
             base.DisposeManagedResources();
@@ -149,11 +149,11 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
 
-            listCombo.Click += ListComboClick;
+            _listCombo.Click += ListComboClick;
             UserInterfaceManager.InputSystem.MouseDown += InputMouseDown;
 
-            listCombo.SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ComboBox.ListBox"]);
-            buttonDown.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowDown"].Texture)
+            _listCombo.SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ComboBox.ListBox"]);
+            _buttonDown.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowDown"].Texture)
             {
                 Color = UserInterfaceManager.Skin.Controls["ComboBox.Button"].Layers["Control"].Text.Colors.Enabled,
                 SizeMode = SizeMode.Centered
@@ -174,12 +174,12 @@ namespace XNAFinalEngine.UserInterface
         {
             base.DrawControl(rect);
 
-            if (ReadOnly && (Focused || listCombo.Focused) && drawSelection)
+            if (ReadOnly && (Focused || _listCombo.Focused) && _drawSelection)
             {
                 SkinLayer lr = SkinInformation.Layers[0];
                 Rectangle rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
                                              rect.Top + lr.ContentMargins.Top,
-                                             Width - lr.ContentMargins.Horizontal - buttonDown.Width,
+                                             Width - lr.ContentMargins.Horizontal - _buttonDown.Width,
                                              Height - lr.ContentMargins.Vertical);
                 UserInterfaceManager.Renderer.Draw(UserInterfaceManager.Skin.Images["ListBox.Selection"].Texture.Resource, rc, Color.FromNonPremultiplied(255, 255, 255, 128));
             }
@@ -191,12 +191,12 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnResize(e);
 
-            if (buttonDown != null)
+            if (_buttonDown != null)
             {
-                buttonDown.Width = 16;
-                buttonDown.Height = Height - SkinInformation.Layers[0].ContentMargins.Vertical;
-                buttonDown.Top = SkinInformation.Layers[0].ContentMargins.Top;
-                buttonDown.Left = Width - buttonDown.Width - 2;
+                _buttonDown.Width = 16;
+                _buttonDown.Height = Height - SkinInformation.Layers[0].ContentMargins.Vertical;
+                _buttonDown.Top = SkinInformation.Layers[0].ContentMargins.Top;
+                _buttonDown.Left = Width - _buttonDown.Width - 2;
             }
         } // OnResize
 
@@ -208,12 +208,12 @@ namespace XNAFinalEngine.UserInterface
 
             if (ex.Button == MouseButton.Left || ex.Button == MouseButton.None)
             {
-                listCombo.Visible = false;
-                if (listCombo.ItemIndex >= 0)
+                _listCombo.Visible = false;
+                if (_listCombo.ItemIndex >= 0)
                 {
-                    Text = listCombo.Items[listCombo.ItemIndex].ToString();
+                    Text = _listCombo.Items[_listCombo.ItemIndex].ToString();
                     Focused = true;
-                    ItemIndex = listCombo.ItemIndex;
+                    ItemIndex = _listCombo.ItemIndex;
                 }
             }
             // The focus was removed to assure that the list box is focused.
@@ -225,34 +225,34 @@ namespace XNAFinalEngine.UserInterface
 
         private void ButtonDownClick(object sender, EventArgs e)
         {
-            if (items != null && items.Count > 0)
+            if (_items != null && _items.Count > 0)
             {
                 if (Root != null && Root is Container)
                 {
-                    (Root as Container).Add(listCombo, false);
-                    listCombo.Alpha = Root.Alpha;
-                    listCombo.Left = ControlLeftAbsoluteCoordinate - Root.Left;
-                    listCombo.Top = ControlTopAbsoluteCoordinate - Root.Top + Height + 1;
+                    (Root as Container).Add(_listCombo, false);
+                    _listCombo.Alpha = Root.Alpha;
+                    _listCombo.Left = ControlLeftAbsoluteCoordinate - Root.Left;
+                    _listCombo.Top = ControlTopAbsoluteCoordinate - Root.Top + Height + 1;
                 }
                 else
                 {
-                    UserInterfaceManager.Add(listCombo);
-                    listCombo.Alpha = Alpha;
-                    listCombo.Left = ControlLeftAbsoluteCoordinate;
-                    listCombo.Top = ControlTopAbsoluteCoordinate + Height + 1;
+                    UserInterfaceManager.Add(_listCombo);
+                    _listCombo.Alpha = Alpha;
+                    _listCombo.Left = ControlLeftAbsoluteCoordinate;
+                    _listCombo.Top = ControlTopAbsoluteCoordinate + Height + 1;
                 }
 
-                listCombo.AutoHeight(maxItems);
+                _listCombo.AutoHeight(_maxItems);
                 // If there is no place to put the list box under the control then is moved up.
-                if (listCombo.ControlTopAbsoluteCoordinate + listCombo.Height > UserInterfaceManager.Screen.Height)
-                    listCombo.Top = listCombo.Top - Height - listCombo.Height - 2;
+                if (_listCombo.ControlTopAbsoluteCoordinate + _listCombo.Height > UserInterfaceManager.Screen.Height)
+                    _listCombo.Top = _listCombo.Top - Height - _listCombo.Height - 2;
 
-                listCombo.Visible = !listCombo.Visible;
-                if (listCombo.Visible)
+                _listCombo.Visible = !_listCombo.Visible;
+                if (_listCombo.Visible)
                 {
                     // The focus is removed to assure that the list box is focused.
                     CanFocus = false;
-                    listCombo.Focused = true;
+                    _listCombo.Focused = true;
                 }
                 else
                 {
@@ -260,7 +260,7 @@ namespace XNAFinalEngine.UserInterface
                     CanFocus = true;
                     Focused = true;
                 }
-                listCombo.Width = Width;
+                _listCombo.Width = Width;
             }
         } // ButtonDownClick
 
@@ -276,15 +276,15 @@ namespace XNAFinalEngine.UserInterface
                 return;
 
             // If the user click outside the list box then it is hide.
-            if (listCombo.Visible &&
-               (e.Position.X < listCombo.ControlLeftAbsoluteCoordinate ||
-                e.Position.X > listCombo.ControlLeftAbsoluteCoordinate + listCombo.Width ||
-                e.Position.Y < listCombo.ControlTopAbsoluteCoordinate ||
-                e.Position.Y > listCombo.ControlTopAbsoluteCoordinate + listCombo.Height) &&
-               (e.Position.X < buttonDown.ControlLeftAbsoluteCoordinate ||
-                e.Position.X > buttonDown.ControlLeftAbsoluteCoordinate + buttonDown.Width ||
-                e.Position.Y < buttonDown.ControlTopAbsoluteCoordinate ||
-                e.Position.Y > buttonDown.ControlTopAbsoluteCoordinate + buttonDown.Height))
+            if (_listCombo.Visible &&
+               (e.Position.X < _listCombo.ControlLeftAbsoluteCoordinate ||
+                e.Position.X > _listCombo.ControlLeftAbsoluteCoordinate + _listCombo.Width ||
+                e.Position.Y < _listCombo.ControlTopAbsoluteCoordinate ||
+                e.Position.Y > _listCombo.ControlTopAbsoluteCoordinate + _listCombo.Height) &&
+               (e.Position.X < _buttonDown.ControlLeftAbsoluteCoordinate ||
+                e.Position.X > _buttonDown.ControlLeftAbsoluteCoordinate + _buttonDown.Width ||
+                e.Position.Y < _buttonDown.ControlTopAbsoluteCoordinate ||
+                e.Position.Y > _buttonDown.ControlTopAbsoluteCoordinate + _buttonDown.Height))
             {
                 ButtonDownClick(sender, e);
             }

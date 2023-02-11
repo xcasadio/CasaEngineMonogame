@@ -8,22 +8,22 @@ namespace CasaEngine.FrontEnd.Screen
         : Screen
     {
 
-        int selectedEntry = 0;
-        string menuTitle;
+        int _selectedEntry = 0;
+        string _menuTitle;
 
-        Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent _renderer2DComponent = null;
 
 
 
-        public DebugScreen(string menuTitle, string menuName_)
-            : base(menuName_)
+        public DebugScreen(string menuTitle, string menuName)
+            : base(menuName)
         {
-            this.menuTitle = menuTitle;
+            this._menuTitle = menuTitle;
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
         }
 
     }

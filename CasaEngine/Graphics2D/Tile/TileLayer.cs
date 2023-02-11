@@ -11,20 +11,20 @@ namespace CasaEngine.Graphics2D.Tile
     class TileLayer
     {
 
-        private GraphicsDeviceManager m_Graphics;
-        /*private Renderer2DComponent m_Renderer2DComponent = null;*/
+        private GraphicsDeviceManager _graphics;
+        /*private Renderer2DComponent _Renderer2DComponent = null;*/
 
-        private Vector2 worldOffset;
-        protected bool visibilityChanged;
+        private Vector2 _worldOffset;
+        protected bool VisibilityChanged;
 
         //drawing parameters
-        private Vector2 cameraPositionValue;
-        private float zoomValue;
+        private Vector2 _cameraPositionValue;
+        private float _zoomValue;
         //private Vector2 scaleValue;
-        private float rotationValue;
-        private Matrix rotationMatrix;
-        private Vector2 displaySize;
-        private Color layerColor = Color.White;
+        private float _rotationValue;
+        private Matrix _rotationMatrix;
+        private Vector2 _displaySize;
+        private Color _layerColor = Color.White;
 
 
 
@@ -33,61 +33,61 @@ namespace CasaEngine.Graphics2D.Tile
 #if EDITOR
 			protected 
 #endif
-			get { return m_Renderer2DComponent; }
+			get { return _Renderer2DComponent; }
 #if EDITOR
-			set { m_Renderer2DComponent = value; }
+			set { _Renderer2DComponent = value; }
 #endif
 		}*/
 
-        protected Vector2 DisplaySize => displaySize;
+        protected Vector2 DisplaySize => _displaySize;
 
-        protected Matrix RotationMatrix => rotationMatrix;
+        protected Matrix RotationMatrix => _rotationMatrix;
 
         public Vector2 CameraPosition
         {
             set
             {
-                cameraPositionValue = value;
-                visibilityChanged = true;
+                _cameraPositionValue = value;
+                VisibilityChanged = true;
             }
-            get => cameraPositionValue;
+            get => _cameraPositionValue;
         }
 
         public float CameraRotation
         {
             set
             {
-                rotationValue = value;
-                rotationMatrix = Matrix.CreateRotationZ(rotationValue);
-                visibilityChanged = true;
+                _rotationValue = value;
+                _rotationMatrix = Matrix.CreateRotationZ(_rotationValue);
+                VisibilityChanged = true;
             }
-            get => rotationValue;
+            get => _rotationValue;
         }
 
         public float CameraZoom
         {
             set
             {
-                zoomValue = value;
-                visibilityChanged = true;
+                _zoomValue = value;
+                VisibilityChanged = true;
             }
-            get => zoomValue;
+            get => _zoomValue;
         }
 
         public Color Color
         {
-            set => layerColor = value;
-            get => layerColor;
+            set => _layerColor = value;
+            get => _layerColor;
         }
 
         public Vector2 WorldOffset
         {
             set
             {
-                worldOffset = value;
-                visibilityChanged = true;
+                _worldOffset = value;
+                VisibilityChanged = true;
             }
-            get => worldOffset;
+            get => _worldOffset;
         }
 
 
@@ -106,15 +106,15 @@ namespace CasaEngine.Graphics2D.Tile
 				throw new ArgumentException("TileLayer() : Renderer2DComponent is null");
 			}*/
 
-            m_Graphics = graphicsComponent;
-            /*m_Renderer2DComponent = Renderer2DComponent_;*/
+            _graphics = graphicsComponent;
+            /*_Renderer2DComponent = Renderer2DComponent_;*/
 
             InitializeGraphics();
 
-            worldOffset = offset;
+            _worldOffset = offset;
 
             //scaleValue = Vector2.One;
-            zoomValue = 1.0f;
+            _zoomValue = 1.0f;
             CameraPosition = Vector2.Zero;
         }
 
@@ -122,7 +122,7 @@ namespace CasaEngine.Graphics2D.Tile
 
         private void InitializeGraphics()
         {
-            m_Graphics.DeviceReset +=
+            _graphics.DeviceReset +=
                 new EventHandler<EventArgs>(OnGraphicsComponentDeviceReset);
 
             OnGraphicsComponentDeviceReset(this, new EventArgs());
@@ -130,25 +130,25 @@ namespace CasaEngine.Graphics2D.Tile
 
         void OnGraphicsComponentDeviceReset(object sender, EventArgs e)
         {
-            displaySize.X =
-                m_Graphics.GraphicsDevice.PresentationParameters.BackBufferWidth;
+            _displaySize.X =
+                _graphics.GraphicsDevice.PresentationParameters.BackBufferWidth;
 
-            displaySize.Y =
-                m_Graphics.GraphicsDevice.PresentationParameters.BackBufferHeight;
+            _displaySize.Y =
+                _graphics.GraphicsDevice.PresentationParameters.BackBufferHeight;
 
-            visibilityChanged = true;
+            VisibilityChanged = true;
         }
 
 
 
         protected virtual void DetermineVisibility()
         {
-            visibilityChanged = false;
+            VisibilityChanged = false;
         }
 
         public void Update()
         {
-            if (visibilityChanged) DetermineVisibility();
+            if (VisibilityChanged) DetermineVisibility();
         }
 
         protected abstract void DrawTiles(SpriteBatch batch);

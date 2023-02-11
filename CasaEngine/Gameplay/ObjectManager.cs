@@ -21,17 +21,17 @@ namespace CasaEngine.Gameplay
 #endif
         class ObjectContainer
         {
-            BaseObject m_BaseObject;
-            private Type m_ItemType;
+            BaseObject _baseObject;
+            private Type _itemType;
 
 
-            public int ID
+            public int Id
             {
                 get;
                 private set;
             }
 
-            public bool IsLoaded => m_BaseObject != null;
+            public bool IsLoaded => _baseObject != null;
 
             public string ClassName
             {
@@ -63,7 +63,7 @@ namespace CasaEngine.Gameplay
             {
                 get
                 {
-                    if (m_BaseObject == null)
+                    if (_baseObject == null)
                     {
                         try
                         {
@@ -96,8 +96,8 @@ namespace CasaEngine.Gameplay
                             }
                             //else (Binary)
 
-                            m_BaseObject = (BaseObject)Activator.CreateInstance(ItemType, args);
-                            ClassName = m_BaseObject.GetType().FullName;
+                            _baseObject = (BaseObject)Activator.CreateInstance(ItemType, args);
+                            ClassName = _baseObject.GetType().FullName;
                         }
                         catch (System.Exception ex)
                         {
@@ -105,12 +105,12 @@ namespace CasaEngine.Gameplay
                         }
                     }
 
-                    return m_BaseObject;
+                    return _baseObject;
                 }
                 set
                 {
-                    m_BaseObject = value;
-                    ClassName = m_BaseObject.GetType().FullName;
+                    _baseObject = value;
+                    ClassName = _baseObject.GetType().FullName;
                 }
             }
 
@@ -118,27 +118,27 @@ namespace CasaEngine.Gameplay
             {
                 get
                 {
-                    if (m_ItemType == null)
+                    if (_itemType == null)
                     {
                         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
                         foreach (Assembly a in assemblies)
                         {
-                            m_ItemType = a.GetType(ClassName, false, true);
+                            _itemType = a.GetType(ClassName, false, true);
 
-                            if (m_ItemType != null)
+                            if (_itemType != null)
                             {
                                 break;
                             }
                         }
 
-                        if (m_ItemType == null)
+                        if (_itemType == null)
                         {
                             throw new Exception("Can't retrieve the type " + ClassName);
                         }
                     }
 
-                    return m_ItemType;
+                    return _itemType;
                 }
             }
 
@@ -150,45 +150,45 @@ namespace CasaEngine.Gameplay
 #endif
             }
 
-            public ObjectContainer(XmlElement el_, SaveOption option_)
+            public ObjectContainer(XmlElement el, SaveOption option)
             {
 #if EDITOR
                 MustBeSaved = false;
 #endif
-                Load(el_, option_);
+                Load(el, option);
             }
 
-            public ObjectContainer(BinaryReader br_, SaveOption option_)
+            public ObjectContainer(BinaryReader br, SaveOption option)
             {
 #if EDITOR
                 MustBeSaved = true;
 #endif
-                Load(br_, option_);
+                Load(br, option);
             }
 
 
-            public void Load(System.IO.BinaryReader br_, SaveOption option_)
+            public void Load(System.IO.BinaryReader br, SaveOption option)
             {
                 throw new NotImplementedException();
             }
 
-            public void Load(XmlElement el_, SaveOption option_)
+            public void Load(XmlElement el, SaveOption option)
             {
-                int version = int.Parse(el_.Attributes["version"].Value);
+                int version = int.Parse(el.Attributes["version"].Value);
 
-                ID = int.Parse(el_.Attributes["id"].Value);
+                Id = int.Parse(el.Attributes["id"].Value);
 
 #if EDITOR
-                if (m_FreeID <= ID)
+                if (_freeId <= Id)
                 {
-                    m_FreeID = ID + 1;
+                    _freeId = Id + 1;
                 }
 #endif
 
-                ClassName = el_.Attributes["classname"].Value;
-                Path = el_.Attributes["path"].Value;
+                ClassName = el.Attributes["classname"].Value;
+                Path = el.Attributes["path"].Value;
 
-                XPath = "Project/Objects/Object[@id='" + ID + "']";
+                XPath = "Project/Objects/Object[@id='" + Id + "']";
             }
 
         }
@@ -196,7 +196,7 @@ namespace CasaEngine.Gameplay
 
 
         //full path, object container
-        readonly Dictionary<string, ObjectContainer> m_Objects = new Dictionary<string, ObjectContainer>(100);
+        readonly Dictionary<string, ObjectContainer> _objects = new Dictionary<string, ObjectContainer>(100);
 
 
 
@@ -210,29 +210,29 @@ namespace CasaEngine.Gameplay
 
 
 
-        public BaseObject GetObjectByPath(string fullpath_)
+        public BaseObject GetObjectByPath(string fullpath)
         {
-            if (m_Objects.ContainsKey(fullpath_) == false)
+            if (_objects.ContainsKey(fullpath) == false)
             {
                 return null;
             }
 
-            //m_Objects[fullpath_].Object return a copy!
-            ObjectContainer obj = m_Objects[fullpath_];
+            //_Objects[fullpath_].Object return a copy!
+            ObjectContainer obj = _objects[fullpath];
             BaseObject res = obj.Object;
-            res.ID = obj.ID;
-            m_Objects[fullpath_] = obj;
+            res.ID = obj.Id;
+            _objects[fullpath] = obj;
             return res;
         }
 
-        public BaseObject GetObjectByID(int id_)
+        public BaseObject GetObjectById(int id)
         {
-            //m_Objects[fullpath_].Object return a copy!
+            //_Objects[fullpath_].Object return a copy!
             ObjectContainer obj = null;
 
-            foreach (var pair in m_Objects)
+            foreach (var pair in _objects)
             {
-                if (pair.Value.ID == id_)
+                if (pair.Value.Id == id)
                 {
                     obj = pair.Value;
                     break;
@@ -242,8 +242,8 @@ namespace CasaEngine.Gameplay
             if (obj != null)
             {
                 BaseObject res = obj.Object;
-                res.ID = obj.ID;
-                //m_Objects[obj.Path] = obj;
+                res.ID = obj.Id;
+                //_Objects[obj.Path] = obj;
                 return res;
             }
 
@@ -252,7 +252,7 @@ namespace CasaEngine.Gameplay
 
 
 
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
             /*string assetPath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
 
@@ -261,19 +261,19 @@ namespace CasaEngine.Gameplay
                 XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.Load(file);
                 ObjectContainer oc = new ObjectContainer((XmlElement)xmlDoc.SelectSingleNode("Root/Object"), option_);
-                m_Objects.Add(oc.Path, oc);
+                _Objects.Add(oc.Path, oc);
             }*/
 
             //CasaEngine.Editor.Assets.AssetManager assetManager = new CasaEngine.Editor.Assets.AssetManager();
 
-            XmlNode node = el_.SelectSingleNode("Objects");
+            XmlNode node = el.SelectSingleNode("Objects");
 
-            m_Objects.Clear();
+            _objects.Clear();
 
             foreach (XmlNode child in node.ChildNodes)
             {
-                ObjectContainer oc = new ObjectContainer((XmlElement)child, option_);
-                m_Objects.Add(oc.Path, oc);
+                ObjectContainer oc = new ObjectContainer((XmlElement)child, option);
+                _objects.Add(oc.Path, oc);
 
                 //to build missing asset
                 /*BaseObject obj = oc.Object;
@@ -297,7 +297,7 @@ namespace CasaEngine.Gameplay
             //assetManager.BuildAll(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath);
         }
 
-        public void Load(System.IO.BinaryReader br_, SaveOption option_)
+        public void Load(System.IO.BinaryReader br, SaveOption option)
         {
             throw new NotImplementedException();
         }

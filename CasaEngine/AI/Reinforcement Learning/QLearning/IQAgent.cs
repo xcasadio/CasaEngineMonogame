@@ -2,7 +2,7 @@
 {
     public interface IQAgent
     {
-        float GetReward(string actionToDo_);
-        bool IsActionIsPossible(string action_);
+        float GetReward(string actionToDo);
+        bool IsActionIsPossible(string action);
     }
 }

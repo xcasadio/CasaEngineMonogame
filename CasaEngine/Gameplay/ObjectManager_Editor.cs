@@ -19,12 +19,12 @@ namespace CasaEngine.Gameplay
             public string ClassName { get; private set; }
             public bool MustBeSaved { get; private set; }
 
-            public ObjectData(string path_, string className_, bool mustBeSaved_)
+            public ObjectData(string path, string className, bool mustBeSaved)
                 : this()
             {
-                Name = path_;
-                ClassName = className_;
-                MustBeSaved = mustBeSaved_;
+                Name = path;
+                ClassName = className;
+                MustBeSaved = mustBeSaved;
             }
         }
 
@@ -32,8 +32,8 @@ namespace CasaEngine.Gameplay
 
         partial class ObjectContainer
         {
-            static private int m_Version = 1;
-            static private int m_FreeID = 1;
+            static private int _version = 1;
+            static private int _freeId = 1;
 
 
             public bool MustBeSaved
@@ -46,38 +46,38 @@ namespace CasaEngine.Gameplay
             public ObjectContainer(string path)
             {
                 MustBeSaved = true;
-                ID = m_FreeID++;
+                Id = _freeId++;
                 Path = path;
                 XPath = string.Empty;
                 FilePosition = -1;
             }
 
-            public void Rename(string newpath_)
+            public void Rename(string newpath)
             {
-                Path = newpath_;
+                Path = newpath;
                 MustBeSaved = true;
             }
 
 
-            public void Save(System.IO.BinaryWriter bw_, SaveOption option_)
+            public void Save(System.IO.BinaryWriter bw, SaveOption option)
             {
                 throw new NotImplementedException();
             }
 
-            public XmlElement Save(XmlElement el_, SaveOption option_)
+            public XmlElement Save(XmlElement el, SaveOption option)
             {
                 //if (IsLoaded == true)
                 //{
-                XmlElement node = el_.OwnerDocument.CreateElement("Object");
-                el_.AppendChild(node);
+                XmlElement node = el.OwnerDocument.CreateElement("Object");
+                el.AppendChild(node);
 
-                el_.OwnerDocument.AddAttribute(node, "id", ID.ToString());
-                el_.OwnerDocument.AddAttribute(node, "classname", ClassName);
-                el_.OwnerDocument.AddAttribute(node, "path", Path);
-                el_.OwnerDocument.AddAttribute(node, "version", m_Version.ToString());
+                el.OwnerDocument.AddAttribute(node, "id", Id.ToString());
+                el.OwnerDocument.AddAttribute(node, "classname", ClassName);
+                el.OwnerDocument.AddAttribute(node, "path", Path);
+                el.OwnerDocument.AddAttribute(node, "version", _version.ToString());
 
                 return node;
-                //m_BaseObject.Save(node, option_);
+                //_BaseObject.Save(node, option_);
                 //}
                 /*else
                 {
@@ -92,7 +92,7 @@ namespace CasaEngine.Gameplay
 
 
 
-        static private int m_Version = 1;
+        static private int _version = 1;
 
 
 
@@ -115,7 +115,7 @@ namespace CasaEngine.Gameplay
             {
                 List<string> res = new List<string>();
 
-                foreach (var pair in m_Objects)
+                foreach (var pair in _objects)
                 {
                     string str = Path.GetFileName(pair.Key);
 
@@ -144,12 +144,12 @@ namespace CasaEngine.Gameplay
         }
 
 
-        public bool IsValidObjectPath(string path_)
+        public bool IsValidObjectPath(string path)
         {
-            return !m_Objects.ContainsKey(path_);
+            return !_objects.ContainsKey(path);
         }
 
-        public void Add(string path_, BaseObject object_)
+        public void Add(string path, BaseObject @object)
         {
             try
             {
@@ -157,23 +157,23 @@ namespace CasaEngine.Gameplay
                 string folder = "";
                 int index;
 
-                ObjectContainer objC = new ObjectContainer(path_);
-                objC.Object = object_;
+                ObjectContainer objC = new ObjectContainer(path);
+                objC.Object = @object;
 
-                index = path_.LastIndexOf('\\');
+                index = path.LastIndexOf('\\');
                 if (index != -1)
                 {
-                    folder = path_.Substring(0, index);
+                    folder = path.Substring(0, index);
                     newFolder = IsNewFolder(folder);
                 }
 
-                m_Objects.Add(objC.Path, objC);
+                _objects.Add(objC.Path, objC);
 
                 //TODO : source control
 
                 if (ObjectAdded != null)
                 {
-                    ObjectAdded(path_, EventArgs.Empty);
+                    ObjectAdded(path, EventArgs.Empty);
                 }
 
                 if (newFolder
@@ -188,20 +188,20 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public void Replace(string path_, BaseObject object_)
+        public void Replace(string path, BaseObject @object)
         {
             try
             {
-                ObjectContainer objC = m_Objects[path_];
+                ObjectContainer objC = _objects[path];
                 objC.MustBeSaved = true;
-                objC.Object = object_;
-                m_Objects[path_] = objC;
+                objC.Object = @object;
+                _objects[path] = objC;
 
                 //TODO : source control
 
                 if (ObjectModified != null)
                 {
-                    ObjectModified(path_, EventArgs.Empty);
+                    ObjectModified(path, EventArgs.Empty);
                 }
             }
             catch (System.Exception e)
@@ -210,16 +210,16 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public void Remove(string path_, bool removeAssetFile_ = true)
+        public void Remove(string path, bool removeAssetFile = true)
         {
             try
             {
-                ObjectContainer objC = m_Objects[path_];
+                ObjectContainer objC = _objects[path];
 
                 BaseObject baseObj = objC.Object;
 
                 if (baseObj is IAssetable
-                    && removeAssetFile_ == true)
+                    && removeAssetFile == true)
                 {
                     IAssetable asset = (IAssetable)baseObj;
 
@@ -246,11 +246,11 @@ namespace CasaEngine.Gameplay
                     //TODO : source control
                 }
 
-                m_Objects.Remove(path_);
+                _objects.Remove(path);
 
                 if (ObjectRemoved != null)
                 {
-                    ObjectRemoved(path_, EventArgs.Empty);
+                    ObjectRemoved(path, EventArgs.Empty);
                 }
             }
             catch (System.Exception e)
@@ -259,13 +259,13 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public void Rename(string srcPath_, string newName_)
+        public void Rename(string srcPath, string newName)
         {
             try
             {
-                ObjectContainer objC = m_Objects[srcPath_];
-                string path = Path.GetDirectoryName(srcPath_);
-                string newPath = path + Path.DirectorySeparatorChar + newName_;
+                ObjectContainer objC = _objects[srcPath];
+                string path = Path.GetDirectoryName(srcPath);
+                string newPath = path + Path.DirectorySeparatorChar + newName;
 
                 //case new file or file has been modified
                 if (newPath.EndsWith("*") == true)
@@ -276,9 +276,9 @@ namespace CasaEngine.Gameplay
                 string filePath = GetFileName(objC);
                 BaseObject obj = objC.Object; // load object
 
-                m_Objects.Remove(srcPath_);
+                _objects.Remove(srcPath);
                 objC.Rename(newPath);
-                m_Objects.Add(objC.Path, objC);
+                _objects.Add(objC.Path, objC);
 
                 if (File.Exists(filePath) == true)
                 {
@@ -296,7 +296,7 @@ namespace CasaEngine.Gameplay
 
                 if (ObjectRenamed != null)
                 {
-                    ObjectRenamed(srcPath_, EventArgs.Empty);
+                    ObjectRenamed(srcPath, EventArgs.Empty);
                 }
             }
             catch (System.Exception e)
@@ -305,11 +305,11 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public void Move(string srcPath_, string destPath_)
+        public void Move(string srcPath, string destPath)
         {
             try
             {
-                ObjectContainer objC = m_Objects[srcPath_];
+                ObjectContainer objC = _objects[srcPath];
                 BaseObject baseObj = objC.Object;
 
                 if (baseObj is IAssetable)
@@ -321,7 +321,7 @@ namespace CasaEngine.Gameplay
                     {
                         string assetPath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
                         assetPath += ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + fileName;
-                        string destAssetFile = assetPath.Replace(Path.GetDirectoryName(srcPath_), destPath_);
+                        string destAssetFile = assetPath.Replace(Path.GetDirectoryName(srcPath), destPath);
 
                         if (File.Exists(destAssetFile) == true)
                         {
@@ -349,11 +349,11 @@ namespace CasaEngine.Gameplay
                     //TODO : source control
                 }
 
-                m_Objects.Remove(objC.Path);
-                bool newFolder = IsNewFolder(destPath_);
+                _objects.Remove(objC.Path);
+                bool newFolder = IsNewFolder(destPath);
 
-                objC.Rename(destPath_ + Path.DirectorySeparatorChar + objC.Name);
-                m_Objects.Add(objC.Path, objC);
+                objC.Rename(destPath + Path.DirectorySeparatorChar + objC.Name);
+                _objects.Add(objC.Path, objC);
 
                 string newFile = GetFileName(objC);
 
@@ -369,7 +369,7 @@ namespace CasaEngine.Gameplay
                 }
                 else
                 {
-                    SaveObjectXML(newFile, objC, SaveOption.Editor);
+                    SaveObjectXml(newFile, objC, SaveOption.Editor);
                 }
 
                 objC.MustBeSaved = false;
@@ -379,12 +379,12 @@ namespace CasaEngine.Gameplay
                 if (newFolder
                     && FolderCreated != null)
                 {
-                    FolderCreated(destPath_, EventArgs.Empty);
+                    FolderCreated(destPath, EventArgs.Empty);
                 }
 
                 if (ObjectMoved != null)
                 {
-                    ObjectMoved(srcPath_, EventArgs.Empty);
+                    ObjectMoved(srcPath, EventArgs.Empty);
                 }
             }
             catch (System.Exception e)
@@ -393,11 +393,11 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public bool IsNewFolder(string path_)
+        public bool IsNewFolder(string path)
         {
-            foreach (var pair in m_Objects)
+            foreach (var pair in _objects)
             {
-                if (pair.Key.Contains(path_) == true)
+                if (pair.Key.Contains(path) == true)
                 {
                     return false;
                 }
@@ -406,22 +406,22 @@ namespace CasaEngine.Gameplay
             return true;
         }
 
-        public ObjectData[] GetAllItemsFromPath(string path_, bool recursive = false)
+        public ObjectData[] GetAllItemsFromPath(string path, bool recursive = false)
         {
             List<ObjectData> res = new List<ObjectData>();
 
-            foreach (var pair in m_Objects)
+            foreach (var pair in _objects)
             {
                 if (recursive == true)
                 {
-                    if (pair.Key.Contains(path_) == true)
+                    if (pair.Key.Contains(path) == true)
                     {
                         res.Add(new ObjectData(Path.GetFileName(pair.Key), pair.Value.ClassName, pair.Value.MustBeSaved));
                     }
                 }
                 else
                 {
-                    if (Path.GetDirectoryName(pair.Key).Equals(path_) == true)
+                    if (Path.GetDirectoryName(pair.Key).Equals(path) == true)
                     {
                         res.Add(new ObjectData(Path.GetFileName(pair.Key), pair.Value.ClassName, pair.Value.MustBeSaved));
                     }
@@ -431,7 +431,7 @@ namespace CasaEngine.Gameplay
             return res.ToArray();
         }
 
-        public string[] GetAllAssetByType(AssetType type_)
+        public string[] GetAllAssetByType(AssetType type)
         {
             List<string> res = new List<string>();
 
@@ -451,7 +451,7 @@ namespace CasaEngine.Gameplay
                     throw new InvalidOperationException("ObjectManager.GetAllAssetByType() : AssetType is not supported");
             }
 
-            foreach (var pair in m_Objects)
+            foreach (var pair in _objects)
             {
                 if (type.FullName.Equals(pair.Value.ClassName) == true)
                 {
@@ -466,7 +466,7 @@ namespace CasaEngine.Gameplay
         {
             List<string> res = new List<string>();
 
-            foreach (var pair in m_Objects)
+            foreach (var pair in _objects)
             {
                 string path = Path.GetDirectoryName(pair.Key);
                 if (res.Contains(path) == false)
@@ -478,11 +478,11 @@ namespace CasaEngine.Gameplay
             return res.ToArray();
         }
 
-        public string GetObjectNameByID(int id_)
+        public string GetObjectNameById(int id)
         {
-            foreach (var pair in m_Objects)
+            foreach (var pair in _objects)
             {
-                if (pair.Value.ID == id_)
+                if (pair.Value.Id == id)
                 {
                     return pair.Value.Name;
                 }
@@ -491,26 +491,26 @@ namespace CasaEngine.Gameplay
             return string.Empty;
         }
 
-        private string GetFileName(ObjectContainer objC_)
+        private string GetFileName(ObjectContainer objC)
         {
             string ext = ".xml";
             return Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar
-                        + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + objC_.Path + ext;
+                        + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + objC.Path + ext;
         }
 
 
 
-        public void Save(System.Xml.XmlElement el_, SaveOption option_)
+        public void Save(System.Xml.XmlElement el, SaveOption option)
         {
-            XmlElement node = el_.OwnerDocument.CreateElement("Objects");
-            el_.AppendChild(node);
+            XmlElement node = el.OwnerDocument.CreateElement("Objects");
+            el.AppendChild(node);
 
-            node.OwnerDocument.AddAttribute(node, "version", m_Version.ToString());
+            node.OwnerDocument.AddAttribute(node, "version", _version.ToString());
 
-            foreach (var pair in m_Objects)
+            foreach (var pair in _objects)
             {
                 //Save only info in project file
-                pair.Value.Save(node, option_);
+                pair.Value.Save(node, option);
 
                 //Save the file object in the arborescence
                 if (pair.Value.IsLoaded == true
@@ -533,7 +533,7 @@ namespace CasaEngine.Gameplay
                         }
                     }
 
-                    if (SaveObjectXML(filePath, pair.Value, option_) == true)
+                    if (SaveObjectXml(filePath, pair.Value, option) == true)
                     {
                         pair.Value.MustBeSaved = false;
                     }
@@ -547,15 +547,15 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        private bool SaveObjectXML(string filePath_, ObjectContainer objC_, SaveOption option_)
+        private bool SaveObjectXml(string filePath, ObjectContainer objC, SaveOption option)
         {
             try
             {
                 XmlDocument xmlDoc = new XmlDocument();
                 XmlElement rootNode = xmlDoc.AddRootNode("Root");
-                XmlElement objNode = objC_.Save(rootNode, option_);
-                objC_.Object.Save(objNode, option_);
-                xmlDoc.Save(filePath_);
+                XmlElement objNode = objC.Save(rootNode, option);
+                objC.Object.Save(objNode, option);
+                xmlDoc.Save(filePath);
             }
             catch (System.Exception e)
             {
@@ -566,14 +566,14 @@ namespace CasaEngine.Gameplay
             return true;
         }
 
-        private void SaveInSourceControlXML(SaveOption option_)
+        private void SaveInSourceControlXml(SaveOption option)
         {
             //source control
             /*if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
             {
                 string workspaceDir = SourceControlManager.Instance.CWD + System.IO.Path.DirectorySeparatorChar + "Asset" + System.IO.Path.DirectorySeparatorChar;
 
-                foreach (var pair in m_Objects)
+                foreach (var pair in _Objects)
                 {
                     if (pair.Value.IsLoaded == true)
                     {
@@ -678,7 +678,7 @@ namespace CasaEngine.Gameplay
             }*/
         }
 
-        public void Save(System.IO.BinaryWriter bw_, SaveOption option_)
+        public void Save(System.IO.BinaryWriter bw, SaveOption option)
         {
             throw new NotImplementedException();
 

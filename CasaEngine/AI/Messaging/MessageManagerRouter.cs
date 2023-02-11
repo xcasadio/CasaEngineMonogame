@@ -7,9 +7,9 @@ namespace CasaEngine.AI.Messaging
     public sealed class MessageManagerRouter : IMessageManager
     {
 
-        private static readonly MessageManagerRouter manager = new MessageManagerRouter();
+        private static readonly MessageManagerRouter Manager = new MessageManagerRouter();
 
-        internal UniquePriorityQueue<Message> messageQueue;
+        internal UniquePriorityQueue<Message> MessageQueue;
 
 
 
@@ -17,25 +17,25 @@ namespace CasaEngine.AI.Messaging
 
         private MessageManagerRouter()
         {
-            messageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
+            MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
         }
 
 
 
-        public static MessageManagerRouter Instance => manager;
+        public static MessageManagerRouter Instance => Manager;
 
 
         public void ResetManager(double precision)
         {
-            messageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
+            MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
         }
 
-        public void SendMessage(int senderID, int recieverID, double delayTime, int type, object extraInfo)
+        public void SendMessage(int senderId, int recieverId, double delayTime, int type, object extraInfo)
         {
             Message message;
             //IMessageable entity;
 
-            message = new Message(senderID, recieverID, type, delayTime, extraInfo);
+            message = new Message(senderId, recieverId, type, delayTime, extraInfo);
 
             //If the message has no delay then call the delegate handler
             if (delayTime == 0)
@@ -52,8 +52,8 @@ namespace CasaEngine.AI.Messaging
             //If the message was a delayed one, calculate its future time and put it in the message queue
             else
             {
-                message.dispatchTime = System.DateTime.Now.Ticks + delayTime;
-                messageQueue.Enqueue(message);
+                message.DispatchTime = System.DateTime.Now.Ticks + delayTime;
+                MessageQueue.Enqueue(message);
             }
         }
 
@@ -65,9 +65,9 @@ namespace CasaEngine.AI.Messaging
 
             currentTime = System.DateTime.Now.Ticks;
 
-            while (messageQueue.Count != 0 && messageQueue.Peek().dispatchTime < currentTime)
+            while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
             {
-                message = messageQueue.Dequeue();
+                message = MessageQueue.Dequeue();
 
                 //Test if the entity can handle the message
                 throw new NotImplementedException();

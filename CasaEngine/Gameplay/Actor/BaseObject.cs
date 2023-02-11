@@ -13,21 +13,21 @@ namespace CasaEngine.Gameplay.Actor.Object
     {
 
 #if EDITOR
-        static private readonly int m_Version = 1;
+        static private readonly int Version = 1;
 
-        public virtual void Save(XmlElement el_, SaveOption option_)
+        public virtual void Save(XmlElement el, SaveOption option)
         {
-            XmlElement rootNode = el_.OwnerDocument.CreateElement("BaseObject");
-            el_.AppendChild(rootNode);
-            el_.OwnerDocument.AddAttribute(rootNode, "version", m_Version.ToString());
+            XmlElement rootNode = el.OwnerDocument.CreateElement("BaseObject");
+            el.AppendChild(rootNode);
+            el.OwnerDocument.AddAttribute(rootNode, "version", Version.ToString());
         }
 
-        public virtual void Save(BinaryWriter bw_, SaveOption option_)
+        public virtual void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write(m_Version);
+            bw.Write(Version);
         }
 
-        public abstract bool CompareTo(BaseObject other_);
+        public abstract bool CompareTo(BaseObject other);
 #endif
 
 
@@ -45,29 +45,29 @@ namespace CasaEngine.Gameplay.Actor.Object
 
         protected BaseObject() { }
 
-        protected BaseObject(XmlElement el_, SaveOption option_)
+        protected BaseObject(XmlElement el, SaveOption option)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
 
 
-        public virtual void Load(XmlElement el_, SaveOption option_)
+        public virtual void Load(XmlElement el, SaveOption option)
         {
-            XmlNode rootNode = el_.SelectSingleNode("BaseObject");
+            XmlNode rootNode = el.SelectSingleNode("BaseObject");
             int loadedVersion = int.Parse(rootNode.Attributes["version"].Value);
         }
 
-        public virtual void Load(BinaryReader br_, SaveOption option_)
+        public virtual void Load(BinaryReader br, SaveOption option)
         {
-            uint loadedVersion = br_.ReadUInt32();
+            uint loadedVersion = br.ReadUInt32();
             //int id = br_.ReadInt32();
             //TODO id
         }
 
-        protected virtual void CopyFrom(BaseObject ob_)
+        protected virtual void CopyFrom(BaseObject ob)
         {
-            this.Temporary = ob_.Temporary;
+            this.Temporary = ob.Temporary;
         }
 
 

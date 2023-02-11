@@ -3,15 +3,15 @@
     public abstract class FuzzySet
     {
 
-        protected double m_dDOM = 0.0;
+        protected double DDom = 0.0;
 
-        protected double m_dRepresentativeValue;
+        protected double DRepresentativeValue;
 
 
 
-        public double DOM
+        public double Dom
         {
-            get => m_dDOM;
+            get => DDom;
             set
             {
                 if ((value > 1) && (value < 0))
@@ -19,31 +19,31 @@
                     throw new ArgumentException("FuzzySet.DOM;set : value need to be between 0 and 1");
                 }
 
-                m_dDOM = value;
+                DDom = value;
             }
         }
 
-        public double RepresentativeValue => m_dRepresentativeValue;
+        public double RepresentativeValue => DRepresentativeValue;
 
 
-        public FuzzySet(double RepVal)
+        public FuzzySet(double repVal)
         {
-            m_dRepresentativeValue = RepVal;
+            DRepresentativeValue = repVal;
         }
 
 
 
-        public abstract double CalculateDOM(double val);
+        public abstract double CalculateDom(double val);
 
-        public void ORwithDOM(double val)
+        public void ORwithDom(double val)
         {
-            if (val > m_dDOM)
-                m_dDOM = val;
+            if (val > DDom)
+                DDom = val;
         }
 
-        public void ClearDOM()
+        public void ClearDom()
         {
-            m_dDOM = 0.0;
+            DDom = 0.0;
         }
 
     }

@@ -8,17 +8,17 @@
 
 
 
-        public ParserTokenKeyword(Parser parser_, string token_)
-            : base(parser_, token_)
+        public ParserTokenKeyword(Parser parser, string token)
+            : base(parser, token)
         { }
 
 
 
-        public override bool Check(string sentence_)
+        public override bool Check(string sentence)
         {
-            if (m_Token.ToLower().Equals(sentence_.ToLower()) == true)
+            if (Token.ToLower().Equals(sentence.ToLower()) == true)
             {
-                Parser.AddCalculator(new CalculatorTokenKeyword(Parser.Calculator, m_Token));
+                Parser.AddCalculator(new CalculatorTokenKeyword(Parser.Calculator, Token));
                 return true;
             }
 

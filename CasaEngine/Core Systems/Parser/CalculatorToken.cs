@@ -13,36 +13,36 @@ namespace CasaEngine.Design.Parser
         Function
     }
 
-    abstract class ICalculatorToken
+    abstract class CalculatorToken
         : ISaveLoad
     {
-        readonly Calculator m_Calculator;
+        readonly Calculator _calculator;
 
 
 
-        public CasaEngine.Design.Parser.Calculator Calculator => m_Calculator;
+        public CasaEngine.Design.Parser.Calculator Calculator => _calculator;
 
 
-        protected ICalculatorToken(Calculator calculator_)
+        protected CalculatorToken(Calculator calculator)
         {
-            m_Calculator = calculator_;
+            _calculator = calculator;
         }
 
 
 
         public abstract float Evaluate();
 
-        protected float EvaluateKeyword(string keyword_)
+        protected float EvaluateKeyword(string keyword)
         {
-            return m_Calculator.Parser.EvaluateKeyword(keyword_);
+            return _calculator.Parser.EvaluateKeyword(keyword);
         }
 
 
-        public abstract void Save(XmlElement el_, SaveOption option_);
-        public abstract void Load(XmlElement el_, SaveOption option_);
+        public abstract void Save(XmlElement el, SaveOption option);
+        public abstract void Load(XmlElement el, SaveOption option);
 
-        public abstract void Save(BinaryWriter bw_, SaveOption option_);
-        public abstract void Load(BinaryReader br_, SaveOption option_);
+        public abstract void Save(BinaryWriter bw, SaveOption option);
+        public abstract void Load(BinaryReader br, SaveOption option);
 
 
     }

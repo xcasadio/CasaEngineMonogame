@@ -2,32 +2,32 @@
 {
     public class NeuralNetworkTraining
     {
-        readonly NeuralNetwork m_NeuralNetwork = null;
-        int m_NumberOfData = 0;
+        readonly NeuralNetwork _neuralNetwork = null;
+        int _numberOfData = 0;
 
-        double[,] TrainingSet = null;
-
-
+        double[,] _trainingSet = null;
 
 
 
-        public NeuralNetworkTraining(NeuralNetwork neuralNet_)
+
+
+        public NeuralNetworkTraining(NeuralNetwork neuralNet)
         {
-            m_NeuralNetwork = neuralNet_;
+            _neuralNetwork = neuralNet;
         }
 
 
 
         public void InitTrainingData(int numberOfSet)
         {
-            m_NumberOfData = numberOfSet;
-            TrainingSet = new double[m_NumberOfData, m_NeuralNetwork.NumberOfInputNode + m_NeuralNetwork.NumberOfOutputNode];
+            _numberOfData = numberOfSet;
+            _trainingSet = new double[_numberOfData, _neuralNetwork.NumberOfInputNode + _neuralNetwork.NumberOfOutputNode];
         }
 
         public void InitTrainingData(int numberOfSet, double[,] data)
         {
             InitTrainingData(numberOfSet);
-            TrainingSet = data;
+            _trainingSet = data;
         }
 
         public void InitTrainingData(int numberOfSet, string fileName)
@@ -49,21 +49,21 @@
             {
                 error = 0;
                 c++;
-                for (i = 0; i < m_NumberOfData; i++)
+                for (i = 0; i < _numberOfData; i++)
                 {
-                    for (int j = 0; j < m_NeuralNetwork.NumberOfInputNode; j++)
+                    for (int j = 0; j < _neuralNetwork.NumberOfInputNode; j++)
                     {
-                        m_NeuralNetwork.SetInput(j, TrainingSet[i, j]);
+                        _neuralNetwork.SetInput(j, _trainingSet[i, j]);
                     }
 
-                    for (int j = m_NeuralNetwork.NumberOfInputNode; j < m_NeuralNetwork.NumberOfOutputNode; j++)
+                    for (int j = _neuralNetwork.NumberOfInputNode; j < _neuralNetwork.NumberOfOutputNode; j++)
                     {
-                        m_NeuralNetwork.SetDesiredOutput(j, TrainingSet[i, j]);
+                        _neuralNetwork.SetDesiredOutput(j, _trainingSet[i, j]);
                     }
 
-                    m_NeuralNetwork.FeedForward();
-                    error += m_NeuralNetwork.CalculateError();
-                    m_NeuralNetwork.BackPropagate();
+                    _neuralNetwork.FeedForward();
+                    error += _neuralNetwork.CalculateError();
+                    _neuralNetwork.BackPropagate();
                 }
                 error = error / 14.0f;
             }

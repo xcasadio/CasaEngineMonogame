@@ -3,8 +3,8 @@
     public class GlobalVar
     {
 
-        private static GlobalVar instance;
-        private Dictionary<string, int> m_Vars;
+        private static GlobalVar _instance;
+        private Dictionary<string, int> _vars;
 
 
 
@@ -12,25 +12,25 @@
         {
             get
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = new GlobalVar();
+                    _instance = new GlobalVar();
                 }
-                return instance;
+                return _instance;
             }
         }
 
         public Dictionary<string, int> Vars
         {
-            get => m_Vars;
-            set => m_Vars = value;
+            get => _vars;
+            set => _vars = value;
         }
 
 
 
         private GlobalVar()
         {
-            m_Vars = new Dictionary<string, int>();
+            _vars = new Dictionary<string, int>();
         }
 
 

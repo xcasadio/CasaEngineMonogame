@@ -11,15 +11,15 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        private static readonly PathManager<T> manager = new PathManager<T>();
+        private static readonly PathManager<T> Manager = new PathManager<T>();
 
-        internal List<PathPlanner<T>> searchRequests;
+        internal List<PathPlanner<T>> SearchRequests;
 
-        internal int allocatedCycles;
+        internal int AllocatedCycles;
 
-        internal long allocatedTime;
+        internal long AllocatedTime;
 
-        internal UpdateDelegate updateMethod;
+        internal UpdateDelegate UpdateMethod;
 
 
 
@@ -27,24 +27,24 @@ namespace CasaEngine.AI.Pathfinding
 
         private PathManager()
         {
-            searchRequests = new List<PathPlanner<T>>();
+            SearchRequests = new List<PathPlanner<T>>();
 
-            this.allocatedCycles = int.MaxValue;
-            this.allocatedTime = long.MaxValue;
+            this.AllocatedCycles = int.MaxValue;
+            this.AllocatedTime = long.MaxValue;
 
-            updateMethod = UpdateWithCycles;
+            UpdateMethod = UpdateWithCycles;
         }
 
 
 
-        public static PathManager<T> Instance => manager;
+        public static PathManager<T> Instance => Manager;
 
         public int AllocatedCyclesForUpdate
         {
             set
             {
-                allocatedCycles = value;
-                updateMethod = UpdateWithCycles;
+                AllocatedCycles = value;
+                UpdateMethod = UpdateWithCycles;
             }
         }
 
@@ -52,8 +52,8 @@ namespace CasaEngine.AI.Pathfinding
         {
             set
             {
-                allocatedTime = value;
-                updateMethod = UpdateWithTime;
+                AllocatedTime = value;
+                UpdateMethod = UpdateWithTime;
             }
         }
 
@@ -61,20 +61,20 @@ namespace CasaEngine.AI.Pathfinding
 
         public void Register(PathPlanner<T> planner)
         {
-            if (searchRequests.Contains(planner) == true)
+            if (SearchRequests.Contains(planner) == true)
                 return;
 
-            searchRequests.Add(planner);
+            SearchRequests.Add(planner);
         }
 
         public void Unregister(PathPlanner<T> planner)
         {
-            searchRequests.Remove(planner);
+            SearchRequests.Remove(planner);
         }
 
         public void Update()
         {
-            updateMethod();
+            UpdateMethod();
         }
 
 
@@ -88,22 +88,22 @@ namespace CasaEngine.AI.Pathfinding
             i = 0;
 
             //While there are some cycles left and some search requests
-            while (elapsedCycles < allocatedCycles && searchRequests.Count != 0)
+            while (elapsedCycles < AllocatedCycles && SearchRequests.Count != 0)
             {
                 //Do a search cycle
-                result = searchRequests[i].CycleOnce();
+                result = SearchRequests[i].CycleOnce();
 
                 //If the search finished, remove it from the path manager
                 if (result == SearchState.CompletedAndFound || result == SearchState.CompletedAndNotFound)
                 {
-                    searchRequests.RemoveAt(i);
+                    SearchRequests.RemoveAt(i);
                     i--;
                 }
 
                 i++;
 
                 //If the last search request is reached, start again
-                if (i == searchRequests.Count)
+                if (i == SearchRequests.Count)
                     i = 0;
 
                 elapsedCycles++;
@@ -121,22 +121,22 @@ namespace CasaEngine.AI.Pathfinding
             i = 0;
 
             //While there is some time left and some search requests
-            while (elapsedTime < allocatedTime && searchRequests.Count != 0)
+            while (elapsedTime < AllocatedTime && SearchRequests.Count != 0)
             {
                 //Do a search cycle
-                result = searchRequests[i].CycleOnce();
+                result = SearchRequests[i].CycleOnce();
 
                 //If the search finished, remove it from the path manager
                 if (result == SearchState.CompletedAndFound || result == SearchState.CompletedAndNotFound)
                 {
-                    searchRequests.RemoveAt(i);
+                    SearchRequests.RemoveAt(i);
                     i--;
                 }
 
                 i++;
 
                 //If the last search request is reached, start again
-                if (i == searchRequests.Count)
+                if (i == SearchRequests.Count)
                     i = 0;
 
                 elapsedTime = DateTime.Today.Ticks - initialTime;

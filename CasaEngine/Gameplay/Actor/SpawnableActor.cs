@@ -25,7 +25,7 @@ namespace CasaEngine.Gameplay.Actor
 
 
 #if EDITOR
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new NotImplementedException();
         }

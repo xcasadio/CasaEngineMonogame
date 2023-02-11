@@ -300,7 +300,7 @@ namespace CasaEngine.Helper
                             AABB aabb;
                             bp.GetFatAABB(proxy.ProxyId, out aabb);
 
-                            DrawAABB(ref aabb, color);
+                            DrawAabb(ref aabb, color);
                         }
                     }
                 }
@@ -325,7 +325,7 @@ namespace CasaEngine.Helper
                     if (buoyancy != null)
                     {
                         AABB container = buoyancy.Container;
-                        DrawAABB(ref container, Color.LightBlue);
+                        DrawAabb(ref container, Color.LightBlue);
                     }
                 }
             }
@@ -427,7 +427,7 @@ namespace CasaEngine.Helper
                                    "\n- Total: " + World.UpdateTime);
         }
 
-        public void DrawAABB(ref AABB aabb, Color color)
+        public void DrawAabb(ref AABB aabb, Color color)
         {
             Vector2[] verts = new Vector2[4];
             verts[0] = new Vector2(aabb.LowerBound.X, aabb.LowerBound.Y);

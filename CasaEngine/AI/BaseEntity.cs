@@ -12,24 +12,24 @@ namespace CasaEngine.AI
 
 
 
-        protected internal int id = BaseEntity.EntityNotRegistered; // TODO: remove ? ObjectContainer already conatins ID
+        protected internal int Id = BaseEntity.EntityNotRegistered; // TODO: remove ? ObjectContainer already conatins ID
 
-        protected internal bool remove;
+        protected internal bool Remove;
 
 
 
 #if EDITOR
         [Category("Object"), ReadOnly(true)]
 #endif
-        public int ID
+        public int Id
         {
             get
             {
-                return id;
+                return Id;
             }
             set
             {
-                id = value;
+                Id = value;
             }
         }
 

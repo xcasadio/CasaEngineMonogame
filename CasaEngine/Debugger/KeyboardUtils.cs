@@ -24,7 +24,7 @@ namespace CasaEngine.Debugger
         }
 
         // key:Keys, value:CharPair
-        static private readonly Dictionary<Keys, CharPair> keyMap =
+        static private readonly Dictionary<Keys, CharPair> KeyMap =
                                                     new Dictionary<Keys, CharPair>();
 
 
@@ -41,7 +41,7 @@ namespace CasaEngine.Debugger
                 character = (shitKeyPressed) ? (char)key : Char.ToLower((char)key);
                 result = true;
             }
-            else if (keyMap.TryGetValue(key, out charPair))
+            else if (KeyMap.TryGetValue(key, out charPair))
             {
                 // Otherwise, convert by key map.
                 if (!shitKeyPressed)
@@ -119,7 +119,7 @@ namespace CasaEngine.Debugger
             if (charPair.Length > 1)
                 char2 = charPair[1];
 
-            keyMap.Add(key, new CharPair(char1, char2));
+            KeyMap.Add(key, new CharPair(char1, char2));
         }
 
 

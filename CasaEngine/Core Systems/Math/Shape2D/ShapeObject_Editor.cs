@@ -8,57 +8,57 @@ namespace CasaEngine.Math.Shape2D
     public partial class Shape2DObject
     {
 
-        private static readonly int m_Version = 1;
+        private static readonly int Version = 1;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public bool PropertyChangedActivated = true;
-        private object m_Tag;
+        private object _tag;
 
 
 
         [Browsable(false)]
         public object Tag
         {
-            get => m_Tag;
-            set => m_Tag = value;
+            get => _tag;
+            set => _tag = value;
         }
 
 
 
-        public Shape2DObject(Shape2DType type_)
+        public Shape2DObject(Shape2DType type)
         {
-            m_Type = type_;
+            _type = type;
         }
 
 
 
-        public virtual bool CompareTo(Shape2DObject o_)
+        public virtual bool CompareTo(Shape2DObject o)
         {
-            return m_Flag == o_.m_Flag
-                && m_Location == o_.m_Location
-                && m_Rotation == o_.m_Rotation
-                && m_Type == o_.m_Type;
+            return _flag == o._flag
+                && _location == o._location
+                && _rotation == o._rotation
+                && _type == o._type;
         }
 
-        public virtual void Save(XmlElement el_, SaveOption option_)
+        public virtual void Save(XmlElement el, SaveOption option)
         {
-            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "type", Enum.GetName(typeof(Shape2DType), m_Type));
+            el_.OwnerDocument.AddAttribute(el_, "version", Version.ToString());
+            el_.OwnerDocument.AddAttribute(el_, "type", Enum.GetName(typeof(Shape2DType), _type));
 
             XmlElement el = el_.OwnerDocument.CreateElement("Location", Location);
             el_.AppendChild(el);
 
-            el_.OwnerDocument.AddAttribute(el_, "rotation", m_Rotation.ToString());
-            el_.OwnerDocument.AddAttribute(el_, "flag", m_Flag.ToString());
+            el_.OwnerDocument.AddAttribute(el_, "rotation", _rotation.ToString());
+            el_.OwnerDocument.AddAttribute(el_, "flag", _flag.ToString());
         }
 
-        public virtual void Save(BinaryWriter bw_, SaveOption option_)
+        public virtual void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write(m_Version);
-            bw_.Write(Enum.GetName(typeof(Shape2DType), m_Type));
-            bw_.Write(m_Rotation);
-            bw_.Write(m_Flag);
+            bw.Write(Version);
+            bw.Write(Enum.GetName(typeof(Shape2DType), _type));
+            bw.Write(_rotation);
+            bw.Write(_flag);
         }
 
         public void NotifyPropertyChanged(String info)

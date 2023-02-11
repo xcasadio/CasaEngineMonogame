@@ -23,7 +23,7 @@ using CasaEngine.CoreSystems.Game;
 
 namespace CasaEngine.Debugger
 {
-    public class DebugCommandUI
+    public class DebugCommandUi
         : Microsoft.Xna.Framework.DrawableGameComponent,
         IDebugCommandHost,
         IGameComponentResizable
@@ -45,7 +45,7 @@ namespace CasaEngine.Debugger
 
         public string Prompt { get; set; }
 
-        public bool Focused => state != State.Closed;
+        public bool Focused => _state != State.Closed;
 
 
         // Command window states.
@@ -62,77 +62,77 @@ namespace CasaEngine.Debugger
             public CommandInfo(
                 string command, string description, DebugCommandExecute callback)
             {
-                this.command = command;
-                this.description = description;
-                this.callback = callback;
+                this.Command = command;
+                this.Description = description;
+                this.Callback = callback;
             }
 
             // command name
-            public readonly string command;
+            public readonly string Command;
 
             // Description of command.
-            public readonly string description;
+            public readonly string Description;
 
             // delegate for execute the command.
-            public readonly DebugCommandExecute callback;
+            public readonly DebugCommandExecute Callback;
         }
 
         // Reference to DebugManager.
-        private DebugManager debugManager;
+        private DebugManager _debugManager;
 
         // Current state
-        private State state = State.Closed;
+        private State _state = State.Closed;
 
         // timer for state transition.
-        private float stateTransition;
+        private float _stateTransition;
 
         // Registered echo listeners.
-        private readonly List<IDebugEchoListner> listenrs = new List<IDebugEchoListner>();
+        private readonly List<IDebugEchoListner> _listenrs = new List<IDebugEchoListner>();
 
         // Registered command executioner.
-        private readonly Stack<IDebugCommandExecutioner> executioners = new Stack<IDebugCommandExecutioner>();
+        private readonly Stack<IDebugCommandExecutioner> _executioners = new Stack<IDebugCommandExecutioner>();
 
         // Registered commands
-        private readonly Dictionary<string, CommandInfo> commandTable =
+        private readonly Dictionary<string, CommandInfo> _commandTable =
                                                 new Dictionary<string, CommandInfo>();
 
         // Current command line string and cursor position.
-        private string commandLine = String.Empty;
-        private int cursorIndex = 0;
+        private string _commandLine = String.Empty;
+        private int _cursorIndex = 0;
 
-        private readonly Queue<string> lines = new Queue<string>();
+        private readonly Queue<string> _lines = new Queue<string>();
 
         // Command history buffer.
-        private readonly List<string> commandHistory = new List<string>();
+        private readonly List<string> _commandHistory = new List<string>();
 
         // Selecting command history index.
-        private int commandHistoryIndex;
+        private int _commandHistoryIndex;
 
-        private Renderer2DComponent m_Renderer2DComponent = null;
+        private Renderer2DComponent _renderer2DComponent = null;
 
-        private readonly Color m_BackgroundColor = new Color(0, 0, 0, 200);
+        private readonly Color _backgroundColor = new Color(0, 0, 0, 200);
 
 
         // Previous frame keyboard state.
-        private KeyboardState prevKeyState;
+        private KeyboardState _prevKeyState;
 
         // Key that pressed last frame.
-        private Keys pressedKey;
+        private Keys _pressedKey;
 
         // Timer for key repeating.
-        private float keyRepeatTimer;
+        private float _keyRepeatTimer;
 
         // Key repeat duration in seconds for the first key press.
-        private readonly float keyRepeatStartDuration = 0.3f;
+        private readonly float _keyRepeatStartDuration = 0.3f;
 
         // Key repeat duration in seconds after the first key press.
-        private readonly float keyRepeatDuration = 0.03f;
+        private readonly float _keyRepeatDuration = 0.03f;
 
 
 
 
 
-        public DebugCommandUI(Microsoft.Xna.Framework.Game game)
+        public DebugCommandUi(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
             Prompt = DefaultPrompt;
@@ -150,14 +150,14 @@ namespace CasaEngine.Debugger
                 delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
                     int maxLen = 0;
-                    foreach (CommandInfo cmd in commandTable.Values)
-                        maxLen = System.Math.Max(maxLen, cmd.command.Length);
+                    foreach (CommandInfo cmd in _commandTable.Values)
+                        maxLen = System.Math.Max(maxLen, cmd.Command.Length);
 
                     string fmt = String.Format("{{0,-{0}}}    {{1}}", maxLen);
 
-                    foreach (CommandInfo cmd in commandTable.Values)
+                    foreach (CommandInfo cmd in _commandTable.Values)
                     {
-                        Echo(String.Format(fmt, cmd.command, cmd.description));
+                        Echo(String.Format(fmt, cmd.Command, cmd.Description));
                     }
                 });
 
@@ -165,7 +165,7 @@ namespace CasaEngine.Debugger
             RegisterCommand("cls", "Clear Screen",
                 delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
-                    lines.Clear();
+                    _lines.Clear();
                 });
 
             // Echo command
@@ -280,10 +280,10 @@ namespace CasaEngine.Debugger
 
         public override void Initialize()
         {
-            debugManager =
+            _debugManager =
                 Game.Services.GetService(typeof(DebugManager)) as DebugManager;
 
-            if (debugManager == null)
+            if (_debugManager == null)
                 throw new InvalidOperationException("Coudn't find DebugManager.");
 
             base.Initialize();
@@ -291,9 +291,9 @@ namespace CasaEngine.Debugger
 
         protected override void LoadContent()
         {
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
 
-            if (m_Renderer2DComponent == null)
+            if (_renderer2DComponent == null)
             {
                 throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2DComponent is null");
             }
@@ -307,34 +307,34 @@ namespace CasaEngine.Debugger
             string command, string description, DebugCommandExecute callback)
         {
             string lowerCommand = command.ToLower();
-            if (commandTable.ContainsKey(lowerCommand))
+            if (_commandTable.ContainsKey(lowerCommand))
             {
                 throw new InvalidOperationException(
                     String.Format("Command \"{0}\" is already registered.", command));
             }
 
-            commandTable.Add(
+            _commandTable.Add(
                 lowerCommand, new CommandInfo(command, description, callback));
         }
 
         public void UnregisterCommand(string command)
         {
             string lowerCommand = command.ToLower();
-            if (!commandTable.ContainsKey(lowerCommand))
+            if (!_commandTable.ContainsKey(lowerCommand))
             {
                 throw new InvalidOperationException(
                     String.Format("Command \"{0}\" is not registered.", command));
             }
 
-            commandTable.Remove(command);
+            _commandTable.Remove(command);
         }
 
         public void ExecuteCommand(string command)
         {
             // Call registered executioner.
-            if (executioners.Count != 0)
+            if (_executioners.Count != 0)
             {
-                executioners.Peek().ExecuteCommand(command);
+                _executioners.Peek().ExecuteCommand(command);
                 return;
             }
 
@@ -350,12 +350,12 @@ namespace CasaEngine.Debugger
             args.RemoveAt(0);
 
             CommandInfo cmd;
-            if (commandTable.TryGetValue(cmdText.ToLower(), out cmd))
+            if (_commandTable.TryGetValue(cmdText.ToLower(), out cmd))
             {
                 try
                 {
                     // Call registered command delegate.
-                    cmd.callback(this, command, args);
+                    cmd.Callback(this, command, args);
                 }
                 catch (Exception e)
                 {
@@ -373,31 +373,31 @@ namespace CasaEngine.Debugger
             }
 
             // Add to command history.
-            commandHistory.Add(command);
-            while (commandHistory.Count > MaxCommandHistory)
-                commandHistory.RemoveAt(0);
+            _commandHistory.Add(command);
+            while (_commandHistory.Count > MaxCommandHistory)
+                _commandHistory.RemoveAt(0);
 
-            commandHistoryIndex = commandHistory.Count;
+            _commandHistoryIndex = _commandHistory.Count;
         }
 
         public void RegisterEchoListner(IDebugEchoListner listner)
         {
-            listenrs.Add(listner);
+            _listenrs.Add(listner);
         }
 
         public void UnregisterEchoListner(IDebugEchoListner listner)
         {
-            listenrs.Remove(listner);
+            _listenrs.Remove(listner);
         }
 
         public void Echo(DebugCommandMessage messageType, string text)
         {
-            lines.Enqueue(text);
-            while (lines.Count >= MaxLineCount)
-                lines.Dequeue();
+            _lines.Enqueue(text);
+            while (_lines.Count >= MaxLineCount)
+                _lines.Dequeue();
 
             // Call registered listeners.
-            foreach (IDebugEchoListner listner in listenrs)
+            foreach (IDebugEchoListner listner in _listenrs)
                 listner.Echo(messageType, text);
         }
 
@@ -418,31 +418,31 @@ namespace CasaEngine.Debugger
 
         public void PushExecutioner(IDebugCommandExecutioner executioner)
         {
-            executioners.Push(executioner);
+            _executioners.Push(executioner);
         }
 
         public void PopExecutioner()
         {
-            executioners.Pop();
+            _executioners.Pop();
         }
 
 
 
         public void Show()
         {
-            if (state == State.Closed)
+            if (_state == State.Closed)
             {
-                stateTransition = 0.0f;
-                state = State.Opening;
+                _stateTransition = 0.0f;
+                _state = State.Opening;
             }
         }
 
         public void Hide()
         {
-            if (state == State.Opened)
+            if (_state == State.Opened)
             {
-                stateTransition = 1.0f;
-                state = State.Closing;
+                _stateTransition = 1.0f;
+                _state = State.Closing;
             }
         }
 
@@ -451,37 +451,37 @@ namespace CasaEngine.Debugger
             KeyboardState keyState = Keyboard.GetState();
 
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            const float OpenSpeed = 8.0f;
-            const float CloseSpeed = 8.0f;
+            const float openSpeed = 8.0f;
+            const float closeSpeed = 8.0f;
 
-            switch (state)
+            switch (_state)
             {
                 case State.Closed:
                     if (keyState.IsKeyDown(Keys.OemQuotes))
                         Show();
                     break;
                 case State.Opening:
-                    stateTransition += dt * OpenSpeed;
-                    if (stateTransition > 1.0f)
+                    _stateTransition += dt * openSpeed;
+                    if (_stateTransition > 1.0f)
                     {
-                        stateTransition = 1.0f;
-                        state = State.Opened;
+                        _stateTransition = 1.0f;
+                        _state = State.Opened;
                     }
                     break;
                 case State.Opened:
                     ProcessKeyInputs(dt);
                     break;
                 case State.Closing:
-                    stateTransition -= dt * CloseSpeed;
-                    if (stateTransition < 0.0f)
+                    _stateTransition -= dt * closeSpeed;
+                    if (_stateTransition < 0.0f)
                     {
-                        stateTransition = 0.0f;
-                        state = State.Closed;
+                        _stateTransition = 0.0f;
+                        _state = State.Closed;
                     }
                     break;
             }
 
-            prevKeyState = keyState;
+            _prevKeyState = keyState;
 
             base.Update(gameTime);
         }
@@ -502,54 +502,54 @@ namespace CasaEngine.Debugger
                 if (KeyboardUtils.KeyToString(key, shift, out ch))
                 {
                     // Handle typical character input.
-                    commandLine = commandLine.Insert(cursorIndex, new string(ch, 1));
-                    cursorIndex++;
+                    _commandLine = _commandLine.Insert(_cursorIndex, new string(ch, 1));
+                    _cursorIndex++;
                 }
                 else
                 {
                     switch (key)
                     {
                         case Keys.Back:
-                            if (cursorIndex > 0)
-                                commandLine = commandLine.Remove(--cursorIndex, 1);
+                            if (_cursorIndex > 0)
+                                _commandLine = _commandLine.Remove(--_cursorIndex, 1);
                             break;
                         case Keys.Delete:
-                            if (cursorIndex < commandLine.Length)
-                                commandLine = commandLine.Remove(cursorIndex, 1);
+                            if (_cursorIndex < _commandLine.Length)
+                                _commandLine = _commandLine.Remove(_cursorIndex, 1);
                             break;
                         case Keys.Left:
-                            if (cursorIndex > 0)
-                                cursorIndex--;
+                            if (_cursorIndex > 0)
+                                _cursorIndex--;
                             break;
                         case Keys.Right:
-                            if (cursorIndex < commandLine.Length)
-                                cursorIndex++;
+                            if (_cursorIndex < _commandLine.Length)
+                                _cursorIndex++;
                             break;
                         case Keys.Enter:
                             // Run the command.
-                            ExecuteCommand(commandLine);
-                            commandLine = string.Empty;
-                            cursorIndex = 0;
+                            ExecuteCommand(_commandLine);
+                            _commandLine = string.Empty;
+                            _cursorIndex = 0;
                             break;
                         case Keys.Up:
                             // Show command history.
-                            if (commandHistory.Count > 0)
+                            if (_commandHistory.Count > 0)
                             {
-                                commandHistoryIndex =
-                                    System.Math.Max(0, commandHistoryIndex - 1);
+                                _commandHistoryIndex =
+                                    System.Math.Max(0, _commandHistoryIndex - 1);
 
-                                commandLine = commandHistory[commandHistoryIndex];
-                                cursorIndex = commandLine.Length;
+                                _commandLine = _commandHistory[_commandHistoryIndex];
+                                _cursorIndex = _commandLine.Length;
                             }
                             break;
                         case Keys.Down:
                             // Show command history.
-                            if (commandHistory.Count > 0)
+                            if (_commandHistory.Count > 0)
                             {
-                                commandHistoryIndex = System.Math.Min(commandHistory.Count - 1,
-                                                                commandHistoryIndex + 1);
-                                commandLine = commandHistory[commandHistoryIndex];
-                                cursorIndex = commandLine.Length;
+                                _commandHistoryIndex = System.Math.Min(_commandHistory.Count - 1,
+                                                                _commandHistoryIndex + 1);
+                                _commandLine = _commandHistory[_commandHistoryIndex];
+                                _cursorIndex = _commandLine.Length;
                             }
                             break;
                         case Keys.Escape: //OemQuotes
@@ -564,20 +564,20 @@ namespace CasaEngine.Debugger
         bool IsKeyPressed(Keys key, float dt)
         {
             // Treat it as pressed if given key has not pressed in previous frame.
-            if (prevKeyState.IsKeyUp(key))
+            if (_prevKeyState.IsKeyUp(key))
             {
-                keyRepeatTimer = keyRepeatStartDuration;
-                pressedKey = key;
+                _keyRepeatTimer = _keyRepeatStartDuration;
+                _pressedKey = key;
                 return true;
             }
 
             // Handling key repeating if given key has pressed in previous frame.
-            if (key == pressedKey)
+            if (key == _pressedKey)
             {
-                keyRepeatTimer -= dt;
-                if (keyRepeatTimer <= 0.0f)
+                _keyRepeatTimer -= dt;
+                if (_keyRepeatTimer <= 0.0f)
                 {
-                    keyRepeatTimer += keyRepeatDuration;
+                    _keyRepeatTimer += _keyRepeatDuration;
                     return true;
                 }
             }
@@ -588,11 +588,11 @@ namespace CasaEngine.Debugger
         public override void Draw(GameTime gameTime)
         {
             // Do nothing when command window is completely closed.
-            if (state == State.Closed)
+            if (_state == State.Closed)
                 return;
 
             SpriteFont font = Engine.Instance.DefaultSpriteFont;
-            Texture2D whiteTexture = debugManager.WhiteTexture;
+            Texture2D whiteTexture = _debugManager.WhiteTexture;
             float depth = 0.0f;
 
             // Compute command window size and draw.
@@ -614,32 +614,32 @@ namespace CasaEngine.Debugger
             //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState, mtx);
 
             //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
-            m_Renderer2DComponent.AddSprite2D(
+            _renderer2DComponent.AddSprite2D(
                 whiteTexture,
                 new Vector2(leftMargin, topMargin), // position
                 0.0f,
                 new Vector2(w * 0.8f, MaxLineCount * font.LineSpacing), // scale
-                m_BackgroundColor, depth + 0.001f, SpriteEffects.None);
+                _backgroundColor, depth + 0.001f, SpriteEffects.None);
 
             // Draw each lines.
             Vector2 pos = new Vector2(leftMargin, topMargin);
-            foreach (string line in lines)
+            foreach (string line in _lines)
             {
                 //spriteBatch.DrawString(font, line, pos, Color.White);
-                m_Renderer2DComponent.AddText2D(font, line, pos, 0.0f, Vector2.One, Color.White, depth);
+                _renderer2DComponent.AddText2D(font, line, pos, 0.0f, Vector2.One, Color.White, depth);
                 pos.Y += font.LineSpacing;
             }
 
             // Draw prompt string.
-            string leftPart = Prompt + commandLine.Substring(0, cursorIndex);
+            string leftPart = Prompt + _commandLine.Substring(0, _cursorIndex);
             Vector2 cursorPos = pos + font.MeasureString(leftPart);
             cursorPos.Y = pos.Y;
 
             // spriteBatch.DrawString(font,
             //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
-            m_Renderer2DComponent.AddText2D(font, String.Format("{0}{1}", Prompt, commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2DComponent.AddText2D(font, String.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
             //spriteBatch.DrawString(font, Cursor, cursorPos, Color.White);
-            m_Renderer2DComponent.AddText2D(font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2DComponent.AddText2D(font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
 
             //spriteBatch.End();
         }

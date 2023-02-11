@@ -50,8 +50,8 @@ namespace CasaEngine.Debugger
 
         public Vector2 Position
         {
-            get => position;
-            set => position = value;
+            get => _position;
+            set => _position = value;
         }
 
         public int Width { get; set; }
@@ -164,11 +164,11 @@ namespace CasaEngine.Debugger
 
 #endif
         // TimerRuler draw position.
-        Vector2 position;
+        Vector2 _position;
 
-        Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent _renderer2DComponent = null;
 
-        Color m_BackgroundColor = new Color(0, 0, 0, 128);
+        Color _backgroundColor = new Color(0, 0, 0, 128);
 
 
 
@@ -217,9 +217,9 @@ namespace CasaEngine.Debugger
 
         protected override void LoadContent()
         {
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
 
-            if (m_Renderer2DComponent == null)
+            if (_renderer2DComponent == null)
             {
                 throw new InvalidOperationException("TimeRuler.LoadContent() : Renderer2DComponent is null");
             }
@@ -302,7 +302,7 @@ namespace CasaEngine.Debugger
             Width = (int)(GraphicsDevice.Viewport.Width * 0.8f);
 
             Layout layout = new Layout(GraphicsDevice.Viewport);
-            position = layout.Place(new Vector2(Width, BarHeight),
+            _position = layout.Place(new Vector2(Width, BarHeight),
                                                     0, 0.01f, Alignment.BottomCenter);
         }
 
@@ -554,7 +554,7 @@ namespace CasaEngine.Debugger
 
         public override void Draw(GameTime gameTime)
         {
-            Draw(position, Width);
+            Draw(_position, Width);
             base.Draw(gameTime);
         }
 
@@ -613,7 +613,7 @@ namespace CasaEngine.Debugger
 
             // Draw transparency background.
             Rectangle rc = new Rectangle((int)position.X, y, width, height);
-            m_Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, m_BackgroundColor, depth_ + 0.09f, SpriteEffects.None);
+            _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, _BackgroundColor, depth_ + 0.09f, SpriteEffects.None);
 
             // Draw markers for each bars.
             rc.Height = BarHeight;
@@ -631,7 +631,7 @@ namespace CasaEngine.Debugger
                         rc.X = sx;
                         rc.Width = System.Math.Max(ex - sx, 1);
 
-                        m_Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, bar.Markers[j].Color, depth_ + 0.08f, SpriteEffects.None);
+                        _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, bar.Markers[j].Color, depth_ + 0.08f, SpriteEffects.None);
                     }
                 }
 
@@ -644,14 +644,14 @@ namespace CasaEngine.Debugger
             for (float t = 1.0f; t < sampleSpan; t += 1.0f)
             {
                 rc.X = (int)(position.X + t * msToPs);
-                m_Renderer2DComponent.AddSprite2D(texture, rc,  Point.Zero, Vector2.Zero, 0.0f, Vector2.One,Color.Gray, depth_ + 0.07f, SpriteEffects.None);
+                _Renderer2DComponent.AddSprite2D(texture, rc,  Point.Zero, Vector2.Zero, 0.0f, Vector2.One,Color.Gray, depth_ + 0.07f, SpriteEffects.None);
             }
 
             // Draw frame grid.
             for (int i = 0; i <= sampleFrames; ++i)
             {
                 rc.X = (int)(position.X + frameSpan * (float)i * msToPs);
-                m_Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_ + 0.6f, SpriteEffects.None);
+                _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_ + 0.6f, SpriteEffects.None);
             }
 
             // Draw log.
@@ -686,10 +686,10 @@ namespace CasaEngine.Debugger
                 // Compute background size and draw it.
                 Vector2 size = font.MeasureString(logString);
                 rc = new Rectangle((int)position.X, (int)y, (int)size.X + 12, (int)size.Y);
-                m_Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, m_BackgroundColor, depth_ + 0.5f, SpriteEffects.None);
+                _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, _BackgroundColor, depth_ + 0.5f, SpriteEffects.None);
 
                 // Draw log string.
-				m_Renderer2DComponent.AddText2D(font, logString.ToString(),
+				_Renderer2DComponent.AddText2D(font, logString.ToString(),
 										new Vector2(position.X + 12, y), 0.0f,
                                         Vector2.One, Color.White, depth_);
 
@@ -705,8 +705,8 @@ namespace CasaEngine.Debugger
                         {
                             rc.Y = y;
                             rc2.Y = y + 1;
-                            m_Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_, SpriteEffects.None);
-                            m_Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, markerInfo.Logs[i].Color, depth_, SpriteEffects.None);
+                            _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_, SpriteEffects.None);
+                            _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, markerInfo.Logs[i].Color, depth_, SpriteEffects.None);
 
                             y += font.LineSpacing;
                         }

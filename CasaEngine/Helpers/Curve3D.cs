@@ -37,33 +37,33 @@ namespace XNAFinalEngine.Helpers
     {
 
 
-        private Curve curveX = new Curve();
-        private Curve curveY = new Curve();
-        private Curve curveZ = new Curve();
+        private Curve _curveX = new Curve();
+        private Curve _curveY = new Curve();
+        private Curve _curveZ = new Curve();
 
 
 
         public CurveLoopType PostLoop
         {
-            get => curveX.PostLoop;
+            get => _curveX.PostLoop;
             set
             {
-                curveX.PostLoop = value;
-                curveY.PostLoop = value;
-                curveZ.PostLoop = value;
+                _curveX.PostLoop = value;
+                _curveY.PostLoop = value;
+                _curveZ.PostLoop = value;
             }
         } // PostLoop
 
-        public int PointCount => curveX.Keys.Count;
+        public int PointCount => _curveX.Keys.Count;
 
         public CurveLoopType PreLoop
         {
-            get => curveX.PostLoop;
+            get => _curveX.PostLoop;
             set
             {
-                curveX.PreLoop = value;
-                curveY.PreLoop = value;
-                curveZ.PreLoop = value;
+                _curveX.PreLoop = value;
+                _curveY.PreLoop = value;
+                _curveZ.PreLoop = value;
             }
         } // PreLoop
 
@@ -84,9 +84,9 @@ namespace XNAFinalEngine.Helpers
         public void AddPoint(Vector3 point, float time, Matrix worldMatrix)
         {
             point = Vector3.Transform(point, worldMatrix);
-            curveX.Keys.Add(new CurveKey(time, point.X));
-            curveY.Keys.Add(new CurveKey(time, point.Y));
-            curveZ.Keys.Add(new CurveKey(time, point.Z));
+            _curveX.Keys.Add(new CurveKey(time, point.X));
+            _curveY.Keys.Add(new CurveKey(time, point.Y));
+            _curveZ.Keys.Add(new CurveKey(time, point.Z));
             CurveTotalTime = time;
         } // AddPoint
 
@@ -112,7 +112,7 @@ namespace XNAFinalEngine.Helpers
 
         public Vector3 GetPoint(float time)
         {
-            return new Vector3(curveX.Evaluate(time), curveY.Evaluate(time), curveZ.Evaluate(time));
+            return new Vector3(_curveX.Evaluate(time), _curveY.Evaluate(time), _curveZ.Evaluate(time));
         } // GetPoint
 
 
@@ -123,15 +123,15 @@ namespace XNAFinalEngine.Helpers
             Curve newCurveY = new Curve();
             Curve newCurveZ = new Curve();
             float proportion = newTotalTime / CurveTotalTime;
-            foreach (var key in curveX.Keys)
+            foreach (var key in _curveX.Keys)
             {
                 newCurveX.Keys.Add(new CurveKey(key.Position * proportion, key.Value));
-                newCurveY.Keys.Add(new CurveKey(key.Position * proportion, curveY.Evaluate(key.Position)));
-                newCurveZ.Keys.Add(new CurveKey(key.Position * proportion, curveZ.Evaluate(key.Position)));
+                newCurveY.Keys.Add(new CurveKey(key.Position * proportion, _curveY.Evaluate(key.Position)));
+                newCurveZ.Keys.Add(new CurveKey(key.Position * proportion, _curveZ.Evaluate(key.Position)));
             }
-            curveX = newCurveX;
-            curveY = newCurveY;
-            curveZ = newCurveZ;
+            _curveX = newCurveX;
+            _curveY = newCurveY;
+            _curveZ = newCurveZ;
             CurveTotalTime = newTotalTime;
             BuildTangents();
         } // Reparametrize
@@ -174,23 +174,23 @@ namespace XNAFinalEngine.Helpers
                         nextIndex = i;
                 }
                 // Build the x tangent
-                prev = curveX.Keys[prevIndex];
-                next = curveX.Keys[nextIndex];
-                current = curveX.Keys[i];
+                prev = _curveX.Keys[prevIndex];
+                next = _curveX.Keys[nextIndex];
+                current = _curveX.Keys[i];
                 SetCurveKeyTangent(ref prev, ref current, ref next, border);
-                curveX.Keys[i] = current;
+                _curveX.Keys[i] = current;
                 // Build the y tangent
-                prev = curveY.Keys[prevIndex];
-                next = curveY.Keys[nextIndex];
-                current = curveY.Keys[i];
+                prev = _curveY.Keys[prevIndex];
+                next = _curveY.Keys[nextIndex];
+                current = _curveY.Keys[i];
                 SetCurveKeyTangent(ref prev, ref current, ref next, border);
-                curveY.Keys[i] = current;
+                _curveY.Keys[i] = current;
                 // Build the z tangent
-                prev = curveZ.Keys[prevIndex];
-                next = curveZ.Keys[nextIndex];
-                current = curveZ.Keys[i];
+                prev = _curveZ.Keys[prevIndex];
+                next = _curveZ.Keys[nextIndex];
+                current = _curveZ.Keys[i];
                 SetCurveKeyTangent(ref prev, ref current, ref next, border);
-                curveZ.Keys[i] = current;
+                _curveZ.Keys[i] = current;
             } // for
         } // BuildTangents
 

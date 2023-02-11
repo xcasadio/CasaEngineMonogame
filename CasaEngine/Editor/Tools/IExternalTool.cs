@@ -7,6 +7,6 @@ namespace CasaEngine.Editor.Tools
     {
         ExternalTool ExternalTool { get; }
 
-        void SetCurrentObject(string path_, BaseObject obj_);
+        void SetCurrentObject(string path, BaseObject obj);
     }
 }

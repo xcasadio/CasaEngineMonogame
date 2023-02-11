@@ -28,30 +28,30 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private float internalValue;
+        private float _internalValue;
 
-        private int stepSize = 1;
+        private int _stepSize = 1;
 
-        private int pageSize = 5;
+        private int _pageSize = 5;
 
-        private ScaleColor scaleColor = ScaleColor.Default;
+        private ScaleColor _scaleColor = ScaleColor.Default;
 
-        private bool drawScale = true;
+        private bool _drawScale = true;
 
-        private readonly Button buttonSlider;
+        private readonly Button _buttonSlider;
 
-        private float minimumValue;
+        private float _minimumValue;
 
-        private float maximumValue = 100;
+        private float _maximumValue = 100;
 
 
 
         public virtual float MinimumValue
         {
-            get => minimumValue;
+            get => _minimumValue;
             set
             {
-                minimumValue = value;
+                _minimumValue = value;
                 RecalculateParameters();
                 if (!Suspended) OnRangeChanged(new EventArgs());
             }
@@ -59,10 +59,10 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual float MaximumValue
         {
-            get => maximumValue;
+            get => _maximumValue;
             set
             {
-                maximumValue = value;
+                _maximumValue = value;
                 RecalculateParameters();
                 if (!Suspended) OnRangeChanged(new EventArgs());
             }
@@ -74,29 +74,29 @@ namespace XNAFinalEngine.UserInterface
 
         private float InternalValue
         {
-            get => internalValue;
+            get => _internalValue;
             set
             {
-                if (internalValue != value)
+                if (_internalValue != value)
                 {
-                    internalValue = value;
+                    _internalValue = value;
                     if (!ValueCanBeOutOfRange) // Then, we need to check that the internal value is between 0 and 100.
                     {
-                        if (internalValue < 0) internalValue = 0;
-                        if (internalValue > 100) internalValue = 100;
+                        if (_internalValue < 0) _internalValue = 0;
+                        if (_internalValue > 100) _internalValue = 100;
                     }
                     else if (IfOutOfRangeRescale) // Is posible that we need to rescale. In other words the maximum or minimum value changes.
                     {
-                        float tempCurrentRealValue = CalculateRealValue(internalValue);
-                        if (internalValue < 0)
+                        float tempCurrentRealValue = CalculateRealValue(_internalValue);
+                        if (_internalValue < 0)
                         {
-                            minimumValue = minimumValue - (2 * (minimumValue - CalculateRealValue(internalValue)));
-                            internalValue = CalculateInternalValue(tempCurrentRealValue);
+                            _minimumValue = _minimumValue - (2 * (_minimumValue - CalculateRealValue(_internalValue)));
+                            _internalValue = CalculateInternalValue(tempCurrentRealValue);
                         }
-                        if (internalValue > 100)
+                        if (_internalValue > 100)
                         {
-                            maximumValue = maximumValue + (2 * (CalculateRealValue(internalValue) - maximumValue));
-                            internalValue = CalculateInternalValue(tempCurrentRealValue);
+                            _maximumValue = _maximumValue + (2 * (CalculateRealValue(_internalValue) - _maximumValue));
+                            _internalValue = CalculateInternalValue(tempCurrentRealValue);
                         }
                     }
                     Invalidate();
@@ -108,19 +108,19 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual float Value
         {
-            get => CalculateRealValue(internalValue);
+            get => CalculateRealValue(_internalValue);
             set => InternalValue = CalculateInternalValue(value);
         } // Value
 
         public virtual int PageSize
         {
-            get => pageSize;
+            get => _pageSize;
             set
             {
-                if (pageSize != value)
+                if (_pageSize != value)
                 {
-                    pageSize = value;
-                    if (pageSize > 100) pageSize = 100;
+                    _pageSize = value;
+                    if (_pageSize > 100) _pageSize = 100;
                     RecalculateParameters();
                     if (!Suspended) OnPageSizeChanged(new EventArgs());
                 }
@@ -129,13 +129,13 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual int StepSize
         {
-            get => stepSize;
+            get => _stepSize;
             set
             {
-                if (stepSize != value)
+                if (_stepSize != value)
                 {
-                    stepSize = value;
-                    if (stepSize > 100) stepSize = 100;
+                    _stepSize = value;
+                    if (_stepSize > 100) _stepSize = 100;
                     if (!Suspended) OnStepSizeChanged(new EventArgs());
                 }
             }
@@ -143,14 +143,14 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual ScaleColor ScaleBarColor
         {
-            get => scaleColor;
-            set => scaleColor = value;
+            get => _scaleColor;
+            set => _scaleColor = value;
         } // ScaleBarColor
 
         public virtual bool DrawScaleBar
         {
-            get => drawScale;
-            set => drawScale = value;
+            get => _drawScale;
+            set => _drawScale = value;
         } // DrawScale
 
 
@@ -165,14 +165,14 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public TrackBar(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public TrackBar(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Width = 64;
             Height = 20;
             CanFocus = false;
 
-            buttonSlider = new Button(UserInterfaceManager)
+            _buttonSlider = new Button(UserInterfaceManager)
             {
                 Text = "",
                 CanFocus = false,
@@ -182,9 +182,9 @@ namespace XNAFinalEngine.UserInterface
                 Movable = true
             };
 
-            buttonSlider.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
-            buttonSlider.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
-            buttonSlider.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
+            _buttonSlider.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
+            _buttonSlider.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
+            _buttonSlider.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
         } // TrackBar
 
 
@@ -192,9 +192,9 @@ namespace XNAFinalEngine.UserInterface
         protected internal override void Init()
         {
             base.Init();
-            buttonSlider.SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["TrackBar.Button"]);
-            buttonSlider.Move += ButtonSlider_Move;
-            buttonSlider.KeyPress += ButtonSlider_KeyPress;
+            _buttonSlider.SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["TrackBar.Button"]);
+            _buttonSlider.Move += ButtonSlider_Move;
+            _buttonSlider.KeyPress += ButtonSlider_KeyPress;
         } // Init
 
         protected internal override void InitSkin()
@@ -231,8 +231,8 @@ namespace XNAFinalEngine.UserInterface
             int h = (int)(ratio * rect.Height);
             int t = rect.Top + (Height - h) / 2;
 
-            float px = ((float)internalValue / (float)100);
-            int w = (int)Math.Ceiling(px * (rect.Width - p.ContentMargins.Horizontal - buttonSlider.Width)) + 2;
+            float px = ((float)_internalValue / (float)100);
+            int w = (int)Math.Ceiling(px * (rect.Width - p.ContentMargins.Horizontal - _buttonSlider.Width)) + 2;
 
             if (w < l.SizingMargins.Vertical)
                 w = l.SizingMargins.Vertical;
@@ -243,9 +243,9 @@ namespace XNAFinalEngine.UserInterface
             base.DrawControl(new Rectangle(rect.Left, t, rect.Width, h));
             // Draw progress line.
             Rectangle r1 = new Rectangle(rect.Left + p.ContentMargins.Left, t + p.ContentMargins.Top, w, h - p.ContentMargins.Vertical);
-            if (drawScale)
+            if (_drawScale)
             {
-                switch (scaleColor)
+                switch (_scaleColor)
                 {
                     case ScaleColor.Red: UserInterfaceManager.Renderer.DrawLayer(this, SkinInformation.Layers["ScaleRed"], r1); break;
                     case ScaleColor.Green: UserInterfaceManager.Renderer.DrawLayer(this, SkinInformation.Layers["ScaleGreen"], r1); break;
@@ -259,12 +259,12 @@ namespace XNAFinalEngine.UserInterface
 
         private float CalculateRealValue(float value)
         {
-            return (value * (maximumValue - minimumValue) / 100f) + minimumValue;
+            return (value * (_maximumValue - _minimumValue) / 100f) + _minimumValue;
         } // CalculateRealValue
 
         private float CalculateInternalValue(float value)
         {
-            return (value - minimumValue) * 100f / (maximumValue - minimumValue);
+            return (value - _minimumValue) * 100f / (_maximumValue - _minimumValue);
         } // CalculateInternalValue
 
 
@@ -272,14 +272,14 @@ namespace XNAFinalEngine.UserInterface
         private void ButtonSlider_Move(object sender, MoveEventArgs e)
         {
             SkinLayer p = SkinInformation.Layers["Control"];
-            int size = buttonSlider.Width;
+            int size = _buttonSlider.Width;
             int w = Width - p.ContentMargins.Horizontal - size;
             int pos = e.Left;
 
             if (pos < p.ContentMargins.Left) pos = p.ContentMargins.Left;
             if (pos > w + p.ContentMargins.Left) pos = w + p.ContentMargins.Left;
 
-            buttonSlider.SetPosition(pos, 0);
+            _buttonSlider.SetPosition(pos, 0);
             float px = (float)100 / (float)w;
 
             // Update value. But in this case the value can't be out of range.
@@ -292,13 +292,13 @@ namespace XNAFinalEngine.UserInterface
         void ButtonSlider_KeyPress(object sender, KeyEventArgs e)
         {
             if (e.Key == Keys.Left || e.Key == Keys.Down)
-                InternalValue -= stepSize;
+                InternalValue -= _stepSize;
             else if (e.Key == Keys.Right || e.Key == Keys.Up)
-                InternalValue += stepSize;
+                InternalValue += _stepSize;
             else if (e.Key == Keys.PageDown)
-                InternalValue -= pageSize;
+                InternalValue -= _pageSize;
             else if (e.Key == Keys.PageUp)
-                InternalValue += pageSize;
+                InternalValue += _pageSize;
             else if (e.Key == Keys.Home)
                 InternalValue = 0;
             else if (e.Key == Keys.End)
@@ -309,32 +309,32 @@ namespace XNAFinalEngine.UserInterface
 
         private void RecalculateParameters()
         {
-            if (buttonSlider != null)
+            if (_buttonSlider != null)
             {
-                if (buttonSlider.Width > 12)
+                if (_buttonSlider.Width > 12)
                 {
-                    buttonSlider.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.Glyph"].Texture) { SizeMode = SizeMode.Centered };
+                    _buttonSlider.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.Glyph"].Texture) { SizeMode = SizeMode.Centered };
                 }
                 else
                 {
-                    buttonSlider.Glyph = null;
+                    _buttonSlider.Glyph = null;
                 }
 
                 SkinLayer p = SkinInformation.Layers["Control"];
-                buttonSlider.Width = (int)(Height * 0.8);
-                buttonSlider.Height = Height;
-                int size = buttonSlider.Width;
+                _buttonSlider.Width = (int)(Height * 0.8);
+                _buttonSlider.Height = Height;
+                int size = _buttonSlider.Width;
                 int w = Width - p.ContentMargins.Horizontal - size;
 
                 float px = (float)100 / (float)w;
-                int pos = p.ContentMargins.Left + (int)(Math.Ceiling(internalValue / (float)px));
+                int pos = p.ContentMargins.Left + (int)(Math.Ceiling(_internalValue / (float)px));
 
                 if (pos < p.ContentMargins.Left)
                     pos = p.ContentMargins.Left;
                 if (pos > w + p.ContentMargins.Left)
                     pos = w + p.ContentMargins.Left;
 
-                buttonSlider.SetPosition(pos, 0);
+                _buttonSlider.SetPosition(pos, 0);
             }
         } // RecalculateParameters
 
@@ -358,7 +358,7 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMousePress(e);
             if (e.Button == MouseButton.Left)
-                buttonSlider.Left = e.Position.X - buttonSlider.Width / 2;
+                _buttonSlider.Left = e.Position.X - _buttonSlider.Width / 2;
             if (SliderPress != null)
                 SliderPress(this, e);
         } // OnMousePress

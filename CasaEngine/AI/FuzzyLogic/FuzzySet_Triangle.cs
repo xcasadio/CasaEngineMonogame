@@ -1,49 +1,49 @@
 ﻿namespace CasaEngine.AI.Fuzzy
 {
-    public class FuzzySet_Triangle
+    public class FuzzySetTriangle
         : FuzzySet
     {
-        readonly double m_dPeakPoint;
-        readonly double m_dLeftOffset;
-        readonly double m_dRightOffset;
+        readonly double _dPeakPoint;
+        readonly double _dLeftOffset;
+        readonly double _dRightOffset;
 
 
 
 
 
-        public FuzzySet_Triangle(double mid, double lft, double rgt)
+        public FuzzySetTriangle(double mid, double lft, double rgt)
             : base(mid)
         {
-            m_dPeakPoint = mid;
-            m_dLeftOffset = lft;
-            m_dRightOffset = rgt;
+            _dPeakPoint = mid;
+            _dLeftOffset = lft;
+            _dRightOffset = rgt;
         }
 
 
 
-        public override double CalculateDOM(double val)
+        public override double CalculateDom(double val)
         {
             //test for the case where the triangle's left or right offsets are zero
             //(to prevent divide by zero errors below)
-            if ((m_dRightOffset == 0.0 && m_dPeakPoint == val) ||
-                 (m_dLeftOffset == 0.0 && m_dPeakPoint == val))
+            if ((_dRightOffset == 0.0 && _dPeakPoint == val) ||
+                 (_dLeftOffset == 0.0 && _dPeakPoint == val))
             {
                 return 1.0;
             }
 
             //find DOM if left of center
-            if ((val <= m_dPeakPoint) && (val >= (m_dPeakPoint - m_dLeftOffset)))
+            if ((val <= _dPeakPoint) && (val >= (_dPeakPoint - _dLeftOffset)))
             {
-                double grad = 1.0 / m_dLeftOffset;
+                double grad = 1.0 / _dLeftOffset;
 
-                return grad * (val - (m_dPeakPoint - m_dLeftOffset));
+                return grad * (val - (_dPeakPoint - _dLeftOffset));
             }
             //find DOM if right of center
-            else if ((val > m_dPeakPoint) && (val < (m_dPeakPoint + m_dRightOffset)))
+            else if ((val > _dPeakPoint) && (val < (_dPeakPoint + _dRightOffset)))
             {
-                double grad = 1.0 / -m_dRightOffset;
+                double grad = 1.0 / -_dRightOffset;
 
-                return grad * (val - m_dPeakPoint) + 1.0;
+                return grad * (val - _dPeakPoint) + 1.0;
             }
             //out of range of this FLV, return zero
             else

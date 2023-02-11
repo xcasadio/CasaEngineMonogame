@@ -37,8 +37,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        protected ButtonBase(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        protected ButtonBase(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             SetDefaultSize(72, 24);
             DoubleClicks = false;

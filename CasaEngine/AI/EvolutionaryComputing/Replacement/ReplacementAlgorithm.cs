@@ -4,9 +4,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
     public abstract class ReplacementAlgorithm<T>
     {
 
-        protected internal int newPopulationSize;
+        protected internal int NewPopulationSize;
 
-        protected internal EvolutionObjective objective;
+        protected internal EvolutionObjective Objective;
 
 
 
@@ -15,10 +15,10 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
             String message = String.Empty;
 
             if (ValidateNewPopulationSize(newPopulationSize, ref message) == false)
-                throw new AIException("newPopulationSize", this.GetType().ToString(), message);
+                throw new AiException("newPopulationSize", this.GetType().ToString(), message);
 
-            this.newPopulationSize = newPopulationSize;
-            this.objective = objective;
+            this.NewPopulationSize = newPopulationSize;
+            this.Objective = objective;
         }
 
 

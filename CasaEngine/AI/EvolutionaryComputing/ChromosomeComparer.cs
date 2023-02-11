@@ -3,20 +3,20 @@ namespace CasaEngine.AI.EvolutionaryComputing
     public class ChromosomeComparer<T> : IComparer<Chromosome<T>>
     {
 
-        protected internal EvolutionObjective order;
+        protected internal EvolutionObjective Order;
 
 
 
         public ChromosomeComparer(EvolutionObjective order)
         {
-            this.order = order;
+            this.Order = order;
         }
 
 
 
         public int Compare(Chromosome<T> x, Chromosome<T> y)
         {
-            if (order == EvolutionObjective.Minimize)
+            if (Order == EvolutionObjective.Minimize)
                 return x.Fitness.CompareTo(y.Fitness);
 
             else

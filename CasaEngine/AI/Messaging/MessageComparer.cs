@@ -3,7 +3,7 @@ namespace CasaEngine.AI.Messaging
     public class MessageComparer : IComparer<Message>
     {
 
-        protected internal double precision;
+        protected internal double Precision;
 
 
 
@@ -12,9 +12,9 @@ namespace CasaEngine.AI.Messaging
             String message = String.Empty;
 
             if (ValidatePrecision(precision, ref message) == false)
-                throw new AIException("precision", this.GetType().ToString(), message);
+                throw new AiException("precision", this.GetType().ToString(), message);
 
-            this.precision = precision;
+            this.Precision = precision;
         }
 
 
@@ -35,7 +35,7 @@ namespace CasaEngine.AI.Messaging
         public int Compare(Message x, Message y)
         {
             //Note to myself: it´s really a good idea to compare the extra info field? Maybe will let pass nearly similar messages...
-            if ((x.SenderID == y.SenderID) && (x.RecieverID == y.RecieverID) && (x.Type == y.Type) && (x.ExtraInfo == y.ExtraInfo) && (System.Math.Abs(x.DispatchTime - y.DispatchTime) < precision))
+            if ((x.SenderID == y.SenderID) && (x.RecieverID == y.RecieverID) && (x.Type == y.Type) && (x.ExtraInfo == y.ExtraInfo) && (System.Math.Abs(x.DispatchTime - y.DispatchTime) < Precision))
                 return 0;
 
             if (x.DispatchTime >= y.DispatchTime)

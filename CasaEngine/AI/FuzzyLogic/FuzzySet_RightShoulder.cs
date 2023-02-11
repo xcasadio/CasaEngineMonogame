@@ -1,45 +1,45 @@
 ﻿namespace CasaEngine.AI.Fuzzy
 {
-    public class FuzzySet_RightShoulder
+    public class FuzzySetRightShoulder
         : FuzzySet
     {
-        readonly double m_dPeakPoint;
-        readonly double m_dLeftOffset;
-        readonly double m_dRightOffset;
+        readonly double _dPeakPoint;
+        readonly double _dLeftOffset;
+        readonly double _dRightOffset;
 
 
 
 
 
-        public FuzzySet_RightShoulder(double peak, double LeftOffset, double RightOffset)
-            : base(((peak + RightOffset) + peak) / 2)
+        public FuzzySetRightShoulder(double peak, double leftOffset, double rightOffset)
+            : base(((peak + rightOffset) + peak) / 2)
         {
-            m_dPeakPoint = peak;
-            m_dLeftOffset = LeftOffset;
-            m_dRightOffset = RightOffset;
+            _dPeakPoint = peak;
+            _dLeftOffset = leftOffset;
+            _dRightOffset = rightOffset;
         }
 
 
 
-        public override double CalculateDOM(double val)
+        public override double CalculateDom(double val)
         {
             //test for the case where the left or right offsets are zero
             //(to prevent divide by zero errors below)
-            if ((m_dRightOffset == 0.0 && m_dPeakPoint == val) ||
-                 (m_dLeftOffset == 0.0 && m_dPeakPoint == val))
+            if ((_dRightOffset == 0.0 && _dPeakPoint == val) ||
+                 (_dLeftOffset == 0.0 && _dPeakPoint == val))
             {
                 return 1.0;
             }
 
             //find DOM if left of center
-            else if ((val <= m_dPeakPoint) && (val > (m_dPeakPoint - m_dLeftOffset)))
+            else if ((val <= _dPeakPoint) && (val > (_dPeakPoint - _dLeftOffset)))
             {
-                double grad = 1.0 / m_dLeftOffset;
+                double grad = 1.0 / _dLeftOffset;
 
-                return grad * (val - (m_dPeakPoint - m_dLeftOffset));
+                return grad * (val - (_dPeakPoint - _dLeftOffset));
             }
             //find DOM if right of center and less than center + right offset
-            else if ((val > m_dPeakPoint) && (val <= m_dPeakPoint + m_dRightOffset))
+            else if ((val > _dPeakPoint) && (val <= _dPeakPoint + _dRightOffset))
             {
                 return 1.0;
             }

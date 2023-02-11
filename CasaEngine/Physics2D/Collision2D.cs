@@ -10,44 +10,44 @@ namespace CasaEngine.Math.Collision
     {
 
         //to avoid GC
-        static Manifold manifold = new Manifold();
-        static Transform transformA = new Transform(), transformB = new Transform();
-        static readonly CircleShape circleShape1 = new CircleShape(1.0f, 1.0f);
-        static readonly CircleShape circleShape2 = new CircleShape(1.0f, 1.0f);
-        static readonly PolygonShape polygonShape1 = new PolygonShape(1.0f);
-        static readonly PolygonShape polygonShape2 = new PolygonShape(1.0f);
+        static Manifold _manifold = new Manifold();
+        static Transform _transformA = new Transform(), _transformB = new Transform();
+        static readonly CircleShape CircleShape1 = new CircleShape(1.0f, 1.0f);
+        static readonly CircleShape CircleShape2 = new CircleShape(1.0f, 1.0f);
+        static readonly PolygonShape PolygonShape1 = new PolygonShape(1.0f);
+        static readonly PolygonShape PolygonShape2 = new PolygonShape(1.0f);
 
 
         static public bool CollidePolygons(ShapePolygone p1, ref Vector2 pos1, ShapePolygone p2, ref Vector2 pos2)
         {
             if (p1.IsABox == true)
             {
-                polygonShape1.SetAsBox(
+                PolygonShape1.SetAsBox(
                     System.Math.Abs((p1.Points[0].X - p1.Points[1].X) / 2.0f),
                     System.Math.Abs((p1.Points[0].Y - p1.Points[1].Y) / 2.0f));
             }
             else
             {
-                polygonShape1.Set(new Vertices(p1.Points));
+                PolygonShape1.Set(new Vertices(p1.Points));
             }
 
             if (p1.IsABox == true)
             {
-                polygonShape2.SetAsBox(
+                PolygonShape2.SetAsBox(
                     System.Math.Abs((p2.Points[0].X - p2.Points[1].X) / 2.0f),
                     System.Math.Abs((p2.Points[0].Y - p2.Points[1].Y) / 2.0f));
             }
             else
             {
-                polygonShape2.Set(new Vertices(p2.Points));
+                PolygonShape2.Set(new Vertices(p2.Points));
             }
 
-            transformA.Set(pos1, 0.0f);
-            transformB.Set(pos2, 0.0f);
+            _transformA.Set(pos1, 0.0f);
+            _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref manifold, polygonShape1, ref transformA, circleShape2, ref transformB);
+            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
-            if (manifold.PointCount > 0)
+            if (_manifold.PointCount > 0)
             {
                 //contactPoint_ = manifold.Points[0].LocalPoint;
                 return true;
@@ -60,15 +60,15 @@ namespace CasaEngine.Math.Collision
         {
             Vertices v = new Vertices(p1.Points);
             //v.Translate(ref pos1);
-            polygonShape1.Set(v);
-            transformA.Set(pos1, 0.0f);
+            PolygonShape1.Set(v);
+            _transformA.Set(pos1, 0.0f);
 
-            polygonShape2.SetAsBox(r2.Width / 2, r2.Height / 2);
-            transformB.Set(pos2, 0.0f);
+            PolygonShape2.SetAsBox(r2.Width / 2, r2.Height / 2);
+            _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref manifold, polygonShape1, ref transformA, circleShape2, ref transformB);
+            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
-            if (manifold.PointCount > 0)
+            if (_manifold.PointCount > 0)
             {
                 //contactPoint_ = manifold.Points[0].LocalPoint;
                 return true;
@@ -77,18 +77,18 @@ namespace CasaEngine.Math.Collision
             return false;
         }
 
-        static public bool CollidePolygonAndCircle(ref Vector2 contactPoint_, ShapePolygone p1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
+        static public bool CollidePolygonAndCircle(ref Vector2 contactPoint, ShapePolygone p1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
         {
-            polygonShape1.Set(new Vertices(p1.Points));
-            circleShape2.Radius = c2.Radius;
-            transformA.Set(pos1, 0.0f);
-            transformB.Set(pos2, 0.0f);
+            PolygonShape1.Set(new Vertices(p1.Points));
+            CircleShape2.Radius = c2.Radius;
+            _transformA.Set(pos1, 0.0f);
+            _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref manifold, polygonShape1, ref transformA, circleShape2, ref transformB);
+            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
-            if (manifold.PointCount > 0)
+            if (_manifold.PointCount > 0)
             {
-                contactPoint_ = manifold.Points[0].LocalPoint;
+                contactPoint = _manifold.Points[0].LocalPoint;
                 return true;
             }
 
@@ -107,18 +107,18 @@ namespace CasaEngine.Math.Collision
             return true;
         }
 
-        static public bool CollideCircles(ref Vector2 contactPoint_, ShapeCircle c1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
+        static public bool CollideCircles(ref Vector2 contactPoint, ShapeCircle c1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
         {
-            circleShape1.Radius = c1.Radius;
-            circleShape2.Radius = c2.Radius;
-            transformA.Set(pos1, 0.0f);
-            transformB.Set(pos2, 0.0f);
+            CircleShape1.Radius = c1.Radius;
+            CircleShape2.Radius = c2.Radius;
+            _transformA.Set(pos1, 0.0f);
+            _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollideCircles(ref manifold, circleShape1, ref transformA, circleShape2, ref transformB);
+            FarseerPhysics.Collision.Collision.CollideCircles(ref _manifold, CircleShape1, ref _transformA, CircleShape2, ref _transformB);
 
-            if (manifold.PointCount > 0)
+            if (_manifold.PointCount > 0)
             {
-                contactPoint_ = manifold.Points[0].LocalPoint;
+                contactPoint = _manifold.Points[0].LocalPoint;
                 return true;
             }
 

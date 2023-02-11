@@ -33,24 +33,24 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly TreeButton treeButton;
+        private readonly TreeButton _treeButton;
 
 
 
-        public PanelCollapsible(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public PanelCollapsible(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Passive = false;
             BackgroundColor = Color.Transparent;
 
             // This is the control that manages the collapse functionality.
-            treeButton = new TreeButton(UserInterfaceManager);
-            treeButton.Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
-            Add(treeButton, false);
-            treeButton.Width = ClientWidth;
-            TextChanged += delegate { treeButton.Text = Text; };
-            treeButton.CanFocus = false;
+            _treeButton = new TreeButton(UserInterfaceManager);
+            _treeButton.Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
+            Add(_treeButton, false);
+            _treeButton.Width = ClientWidth;
+            TextChanged += delegate { _treeButton.Text = Text; };
+            _treeButton.CanFocus = false;
 
             // The client area is lowered to make place to the previous control.
             Margins m = ClientMargins;
@@ -58,10 +58,10 @@ namespace XNAFinalEngine.UserInterface
             ClientMargins = m;
 
             // If the control is collaped or expanded...
-            treeButton.CheckedChanged += delegate
+            _treeButton.CheckedChanged += delegate
             {
                 int differencial;
-                if (treeButton.Checked)
+                if (_treeButton.Checked)
                 {
                     // Only show the tree button.
                     ClientArea.Visible = false;
@@ -89,7 +89,7 @@ namespace XNAFinalEngine.UserInterface
                 // Adjust the scrolling of all parents.
                 Invalidate();
             };
-            treeButton.Checked = false;
+            _treeButton.Checked = false;
         } // PanelCollapsible
 
 
@@ -97,7 +97,7 @@ namespace XNAFinalEngine.UserInterface
         public override void Add(Control control, bool client)
         {
             base.Add(control, client);
-            if (treeButton != null && !treeButton.Checked)
+            if (_treeButton != null && !_treeButton.Checked)
             {
                 AdjustHeightFromChildren();
             }
@@ -106,7 +106,7 @@ namespace XNAFinalEngine.UserInterface
         public override void Remove(Control control)
         {
             base.Remove(control);
-            if (treeButton != null && !treeButton.Checked)
+            if (_treeButton != null && !_treeButton.Checked)
             {
                 AdjustHeightFromChildren();
             }

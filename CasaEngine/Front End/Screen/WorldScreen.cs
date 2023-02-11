@@ -6,14 +6,14 @@ namespace CasaEngine.FrontEnd.Screen
     public class WorldScreen
         : Screen
     {
-        readonly World.World m_World = null;
+        readonly World.World _world = null;
 
 
 
-        public WorldScreen(World.World world_, string worldName_)
-            : base(worldName_)
+        public WorldScreen(World.World world, string worldName)
+            : base(worldName)
         {
-            if (world_ == null)
+            if (world == null)
             {
                 throw new ArgumentException("WorldScreen() : World is null");
             }
@@ -21,12 +21,12 @@ namespace CasaEngine.FrontEnd.Screen
             TransitionOnTime = TimeSpan.FromSeconds(1.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-            m_World = world_;
+            _world = world;
         }
 
-        public override void LoadContent(Renderer2DComponent r_)
+        public override void LoadContent(Renderer2DComponent r)
         {
-            base.LoadContent(r_);
+            base.LoadContent(r);
             // once the load has finished, we use ResetElapsedTime to tell the game's
             // timing mechanism that we have just finished a very long frame, and that
             // it should not try to catch up.
@@ -46,7 +46,7 @@ namespace CasaEngine.FrontEnd.Screen
 
             if (IsActive)
             {
-                m_World.Update(elapsedTime);
+                _world.Update(elapsedTime);
             }
         }
 
@@ -58,7 +58,7 @@ namespace CasaEngine.FrontEnd.Screen
             }
         }
 
-        public override void Draw(float elapsedTime_)
+        public override void Draw(float elapsedTime)
         {
             // This game has a blue background. Why? Because!
             /*GameInfo.Instance.GraphicsDeviceManager.GraphicsDevice.Clear(ClearOptions.Target,
@@ -72,7 +72,7 @@ namespace CasaEngine.FrontEnd.Screen
             //base.ScreenManager.GraphicsDevice.RenderState.DestinationBlend = Blend.Zero;
             //base.ScreenManager.GraphicsDevice.RenderState.SourceBlend = Blend.One;
 
-            m_World.Draw(elapsedTime_);
+            _world.Draw(elapsedTime);
 
             // If the game is transitioning on or off, fade it out to black.
             if (TransitionPosition > 0)

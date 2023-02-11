@@ -23,10 +23,10 @@ namespace CasaEngine.Asset
         // If a more robust system is needed (networking/threading) then you can use the guid structure: http://msdn.microsoft.com/en-us/library/system.guid.aspx
         // However this method is slightly simpler, slightly faster and has slightly lower memory requirements.
         // If performance is critical consider the int type (4.294.967.294 unique values).
-        private static long uniqueIdCounter = long.MinValue;
+        private static long _uniqueIdCounter = long.MinValue;
 
         // The asset name.
-        private string name;
+        private string _name;
 
 
 
@@ -36,12 +36,12 @@ namespace CasaEngine.Asset
 
         public virtual string Name
         {
-            get => name;
+            get => _name;
             set
             {
-                if (!string.IsNullOrEmpty(value) && name != value)
+                if (!string.IsNullOrEmpty(value) && _name != value)
                 {
-                    name = value;
+                    _name = value;
                 }
             }
         } // Name
@@ -51,26 +51,26 @@ namespace CasaEngine.Asset
         protected Asset()
         {
             // Create a unique ID
-            Id = uniqueIdCounter;
-            uniqueIdCounter++;
+            Id = _uniqueIdCounter;
+            _uniqueIdCounter++;
 
             Engine.Instance.AssetContentManager.AddAsset(this);
         }
 
 
 
-        internal virtual void OnDeviceReset(GraphicsDevice device_)
+        internal virtual void OnDeviceReset(GraphicsDevice device)
         {
             //override
         }
 
 
-        public virtual void Load(BinaryReader br_, SaveOption option_)
+        public virtual void Load(BinaryReader br, SaveOption option)
         {
 
         }
 
-        public virtual void Load(XmlElement el_, SaveOption option_)
+        public virtual void Load(XmlElement el, SaveOption option)
         {
 
         }

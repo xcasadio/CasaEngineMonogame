@@ -9,8 +9,8 @@ namespace CasaEngine.Graphics2D.Tile
 
         public GraphicsDeviceManager Graphics
         {
-            get => m_Graphics;
-            set => m_Graphics = value;
+            get => _graphics;
+            set => _graphics = value;
         }
 
 

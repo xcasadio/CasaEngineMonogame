@@ -15,22 +15,22 @@ namespace XNAFinalEngine.UserInterface
     public class StackPanel : Container
     {
 
-        private Orientation m_Orientation;
+        private Orientation _orientation;
 
 
 
         public XNAFinalEngine.UserInterface.Orientation Orientation
         {
-            get => m_Orientation;
-            set => m_Orientation = value;
+            get => _orientation;
+            set => _orientation = value;
         }
 
 
 
-        public StackPanel(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public StackPanel(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
-            this.m_Orientation = Orientation.Horizontal;
+            this._orientation = Orientation.Horizontal;
             Color = Color.Transparent;
         } // StackPanel
 
@@ -45,7 +45,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 Margins m = c.DefaultDistanceFromAnotherControl;
 
-                if (m_Orientation == Orientation.Vertical)
+                if (_orientation == Orientation.Vertical)
                 {
                     top += m.Top;
                     c.Top = top;
@@ -54,7 +54,7 @@ namespace XNAFinalEngine.UserInterface
                     c.Left = left;
                 }
 
-                if (m_Orientation == Orientation.Horizontal)
+                if (_orientation == Orientation.Horizontal)
                 {
                     left += m.Left;
                     c.Left = left;

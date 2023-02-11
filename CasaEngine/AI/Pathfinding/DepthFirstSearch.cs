@@ -3,20 +3,20 @@ using CasaEngine.AI.Graphs;
 
 namespace CasaEngine.AI.Pathfinding
 {
-    public class DepthFirstSearch<T, K> : GraphSearchAlgorithm<T, K>
+    public class DepthFirstSearch<T, TK> : GraphSearchAlgorithm<T, TK>
         where T : Node
-        where K : Edge
+        where TK : Edge
     {
 
-        protected internal List<Visibility> visited;
+        protected internal List<Visibility> Visited;
 
-        protected internal Stack<K> stackedEdges;
+        protected internal Stack<TK> StackedEdges;
 
-        protected internal List<int> route;
+        protected internal List<int> Route;
 
 
 
-        public DepthFirstSearch(Graph<T, K> graph)
+        public DepthFirstSearch(Graph<T, TK> graph)
             : base(graph)
         { }
 
@@ -30,41 +30,41 @@ namespace CasaEngine.AI.Pathfinding
                 int node;
 
                 //If the search didn´t find anything, return null
-                if (found != SearchState.CompletedAndFound)
+                if (Found != SearchState.CompletedAndFound)
                     return null;
 
                 //Get the list of nodes from source to target. The route list is visited in reverse order
                 path = new List<int>();
-                node = target;
+                node = Target;
 
-                while (node != source)
+                while (node != Source)
                 {
                     path.Insert(0, node);
-                    node = route[node];
+                    node = Route[node];
                 }
 
                 return path;
             }
         }
 
-        public override List<K> PathOfEdges
+        public override List<TK> PathOfEdges
         {
             get
             {
-                List<K> path;
+                List<TK> path;
                 List<int> nodes;
 
                 //If the search didn´t find anything, return null
-                if (found != SearchState.CompletedAndFound)
+                if (Found != SearchState.CompletedAndFound)
                     return null;
 
                 //Get the nodes that form the path
                 nodes = PathOfNodes;
 
                 //Get the edges between the nodes from the graph
-                path = new List<K>();
+                path = new List<TK>();
                 for (int i = 0; i < nodes.Count - 1; i++)
-                    path.Add(graph.GetEdge(nodes[i], nodes[i + 1]));
+                    path.Add(Graph.GetEdge(nodes[i], nodes[i + 1]));
 
                 return path;
             }
@@ -74,94 +74,94 @@ namespace CasaEngine.AI.Pathfinding
 
         public override void Initialize(int source, int target)
         {
-            K dummy;
+            TK dummy;
 
             base.Initialize(source, target);
 
-            visited = new List<Visibility>();
-            route = new List<int>();
+            Visited = new List<Visibility>();
+            Route = new List<int>();
 
-            for (int i = 0; i < graph.NodeCount; i++)
+            for (int i = 0; i < Graph.NodeCount; i++)
             {
-                visited.Add(Visibility.Unvisited);
-                route.Add(Node.NoParent);
+                Visited.Add(Visibility.Unvisited);
+                Route.Add(Node.NoParent);
             }
 
             //Initialize the edges stack
-            stackedEdges = new Stack<K>();
+            StackedEdges = new Stack<TK>();
 
             //Create a dummy edge to start the search
-            dummy = Activator.CreateInstance<K>();
+            dummy = Activator.CreateInstance<TK>();
             dummy.Start = source;
             dummy.End = source;
-            stackedEdges.Push(dummy);
+            StackedEdges.Push(dummy);
         }
 
         public override SearchState Search()
         {
-            K next;
-            List<K> nodeEdges;
+            TK next;
+            List<TK> nodeEdges;
 
             //While there are stacked edges
-            while (stackedEdges.Count != 0)
+            while (StackedEdges.Count != 0)
             {
-                next = stackedEdges.Pop();
+                next = StackedEdges.Pop();
 
-                route[next.End] = next.Start;
-                visited[next.End] = Visibility.Visited;
+                Route[next.End] = next.Start;
+                Visited[next.End] = Visibility.Visited;
 
                 //If the edge ends in the target, return success
-                if (next.End == target)
+                if (next.End == Target)
                 {
-                    found = SearchState.CompletedAndFound;
-                    return found;
+                    Found = SearchState.CompletedAndFound;
+                    return Found;
                 }
 
                 //Stack all child edges from this node that aren´t visited
-                nodeEdges = graph.GetEdgesFromNode(next.End);
+                nodeEdges = Graph.GetEdgesFromNode(next.End);
                 for (int i = 0; i < nodeEdges.Count; i++)
-                    if (visited[nodeEdges[i].End] == Visibility.Unvisited)
-                        stackedEdges.Push(nodeEdges[i]);
+                    if (Visited[nodeEdges[i].End] == Visibility.Unvisited)
+                        StackedEdges.Push(nodeEdges[i]);
             }
 
             //The search failed
-            found = SearchState.CompletedAndNotFound;
-            return found;
+            Found = SearchState.CompletedAndNotFound;
+            return Found;
         }
 
         public override SearchState CycleOnce()
         {
-            K next;
-            List<K> nodeEdges;
+            TK next;
+            List<TK> nodeEdges;
 
             //If the stack is empty, the search was a failure
-            if (stackedEdges.Count == 0)
+            if (StackedEdges.Count == 0)
             {
-                found = SearchState.CompletedAndNotFound;
-                return found;
+                Found = SearchState.CompletedAndNotFound;
+                return Found;
             }
 
             //Pop an edge
-            next = stackedEdges.Pop();
+            next = StackedEdges.Pop();
 
-            route[next.End] = next.Start;
-            visited[next.End] = Visibility.Visited;
+            Route[next.End] = next.Start;
+            Visited[next.End] = Visibility.Visited;
 
             //If the edge ends in the target, return success
-            if (next.End == target)
+            if (next.End == Target)
             {
-                found = SearchState.CompletedAndFound;
-                return found;
+                Found = SearchState.CompletedAndFound;
+                return Found;
             }
 
             //Stack all child edges from this node that aren´t visited
-            nodeEdges = graph.GetEdgesFromNode(next.End);
+            nodeEdges = Graph.GetEdgesFromNode(next.End);
             for (int i = 0; i < nodeEdges.Count; i++)
-                if (visited[nodeEdges[i].End] == Visibility.Unvisited)
-                    stackedEdges.Push(nodeEdges[i]);
+                if (Visited[nodeEdges[i].End] == Visibility.Unvisited)
+                    StackedEdges.Push(nodeEdges[i]);
 
-            found = SearchState.NotCompleted;
-            return found;
+            Found = SearchState.NotCompleted;
+            return Found;
         }
 
     }

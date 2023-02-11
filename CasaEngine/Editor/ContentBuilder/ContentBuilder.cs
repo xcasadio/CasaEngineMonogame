@@ -11,16 +11,16 @@ namespace CasaEngine.Editor.Builder
 
 
         // What importers or processors should we load?
-        const string xnaVersion = ", Version=4.0.0.0, PublicKeyToken=842cf8be1de50553";
+        const string XnaVersion = ", Version=4.0.0.0, PublicKeyToken=842cf8be1de50553";
 
-        static string[] pipelineAssemblies =
+        static string[] _pipelineAssemblies =
         {
-            "Microsoft.Xna.Framework.Content.Pipeline.FBXImporter" + xnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.XImporter" + xnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.TextureImporter" + xnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.EffectImporter" + xnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.AudioImporters" + xnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.VideoImporters" + xnaVersion,
+            "Microsoft.Xna.Framework.Content.Pipeline.FBXImporter" + XnaVersion,
+            "Microsoft.Xna.Framework.Content.Pipeline.XImporter" + XnaVersion,
+            "Microsoft.Xna.Framework.Content.Pipeline.TextureImporter" + XnaVersion,
+            "Microsoft.Xna.Framework.Content.Pipeline.EffectImporter" + XnaVersion,
+            "Microsoft.Xna.Framework.Content.Pipeline.AudioImporters" + XnaVersion,
+            "Microsoft.Xna.Framework.Content.Pipeline.VideoImporters" + XnaVersion,
 
             // If you want to use custom importers or processors from
             // a Content Pipeline Extension Library, add them here.
@@ -32,29 +32,29 @@ namespace CasaEngine.Editor.Builder
             // file path, eg. "c:/MyProject/bin/MyPipelineExtension.dll".
         };
         // MSBuild objects used to dynamically build content.
-        Microsoft.Build.Evaluation.Project buildProject;
-        ProjectRootElement projectRootElement;
-        BuildParameters buildParameters;
-        readonly List<ProjectItem> projectItems = new List<ProjectItem>();
-        ErrorLogger errorLogger;
+        Microsoft.Build.Evaluation.Project _buildProject;
+        ProjectRootElement _projectRootElement;
+        BuildParameters _buildParameters;
+        readonly List<ProjectItem> _projectItems = new List<ProjectItem>();
+        ErrorLogger _errorLogger;
 
 
         // Temporary directories used by the content build.
-        string buildDirectory;
-        string processDirectory;
-        string baseDirectory;
+        string _buildDirectory;
+        string _processDirectory;
+        string _baseDirectory;
 
 
         // Generate unique directory names if there is more than one ContentBuilder.
-        static int directorySalt;
+        static int _directorySalt;
 
         // Have we been disposed?
-        bool isDisposed;
+        bool _isDisposed;
 
         //private ComboItemCollection Importers;
 
 
-        public string OutputDirectory => Path.Combine(buildDirectory, "bin/Content");
+        public string OutputDirectory => Path.Combine(_buildDirectory, "bin/Content");
 
 
         public ContentBuilder()
@@ -95,9 +95,9 @@ namespace CasaEngine.Editor.Builder
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!isDisposed)
+            if (!_isDisposed)
             {
-                isDisposed = true;
+                _isDisposed = true;
 
                 DeleteTempDirectory();
             }
@@ -146,7 +146,7 @@ namespace CasaEngine.Editor.Builder
         }
         public ProjectItem Add(string filename, string name, string importer, string processor)
         {
-            ProjectItem item = buildProject.AddItem("Compile", filename)[0];
+            ProjectItem item = _buildProject.AddItem("Compile", filename)[0];
 
             item.SetMetadataValue("Link", Path.GetFileName(filename));
             item.SetMetadataValue("Name", name);
@@ -157,7 +157,7 @@ namespace CasaEngine.Editor.Builder
             if (!string.IsNullOrEmpty(processor))
                 item.SetMetadataValue("Processor", processor);
 
-            projectItems.Add(item);
+            _projectItems.Add(item);
 
             return item;
         }
@@ -165,26 +165,26 @@ namespace CasaEngine.Editor.Builder
 
         public void Clear()
         {
-            buildProject.RemoveItems(projectItems);
-            projectItems.Clear();
+            _buildProject.RemoveItems(_projectItems);
+            _projectItems.Clear();
         }
 
 
         public string Build()
         {
             // Clear any previous errors.
-            errorLogger.Errors.Clear();
+            _errorLogger.Errors.Clear();
 
             //BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
-            BuildRequestData request = new BuildRequestData(buildProject.CreateProjectInstance(), new string[0]);
+            BuildRequestData request = new BuildRequestData(_buildProject.CreateProjectInstance(), new string[0]);
             //BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(request);
             //BuildResult br = submission.Execute();
             //BuildManager.DefaultBuildManager.EndBuild();
 
-            BuildResult br = BuildManager.DefaultBuildManager.Build(buildParameters, request);
+            BuildResult br = BuildManager.DefaultBuildManager.Build(_buildParameters, request);
             if (br.OverallResult == BuildResultCode.Failure)
             {
-                return string.Join("\n", errorLogger.Errors.ToArray());
+                return string.Join("\n", _errorLogger.Errors.ToArray());
             }
 
             // If the build failed, return an error string.
@@ -210,7 +210,7 @@ namespace CasaEngine.Editor.Builder
             //
             //  %temp%\WinFormsContentLoading.ContentBuilder
 
-            baseDirectory = Path.Combine(Path.GetTempPath(), GetType().FullName);
+            _baseDirectory = Path.Combine(Path.GetTempPath(), GetType().FullName);
 
             // Include our process ID, in case there is more than
             // one copy of the program running at the same time:
@@ -219,19 +219,19 @@ namespace CasaEngine.Editor.Builder
 
             int processId = Process.GetCurrentProcess().Id;
 
-            processDirectory = Path.Combine(baseDirectory, processId.ToString());
+            _processDirectory = Path.Combine(_baseDirectory, processId.ToString());
 
             // Include a salt value, in case the program
             // creates more than one ContentBuilder instance:
             //
             //  %temp%\WinFormsContentLoading.ContentBuilder\<ProcessId>\<Salt>
 
-            directorySalt++;
+            _directorySalt++;
 
-            buildDirectory = Path.Combine(processDirectory, directorySalt.ToString());
+            _buildDirectory = Path.Combine(_processDirectory, _directorySalt.ToString());
 
             // Create our temporary directory.
-            Directory.CreateDirectory(buildDirectory);
+            Directory.CreateDirectory(_buildDirectory);
 
             PurgeStaleTempDirectories();
         }
@@ -239,19 +239,19 @@ namespace CasaEngine.Editor.Builder
 
         void DeleteTempDirectory()
         {
-            Directory.Delete(buildDirectory, true);
+            Directory.Delete(_buildDirectory, true);
 
             // If there are no other instances of ContentBuilder still using their
             // own temp directories, we can delete the process directory as well.
-            if (Directory.GetDirectories(processDirectory).Length == 0)
+            if (Directory.GetDirectories(_processDirectory).Length == 0)
             {
-                Directory.Delete(processDirectory);
+                Directory.Delete(_processDirectory);
 
                 // If there are no other copies of the program still using their
                 // own temp directories, we can delete the base directory as well.
-                if (Directory.GetDirectories(baseDirectory).Length == 0)
+                if (Directory.GetDirectories(_baseDirectory).Length == 0)
                 {
-                    Directory.Delete(baseDirectory);
+                    Directory.Delete(_baseDirectory);
                 }
             }
         }
@@ -260,7 +260,7 @@ namespace CasaEngine.Editor.Builder
         void PurgeStaleTempDirectories()
         {
             // Check all subdirectories of our base location.
-            foreach (string directory in Directory.GetDirectories(baseDirectory))
+            foreach (string directory in Directory.GetDirectories(_baseDirectory))
             {
                 // The subdirectory name is the ID of the process which created it.
                 int processId;

@@ -13,14 +13,14 @@
 
 
 
-        public ExternalTool(Form form_)
+        public ExternalTool(Form @for)
         {
-            if (form_ == null)
+            if (@for == null)
             {
                 throw new ArgumentNullException("ExternalTool() : Form is null");
             }
 
-            Window = form_;
+            Window = @for;
         }
 
 

@@ -11,25 +11,25 @@ namespace CasaEngine.FrontEnd.Screen
 #if EDITOR
     partial
 #endif
-    class UIScreen
+    class UiScreen
         : Screen
     {
-        readonly List<Control> m_Controls = new List<Control>();
+        readonly List<Control> _controls = new List<Control>();
 
 
 
-        public Control[] Gagdets => m_Controls.ToArray();
+        public Control[] Gagdets => _controls.ToArray();
 
 
-        public UIScreen(string name_)
-            : base(name_)
+        public UiScreen(string name)
+            : base(name)
         {
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
         }
 
-        public UIScreen(XmlElement el_, SaveOption opt_)
-            : base(el_, opt_)
+        public UiScreen(XmlElement el, SaveOption opt)
+            : base(el, opt)
         {
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
@@ -37,19 +37,19 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        public override void LoadContent(Renderer2DComponent r_)
+        public override void LoadContent(Renderer2DComponent r)
         {
-            base.LoadContent(r_);
+            base.LoadContent(r);
 
-            /*foreach (Control g in m_Controls)
+            /*foreach (Control g in _Controls)
             {
                 g.Initialize(r_.Game);
             }*/
         }
 
-        public override void Draw(float elapsedTime_)
+        public override void Draw(float elapsedTime)
         {
-            /*foreach (Control g in m_Controls)
+            /*foreach (Control g in _Controls)
             {
                 g.Draw(elapsedTime_);
             }*/
@@ -60,22 +60,22 @@ namespace CasaEngine.FrontEnd.Screen
 
         }
 
-        public override void Update(float elapsedTime_, bool otherScreenHasFocus, bool coveredByOtherScreen)
+        public override void Update(float elapsedTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
         {
-            base.Update(elapsedTime_, otherScreenHasFocus, coveredByOtherScreen);
+            base.Update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen);
 
-            foreach (Control g in m_Controls)
+            foreach (Control g in _controls)
             {
-                g.Update(elapsedTime_);
+                g.Update(elapsedTime);
             }
         }
 
 
-        public Control GetGadget(string name_)
+        public Control GetGadget(string name)
         {
-            foreach (Control g in m_Controls)
+            foreach (Control g in _controls)
             {
-                if (g.Name.Equals(name_) == true)
+                if (g.Name.Equals(name) == true)
                 {
                     return g;
                 }
@@ -84,15 +84,15 @@ namespace CasaEngine.FrontEnd.Screen
             return null;
         }
 
-        public override void CopyFrom(Screen screen_)
+        public override void CopyFrom(Screen screen)
         {
-            base.CopyFrom(screen_);
+            base.CopyFrom(screen);
 
-            if (screen_ is UIScreen)
+            if (screen is UiScreen)
             {
-                UIScreen e = screen_ as UIScreen;
-                m_Controls.Clear();
-                m_Controls.AddRange(e.m_Controls);
+                UiScreen e = screen as UiScreen;
+                _controls.Clear();
+                _controls.AddRange(e._controls);
             }
             else
             {
@@ -102,28 +102,28 @@ namespace CasaEngine.FrontEnd.Screen
 
 #if EDITOR
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
-            if (base.CompareTo(other_) == false)
+            if (base.CompareTo(other) == false)
             {
                 return false;
             }
 
             bool res = true;
 
-            if (other_ is UIScreen)
+            if (other is UiScreen)
             {
-                UIScreen e = other_ as UIScreen;
+                UiScreen e = other as UiScreen;
 
-                if (m_Controls.Count != e.m_Controls.Count)
+                if (_controls.Count != e._controls.Count)
                 {
                     res = false;
                 }
                 else
                 {
-                    for (int i = 0; i < m_Controls.Count; i++)
+                    for (int i = 0; i < _controls.Count; i++)
                     {
-                        //res &= e.m_Controls[i].Compare(m_Controls[i]);
+                        //res &= e._Controls[i].Compare(_Controls[i]);
                     }
                 }
             }
@@ -137,15 +137,15 @@ namespace CasaEngine.FrontEnd.Screen
 
 #endif
 
-        public override void Load(XmlElement el_, SaveOption opt_)
+        public override void Load(XmlElement el, SaveOption opt)
         {
-            base.Load(el_, opt_);
+            base.Load(el, opt);
 
-            XmlNode nodeList = el_.SelectSingleNode("GadgetList");
+            XmlNode nodeList = el.SelectSingleNode("GadgetList");
 
             foreach (XmlNode node in nodeList.ChildNodes)
             {
-                m_Controls.Add(FactoryUIControl.LoadControl((XmlElement)node, opt_));
+                _controls.Add(FactoryUiControl.LoadControl((XmlElement)node, opt));
             }
         }
     }

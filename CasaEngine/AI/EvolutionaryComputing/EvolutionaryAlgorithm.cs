@@ -14,17 +14,17 @@ namespace CasaEngine.AI.EvolutionaryComputing
 
 
 
-        protected internal MutationMethod<T> mutation;
+        protected internal MutationMethod<T> Mutation;
 
-        protected internal ReplacementMethod<T> replacement;
+        protected internal ReplacementMethod<T> Replacement;
 
-        protected internal SelectionMethod<T> selection;
+        protected internal SelectionMethod<T> Selection;
 
-        protected internal IEvolutionaryProblem<T> problem;
+        protected internal IEvolutionaryProblem<T> Problem;
 
-        protected internal int numberOffsprings;
+        protected internal int NumberOffsprings;
 
-        protected internal int numberGenerations;
+        protected internal int NumberGenerations;
 
 
 
@@ -34,22 +34,22 @@ namespace CasaEngine.AI.EvolutionaryComputing
             String message = String.Empty;
 
             if (ValidateMutation(mutation, ref message) == false)
-                throw new AIException("mutation", this.GetType().ToString(), message);
+                throw new AiException("mutation", this.GetType().ToString(), message);
 
             if (ValidateReplacement(replacement, ref message) == false)
-                throw new AIException("replacement", this.GetType().ToString(), message);
+                throw new AiException("replacement", this.GetType().ToString(), message);
 
             if (ValidateSelection(selection, ref message) == false)
-                throw new AIException("selection", this.GetType().ToString(), message);
+                throw new AiException("selection", this.GetType().ToString(), message);
 
             if (ValidateProblem(problem, ref message) == false)
-                throw new AIException("problem", this.GetType().ToString(), message);
+                throw new AiException("problem", this.GetType().ToString(), message);
 
             if (ValidateOffsprings(numberOffsprings, ref message) == false)
-                throw new AIException("numberOffsprings", this.GetType().ToString(), message);
+                throw new AiException("numberOffsprings", this.GetType().ToString(), message);
 
             if (ValidateGenerations(numberGenerations, ref message) == false)
-                throw new AIException("numberGenerations", this.GetType().ToString(), message);
+                throw new AiException("numberGenerations", this.GetType().ToString(), message);
 
             this.mutation = mutation;
             this.replacement = replacement;
@@ -69,7 +69,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateMutation(value, ref message) == false)
-                    throw new AIException("mutation", this.GetType().ToString(), message);
+                    throw new AiException("mutation", this.GetType().ToString(), message);
 
                 mutation = value;
             }
@@ -83,7 +83,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateReplacement(value, ref message) == false)
-                    throw new AIException("replacement", this.GetType().ToString(), message);
+                    throw new AiException("replacement", this.GetType().ToString(), message);
 
                 replacement = value;
             }
@@ -97,7 +97,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateSelection(value, ref message) == false)
-                    throw new AIException("selection", this.GetType().ToString(), message);
+                    throw new AiException("selection", this.GetType().ToString(), message);
 
                 selection = value;
             }
@@ -111,7 +111,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateProblem(value, ref message) == false)
-                    throw new AIException("problem", this.GetType().ToString(), message);
+                    throw new AiException("problem", this.GetType().ToString(), message);
 
                 problem = value;
             }
@@ -125,7 +125,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateOffsprings(value, ref message) == false)
-                    throw new AIException("numberOffsprings", this.GetType().ToString(), message);
+                    throw new AiException("numberOffsprings", this.GetType().ToString(), message);
 
                 numberOffsprings = value;
             }
@@ -139,7 +139,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateGenerations(value, ref message) == false)
-                    throw new AIException("numberGenerations", this.GetType().ToString(), message);
+                    throw new AiException("numberGenerations", this.GetType().ToString(), message);
 
                 numberGenerations = value;
             }

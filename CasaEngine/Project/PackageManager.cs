@@ -2,29 +2,29 @@
 {
     public class PackageManager
     {
-        readonly List<Package> m_Packages = new List<Package>();
+        readonly List<Package> _packages = new List<Package>();
 
 
 
-        public Package[] Packages => m_Packages.ToArray();
+        public Package[] Packages => _packages.ToArray();
 
 
-        public PackageManager(ProjectManager projectManager_)
+        public PackageManager(ProjectManager projectManager)
         {
-            projectManager_.ProjectLoaded += new EventHandler(OnProjectLoaded);
-            projectManager_.ProjectClosed += new EventHandler(OnProjectClosed);
+            projectManager.ProjectLoaded += new EventHandler(OnProjectLoaded);
+            projectManager.ProjectClosed += new EventHandler(OnProjectClosed);
         }
 
 
 
         public void Refresh()
         {
-            m_Packages.Clear();
+            _packages.Clear();
 
             /*Package pck;
 
             pck  = new Package("Sprite2D");
-            m_Packages.Add(pck);
+            _Packages.Add(pck);
 
             foreach (string n in GameInfo.Instance.Asset2DManager.GetAllSprite2DName())
             {
@@ -32,7 +32,7 @@
             }
 
             pck = new Package("Animation2D");
-            m_Packages.Add(pck);
+            _Packages.Add(pck);
 
             foreach (string n in GameInfo.Instance.Asset2DManager.GetAllAnimation2DName())
             {
@@ -44,17 +44,17 @@
         {
             string ret = "New_Package";
             int num = 0;
-            bool isOK = false;
+            bool isOk = false;
 
-            while (isOK == false)
+            while (isOk == false)
             {
-                isOK = true;
+                isOk = true;
 
-                foreach (Package p in m_Packages)
+                foreach (Package p in _packages)
                 {
                     if (p.Name.Equals(ret) == true)
                     {
-                        isOK = false;
+                        isOk = false;
                         num++;
                         ret = "New_Package_" + num;
                         break;
@@ -65,25 +65,25 @@
             return ret;
         }
 
-        public Package GetOrCreatePackage(string name_)
+        public Package GetOrCreatePackage(string name)
         {
-            Package package = GetPackage(name_);
+            Package package = GetPackage(name);
 
             if (package == null)
             {
-                package = CreatePackage(name_);
+                package = CreatePackage(name);
             }
 
             return package;
         }
 
-        public Package CreatePackage(string path_)
+        public Package CreatePackage(string path)
         {
             Package package = null;
 
             //Create File ?
-            path_ = path_.Replace('\\', '/');
-            string pckName = path_;
+            path = path.Replace('\\', '/');
+            string pckName = path;
             int index = pckName.IndexOf('/');
             if (index != -1)
             {
@@ -92,16 +92,16 @@
 
             package = new Package(pckName);
             //package.SaveXml(fullPath, SaveOption.Editor);
-            m_Packages.Add(package);
+            _packages.Add(package);
 
             return package;
         }
 
-        public Package GetPackage(string name_)
+        public Package GetPackage(string name)
         {
-            foreach (Package p in m_Packages)
+            foreach (Package p in _packages)
             {
-                if (p.Name.Equals(name_) == true)
+                if (p.Name.Equals(name) == true)
                 {
                     return p;
                 }

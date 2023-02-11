@@ -17,18 +17,18 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private int row;
+        private int _row;
 
 
 
         public virtual int Row
         {
-            get => row;
+            get => _row;
             set
             {
-                row = value;
-                if (row < 0) row = 0;
-                if (row > 7) row = 7;
+                _row = value;
+                if (_row < 0) _row = 0;
+                if (_row > 7) _row = 7;
             }
         } // Row
 
@@ -36,8 +36,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ToolBar(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ToolBar(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             FullRow = false;
             Left = 0;

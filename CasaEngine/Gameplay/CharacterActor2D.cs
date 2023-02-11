@@ -25,47 +25,47 @@ namespace CasaEngine.Gameplay
     partial
 #endif
     class CharacterActor2D
-        : Actor2D, IFSMCapable<CharacterActor2D>, IRenderable, IAttackable
+        : Actor2D, IFsmCapable<CharacterActor2D>, IRenderable, IAttackable
     {
         static public bool DisplayDebugInformation = true;
 
 
-        private TeamInfo m_TeamInfo;
+        private TeamInfo _teamInfo;
 
-        private CharacterActor2DOrientation m_Orientation = CharacterActor2DOrientation.Right;
-        private Vector2 m_Velocity = new Vector2();
+        private CharacterActor2DOrientation _orientation = CharacterActor2DOrientation.Right;
+        private Vector2 _velocity = new Vector2();
 
-        private Vector2 m_InitialPosition;
-        private Vector2 m_Position; //utilisé si pas physique
+        private Vector2 _initialPosition;
+        private Vector2 _position; //utilisé si pas physique
 
-        private FiniteStateMachine<CharacterActor2D> m_FSM;
-        private Controller m_Controller;
+        private FiniteStateMachine<CharacterActor2D> _fsm;
+        private Controller _controller;
 
         // Used to load all animations
-        private readonly Dictionary<int, string> m_AnimationListToLoad = new Dictionary<int, string>();
-        private Dictionary<int, Animation2D> m_Animations = new Dictionary<int, Animation2D>();
-        private Animation2DPlayer m_Animation2DPlayer;
-        private int m_NumberOfDirection = 8;
-        private int m_AnimationDirectioMask = 0;
-        private readonly Dictionary<int, int> m_AnimationDirectionOffset = new Dictionary<int, int>();
-        private Renderer2DComponent m_Renderer2DComponent;
+        private readonly Dictionary<int, string> _animationListToLoad = new Dictionary<int, string>();
+        private Dictionary<int, Animation2D> _animations = new Dictionary<int, Animation2D>();
+        private Animation2DPlayer _animation2DPlayer;
+        private int _numberOfDirection = 8;
+        private int _animationDirectioMask = 0;
+        private readonly Dictionary<int, int> _animationDirectionOffset = new Dictionary<int, int>();
+        private Renderer2DComponent _renderer2DComponent;
 
-        private Body m_Body;
+        private Body _body;
 
         //use to avoid GC
-        private Point m_PointTmp = new Point();
-        private readonly Message m_Message = new Message(-1, -1, (int)MessageType.AnimationChanged, 0.0, null);
-        private Vector2 m_Vector2 = new Vector2();
+        private Point _pointTmp = new Point();
+        private readonly Message _message = new Message(-1, -1, (int)MessageType.AnimationChanged, 0.0, null);
+        private Vector2 _vector2 = new Vector2();
 
 #if !FINAL
-        private ShapeRendererComponent m_ShapeRendererComponent;
+        private ShapeRendererComponent _shapeRendererComponent;
 #endif
 
         //use to attack only one time per attack
-        private readonly List<ICollide2Dable> m_AlreadyAttacked = new List<ICollide2Dable>();
+        private readonly List<ICollide2Dable> _alreadyAttacked = new List<ICollide2Dable>();
 
         //for debugging : to delete
-        Texture2D m_WhiteTexture;
+        Texture2D _whiteTexture;
 
 
 
@@ -105,49 +105,49 @@ namespace CasaEngine.Gameplay
             set;
         }
 
-        public int HPMax
+        public int HpMax
         {
             get;
             set;
         }
 
-        public int HPMaxOffSet
+        public int HpMaxOffSet
         {
             get;
             set;
         }
 
-        public int HP
+        public int Hp
         {
             get;
             set;
         }
 
-        public int HPOffSet
+        public int HpOffSet
         {
             get;
             set;
         }
 
-        public int MPMax
+        public int MpMax
         {
             get;
             set;
         }
 
-        public int MPMaxOffSet
+        public int MpMaxOffSet
         {
             get;
             set;
         }
 
-        public int MP
+        public int Mp
         {
             get;
             set;
         }
 
-        public int MPOffSet
+        public int MpOffSet
         {
             get;
             set;
@@ -179,20 +179,20 @@ namespace CasaEngine.Gameplay
 
         public IFiniteStateMachine<CharacterActor2D> StateMachine
         {
-            get => m_FSM;
-            set => m_FSM = value as FiniteStateMachine<CharacterActor2D>;
+            get => _fsm;
+            set => _fsm = value as FiniteStateMachine<CharacterActor2D>;
         }
 
         public CharacterActor2DOrientation Orientation
         {
-            get => m_Orientation;
+            get => _orientation;
             set
             {
-                if (m_Orientation != value
+                if (_orientation != value
                     && value != 0)
                 {
-                    m_Body.ResetDynamics(); //to avoid the character slide on the ground
-                    m_Orientation = value;
+                    _body.ResetDynamics(); //to avoid the character slide on the ground
+                    _orientation = value;
                 }
             }
         }
@@ -207,25 +207,25 @@ namespace CasaEngine.Gameplay
         {
             get
             {
-                if (m_Body == null)
+                if (_body == null)
                 {
-                    return m_Position;
+                    return _position;
                 }
                 else
                 {
-                    return m_Body.Position;
+                    return _body.Position;
                 }
             }
-            /*set { m_Position = value; }*/
+            /*set { _Position = value; }*/
         }
 
         public Vector2 InitialPosition
         {
-            get => m_InitialPosition;
-            set => m_InitialPosition = value;
+            get => _initialPosition;
+            set => _initialPosition = value;
         }
 
-        public Animation2DPlayer Animation2DPlayer => m_Animation2DPlayer;
+        public Animation2DPlayer Animation2DPlayer => _animation2DPlayer;
 
         public int ComboNumber
         {
@@ -241,29 +241,29 @@ namespace CasaEngine.Gameplay
 
         public TeamInfo TeamInfo
         {
-            get => m_TeamInfo;
-            set => m_TeamInfo = value;
+            get => _teamInfo;
+            set => _teamInfo = value;
         }
 
-        protected Controller Controller => m_Controller;
+        protected Controller Controller => _controller;
 
         protected event EventHandler EndAnimationReached
         {
-            add => m_Animation2DPlayer.OnEndAnimationReached += value;
-            remove => m_Animation2DPlayer.OnEndAnimationReached -= value;
+            add => _animation2DPlayer.OnEndAnimationReached += value;
+            remove => _animation2DPlayer.OnEndAnimationReached -= value;
         }
 
 
 
-        protected CharacterActor2D(XmlElement el_, SaveOption opt_)
-            : base(el_, opt_)
+        protected CharacterActor2D(XmlElement el, SaveOption opt)
+            : base(el, opt)
         {
         }
 
-        public CharacterActor2D(CharacterActor2D charac_)
+        public CharacterActor2D(CharacterActor2D charac)
             : this()
         {
-            CopyFrom(charac_);
+            CopyFrom(charac);
         }
 
         public CharacterActor2D()
@@ -279,69 +279,69 @@ namespace CasaEngine.Gameplay
             return new CharacterActor2D(this);
         }
 
-        protected override void CopyFrom(BaseObject ob_)
+        protected override void CopyFrom(BaseObject ob)
         {
-            if (ob_ is CharacterActor2D == false)
+            if (ob is CharacterActor2D == false)
             {
                 throw new ArgumentException("the object is not a CharacterActor2D object");
             }
 
-            base.CopyFrom(ob_);
+            base.CopyFrom(ob);
 
-            CharacterActor2D f = ob_ as CharacterActor2D;
+            CharacterActor2D f = ob as CharacterActor2D;
 
-            m_Orientation = f.m_Orientation;
-            m_Velocity = f.m_Velocity;
+            _orientation = f._orientation;
+            _velocity = f._velocity;
             Speed = f.Speed;
             SpeedOffSet = f.SpeedOffSet;
-            HPMax = f.HPMax;
-            MPMax = f.MPMax;
+            HpMax = f.HpMax;
+            MpMax = f.MpMax;
             Strength = f.Strength;
             Defense = f.Defense;
-            HP = HPMax;
-            MP = MPMax;
+            Hp = HpMax;
+            Mp = MpMax;
 
-            m_Animations = new Dictionary<int, Animation2D>();
+            _animations = new Dictionary<int, Animation2D>();
 
-            foreach (KeyValuePair<int, Animation2D> pair in f.m_Animations)
+            foreach (KeyValuePair<int, Animation2D> pair in f._animations)
             {
-                m_Animations.Add(pair.Key, (Animation2D)pair.Value.Clone());
+                _animations.Add(pair.Key, (Animation2D)pair.Value.Clone());
             }
 
-            foreach (var pair in f.m_AnimationListToLoad)
+            foreach (var pair in f._animationListToLoad)
             {
-                m_AnimationListToLoad.Add(pair.Key, pair.Value);
+                _animationListToLoad.Add(pair.Key, pair.Value);
             }
         }
 
-        public void SetController(Controller controller_)
+        public void SetController(Controller controller)
         {
-            m_Controller = controller_;
+            _controller = controller;
         }
 
         private void Initialize()
         {
-            m_FSM = new FiniteStateMachine<CharacterActor2D>(this);
+            _fsm = new FiniteStateMachine<CharacterActor2D>(this);
 
 #if !EDITOR
-            m_Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
 #endif
         }
 
-        public virtual void Initialize(FarseerPhysics.Dynamics.World physicWorld_)
+        public virtual void Initialize(FarseerPhysics.Dynamics.World physicWorld)
         {
-            foreach (var pair in m_AnimationListToLoad)
+            foreach (var pair in _animationListToLoad)
             {
                 Animation2D anim2d = Engine.Instance.ObjectManager.GetObjectByPath(pair.Value) as Animation2D;
 
                 if (anim2d != null)
                 {
-                    m_Animations.Add(pair.Key, anim2d);
+                    _animations.Add(pair.Key, anim2d);
                     anim2d.InitializeEvent();
 
                     foreach (var frame in anim2d.GetFrames())
                     {
-                        Sprite2D sprite2d = Engine.Instance.ObjectManager.GetObjectByID(frame.spriteID) as Sprite2D;
+                        Sprite2D sprite2d = Engine.Instance.ObjectManager.GetObjectById(frame.SpriteId) as Sprite2D;
                         //sprite2d.LoadTextureFile(Engine.Instance.Game.GraphicsDevice);
                         sprite2d.LoadTexture(Engine.Instance.Game.Content);
                     }
@@ -352,7 +352,7 @@ namespace CasaEngine.Gameplay
                 }
             }
 
-            foreach (KeyValuePair<int, Animation2D> pair in m_Animations)
+            foreach (KeyValuePair<int, Animation2D> pair in _animations)
             {
                 //Event
                 pair.Value.InitializeEvent();
@@ -363,40 +363,40 @@ namespace CasaEngine.Gameplay
 
             //Engine.Instance.Asset2DManager.LoadLoadingList(Engine.Instance.Game.Content);
 
-            m_Animation2DPlayer = new Animation2DPlayer(m_Animations);
-            m_Animation2DPlayer.OnEndAnimationReached += new EventHandler(OnEndAnimationReached);
-            //m_Animation2DPlayer.OnFrameChanged += new EventHandler<Animation2DFrameChangedEventArgs>(OnFrameChanged);
+            _animation2DPlayer = new Animation2DPlayer(_animations);
+            _animation2DPlayer.OnEndAnimationReached += new EventHandler(OnEndAnimationReached);
+            //_Animation2DPlayer.OnFrameChanged += new EventHandler<Animation2DFrameChangedEventArgs>(OnFrameChanged);
 
-            InitializePhysics(physicWorld_);
+            InitializePhysics(physicWorld);
 
             Collision2DManager.Instance.RegisterObject(this);
 
-            m_ShapeRendererComponent = GameHelper.GetDrawableGameComponent<ShapeRendererComponent>(Engine.Instance.Game);
+            _shapeRendererComponent = GameHelper.GetDrawableGameComponent<ShapeRendererComponent>(Engine.Instance.Game);
 
-            HP = HPMax;
-            MP = MPMax;
+            Hp = HpMax;
+            Mp = MpMax;
 
             //for debugging
-            m_WhiteTexture = (Engine.Instance.Game.Services.GetService(typeof(DebugManager)) as DebugManager).WhiteTexture;
+            _whiteTexture = (Engine.Instance.Game.Services.GetService(typeof(DebugManager)) as DebugManager).WhiteTexture;
         }
 
         public void InitializeController()
         {
-            //if (m_Controller != null)
+            //if (_Controller != null)
             //{
-            m_Controller.Initialize();
+            _controller.Initialize();
             //}
         }
 
         void OnEndAnimationReached(object sender, EventArgs e)
         {
-            m_Message.SenderID = this.ID;
-            m_Message.RecieverID = this.ID; //m_Animation2DPlayer.CurrentAnimation.ID ??
-            m_Message.Type = (int)MessageType.AnimationChanged;
-            //m_Message.ExtraInfo = m_Animation2DPlayer.CurrentAnimation.ID; // @TODO : boxing is not GC friendly
+            _message.SenderID = this.ID;
+            _message.RecieverID = this.ID; //_Animation2DPlayer.CurrentAnimation.ID ??
+            _message.Type = (int)MessageType.AnimationChanged;
+            //_Message.ExtraInfo = _Animation2DPlayer.CurrentAnimation.ID; // @TODO : boxing is not GC friendly
 
-            m_FSM.HandleMessage(m_Message);
-            m_Controller.StateMachine.HandleMessage(m_Message);
+            _fsm.HandleMessage(_message);
+            _controller.StateMachine.HandleMessage(_message);
         }
 
         /*void OnFrameChanged(object sender, Animation2DFrameChangedEventArgs e)
@@ -404,44 +404,44 @@ namespace CasaEngine.Gameplay
             
         }*/
 
-        private void InitializePhysics(FarseerPhysics.Dynamics.World physicWorld_)
+        private void InitializePhysics(FarseerPhysics.Dynamics.World physicWorld)
         {
-            if (physicWorld_ != null)
+            if (physicWorld != null)
             {
-                m_Body = FarseerPhysics.Factories.BodyFactory.CreateCircle(
-                physicWorld_,
+                _body = FarseerPhysics.Factories.BodyFactory.CreateCircle(
+                physicWorld,
                 30.0f,
                 0.00001f,
-                m_InitialPosition,
+                _initialPosition,
                 this);
 
-                m_Body.BodyType = BodyType.Dynamic;
-                m_Body.SleepingAllowed = true;
-                m_Body.FixedRotation = true;
-                m_Body.Friction = 0.0f;
-                m_Body.Restitution = 0.0f;
+                _body.BodyType = BodyType.Dynamic;
+                _body.SleepingAllowed = true;
+                _body.FixedRotation = true;
+                _body.Friction = 0.0f;
+                _body.Restitution = 0.0f;
             }
             else
             {
-                m_Position = m_InitialPosition;
+                _position = _initialPosition;
             }
         }
 
-        public override void Update(float elapsedTime_)
+        public override void Update(float elapsedTime)
         {
-            //if (m_Controller != null)
+            //if (_Controller != null)
             //{
-            m_Controller.Update(elapsedTime_);
+            _controller.Update(elapsedTime);
             //}
 
-            MoveCharacter(elapsedTime_);
-            m_Animation2DPlayer.Update(elapsedTime_);
+            MoveCharacter(elapsedTime);
+            _animation2DPlayer.Update(elapsedTime);
         }
 
-        public void Draw(float elapsedTime_)
+        public void Draw(float elapsedTime)
         {
-            m_Renderer2DComponent.AddSprite2D(
-                m_Animation2DPlayer.CurrentAnimation.CurrentSpriteId,
+            _renderer2DComponent.AddSprite2D(
+                _animation2DPlayer.CurrentAnimation.CurrentSpriteId,
                 Position, 0.0f, Vector2.One, Color.White,
                 1 - Position.Y / Engine.Instance.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects);
@@ -453,7 +453,7 @@ namespace CasaEngine.Gameplay
                 {
                     foreach (Shape2DObject g in geometry2DObjectList)
                     {
-                        m_ShapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
+                        _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
                     }
                 }
             }
@@ -461,173 +461,173 @@ namespace CasaEngine.Gameplay
             if (DisplayDebugInformation == true)
             {
                 //display HP
-                m_Renderer2DComponent.AddSprite2D(
-                    m_WhiteTexture,
+                _renderer2DComponent.AddSprite2D(
+                    _whiteTexture,
                     Position + new Vector2(-50.0f, 10.0f),
                     0.0f,
                     new Vector2(100.0f, 5.0f), // scale
                     Color.Red, 0.00001f, SpriteEffects.None);
 
-                m_Renderer2DComponent.AddSprite2D(
-                    m_WhiteTexture,
+                _renderer2DComponent.AddSprite2D(
+                    _whiteTexture,
                     Position + new Vector2(-50.0f, 10.0f),
                     0.0f,
-                    new Vector2((float)HP / (float)HPMax * 100.0f, 5.0f), // scale
+                    new Vector2((float)Hp / (float)HpMax * 100.0f, 5.0f), // scale
                     Color.Green, 0.0f, SpriteEffects.None);
 
                 //display direction
-                Vector2 rr = m_Velocity;
+                Vector2 rr = _velocity;
                 if (rr != Vector2.Zero)
                 {
                     rr.Normalize();
                 }
-                m_Renderer2DComponent.AddLine2D(Position, Position + rr * 80.0f, Color.Blue);
+                _renderer2DComponent.AddLine2D(Position, Position + rr * 80.0f, Color.Blue);
 
                 //for debugging State
-                /*if (m_Controller != null)
+                /*if (_Controller != null)
                 {
-                    m_Renderer2DComponent.AddText2D(
+                    _Renderer2DComponent.AddText2D(
                         Engine.Instance.DefaultSpriteFont,
-                        "State : " + m_Controller.StateMachine.CurrentState.Name,
+                        "State : " + _Controller.StateMachine.CurrentState.Name,
                         Position + new Vector2(-100.0f, -130.0f),
                         0.0f, Vector2.One, Color.Green, 0.0f);
                 }
 
-                if (m_Body != null)
+                if (_Body != null)
                 {
-                    m_Renderer2DComponent.AddText2D(
+                    _Renderer2DComponent.AddText2D(
                         Engine.Instance.DefaultSpriteFont,
-                        "Speed : " + m_Body.LinearVelocity.Length(),
+                        "Speed : " + _Body.LinearVelocity.Length(),
                         Position + new Vector2(-70.0f, -100.0f),
                         0.0f, Vector2.One, Color.White, 0.0f);
                 }*/
             }
         }
 
-        public override void Load(XmlElement el_, SaveOption opt_)
+        public override void Load(XmlElement el, SaveOption opt)
         {
-            base.Load(el_, opt_);
+            base.Load(el, opt);
 
-            XmlElement statusNode = (XmlElement)el_.SelectSingleNode("Status");
+            XmlElement statusNode = (XmlElement)el.SelectSingleNode("Status");
 
             Speed = float.Parse(statusNode.Attributes["speed"].Value);
             Strength = int.Parse(statusNode.Attributes["strength"].Value);
             Defense = int.Parse(statusNode.Attributes["defense"].Value);
-            HPMax = int.Parse(statusNode.Attributes["HPMax"].Value);
-            MPMax = int.Parse(statusNode.Attributes["MPMax"].Value);
+            HpMax = int.Parse(statusNode.Attributes["HPMax"].Value);
+            MpMax = int.Parse(statusNode.Attributes["MPMax"].Value);
 
-            XmlElement animListNode = (XmlElement)el_.SelectSingleNode("AnimationList");
+            XmlElement animListNode = (XmlElement)el.SelectSingleNode("AnimationList");
 
-            m_Animations.Clear();
-            m_AnimationListToLoad.Clear();
+            _animations.Clear();
+            _animationListToLoad.Clear();
 
             foreach (XmlNode node in animListNode.ChildNodes)
             {
-                m_AnimationListToLoad.Add(int.Parse(node.Attributes["index"].Value), node.Attributes["name"].Value);
+                _animationListToLoad.Add(int.Parse(node.Attributes["index"].Value), node.Attributes["name"].Value);
             }
         }
 
 
-        public void SetPosition(Vector2 pos_)
+        public void SetPosition(Vector2 pos)
         {
-            if (m_Body == null)
+            if (_body == null)
             {
-                m_Position = pos_;
+                _position = pos;
             }
             else
             {
-                m_Body.Position = pos_;
+                _body.Position = pos;
             }
         }
 
-        public void Move(ref Vector2 dir_)
+        public void Move(ref Vector2 dir)
         {
-            if (dir_ == Vector2.Zero)
+            if (dir == Vector2.Zero)
             {
                 //always when Vector2.Zero to stop movement
                 //else if contact the character will continue to move
-                m_Body.ResetDynamics();
+                _body.ResetDynamics();
             }
             else
             {
-                Direction = dir_;
+                Direction = dir;
             }
 
-            m_Velocity = dir_ * (Speed + SpeedOffSet);
+            _velocity = dir * (Speed + SpeedOffSet);
         }
 
-        private void MoveCharacter(float elapsedTime_)
+        private void MoveCharacter(float elapsedTime)
         {
-            if (m_Body == null)
+            if (_body == null)
             {
-                m_Position += m_Velocity * elapsedTime_;
+                _position += _velocity * elapsedTime;
             }
             else
             {
-                m_Body.LinearVelocity = m_Velocity;
+                _body.LinearVelocity = _velocity;
             }
         }
 
 
 
-        public void SetAnimationParameters(int numberOfDirectionAnimation_, int animationDirectionMask_)
+        public void SetAnimationParameters(int numberOfDirectionAnimation, int animationDirectionMask)
         {
-            m_NumberOfDirection = numberOfDirectionAnimation_;
-            m_AnimationDirectioMask = animationDirectionMask_;
+            _numberOfDirection = numberOfDirectionAnimation;
+            _animationDirectioMask = animationDirectionMask;
         }
 
-        public void SetAnimationDirectionOffset(CharacterActor2DOrientation dir_, int offset_)
+        public void SetAnimationDirectionOffset(CharacterActor2DOrientation dir, int offset)
         {
-            m_AnimationDirectionOffset[(int)dir_] = offset_;
+            _animationDirectionOffset[(int)dir] = offset;
         }
 
-        public void SetCurrentAnimation(int index_)
+        public void SetCurrentAnimation(int index)
         {
-            m_Animation2DPlayer.SetCurrentAnimationByID(index_ * m_NumberOfDirection + GetAnimationDirectionOffset());
+            _animation2DPlayer.SetCurrentAnimationById(index * _numberOfDirection + GetAnimationDirectionOffset());
         }
 
-        public void SetCurrentAnimation(string name_)
+        public void SetCurrentAnimation(string name)
         {
-            m_Animation2DPlayer.SetCurrentAnimationByName(name_);
+            _animation2DPlayer.SetCurrentAnimationByName(name);
         }
 
         private int GetAnimationDirectionOffset()
         {
 #if DEBUG
-            int val = (int)m_Orientation & m_AnimationDirectioMask;
+            int val = (int)_orientation & _animationDirectioMask;
 #endif
-            return m_AnimationDirectionOffset[(int)m_Orientation & m_AnimationDirectioMask];
+            return _animationDirectionOffset[(int)_orientation & _animationDirectioMask];
         }
 
-        public virtual void Hit(HitInfo info_)
+        public virtual void Hit(HitInfo info)
         {
-            CharacterActor2D a = (CharacterActor2D)info_.ActorAttacking;
+            CharacterActor2D a = (CharacterActor2D)info.ActorAttacking;
 
-            AddHitEffect(ref info_.ContactPoint);
+            AddHitEffect(ref info.ContactPoint);
 
             int cost = a.Strength - Defense;
             cost = cost < 0 ? 0 : cost;
-            HP -= cost;
+            Hp -= cost;
 
-            if (HP <= 0)
+            if (Hp <= 0)
             {
-                a.IKillSomeone(info_);
+                a.KillSomeone(info);
                 Delete = true;
 
                 //to delete : debug
                 //respawn
-                HP = HPMax;
+                Hp = HpMax;
                 SetPosition(Vector2.One * 10.0f);
-                m_Controller.StateMachine.Transition(m_Controller.GetState(0));
+                _controller.StateMachine.Transition(_controller.GetState(0));
             }
         }
 
-        public void AddHitEffect(ref Vector2 contactPoint_)
+        public void AddHitEffect(ref Vector2 contactPoint)
         {
 
         }
 
-        public virtual void IKillSomeone(HitInfo info_)
+        public virtual void KillSomeone(HitInfo info)
         {
             if (IsPLayer == true)
             {
@@ -642,7 +642,7 @@ namespace CasaEngine.Gameplay
         {
             get
             {
-                Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectByID(m_Animation2DPlayer.CurrentAnimation.CurrentSpriteId);
+                Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(_animation2DPlayer.CurrentAnimation.CurrentSpriteId);
 
                 //return Manager.CreateShape2DFromSprite2D(id, Position, SpriteEffects);
 
@@ -656,26 +656,26 @@ namespace CasaEngine.Gameplay
                     {
                         Shape2DObject g = res[i].Clone();
 
-                        //m_PointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
-                        //m_PointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
+                        //_PointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
+                        //_PointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
 
                         if (SpriteEffects == SpriteEffects.FlipHorizontally)
                         {
-                            m_PointTmp.X = (int)Position.X - g.Location.X + (int)(sprite.HotSpot.X);
-                            m_PointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
+                            _pointTmp.X = (int)Position.X - g.Location.X + (int)(sprite.HotSpot.X);
+                            _pointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
                         }
                         else if (SpriteEffects == SpriteEffects.FlipVertically)
                         {
-                            m_PointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
-                            m_PointTmp.Y = (int)Position.Y - g.Location.Y + (int)(sprite.HotSpot.Y);
+                            _pointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
+                            _pointTmp.Y = (int)Position.Y - g.Location.Y + (int)(sprite.HotSpot.Y);
                         }
                         else
                         {
-                            m_PointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
-                            m_PointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
+                            _pointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
+                            _pointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
                         }
 
-                        g.Location = m_PointTmp;
+                        g.Location = _pointTmp;
 
                         if (SpriteEffects == SpriteEffects.FlipHorizontally)
                         {
@@ -694,11 +694,11 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public bool CanAttackHim(IAttackable other_)
+        public bool CanAttackHim(IAttackable other)
         {
-            if (m_AlreadyAttacked.Contains(other_) == false)
+            if (_alreadyAttacked.Contains(other) == false)
             {
-                return TeamInfo.CanAttack(other_.TeamInfo);
+                return TeamInfo.CanAttack(other.TeamInfo);
             }
 
             return false;
@@ -706,7 +706,7 @@ namespace CasaEngine.Gameplay
 
         public void DoANewAttack()
         {
-            m_AlreadyAttacked.Clear();
+            _alreadyAttacked.Clear();
         }
 
 
@@ -719,17 +719,17 @@ namespace CasaEngine.Gameplay
                     Hit((HitInfo)message.ExtraInfo);
                     break;
 
-                case (int)MessageType.IHitSomeone:
+                case (int)MessageType.HitSomeone:
                     HitInfo hitInfo = (HitInfo)message.ExtraInfo;
-                    m_AlreadyAttacked.Add(hitInfo.ActorHit as ICollide2Dable);
+                    _alreadyAttacked.Add(hitInfo.ActorHit as ICollide2Dable);
                     break;
             }
 
-            m_FSM.HandleMessage(message);
+            _fsm.HandleMessage(message);
 
-            if (m_Controller != null)
+            if (_controller != null)
             {
-                m_Controller.StateMachine.HandleMessage(message);
+                _controller.StateMachine.HandleMessage(message);
             }
 
             return true;
@@ -737,25 +737,25 @@ namespace CasaEngine.Gameplay
 
 
 
-        static public CharacterActor2DOrientation GetCharacterDirectionFromVector2(Vector2 v_)
+        static public CharacterActor2DOrientation GetCharacterDirectionFromVector2(Vector2 v)
         {
             float deadzone = 0.2f;
             CharacterActor2DOrientation dir = 0;
 
-            if (v_.X < -deadzone)
+            if (v.X < -deadzone)
             {
                 dir |= CharacterActor2DOrientation.Left;
             }
-            else if (v_.X > deadzone)
+            else if (v.X > deadzone)
             {
                 dir |= CharacterActor2DOrientation.Right;
             }
 
-            if (v_.Y < -deadzone)
+            if (v.Y < -deadzone)
             {
                 dir |= CharacterActor2DOrientation.Up;
             }
-            else if (v_.Y > deadzone)
+            else if (v.Y > deadzone)
             {
                 dir |= CharacterActor2DOrientation.Down;
             }

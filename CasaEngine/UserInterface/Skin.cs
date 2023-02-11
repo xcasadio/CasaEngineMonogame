@@ -524,11 +524,11 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private Document skinDescription;
+        private Document _skinDescription;
 
         //private AssetContentManager skinContentManager;
 
-        private static readonly string skinContentManagerCategory = "UserInterfaceSkin";
+        private static readonly string SkinContentManagerCategory = "UserInterfaceSkin";
 
 
 
@@ -546,7 +546,7 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public void LoadSkin(GraphicsDevice graphicsDevice_, string skinName)
+        public void LoadSkin(GraphicsDevice graphicsDevice, string skinName)
         {
             CurrentSkinName = skinName;
 
@@ -568,15 +568,15 @@ namespace XNAFinalEngine.UserInterface
             {
                 skinContentManager.Unload(skinContentManagerCategory);
             }*/
-            Engine.Instance.AssetContentManager.Unload(skinContentManagerCategory);
+            Engine.Instance.AssetContentManager.Unload(SkinContentManagerCategory);
 
 
 
             string fullPath = "Skin" + Path.DirectorySeparatorChar + skinName;
-            skinDescription = new Document(fullPath + Path.DirectorySeparatorChar + "Description");
+            _skinDescription = new Document(fullPath + Path.DirectorySeparatorChar + "Description");
 
             // Read XML data.
-            if (skinDescription.Resource.Element("Skin") != null)
+            if (_skinDescription.Resource.Element("Skin") != null)
             {
                 try
                 {
@@ -604,20 +604,20 @@ namespace XNAFinalEngine.UserInterface
                 foreach (SkinFont skinFont in Fonts)
                 {
                     skinFont.Font = (CasaEngine.Asset.Fonts.Font)Engine.Instance.ObjectManager.GetObjectByPath(skinFont.Filename);
-                    skinFont.Font.LoadTexture("", graphicsDevice_);
+                    skinFont.Font.LoadTexture("", graphicsDevice);
                     //skinFont.Font = new CasaEngine.Asset.Fonts.Font(graphicsDevice_, fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename);
                 }
 #if (WINDOWS)
                 foreach (SkinCursor skinCursor in Cursors)
                 {
-                    skinCursor.Cursor = new Cursor(graphicsDevice_,
+                    skinCursor.Cursor = new Cursor(graphicsDevice,
                         Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
                         fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur");
                 }
 #endif
                 foreach (SkinImage skinImage in Images)
                 {
-                    skinImage.Texture = new CasaEngine.Asset.Texture(graphicsDevice_,
+                    skinImage.Texture = new CasaEngine.Asset.Texture(graphicsDevice,
                         fullPath + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar + skinImage.Filename + ".png");
                 }
                 foreach (SkinControlInformation skinControl in Controls)
@@ -648,10 +648,10 @@ namespace XNAFinalEngine.UserInterface
 
         private void LoadControlsDescription()
         {
-            if (skinDescription.Resource.Element("Skin").Element("Controls") == null)
+            if (_skinDescription.Resource.Element("Skin").Element("Controls") == null)
                 return;
 
-            foreach (XElement control in skinDescription.Resource.Descendants("Control"))
+            foreach (XElement control in _skinDescription.Resource.Descendants("Control"))
             {
                 SkinControlInformation skinControl;
                 // Create skin control
@@ -927,10 +927,10 @@ namespace XNAFinalEngine.UserInterface
 
         private void LoadFontsDescription()
         {
-            if (skinDescription.Resource.Element("Skin").Element("Fonts") == null)
+            if (_skinDescription.Resource.Element("Skin").Element("Fonts") == null)
                 return;
 
-            foreach (var font in skinDescription.Resource.Element("Skin").Element("Fonts").Elements())
+            foreach (var font in _skinDescription.Resource.Element("Skin").Element("Fonts").Elements())
             {
                 SkinFont skinFont = new SkinFont
                 {
@@ -946,10 +946,10 @@ namespace XNAFinalEngine.UserInterface
 #if (WINDOWS)
         private void LoadCursorsDescription()
         {
-            if (skinDescription.Resource.Element("Skin").Element("Cursors") == null)
+            if (_skinDescription.Resource.Element("Skin").Element("Cursors") == null)
                 return;
 
-            foreach (var cursor in skinDescription.Resource.Element("Skin").Element("Cursors").Elements())
+            foreach (var cursor in _skinDescription.Resource.Element("Skin").Element("Cursors").Elements())
             {
                 SkinCursor skinCursor = new SkinCursor
                 {
@@ -965,10 +965,10 @@ namespace XNAFinalEngine.UserInterface
 
         private void LoadImagesDescription()
         {
-            if (skinDescription.Resource.Element("Skin").Element("Images") == null)
+            if (_skinDescription.Resource.Element("Skin").Element("Images") == null)
                 return;
 
-            foreach (var image in skinDescription.Resource.Element("Skin").Element("Images").Elements())
+            foreach (var image in _skinDescription.Resource.Element("Skin").Element("Images").Elements())
             {
                 SkinImage skinImage = new SkinImage
                 {

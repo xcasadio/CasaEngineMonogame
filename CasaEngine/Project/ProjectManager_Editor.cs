@@ -8,7 +8,7 @@ namespace CasaEngine.Project
 {
     public partial class ProjectManager
     {
-        static private readonly uint m_Version = 1;
+        static private readonly uint Version = 1;
 
         public event EventHandler ProjectLoaded;
         public event EventHandler ProjectClosed;
@@ -37,7 +37,7 @@ namespace CasaEngine.Project
             }
         }
 
-        public void CreateProject(string fileName_)
+        public void CreateProject(string fileName)
         {
 #if !DEBUG
             try
@@ -45,8 +45,8 @@ namespace CasaEngine.Project
 #endif
 
             Clear();
-            CreateProjectDirectoryHierarchy(Path.GetDirectoryName(fileName_));
-            Save(fileName_);
+            CreateProjectDirectoryHierarchy(Path.GetDirectoryName(fileName));
+            Save(fileName);
 
 #if !DEBUG
             }
@@ -57,21 +57,21 @@ namespace CasaEngine.Project
 #endif
         }
 
-        private void CreateProjectDirectoryHierarchy(string path_)
+        private void CreateProjectDirectoryHierarchy(string path)
         {
-            System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + AssetDirPath);
+            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + AssetDirPath);
             //System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + ImageDirPath);
-            System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + ExternalToolsDirPath);
+            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + ExternalToolsDirPath);
             //System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + SoundDirPath);
             //model
             //video
             //System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + PackageDirPath);
-            System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + GameDirPath);
-            System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + GameDirPath + "\\Content");
-            System.IO.Directory.CreateDirectory(path_ + Path.DirectorySeparatorChar + ConfigDirPath);
+            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + GameDirPath);
+            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + GameDirPath + "\\Content");
+            System.IO.Directory.CreateDirectory(path + Path.DirectorySeparatorChar + ConfigDirPath);
         }
 
-        public bool Save(string fileName_)
+        public bool Save(string fileName)
         {
             //Si on sauvegarde et qu'il y a deja une sauvegarde
             //On est obligé de mixer le nouveau fichier avec le nouveau
@@ -82,14 +82,14 @@ namespace CasaEngine.Project
             //si le fichier existe deja on le charge
             if (string.IsNullOrEmpty(ProjectFileOpened) == false)
             {
-                if (File.Exists(fileName_) == true)
+                if (File.Exists(fileName) == true)
                 {
                     //ProjectFileOpened = fileName_;
                     //TODO
                 }
             }
 
-            ProjectFileOpened = fileName_;
+            ProjectFileOpened = fileName;
 
             /*if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
             {
@@ -99,16 +99,16 @@ namespace CasaEngine.Project
                 }
             }*/
 
-            /*if (string.IsNullOrEmpty(m_LastProjectFileName) == false )
+            /*if (string.IsNullOrEmpty(_LastProjectFileName) == false )
             {
                 xmlDocLastFile = new XmlDocument();
-                xmlDocLastFile.Load(m_LastProjectFileName);
+                xmlDocLastFile.Load(_LastProjectFileName);
             }*/
 
             //nouveau fichier
             XmlDocument xmlDoc = new XmlDocument();
             XmlElement projectNode = xmlDoc.AddRootNode(NodeRootName);
-            xmlDoc.AddAttribute(projectNode, "version", m_Version.ToString());
+            xmlDoc.AddAttribute(projectNode, "version", Version.ToString());
 
             XmlElement configNode = xmlDoc.CreateElement(NodeConfigName);
             projectNode.AppendChild(configNode);
@@ -117,7 +117,7 @@ namespace CasaEngine.Project
             //liste des mondes
             /*XmlElement worldListNode = xmlDoc.CreateElement("WorldList");
             projectNode.AppendChild(worldListNode);
-            foreach (string str in m_WorldList)
+            foreach (string str in _WorldList)
             {
                 XmlElement worldNode = xmlDoc.CreateElementWithText("World", str);
                 worldListNode.AppendChild(worldNode);
@@ -126,7 +126,7 @@ namespace CasaEngine.Project
             //liste screen
             XmlElement screendListNode = xmlDoc.CreateElement("ScreenList");
             projectNode.AppendChild(screendListNode);
-            foreach (KeyValuePair<string, string> pair in m_ScreenList)
+            foreach (KeyValuePair<string, string> pair in _ScreenList)
             {
                 XmlElement screenNode = xmlDoc.CreateElement("Screen");
                 xmlDoc.AddAttribute(screenNode, "key", pair.Key);
@@ -154,7 +154,7 @@ namespace CasaEngine.Project
             //projectNode.AppendChild(objectManagerNode);
             Engine.Instance.ObjectManager.Save(projectNode, SaveOption.Editor);
 
-            xmlDoc.Save(fileName_);
+            xmlDoc.Save(fileName);
 
             LastXmlDocument = xmlDoc;
 

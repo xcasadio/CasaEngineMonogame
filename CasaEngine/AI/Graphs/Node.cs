@@ -17,7 +17,7 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        protected internal int index;
+        protected internal int Index;
 
 
 
@@ -31,7 +31,7 @@ namespace CasaEngine.AI.Graphs
             String message = String.Empty;
 
             if (ValidateIndex(index, ref message) == false)
-                throw new AIException("index", this.GetType().ToString(), message);
+                throw new AiException("index", this.GetType().ToString(), message);
 
             this.index = index;
         }

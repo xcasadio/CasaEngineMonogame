@@ -12,9 +12,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
 
 
-        protected internal float fleeDistance;
+        protected internal float FleeDistance;
 
-        protected internal Vector3 fleePosition;
+        protected internal Vector3 FleePosition;
 
 
 

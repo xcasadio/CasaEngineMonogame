@@ -16,8 +16,8 @@ namespace XNAFinalEngine.UserInterface
     public class ClipBox : Control
     {
 
-        public ClipBox(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ClipBox(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Color = Color.Transparent;
             BackgroundColor = Color.Transparent;

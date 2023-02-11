@@ -7,15 +7,15 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
     public class NeuralNetwork : BaseObject
     {
 
-        NeuralNetworkLayer m_InputLayer = null;
-        NeuralNetworkLayer m_HiddenLayer = null;
-        NeuralNetworkLayer m_OutputLayer = null;
+        NeuralNetworkLayer _inputLayer = null;
+        NeuralNetworkLayer _hiddenLayer = null;
+        NeuralNetworkLayer _outputLayer = null;
 
 
 
-        public int NumberOfInputNode => m_InputLayer.NumberOfNodes;
+        public int NumberOfInputNode => _inputLayer.NumberOfNodes;
 
-        public int NumberOfOutputNode => m_OutputLayer.NumberOfNodes;
+        public int NumberOfOutputNode => _outputLayer.NumberOfNodes;
 
 
         public void Update(float elapsedTime)
@@ -35,44 +35,44 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
         public void Initialize(int nNodesInput, int nNodesHidden, int nNodesOutput)
         {
-            m_InputLayer.NumberOfNodes = nNodesInput;
-            m_InputLayer.NumberOfChildNodes = nNodesHidden;
-            m_InputLayer.NumberOfParentNodes = 0;
-            m_InputLayer.Initialize(nNodesInput, null, m_HiddenLayer);
-            m_InputLayer.RandomizeWeights();
+            _inputLayer.NumberOfNodes = nNodesInput;
+            _inputLayer.NumberOfChildNodes = nNodesHidden;
+            _inputLayer.NumberOfParentNodes = 0;
+            _inputLayer.Initialize(nNodesInput, null, _hiddenLayer);
+            _inputLayer.RandomizeWeights();
 
-            m_HiddenLayer.NumberOfNodes = nNodesHidden;
-            m_HiddenLayer.NumberOfChildNodes = nNodesOutput;
-            m_HiddenLayer.NumberOfParentNodes = nNodesInput;
-            m_HiddenLayer.Initialize(nNodesHidden, m_InputLayer, m_OutputLayer);
-            m_HiddenLayer.RandomizeWeights();
+            _hiddenLayer.NumberOfNodes = nNodesHidden;
+            _hiddenLayer.NumberOfChildNodes = nNodesOutput;
+            _hiddenLayer.NumberOfParentNodes = nNodesInput;
+            _hiddenLayer.Initialize(nNodesHidden, _inputLayer, _outputLayer);
+            _hiddenLayer.RandomizeWeights();
 
-            m_OutputLayer.NumberOfNodes = nNodesOutput;
-            m_OutputLayer.NumberOfChildNodes = 0;
-            m_OutputLayer.NumberOfParentNodes = nNodesHidden;
-            m_OutputLayer.Initialize(nNodesOutput, m_HiddenLayer, null);
+            _outputLayer.NumberOfNodes = nNodesOutput;
+            _outputLayer.NumberOfChildNodes = 0;
+            _outputLayer.NumberOfParentNodes = nNodesHidden;
+            _outputLayer.Initialize(nNodesOutput, _hiddenLayer, null);
         }
 
         public void CleanUp()
         {
-            m_InputLayer.CleanUp();
-            m_HiddenLayer.CleanUp();
-            m_OutputLayer.CleanUp();
+            _inputLayer.CleanUp();
+            _hiddenLayer.CleanUp();
+            _outputLayer.CleanUp();
         }
 
         public void SetInput(int i, double value)
         {
-            if ((i >= 0) && (i < m_InputLayer.NumberOfNodes))
+            if ((i >= 0) && (i < _inputLayer.NumberOfNodes))
             {
-                m_InputLayer.NeuronValues[i] = value;
+                _inputLayer.NeuronValues[i] = value;
             }
         }
 
         public double GetOutput(int i)
         {
-            if ((i >= 0) && (i < m_OutputLayer.NumberOfNodes))
+            if ((i >= 0) && (i < _outputLayer.NumberOfNodes))
             {
-                return m_OutputLayer.NeuronValues[i];
+                return _outputLayer.NeuronValues[i];
             }
 
             return (double)Int32.MaxValue; // to indicate an error
@@ -80,41 +80,41 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
         public void SetDesiredOutput(int i, double value)
         {
-            if ((i >= 0) && (i < m_OutputLayer.NumberOfNodes))
+            if ((i >= 0) && (i < _outputLayer.NumberOfNodes))
             {
-                m_OutputLayer.DesiredValues[i] = value;
+                _outputLayer.DesiredValues[i] = value;
             }
         }
 
         public void FeedForward()
         {
-            m_InputLayer.CalculateNeuronValues();
-            m_HiddenLayer.CalculateNeuronValues();
-            m_OutputLayer.CalculateNeuronValues();
+            _inputLayer.CalculateNeuronValues();
+            _hiddenLayer.CalculateNeuronValues();
+            _outputLayer.CalculateNeuronValues();
         }
 
         public void BackPropagate()
         {
-            m_OutputLayer.CalculateErrors();
-            m_HiddenLayer.CalculateErrors();
+            _outputLayer.CalculateErrors();
+            _hiddenLayer.CalculateErrors();
 
-            m_HiddenLayer.AdjustWeights();
-            m_InputLayer.AdjustWeights();
+            _hiddenLayer.AdjustWeights();
+            _inputLayer.AdjustWeights();
         }
 
-        public int GetMaxOutputID()
+        public int GetMaxOutputId()
         {
             int i, id;
             double maxval;
 
-            maxval = m_OutputLayer.NeuronValues[0];
+            maxval = _outputLayer.NeuronValues[0];
             id = 0;
 
-            for (i = 1; i < m_OutputLayer.NumberOfNodes; i++)
+            for (i = 1; i < _outputLayer.NumberOfNodes; i++)
             {
-                if (m_OutputLayer.NeuronValues[i] > maxval)
+                if (_outputLayer.NeuronValues[i] > maxval)
                 {
-                    maxval = m_OutputLayer.NeuronValues[i];
+                    maxval = _outputLayer.NeuronValues[i];
                     id = i;
                 }
             }
@@ -127,39 +127,39 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
             int i;
             double error = 0;
 
-            for (i = 0; i < m_OutputLayer.NumberOfNodes; i++)
+            for (i = 0; i < _outputLayer.NumberOfNodes; i++)
             {
-                error += System.Math.Pow(m_OutputLayer.NeuronValues[i] - m_OutputLayer.DesiredValues[i], 2);
+                error += System.Math.Pow(_outputLayer.NeuronValues[i] - _outputLayer.DesiredValues[i], 2);
             }
 
-            error = error / m_OutputLayer.NumberOfNodes;
+            error = error / _outputLayer.NumberOfNodes;
 
             return error;
         }
 
         public void SetLearningRate(double rate)
         {
-            m_InputLayer.LearningRate = rate;
-            m_HiddenLayer.LearningRate = rate;
-            m_OutputLayer.LearningRate = rate;
+            _inputLayer.LearningRate = rate;
+            _hiddenLayer.LearningRate = rate;
+            _outputLayer.LearningRate = rate;
         }
 
         public void SetLinearOutput(bool useLinear)
         {
-            m_InputLayer.LinearOutput = useLinear;
-            m_HiddenLayer.LinearOutput = useLinear;
-            m_OutputLayer.LinearOutput = useLinear;
+            _inputLayer.LinearOutput = useLinear;
+            _hiddenLayer.LinearOutput = useLinear;
+            _outputLayer.LinearOutput = useLinear;
         }
 
         public void SetMomentum(bool useMomentum, double factor)
         {
-            m_InputLayer.UseMomentum = useMomentum;
-            m_HiddenLayer.UseMomentum = useMomentum;
-            m_OutputLayer.UseMomentum = useMomentum;
+            _inputLayer.UseMomentum = useMomentum;
+            _hiddenLayer.UseMomentum = useMomentum;
+            _outputLayer.UseMomentum = useMomentum;
 
-            m_InputLayer.MomentumFactor = factor;
-            m_HiddenLayer.MomentumFactor = factor;
-            m_OutputLayer.MomentumFactor = factor;
+            _inputLayer.MomentumFactor = factor;
+            _hiddenLayer.MomentumFactor = factor;
+            _outputLayer.MomentumFactor = factor;
         }
 
         public void DumpData(string filename)
@@ -169,7 +169,7 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
 #if EDITOR
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new Exception("The method or operation is not implemented.");
         }

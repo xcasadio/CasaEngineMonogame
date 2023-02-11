@@ -29,15 +29,15 @@ namespace CasaEngine.FrontEnd.Screen
     class Screen : BaseObject
     {
 
-        bool isPopup = false;
-        TimeSpan transitionOnTime = TimeSpan.Zero;
-        TimeSpan transitionOffTime = TimeSpan.Zero;
-        float transitionPosition = 1;
-        ScreenState screenState = ScreenState.TransitionOn;
-        bool isExiting = false;
-        bool otherScreenHasFocus;
-        ScreenManagerComponent screenManager;
-        PlayerIndex? controllingPlayer;
+        bool _isPopup = false;
+        TimeSpan _transitionOnTime = TimeSpan.Zero;
+        TimeSpan _transitionOffTime = TimeSpan.Zero;
+        float _transitionPosition = 1;
+        ScreenState _screenState = ScreenState.TransitionOn;
+        bool _isExiting = false;
+        bool _otherScreenHasFocus;
+        ScreenManagerComponent _screenManager;
+        PlayerIndex? _controllingPlayer;
 
 
 
@@ -49,57 +49,57 @@ namespace CasaEngine.FrontEnd.Screen
 
         public bool IsPopup
         {
-            get => isPopup;
-            protected set => isPopup = value;
+            get => _isPopup;
+            protected set => _isPopup = value;
         }
 
         public TimeSpan TransitionOnTime
         {
-            get => transitionOnTime;
-            set => transitionOnTime = value;
+            get => _transitionOnTime;
+            set => _transitionOnTime = value;
         }
 
         public TimeSpan TransitionOffTime
         {
-            get => transitionOffTime;
-            set => transitionOffTime = value;
+            get => _transitionOffTime;
+            set => _transitionOffTime = value;
         }
 
         public float TransitionPosition
         {
-            get => transitionPosition;
-            set => transitionPosition = value;
+            get => _transitionPosition;
+            set => _transitionPosition = value;
         }
 
         public byte TransitionAlpha => (byte)(255 - TransitionPosition * 255);
 
         public ScreenState ScreenState
         {
-            get => screenState;
-            set => screenState = value;
+            get => _screenState;
+            set => _screenState = value;
         }
 
         public bool IsExiting
         {
-            get => isExiting;
-            internal set => isExiting = value;
+            get => _isExiting;
+            internal set => _isExiting = value;
         }
 
         public bool IsActive =>
-            !otherScreenHasFocus &&
-            (screenState == ScreenState.TransitionOn ||
-             screenState == ScreenState.Active);
+            !_otherScreenHasFocus &&
+            (_screenState == ScreenState.TransitionOn ||
+             _screenState == ScreenState.Active);
 
         public ScreenManagerComponent ScreenManagerComponent
         {
-            get => screenManager;
-            internal set => screenManager = value;
+            get => _screenManager;
+            internal set => _screenManager = value;
         }
 
         public PlayerIndex? ControllingPlayer
         {
-            get => controllingPlayer;
-            internal set => controllingPlayer = value;
+            get => _controllingPlayer;
+            internal set => _controllingPlayer = value;
         }
 
         public Renderer2DComponent Renderer2DComponent
@@ -110,38 +110,38 @@ namespace CasaEngine.FrontEnd.Screen
 
 
 
-        protected Screen(string name_)
+        protected Screen(string name)
         {
-            Name = name_;
+            Name = name;
         }
 
-        protected Screen(XmlElement el_, SaveOption opt_)
+        protected Screen(XmlElement el, SaveOption opt)
         {
-            Load(el_, opt_);
+            Load(el, opt);
         }
 
 
 
-        public virtual void LoadContent(Renderer2DComponent r_)
+        public virtual void LoadContent(Renderer2DComponent r)
         {
-            Renderer2DComponent = r_;
+            Renderer2DComponent = r;
         }
 
         public virtual void UnloadContent() { }
 
 
 
-        public virtual void Update(float elapsedTime_, bool otherScreenHasFocus,
+        public virtual void Update(float elapsedTime, bool otherScreenHasFocus,
                                                       bool coveredByOtherScreen)
         {
-            this.otherScreenHasFocus = otherScreenHasFocus;
+            this._otherScreenHasFocus = otherScreenHasFocus;
 
-            if (isExiting)
+            if (_isExiting)
             {
                 // If the screen is going away to die, it should transition off.
-                screenState = ScreenState.TransitionOff;
+                _screenState = ScreenState.TransitionOff;
 
-                if (!UpdateTransition(elapsedTime_, transitionOffTime, 1))
+                if (!UpdateTransition(elapsedTime, _transitionOffTime, 1))
                 {
                     // When the transition finishes, remove the screen.
                     ScreenManagerComponent.RemoveScreen(this);
@@ -150,34 +150,34 @@ namespace CasaEngine.FrontEnd.Screen
             else if (coveredByOtherScreen)
             {
                 // If the screen is covered by another, it should transition off.
-                if (UpdateTransition(elapsedTime_, transitionOffTime, 1))
+                if (UpdateTransition(elapsedTime, _transitionOffTime, 1))
                 {
                     // Still busy transitioning.
-                    screenState = ScreenState.TransitionOff;
+                    _screenState = ScreenState.TransitionOff;
                 }
                 else
                 {
                     // Transition finished!
-                    screenState = ScreenState.Hidden;
+                    _screenState = ScreenState.Hidden;
                 }
             }
             else
             {
                 // Otherwise the screen should transition on and become active.
-                if (UpdateTransition(elapsedTime_, transitionOnTime, -1))
+                if (UpdateTransition(elapsedTime, _transitionOnTime, -1))
                 {
                     // Still busy transitioning.
-                    screenState = ScreenState.TransitionOn;
+                    _screenState = ScreenState.TransitionOn;
                 }
                 else
                 {
                     // Transition finished!
-                    screenState = ScreenState.Active;
+                    _screenState = ScreenState.Active;
                 }
             }
         }
 
-        bool UpdateTransition(float elapsedTime_, TimeSpan time, int direction)
+        bool UpdateTransition(float elapsedTime, TimeSpan time, int direction)
         {
             // How much should we move by?
             float transitionDelta;
@@ -185,17 +185,17 @@ namespace CasaEngine.FrontEnd.Screen
             if (time == TimeSpan.Zero)
                 transitionDelta = 1;
             else
-                transitionDelta = elapsedTime_;//(float)(gameTime.ElapsedGameTime.TotalMilliseconds /
-                                               //time.TotalMilliseconds);
+                transitionDelta = elapsedTime;//(float)(gameTime.ElapsedGameTime.TotalMilliseconds /
+                                              //time.TotalMilliseconds);
 
             // Update the transition position.
-            transitionPosition += transitionDelta * direction;
+            _transitionPosition += transitionDelta * direction;
 
             // Did we reach the end of the transition?
-            if (((direction < 0) && (transitionPosition <= 0)) ||
-                ((direction > 0) && (transitionPosition >= 1)))
+            if (((direction < 0) && (_transitionPosition <= 0)) ||
+                ((direction > 0) && (_transitionPosition >= 1)))
             {
-                transitionPosition = MathHelper.Clamp(transitionPosition, 0, 1);
+                _transitionPosition = MathHelper.Clamp(_transitionPosition, 0, 1);
                 return false;
             }
 
@@ -205,19 +205,19 @@ namespace CasaEngine.FrontEnd.Screen
 
         public virtual void HandleInput(InputState input) { }
 
-        public virtual void Draw(float elapsedTime_) { }
+        public virtual void Draw(float elapsedTime) { }
 
 
 
-        public override void Load(XmlElement el_, SaveOption opt_)
+        public override void Load(XmlElement el, SaveOption opt)
         {
-            base.Load(el_, opt_);
+            base.Load(el, opt);
 
-            Name = el_.Attributes["name"].Value;
+            Name = el.Attributes["name"].Value;
 
             //this.TransitionAlpha = byte.Parse(el_.SelectSingleNode("TransitionAlpha").InnerText);
-            this.TransitionOffTime = TimeSpan.Parse(el_.SelectSingleNode("TransitionOffTime").InnerText);
-            this.TransitionOnTime = TimeSpan.Parse(el_.SelectSingleNode("TransitionOnTime").InnerText);
+            this.TransitionOffTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOffTime").InnerText);
+            this.TransitionOnTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOnTime").InnerText);
             //this.TransitionPosition = float.Parse(el_.SelectSingleNode("TransitionPosition").InnerText);
         }
 
@@ -231,41 +231,41 @@ namespace CasaEngine.FrontEnd.Screen
             else
             {
                 // Otherwise flag that it should transition off and then exit.
-                isExiting = true;
+                _isExiting = true;
             }
         }
 
-        public virtual void CopyFrom(Screen screen_)
+        public virtual void CopyFrom(Screen screen)
         {
-            isPopup = screen_.isPopup;
-            transitionOnTime = screen_.transitionOnTime;
-            transitionOffTime = screen_.transitionOffTime;
-            transitionPosition = screen_.transitionPosition;
-            screenState = screen_.screenState;
-            isExiting = screen_.isExiting;
-            otherScreenHasFocus = screen_.otherScreenHasFocus;
-            screenManager = screen_.screenManager;
-            controllingPlayer = screen_.controllingPlayer;
+            _isPopup = screen._isPopup;
+            _transitionOnTime = screen._transitionOnTime;
+            _transitionOffTime = screen._transitionOffTime;
+            _transitionPosition = screen._transitionPosition;
+            _screenState = screen._screenState;
+            _isExiting = screen._isExiting;
+            _otherScreenHasFocus = screen._otherScreenHasFocus;
+            _screenManager = screen._screenManager;
+            _controllingPlayer = screen._controllingPlayer;
         }
 
 #if EDITOR
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
-            if (other_ is Screen == false)
+            if (other is Screen == false)
             {
                 return false;
             }
 
-            Screen screen = other_ as Screen;
+            Screen screen = other as Screen;
 
-            return isPopup == screen.isPopup
-                && transitionOnTime == screen.transitionOnTime
-                && transitionOffTime == screen.transitionOffTime
-                && transitionPosition == screen.transitionPosition
-                && screenState == screen.screenState
-                && isExiting == screen.isExiting
-                && otherScreenHasFocus == screen.otherScreenHasFocus;
+            return _isPopup == screen._isPopup
+                && _transitionOnTime == screen._transitionOnTime
+                && _transitionOffTime == screen._transitionOffTime
+                && _transitionPosition == screen._transitionPosition
+                && _screenState == screen._screenState
+                && _isExiting == screen._isExiting
+                && _otherScreenHasFocus == screen._otherScreenHasFocus;
         }
 
 #endif

@@ -16,9 +16,9 @@ namespace XNAFinalEngine.UserInterface
     public class StatusBar : Control
     {
 
-    
-        public StatusBar(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+
+        public StatusBar(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Left = 0;
             Top = 0;

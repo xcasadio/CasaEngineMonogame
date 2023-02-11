@@ -4,33 +4,33 @@ using CasaEngineCommon.Design;
 
 namespace CasaEngine.Assets.UI
 {
-    public partial class SkinUI
+    public partial class SkinUi
     {
 
 
 
 
 
-        public SkinUI()
+        public SkinUi()
         {
 
         }
 
 
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new NotImplementedException();
         }
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            base.Save(el_, option_);
+            base.Save(el, option);
 
 
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
             throw new Exception("The method or operation is not implemented.");
         }

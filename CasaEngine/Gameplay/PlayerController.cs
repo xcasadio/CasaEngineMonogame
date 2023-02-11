@@ -8,8 +8,8 @@
 
 
 
-        protected PlayerController(CharacterActor2D character_)
-            : base(character_)
+        protected PlayerController(CharacterActor2D character)
+            : base(character)
         {
         }
 

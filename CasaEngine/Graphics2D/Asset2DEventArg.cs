@@ -3,9 +3,9 @@
     public class Asset2DEventArg
         : EventArgs
     {
-        public Asset2DEventArg(string name_)
+        public Asset2DEventArg(string name)
         {
-            AssetName = name_;
+            AssetName = name;
         }
 
         public string AssetName;

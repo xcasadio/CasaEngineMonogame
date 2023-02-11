@@ -21,9 +21,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
 
             //Select the winner chromosomes
             selectedChromosomes = new List<Chromosome<T>>();
-            for (i = 0; i < this.numberParents; i++)
+            for (i = 0; i < this.NumberParents; i++)
             {
-                selectedFitness = generator.NextDouble() * scaledPopulation.TotalFitness;
+                selectedFitness = Generator.NextDouble() * ScaledPopulation.TotalFitness;
 
                 //Search for the winner chromosome
                 total = 0;
@@ -31,10 +31,10 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
                 while (total < selectedFitness)
                 {
                     j++;
-                    total += scaledPopulation.Fitness[j];
+                    total += ScaledPopulation.Fitness[j];
                 }
 
-                selectedChromosomes.Add((Chromosome<T>)scaledPopulation.Chromosomes[j].Clone());
+                selectedChromosomes.Add((Chromosome<T>)ScaledPopulation.Chromosomes[j].Clone());
             }
 
             return selectedChromosomes;

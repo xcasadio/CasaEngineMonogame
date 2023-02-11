@@ -14,13 +14,13 @@ namespace CasaEngine.Assets.UI
 #if EDITOR
     partial
 #endif
-    class SkinUI
+    class SkinUi
         : BaseObject
     {
-        readonly SkinList<SkinControlInformation> m_Controls = new SkinList<SkinControlInformation>();
-        readonly SkinList<SkinImage> m_Images = new SkinList<SkinImage>();
-        readonly SkinList<SkinFont> m_Fonts = new SkinList<SkinFont>();
-        readonly SkinList<SkinCursor> m_Cursors = new SkinList<SkinCursor>();
+        readonly SkinList<SkinControlInformation> _controls = new SkinList<SkinControlInformation>();
+        readonly SkinList<SkinImage> _images = new SkinList<SkinImage>();
+        readonly SkinList<SkinFont> _fonts = new SkinList<SkinFont>();
+        readonly SkinList<SkinCursor> _cursors = new SkinList<SkinCursor>();
 
 
 
@@ -29,7 +29,7 @@ namespace CasaEngine.Assets.UI
 #endif
         public SkinList<SkinControlInformation> Controls
         {
-            get { return m_Controls; }
+            get { return _controls; }
         }
 
 #if EDITOR
@@ -37,7 +37,7 @@ namespace CasaEngine.Assets.UI
 #endif
         public SkinList<SkinImage> Images
         {
-            get { return m_Images; }
+            get { return _images; }
         }
 
 #if EDITOR
@@ -45,7 +45,7 @@ namespace CasaEngine.Assets.UI
 #endif
         public SkinList<SkinFont> Fonts
         {
-            get { return m_Fonts; }
+            get { return _fonts; }
         }
 
 #if EDITOR
@@ -53,14 +53,14 @@ namespace CasaEngine.Assets.UI
 #endif
         public SkinList<SkinCursor> Cursors
         {
-            get { return m_Cursors; }
+            get { return _cursors; }
         }
 
 
 
-        public SkinUI(XmlElement el_, SaveOption option_)
+        public SkinUi(XmlElement el, SaveOption option)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
 
@@ -70,11 +70,11 @@ namespace CasaEngine.Assets.UI
             throw new NotImplementedException();
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            base.Load(el_, option_);
+            base.Load(el, option);
 
-            foreach (XmlNode controlNode in el_.SelectNodes("Skin/Controls/Control"))
+            foreach (XmlNode controlNode in el.SelectNodes("Skin/Controls/Control"))
             {
                 XmlNode node;
                 SkinControlInformation skinControl;
@@ -142,7 +142,7 @@ namespace CasaEngine.Assets.UI
                 Controls.Add(skinControl);
             }
 
-            foreach (XmlNode controlNode in el_.SelectNodes("Skin/Fonts/Font"))
+            foreach (XmlNode controlNode in el.SelectNodes("Skin/Fonts/Font"))
             {
                 SkinFont skinFont = new SkinFont
                 {
@@ -152,7 +152,7 @@ namespace CasaEngine.Assets.UI
                 Fonts.Add(skinFont);
             }
 
-            foreach (XmlNode controlNode in el_.SelectNodes("Skin/Cursors/Cursor"))
+            foreach (XmlNode controlNode in el.SelectNodes("Skin/Cursors/Cursor"))
             {
                 SkinCursor skinCursor = new SkinCursor
                 {
@@ -162,7 +162,7 @@ namespace CasaEngine.Assets.UI
                 Cursors.Add(skinCursor);
             }
 
-            foreach (XmlNode controlNode in el_.SelectNodes("Skin/Images/Image"))
+            foreach (XmlNode controlNode in el.SelectNodes("Skin/Images/Image"))
             {
                 SkinImage skinImage = new SkinImage
                 {
@@ -449,12 +449,12 @@ namespace CasaEngine.Assets.UI
         } // ReadAttributeColor
 
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
             throw new Exception("The method or operation is not implemented.");
         }
 
-        protected override void CopyFrom(BaseObject ob_)
+        protected override void CopyFrom(BaseObject ob)
         {
             throw new Exception("The method or operation is not implemented.");
         }

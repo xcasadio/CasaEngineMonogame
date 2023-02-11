@@ -5,6 +5,6 @@
         None,
         AutoSize,
         Center,
-        stretch
+        Stretch
     }
 }

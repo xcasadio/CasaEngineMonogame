@@ -6,23 +6,23 @@ namespace CasaEngine.Project
         : PackageItem
     {
 
-        private Type m_Type;
-        private readonly string m_XnbName;
+        private Type _type;
+        private readonly string _xnbName;
 
 
 
-        public PackageItemBuildable(Package package_, int id_, string name_, string xnbName_, Type type_)
-            : base(package_, id_, name_)
+        public PackageItemBuildable(Package package, int id, string name, string xnbName, Type type)
+            : base(package, id, name)
         {
-            m_XnbName = xnbName_;
-            m_Type = type_;
+            _xnbName = xnbName;
+            _type = type;
         }
 
 
 
         public override T LoadItem<T>()
         {
-            return Engine.Instance.Game.Content.Load<T>(m_XnbName);
+            return Engine.Instance.Game.Content.Load<T>(_xnbName);
         }
 
     }

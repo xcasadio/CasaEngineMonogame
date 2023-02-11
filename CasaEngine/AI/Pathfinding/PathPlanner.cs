@@ -14,17 +14,17 @@ namespace CasaEngine.AI.Pathfinding
 
 
 
-        protected internal MovingEntity owner;
+        protected internal MovingEntity Owner;
 
-        protected internal Graph<NavigationNode, T> graph;
+        protected internal Graph<NavigationNode, T> Graph;
 
-        protected internal float neighboursSearchRange;
+        protected internal float NeighboursSearchRange;
 
-        protected internal GraphSearchAlgorithm<NavigationNode, T> search;
+        protected internal GraphSearchAlgorithm<NavigationNode, T> Search;
 
-        protected internal Vector3 destination;
+        protected internal Vector3 Destination;
 
-        protected internal PathSmoother smoothAlgorithm;
+        protected internal PathSmoother SmoothAlgorithm;
 
 
 
@@ -34,7 +34,7 @@ namespace CasaEngine.AI.Pathfinding
             this.graph = graph;
             this.search = search;
             this.neighboursSearchRange = neighboursSearchRange;
-            this.smoothAlgorithm = smoothAlgorithm;
+            this.SmoothAlgorithm = smoothAlgorithm;
         }
 
 
@@ -67,10 +67,10 @@ namespace CasaEngine.AI.Pathfinding
 
             PathManager<T>.Instance.Unregister(this);
 
-            destination = position;
+            Destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            if (owner.CanMoveBetween(owner.Position, Destination) == true)
             {
                 MessageManagerRouter.Instance.SendMessage(0, owner.ID, 0, (int)MessageType.PathReady, null);
                 return true;
@@ -82,7 +82,7 @@ namespace CasaEngine.AI.Pathfinding
                 return false;
 
             //Get the cloest node to the destination
-            closestNodeToDestination = ClosestNodeToPosition(destination);
+            closestNodeToDestination = ClosestNodeToPosition(Destination);
             if (closestNodeToDestination == NoNodeFound)
                 return false;
 
@@ -102,7 +102,7 @@ namespace CasaEngine.AI.Pathfinding
                 List<Vector3> path;
 
                 path = NodesToPositions(search.PathOfNodes);
-                path.Add(destination);
+                path.Add(Destination);
 
                 return path;
             }
@@ -126,14 +126,14 @@ namespace CasaEngine.AI.Pathfinding
                     pathEdges.Insert(0, new NavigationEdge(owner.Position, graph.GetNode(pathNodes[0]).Position, EdgeInformation.Normal));
 
                     //Add the edge between the last node of the path and the destination
-                    pathEdges.Add(new NavigationEdge(graph.GetNode(pathNodes[pathNodes.Count - 1]).Position, destination, EdgeInformation.Normal));
+                    pathEdges.Add(new NavigationEdge(graph.GetNode(pathNodes[pathNodes.Count - 1]).Position, Destination, EdgeInformation.Normal));
 
                     //Smooth the path
-                    smoothAlgorithm(owner, pathEdges);
+                    SmoothAlgorithm(owner, pathEdges);
                 }
 
                 else //The path is a straight line
-                    pathEdges.Add(new NavigationEdge(owner.Position, destination, EdgeInformation.Normal));
+                    pathEdges.Add(new NavigationEdge(owner.Position, Destination, EdgeInformation.Normal));
 
                 return pathEdges;
             }
@@ -143,10 +143,10 @@ namespace CasaEngine.AI.Pathfinding
         {
             int closestNodeToEntity, closestNodeToDestination;
 
-            destination = position;
+            Destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            if (owner.CanMoveBetween(owner.Position, Destination) == true)
                 return PathOfPositions;
 
             //Get the closest node to the entity
@@ -155,7 +155,7 @@ namespace CasaEngine.AI.Pathfinding
                 return null;
 
             //Get the cloest node to the destination
-            closestNodeToDestination = ClosestNodeToPosition(destination);
+            closestNodeToDestination = ClosestNodeToPosition(Destination);
             if (closestNodeToDestination == NoNodeFound)
                 return null;
 
@@ -171,10 +171,10 @@ namespace CasaEngine.AI.Pathfinding
         {
             int closestNodeToEntity, closestNodeToDestination;
 
-            destination = position;
+            Destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            if (owner.CanMoveBetween(owner.Position, Destination) == true)
                 return PathOfEdges;
 
             //Get the closest node to the entity
@@ -183,7 +183,7 @@ namespace CasaEngine.AI.Pathfinding
                 return null;
 
             //Get the cloest node to the destination
-            closestNodeToDestination = ClosestNodeToPosition(destination);
+            closestNodeToDestination = ClosestNodeToPosition(Destination);
             if (closestNodeToDestination == NoNodeFound)
                 return null;
 

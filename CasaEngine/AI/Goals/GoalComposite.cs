@@ -4,14 +4,14 @@ namespace CasaEngine.AI.Goals
     public abstract class GoalComposite<T> : Goal<T> where T : BaseEntity
     {
 
-        protected internal List<Goal<T>> subGoals;
+        protected internal List<Goal<T>> SubGoals;
 
 
 
         public GoalComposite(T owner)
             : base(owner)
         {
-            this.subGoals = new List<Goal<T>>();
+            this.SubGoals = new List<Goal<T>>();
         }
 
 
@@ -23,12 +23,12 @@ namespace CasaEngine.AI.Goals
 
         public override void AddFrontSubgoal(Goal<T> goal)
         {
-            subGoals.Insert(0, goal);
+            SubGoals.Insert(0, goal);
         }
 
         public override void AddRearSubgoal(Goal<T> goal)
         {
-            subGoals.Add(goal);
+            SubGoals.Add(goal);
         }
 
         public override bool HandleMessage(Message message)
@@ -43,20 +43,20 @@ namespace CasaEngine.AI.Goals
             GoalProcessingState subGoalStatus;
 
             //Remove the Completed or Failed goals from the goals list
-            while (subGoals.Count != 0 && (subGoals[0].Status == GoalProcessingState.Completed || subGoals[0].Status == GoalProcessingState.Failed))
+            while (SubGoals.Count != 0 && (SubGoals[0].Status == GoalProcessingState.Completed || SubGoals[0].Status == GoalProcessingState.Failed))
             {
-                subGoals[0].Terminate();
-                subGoals.RemoveAt(0);
+                SubGoals[0].Terminate();
+                SubGoals.RemoveAt(0);
             }
 
             //If there are goals left, process the first one
-            if (subGoals.Count != 0)
+            if (SubGoals.Count != 0)
             {
                 //Process the first subgoal
-                subGoalStatus = subGoals[0].Process();
+                subGoalStatus = SubGoals[0].Process();
 
                 //If the goal was completed, but there are goals left, the composite goal continues to be active
-                if (subGoalStatus == GoalProcessingState.Completed && subGoals.Count > 1)
+                if (subGoalStatus == GoalProcessingState.Completed && SubGoals.Count > 1)
                     return GoalProcessingState.Active;
 
                 //If not, return the status of the goal
@@ -69,16 +69,16 @@ namespace CasaEngine.AI.Goals
 
         protected void RemoveAllSubgoals()
         {
-            for (int i = 0; i < subGoals.Count; i++)
-                subGoals[i].Terminate();
+            for (int i = 0; i < SubGoals.Count; i++)
+                SubGoals[i].Terminate();
 
-            subGoals.Clear();
+            SubGoals.Clear();
         }
 
         protected bool ForwardMessage(Message message)
         {
-            if (subGoals.Count != 0)
-                return subGoals[0].HandleMessage(message);
+            if (SubGoals.Count != 0)
+                return SubGoals[0].HandleMessage(message);
 
             return false;
         }

@@ -4,14 +4,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
     public sealed class DisplacementMutation : MutationAlgorithm<int>
     {
 
-        internal bool invert;
+        internal bool Invert;
 
 
 
         public DisplacementMutation(double probability, Random generator, bool invert)
             : base(probability, generator)
         {
-            this.invert = invert;
+            this.Invert = invert;
         }
 
 
@@ -19,7 +19,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public override void Mutate(Population<int> population)
         {
             for (int i = 0; i < population.Genome.Count; i++)
-                if (this.generator.NextDouble() <= this.probability)
+                if (this.Generator.NextDouble() <= this.Probability)
                     population[i] = Mutate(population[i]);
         }
 
@@ -29,11 +29,11 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             Chromosome<int> finalChromosome;
 
             //Get the indexes to displace
-            first = generator.Next(0, chromosome.Genotype.Count - 1);
-            second = generator.Next(0, chromosome.Genotype.Count - 1);
+            first = Generator.Next(0, chromosome.Genotype.Count - 1);
+            second = Generator.Next(0, chromosome.Genotype.Count - 1);
 
             while (second == first)
-                second = generator.Next(0, chromosome.Genotype.Count - 1);
+                second = Generator.Next(0, chromosome.Genotype.Count - 1);
 
             //Order the indexes
             if (first > second)
@@ -47,7 +47,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             finalChromosome = chromosome.FastEmptyInstance();
 
             //Insert the displaced genes in the new chromosome
-            if (invert == false)
+            if (Invert == false)
                 for (int i = first; i < second; i++)
                     finalChromosome.Genotype.Add(chromosome[i]);
 
@@ -59,7 +59,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             chromosome.Genotype.RemoveRange(first, second - first);
 
             //Select a displacement position
-            position = generator.Next(0, chromosome.Genotype.Count - 1);
+            position = Generator.Next(0, chromosome.Genotype.Count - 1);
 
             //Insert the genes that were before the displacement position in the original gene
             //at the start of the new chromosome

@@ -18,33 +18,33 @@ namespace CasaEngine.Editor.Builder
 
         void ErrorRaised(object sender, BuildErrorEventArgs e)
         {
-            errors.Add(e.Message);
+            _errors.Add(e.Message);
         }
 
 
-        public List<string> Errors => errors;
+        public List<string> Errors => _errors;
 
-        readonly List<string> errors = new List<string>();
+        readonly List<string> _errors = new List<string>();
 
 
 
 
         string ILogger.Parameters
         {
-            get => parameters;
-            set => parameters = value;
+            get => _parameters;
+            set => _parameters = value;
         }
 
-        string parameters;
+        string _parameters;
 
 
         LoggerVerbosity ILogger.Verbosity
         {
-            get => verbosity;
-            set => verbosity = value;
+            get => _verbosity;
+            set => _verbosity = value;
         }
 
-        LoggerVerbosity verbosity = LoggerVerbosity.Normal;
+        LoggerVerbosity _verbosity = LoggerVerbosity.Normal;
 
 
     }

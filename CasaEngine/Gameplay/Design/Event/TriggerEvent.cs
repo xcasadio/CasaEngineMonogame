@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Design.Event
 {
-    public interface TriggerEvent
+    public interface ITriggerEvent
         : IEvent, ISaveLoad
     {
     }

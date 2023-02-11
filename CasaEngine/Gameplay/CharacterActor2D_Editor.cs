@@ -16,98 +16,98 @@ namespace CasaEngine.Gameplay
 
 
 
-        public override void Save(XmlElement el_, SaveOption opt_)
+        public override void Save(XmlElement el, SaveOption opt)
         {
-            base.Save(el_, opt_);
+            base.Save(el, opt);
 
-            XmlElement statusNode = el_.OwnerDocument.CreateElement("Status");
-            el_.AppendChild(statusNode);
-            el_.OwnerDocument.AddAttribute(statusNode, "speed", Speed.ToString());
-            el_.OwnerDocument.AddAttribute(statusNode, "strength", Strength.ToString());
-            el_.OwnerDocument.AddAttribute(statusNode, "defense", Defense.ToString());
-            el_.OwnerDocument.AddAttribute(statusNode, "HPMax", HPMax.ToString());
-            el_.OwnerDocument.AddAttribute(statusNode, "MPMax", MPMax.ToString());
+            XmlElement statusNode = el.OwnerDocument.CreateElement("Status");
+            el.AppendChild(statusNode);
+            el.OwnerDocument.AddAttribute(statusNode, "speed", Speed.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "strength", Strength.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "defense", Defense.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "HPMax", HpMax.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "MPMax", MpMax.ToString());
 
             XmlElement animNode;
-            XmlElement animListNode = el_.OwnerDocument.CreateElement("AnimationList");
-            el_.AppendChild(animListNode);
+            XmlElement animListNode = el.OwnerDocument.CreateElement("AnimationList");
+            el.AppendChild(animListNode);
 
-            //foreach (KeyValuePair<int, Animation2D> pair in m_Animations)
-            foreach (KeyValuePair<int, string> pair in m_AnimationListToLoad)
+            //foreach (KeyValuePair<int, Animation2D> pair in _Animations)
+            foreach (KeyValuePair<int, string> pair in _animationListToLoad)
             {
-                animNode = el_.OwnerDocument.CreateElement("Animation");
+                animNode = el.OwnerDocument.CreateElement("Animation");
                 animListNode.AppendChild(animNode);
-                el_.OwnerDocument.AddAttribute(animNode, "index", pair.Key.ToString());
-                el_.OwnerDocument.AddAttribute(animNode, "name", pair.Value);
+                el.OwnerDocument.AddAttribute(animNode, "index", pair.Key.ToString());
+                el.OwnerDocument.AddAttribute(animNode, "name", pair.Value);
             }
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption opt_)
+        public override void Save(BinaryWriter bw, SaveOption opt)
         {
-            base.Save(bw_, opt_);
+            base.Save(bw, opt);
 
-            bw_.Write(Speed);
-            bw_.Write(Strength);
-            bw_.Write(Defense);
-            bw_.Write(HPMax);
-            bw_.Write(MPMax);
+            bw.Write(Speed);
+            bw.Write(Strength);
+            bw.Write(Defense);
+            bw.Write(HpMax);
+            bw.Write(MpMax);
 
-            bw_.Write(m_Animations.Count);
+            bw.Write(_animations.Count);
 
-            foreach (KeyValuePair<int, Animation2D> pair in m_Animations)
+            foreach (KeyValuePair<int, Animation2D> pair in _animations)
             {
-                bw_.Write(pair.Key);
-                bw_.Write(pair.Value.Name);
+                bw.Write(pair.Key);
+                bw.Write(pair.Value.Name);
             }
         }
 
-        public void AddOrSetAnimation(int index_, string name_)
+        public void AddOrSetAnimation(int index, string name)
         {
-            Animation2D anim = Engine.Instance.ObjectManager.GetObjectByPath(name_) as Animation2D;
+            Animation2D anim = Engine.Instance.ObjectManager.GetObjectByPath(name) as Animation2D;
 
             if (anim != null)
             {
-                if (m_AnimationListToLoad.ContainsKey(index_))
+                if (_animationListToLoad.ContainsKey(index))
                 {
-                    m_Animations[index_] = anim;
-                    m_AnimationListToLoad[index_] = anim.Name;
+                    _animations[index] = anim;
+                    _animationListToLoad[index] = anim.Name;
                 }
                 else
                 {
-                    m_Animations.Add(index_, anim);
-                    m_AnimationListToLoad.Add(index_, anim.Name);
+                    _animations.Add(index, anim);
+                    _animationListToLoad.Add(index, anim.Name);
                 }
             }
         }
 
-        public int AddAnimation(string name_)
+        public int AddAnimation(string name)
         {
             int index = 0;
 
-            while (m_AnimationListToLoad.ContainsKey(index) == true)
+            while (_animationListToLoad.ContainsKey(index) == true)
             {
                 index++;
             }
 
-            Animation2D anim = Engine.Instance.Asset2DManager.GetAnimation2DByName(name_);
+            Animation2D anim = Engine.Instance.Asset2DManager.GetAnimation2DByName(name);
 
             if (anim != null)
             {
-                m_Animations.Add(index, anim);
-                m_AnimationListToLoad.Add(index, anim.Name);
+                _animations.Add(index, anim);
+                _animationListToLoad.Add(index, anim.Name);
                 return index;
             }
 
             return -1;
         }
 
-        public string GetAnimationName(int index_)
+        public string GetAnimationName(int index)
         {
-            //if (m_Animations.ContainsKey(index_))
-            if (m_AnimationListToLoad.ContainsKey(index_))
+            //if (_Animations.ContainsKey(index_))
+            if (_animationListToLoad.ContainsKey(index))
             {
-                //return m_Animations[index_].Name;
-                return m_AnimationListToLoad[index_];
+                //return _Animations[index_].Name;
+                return _animationListToLoad[index];
             }
 
             return null;
@@ -117,8 +117,8 @@ namespace CasaEngine.Gameplay
         {
             List<string> res = new List<string>();
 
-            //foreach (KeyValuePair<int, Animation2D> pair in m_Animations)
-            foreach (KeyValuePair<int, string> pair in m_AnimationListToLoad)
+            //foreach (KeyValuePair<int, Animation2D> pair in _Animations)
+            foreach (KeyValuePair<int, string> pair in _animationListToLoad)
             {
                 res.Add(pair.Value); //pair.Value.Name
             }
@@ -126,7 +126,7 @@ namespace CasaEngine.Gameplay
             return res;
         }
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new NotImplementedException();
         }

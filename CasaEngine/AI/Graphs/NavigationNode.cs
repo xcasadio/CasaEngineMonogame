@@ -7,7 +7,7 @@ namespace CasaEngine.AI.Graphs
     public class NavigationNode : Node
     {
 
-        protected internal Vector3 position;
+        protected internal Vector3 Position;
 
 
 

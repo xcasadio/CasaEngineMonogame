@@ -2,9 +2,9 @@
 {
     public class FuzzyRule
     {
-        readonly FuzzyTerm m_pAntecedent;
+        readonly IFuzzyTerm _pAntecedent;
 
-        readonly FuzzyTerm m_pConsequence;
+        readonly IFuzzyTerm _pConsequence;
 
         //it doesn't make sense to allow clients to copy rules
         //FuzzyRule(FuzzyRule);
@@ -12,20 +12,20 @@
 
 
 
-        public FuzzyRule(FuzzyTerm ant, FuzzyTerm con)
+        public FuzzyRule(IFuzzyTerm ant, IFuzzyTerm con)
         {
-            m_pAntecedent = ant.Clone();
-            m_pConsequence = con.Clone();
+            _pAntecedent = ant.Clone();
+            _pConsequence = con.Clone();
         }
 
         public void SetConfidenceOfConsequentToZero()
         {
-            m_pConsequence.ClearDOM();
+            _pConsequence.ClearDom();
         }
 
         public void Calculate()
         {
-            m_pConsequence.ORwithDOM(m_pAntecedent.DOM);
+            _pConsequence.ORwithDom(_pAntecedent.Dom);
         }
 
     }

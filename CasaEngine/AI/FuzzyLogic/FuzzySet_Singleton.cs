@@ -1,32 +1,32 @@
 ﻿namespace CasaEngine.AI.Fuzzy
 {
-    public class FuzzySet_Singleton
+    public class FuzzySetSingleton
         : FuzzySet
     {
 
         //the values that define the shape of this FLV
-        readonly double m_dMidPoint;
-        readonly double m_dLeftOffset;
-        readonly double m_dRightOffset;
+        readonly double _dMidPoint;
+        readonly double _dLeftOffset;
+        readonly double _dRightOffset;
 
 
 
 
 
-        public FuzzySet_Singleton(double mid, double lft, double rgt)
+        public FuzzySetSingleton(double mid, double lft, double rgt)
             : base(mid)
         {
-            m_dMidPoint = mid;
-            m_dLeftOffset = lft;
-            m_dRightOffset = rgt;
+            _dMidPoint = mid;
+            _dLeftOffset = lft;
+            _dRightOffset = rgt;
         }
 
 
 
-        public override double CalculateDOM(double val)
+        public override double CalculateDom(double val)
         {
-            if ((val >= m_dMidPoint - m_dLeftOffset) &&
-                 (val <= m_dMidPoint + m_dRightOffset))
+            if ((val >= _dMidPoint - _dLeftOffset) &&
+                 (val <= _dMidPoint + _dRightOffset))
             {
                 return 1.0;
             }

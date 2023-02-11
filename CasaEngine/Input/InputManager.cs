@@ -144,7 +144,7 @@ namespace XNAFinalEngine.Input
 
 
 
-        internal static void Update(float elapsedTime_)
+        internal static void Update(float elapsedTime)
         {
             //if (EngineManager.IsApplicationActive)
             {
@@ -164,7 +164,7 @@ namespace XNAFinalEngine.Input
 
                 foreach (var axis in Axis.Axes)
                 {
-                    axis.Update(elapsedTime_);
+                    axis.Update(elapsedTime);
                 }
                 foreach (var button in Button.Buttons)
                 {

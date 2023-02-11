@@ -2,7 +2,7 @@
 {
     public struct AssetBuildInfo
     {
-        public int ID;
+        public int Id;
         public DateTime ModificationTime;
         public AssetBuildParamCollection Params;
     }

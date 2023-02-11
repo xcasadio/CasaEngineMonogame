@@ -5,10 +5,10 @@ namespace CasaEngine.Asset
     public class AssetContentManager
     {
 
-        private readonly List<Asset> m_Assets = new List<Asset>();
+        private readonly List<Asset> _assets = new List<Asset>();
 
-        private readonly Dictionary<string, Dictionary<string, object>> m_LoadedAssets = new Dictionary<string, Dictionary<string, object>>();
-        private readonly Dictionary<Type, IAssetLoader> m_AssetLoader = new Dictionary<Type, IAssetLoader>();
+        private readonly Dictionary<string, Dictionary<string, object>> _loadedAssets = new Dictionary<string, Dictionary<string, object>>();
+        private readonly Dictionary<Type, IAssetLoader> _assetLoader = new Dictionary<Type, IAssetLoader>();
 
 
 
@@ -27,46 +27,46 @@ namespace CasaEngine.Asset
 
 
 
-        public void Initialize(GraphicsDevice device_)
+        public void Initialize(GraphicsDevice device)
         {
-            device_.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
+            device.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
         }
 
-        public void RegisterAssetLoader(Type type_, IAssetLoader loader_)
+        public void RegisterAssetLoader(Type type, IAssetLoader loader)
         {
-            m_AssetLoader.Add(type_, loader_);
+            _assetLoader.Add(type, loader);
         }
 
-        public T Load<T>(string filePath_, GraphicsDevice device_, string categoryName_ = "default")
+        public T Load<T>(string filePath, GraphicsDevice device, string categoryName = "default")
         {
             Type type = null;
 
             Dictionary<string, object> categoryAssetList = null;
 
             //find category
-            if (m_LoadedAssets.ContainsKey(categoryName_) == true)
+            if (_loadedAssets.ContainsKey(categoryName) == true)
             {
-                categoryAssetList = m_LoadedAssets[categoryName_];
+                categoryAssetList = _loadedAssets[categoryName];
             }
             else
             {
                 categoryAssetList = new Dictionary<string, object>();
-                m_LoadedAssets.Add(categoryName_, categoryAssetList);
+                _loadedAssets.Add(categoryName, categoryAssetList);
             }
 
             //find asset
-            if (categoryAssetList.ContainsKey(filePath_) == true)
+            if (categoryAssetList.ContainsKey(filePath) == true)
             {
-                return (T)categoryAssetList[filePath_];
+                return (T)categoryAssetList[filePath];
             }
             else
             {
                 type = typeof(T);
 
-                if (m_AssetLoader.ContainsKey(type) == true)
+                if (_assetLoader.ContainsKey(type) == true)
                 {
-                    T asset = (T)m_AssetLoader[type].LoadAsset(filePath_, device_);
-                    categoryAssetList.Add(filePath_, asset);
+                    T asset = (T)_assetLoader[type].LoadAsset(filePath, device);
+                    categoryAssetList.Add(filePath, asset);
                     return asset;
                 }
             }
@@ -74,17 +74,17 @@ namespace CasaEngine.Asset
             throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
         }
 
-        public void Unload(string categoryName_)
+        public void Unload(string categoryName)
         {
             Dictionary<string, object> categoryAssetList = null;
 
             //find category
-            if (m_LoadedAssets.ContainsKey(categoryName_) == false)
+            if (_loadedAssets.ContainsKey(categoryName) == false)
             {
                 return;
             }
 
-            categoryAssetList = m_LoadedAssets[categoryName_];
+            categoryAssetList = _loadedAssets[categoryName];
 
             foreach (var a in categoryAssetList)
             {
@@ -94,21 +94,21 @@ namespace CasaEngine.Asset
                 }
             }
 
-            m_LoadedAssets.Remove(categoryName_);
+            _loadedAssets.Remove(categoryName);
         }
 
         public void UnloadAll()
         {
-            foreach (var pair in m_LoadedAssets)
+            foreach (var pair in _loadedAssets)
             {
                 Unload(pair.Key);
             }
         }
 
 
-        internal void AddAsset(Asset asset_)
+        internal void AddAsset(Asset asset)
         {
-            m_Assets.Add(asset_);
+            _assets.Add(asset);
         }
 
         internal void OnDeviceReset(object sender, EventArgs e)
@@ -116,7 +116,7 @@ namespace CasaEngine.Asset
             GraphicsDevice device = sender as GraphicsDevice;
 
             //TODO : useful or buggy ?
-            /*foreach (var pair in m_LoadedAssets)
+            /*foreach (var pair in _LoadedAssets)
             {
                 foreach (var pair2 in pair.Value)
                 {
@@ -127,7 +127,7 @@ namespace CasaEngine.Asset
                 }
             }*/
 
-            foreach (var a in m_Assets)
+            foreach (var a in _assets)
             {
                 a.OnDeviceReset(device);
             }

@@ -8,7 +8,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
     public sealed class TournamentSelection<T> : SelectionAlgorithm<T>
     {
 
-        internal int size;
+        internal int Size;
 
 
 
@@ -18,9 +18,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             String message = String.Empty;
 
             if (ValidateSize(size, ref message) == false)
-                throw new AIException("size", this.GetType().ToString(), message);
+                throw new AiException("size", this.GetType().ToString(), message);
 
-            this.size = size;
+            this.Size = size;
         }
 
 
@@ -31,8 +31,8 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
 
             //Select the chromosomes using tournaments
             selectedChromosomes = new List<Chromosome<T>>();
-            for (int i = 0; i < this.numberParents; i++)
-                selectedChromosomes.Add(Tournament(population));
+            for (int i = 0; i < this.NumberParents; i++)
+                selectedChromosomes.Add(Tournament(Population));
 
             return selectedChromosomes;
         }
@@ -42,20 +42,20 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             int tournamentTry, selectedChromosome = 0;
             double bestValue;
 
-            if (objective == EvolutionObjective.Maximize)
+            if (Objective == EvolutionObjective.Maximize)
                 bestValue = double.MinValue;
 
             else
                 bestValue = double.MaxValue;
 
             //Search the winner chromosome
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < Size; i++)
             {
                 //Select the chromosome that will participate in the tournament
-                tournamentTry = generator.Next(0, population.Genome.Count - 1);
+                tournamentTry = Generator.Next(0, population.Genome.Count - 1);
 
                 //See if we´ve got a better individual
-                if (objective == EvolutionObjective.Maximize)
+                if (Objective == EvolutionObjective.Maximize)
                 {
                     if (population[tournamentTry].Fitness > bestValue)
                     {

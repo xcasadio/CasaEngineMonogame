@@ -40,48 +40,48 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Square color lenght.
-        const int squareColorlenght = 132;
+        const int SquareColorlenght = 132;
 
         // For the square color palette.
         // This is part of the implementation to capture the mouse movement outside the control's border.
-        private const int squareColorLeft = 5;
-        private const int squareColorTop = 5;
+        private const int SquareColorLeft = 5;
+        private const int SquareColorTop = 5;
 
 
 
-        private bool updatingColorSquareAndIntensityBar;
+        private bool _updatingColorSquareAndIntensityBar;
 
         // The initial color.
-        private readonly Color oldColor;
+        private readonly Color _oldColor;
 
         // The current square color's position.
-        private Point positionSquareColor;
+        private Point _positionSquareColor;
 
         // Intensity level of the right bar.
-        private float intensityLevel = 0.5f;
+        private float _intensityLevel = 0.5f;
 
         // The first position in the color palette when this sub control is changing its value (left mouse pressed and not released).
-        private Point positionBeginningMovement;
+        private Point _positionBeginningMovement;
 
         // The control is updating the values. 
         // When a sub control updates one value of another control we don't want that the updated control update the values of the first one.
-        private bool update = true;
+        private bool _update = true;
 
         // The first intensity level value when the control is updated (left mouse pressed and not released).
-        private float intensityLevelValueBeginningMovement;
+        private float _intensityLevelValueBeginningMovement;
 
         // The texture picker for screen picking.
         //private Picker picker;
 
         // If the control is in screen picking mode.
-        private bool isPicking;
+        private bool _isPicking;
 
         // Controls.
-        private readonly Button buttonPick;
-        private readonly Button buttonClose;
-        private readonly Control squareColorPalette;
-        private readonly TextBox textBoxRed, textBoxGreen, textBoxBlue;
-        private readonly Control intensityLevelBar, background;
+        private readonly Button _buttonPick;
+        private readonly Button _buttonClose;
+        private readonly Control _squareColorPalette;
+        private readonly TextBox _textBoxRed, _textBoxGreen, _textBoxBlue;
+        private readonly Control _intensityLevelBar, _background;
 
 
 
@@ -91,8 +91,8 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 base.Color = value;
-                if (!updatingColorSquareAndIntensityBar)
-                    positionSquareColor = PositionFromColor(Color);
+                if (!_updatingColorSquareAndIntensityBar)
+                    _positionSquareColor = PositionFromColor(Color);
             }
         } // Color
 
@@ -104,8 +104,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ColorPickerDialog(UserInterfaceManager userInterfaceManager_, Color _oldColor)
-            : base(userInterfaceManager_)
+        public ColorPickerDialog(UserInterfaceManager userInterfaceManager, Color oldColor)
+            : base(userInterfaceManager)
         {
 
             ClientWidth = 5 + 132 + 10;
@@ -120,7 +120,7 @@ namespace XNAFinalEngine.UserInterface
 
 
             // The background object is invisible, it serves input actions.
-            background = new Control(UserInterfaceManager)
+            _background = new Control(UserInterfaceManager)
             {
                 Left = 0,
                 Top = 0,
@@ -129,13 +129,13 @@ namespace XNAFinalEngine.UserInterface
                 StayOnTop = true, // To bring it to the second place (first is the main control)
                 Color = new Color(0, 0, 0, 0)
             };
-            UserInterfaceManager.Add(background);
+            UserInterfaceManager.Add(_background);
             // If we click outside the window close it.
-            background.MouseDown += delegate (object sender, MouseEventArgs e)
+            _background.MouseDown += delegate (object sender, MouseEventArgs e)
                                          {
                                              if (e.Button == MouseButton.Left)
                                              {
-                                                 if (isPicking)
+                                                 if (_isPicking)
                                                  {
                                                      // If you want to use the user interface outside my engine you will need to change 
                                                      // only the following two lines (I presume the compiler it is telling this right now)
@@ -146,9 +146,9 @@ namespace XNAFinalEngine.UserInterface
                                                      throw new NotImplementedException("ColorPickerDialog()");
                                                      /*EditorManager.colorPickerNeedsToPick = true;
                                                      EditorManager.colorPickerDialog = this;*/
-                                                     isPicking = false;
+                                                     _isPicking = false;
                                                      // The background control takes the first place (z order), now it needs to be in second.
-                                                     background.StayOnTop = false;  // We need to change this so that the main control can take first place.
+                                                     _background.StayOnTop = false;  // We need to change this so that the main control can take first place.
                                                      BringToFront();
                                                  }
                                                  else
@@ -159,63 +159,63 @@ namespace XNAFinalEngine.UserInterface
 
 
             // Button pick
-            buttonPick = new Button(UserInterfaceManager)
+            _buttonPick = new Button(UserInterfaceManager)
             {
                 Top = 8,
                 Glyph = new Glyph(UserInterfaceManager.Skin.Images["Dropper"].Texture) { SizeMode = SizeMode.Centered },
             };
 
-            buttonPick.Left = (BottomPanel.ClientWidth / 2) - buttonPick.Width - 4;
-            BottomPanel.Add(buttonPick);
-            buttonPick.Click += delegate
+            _buttonPick.Left = (BottomPanel.ClientWidth / 2) - _buttonPick.Width - 4;
+            BottomPanel.Add(_buttonPick);
+            _buttonPick.Click += delegate
             {
                 //picker = new Picker();
-                isPicking = true;
-                background.StayOnTop = true;
-                background.BringToFront();
+                _isPicking = true;
+                _background.StayOnTop = true;
+                _background.BringToFront();
             };
             // Button close
-            buttonClose = new Button(UserInterfaceManager)
+            _buttonClose = new Button(UserInterfaceManager)
             {
                 Left = (BottomPanel.ClientWidth / 2) + 4,
                 Top = 8,
                 Text = "Close",
                 ModalResult = ModalResult.No
             };
-            BottomPanel.Add(buttonClose);
-            buttonClose.Click += delegate
+            BottomPanel.Add(_buttonClose);
+            _buttonClose.Click += delegate
             {
                 Close();
             };
-            DefaultControl = buttonClose;
+            DefaultControl = _buttonClose;
 
 
 
             // Square color
-            squareColorPalette = new Control(UserInterfaceManager)
+            _squareColorPalette = new Control(UserInterfaceManager)
             {
-                Left = squareColorLeft,
-                Top = squareColorTop,
-                Width = squareColorlenght,
-                Height = squareColorlenght,
+                Left = SquareColorLeft,
+                Top = SquareColorTop,
+                Width = SquareColorlenght,
+                Height = SquareColorlenght,
                 Color = new Color(0, 0, 0, 0),
                 Movable = true, // To implement a roboust color picker when you can move the mouse outside the color palette limits.
             };
-            Add(squareColorPalette);
+            Add(_squareColorPalette);
 
 
 
             // Intensity level bar
-            intensityLevelBar = new Control(UserInterfaceManager)
+            _intensityLevelBar = new Control(UserInterfaceManager)
             {
-                Left = 5 + squareColorlenght,
+                Left = 5 + SquareColorlenght,
                 Top = 5,
                 Width = 20,
-                Height = squareColorlenght,
+                Height = SquareColorlenght,
                 Color = new Color(0, 0, 0, 0),
                 Movable = true, // To implement a roboust level picker when you can move the mouse outside the intensity level bar limits.
             };
-            Add(intensityLevelBar);
+            Add(_intensityLevelBar);
 
 
 
@@ -225,10 +225,10 @@ namespace XNAFinalEngine.UserInterface
                 Parent = this,
                 Text = " R",
                 Width = 40,
-                Top = 5 + squareColorlenght + 50,
+                Top = 5 + SquareColorlenght + 50,
                 Left = 5,
             };
-            textBoxRed = new TextBox(UserInterfaceManager)
+            _textBoxRed = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Left = 5,
@@ -242,10 +242,10 @@ namespace XNAFinalEngine.UserInterface
                 Parent = this,
                 Text = " G",
                 Width = 40,
-                Top = 5 + squareColorlenght + 50,
+                Top = 5 + SquareColorlenght + 50,
                 Left = labelRed.Width + 10,
             };
-            textBoxGreen = new TextBox(UserInterfaceManager)
+            _textBoxGreen = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Left = labelRed.Width + 10,
@@ -259,10 +259,10 @@ namespace XNAFinalEngine.UserInterface
                 Parent = this,
                 Text = " B",
                 Width = 40,
-                Top = 5 + squareColorlenght + 50,
+                Top = 5 + SquareColorlenght + 50,
                 Left = labelRed.Width * 2 + 15,
             };
-            textBoxBlue = new TextBox(UserInterfaceManager)
+            _textBoxBlue = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Left = labelRed.Width * 2 + 15,
@@ -271,21 +271,21 @@ namespace XNAFinalEngine.UserInterface
                 Text = "1"
             };
 
-            UpdateRGBFromColor();
+            UpdateRgbFromColor();
 
 
-            background.BringToFront();
-            oldColor = _oldColor;
-            Color = oldColor;
-            positionSquareColor = PositionFromColor(Color);
+            _background.BringToFront();
+            this._oldColor = oldColor;
+            Color = this._oldColor;
+            _positionSquareColor = PositionFromColor(Color);
 
 
-            squareColorPalette.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
-            squareColorPalette.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
-            squareColorPalette.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
-            intensityLevelBar.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
-            intensityLevelBar.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
-            intensityLevelBar.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
+            _squareColorPalette.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
+            _squareColorPalette.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
+            _squareColorPalette.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
+            _intensityLevelBar.MouseDown += delegate { OnMouseDown(new MouseEventArgs()); };
+            _intensityLevelBar.MousePress += delegate { OnMousePress(new MouseEventArgs()); };
+            _intensityLevelBar.MouseUp += delegate { OnMouseUp(new MouseEventArgs()); };
 
 
         } // ColorPickerDialog
@@ -309,42 +309,42 @@ namespace XNAFinalEngine.UserInterface
 
 
             // When the user clicks in the square color control
-            squareColorPalette.MouseDown += delegate (object sender, MouseEventArgs e)
+            _squareColorPalette.MouseDown += delegate (object sender, MouseEventArgs e)
             {
-                updatingColorSquareAndIntensityBar = true;
+                _updatingColorSquareAndIntensityBar = true;
                 Color = ColorFromPositionWithIntensity(e.Position);
-                positionSquareColor = e.Position;
-                positionBeginningMovement = e.Position;
-                updatingColorSquareAndIntensityBar = false;
+                _positionSquareColor = e.Position;
+                _positionBeginningMovement = e.Position;
+                _updatingColorSquareAndIntensityBar = false;
             };
             // When the user clicks and without releasing it he moves the mouse.
-            squareColorPalette.Move += delegate (object sender, MoveEventArgs e)
+            _squareColorPalette.Move += delegate (object sender, MoveEventArgs e)
             {
-                if (update)
+                if (_update)
                 {
-                    updatingColorSquareAndIntensityBar = true;
-                    Point position = new Point(positionBeginningMovement.X + (e.Left - squareColorLeft), positionBeginningMovement.Y + (e.Top - squareColorTop));
+                    _updatingColorSquareAndIntensityBar = true;
+                    Point position = new Point(_positionBeginningMovement.X + (e.Left - SquareColorLeft), _positionBeginningMovement.Y + (e.Top - SquareColorTop));
                     if (position.X < 0)
                         position.X = 0;
-                    else if (position.X > squareColorlenght)
-                        position.X = squareColorlenght;
+                    else if (position.X > SquareColorlenght)
+                        position.X = SquareColorlenght;
                     if (position.Y < 0)
                         position.Y = 0;
-                    else if (position.Y >= squareColorlenght)
-                        position.Y = squareColorlenght;
+                    else if (position.Y >= SquareColorlenght)
+                        position.Y = SquareColorlenght;
                     Color = ColorFromPositionWithIntensity(position);
-                    positionSquareColor = position;
-                    updatingColorSquareAndIntensityBar = false;
+                    _positionSquareColor = position;
+                    _updatingColorSquareAndIntensityBar = false;
                 }
             };
-            squareColorPalette.MoveEnd += delegate
+            _squareColorPalette.MoveEnd += delegate
             {
-                update = false;
-                squareColorPalette.Left = 5;
-                squareColorPalette.Top = 5;
-                update = true;
+                _update = false;
+                _squareColorPalette.Left = 5;
+                _squareColorPalette.Top = 5;
+                _update = true;
             };
-            squareColorPalette.KeyPress += delegate (object sender, KeyEventArgs e)
+            _squareColorPalette.KeyPress += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Escape)
                 {
@@ -355,37 +355,37 @@ namespace XNAFinalEngine.UserInterface
 
 
             // Intensity Level
-            intensityLevelBar.MouseDown += delegate (object sender, MouseEventArgs e)
+            _intensityLevelBar.MouseDown += delegate (object sender, MouseEventArgs e)
             {
-                updatingColorSquareAndIntensityBar = true;
-                intensityLevel = 1 - (e.Position.Y / (float)squareColorlenght);
-                intensityLevelValueBeginningMovement = intensityLevel;
-                Color = ColorFromPositionWithIntensity(positionSquareColor);
-                updatingColorSquareAndIntensityBar = false;
+                _updatingColorSquareAndIntensityBar = true;
+                _intensityLevel = 1 - (e.Position.Y / (float)SquareColorlenght);
+                _intensityLevelValueBeginningMovement = _intensityLevel;
+                Color = ColorFromPositionWithIntensity(_positionSquareColor);
+                _updatingColorSquareAndIntensityBar = false;
             };
-            intensityLevelBar.Move += delegate (object sender, MoveEventArgs e)
+            _intensityLevelBar.Move += delegate (object sender, MoveEventArgs e)
             {
-                if (update)
+                if (_update)
                 {
-                    updatingColorSquareAndIntensityBar = true;
-                    float intensity = 1 - (intensityLevelValueBeginningMovement - (e.Top - squareColorTop) / (float)squareColorlenght);
+                    _updatingColorSquareAndIntensityBar = true;
+                    float intensity = 1 - (_intensityLevelValueBeginningMovement - (e.Top - SquareColorTop) / (float)SquareColorlenght);
                     if (intensity < 0)
                         intensity = 0;
                     else if (intensity > 1)
                         intensity = 1;
-                    intensityLevel = 1 - intensity;
-                    Color = ColorFromPositionWithIntensity(positionSquareColor);
-                    updatingColorSquareAndIntensityBar = false;
+                    _intensityLevel = 1 - intensity;
+                    Color = ColorFromPositionWithIntensity(_positionSquareColor);
+                    _updatingColorSquareAndIntensityBar = false;
                 }
             };
-            intensityLevelBar.MoveEnd += delegate
+            _intensityLevelBar.MoveEnd += delegate
             {
-                update = false;
-                intensityLevelBar.Left = 5 + squareColorlenght;
-                intensityLevelBar.Top = 5;
-                update = true;
+                _update = false;
+                _intensityLevelBar.Left = 5 + SquareColorlenght;
+                _intensityLevelBar.Top = 5;
+                _update = true;
             };
-            intensityLevelBar.KeyPress += delegate (object sender, KeyEventArgs e)
+            _intensityLevelBar.KeyPress += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Escape)
                 {
@@ -395,112 +395,112 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-            textBoxRed.KeyDown += delegate (object sender, KeyEventArgs e)
+            _textBoxRed.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
-                    if (textBoxRed.Text.IsNumericFloat())
+                    if (_textBoxRed.Text.IsNumericFloat())
                     {
-                        if ((float)double.Parse(textBoxRed.Text) < 0)
-                            textBoxRed.Text = "0";
-                        if ((float)double.Parse(textBoxRed.Text) > 1)
-                            textBoxRed.Text = "1";
-                        UpdateColorFromRGB();
+                        if ((float)double.Parse(_textBoxRed.Text) < 0)
+                            _textBoxRed.Text = "0";
+                        if ((float)double.Parse(_textBoxRed.Text) > 1)
+                            _textBoxRed.Text = "1";
+                        UpdateColorFromRgb();
                     }
                     else
                     {
-                        UpdateRGBFromColor();
+                        UpdateRgbFromColor();
                     }
                 }
             };
             // For tabs and other not so common things.
-            textBoxRed.FocusLost += delegate
+            _textBoxRed.FocusLost += delegate
             {
-                if (textBoxRed.Text.IsNumericFloat())
+                if (_textBoxRed.Text.IsNumericFloat())
                 {
-                    if ((float)double.Parse(textBoxRed.Text) < 0)
-                        textBoxRed.Text = "0";
-                    if ((float)double.Parse(textBoxRed.Text) > 1)
-                        textBoxRed.Text = "1";
-                    UpdateColorFromRGB();
+                    if ((float)double.Parse(_textBoxRed.Text) < 0)
+                        _textBoxRed.Text = "0";
+                    if ((float)double.Parse(_textBoxRed.Text) > 1)
+                        _textBoxRed.Text = "1";
+                    UpdateColorFromRgb();
                 }
                 else
                 {
-                    UpdateRGBFromColor();
+                    UpdateRgbFromColor();
                 }
             };
 
 
 
-            textBoxGreen.KeyDown += delegate (object sender, KeyEventArgs e)
+            _textBoxGreen.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
-                    if (textBoxGreen.Text.IsNumericFloat())
+                    if (_textBoxGreen.Text.IsNumericFloat())
                     {
-                        if ((float)double.Parse(textBoxGreen.Text) < 0)
-                            textBoxGreen.Text = "0";
-                        if ((float)double.Parse(textBoxGreen.Text) > 1)
-                            textBoxGreen.Text = "1";
-                        UpdateColorFromRGB();
+                        if ((float)double.Parse(_textBoxGreen.Text) < 0)
+                            _textBoxGreen.Text = "0";
+                        if ((float)double.Parse(_textBoxGreen.Text) > 1)
+                            _textBoxGreen.Text = "1";
+                        UpdateColorFromRgb();
                     }
                     else
                     {
-                        UpdateRGBFromColor();
+                        UpdateRgbFromColor();
                     }
                 }
             };
             // For tabs and other not so common things.
-            textBoxGreen.FocusLost += delegate
+            _textBoxGreen.FocusLost += delegate
             {
-                if (textBoxGreen.Text.IsNumericFloat())
+                if (_textBoxGreen.Text.IsNumericFloat())
                 {
-                    if ((float)double.Parse(textBoxGreen.Text) < 0)
-                        textBoxGreen.Text = "0";
-                    if ((float)double.Parse(textBoxGreen.Text) > 1)
-                        textBoxGreen.Text = "1";
-                    UpdateColorFromRGB();
+                    if ((float)double.Parse(_textBoxGreen.Text) < 0)
+                        _textBoxGreen.Text = "0";
+                    if ((float)double.Parse(_textBoxGreen.Text) > 1)
+                        _textBoxGreen.Text = "1";
+                    UpdateColorFromRgb();
                 }
                 else
                 {
-                    UpdateRGBFromColor();
+                    UpdateRgbFromColor();
                 }
             };
 
 
 
-            textBoxBlue.KeyDown += delegate (object sender, KeyEventArgs e)
+            _textBoxBlue.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
                 {
-                    if (textBoxBlue.Text.IsNumericFloat())
+                    if (_textBoxBlue.Text.IsNumericFloat())
                     {
-                        if ((float)double.Parse(textBoxBlue.Text) < 0)
-                            textBoxBlue.Text = "0";
-                        if ((float)double.Parse(textBoxBlue.Text) > 1)
-                            textBoxBlue.Text = "1";
-                        UpdateColorFromRGB();
+                        if ((float)double.Parse(_textBoxBlue.Text) < 0)
+                            _textBoxBlue.Text = "0";
+                        if ((float)double.Parse(_textBoxBlue.Text) > 1)
+                            _textBoxBlue.Text = "1";
+                        UpdateColorFromRgb();
                     }
                     else
                     {
-                        UpdateRGBFromColor();
+                        UpdateRgbFromColor();
                     }
                 }
             };
             // For tabs and other not so common things.
-            textBoxBlue.FocusLost += delegate
+            _textBoxBlue.FocusLost += delegate
             {
-                if (textBoxBlue.Text.IsNumericFloat())
+                if (_textBoxBlue.Text.IsNumericFloat())
                 {
-                    if ((float)double.Parse(textBoxBlue.Text) < 0)
-                        textBoxBlue.Text = "0";
-                    if ((float)double.Parse(textBoxBlue.Text) > 1)
-                        textBoxBlue.Text = "1";
-                    UpdateColorFromRGB();
+                    if ((float)double.Parse(_textBoxBlue.Text) < 0)
+                        _textBoxBlue.Text = "0";
+                    if ((float)double.Parse(_textBoxBlue.Text) > 1)
+                        _textBoxBlue.Text = "1";
+                    UpdateColorFromRgb();
                 }
                 else
                 {
-                    UpdateRGBFromColor();
+                    UpdateRgbFromColor();
                 }
             };
 
@@ -579,62 +579,62 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        private void UpdateColorFromRGB()
+        private void UpdateColorFromRgb()
         {
-            Color = new Color((float)double.Parse(textBoxRed.Text), (float)double.Parse(textBoxGreen.Text), (float)double.Parse(textBoxBlue.Text));
-            positionSquareColor = PositionFromColor(Color);
+            Color = new Color((float)double.Parse(_textBoxRed.Text), (float)double.Parse(_textBoxGreen.Text), (float)double.Parse(_textBoxBlue.Text));
+            _positionSquareColor = PositionFromColor(Color);
         } // UpdateColorFromRGB
 
-        private void UpdateRGBFromColor()
+        private void UpdateRgbFromColor()
         {
-            textBoxRed.Text = Math.Round(Color.R / 255f, 3).ToString();
-            textBoxGreen.Text = Math.Round(Color.G / 255f, 3).ToString();
-            textBoxBlue.Text = Math.Round(Color.B / 255f, 3).ToString();
+            _textBoxRed.Text = Math.Round(Color.R / 255f, 3).ToString();
+            _textBoxGreen.Text = Math.Round(Color.G / 255f, 3).ToString();
+            _textBoxBlue.Text = Math.Round(Color.B / 255f, 3).ToString();
         } // UpdateRGBFromColor
 
 
 
         private Color ColorFromPositionWithIntensity(Point position)
         {
-            return ColorFromPositionWithIntensity(position, intensityLevel);
+            return ColorFromPositionWithIntensity(position, _intensityLevel);
         } // ColorFromPositionWithIntensity
 
-        private static Color ColorFromPositionWithIntensity(Point position, float _intensityLevel)
+        private static Color ColorFromPositionWithIntensity(Point position, float intensityLevel)
         {
-            return Color.Lerp(MultiplyColorByFloat(ColorFromPosition(position), _intensityLevel), MultiplyColorByFloat(new Color(255, 255, 255), _intensityLevel), position.Y / 132f);
+            return Color.Lerp(MultiplyColorByFloat(ColorFromPosition(position), intensityLevel), MultiplyColorByFloat(new Color(255, 255, 255), intensityLevel), position.Y / 132f);
         } // ColorFromPositionWithIntensity
 
         private static Color ColorFromPosition(Point position)
         {
             Color color = new Color(0, 0, 0, 255);
             // the position in the step or band (unknown for now)
-            int j = position.X % (squareColorlenght / 6);
-            float porcentaje = (j / (squareColorlenght / 6f/* - 1*/)); // The porcentaje of advance in the step
-            if (position.X < squareColorlenght / 6f)               // Red to Yellow
+            int j = position.X % (SquareColorlenght / 6);
+            float porcentaje = (j / (SquareColorlenght / 6f/* - 1*/)); // The porcentaje of advance in the step
+            if (position.X < SquareColorlenght / 6f)               // Red to Yellow
             {
                 color.R = 255;
                 color.G = (byte)(255 * porcentaje);
                 color.B = 0;
             }
-            else if (position.X < 2 * squareColorlenght / 6f)      // Yellow to green
+            else if (position.X < 2 * SquareColorlenght / 6f)      // Yellow to green
             {
                 color.R = (byte)(255 - 255 * porcentaje);
                 color.G = 255;
                 color.B = 0;
             }
-            else if (position.X < 3 * squareColorlenght / 6f)      // green to cyan
+            else if (position.X < 3 * SquareColorlenght / 6f)      // green to cyan
             {
                 color.R = 0;
                 color.G = 255;
                 color.B = (byte)(255 * porcentaje);
             }
-            else if (position.X < 4 * squareColorlenght / 6f)      // cyan to blue
+            else if (position.X < 4 * SquareColorlenght / 6f)      // cyan to blue
             {
                 color.R = 0;
                 color.G = (byte)(255 - 255 * porcentaje);
                 color.B = 255;
             }
-            else if (position.X < 5 * squareColorlenght / 6f)      // blue to violet
+            else if (position.X < 5 * SquareColorlenght / 6f)      // blue to violet
             {
                 color.R = (byte)(255 * porcentaje);
                 color.G = 0;
@@ -644,7 +644,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 color.R = 255;
                 color.G = 0;
-                if (position.X == squareColorlenght) // Last column is a special case.
+                if (position.X == SquareColorlenght) // Last column is a special case.
                     color.B = 0;
                 else
                     color.B = (byte)(255 - 255 * porcentaje);
@@ -663,56 +663,56 @@ namespace XNAFinalEngine.UserInterface
             // The middle one gives us the position X, but the range is between the lowest color to the higher one.
             if (color.R == color.G && color.R == color.B)
             {
-                intensityLevel = color.R / 255f;
+                _intensityLevel = color.R / 255f;
                 position.X = 0;
-                position.Y = squareColorlenght;
+                position.Y = SquareColorlenght;
             }
             else if (color.R >= color.G && color.R >= color.B)
             {
-                intensityLevel = color.R / 255f;
+                _intensityLevel = color.R / 255f;
                 if (color.G >= color.B)                                                         // Red to Yellow
                 {
                     percentage = (((color.G - color.B) / 255f) / ((color.R - color.B) / 255f));
-                    position.X = (int)(percentage * (squareColorlenght / 6));
-                    position.Y = (int)(color.B / intensityLevel / 255f * squareColorlenght);
+                    position.X = (int)(percentage * (SquareColorlenght / 6));
+                    position.Y = (int)(color.B / _intensityLevel / 255f * SquareColorlenght);
                 }
                 else                                                                            // violet to red
                 {
                     percentage = (((color.B - color.G) / 255f) / ((color.R - color.G) / 255f));
-                    position.X = (int)(squareColorlenght - (percentage * (squareColorlenght / 6f)));
-                    position.Y = (int)(color.G / intensityLevel / 255f * squareColorlenght);
+                    position.X = (int)(SquareColorlenght - (percentage * (SquareColorlenght / 6f)));
+                    position.Y = (int)(color.G / _intensityLevel / 255f * SquareColorlenght);
                 }
             }
             else if (color.G >= color.R && color.G >= color.B)
             {
-                intensityLevel = color.G / 255f;
+                _intensityLevel = color.G / 255f;
                 if (color.R >= color.B)                                                         // Yellow to green
                 {
                     percentage = (((color.R - color.B) / 255f) / ((color.G - color.B) / 255f));
-                    position.X = (int)(squareColorlenght / 3f - (percentage * (squareColorlenght / 6f)));
-                    position.Y = (int)(color.B / intensityLevel / 255f * squareColorlenght);
+                    position.X = (int)(SquareColorlenght / 3f - (percentage * (SquareColorlenght / 6f)));
+                    position.Y = (int)(color.B / _intensityLevel / 255f * SquareColorlenght);
                 }
                 else                                                                            // green to cyan
                 {
                     percentage = (((color.B - color.R) / 255f) / ((color.G - color.R) / 255f));
-                    position.X = (int)(percentage * (squareColorlenght / 6) + squareColorlenght / 3f);
-                    position.Y = (int)(color.R / intensityLevel / 255f * squareColorlenght);
+                    position.X = (int)(percentage * (SquareColorlenght / 6) + SquareColorlenght / 3f);
+                    position.Y = (int)(color.R / _intensityLevel / 255f * SquareColorlenght);
                 }
             }
             else
             {
-                intensityLevel = color.B / 255f;
+                _intensityLevel = color.B / 255f;
                 if (color.G >= color.R)                                                         // cyan to blue
                 {
                     percentage = (((color.G - color.R) / 255f) / ((color.B - color.R) / 255f));
-                    position.X = (int)(2f * squareColorlenght / 3f - (percentage * (squareColorlenght / 6f)));
-                    position.Y = (int)(color.R / intensityLevel / 255f * squareColorlenght);
+                    position.X = (int)(2f * SquareColorlenght / 3f - (percentage * (SquareColorlenght / 6f)));
+                    position.Y = (int)(color.R / _intensityLevel / 255f * SquareColorlenght);
                 }
                 else                                                                            // blue to violet
                 {
                     percentage = (((color.R - color.G) / 255f) / ((color.B - color.G) / 255f));
-                    position.X = (int)(percentage * (squareColorlenght / 6) + 2f * squareColorlenght / 3f);
-                    position.Y = (int)(color.G / intensityLevel / 255f * squareColorlenght);
+                    position.X = (int)(percentage * (SquareColorlenght / 6) + 2f * SquareColorlenght / 3f);
+                    position.Y = (int)(color.G / _intensityLevel / 255f * SquareColorlenght);
                 }
             }
             return position;
@@ -734,8 +734,8 @@ namespace XNAFinalEngine.UserInterface
         public override void Close()
         {
             base.Close();
-            UserInterfaceManager.Remove(background);
-            background.Dispose();
+            UserInterfaceManager.Remove(_background);
+            _background.Dispose();
         } // Close
 
 
@@ -770,7 +770,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnColorChanged(EventArgs e)
         {
-            UpdateRGBFromColor();
+            UpdateRgbFromColor();
             base.OnColorChanged(e);
         } // OnColorChanged
 

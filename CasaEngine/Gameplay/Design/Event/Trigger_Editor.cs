@@ -8,7 +8,7 @@ namespace CasaEngine.Design.Event
     public abstract partial class Trigger
     {
 
-        private static readonly uint m_Version = 1;
+        private static readonly uint Version = 1;
 
 
 
@@ -16,46 +16,46 @@ namespace CasaEngine.Design.Event
 
 
 
-        public virtual void Save(XmlElement el_, SaveOption option_)
+        public virtual void Save(XmlElement el, SaveOption option)
         {
             XmlElement node;
 
-            el_.OwnerDocument.AddAttribute(el_, "version", m_Version.ToString());
+            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
-            XmlElement eventListnode = el_.OwnerDocument.CreateElement("EventList");
-            el_.AppendChild(eventListnode);
+            XmlElement eventListnode = el.OwnerDocument.CreateElement("EventList");
+            el.AppendChild(eventListnode);
 
-            foreach (TriggerEvent ev in m_Events)
+            foreach (ITriggerEvent ev in _events)
             {
-                node = el_.OwnerDocument.CreateElement("Event");
+                node = el.OwnerDocument.CreateElement("Event");
                 eventListnode.AppendChild(node);
 
                 Type t = ev.GetType();
-                el_.OwnerDocument.AddAttribute(el_, "assemblyName", t.Assembly.FullName);
+                el.OwnerDocument.AddAttribute(el, "assemblyName", t.Assembly.FullName);
                 //el_.OwnerDocument.AddAttribute(el_, "manifestModuleFullName", t.Assembly.ManifestModule.FullName);
-                el_.OwnerDocument.AddAttribute(el_, "fullName", t.FullName);
-                ev.Save(node, option_);
+                el.OwnerDocument.AddAttribute(el, "fullName", t.FullName);
+                ev.Save(node, option);
             }
         }
 
-        public virtual void Save(BinaryWriter bw_, SaveOption option_)
+        public virtual void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write(m_Version);
-            bw_.Write(m_Events.Count);
+            bw.Write(Version);
+            bw.Write(_events.Count);
 
-            foreach (TriggerEvent ev in m_Events)
+            foreach (ITriggerEvent ev in _events)
             {
                 Type t = ev.GetType();
-                bw_.Write(t.Assembly.FullName);
-                bw_.Write(t.FullName);
+                bw.Write(t.Assembly.FullName);
+                bw.Write(t.FullName);
 
-                ev.Save(bw_, option_);
+                ev.Save(bw, option);
             }
         }
 
-        public void RemoveEvent(TriggerEvent event_)
+        public void RemoveEvent(ITriggerEvent @event)
         {
-            m_Events.Remove(event_);
+            _events.Remove(@event);
         }
 
 

@@ -1,82 +1,82 @@
 ﻿namespace CasaEngine.AI.Fuzzy
 {
     public class FzVery
-        : FuzzyTerm
+        : IFuzzyTerm
     {
-        readonly FuzzySet m_Set;
+        readonly FuzzySet _set;
 
         //prevent copying and assignment by clients
         //FzVery& operator=(const FzVery&);
 
 
 
-        public double DOM => m_Set.DOM * m_Set.DOM;
+        public double Dom => _set.Dom * _set.Dom;
 
 
         public FzVery(FzVery inst)
         {
-            m_Set = inst.m_Set;
+            _set = inst._set;
         }
 
         private FzVery(FzSet ft)
         {
-            m_Set = ft.m_Set;
+            _set = ft.Set;
         }
 
 
 
-        public FuzzyTerm Clone()
+        public IFuzzyTerm Clone()
         {
             return new FzVery(this);
         }
 
-        public void ClearDOM()
+        public void ClearDom()
         {
-            m_Set.ClearDOM();
+            _set.ClearDom();
         }
 
-        public void ORwithDOM(double val)
+        public void ORwithDom(double val)
         {
-            m_Set.ORwithDOM(val * val);
+            _set.ORwithDom(val * val);
         }
 
     }
 
     public class FzFairly
-        : FuzzyTerm
+        : IFuzzyTerm
     {
-        readonly FuzzySet m_Set;
+        readonly FuzzySet _set;
 
 
 
-        public double DOM => System.Math.Sqrt(m_Set.DOM);
+        public double Dom => System.Math.Sqrt(_set.Dom);
 
 
         private FzFairly(FzFairly inst)
         {
-            m_Set = inst.m_Set;
+            _set = inst._set;
         }
 
         public FzFairly(FzSet ft)
         {
-            m_Set = ft.m_Set;
+            _set = ft.Set;
         }
 
 
 
-        public FuzzyTerm Clone()
+        public IFuzzyTerm Clone()
         {
             return new FzFairly(this);
         }
 
-        public void ClearDOM()
+        public void ClearDom()
         {
-            m_Set.ClearDOM();
+            _set.ClearDom();
         }
 
-        public void ORwithDOM(double val)
+        public void ORwithDom(double val)
         {
-            m_Set.ORwithDOM(System.Math.Sqrt(val));
+            _set.ORwithDom(System.Math.Sqrt(val));
         }
 
     }

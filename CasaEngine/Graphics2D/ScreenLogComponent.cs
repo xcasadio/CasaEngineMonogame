@@ -9,22 +9,22 @@ namespace CasaEngine.Graphics2D
     public class ScreenLogComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        readonly List<LogText> m_LogText = new List<LogText>();
-        Renderer2DComponent m_Renderer2DComponent = null;
+        readonly List<LogText> _logText = new List<LogText>();
+        Renderer2DComponent _renderer2DComponent = null;
 
 
 
 
 
-        public ScreenLogComponent(Microsoft.Xna.Framework.Game game_)
-            : base(game_)
+        public ScreenLogComponent(Microsoft.Xna.Framework.Game game)
+            : base(game)
         {
-            if (game_ == null)
+            if (game == null)
             {
                 throw new ArgumentNullException("ScreenLogComponent : Game is null");
             }
 
-            game_.Components.Add(this);
+            game.Components.Add(this);
 
             UpdateOrder = (int)ComponentUpdateOrder.Renderer2DComponent;
             DrawOrder = (int)ComponentDrawOrder.Renderer2DComponent;
@@ -46,56 +46,56 @@ namespace CasaEngine.Graphics2D
             base.Dispose(disposing);
         }
 
-        public void AddText(string text_)
+        public void AddText(string text)
         {
-            AddText(text_, Engine.Instance.DefaultSpriteFont, Color.White);
+            AddText(text, Engine.Instance.DefaultSpriteFont, Color.White);
         }
 
-        public void AddText(string text_, SpriteFont spriteFont_)
+        public void AddText(string text, SpriteFont spriteFont)
         {
-            AddText(text_, spriteFont_, Color.White);
+            AddText(text, spriteFont, Color.White);
         }
 
-        public void AddText(string text_, Color color_)
+        public void AddText(string text, Color color)
         {
-            AddText(text_, Engine.Instance.DefaultSpriteFont, color_);
+            AddText(text, Engine.Instance.DefaultSpriteFont, color);
         }
 
-        public void AddText(string text_, SpriteFont spriteFont_, Color color_)
+        public void AddText(string text, SpriteFont spriteFont, Color color)
         {
             LogText log = new LogText();
-            log.color = color_;
-            log.text = text_;
-            log.spriteFont = spriteFont_;
-            m_LogText.Add(log);
+            log.Color = color;
+            log.Text = text;
+            log.SpriteFont = spriteFont;
+            _logText.Add(log);
         }
 
 
         protected override void LoadContent()
         {
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
             base.LoadContent();
         }
 
         public override void Update(GameTime gameTime)
         {
-            List<LogText> ToDelete = new List<LogText>();
+            List<LogText> toDelete = new List<LogText>();
 
             float elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
 
-            for (int i = 0; i < m_LogText.Count; i++)
+            for (int i = 0; i < _logText.Count; i++)
             {
-                m_LogText[i].time += elapsedTime;
+                _logText[i].Time += elapsedTime;
 
-                if (m_LogText[i].time > 5)
+                if (_logText[i].Time > 5)
                 {
-                    ToDelete.Add(m_LogText[i]);
+                    toDelete.Add(_logText[i]);
                 }
             }
 
-            foreach (LogText log in ToDelete)
+            foreach (LogText log in toDelete)
             {
-                m_LogText.Remove(log);
+                _logText.Remove(log);
             }
 
             base.Update(gameTime);
@@ -103,17 +103,17 @@ namespace CasaEngine.Graphics2D
 
         public override void Draw(GameTime gameTime)
         {
-            if (m_LogText.Count == 0)
+            if (_logText.Count == 0)
             {
                 return;
             }
 
             Vector2 pos = new Vector2(10, (float)GraphicsDevice.Viewport.Height * 0.75f);
 
-            for (int i = m_LogText.Count - 1; i >= 0; i--)
+            for (int i = _logText.Count - 1; i >= 0; i--)
             {
-                m_Renderer2DComponent.AddText2D(m_LogText[i].spriteFont, m_LogText[i].text, pos, 0.0f, Vector2.One, m_LogText[i].color, 0.99f);
-                pos.Y -= m_LogText[i].spriteFont.MeasureString(m_LogText[i].text).Y + 5;
+                _renderer2DComponent.AddText2D(_logText[i].SpriteFont, _logText[i].Text, pos, 0.0f, Vector2.One, _logText[i].Color, 0.99f);
+                pos.Y -= _logText[i].SpriteFont.MeasureString(_logText[i].Text).Y + 5;
             }
 
             base.Draw(gameTime);
@@ -124,9 +124,9 @@ namespace CasaEngine.Graphics2D
 
     class LogText
     {
-        public string text = string.Empty;
-        public SpriteFont spriteFont = null;
-        public Color color = Color.White;
-        public float time = 0f;
+        public string Text = string.Empty;
+        public SpriteFont SpriteFont = null;
+        public Color Color = Color.White;
+        public float Time = 0f;
     }
 }

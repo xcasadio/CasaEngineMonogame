@@ -82,18 +82,18 @@ namespace CasaEngine.Asset
 
         // XNA Render target.
         // Why don't use the derived xnaTexture? Good question. I don't remember why I do it.
-        private RenderTarget2D renderTarget;
+        private RenderTarget2D _renderTarget;
 
         // Make sure we don't call xnaTexture before resolving for the first time!
-        private bool alreadyResolved;
+        private bool _alreadyResolved;
 
         // Indicates if this render target is currently used and if its information has to be preserved.
-        private bool looked;
+        private bool _looked;
 
         // Remember the last render targets we set. We can enable up to four render targets at once.
-        private static readonly RenderTarget[] currentRenderTarget = new RenderTarget[4];
+        private static readonly RenderTarget[] CurrentRenderTarget = new RenderTarget[4];
 
-        private RenderTargetBinding? renderTargetBinding;
+        private RenderTargetBinding? _renderTargetBinding;
 
 
 
@@ -101,8 +101,8 @@ namespace CasaEngine.Asset
         {
             get
             {
-                if (alreadyResolved)
-                    return renderTarget;
+                if (_alreadyResolved)
+                    return _renderTarget;
                 throw new InvalidOperationException("Render Target: Unable to return render target. Render target not resolved.");
             }
         } // Resource
@@ -118,16 +118,16 @@ namespace CasaEngine.Asset
         public static RenderTarget[] CurrentRenderTarget => currentRenderTarget;
 
 
-        public RenderTarget(GraphicsDevice graphicsDevice_, Size size,
-            SurfaceFormat _surfaceFormat, DepthFormat _depthFormat,
+        public RenderTarget(GraphicsDevice graphicsDevice, Size size,
+            SurfaceFormat surfaceFormat, DepthFormat depthFormat,
             AntialiasingType antialiasingType = AntialiasingType.NoAntialiasing, bool mipMap = false)
-            : base(graphicsDevice_)
+            : base(graphicsDevice)
         {
             Name = "Render Target";
             Size = size;
 
-            SurfaceFormat = _surfaceFormat;
-            DepthFormat = _depthFormat;
+            SurfaceFormat = surfaceFormat;
+            DepthFormat = depthFormat;
             Antialiasing = antialiasingType;
             MipMap = mipMap;
 
@@ -136,19 +136,19 @@ namespace CasaEngine.Asset
         } // RenderTarget
 
         public RenderTarget(
-            GraphicsDevice graphicsDevice_,
+            GraphicsDevice graphicsDevice,
             Size size,
-            SurfaceFormat _surfaceFormat = SurfaceFormat.Color,
-            bool _hasDepthBuffer = true,
+            SurfaceFormat surfaceFormat = SurfaceFormat.Color,
+            bool hasDepthBuffer = true,
             AntialiasingType antialiasingType = AntialiasingType.NoAntialiasing,
             bool mipMap = false)
-            : base(graphicsDevice_)
+            : base(graphicsDevice)
         {
             Name = "Render Target";
             Size = size;
 
-            SurfaceFormat = _surfaceFormat;
-            DepthFormat = _hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
+            SurfaceFormat = surfaceFormat;
+            DepthFormat = hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
             Antialiasing = antialiasingType;
             MipMap = mipMap;
 
@@ -167,9 +167,9 @@ namespace CasaEngine.Asset
                 // I use RenderTargetUsage.PlatformContents to be little more performance friendly with PC.
                 // But I assume that the system works in DiscardContents mode so that an XBOX 360 implementation works.
                 // What I lose, mostly nothing, because I made my own ZBuffer texture and the stencil buffer is deleted no matter what I do.
-                renderTarget = new RenderTarget2D(GraphicsDevice, Width, Height, MipMap, SurfaceFormat,
+                _renderTarget = new RenderTarget2D(GraphicsDevice, Width, Height, MipMap, SurfaceFormat,
                     DepthFormat, CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
-                alreadyResolved = true;
+                _alreadyResolved = true;
             }
             catch (Exception e)
             {
@@ -183,7 +183,7 @@ namespace CasaEngine.Asset
         {
             base.DisposeManagedResources();
             GraphicsDevice.DeviceReset -= OnScreenSizeChanged;
-            renderTarget.Dispose();
+            _renderTarget.Dispose();
         } // DisposeManagedResources
 
 
@@ -195,23 +195,23 @@ namespace CasaEngine.Asset
             //    Size == Size.SplitFullScreen || Size == Size.SplitHalfScreen || Size == Size.SplitQuarterScreen)
             {
                 // Render Targets don't use content managers.
-                renderTarget.Dispose();
+                _renderTarget.Dispose();
                 OnDeviceReset(GraphicsDevice);
             }
         } // OnScreenSizeChanged
 
 
 
-        internal override void OnDeviceReset(GraphicsDevice device_)
+        internal override void OnDeviceReset(GraphicsDevice device)
         {
             Create();
             // Redo the bindings
-            if (renderTargetBinding.HasValue)
+            if (_renderTargetBinding.HasValue)
             {
-                for (int i = 0; i < renderTargetBinding.Value.InternalBinding.Length; i++)
+                for (int i = 0; i < _renderTargetBinding.Value.InternalBinding.Length; i++)
                 {
-                    renderTargetBinding.Value.InternalBinding[i] =
-                        new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTargetBinding.Value.RenderTargets[i].renderTarget);
+                    _renderTargetBinding.Value.InternalBinding[i] =
+                        new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(_renderTargetBinding.Value.RenderTargets[i]._renderTarget);
                 }
             }
         } // RecreateResource
@@ -245,23 +245,23 @@ namespace CasaEngine.Asset
         {
             if (currentRenderTarget[0] != null)
                 throw new InvalidOperationException("Render Target: unable to set render target. Another render target is still set. If you want to set multiple render targets use the static method called EnableRenderTargets.");
-            GraphicsDevice.SetRenderTarget(renderTarget);
+            GraphicsDevice.SetRenderTarget(_renderTarget);
             currentRenderTarget[0] = this;
-            alreadyResolved = false;
+            _alreadyResolved = false;
         } // EnableRenderTarget
 
-        public static void EnableRenderTargets(GraphicsDevice graphicsDevice_, RenderTargetBinding renderTargetBinding)
+        public static void EnableRenderTargets(GraphicsDevice graphicsDevice, RenderTargetBinding renderTargetBinding)
         {
             if (currentRenderTarget[0] != null)
                 throw new InvalidOperationException("Render Target: unable to set render target. Another render target is still set.");
             for (int i = 0; i < renderTargetBinding.RenderTargets.Length; i++)
             {
                 currentRenderTarget[i] = renderTargetBinding.RenderTargets[i];
-                renderTargetBinding.RenderTargets[i].alreadyResolved = false;
+                renderTargetBinding.RenderTargets[i]._alreadyResolved = false;
             }
             try
             {
-                graphicsDevice_.SetRenderTargets(renderTargetBinding.InternalBinding);
+                graphicsDevice.SetRenderTargets(renderTargetBinding.InternalBinding);
             }
             catch (Exception e)
             {
@@ -302,20 +302,20 @@ namespace CasaEngine.Asset
             if (currentRenderTarget[1] != null)
                 throw new InvalidOperationException("Render Target: There are multiple render targets enabled. Use RenderTarget.BackToBackBuffer instead.");
 
-            alreadyResolved = true;
+            _alreadyResolved = true;
             currentRenderTarget[0] = null;
             GraphicsDevice.SetRenderTarget(null);
         } // DisableRenderTarget
 
-        public static void DisableCurrentRenderTargets(GraphicsDevice graphicsDevice_)
+        public static void DisableCurrentRenderTargets(GraphicsDevice graphicsDevice)
         {
             for (int i = 0; i < 4; i++)
             {
                 if (currentRenderTarget[i] != null)
-                    currentRenderTarget[i].alreadyResolved = true;
+                    currentRenderTarget[i]._alreadyResolved = true;
                 currentRenderTarget[i] = null;
             }
-            graphicsDevice_.SetRenderTarget(null);
+            graphicsDevice.SetRenderTarget(null);
         } // DisableCurrentRenderTargets
 
 
@@ -326,13 +326,13 @@ namespace CasaEngine.Asset
             {
                 InternalBinding = new[]
                 {
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget1.renderTarget),
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget2.renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget1._renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget2._renderTarget),
                 },
                 RenderTargets = new[] { renderTarget1, renderTarget2 }
             };
-            renderTarget1.renderTargetBinding = renderTargetsBinding;
-            renderTarget2.renderTargetBinding = renderTargetsBinding;
+            renderTarget1._renderTargetBinding = renderTargetsBinding;
+            renderTarget2._renderTargetBinding = renderTargetsBinding;
             return renderTargetsBinding;
         } // BindRenderTargets
 
@@ -342,15 +342,15 @@ namespace CasaEngine.Asset
             {
                 InternalBinding = new[]
                 {
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget1.renderTarget),
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget2.renderTarget),
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget3.renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget1._renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget2._renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget3._renderTarget),
                 },
                 RenderTargets = new[] { renderTarget1, renderTarget2, renderTarget3 }
             };
-            renderTarget1.renderTargetBinding = renderTargetsBinding;
-            renderTarget2.renderTargetBinding = renderTargetsBinding;
-            renderTarget3.renderTargetBinding = renderTargetsBinding;
+            renderTarget1._renderTargetBinding = renderTargetsBinding;
+            renderTarget2._renderTargetBinding = renderTargetsBinding;
+            renderTarget3._renderTargetBinding = renderTargetsBinding;
             return renderTargetsBinding;
         } // BindRenderTargets
 
@@ -360,42 +360,42 @@ namespace CasaEngine.Asset
             {
                 InternalBinding = new[]
                 {
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget1.renderTarget),
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget2.renderTarget),
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget3.renderTarget),
-                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget4.renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget1._renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget2._renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget3._renderTarget),
+                    new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(renderTarget4._renderTarget),
                 },
                 RenderTargets = new[] { renderTarget1, renderTarget2, renderTarget3, renderTarget4 }
             };
-            renderTarget1.renderTargetBinding = renderTargetsBinding;
-            renderTarget2.renderTargetBinding = renderTargetsBinding;
-            renderTarget3.renderTargetBinding = renderTargetsBinding;
-            renderTarget4.renderTargetBinding = renderTargetsBinding;
+            renderTarget1._renderTargetBinding = renderTargetsBinding;
+            renderTarget2._renderTargetBinding = renderTargetsBinding;
+            renderTarget3._renderTargetBinding = renderTargetsBinding;
+            renderTarget4._renderTargetBinding = renderTargetsBinding;
             return renderTargetsBinding;
         } // BindRenderTargets
 
 
 
         // A pool of all render targets.
-        private static readonly List<RenderTarget> renderTargets = new List<RenderTarget>(0);
+        private static readonly List<RenderTarget> RenderTargets = new List<RenderTarget>(0);
 
-        public static RenderTarget Fetch(GraphicsDevice graphicsDevice_, Size size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntialiasingType antialiasingType, bool mipMap = false)
+        public static RenderTarget Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntialiasingType antialiasingType, bool mipMap = false)
         {
             RenderTarget renderTarget;
-            for (int i = 0; i < renderTargets.Count; i++)
+            for (int i = 0; i < RenderTargets.Count; i++)
             {
-                renderTarget = renderTargets[i];
+                renderTarget = RenderTargets[i];
                 if (renderTarget.Size == size && renderTarget.SurfaceFormat == surfaceFormat &&
-                    renderTarget.DepthFormat == depthFormat && renderTarget.Antialiasing == antialiasingType && renderTarget.MipMap == mipMap && !renderTarget.looked)
+                    renderTarget.DepthFormat == depthFormat && renderTarget.Antialiasing == antialiasingType && renderTarget.MipMap == mipMap && !renderTarget._looked)
                 {
-                    renderTarget.looked = true;
+                    renderTarget._looked = true;
                     return renderTarget;
                 }
             }
             // If there is not one unlook or present we create one.
-            renderTarget = new RenderTarget(graphicsDevice_, size, surfaceFormat, depthFormat, antialiasingType, mipMap);
-            renderTargets.Add(renderTarget);
-            renderTarget.looked = true;
+            renderTarget = new RenderTarget(graphicsDevice, size, surfaceFormat, depthFormat, antialiasingType, mipMap);
+            RenderTargets.Add(renderTarget);
+            renderTarget._looked = true;
             return renderTarget;
         } // Fetch
 
@@ -403,11 +403,11 @@ namespace CasaEngine.Asset
         {
             if (rendertarget == null)
                 return;
-            for (int i = 0; i < renderTargets.Count; i++)
+            for (int i = 0; i < RenderTargets.Count; i++)
             {
-                if (rendertarget == renderTargets[i])
+                if (rendertarget == RenderTargets[i])
                 {
-                    rendertarget.looked = false;
+                    rendertarget._looked = false;
                     return;
                 }
             }
@@ -417,50 +417,50 @@ namespace CasaEngine.Asset
 
         public static void ClearRenderTargetPool()
         {
-            for (int i = 0; i < renderTargets.Count; i++)
-                renderTargets[i].Dispose();
-            renderTargets.Clear();
+            for (int i = 0; i < RenderTargets.Count; i++)
+                RenderTargets[i].Dispose();
+            RenderTargets.Clear();
         } // ClearRenderTargetPool
 
 
 
         // A pool of all multiple render targets.
-        private static readonly List<RenderTargetBinding> multipleRenderTargets = new List<RenderTargetBinding>(0);
+        private static readonly List<RenderTargetBinding> MultipleRenderTargets = new List<RenderTargetBinding>(0);
 
-        public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice_, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
+        public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
         {
             RenderTargetBinding renderTargetBinding;
-            for (int i = 0; i < multipleRenderTargets.Count; i++)
+            for (int i = 0; i < MultipleRenderTargets.Count; i++)
             {
-                renderTargetBinding = multipleRenderTargets[i];
+                renderTargetBinding = MultipleRenderTargets[i];
                 // If is a multiple render target of three render targets.
                 if (renderTargetBinding.RenderTargets.Length == 2)
                 {
                     if (renderTargetBinding.RenderTargets[0].Size == size && renderTargetBinding.RenderTargets[0].SurfaceFormat == surfaceFormat1 &&
                         renderTargetBinding.RenderTargets[0].DepthFormat == depthFormat &&
                         renderTargetBinding.RenderTargets[1].SurfaceFormat == surfaceFormat2 &&
-                        !renderTargetBinding.RenderTargets[0].looked)
+                        !renderTargetBinding.RenderTargets[0]._looked)
                     {
-                        renderTargetBinding.RenderTargets[0].looked = true;
+                        renderTargetBinding.RenderTargets[0]._looked = true;
                         return renderTargetBinding;
                     }
                 }
             }
             // If there is not one unlook or present we create one.
-            RenderTarget renderTarget1 = new RenderTarget(graphicsDevice_, size, surfaceFormat1, depthFormat, AntialiasingType.NoAntialiasing);
-            RenderTarget renderTarget2 = new RenderTarget(graphicsDevice_, size, surfaceFormat2, false, AntialiasingType.NoAntialiasing);
+            RenderTarget renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat, AntialiasingType.NoAntialiasing);
+            RenderTarget renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false, AntialiasingType.NoAntialiasing);
             renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2);
-            multipleRenderTargets.Add(renderTargetBinding);
-            renderTargetBinding.RenderTargets[0].looked = true;
+            MultipleRenderTargets.Add(renderTargetBinding);
+            renderTargetBinding.RenderTargets[0]._looked = true;
             return renderTargetBinding;
         } // Fetch
 
-        public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice_, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2, SurfaceFormat surfaceFormat3)
+        public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2, SurfaceFormat surfaceFormat3)
         {
             RenderTargetBinding renderTargetBinding;
-            for (int i = 0; i < multipleRenderTargets.Count; i++)
+            for (int i = 0; i < MultipleRenderTargets.Count; i++)
             {
-                renderTargetBinding = multipleRenderTargets[i];
+                renderTargetBinding = MultipleRenderTargets[i];
                 // If is a multiple render target of three render targets.
                 if (renderTargetBinding.RenderTargets.Length == 3)
                 {
@@ -468,30 +468,30 @@ namespace CasaEngine.Asset
                         renderTargetBinding.RenderTargets[0].DepthFormat == depthFormat &&
                         renderTargetBinding.RenderTargets[1].SurfaceFormat == surfaceFormat2 &&
                         renderTargetBinding.RenderTargets[2].SurfaceFormat == surfaceFormat3 &&
-                        !renderTargetBinding.RenderTargets[0].looked)
+                        !renderTargetBinding.RenderTargets[0]._looked)
                     {
-                        renderTargetBinding.RenderTargets[0].looked = true;
+                        renderTargetBinding.RenderTargets[0]._looked = true;
                         return renderTargetBinding;
                     }
                 }
             }
             // If there is not one unlook or present we create one.
-            RenderTarget renderTarget1 = new RenderTarget(graphicsDevice_, size, surfaceFormat1, depthFormat, AntialiasingType.NoAntialiasing);
-            RenderTarget renderTarget2 = new RenderTarget(graphicsDevice_, size, surfaceFormat2, false, AntialiasingType.NoAntialiasing);
-            RenderTarget renderTarget3 = new RenderTarget(graphicsDevice_, size, surfaceFormat3, false, AntialiasingType.NoAntialiasing);
+            RenderTarget renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat, AntialiasingType.NoAntialiasing);
+            RenderTarget renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false, AntialiasingType.NoAntialiasing);
+            RenderTarget renderTarget3 = new RenderTarget(graphicsDevice, size, surfaceFormat3, false, AntialiasingType.NoAntialiasing);
             renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2, renderTarget3);
-            multipleRenderTargets.Add(renderTargetBinding);
-            renderTargetBinding.RenderTargets[0].looked = true;
+            MultipleRenderTargets.Add(renderTargetBinding);
+            renderTargetBinding.RenderTargets[0]._looked = true;
             return renderTargetBinding;
         } // Fetch
 
         public static void Release(RenderTargetBinding renderTargetBinding)
         {
-            for (int i = 0; i < multipleRenderTargets.Count; i++)
+            for (int i = 0; i < MultipleRenderTargets.Count; i++)
             {
-                if (renderTargetBinding == multipleRenderTargets[i])
+                if (renderTargetBinding == MultipleRenderTargets[i])
                 {
-                    renderTargetBinding.RenderTargets[0].looked = false;
+                    renderTargetBinding.RenderTargets[0]._looked = false;
                     return;
                 }
             }
@@ -501,12 +501,12 @@ namespace CasaEngine.Asset
 
         public static void ClearMultpleRenderTargetPool()
         {
-            for (int i = 0; i < multipleRenderTargets.Count; i++)
+            for (int i = 0; i < MultipleRenderTargets.Count; i++)
             {
-                for (int j = 0; j < multipleRenderTargets[i].RenderTargets.Length; j++)
-                    multipleRenderTargets[i].RenderTargets[j].Dispose();
+                for (int j = 0; j < MultipleRenderTargets[i].RenderTargets.Length; j++)
+                    MultipleRenderTargets[i].RenderTargets[j].Dispose();
             }
-            multipleRenderTargets.Clear();
+            MultipleRenderTargets.Clear();
         } // ClearMultpleRenderTargetPool
 
 

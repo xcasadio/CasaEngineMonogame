@@ -31,7 +31,7 @@ using CasaEngine.Assets.UI;
 
 namespace Editor
 {
-    public partial class ContentBrowserForm 
+    public partial class ContentBrowserForm
         : DockContent
     {
 
@@ -86,7 +86,7 @@ namespace Editor
                     t.Click += new EventHandler(CustomObjectMenuClick);
                     toolStripMenuItemAddItem.DropDownItems.Add(t);
                 }
-            }        
+            }
 
             RefreshTreeViewFolder();
         }
@@ -113,7 +113,7 @@ namespace Editor
                     }
 
                     if (Engine.Instance.ObjectManager.IsValidObjectPath(objectPath) == true)
-                    {                        
+                    {
                         break;
                     }
 
@@ -177,7 +177,7 @@ namespace Editor
                     LogManager.Instance.WriteException(ex);
                 }
             }
-        }        
+        }
 
         /// <summary>
         /// 
@@ -188,7 +188,7 @@ namespace Editor
         {
             if (treeViewFolder.InvokeRequired)
             {
-                listViewItems.Invoke(new Action (() => OnObjectModified(sender, e)));
+                listViewItems.Invoke(new Action(() => OnObjectModified(sender, e)));
             }
             else
             {
@@ -197,7 +197,7 @@ namespace Editor
                     if (sender is string)
                     {
                         string path = sender as string;
-                        
+
                         foreach (ListViewItem item in listViewItems.Items)
                         {
                             if (path.Equals(item.Tag) == true && item.Text.EndsWith("*") == false)
@@ -212,7 +212,7 @@ namespace Editor
                 {
                     LogManager.Instance.WriteException(ex);
                 }
-            }            
+            }
         }
 
         /// <summary>
@@ -283,7 +283,7 @@ namespace Editor
                 {
                     if (treeViewFolder.InvokeRequired)
                     {
-                        treeViewFolder.Invoke(new CreateFolderDelegate(CreateFolder), sender as string);                        
+                        treeViewFolder.Invoke(new CreateFolderDelegate(CreateFolder), sender as string);
                     }
                     else
                     {
@@ -294,7 +294,7 @@ namespace Editor
             catch (System.Exception ex)
             {
                 LogManager.Instance.WriteException(ex);
-            }            
+            }
         }
 
         delegate void CreateFolderDelegate(string path_);
@@ -386,7 +386,7 @@ namespace Editor
         /// </summary>
         public void RefreshItem()
         {
-            
+
         }
 
 
@@ -399,7 +399,7 @@ namespace Editor
         {
             if (listViewItems.InvokeRequired == true)
             {
-                listViewItems.Invoke(new Action( () => OnSpriteAdded(sender_, e)));
+                listViewItems.Invoke(new Action(() => OnSpriteAdded(sender_, e)));
             }
             else
             {
@@ -456,7 +456,7 @@ namespace Editor
                 {
                     item.ImageKey = "animation";
                 }
-                else if (typeof(CasaEngine.FrontEnd.Screen.UIScreen).FullName.Equals(o.ClassName) == true)
+                else if (typeof(CasaEngine.FrontEnd.Screen.UiScreen).FullName.Equals(o.ClassName) == true)
                 {
                     item.ImageKey = "menu";
                 }
@@ -560,7 +560,7 @@ namespace Editor
             if (e.Node != null)
             {
                 UpdateListView(e.Node.FullPath);
-            }            
+            }
         }
 
         /// <summary>
@@ -629,7 +629,7 @@ namespace Editor
                     if (fs != null)
                     {
                         fs.Close();
-                    }                    
+                    }
                 }
             }
         }
@@ -662,7 +662,7 @@ namespace Editor
         /// <param name="detectAnimation2D_"></param>
         public void AddSprites(string packageName_, string[] files_, bool detectAnimation2D_)
         {
-            object[] args = new object[3] {packageName_, files_, detectAnimation2D_};
+            object[] args = new object[3] { packageName_, files_, detectAnimation2D_ };
             BgWorkerForm form = new BgWorkerForm(GenerateSprites, args);
             form.Text = "Build sprite sheet";
             form.ShowDialog(this);
@@ -715,8 +715,8 @@ namespace Editor
                         else
                         {
                             replace = form.Action == ConflicForm.ConflictAction.Replace;
-                                
-                            if (form.Action  == ConflicForm.ConflictAction.Rename)
+
+                            if (form.Action == ConflicForm.ConflictAction.Rename)
                             {
                                 int i = 1;
                                 nameIsOK = true;
@@ -732,7 +732,7 @@ namespace Editor
 
                         form.Dispose();
                     }
-                    
+
                     if (nameIsOK)
                     {
                         //Create Asset
@@ -767,7 +767,7 @@ namespace Editor
                             }
 
                             newBitmap.Save(sprite2DFileName);
-                            newBitmap.Dispose();                      
+                            newBitmap.Dispose();
                         }
                         else
                         {
@@ -865,7 +865,7 @@ namespace Editor
 
                         foreach (KeyValuePair<int, string> pair2 in pair.Value)
                         {
-                            anim2D.AddFrame(Engine.Instance.ObjectManager.GetObjectByPath(pair2.Value).ID, 0.1f, null);
+                            anim2D.AddFrame(Engine.Instance.ObjectManager.GetObjectByPath(pair2.Value).Id, 0.1f, null);
                         }
 
                         //Add object
@@ -947,7 +947,7 @@ namespace Editor
 
             if (form.DialogResult == DialogResult.OK)
             {
-                BaseObject obj = new UIScreen(form.InputText);
+                BaseObject obj = new UiScreen(form.InputText);
                 Engine.Instance.ObjectManager.Add(objectPath, obj);
             }
 
@@ -983,7 +983,7 @@ namespace Editor
 
             if (form.DialogResult == DialogResult.OK)
             {
-                BaseObject obj = new SkinUI();
+                BaseObject obj = new SkinUi();
                 Engine.Instance.ObjectManager.Add(objectPath, obj);
             }
 
@@ -1037,11 +1037,11 @@ namespace Editor
         /// <param name="e"></param>
         private void toolStripMenuItemRename_Click(object sender, EventArgs e)
         {
-            foreach (ListViewItem item in  listViewItems.SelectedItems)
+            foreach (ListViewItem item in listViewItems.SelectedItems)
             {
                 item.BeginEdit();
                 break;
-            }            
+            }
         }
 
         /// <summary>
@@ -1099,7 +1099,7 @@ namespace Editor
                     e.CancelEdit = true;
                     MessageBox.Show(this, "An object with the name '" + e.Label + "' already exist!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }            
+            }
         }
 
 
@@ -1291,7 +1291,7 @@ namespace Editor
                         path += listViewItems.SelectedItems[0].Text;
                         Clipboard.SetText(path);
                     }
-                }                
+                }
             }
         }
 
@@ -1347,7 +1347,7 @@ namespace Editor
                 if (form != null)
                 {
                     form.Dispose();
-                }                
+                }
             }
         }
 

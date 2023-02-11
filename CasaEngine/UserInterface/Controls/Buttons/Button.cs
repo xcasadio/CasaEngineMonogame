@@ -25,44 +25,44 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private Glyph glyph;
+        private Glyph _glyph;
 
-        private ModalResult modalResult = ModalResult.None;
+        private ModalResult _modalResult = ModalResult.None;
 
-        private ButtonMode mode = ButtonMode.Normal;
+        private ButtonMode _mode = ButtonMode.Normal;
 
-        private bool pushed;
+        private bool _pushed;
 
 
 
         public Glyph Glyph
         {
-            get => glyph;
+            get => _glyph;
             set
             {
-                glyph = value;
+                _glyph = value;
                 if (!Suspended) OnGlyphChanged(new EventArgs());
             }
         } // Glyph
 
         public ModalResult ModalResult
         {
-            get => modalResult;
-            set => modalResult = value;
+            get => _modalResult;
+            set => _modalResult = value;
         } // ModalResult
 
         public ButtonMode Mode
         {
-            get => mode;
-            set => mode = value;
+            get => _mode;
+            set => _mode = value;
         } // Mode
 
         public bool Pushed
         {
-            get => pushed;
+            get => _pushed;
             set
             {
-                pushed = value;
+                _pushed = value;
                 Invalidate();
             }
         } // Pushed
@@ -73,8 +73,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Button(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Button(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             SetDefaultSize(72, 24);
         } // Button
@@ -100,7 +100,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            if (mode == ButtonMode.PushButton && pushed)
+            if (_mode == ButtonMode.PushButton && _pushed)
             {
                 SkinLayer l = SkinInformation.Layers["Control"];
                 UserInterfaceManager.Renderer.DrawLayer(l, rect, l.States.Pressed.Color, l.States.Pressed.Index);
@@ -121,11 +121,11 @@ namespace XNAFinalEngine.UserInterface
             {
                 ox = 1; oy = 1;
             }
-            if (glyph != null)
+            if (_glyph != null)
             {
                 Margins cont = layer.ContentMargins;
                 Rectangle r = new Rectangle(rect.Left + cont.Left, rect.Top + cont.Top, rect.Width - cont.Horizontal, rect.Height - cont.Vertical);
-                UserInterfaceManager.Renderer.DrawGlyph(glyph, r);
+                UserInterfaceManager.Renderer.DrawGlyph(_glyph, r);
             }
             else
             {
@@ -148,7 +148,7 @@ namespace XNAFinalEngine.UserInterface
 
             if (ex.Button == MouseButton.Left)
             {
-                pushed = !pushed;
+                _pushed = !_pushed;
             }
 
             base.OnClick(e);

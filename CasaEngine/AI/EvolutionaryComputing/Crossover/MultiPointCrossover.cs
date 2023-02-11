@@ -3,7 +3,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
     public sealed class MultiPointCrossover<T> : CrossoverAlgorithm<T>
     {
 
-        internal int crossoverPoints;
+        internal int CrossoverPoints;
 
 
 
@@ -13,9 +13,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             String message = String.Empty;
 
             if (ValidateCrossoverPoints(crossoverPoints, ref message) == false)
-                throw new AIException("probability", this.GetType().ToString(), message);
+                throw new AiException("probability", this.GetType().ToString(), message);
 
-            this.crossoverPoints = crossoverPoints;
+            this.CrossoverPoints = crossoverPoints;
         }
 
 
@@ -30,7 +30,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             if (parents.Count != 2)
                 throw new Exception("The number of parents must be 2.");
 
-            if (crossoverPoints > parents[0].Genotype.Count)
+            if (CrossoverPoints > parents[0].Genotype.Count)
                 throw new Exception("The number of crossover points must be smaller than the genotype size of the parents.");
 
             list = new List<Chromosome<T>>();
@@ -46,11 +46,11 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //Generate the crossover points
             pointsList = new List<int>();
-            for (int i = 0; i < crossoverPoints; i++)
+            for (int i = 0; i < CrossoverPoints; i++)
             {
-                point = generator.Next(1, parents[0].Genotype.Count - 1);
+                point = Generator.Next(1, parents[0].Genotype.Count - 1);
                 while (pointsList.Contains(point))
-                    point = generator.Next(1, parents[0].Genotype.Count - 1);
+                    point = Generator.Next(1, parents[0].Genotype.Count - 1);
 
                 pointsList.Add(point);
             }

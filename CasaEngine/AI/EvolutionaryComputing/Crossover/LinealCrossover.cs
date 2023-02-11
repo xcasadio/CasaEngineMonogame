@@ -3,7 +3,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
     public sealed class LinealCrossover : CrossoverAlgorithm<double>
     {
 
-        internal double intervalModifier;
+        internal double IntervalModifier;
 
 
 
@@ -13,9 +13,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             String message = String.Empty;
 
             if (ValidateIntervalModifier(intervalModifier, ref message) == false)
-                throw new AIException("intervalModifier", this.GetType().ToString(), message);
+                throw new AiException("intervalModifier", this.GetType().ToString(), message);
 
-            this.intervalModifier = intervalModifier;
+            this.IntervalModifier = intervalModifier;
         }
 
 
@@ -47,7 +47,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             //Calculate the genotype of each chromosome. The scale factor is calcultated every time
             for (int i = 0; i < parents[0].Genotype.Count; i++)
             {
-                scaleFactor = generator.NextDouble() * (1 - 2 * intervalModifier) + intervalModifier;
+                scaleFactor = Generator.NextDouble() * (1 - 2 * IntervalModifier) + IntervalModifier;
 
                 chromosome1.Genotype.Add(parents[0][i] * scaleFactor + parents[0][i] * (1 - scaleFactor));
                 chromosome2.Genotype.Add(parents[0][i] * (1 - scaleFactor) + parents[0][i] * scaleFactor);

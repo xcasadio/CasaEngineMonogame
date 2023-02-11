@@ -8,19 +8,19 @@
 
 
 
-        public ParserTokenUnaryOperator(Parser parser_, string token_)
-            : base(parser_, token_)
+        public ParserTokenUnaryOperator(Parser parser, string token)
+            : base(parser, token)
         {
 
         }
 
 
 
-        public override bool Check(string sentence_)
+        public override bool Check(string sentence)
         {
-            if (sentence_.StartsWith(m_Token) == true)
+            if (sentence.StartsWith(Token) == true)
             {
-                Parser.Check(m_Token.Substring(1));
+                Parser.Check(Token.Substring(1));
             }
 
             return false;

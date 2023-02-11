@@ -7,12 +7,12 @@ namespace CasaEngine.World
     public class WorldInfo
     {
 
-        private World m_World = null;
-        //private TimeSpan m_StartTime;
-        //private PhysicsSettings m_PhysicsSettings = new PhysicsSettings();
-        private Vector2 m_WorldGravity = Vector2.Zero;
+        private World _world = null;
+        //private TimeSpan _StartTime;
+        //private PhysicsSettings _PhysicsSettings = new PhysicsSettings();
+        private Vector2 _worldGravity = Vector2.Zero;
 
-        //private List<TeamInfo> m_TeamInfoList = new List<TeamInfo>();
+        //private List<TeamInfo> _TeamInfoList = new List<TeamInfo>();
 
         public int BotKilled;
         public int Score;
@@ -21,19 +21,19 @@ namespace CasaEngine.World
 
         public World World
         {
-            get => m_World;
-            set => m_World = value;
+            get => _world;
+            set => _world = value;
         }
 
         /*public PhysicsSettings PhysicsSettings
         {
-            get { return m_PhysicsSettings; }
+            get { return _PhysicsSettings; }
         }*/
 
         public Vector2 WorldGravity
         {
-            get => m_WorldGravity;
-            set => m_WorldGravity = value;
+            get => _worldGravity;
+            set => _worldGravity = value;
         }
 
         public float ElapsedTime
@@ -46,9 +46,9 @@ namespace CasaEngine.World
 
 
 
-        internal void Update(float elapsedTime_)
+        internal void Update(float elapsedTime)
         {
-            ElapsedTime += elapsedTime_;
+            ElapsedTime += elapsedTime;
         }
 
         public List<T> GetActors<T>()
@@ -62,7 +62,7 @@ namespace CasaEngine.World
         {
             List<CharacterActor2D> res = new List<CharacterActor2D>();
 
-            foreach (Actor2D a in m_World.Actors)
+            foreach (Actor2D a in _world.Actors)
             {
                 if (a is CharacterActor2D)
                 {

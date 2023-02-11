@@ -12,7 +12,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public override void Mutate(Population<int> population)
         {
             for (int i = 0; i < population.Genome.Count; i++)
-                if (generator.NextDouble() <= this.probability)
+                if (Generator.NextDouble() <= this.Probability)
                     population[i] = Mutate(population[i]);
         }
 
@@ -21,10 +21,10 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             int selectedGene, position, gene;
 
             //Choose the gene to move
-            selectedGene = generator.Next(0, chromosome.Genotype.Count - 1);
+            selectedGene = Generator.Next(0, chromosome.Genotype.Count - 1);
 
             //Choose the position to move it
-            position = generator.Next(0, chromosome.Genotype.Count - 1);
+            position = Generator.Next(0, chromosome.Genotype.Count - 1);
 
             //Remove the selected gene
             gene = chromosome.Genotype[selectedGene];

@@ -45,10 +45,10 @@ namespace XNAFinalEngine.Input
 
 
         // Indicates if the virtual buttons was pressed.
-        private bool pressed;
+        private bool _pressed;
 
         // Indicates if the virtual buttons was pressed in this frame but not in the previous.
-        private bool pressedPreviousFrame;
+        private bool _pressedPreviousFrame;
 
 
 
@@ -94,13 +94,13 @@ namespace XNAFinalEngine.Input
 
         internal void Update()
         {
-            pressedPreviousFrame = pressed;
+            _pressedPreviousFrame = _pressed;
 
 
             if (ButtonBehavior == ButtonBehaviors.DigitalInput)
             {
                 // Check if the buttons were pressed.
-                pressed = KeyButton.Pressed(GamePadNumber) || AlternativeKeyButton.Pressed(GamePadNumber);
+                _pressed = KeyButton.Pressed(GamePadNumber) || AlternativeKeyButton.Pressed(GamePadNumber);
             }
 
 
@@ -196,7 +196,7 @@ namespace XNAFinalEngine.Input
                 if (Invert)
                     valueRaw *= -1;
 
-                pressed = valueRaw > DeadZone;
+                _pressed = valueRaw > DeadZone;
             }
 
 
@@ -213,7 +213,7 @@ namespace XNAFinalEngine.Input
                 if (axis.Name == buttonName)
                 {
                     foundAxis = true;
-                    foundValue = foundValue || axis.pressed;
+                    foundValue = foundValue || axis._pressed;
                 }
             }
             if (!foundAxis)
@@ -231,8 +231,8 @@ namespace XNAFinalEngine.Input
                 if (axis.Name == buttonName)
                 {
                     foundAxis = true;
-                    foundPressed = foundPressed || axis.pressed;
-                    foundPressedPreviousFrame = foundPressedPreviousFrame || axis.pressedPreviousFrame;
+                    foundPressed = foundPressed || axis._pressed;
+                    foundPressedPreviousFrame = foundPressedPreviousFrame || axis._pressedPreviousFrame;
                 }
             }
             if (!foundAxis)

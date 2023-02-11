@@ -6,29 +6,29 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
     public class QLearner
         : BaseObject
     {
-        readonly QLearning m_QL = new QLearning();
+        readonly QLearning _ql = new QLearning();
 
 
 
-        public QLearning QLearning => m_QL;
+        public QLearning QLearning => _ql;
 
 
         public void Update(float dt)
         {
 
             //string newState = string.Empty;
-            //m_QL.Learn(state_, action_, newState);
-            //m_QL.Learn()
+            //_QL.Learn(state_, action_, newState);
+            //_QL.Learn()
         }
 
-        public void Update(IQAgent agent_, string currentState_)
+        public void Update(IQAgent agent, string currentState)
         {
-            m_QL.Learn(agent_, currentState_);
+            _ql.Learn(agent, currentState);
         }
 
 #if EDITOR
 
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new Exception("The method or operation is not implemented.");
         }

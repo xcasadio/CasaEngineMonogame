@@ -5,7 +5,7 @@ using CasaEngineCommon.Design;
 namespace CasaEngine.Design.Parser
 {
     class CalculatorTokenSequence
-        : ICalculatorToken
+        : CalculatorToken
     {
         public enum TokenSequence
         {
@@ -15,17 +15,17 @@ namespace CasaEngine.Design.Parser
         }
 
 
-        readonly TokenSequence m_Sequence;
+        readonly TokenSequence _sequence;
 
 
 
-        public TokenSequence Sequence => m_Sequence;
+        public TokenSequence Sequence => _sequence;
 
 
-        public CalculatorTokenSequence(Calculator calculator_, TokenSequence sequence_)
-            : base(calculator_)
+        public CalculatorTokenSequence(Calculator calculator, TokenSequence sequence)
+            : base(calculator)
         {
-            m_Sequence = sequence_;
+            _sequence = sequence;
         }
 
 
@@ -36,22 +36,22 @@ namespace CasaEngine.Design.Parser
         }
 
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
             throw new InvalidOperationException("Can't save this object. It is a temporary object");
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
             throw new InvalidOperationException("Can't save this object. It is a temporary objecte");
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
             throw new InvalidOperationException("Can't save this object. It is a temporary object");
         }
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
             throw new InvalidOperationException("Can't save this object. It is a temporary object");
         }

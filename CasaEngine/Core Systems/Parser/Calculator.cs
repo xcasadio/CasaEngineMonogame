@@ -7,77 +7,77 @@ namespace CasaEngine.Design.Parser
     class Calculator
     {
 
-        ICalculatorToken m_Root;
-        readonly Parser m_Parser;
+        CalculatorToken _root;
+        readonly Parser _parser;
 
 
 
-        public ICalculatorToken Root
+        public CalculatorToken Root
         {
-            get => m_Root;
-            set => m_Root = value;
+            get => _root;
+            set => _root = value;
         }
 
-        public CasaEngine.Design.Parser.Parser Parser => m_Parser;
+        public CasaEngine.Design.Parser.Parser Parser => _parser;
 
 
-        public Calculator(Parser parser_)
+        public Calculator(Parser parser)
         {
-            m_Parser = parser_;
+            _parser = parser;
         }
 
 
 
         public float Evaluate()
         {
-            return m_Root.Evaluate();
+            return _root.Evaluate();
         }
 
 
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
-            m_Root = null;
+            _root = null;
 
-            XmlElement root = (XmlElement)el_.SelectSingleNode("Root/Node");
+            XmlElement root = (XmlElement)el.SelectSingleNode("Root/Node");
 
             if (root != null)
             {
-                m_Root = CreateCalculatorToken(this, root, option_);
+                _root = CreateCalculatorToken(this, root, option);
             }
         }
 
-        public void Save(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el, SaveOption option)
         {
-            if (m_Root != null)
+            if (_root != null)
             {
-                XmlNode node = el_.OwnerDocument.CreateElement("Root");
-                el_.AppendChild(node);
-                m_Root.Save((XmlElement)node, option_);
+                XmlNode node = el.OwnerDocument.CreateElement("Root");
+                el.AppendChild(node);
+                _root.Save((XmlElement)node, option);
             }
         }
 
-        public void Save(BinaryWriter bw_, SaveOption option_)
+        public void Save(BinaryWriter bw, SaveOption option)
         {
-            if (m_Root != null)
+            if (_root != null)
             {
-                m_Root.Save(bw_, option_);
+                _root.Save(bw, option);
             }
         }
 
-        static public ICalculatorToken CreateCalculatorToken(Calculator calculator_, XmlElement el_, SaveOption option_)
+        static public CalculatorToken CreateCalculatorToken(Calculator calculator, XmlElement el, SaveOption option)
         {
-            ICalculatorToken token = null;
+            CalculatorToken token = null;
 
-            CalculatorTokenType type = (CalculatorTokenType)int.Parse(el_.Attributes["type"].Value);
+            CalculatorTokenType type = (CalculatorTokenType)int.Parse(el.Attributes["type"].Value);
 
             switch (type)
             {
                 case CalculatorTokenType.BinaryOperator:
-                    token = new CalculatorTokenBinaryOperator(calculator_, el_, option_);
+                    token = new CalculatorTokenBinaryOperator(calculator, el, option);
                     break;
 
                 case CalculatorTokenType.Keyword:
-                    token = new CalculatorTokenKeyword(calculator_, el_, option_);
+                    token = new CalculatorTokenKeyword(calculator, el, option);
                     break;
 
                 /*case CalculatorTokenType.UnaryOperator:
@@ -85,11 +85,11 @@ namespace CasaEngine.Design.Parser
 					break;*/
 
                 case CalculatorTokenType.Value:
-                    token = new CalculatorTokenValue(calculator_, el_, option_);
+                    token = new CalculatorTokenValue(calculator, el, option);
                     break;
 
                 case CalculatorTokenType.Function:
-                    token = new CalculatorTokenFunction(calculator_, el_, option_);
+                    token = new CalculatorTokenFunction(calculator, el, option);
                     break;
 
                 default:
@@ -99,20 +99,20 @@ namespace CasaEngine.Design.Parser
             return token;
         }
 
-        static public ICalculatorToken CreateCalculatorToken(Calculator calculator_, BinaryReader br_, SaveOption option_)
+        static public CalculatorToken CreateCalculatorToken(Calculator calculator, BinaryReader br, SaveOption option)
         {
-            ICalculatorToken token = null;
+            CalculatorToken token = null;
 
-            CalculatorTokenType type = (CalculatorTokenType)br_.ReadInt32();
+            CalculatorTokenType type = (CalculatorTokenType)br.ReadInt32();
 
             switch (type)
             {
                 case CalculatorTokenType.BinaryOperator:
-                    token = new CalculatorTokenBinaryOperator(calculator_, br_, option_);
+                    token = new CalculatorTokenBinaryOperator(calculator, br, option);
                     break;
 
                 case CalculatorTokenType.Keyword:
-                    token = new CalculatorTokenKeyword(calculator_, br_, option_);
+                    token = new CalculatorTokenKeyword(calculator, br, option);
                     break;
 
                 /*case CalculatorTokenType.UnaryOperator:
@@ -120,11 +120,11 @@ namespace CasaEngine.Design.Parser
                     break;*/
 
                 case CalculatorTokenType.Value:
-                    token = new CalculatorTokenValue(calculator_, br_, option_);
+                    token = new CalculatorTokenValue(calculator, br, option);
                     break;
 
                 case CalculatorTokenType.Function:
-                    token = new CalculatorTokenFunction(calculator_, br_, option_);
+                    token = new CalculatorTokenFunction(calculator, br, option);
                     break;
 
                 default:

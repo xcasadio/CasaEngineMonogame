@@ -48,8 +48,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public ToolTip(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public ToolTip(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Text = "";
             CanFocus = false;

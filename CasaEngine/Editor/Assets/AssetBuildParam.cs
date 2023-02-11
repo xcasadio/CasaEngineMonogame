@@ -30,48 +30,48 @@ namespace CasaEngine.Editor.Assets
 
 
 
-        protected AssetBuildParam(string name_)
+        protected AssetBuildParam(string name)
         {
-            if (string.IsNullOrWhiteSpace(name_) == true)
+            if (string.IsNullOrWhiteSpace(name) == true)
             {
                 throw new ArgumentNullException("AssetBuildParams() : name is null or empty");
             }
 
-            SetName(name_);
+            SetName(name);
         }
 
-        protected AssetBuildParam(XmlElement el_)
+        protected AssetBuildParam(XmlElement el)
         {
-            Load(el_);
+            Load(el);
         }
 
 
 
-        private void SetName(string name_)
+        private void SetName(string name)
         {
-            SubName = name_;
-            Name = "ProcessorParameters_" + name_;
+            SubName = name;
+            Name = "ProcessorParameters_" + name;
         }
 
-        public void Load(XmlElement el_)
+        public void Load(XmlElement el)
         {
-            XmlNode node = el_.SelectSingleNode("Name");
+            XmlNode node = el.SelectSingleNode("Name");
             SetName(node.InnerText);
-            node = el_.SelectSingleNode("Value");
+            node = el.SelectSingleNode("Value");
             LoadValue(node.InnerText);
         }
 
-        protected abstract void LoadValue(string val_);
+        protected abstract void LoadValue(string val);
 
-        public void Save(XmlElement el_)
+        public void Save(XmlElement el)
         {
-            XmlElement node = el_.OwnerDocument.CreateElementWithText("Name", SubName);
-            el_.AppendChild(node);
-            node = el_.OwnerDocument.CreateElementWithText("Value", Value);
-            el_.AppendChild(node);
+            XmlElement node = el.OwnerDocument.CreateElementWithText("Name", SubName);
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElementWithText("Value", Value);
+            el.AppendChild(node);
         }
 
-        public abstract bool Compare(AssetBuildParam param_);
+        public abstract bool Compare(AssetBuildParam para);
 
     }
 
@@ -88,8 +88,8 @@ namespace CasaEngine.Editor.Assets
 
         public override string Value => ColorKey.R + ", " + ColorKey.G + ", " + ColorKey.B + ", " + ColorKey.A;
 
-        public AssetBuildParamColor(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamColor(XmlElement el)
+            : base(el)
         { }
 
         public AssetBuildParamColor()
@@ -98,9 +98,9 @@ namespace CasaEngine.Editor.Assets
             ColorKey = new Color(255, 0, 255);
         }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            string[] a = val_.Split(',');
+            string[] a = val.Split(',');
 
             ColorKey = new Color(
                 byte.Parse(a[0]),
@@ -108,9 +108,9 @@ namespace CasaEngine.Editor.Assets
                 byte.Parse(a[2]));
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamColor o = (AssetBuildParamColor)param_;
+            AssetBuildParamColor o = (AssetBuildParamColor)para;
 
             if (o != null)
             {
@@ -139,18 +139,18 @@ namespace CasaEngine.Editor.Assets
             ColorKeyEnabled = true;
         }
 
-        public AssetBuildParamColorKeyEnabled(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamColorKeyEnabled(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            ColorKeyEnabled = bool.Parse(val_);
+            ColorKeyEnabled = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamColorKeyEnabled o = (AssetBuildParamColorKeyEnabled)param_;
+            AssetBuildParamColorKeyEnabled o = (AssetBuildParamColorKeyEnabled)para;
 
             if (o != null)
             {
@@ -179,18 +179,18 @@ namespace CasaEngine.Editor.Assets
             GenerateMipmaps = true;
         }
 
-        public AssetBuildParamGenerateMipmaps(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamGenerateMipmaps(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            GenerateMipmaps = bool.Parse(val_);
+            GenerateMipmaps = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamGenerateMipmaps o = (AssetBuildParamGenerateMipmaps)param_;
+            AssetBuildParamGenerateMipmaps o = (AssetBuildParamGenerateMipmaps)para;
 
             if (o != null)
             {
@@ -219,18 +219,18 @@ namespace CasaEngine.Editor.Assets
             PremultiplyAlpha = true;
         }
 
-        public AssetBuildParamPremultiplyAlpha(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamPremultiplyAlpha(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            PremultiplyAlpha = bool.Parse(val_);
+            PremultiplyAlpha = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamPremultiplyAlpha o = (AssetBuildParamPremultiplyAlpha)param_;
+            AssetBuildParamPremultiplyAlpha o = (AssetBuildParamPremultiplyAlpha)para;
 
             if (o != null)
             {
@@ -259,18 +259,18 @@ namespace CasaEngine.Editor.Assets
             ResizeToPowerOfTwo = true;
         }
 
-        public AssetBuildParamResizeToPowerOfTwo(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamResizeToPowerOfTwo(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            ResizeToPowerOfTwo = bool.Parse(val_);
+            ResizeToPowerOfTwo = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamResizeToPowerOfTwo o = (AssetBuildParamResizeToPowerOfTwo)param_;
+            AssetBuildParamResizeToPowerOfTwo o = (AssetBuildParamResizeToPowerOfTwo)para;
 
             if (o != null)
             {
@@ -306,18 +306,18 @@ namespace CasaEngine.Editor.Assets
             Format = TextureFormat.NoChange;
         }
 
-        public AssetBuildParamTextureFormat(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamTextureFormat(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            Format = (TextureFormat)Enum.Parse(typeof(TextureFormat), val_);
+            Format = (TextureFormat)Enum.Parse(typeof(TextureFormat), val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamTextureFormat o = (AssetBuildParamTextureFormat)param_;
+            AssetBuildParamTextureFormat o = (AssetBuildParamTextureFormat)para;
 
             if (o != null)
             {
@@ -355,18 +355,18 @@ namespace CasaEngine.Editor.Assets
             Option = DebuggingOptions.Auto;
         }
 
-        public AssetBuildParamDebuggingOptions(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamDebuggingOptions(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            Option = (DebuggingOptions)Enum.Parse(typeof(DebuggingOptions), val_);
+            Option = (DebuggingOptions)Enum.Parse(typeof(DebuggingOptions), val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamDebuggingOptions o = (AssetBuildParamDebuggingOptions)param_;
+            AssetBuildParamDebuggingOptions o = (AssetBuildParamDebuggingOptions)para;
 
             if (o != null)
             {
@@ -395,18 +395,18 @@ namespace CasaEngine.Editor.Assets
             Defines = string.Empty;
         }
 
-        public AssetBuildParamDefines(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamDefines(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            Defines = val_;
+            Defines = val;
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamDefines o = (AssetBuildParamDefines)param_;
+            AssetBuildParamDefines o = (AssetBuildParamDefines)para;
 
             if (o != null)
             {
@@ -437,18 +437,18 @@ namespace CasaEngine.Editor.Assets
             FirstCharacter = string.Empty;
         }
 
-        public AssetBuildParamFirstCharacter(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamFirstCharacter(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            FirstCharacter = val_;
+            FirstCharacter = val;
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamFirstCharacter o = (AssetBuildParamFirstCharacter)param_;
+            AssetBuildParamFirstCharacter o = (AssetBuildParamFirstCharacter)para;
 
             if (o != null)
             {
@@ -488,18 +488,18 @@ namespace CasaEngine.Editor.Assets
             Effect = DefaultEffect.BasicEffect;
         }
 
-        public AssetBuildParamDefaultEffect(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamDefaultEffect(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            Effect = (DefaultEffect)Enum.Parse(typeof(DefaultEffect), val_);
+            Effect = (DefaultEffect)Enum.Parse(typeof(DefaultEffect), val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamDefaultEffect o = (AssetBuildParamDefaultEffect)param_;
+            AssetBuildParamDefaultEffect o = (AssetBuildParamDefaultEffect)para;
 
             if (o != null)
             {
@@ -528,18 +528,18 @@ namespace CasaEngine.Editor.Assets
             PremultiplyTextureAlpha = false;
         }
 
-        public AssetBuildParamPremultiplyTextureAlpha(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamPremultiplyTextureAlpha(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            PremultiplyTextureAlpha = bool.Parse(val_);
+            PremultiplyTextureAlpha = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamPremultiplyTextureAlpha o = (AssetBuildParamPremultiplyTextureAlpha)param_;
+            AssetBuildParamPremultiplyTextureAlpha o = (AssetBuildParamPremultiplyTextureAlpha)para;
 
             if (o != null)
             {
@@ -568,18 +568,18 @@ namespace CasaEngine.Editor.Assets
             PremultiplyVertexColor = false;
         }
 
-        public AssetBuildParamPremultiplyVertexColor(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamPremultiplyVertexColor(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            PremultiplyVertexColor = bool.Parse(val_);
+            PremultiplyVertexColor = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamPremultiplyVertexColor o = (AssetBuildParamPremultiplyVertexColor)param_;
+            AssetBuildParamPremultiplyVertexColor o = (AssetBuildParamPremultiplyVertexColor)para;
 
             if (o != null)
             {
@@ -608,18 +608,18 @@ namespace CasaEngine.Editor.Assets
             GenerateTangentFrames = false;
         }
 
-        public AssetBuildParamGenerateTangentFrames(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamGenerateTangentFrames(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            GenerateTangentFrames = bool.Parse(val_);
+            GenerateTangentFrames = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamGenerateTangentFrames o = (AssetBuildParamGenerateTangentFrames)param_;
+            AssetBuildParamGenerateTangentFrames o = (AssetBuildParamGenerateTangentFrames)para;
 
             if (o != null)
             {
@@ -648,18 +648,18 @@ namespace CasaEngine.Editor.Assets
             Scale = 1.0f;
         }
 
-        public AssetBuildParamScale(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamScale(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            Scale = float.Parse(val_);
+            Scale = float.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamScale o = (AssetBuildParamScale)param_;
+            AssetBuildParamScale o = (AssetBuildParamScale)para;
 
             if (o != null)
             {
@@ -688,18 +688,18 @@ namespace CasaEngine.Editor.Assets
             SwapWindingOrder = false;
         }
 
-        public AssetBuildParamSwapWindingOrder(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamSwapWindingOrder(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            SwapWindingOrder = bool.Parse(val_);
+            SwapWindingOrder = bool.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamSwapWindingOrder o = (AssetBuildParamSwapWindingOrder)param_;
+            AssetBuildParamSwapWindingOrder o = (AssetBuildParamSwapWindingOrder)para;
 
             if (o != null)
             {
@@ -728,18 +728,18 @@ namespace CasaEngine.Editor.Assets
             XRotation = 0.0f;
         }
 
-        public AssetBuildParamXRotation(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamXRotation(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            XRotation = float.Parse(val_);
+            XRotation = float.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamXRotation o = (AssetBuildParamXRotation)param_;
+            AssetBuildParamXRotation o = (AssetBuildParamXRotation)para;
 
             if (o != null)
             {
@@ -768,18 +768,18 @@ namespace CasaEngine.Editor.Assets
             YRotation = 0.0f;
         }
 
-        public AssetBuildParamYRotation(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamYRotation(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            YRotation = float.Parse(val_);
+            YRotation = float.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamYRotation o = (AssetBuildParamYRotation)param_;
+            AssetBuildParamYRotation o = (AssetBuildParamYRotation)para;
 
             if (o != null)
             {
@@ -808,18 +808,18 @@ namespace CasaEngine.Editor.Assets
             ZRotation = 0.0f;
         }
 
-        public AssetBuildParamZRotation(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamZRotation(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            ZRotation = float.Parse(val_);
+            ZRotation = float.Parse(val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamZRotation o = (AssetBuildParamZRotation)param_;
+            AssetBuildParamZRotation o = (AssetBuildParamZRotation)para;
 
             if (o != null)
             {
@@ -857,18 +857,18 @@ namespace CasaEngine.Editor.Assets
             Quality = CompressionQuality.Best;
         }
 
-        public AssetBuildParamCompressionQuality(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamCompressionQuality(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            Quality = (CompressionQuality)Enum.Parse(typeof(CompressionQuality), val_);
+            Quality = (CompressionQuality)Enum.Parse(typeof(CompressionQuality), val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamCompressionQuality o = (AssetBuildParamCompressionQuality)param_;
+            AssetBuildParamCompressionQuality o = (AssetBuildParamCompressionQuality)para;
 
             if (o != null)
             {
@@ -906,18 +906,18 @@ namespace CasaEngine.Editor.Assets
             TrackType = VideoSoundTrackType.Best;
         }
 
-        public AssetBuildParamVideoSoundTrackType(XmlElement el_)
-            : base(el_)
+        public AssetBuildParamVideoSoundTrackType(XmlElement el)
+            : base(el)
         { }
 
-        protected override void LoadValue(string val_)
+        protected override void LoadValue(string val)
         {
-            TrackType = (VideoSoundTrackType)Enum.Parse(typeof(VideoSoundTrackType), val_);
+            TrackType = (VideoSoundTrackType)Enum.Parse(typeof(VideoSoundTrackType), val);
         }
 
-        public override bool Compare(AssetBuildParam param_)
+        public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamVideoSoundTrackType o = (AssetBuildParamVideoSoundTrackType)param_;
+            AssetBuildParamVideoSoundTrackType o = (AssetBuildParamVideoSoundTrackType)para;
 
             if (o != null)
             {

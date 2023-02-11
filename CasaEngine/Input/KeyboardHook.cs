@@ -38,7 +38,7 @@ namespace XNAFinalEngine.Input
     {
 
 
-        private const int keyboardHookId = 13;
+        private const int KeyboardHookId = 13;
 
 
 
@@ -50,21 +50,21 @@ namespace XNAFinalEngine.Input
 
 
 
-        private readonly HookHandlerDelegate proc;
-        private readonly IntPtr hookId = IntPtr.Zero;
+        private readonly HookHandlerDelegate _proc;
+        private readonly IntPtr _hookId = IntPtr.Zero;
         internal delegate IntPtr HookHandlerDelegate(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam);
 
-        private KeyboadHookStruct lastParameter;
+        private KeyboadHookStruct _lastParameter;
 
 
 
         public KeyboardHook()
         {
-            proc = new HookHandlerDelegate(HookCallback);
+            _proc = new HookHandlerDelegate(HookCallback);
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule curModule = curProcess.MainModule)
             {
-                hookId = NativeMethods.SetWindowsHookEx(keyboardHookId, proc, NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
+                _hookId = NativeMethods.SetWindowsHookEx(KeyboardHookId, _proc, NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
             }
         } // KeyboardHook
 
@@ -73,7 +73,7 @@ namespace XNAFinalEngine.Input
         private IntPtr HookCallback(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam)
         {
             // This is an easy way to change from a key press behavior to a key down behavior.
-            if (lParam.Flags != lastParameter.Flags || lParam.VkCode != lastParameter.VkCode)
+            if (lParam.Flags != _lastParameter.Flags || lParam.VkCode != _lastParameter.VkCode)
             {
                 // If the key is disable or has a special function.
                 if (lParam.VkCode == 91 || lParam.VkCode == 92 ||  // Win
@@ -91,22 +91,22 @@ namespace XNAFinalEngine.Input
                     //}
 
                     // Store current parameter.
-                    lastParameter = lParam;
+                    _lastParameter = lParam;
                     if (lParam.VkCode != 13)
                         return (IntPtr)1;
                 }
             }
             // Store current parameter.
-            lastParameter = lParam;
+            _lastParameter = lParam;
             // if the key is allowed...
-            return NativeMethods.CallNextHookEx(hookId, nCode, wParam, ref lParam);
+            return NativeMethods.CallNextHookEx(_hookId, nCode, wParam, ref lParam);
         } // HookCallback
 
 
 
         public void Dispose()
         {
-            NativeMethods.UnhookWindowsHookEx(hookId);
+            NativeMethods.UnhookWindowsHookEx(_hookId);
         } // Dispose
 
 

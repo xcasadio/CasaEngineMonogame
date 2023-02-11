@@ -15,10 +15,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
     {
 
-        private Shape2DType m_Type;
-        private Point m_Location = Point.Zero;
-        private float m_Rotation = 0.0f;
-        private int m_Flag = 0;
+        private Shape2DType _type;
+        private Point _location = Point.Zero;
+        private float _rotation = 0.0f;
+        private int _flag = 0;
 
 
 
@@ -27,7 +27,7 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public Shape2DType Shape2DType
         {
-            get { return m_Type; }
+            get { return _type; }
         }
 
 #if EDITOR
@@ -35,10 +35,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public int Flag
         {
-            get { return m_Flag; }
+            get { return _flag; }
             set
             {
-                m_Flag = value;
+                _flag = value;
 #if EDITOR
                 NotifyPropertyChanged("Flag");
 #endif
@@ -50,10 +50,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public Point Location
         {
-            get { return m_Location; }
+            get { return _location; }
             set
             {
-                m_Location = value;
+                _location = value;
 #if EDITOR
                 NotifyPropertyChanged("Location");
 #endif
@@ -65,10 +65,10 @@ namespace CasaEngine.Math.Shape2D
 #endif
         public float Rotation
         {
-            get { return m_Rotation; }
+            get { return _rotation; }
             set
             {
-                m_Rotation = value;
+                _rotation = value;
 #if EDITOR
                 NotifyPropertyChanged("Rotation");
 #endif
@@ -80,17 +80,17 @@ namespace CasaEngine.Math.Shape2D
         protected Shape2DObject()
         { }
 
-        protected Shape2DObject(Shape2DObject o_)
+        protected Shape2DObject(Shape2DObject o)
         {
-            CopyFrom(o_);
+            CopyFrom(o);
         }
 
 
 
 
-        static public Shape2DObject CreateShape2DObject(XmlElement el_, SaveOption option_)
+        static public Shape2DObject CreateShape2DObject(XmlElement el, SaveOption option)
         {
-            Shape2DType type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el_.Attributes["type"].Value);
+            Shape2DType type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el.Attributes["type"].Value);
             Shape2DObject res = null;
 
             switch (type)
@@ -115,32 +115,32 @@ namespace CasaEngine.Math.Shape2D
                     throw new InvalidOperationException("Shape2DObject.CreateShape2DObject() : the type " + Enum.GetName(typeof(Shape2DType), type) + " is not supported");
             }
 
-            res.Load(el_, option_);
+            res.Load(el, option);
 
             return res;
         }
 
-        public virtual void Load(XmlElement el_, SaveOption option_)
+        public virtual void Load(XmlElement el, SaveOption option)
         {
-            int version = int.Parse(el_.Attributes["version"].Value);
+            int version = int.Parse(el.Attributes["version"].Value);
 
-            m_Type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el_.Attributes["type"].Value);
+            _type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el.Attributes["type"].Value);
             Point p = new Point();
-            ((XmlElement)el_.SelectSingleNode("Location")).Read(ref p);
+            ((XmlElement)el.SelectSingleNode("Location")).Read(ref p);
             Location = p;
-            m_Rotation = float.Parse(el_.Attributes["rotation"].Value);
-            m_Flag = int.Parse(el_.Attributes["flag"].Value);
+            _rotation = float.Parse(el.Attributes["rotation"].Value);
+            _flag = int.Parse(el.Attributes["flag"].Value);
         }
 
 
         public abstract Shape2DObject Clone();
 
-        public virtual void CopyFrom(Shape2DObject ob_)
+        public virtual void CopyFrom(Shape2DObject ob)
         {
-            m_Location = ob_.m_Location;
-            m_Rotation = ob_.m_Rotation;
-            m_Type = ob_.m_Type;
-            m_Flag = ob_.m_Flag;
+            _location = ob._location;
+            _rotation = ob._rotation;
+            _type = ob._type;
+            _flag = ob._flag;
         }
 
         public virtual void FlipHorizontally()

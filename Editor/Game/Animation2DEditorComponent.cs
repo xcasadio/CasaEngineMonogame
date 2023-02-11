@@ -191,7 +191,7 @@ namespace Editor.Game
                     && DisplayPreviousFrame == true)
                 {
                     DrawSprite2D(
-                        m_CurrentAnimation2D.GetFrames()[m_CurrentAnimation2D.CurrentFrameIndex - 1].spriteID,
+                        m_CurrentAnimation2D.GetFrames()[m_CurrentAnimation2D.CurrentFrameIndex - 1].SpriteId,
                         new Color(1.0f, 0.5f, 1.0f, 0.5f),
                         0.6f, Color.LightYellow);
                 }
@@ -258,16 +258,16 @@ namespace Editor.Game
 
             foreach (Frame2D f in m_CurrentAnimation2D.GetFrames())
             {
-                BaseObject b = Engine.Instance.ObjectManager.GetObjectByID(f.spriteID);
+                BaseObject b = Engine.Instance.ObjectManager.GetObjectById(f.SpriteId);
 
                 if (b == null)
                 {
-                    throw new InvalidOperationException("Animation2DEditorComponent.ChangeCurrentAnimation2DIfNeeded() : can't find the Sprite2D with he ID " + f.spriteID);
+                    throw new InvalidOperationException("Animation2DEditorComponent.ChangeCurrentAnimation2DIfNeeded() : can't find the Sprite2D with he ID " + f.SpriteId);
                 }
 
                 Sprite2D sprite = b.Clone() as Sprite2D; //use as operator, else do an other copy !                
                 sprite.LoadTextureFile(Game.GraphicsDevice);
-                m_Sprites.Add(f.spriteID, sprite);
+                m_Sprites.Add(f.SpriteId, sprite);
             }
 
             m_NeedChangeAnimation2D = false;

@@ -4,9 +4,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
     public sealed class AleatoryMutation : MutationAlgorithm<int>
     {
 
-        internal int floor;
+        internal int Floor;
 
-        internal int ceil;
+        internal int Ceil;
 
 
 
@@ -17,10 +17,10 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
             //Validate params
             if (ValidateLimits(floor, ceil, ref message) == false)
-                throw new AIException("floor-ceil", this.GetType().ToString(), message);
+                throw new AiException("floor-ceil", this.GetType().ToString(), message);
 
-            this.floor = floor;
-            this.ceil = ceil;
+            this.Floor = floor;
+            this.Ceil = ceil;
         }
 
 
@@ -29,8 +29,8 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         {
             for (int i = 0; i < population.Genome.Count; i++)
                 for (int j = 0; j < population[i].Genotype.Count; j++)
-                    if (generator.NextDouble() <= this.probability)
-                        population[i].Genotype[j] = generator.Next(this.floor, this.ceil);
+                    if (Generator.NextDouble() <= this.Probability)
+                        population[i].Genotype[j] = Generator.Next(this.Floor, this.Ceil);
         }
 
 

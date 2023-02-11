@@ -7,7 +7,7 @@ namespace CasaEngine.AI.Graphs
     public class SpacePartitionNode : NavigationNode
     {
 
-        protected internal int spaceSector;
+        protected internal int SpaceSector;
 
 
 

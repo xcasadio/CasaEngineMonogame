@@ -24,17 +24,17 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Controls
-        private readonly ScrollBar scrollBarVertical;
-        private readonly ScrollBar scrollBarHorizontal;
-        private ToolBarPanel toolBarPanel;
-        private MainMenu mainMenu;
-        private StatusBar statusBar;
+        private readonly ScrollBar _scrollBarVertical;
+        private readonly ScrollBar _scrollBarHorizontal;
+        private ToolBarPanel _toolBarPanel;
+        private MainMenu _mainMenu;
+        private StatusBar _statusBar;
 
         // To avoid infinite recursion.
-        private bool adjustingScrolling;
+        private bool _adjustingScrolling;
 
         // The control that has inmediate focus. For example a button for closing a dialog.
-        private Control defaultControl;
+        private Control _defaultControl;
 
 
 
@@ -44,8 +44,8 @@ namespace XNAFinalEngine.UserInterface
             {
                 ScrollBarValue scrollBarValue = new ScrollBarValue
                 {
-                    Vertical = scrollBarVertical.Value,
-                    Horizontal = scrollBarHorizontal.Value
+                    Vertical = _scrollBarVertical.Value,
+                    Horizontal = _scrollBarHorizontal.Value
                 };
                 return scrollBarValue;
             }
@@ -67,12 +67,12 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual Control DefaultControl
         {
-            get => defaultControl;
+            get => _defaultControl;
             set
             {
-                defaultControl = value;
+                _defaultControl = value;
                 if (DefaultControl != null)
-                    defaultControl.Focused = true;
+                    _defaultControl.Focused = true;
             }
         } // DefaultControl
 
@@ -80,20 +80,20 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual MainMenu MainMenu
         {
-            get => mainMenu;
+            get => _mainMenu;
             set
             {
-                if (mainMenu != null)
+                if (_mainMenu != null)
                 {
-                    mainMenu.Resize -= Bars_Resize;
-                    Remove(mainMenu);
+                    _mainMenu.Resize -= Bars_Resize;
+                    Remove(_mainMenu);
                 }
-                mainMenu = value;
+                _mainMenu = value;
 
-                if (mainMenu != null)
+                if (_mainMenu != null)
                 {
-                    Add(mainMenu, false);
-                    mainMenu.Resize += Bars_Resize;
+                    Add(_mainMenu, false);
+                    _mainMenu.Resize += Bars_Resize;
                 }
                 Invalidate();
                 AdjustMargins();
@@ -102,20 +102,20 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual ToolBarPanel ToolBarPanel
         {
-            get => toolBarPanel;
+            get => _toolBarPanel;
             set
             {
-                if (toolBarPanel != null)
+                if (_toolBarPanel != null)
                 {
-                    toolBarPanel.Resize -= Bars_Resize;
-                    Remove(toolBarPanel);
+                    _toolBarPanel.Resize -= Bars_Resize;
+                    Remove(_toolBarPanel);
                 }
-                toolBarPanel = value;
+                _toolBarPanel = value;
 
-                if (toolBarPanel != null)
+                if (_toolBarPanel != null)
                 {
-                    Add(toolBarPanel, false);
-                    toolBarPanel.Resize += Bars_Resize;
+                    Add(_toolBarPanel, false);
+                    _toolBarPanel.Resize += Bars_Resize;
                 }
                 Invalidate();
                 AdjustMargins();
@@ -124,20 +124,20 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual StatusBar StatusBar
         {
-            get => statusBar;
+            get => _statusBar;
             set
             {
-                if (statusBar != null)
+                if (_statusBar != null)
                 {
-                    statusBar.Resize -= Bars_Resize;
-                    Remove(statusBar);
+                    _statusBar.Resize -= Bars_Resize;
+                    Remove(_statusBar);
                 }
-                statusBar = value;
+                _statusBar = value;
 
-                if (statusBar != null)
+                if (_statusBar != null)
                 {
-                    Add(statusBar, false);
-                    statusBar.Resize += Bars_Resize;
+                    Add(_statusBar, false);
+                    _statusBar.Resize += Bars_Resize;
                 }
                 Invalidate();
                 AdjustMargins();
@@ -146,12 +146,12 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Container(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Container(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             DefaultControl = null;
             // Creates the scroll bars.
-            scrollBarVertical = new ScrollBar(UserInterfaceManager, Orientation.Vertical)
+            _scrollBarVertical = new ScrollBar(UserInterfaceManager, Orientation.Vertical)
             {
                 Detached = false,
                 Anchor = Anchors.Top | Anchors.Right | Anchors.Bottom,
@@ -160,10 +160,10 @@ namespace XNAFinalEngine.UserInterface
                 Value = 0,
                 Visible = false
             };
-            scrollBarVertical.ValueChanged += ScrollBarValueChanged;
-            base.Add(scrollBarVertical, false);
+            _scrollBarVertical.ValueChanged += ScrollBarValueChanged;
+            base.Add(_scrollBarVertical, false);
 
-            scrollBarHorizontal = new ScrollBar(UserInterfaceManager, Orientation.Horizontal)
+            _scrollBarHorizontal = new ScrollBar(UserInterfaceManager, Orientation.Horizontal)
             {
                 Detached = false,
                 Anchor = Anchors.Right | Anchors.Left | Anchors.Bottom,
@@ -172,8 +172,8 @@ namespace XNAFinalEngine.UserInterface
                 Value = 0,
                 Visible = false
             };
-            scrollBarHorizontal.ValueChanged += ScrollBarValueChanged;
-            base.Add(scrollBarHorizontal, false);
+            _scrollBarHorizontal.ValueChanged += ScrollBarValueChanged;
+            base.Add(_scrollBarHorizontal, false);
 
             AdjustMargins();
         } // Container
@@ -191,45 +191,45 @@ namespace XNAFinalEngine.UserInterface
                 m = ClientMargins;
             }
             // We add space to the menu in the client area is there is one.
-            if (mainMenu != null && mainMenu.Visible)
+            if (_mainMenu != null && _mainMenu.Visible)
             {
-                mainMenu.Left = m.Left;
-                mainMenu.Top = m.Top;
-                mainMenu.Width = Width - m.Horizontal;
-                mainMenu.Anchor = Anchors.Left | Anchors.Top | Anchors.Right;
+                _mainMenu.Left = m.Left;
+                _mainMenu.Top = m.Top;
+                _mainMenu.Width = Width - m.Horizontal;
+                _mainMenu.Anchor = Anchors.Left | Anchors.Top | Anchors.Right;
 
-                m.Top += mainMenu.Height;
+                m.Top += _mainMenu.Height;
             }
             // We add space to the tool bar panel in the client area is there is one.
-            if (toolBarPanel != null && toolBarPanel.Visible)
+            if (_toolBarPanel != null && _toolBarPanel.Visible)
             {
-                toolBarPanel.Left = m.Left;
-                toolBarPanel.Top = m.Top;
-                toolBarPanel.Width = Width - m.Horizontal;
-                toolBarPanel.Anchor = Anchors.Left | Anchors.Top | Anchors.Right;
+                _toolBarPanel.Left = m.Left;
+                _toolBarPanel.Top = m.Top;
+                _toolBarPanel.Width = Width - m.Horizontal;
+                _toolBarPanel.Anchor = Anchors.Left | Anchors.Top | Anchors.Right;
 
-                m.Top += toolBarPanel.Height;
+                m.Top += _toolBarPanel.Height;
             }
             // We add space to the status bar panel in the client area is there is one.
-            if (statusBar != null && statusBar.Visible)
+            if (_statusBar != null && _statusBar.Visible)
             {
-                statusBar.Left = m.Left;
-                statusBar.Top = Height - m.Bottom - statusBar.Height;
-                statusBar.Width = Width - m.Horizontal;
-                statusBar.Anchor = Anchors.Left | Anchors.Bottom | Anchors.Right;
+                _statusBar.Left = m.Left;
+                _statusBar.Top = Height - m.Bottom - _statusBar.Height;
+                _statusBar.Width = Width - m.Horizontal;
+                _statusBar.Anchor = Anchors.Left | Anchors.Bottom | Anchors.Right;
 
-                m.Bottom += statusBar.Height;
+                m.Bottom += _statusBar.Height;
             }
             // We do the same for the scroll bars.
-            if (scrollBarVertical != null) // The null check is for property assigment in the new sentence.
+            if (_scrollBarVertical != null) // The null check is for property assigment in the new sentence.
             {
-                if (scrollBarVertical.Visible)
+                if (_scrollBarVertical.Visible)
                 {
-                    m.Right += (scrollBarVertical.Width + 2);
+                    m.Right += (_scrollBarVertical.Width + 2);
                 }
-                if (scrollBarHorizontal.Visible)
+                if (_scrollBarHorizontal.Visible)
                 {
-                    m.Bottom += (scrollBarHorizontal.Height + 2);
+                    m.Bottom += (_scrollBarHorizontal.Height + 2);
                 }
             }
             // Update client margins
@@ -244,19 +244,19 @@ namespace XNAFinalEngine.UserInterface
 
         private void PositionScrollBars()
         {
-            if (scrollBarVertical != null) // The null check is for property assigment in the new sentence.
+            if (_scrollBarVertical != null) // The null check is for property assigment in the new sentence.
             {
-                scrollBarVertical.Left = ClientLeft + ClientWidth + 1;
-                scrollBarVertical.Top = ClientTop + 1;
-                scrollBarVertical.Height = ClientArea.Height - ((scrollBarHorizontal.Visible) ? 0 : 2);
-                scrollBarVertical.Range = ClientArea.VirtualHeight;
-                scrollBarVertical.PageSize = ClientArea.ClientHeight;
+                _scrollBarVertical.Left = ClientLeft + ClientWidth + 1;
+                _scrollBarVertical.Top = ClientTop + 1;
+                _scrollBarVertical.Height = ClientArea.Height - ((_scrollBarHorizontal.Visible) ? 0 : 2);
+                _scrollBarVertical.Range = ClientArea.VirtualHeight;
+                _scrollBarVertical.PageSize = ClientArea.ClientHeight;
 
-                scrollBarHorizontal.Left = ClientLeft + 1;
-                scrollBarHorizontal.Top = ClientTop + ClientHeight + 1;
-                scrollBarHorizontal.Width = ClientArea.Width - ((scrollBarVertical.Visible) ? 0 : 2);
-                scrollBarHorizontal.Range = ClientArea.VirtualWidth;
-                scrollBarHorizontal.PageSize = ClientArea.ClientWidth;
+                _scrollBarHorizontal.Left = ClientLeft + 1;
+                _scrollBarHorizontal.Top = ClientTop + ClientHeight + 1;
+                _scrollBarHorizontal.Width = ClientArea.Width - ((_scrollBarVertical.Visible) ? 0 : 2);
+                _scrollBarHorizontal.Range = ClientArea.VirtualWidth;
+                _scrollBarHorizontal.PageSize = ClientArea.ClientWidth;
             }
         } // PositionScrollBars
 
@@ -285,28 +285,28 @@ namespace XNAFinalEngine.UserInterface
         internal void CalculateScrolling()
         {
             // To avoid infinite recursion.
-            if (adjustingScrolling)
+            if (_adjustingScrolling)
                 return;
-            adjustingScrolling = true;
+            _adjustingScrolling = true;
 
             if (AutoScroll)
             {
 
 
-                bool scrollBarVisible = scrollBarVertical.Visible;
-                scrollBarVertical.Visible = ClientArea.VirtualHeight > ClientArea.ClientHeight;
+                bool scrollBarVisible = _scrollBarVertical.Visible;
+                _scrollBarVertical.Visible = ClientArea.VirtualHeight > ClientArea.ClientHeight;
                 if (ClientArea.VirtualHeight <= ClientArea.ClientHeight)
-                    scrollBarVertical.Value = 0;
+                    _scrollBarVertical.Value = 0;
 
                 // If visibility changes...
-                if (scrollBarVisible != scrollBarVertical.Visible)
+                if (scrollBarVisible != _scrollBarVertical.Visible)
                 {
-                    if (!scrollBarVertical.Visible)
+                    if (!_scrollBarVertical.Visible)
                     {
                         foreach (Control c in ClientArea.ChildrenControls)
                         {
                             c.VerticalScrollingAmount = 0;
-                            scrollBarHorizontal.Refresh();
+                            _scrollBarHorizontal.Refresh();
                             c.Invalidate();
                         }
                     }
@@ -316,25 +316,25 @@ namespace XNAFinalEngine.UserInterface
 
                 foreach (Control childControl in ClientArea.ChildrenControls)
                 {
-                    childControl.VerticalScrollingAmount = -scrollBarVertical.Value;
-                    scrollBarVertical.Refresh();
+                    childControl.VerticalScrollingAmount = -_scrollBarVertical.Value;
+                    _scrollBarVertical.Refresh();
                     childControl.Invalidate();
                 }
 
 
 
-                scrollBarVisible = scrollBarHorizontal.Visible;
-                scrollBarHorizontal.Visible = ClientArea.VirtualWidth > ClientArea.ClientWidth;
-                if (ClientArea.VirtualWidth <= ClientArea.ClientWidth) scrollBarHorizontal.Value = 0;
+                scrollBarVisible = _scrollBarHorizontal.Visible;
+                _scrollBarHorizontal.Visible = ClientArea.VirtualWidth > ClientArea.ClientWidth;
+                if (ClientArea.VirtualWidth <= ClientArea.ClientWidth) _scrollBarHorizontal.Value = 0;
 
-                if (scrollBarVisible != scrollBarHorizontal.Visible)
+                if (scrollBarVisible != _scrollBarHorizontal.Visible)
                 {
-                    if (!scrollBarHorizontal.Visible)
+                    if (!_scrollBarHorizontal.Visible)
                     {
                         foreach (Control c in ClientArea.ChildrenControls)
                         {
                             c.HorizontalScrollingAmount = 0;
-                            scrollBarVertical.Refresh();
+                            _scrollBarVertical.Refresh();
                             c.Invalidate();
                         }
                     }
@@ -344,14 +344,14 @@ namespace XNAFinalEngine.UserInterface
 
                 foreach (Control childControl in ClientArea.ChildrenControls)
                 {
-                    childControl.HorizontalScrollingAmount = -scrollBarHorizontal.Value;
-                    scrollBarHorizontal.Refresh();
+                    childControl.HorizontalScrollingAmount = -_scrollBarHorizontal.Value;
+                    _scrollBarHorizontal.Refresh();
                     childControl.Invalidate();
                 }
 
 
             }
-            adjustingScrolling = false;
+            _adjustingScrolling = false;
         } // CalculateScrolling
 
 
@@ -362,19 +362,19 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (control.ControlTopAbsoluteCoordinate + control.Height > ClientArea.ControlTopAbsoluteCoordinate + ClientArea.Height)
                 {
-                    scrollBarVertical.Value = scrollBarVertical.Value + control.ControlTopAbsoluteCoordinate - ClientArea.ControlTopAbsoluteCoordinate - scrollBarVertical.PageSize + control.Height;
+                    _scrollBarVertical.Value = _scrollBarVertical.Value + control.ControlTopAbsoluteCoordinate - ClientArea.ControlTopAbsoluteCoordinate - _scrollBarVertical.PageSize + control.Height;
                 }
                 else if (control.ControlTopAbsoluteCoordinate < ClientArea.ControlTopAbsoluteCoordinate)
                 {
-                    scrollBarVertical.Value = scrollBarVertical.Value + control.ControlTopAbsoluteCoordinate - ClientArea.ControlTopAbsoluteCoordinate;
+                    _scrollBarVertical.Value = _scrollBarVertical.Value + control.ControlTopAbsoluteCoordinate - ClientArea.ControlTopAbsoluteCoordinate;
                 }
                 if (control.ControlLeftAbsoluteCoordinate + control.Width > ClientArea.ControlLeftAbsoluteCoordinate + ClientArea.Width)
                 {
-                    scrollBarHorizontal.Value = scrollBarHorizontal.Value + control.ControlLeftAbsoluteCoordinate - ClientArea.ControlLeftAbsoluteCoordinate - scrollBarHorizontal.PageSize + control.Width;
+                    _scrollBarHorizontal.Value = _scrollBarHorizontal.Value + control.ControlLeftAbsoluteCoordinate - ClientArea.ControlLeftAbsoluteCoordinate - _scrollBarHorizontal.PageSize + control.Width;
                 }
                 else if (control.ControlLeftAbsoluteCoordinate < ClientArea.ControlLeftAbsoluteCoordinate)
                 {
-                    scrollBarHorizontal.Value = scrollBarHorizontal.Value + control.ControlLeftAbsoluteCoordinate - ClientArea.ControlLeftAbsoluteCoordinate;
+                    _scrollBarHorizontal.Value = _scrollBarHorizontal.Value + control.ControlLeftAbsoluteCoordinate - ClientArea.ControlLeftAbsoluteCoordinate;
                 }
             }
         } // ScrollTo         
@@ -390,17 +390,17 @@ namespace XNAFinalEngine.UserInterface
         protected override void OnClick(EventArgs e)
         {
             MouseEventArgs ex = e as MouseEventArgs;
-            ex.Position = new Point(ex.Position.X + scrollBarHorizontal.Value, ex.Position.Y + scrollBarVertical.Value);
+            ex.Position = new Point(ex.Position.X + _scrollBarHorizontal.Value, ex.Position.Y + _scrollBarVertical.Value);
             base.OnClick(e);
         } // OnClick
 
         protected internal override void OnSkinChanged(EventArgs e)
         {
             base.OnSkinChanged(e);
-            if (scrollBarVertical != null && scrollBarHorizontal != null)
+            if (_scrollBarVertical != null && _scrollBarHorizontal != null)
             {
-                scrollBarVertical.Visible = false;
-                scrollBarHorizontal.Visible = false;
+                _scrollBarVertical.Visible = false;
+                _scrollBarHorizontal.Visible = false;
                 CalculateScrolling();
             }
         } // OnSkinChanged

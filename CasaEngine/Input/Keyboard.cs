@@ -37,21 +37,21 @@ namespace XNAFinalEngine.Input
 
 
         // The current keyboard state.
-        private static KeyboardState currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        private static KeyboardState _currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 
         // The previous keyboard state.
-        private static KeyboardState previousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        private static KeyboardState _previousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 
 
 
-        public static KeyboardState State => currentState;
+        public static KeyboardState State => _currentState;
 
-        public static KeyboardState PreviousState => previousState;
+        public static KeyboardState PreviousState => _previousState;
 
 
-        public static bool KeyJustPressed(Keys key) { return currentState.IsKeyDown(key) && !previousState.IsKeyDown(key); }
+        public static bool KeyJustPressed(Keys key) { return _currentState.IsKeyDown(key) && !_previousState.IsKeyDown(key); }
 
-        public static bool KeyPressed(Keys key) { return currentState.IsKeyDown(key); }
+        public static bool KeyPressed(Keys key) { return _currentState.IsKeyDown(key); }
 
 
 
@@ -140,8 +140,8 @@ namespace XNAFinalEngine.Input
 
         internal static void Update()
         {
-            previousState = currentState;
-            currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+            _previousState = _currentState;
+            _currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
         } // Update
 
 

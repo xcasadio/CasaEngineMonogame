@@ -14,9 +14,9 @@ namespace CasaEngine.AI.Graphs
 
 
 
-        protected internal int start;
+        protected internal int Start;
 
-        protected internal int end;
+        protected internal int End;
 
 
 
@@ -31,10 +31,10 @@ namespace CasaEngine.AI.Graphs
             String message = String.Empty;
 
             if (ValidateNode(start, ref message) == false)
-                throw new AIException("start", this.GetType().ToString(), message);
+                throw new AiException("start", this.GetType().ToString(), message);
 
             if (ValidateNode(end, ref message) == false)
-                throw new AIException("end", this.GetType().ToString(), message);
+                throw new AiException("end", this.GetType().ToString(), message);
 
             this.start = start;
             this.end = end;
@@ -50,7 +50,7 @@ namespace CasaEngine.AI.Graphs
                 String message = String.Empty;
 
                 if (ValidateNode(value, ref message) == false)
-                    throw new AIException("start", this.GetType().ToString(), message);
+                    throw new AiException("start", this.GetType().ToString(), message);
 
                 this.start = value;
             }
@@ -65,7 +65,7 @@ namespace CasaEngine.AI.Graphs
                 String message = String.Empty;
 
                 if (ValidateNode(value, ref message) == false)
-                    throw new AIException("end", this.GetType().ToString(), message);
+                    throw new AiException("end", this.GetType().ToString(), message);
 
                 this.end = value;
             }

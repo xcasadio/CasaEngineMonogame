@@ -3,16 +3,16 @@ using CasaEngineCommon.Design;
 
 namespace CasaEngine.FrontEnd.Screen
 {
-    public partial class UIScreen
+    public partial class UiScreen
     {
-        public override void Save(XmlElement el_, SaveOption opt_)
+        public override void Save(XmlElement el, SaveOption opt)
         {
-            base.Save(el_, opt_);
+            base.Save(el, opt);
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption opt_)
+        public override void Save(BinaryWriter bw, SaveOption opt)
         {
-            base.Save(bw_, opt_);
+            base.Save(bw, opt);
         }
     }
 }

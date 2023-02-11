@@ -43,7 +43,7 @@ namespace CasaEngine.Gameplay.Actor
         }
 
 #if EDITOR
-        public override bool CompareTo(BaseObject other_)
+        public override bool CompareTo(BaseObject other)
         {
             throw new NotImplementedException();
         }
@@ -54,7 +54,7 @@ namespace CasaEngine.Gameplay.Actor
             base.Update(elapsedTime);
         }
 
-        public void Draw(float elapsedTime_)
+        public void Draw(float elapsedTime)
         {
             throw new NotImplementedException();
         }

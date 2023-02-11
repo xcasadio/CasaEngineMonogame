@@ -12,21 +12,21 @@ namespace CasaEngine.Gameplay.Actor.Event
         : IEvent, ISaveLoad
     {
 
-        private EventActorType m_EventActorType;
+        private EventActorType _eventActorType;
 
 
 
-        public EventActorType EventActorType => m_EventActorType;
+        public EventActorType EventActorType => _eventActorType;
 
 
-        protected EventActor(EventActorType type_)
+        protected EventActor(EventActorType type)
         {
-            m_EventActorType = type_;
+            _eventActorType = type;
         }
 
-        protected EventActor(XmlElement el_, SaveOption option_)
+        protected EventActor(XmlElement el, SaveOption option)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
 
@@ -35,14 +35,14 @@ namespace CasaEngine.Gameplay.Actor.Event
 
         public abstract void Do();
 
-        public virtual void Load(XmlElement el_, SaveOption option_)
+        public virtual void Load(XmlElement el, SaveOption option)
         {
-            m_EventActorType = (EventActorType)Enum.Parse(typeof(EventActorType), el_.Attributes["type"].Value);
+            _eventActorType = (EventActorType)Enum.Parse(typeof(EventActorType), el.Attributes["type"].Value);
         }
 
-        public virtual void Load(BinaryReader br_, SaveOption option_)
+        public virtual void Load(BinaryReader br, SaveOption option)
         {
-            m_EventActorType = (EventActorType)Enum.Parse(typeof(EventActorType), br_.ReadString());
+            _eventActorType = (EventActorType)Enum.Parse(typeof(EventActorType), br.ReadString());
         }
 
     }

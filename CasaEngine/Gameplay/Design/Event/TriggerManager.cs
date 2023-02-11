@@ -2,24 +2,24 @@
 {
     public class TriggerManager
     {
-        readonly List<Trigger> m_Triggers = new List<Trigger>();
+        readonly List<Trigger> _triggers = new List<Trigger>();
 
 
 
-        public List<Trigger> Triggers => m_Triggers;
+        public List<Trigger> Triggers => _triggers;
 
 
-        public void Update(float elapsedTime_)
+        public void Update(float elapsedTime)
         {
-            foreach (Trigger t in m_Triggers.ToArray())
+            foreach (Trigger t in _triggers.ToArray())
             {
-                t.Update(elapsedTime_);
+                t.Update(elapsedTime);
             }
         }
 
         public void Reset()
         {
-            foreach (Trigger t in m_Triggers.ToArray())
+            foreach (Trigger t in _triggers.ToArray())
             {
                 t.Reset();
             }

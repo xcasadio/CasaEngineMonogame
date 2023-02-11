@@ -1,35 +1,35 @@
 namespace CasaEngine.AI.StateMachines
 {
     [Serializable]
-    public class FiniteStateMachine<T> : IFiniteStateMachine<T> where T : /*BaseEntity,*/ IFSMCapable<T>
+    public class FiniteStateMachine<T> : IFiniteStateMachine<T> where T : /*BaseEntity,*/ IFsmCapable<T>
     {
 
-        protected internal T owner;
+        protected internal T Owner;
 
-        protected internal IState<T> currentState;
+        protected internal IState<T> CurrentState;
 
-        protected internal IState<T> previousState;
+        protected internal IState<T> PreviousState;
 
-        protected internal IState<T> globalState;
+        protected internal IState<T> GlobalState;
 
 
 
         public FiniteStateMachine(T owner)
         {
-            this.owner = owner;
+            this.Owner = owner;
 
             currentState = new DefaultIdleState<T>();
-            previousState = new DefaultIdleState<T>();
+            PreviousState = new DefaultIdleState<T>();
             globalState = new DefaultIdleState<T>();
         }
 
         public FiniteStateMachine(T owner, IState<T> currentState, IState<T> globalState)
         {
-            this.owner = owner;
+            this.Owner = owner;
 
             this.currentState = currentState;
             this.globalState = globalState;
-            this.previousState = new DefaultIdleState<T>();
+            this.PreviousState = new DefaultIdleState<T>();
         }
 
 
@@ -48,10 +48,10 @@ namespace CasaEngine.AI.StateMachines
 
 
 
-        public void Update(float elpasedTime_)
+        public void Update(float elpasedTime)
         {
-            globalState.Update(owner, elpasedTime_);
-            currentState.Update(owner, elpasedTime_);
+            globalState.Update(Owner, elpasedTime);
+            currentState.Update(Owner, elpasedTime);
         }
 
         public void Transition(IState<T> newState)
@@ -78,19 +78,19 @@ namespace CasaEngine.AI.StateMachines
             }*/
 
             //Exit the actual state
-            currentState.Exit(owner);
+            currentState.Exit(Owner);
 
             //Actualize internal values
-            previousState = currentState;
+            PreviousState = currentState;
             currentState = newState;
 
             //Enter the new state
-            currentState.Enter(owner);
+            currentState.Enter(Owner);
         }
 
         public void RevertStateChange()
         {
-            Transition(previousState);
+            Transition(PreviousState);
         }
 
         public bool IsInState(IState<T> state)
@@ -105,11 +105,11 @@ namespace CasaEngine.AI.StateMachines
         public bool HandleMessage(Message message)
         {
             //Try to handle the message with the current state
-            if (currentState.HandleMessage(owner, message) == true)
+            if (currentState.HandleMessage(Owner, message) == true)
                 return true;
 
             //If the current state couldn´t handle the message, try the global state
-            if (globalState.HandleMessage(owner, message) == true)
+            if (globalState.HandleMessage(Owner, message) == true)
                 return true;
 
             //The machine wasn´t able to handle the message

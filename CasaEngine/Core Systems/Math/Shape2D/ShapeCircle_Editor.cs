@@ -12,42 +12,42 @@ namespace CasaEngine.Math.Shape2D
 
 
 
-        public ShapeCircle(Point center_, int radius_)
+        public ShapeCircle(Point center, int radius)
             : base(Shape2DType.Circle)
         {
-            Location = center_;
-            m_Radius = radius_;
+            Location = center;
+            _radius = radius;
         }
 
 
 
-        public override bool CompareTo(Shape2DObject o_)
+        public override bool CompareTo(Shape2DObject o)
         {
-            if (o_ is ShapeCircle)
+            if (o is ShapeCircle)
             {
-                ShapeCircle c = (ShapeCircle)o_;
-                return m_Radius == c.Radius && base.CompareTo(o_);
+                ShapeCircle c = (ShapeCircle)o;
+                return _radius == c.Radius && base.CompareTo(o);
             }
 
             return false;
         }
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            base.Save(el_, option_);
-            el_.OwnerDocument.AddAttribute(el_, "radius", m_Radius.ToString());
+            base.Save(el, option);
+            el.OwnerDocument.AddAttribute(el, "radius", _radius.ToString());
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            base.Save(bw_, option_);
+            base.Save(bw, option);
 
-            bw_.Write(m_Radius);
+            bw.Write(_radius);
         }
 
         public override string ToString()
         {
-            return "Circle - " + Location.ToString() + " - " + m_Radius;
+            return "Circle - " + Location.ToString() + " - " + _radius;
         }
 
     }

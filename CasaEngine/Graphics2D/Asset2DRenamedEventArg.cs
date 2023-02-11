@@ -3,10 +3,10 @@
     public class Asset2DRenamedEventArg
         : EventArgs
     {
-        public Asset2DRenamedEventArg(string name_, string newName_)
+        public Asset2DRenamedEventArg(string name, string newName)
         {
-            AssetName = name_;
-            NewAssetName = newName_;
+            AssetName = name;
+            NewAssetName = newName;
         }
 
         public string AssetName;

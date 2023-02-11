@@ -6,7 +6,7 @@ namespace CasaEngine.AI.Messaging
 
         void ResetManager(double precision);
 
-        void SendMessage(int senderID, int recieverID, double delayTime, int type, object extraInfo);
+        void SendMessage(int senderId, int recieverId, double delayTime, int type, object extraInfo);
 
         void Update();
 

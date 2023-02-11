@@ -33,8 +33,8 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private string assetName;
-        private readonly TextBox nameTextBox;
+        private string _assetName;
+        private readonly TextBox _nameTextBox;
 
 
 
@@ -42,14 +42,14 @@ namespace XNAFinalEngine.UserInterface
 
         public string AssetName
         {
-            get => assetName;
+            get => _assetName;
             set
             {
-                if (assetName != value)
+                if (_assetName != value)
                 {
-                    assetName = value;
+                    _assetName = value;
                     OnAssetNameChanged(new EventArgs());
-                    nameTextBox.Text = assetName;
+                    _nameTextBox.Text = _assetName;
                 }
             }
         } // AssetName
@@ -62,8 +62,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public AssetWindow(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public AssetWindow(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             var nameLabel = new Label(UserInterfaceManager)
             {
@@ -74,7 +74,7 @@ namespace XNAFinalEngine.UserInterface
                 Height = 25,
                 Alignment = Alignment.BottomCenter,
             };
-            nameTextBox = new TextBox(UserInterfaceManager)
+            _nameTextBox = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Width = ClientWidth - nameLabel.Width - 5,
@@ -83,14 +83,14 @@ namespace XNAFinalEngine.UserInterface
                 Top = 10,
                 Anchor = Anchors.Left | Anchors.Top | Anchors.Right
             };
-            nameTextBox.KeyDown += delegate (object sender, KeyEventArgs e)
+            _nameTextBox.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
-                    AssetName = nameTextBox.Text;
+                    AssetName = _nameTextBox.Text;
             };
-            nameTextBox.FocusLost += delegate
+            _nameTextBox.FocusLost += delegate
             {
-                AssetName = nameTextBox.Text;
+                AssetName = _nameTextBox.Text;
             };
         } // AssetWindow
 

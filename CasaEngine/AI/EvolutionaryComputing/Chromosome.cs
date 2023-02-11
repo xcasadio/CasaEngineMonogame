@@ -10,9 +10,9 @@ namespace CasaEngine.AI.EvolutionaryComputing
     public class Chromosome<T> : ICloneable
     {
 
-        protected internal double fitness;
+        protected internal double Fitness;
 
-        protected internal List<T> genotype;
+        protected internal List<T> Genotype;
 
 
 
@@ -37,7 +37,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 String message = String.Empty;
 
                 if (ValidateGenotype(value, ref message) == false)
-                    throw new AIException("genotype", this.GetType().ToString(), message);
+                    throw new AiException("genotype", this.GetType().ToString(), message);
 
                 genotype = value;
             }

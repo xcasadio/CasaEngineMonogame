@@ -3,25 +3,25 @@
     abstract class ParserToken
     {
 
-        protected string m_Token = string.Empty;
-        readonly Parser m_Parser;
+        protected string Token = string.Empty;
+        readonly Parser _parser;
 
 
 
-        protected Parser Parser => m_Parser;
+        protected Parser Parser => _parser;
 
 
-        protected ParserToken(Parser parser_, string token_)
+        protected ParserToken(Parser parser, string token)
         {
-            parser_.AddToken(token_);
+            parser.AddToken(token);
 
-            m_Token = token_;
-            m_Parser = parser_;
+            Token = token;
+            _parser = parser;
         }
 
 
 
-        public abstract bool Check(string sentence_);
+        public abstract bool Check(string sentence);
 
     }
 }

@@ -25,20 +25,20 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly Button btnUp;
-        private readonly Button btnDown;
-        private SpinBoxMode mode = SpinBoxMode.List;
-        private readonly List<object> items = new List<object>();
-        private float value;
-        private int rounding = 2;
-        private int itemIndex = -1;
+        private readonly Button _btnUp;
+        private readonly Button _btnDown;
+        private SpinBoxMode _mode = SpinBoxMode.List;
+        private readonly List<object> _items = new List<object>();
+        private float _value;
+        private int _rounding = 2;
+        private int _itemIndex = -1;
 
 
 
         public new virtual SpinBoxMode Mode
         {
-            get => mode;
-            set => mode = value;
+            get => _mode;
+            set => _mode = value;
         } // Mode
 
         public override bool ReadOnly
@@ -54,16 +54,16 @@ namespace XNAFinalEngine.UserInterface
             }
         } // ReadOnly
 
-        public virtual List<object> Items => items; // Items
+        public virtual List<object> Items => _items; // Items
 
         public float Value
         {
-            get => value;
+            get => _value;
             set
             {
-                if (this.value != value)
+                if (this._value != value)
                 {
-                    this.value = value;
+                    this._value = value;
                     Invalidate();
                 }
             }
@@ -77,29 +77,29 @@ namespace XNAFinalEngine.UserInterface
 
         public int ItemIndex
         {
-            get => itemIndex;
+            get => _itemIndex;
             set
             {
                 if (value < 0)
                     value = 0;
-                if (value > items.Count - 1)
-                    value = items.Count - 1;
-                if (mode == SpinBoxMode.List && items.Count != 0)
+                if (value > _items.Count - 1)
+                    value = _items.Count - 1;
+                if (_mode == SpinBoxMode.List && _items.Count != 0)
                 {
-                    itemIndex = value;
-                    Text = items[itemIndex].ToString();
+                    _itemIndex = value;
+                    Text = _items[_itemIndex].ToString();
                 }
             }
         } // ItemIndex
 
         public int Rounding
         {
-            get => rounding;
+            get => _rounding;
             set
             {
-                if (rounding != value)
+                if (_rounding != value)
                 {
-                    rounding = value;
+                    _rounding = value;
                     Invalidate();
                 }
             }
@@ -107,25 +107,25 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public SpinBox(UserInterfaceManager userInterfaceManager_, SpinBoxMode mode)
-            : base(userInterfaceManager_)
+        public SpinBox(UserInterfaceManager userInterfaceManager, SpinBoxMode mode)
+            : base(userInterfaceManager)
         {
             Step = 0.25f;
             Maximum = 100;
             Minimum = 0;
-            this.mode = mode;
+            this._mode = mode;
             ReadOnly = true;
 
             Height = 20;
             Width = 64;
 
-            btnUp = new Button(UserInterfaceManager) { CanFocus = false };
-            btnUp.MousePress += Button_MousePress;
-            Add(btnUp, false);
+            _btnUp = new Button(UserInterfaceManager) { CanFocus = false };
+            _btnUp.MousePress += Button_MousePress;
+            Add(_btnUp, false);
 
-            btnDown = new Button(UserInterfaceManager) { CanFocus = false };
-            btnDown.MousePress += Button_MousePress;
-            Add(btnDown, false);
+            _btnDown = new Button(UserInterfaceManager) { CanFocus = false };
+            _btnDown.MousePress += Button_MousePress;
+            Add(_btnDown, false);
         } // SpinBox
 
 
@@ -134,18 +134,18 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
 
-            SkinControlInformation sc = new SkinControlInformation(btnUp.SkinInformation);
+            SkinControlInformation sc = new SkinControlInformation(_btnUp.SkinInformation);
             sc.Layers["Control"] = new SkinLayer(SkinInformation.Layers["Button"]);
             sc.Layers["Button"].Name = "Control";
-            btnUp.SkinInformation = btnDown.SkinInformation = sc;
+            _btnUp.SkinInformation = _btnDown.SkinInformation = sc;
 
-            btnUp.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowUp"].Texture)
+            _btnUp.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowUp"].Texture)
             {
                 SizeMode = SizeMode.Centered,
                 Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
             };
 
-            btnDown.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowDown"].Texture)
+            _btnDown.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowDown"].Texture)
             {
                 SizeMode = SizeMode.Centered,
                 Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
@@ -169,7 +169,7 @@ namespace XNAFinalEngine.UserInterface
                 SkinLayer lr = SkinInformation.Layers[0];
                 Rectangle rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
                                              rect.Top + lr.ContentMargins.Top,
-                                             Width - lr.ContentMargins.Horizontal - btnDown.Width - btnUp.Width,
+                                             Width - lr.ContentMargins.Horizontal - _btnDown.Width - _btnUp.Width,
                                              Height - lr.ContentMargins.Vertical);
                 UserInterfaceManager.Renderer.Draw(UserInterfaceManager.Skin.Images["ListBox.Selection"].Texture.Resource, rc, Color.FromNonPremultiplied(255, 255, 255, 128));
             }
@@ -179,36 +179,36 @@ namespace XNAFinalEngine.UserInterface
 
         private void ShiftIndex(bool direction)
         {
-            if (mode == SpinBoxMode.List)
+            if (_mode == SpinBoxMode.List)
             {
-                if (items.Count > 0)
+                if (_items.Count > 0)
                 {
                     if (direction)
-                        itemIndex += 1;
+                        _itemIndex += 1;
                     else
-                        itemIndex -= 1;
+                        _itemIndex -= 1;
 
-                    if (itemIndex < 0)
-                        itemIndex = 0;
-                    if (itemIndex > items.Count - 1)
-                        itemIndex = itemIndex = items.Count - 1;
+                    if (_itemIndex < 0)
+                        _itemIndex = 0;
+                    if (_itemIndex > _items.Count - 1)
+                        _itemIndex = _itemIndex = _items.Count - 1;
 
-                    Text = items[itemIndex].ToString();
+                    Text = _items[_itemIndex].ToString();
                 }
             }
             else
             {
                 if (direction)
-                    value += Step;
+                    _value += Step;
                 else
-                    value -= Step;
+                    _value -= Step;
 
-                if (value < Minimum)
-                    value = Minimum;
-                if (value > Maximum)
-                    value = Maximum;
+                if (_value < Minimum)
+                    _value = Minimum;
+                if (_value > Maximum)
+                    _value = Maximum;
 
-                Text = value.ToString("n" + rounding);
+                Text = _value.ToString("n" + _rounding);
             }
         } // ShiftIndex
 
@@ -217,9 +217,9 @@ namespace XNAFinalEngine.UserInterface
         private void Button_MousePress(object sender, MouseEventArgs e)
         {
             Focused = true;
-            if (sender == btnUp)
+            if (sender == _btnUp)
                 ShiftIndex(true);
-            else if (sender == btnDown)
+            else if (sender == _btnDown)
                 ShiftIndex(false);
         } // Button_MousePress
 
@@ -229,19 +229,19 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnResize(e);
 
-            if (btnUp != null)
+            if (_btnUp != null)
             {
-                btnUp.Width = 16;
-                btnUp.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
-                btnUp.Top = SkinInformation.Layers["Control"].ContentMargins.Top;
-                btnUp.Left = Width - 16 - 2 - 16 - 1;
+                _btnUp.Width = 16;
+                _btnUp.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
+                _btnUp.Top = SkinInformation.Layers["Control"].ContentMargins.Top;
+                _btnUp.Left = Width - 16 - 2 - 16 - 1;
             }
-            if (btnDown != null)
+            if (_btnDown != null)
             {
-                btnDown.Width = 16;
-                btnDown.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
-                btnDown.Top = SkinInformation.Layers["Control"].ContentMargins.Top; ;
-                btnDown.Left = Width - 16 - 2;
+                _btnDown.Width = 16;
+                _btnDown.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
+                _btnDown.Top = SkinInformation.Layers["Control"].ContentMargins.Top; ;
+                _btnDown.Left = Width - 16 - 2;
             }
         } // OnResize
 

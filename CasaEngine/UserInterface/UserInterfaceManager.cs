@@ -56,26 +56,26 @@ namespace XNAFinalEngine.UserInterface
 
 
 #if (!XBOX)
-        private CasaEngine.Asset.Cursors.Cursor cursor;
+        private CasaEngine.Asset.Cursors.Cursor _cursor;
 
-        private Form window;
+        private Form _window;
 #endif
 
         // Main render target, when the UI will be render.
-        private RenderTarget renderTarget;
+        private RenderTarget _renderTarget;
 
-        private Control focusedControl;
-        private ModalContainer modalWindow;
-        private ControlStates states;
+        private Control _focusedControl;
+        private ModalContainer _modalWindow;
+        private ControlStates _states;
 
         // To avoid more than one initialization.
-        private bool initialized;
+        private bool _initialized;
 
         // Used to call the update and render method in the correct order without explicit calls.
         //private GameObject userInterfaceGameObject;
 
         // Used to generate the resize event.
-        private int oldScreenWidth, oldScreenHeight;
+        private int _oldScreenWidth, _oldScreenHeight;
 
 
 
@@ -85,18 +85,18 @@ namespace XNAFinalEngine.UserInterface
 
         public CasaEngine.Asset.Cursors.Cursor Cursor
         {
-            get => cursor;
+            get => _cursor;
             set
             {
-                cursor = value;
+                _cursor = value;
 
-                if (window.InvokeRequired == true)
+                if (_window.InvokeRequired == true)
                 {
-                    window.Invoke(new Action(() => window.Cursor = value.Resource));
+                    _window.Invoke(new Action(() => _window.Cursor = value.Resource));
                 }
                 else
                 {
-                    window.Cursor = value.Resource;
+                    _window.Cursor = value.Resource;
                 }
             }
         } // Cursor
@@ -135,10 +135,10 @@ namespace XNAFinalEngine.UserInterface
 
         public ModalContainer ModalWindow
         {
-            get => modalWindow;
+            get => _modalWindow;
             internal set
             {
-                modalWindow = value;
+                _modalWindow = value;
                 if (value != null)
                 {
                     value.ModalResult = ModalResult.None;
@@ -153,7 +153,7 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (Visible)
-                    return focusedControl;
+                    return _focusedControl;
                 return null;
             }
             internal set
@@ -162,34 +162,34 @@ namespace XNAFinalEngine.UserInterface
                 {
                     if (value.CanFocus)
                     {
-                        if (focusedControl == null || (focusedControl != null && value.Root != focusedControl.Root) || !value.IsRoot)
+                        if (_focusedControl == null || (_focusedControl != null && value.Root != _focusedControl.Root) || !value.IsRoot)
                         {
-                            if (focusedControl != null && focusedControl != value)
+                            if (_focusedControl != null && _focusedControl != value)
                             {
-                                focusedControl.Focused = false;
+                                _focusedControl.Focused = false;
                             }
-                            focusedControl = value;
+                            _focusedControl = value;
                         }
                     }
                     else
                     {
-                        if (focusedControl != null && value.Root != focusedControl.Root)
+                        if (_focusedControl != null && value.Root != _focusedControl.Root)
                         {
-                            if (focusedControl != value.Root)
+                            if (_focusedControl != value.Root)
                             {
-                                focusedControl.Focused = false;
+                                _focusedControl.Focused = false;
                             }
-                            focusedControl = value.Root;
+                            _focusedControl = value.Root;
                         }
-                        else if (focusedControl == null)
+                        else if (_focusedControl == null)
                         {
-                            focusedControl = value.Root;
+                            _focusedControl = value.Root;
                         }
                     }
                     BringToFront(value.Root);
                 }
                 else
-                    focusedControl = null;
+                    _focusedControl = null;
             }
         } // FocusedControl
 
@@ -209,20 +209,20 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public void Initialize(GraphicsDevice graphicsDevice_, IntPtr formHandle_, Rectangle gameWindowClientBounds_)
+        public void Initialize(GraphicsDevice graphicsDevice, IntPtr formHandle, Rectangle gameWindowClientBounds)
         {
-            if (initialized)
+            if (_initialized)
                 return;
             try
             {
                 Skin = new Skin();
                 Renderer = new Renderer();
-                Screen = new CasaEngine.CoreSystems.Screen(graphicsDevice_);
+                Screen = new CasaEngine.CoreSystems.Screen(graphicsDevice);
 
-                GraphicsDevice = graphicsDevice_;
+                GraphicsDevice = graphicsDevice;
                 Visible = true;
                 InputEnabled = true;
-                initialized = true;
+                _initialized = true;
                 // Set some public parameters.
                 TextureResizeIncrement = 32;
                 ToolTipDelay = 500;
@@ -232,21 +232,21 @@ namespace XNAFinalEngine.UserInterface
 #if (WINDOWS)
                 MenuDelay = SystemInformation.MenuShowDelay;
                 DoubleClickTime = SystemInformation.DoubleClickTime;
-                window = (Form)System.Windows.Forms.Control.FromHandle(formHandle_);
-                window.FormClosing += FormClosing;
+                _window = (Form)System.Windows.Forms.Control.FromHandle(formHandle);
+                _window.FormClosing += FormClosing;
 #endif
 
                 RootControls = new ControlsList();
                 OrderList = new ControlsList();
 
-                graphicsDevice_.DeviceReset += OnDeviceReset;
+                graphicsDevice.DeviceReset += OnDeviceReset;
 
-                states.Buttons = new Control[32];
-                states.Click = -1;
-                states.Over = null;
+                _states.Buttons = new Control[32];
+                _states.Click = -1;
+                _states.Over = null;
 
                 // Input events
-                InputSystem = new Input(gameWindowClientBounds_);
+                InputSystem = new Input(gameWindowClientBounds);
                 InputSystem.MouseDown += MouseDownProcess;
                 InputSystem.MouseUp += MouseUpProcess;
                 InputSystem.MousePress += MousePressProcess;
@@ -260,21 +260,21 @@ namespace XNAFinalEngine.UserInterface
                 UserInterfaceContentManager = new AssetContentManager { Name = "User Interface Content Manager", Hidden = true };
                 AssetContentManager.CurrentContentManager = UserInterfaceContentManager;*/
                 XNAFinalEngine.Helpers.Size size = new XNAFinalEngine.Helpers.Size(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, Screen);
-                renderTarget = new RenderTarget(graphicsDevice_, size.FullScreen, SurfaceFormat.Color, false, RenderTarget.AntialiasingType.NoAntialiasing)
+                _renderTarget = new RenderTarget(graphicsDevice, size.FullScreen, SurfaceFormat.Color, false, RenderTarget.AntialiasingType.NoAntialiasing)
                 {
                     Name = "User Interface Render Target",
                 };
                 //AssetContentManager.CurrentContentManager = userContentManager;
 
                 // Init User Interface UserInterfaceManager.Renderer.
-                Renderer.Initialize(graphicsDevice_);
+                Renderer.Initialize(graphicsDevice);
 
                 // Set Default UserInterfaceManager.Skin.
                 SetSkin("Default");
 
                 // Window resize.
-                oldScreenWidth = Screen.Width;
-                oldScreenHeight = Screen.Height;
+                _oldScreenWidth = Screen.Width;
+                _oldScreenHeight = Screen.Height;
                 Screen.ScreenSizeChanged += OnScreenSizeChanged;
 
                 //warning in XNAFinalEngine this it call in Game.LoadContent() !!
@@ -308,9 +308,9 @@ namespace XNAFinalEngine.UserInterface
             if (WindowResize != null)
                 WindowResize.Invoke(null, new ResizeEventArgs(GraphicsDevice.PresentationParameters.BackBufferWidth,
                                                               GraphicsDevice.PresentationParameters.BackBufferHeight,
-                                                              oldScreenWidth, oldScreenHeight));
-            oldScreenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
-            oldScreenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
+                                                              _oldScreenWidth, _oldScreenHeight));
+            _oldScreenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
+            _oldScreenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
         } // OnScreenSizeChanged
 
 
@@ -444,7 +444,7 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public void Update(float elapsedTime_)
+        public void Update(float elapsedTime)
         {
             if (!Visible || !InputEnabled)
                 return;
@@ -453,14 +453,14 @@ namespace XNAFinalEngine.UserInterface
                 // Init new controls.
                 Control.InitializeNewControls();
 
-                InputSystem.Update(elapsedTime_);
+                InputSystem.Update(elapsedTime);
 
 
                 // In the control's update the Root Control list could be modified so we need to create an auxiliary list.
                 ControlsList controlList = new ControlsList(RootControls);
                 foreach (Control control in controlList)
                 {
-                    control.Update(elapsedTime_);
+                    control.Update(elapsedTime);
                 }
                 OrderList.Clear();
                 SortLevel(RootControls);
@@ -499,7 +499,7 @@ namespace XNAFinalEngine.UserInterface
                         control.Parent.Remove(control);
                     RootControls.Add(control);
                     control.Parent = null;
-                    if (focusedControl == null)
+                    if (_focusedControl == null)
                         control.Focused = true;
                     WindowResize += control.OnParentResize;
                 }
@@ -532,7 +532,7 @@ namespace XNAFinalEngine.UserInterface
                     control.PreDrawControlOntoOwnTexture();
                 }
                 // Draw user interface texture.
-                renderTarget.EnableRenderTarget();
+                _renderTarget.EnableRenderTarget();
                 //renderTarget.Clear(Color.Transparent);
                 GraphicsDevice.Clear(ClearOptions.Target, Color.Transparent, 1.0f, 0);
 
@@ -541,7 +541,7 @@ namespace XNAFinalEngine.UserInterface
                 {
                     control.DrawControlOntoMainTexture();
                 }
-                renderTarget.DisableRenderTarget();
+                _renderTarget.DisableRenderTarget();
             }
         } // DrawToTexture
 
@@ -552,7 +552,7 @@ namespace XNAFinalEngine.UserInterface
             if (RootControls != null)
             {
                 Renderer.Begin();
-                Renderer.Draw(renderTarget.Resource, new Rectangle(0, 0, Screen.Width, Screen.Height), Color.White);
+                Renderer.Draw(_renderTarget.Resource, new Rectangle(0, 0, Screen.Width, Screen.Height), Color.White);
                 Renderer.End();
             }
         } // DrawTextureToScreen
@@ -630,7 +630,7 @@ namespace XNAFinalEngine.UserInterface
 
         private bool CheckButtons(int index)
         {
-            return states.Buttons.Where((t, i) => i != index).All(t => t == null);
+            return _states.Buttons.Where((t, i) => i != index).All(t => t == null);
         } // CheckButtons
 
         private void TabNextControl(Control control)
@@ -765,7 +765,7 @@ namespace XNAFinalEngine.UserInterface
             ControlsList controlList = new ControlsList();
             controlList.AddRange(OrderList);
 
-            if (AutoUnfocus && focusedControl != null && focusedControl.Root != modalWindow)
+            if (AutoUnfocus && _focusedControl != null && _focusedControl.Root != _modalWindow)
             {
                 bool hit = RootControls.Any(cx => cx.ControlRectangle.Contains(e.Position));
 
@@ -776,19 +776,19 @@ namespace XNAFinalEngine.UserInterface
                         hit = true;
                     }
                 }
-                if (!hit) focusedControl.Focused = false;
+                if (!hit) _focusedControl.Focused = false;
             }
 
             for (int i = controlList.Count - 1; i >= 0; i--)
             {
                 if (CheckState(controlList[i]) && CheckPosition(controlList[i], e.Position))
                 {
-                    states.Buttons[(int)e.Button] = controlList[i];
+                    _states.Buttons[(int)e.Button] = controlList[i];
                     controlList[i].SendMessage(Message.MouseDown, e);
 
-                    if (states.Click == -1)
+                    if (_states.Click == -1)
                     {
-                        states.Click = (int)e.Button;
+                        _states.Click = (int)e.Button;
 
                         if (FocusedControl != null)
                         {
@@ -812,28 +812,28 @@ namespace XNAFinalEngine.UserInterface
 
         private void MouseUpProcess(object sender, MouseEventArgs e)
         {
-            Control control = states.Buttons[(int)e.Button];
+            Control control = _states.Buttons[(int)e.Button];
             if (control != null)
             {
                 bool res1 = CheckPosition(control, e.Position);
                 bool res2 = CheckOrder(control, e.Position);
-                bool res3 = states.Click == (int)e.Button;
+                bool res3 = _states.Click == (int)e.Button;
                 bool res4 = CheckButtons((int)e.Button);
 
                 if (res1 && res2 && res3 && res4)
                 {
                     control.SendMessage(Message.Click, e);
                 }
-                states.Click = -1;
+                _states.Click = -1;
                 control.SendMessage(Message.MouseUp, e);
-                states.Buttons[(int)e.Button] = null;
+                _states.Buttons[(int)e.Button] = null;
                 MouseMoveProcess(sender, e);
             }
         } // MouseUpProcess
 
         private void MousePressProcess(object sender, MouseEventArgs e)
         {
-            Control control = states.Buttons[(int)e.Button];
+            Control control = _states.Buttons[(int)e.Button];
             if (control != null)
             {
                 if (CheckPosition(control, e.Position))
@@ -853,7 +853,7 @@ namespace XNAFinalEngine.UserInterface
                 bool checkPosition = CheckPosition(controlList[i], e.Position);
                 bool checkState = CheckState(controlList[i]);
 
-                if (checkState && ((checkPosition && states.Over == controlList[i]) || (states.Buttons[(int)e.Button] == controlList[i])))
+                if (checkState && ((checkPosition && _states.Over == controlList[i]) || (_states.Buttons[(int)e.Button] == controlList[i])))
                 {
                     controlList[i].SendMessage(Message.MouseMove, e);
                     break;
@@ -865,9 +865,9 @@ namespace XNAFinalEngine.UserInterface
                 bool checkPosition = CheckPosition(controlList[i], e.Position);
                 bool checkState = CheckState(controlList[i]) || (controlList[i].toolTip != null && !string.IsNullOrEmpty(controlList[i].ToolTip.Text) && controlList[i].Visible);
 
-                if (checkState && !checkPosition && states.Over == controlList[i] && states.Buttons[(int)e.Button] == null)
+                if (checkState && !checkPosition && _states.Over == controlList[i] && _states.Buttons[(int)e.Button] == null)
                 {
-                    states.Over = null;
+                    _states.Over = null;
                     controlList[i].SendMessage(Message.MouseOut, e);
                     break;
                 }
@@ -878,17 +878,17 @@ namespace XNAFinalEngine.UserInterface
                 bool checkPosition = CheckPosition(controlList[i], e.Position);
                 bool checkState = CheckState(controlList[i]) || (controlList[i].toolTip != null && !string.IsNullOrEmpty(controlList[i].ToolTip.Text) && controlList[i].Visible);
 
-                if (checkState && checkPosition && states.Over != controlList[i] && states.Buttons[(int)e.Button] == null)
+                if (checkState && checkPosition && _states.Over != controlList[i] && _states.Buttons[(int)e.Button] == null)
                 {
-                    if (states.Over != null)
+                    if (_states.Over != null)
                     {
-                        states.Over.SendMessage(Message.MouseOut, e);
+                        _states.Over.SendMessage(Message.MouseOut, e);
                     }
-                    states.Over = controlList[i];
+                    _states.Over = controlList[i];
                     controlList[i].SendMessage(Message.MouseOver, e);
                     break;
                 }
-                if (states.Over == controlList[i])
+                if (_states.Over == controlList[i])
                     break;
             }
         } // MouseMoveProcess
@@ -899,11 +899,11 @@ namespace XNAFinalEngine.UserInterface
 
             if (focusedControl != null && CheckState(focusedControl))
             {
-                if (states.Click == -1)
+                if (_states.Click == -1)
                 {
-                    states.Click = (int)MouseButton.None;
+                    _states.Click = (int)MouseButton.None;
                 }
-                states.Buttons[(int)MouseButton.None] = focusedControl;
+                _states.Buttons[(int)MouseButton.None] = focusedControl;
                 focusedControl.SendMessage(Message.KeyDown, e);
 
                 if (e.Key == Microsoft.Xna.Framework.Input.Keys.Enter)
@@ -915,7 +915,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void KeyUpProcess(object sender, KeyEventArgs e)
         {
-            Control control = states.Buttons[(int)MouseButton.None];
+            Control control = _states.Buttons[(int)MouseButton.None];
 
             if (control != null)
             {
@@ -923,15 +923,15 @@ namespace XNAFinalEngine.UserInterface
                 {
                     control.SendMessage(Message.Click, new MouseEventArgs(new MouseState(), MouseButton.None, Point.Zero));
                 }
-                states.Click = -1;
-                states.Buttons[(int)MouseButton.None] = null;
+                _states.Click = -1;
+                _states.Buttons[(int)MouseButton.None] = null;
                 control.SendMessage(Message.KeyUp, e);
             }
         } // KeyUpProcess
 
         private void KeyPressProcess(object sender, KeyEventArgs e)
         {
-            Control control = states.Buttons[(int)MouseButton.None];
+            Control control = _states.Buttons[(int)MouseButton.None];
             if (control != null)
             {
                 control.SendMessage(Message.KeyPress, e);

@@ -8,9 +8,9 @@ namespace CasaEngine.SourceControl
         : ISourceControl
     {
 
-        private readonly P4Connection m_P4Connection = null;
+        private readonly P4Connection _p4Connection = null;
 
-        private string[] m_CommandFstatKeys = {
+        private string[] _commandFstatKeys = {
             "headModTime",
             "clientFile",
             "actionOwner",
@@ -29,7 +29,7 @@ namespace CasaEngine.SourceControl
             "path",
             "haveRev"};
 
-        private string[] m_CommandFileKeys = {
+        private string[] _commandFileKeys = {
             "rev",
             "change",
             "depotFile",
@@ -37,9 +37,9 @@ namespace CasaEngine.SourceControl
             "action",
             "time"};
 
-        private readonly Dictionary<string, SourceControlKeyWord> KeyWordMapping = new Dictionary<string, SourceControlKeyWord>();
+        private readonly Dictionary<string, SourceControlKeyWord> _keyWordMapping = new Dictionary<string, SourceControlKeyWord>();
 
-        private bool m_ValidWorkspaceDirectory = false;
+        private bool _validWorkspaceDirectory = false;
 
 
 
@@ -47,40 +47,40 @@ namespace CasaEngine.SourceControl
 
         public P4SourceControl()
         {
-            m_P4Connection = new P4Connection();
+            _p4Connection = new P4Connection();
 
-            KeyWordMapping.Add("action", SourceControlKeyWord.Action);
-            KeyWordMapping.Add("actionOwner", SourceControlKeyWord.ActionOwner);
-            KeyWordMapping.Add("change", SourceControlKeyWord.Change);
-            KeyWordMapping.Add("clientFile", SourceControlKeyWord.ClientFile);
-            KeyWordMapping.Add("depotFile", SourceControlKeyWord.DepotFile);
-            KeyWordMapping.Add("fileSize", SourceControlKeyWord.FileSize);
-            KeyWordMapping.Add("haveRev", SourceControlKeyWord.HaveRev);
-            KeyWordMapping.Add("headAction", SourceControlKeyWord.HeadAction);
-            KeyWordMapping.Add("headChange", SourceControlKeyWord.HeadChange);
-            KeyWordMapping.Add("headModTime", SourceControlKeyWord.HeadModTime);
-            KeyWordMapping.Add("headTime", SourceControlKeyWord.HeadTime);
-            KeyWordMapping.Add("headRev", SourceControlKeyWord.HeadRev);
-            KeyWordMapping.Add("HeadTime", SourceControlKeyWord.HeadTime);
-            KeyWordMapping.Add("HeadType", SourceControlKeyWord.HeadType);
-            KeyWordMapping.Add("isMapped", SourceControlKeyWord.IsMapped);
-            KeyWordMapping.Add("digest", SourceControlKeyWord.MD5);
-            KeyWordMapping.Add("otherLock", SourceControlKeyWord.OtherLock);
-            KeyWordMapping.Add("path", SourceControlKeyWord.Path);
-            KeyWordMapping.Add("resolved", SourceControlKeyWord.Resolved);
-            KeyWordMapping.Add("type", SourceControlKeyWord.Type);
-            KeyWordMapping.Add("unresolved", SourceControlKeyWord.Unresolved);
+            _keyWordMapping.Add("action", SourceControlKeyWord.Action);
+            _keyWordMapping.Add("actionOwner", SourceControlKeyWord.ActionOwner);
+            _keyWordMapping.Add("change", SourceControlKeyWord.Change);
+            _keyWordMapping.Add("clientFile", SourceControlKeyWord.ClientFile);
+            _keyWordMapping.Add("depotFile", SourceControlKeyWord.DepotFile);
+            _keyWordMapping.Add("fileSize", SourceControlKeyWord.FileSize);
+            _keyWordMapping.Add("haveRev", SourceControlKeyWord.HaveRev);
+            _keyWordMapping.Add("headAction", SourceControlKeyWord.HeadAction);
+            _keyWordMapping.Add("headChange", SourceControlKeyWord.HeadChange);
+            _keyWordMapping.Add("headModTime", SourceControlKeyWord.HeadModTime);
+            _keyWordMapping.Add("headTime", SourceControlKeyWord.HeadTime);
+            _keyWordMapping.Add("headRev", SourceControlKeyWord.HeadRev);
+            _keyWordMapping.Add("HeadTime", SourceControlKeyWord.HeadTime);
+            _keyWordMapping.Add("HeadType", SourceControlKeyWord.HeadType);
+            _keyWordMapping.Add("isMapped", SourceControlKeyWord.IsMapped);
+            _keyWordMapping.Add("digest", SourceControlKeyWord.Md5);
+            _keyWordMapping.Add("otherLock", SourceControlKeyWord.OtherLock);
+            _keyWordMapping.Add("path", SourceControlKeyWord.Path);
+            _keyWordMapping.Add("resolved", SourceControlKeyWord.Resolved);
+            _keyWordMapping.Add("type", SourceControlKeyWord.Type);
+            _keyWordMapping.Add("unresolved", SourceControlKeyWord.Unresolved);
         }
 
 
 
-        private bool Run(string command_, params string[] args_)
+        private bool Run(string command, params string[] args)
         {
-            P4RecordSet set = RunEx(command_, args_);
+            P4RecordSet set = RunEx(command, args);
             return set == null ? false : set.Errors.Count() == 0;
         }
 
-        private P4RecordSet RunEx(string command_, params string[] args_)
+        private P4RecordSet RunEx(string command, params string[] args)
         {
             if (IsValidConnection() == false)
             {
@@ -91,13 +91,13 @@ namespace CasaEngine.SourceControl
 
             try
             {
-                set = m_P4Connection.Run(command_, args_);
+                set = _p4Connection.Run(command, args);
 
                 if (LogManager.Instance.Verbosity == LogManager.LogVerbosity.Debug)
                 {
                     foreach (string warning in set.Warnings)
                     {
-                        LogManager.Instance.WriteLineWarning("{Perforce : " + command_ + args_ + " } " + warning);
+                        LogManager.Instance.WriteLineWarning("{Perforce : " + command + args + " } " + warning);
                     }
                 }
 
@@ -126,22 +126,22 @@ namespace CasaEngine.SourceControl
 #if UNITTEST
             return;
 #endif
-            m_ValidWorkspaceDirectory = false;
+            _validWorkspaceDirectory = false;
 
-            m_P4Connection.Disconnect();
-            m_P4Connection.Port = SourceControlManager.Instance.Server;
-            m_P4Connection.User = SourceControlManager.Instance.User;
-            m_P4Connection.Client = SourceControlManager.Instance.Workspace;
-            m_P4Connection.CWD = SourceControlManager.Instance.CWD; //GameInfo.Instance.ProjectManager.ProjectPath;
-            m_P4Connection.Password = SourceControlManager.Instance.Password;
+            _p4Connection.Disconnect();
+            _p4Connection.Port = SourceControlManager.Instance.Server;
+            _p4Connection.User = SourceControlManager.Instance.User;
+            _p4Connection.Client = SourceControlManager.Instance.Workspace;
+            _p4Connection.CWD = SourceControlManager.Instance.Cwd; //GameInfo.Instance.ProjectManager.ProjectPath;
+            _p4Connection.Password = SourceControlManager.Instance.Password;
 
             try
             {
-                m_P4Connection.Connect();
+                _p4Connection.Connect();
 
-                if (m_P4Connection.IsValidConnection(true, true) == true)
+                if (_p4Connection.IsValidConnection(true, true) == true)
                 {
-                    P4RecordSet set = m_P4Connection.Run("workspaces", "-u", SourceControlManager.Instance.User);
+                    P4RecordSet set = _p4Connection.Run("workspaces", "-u", SourceControlManager.Instance.User);
 
                     if (set != null)
                     {
@@ -149,9 +149,9 @@ namespace CasaEngine.SourceControl
                         {
                             if (r.Fields["client"].Equals(SourceControlManager.Instance.Workspace) == true)
                             {
-                                if (m_P4Connection.CWD.Equals(r.Fields["Root"]) == true)
+                                if (_p4Connection.CWD.Equals(r.Fields["Root"]) == true)
                                 {
-                                    m_ValidWorkspaceDirectory = true;
+                                    _validWorkspaceDirectory = true;
                                     LogManager.Instance.WriteLine("Connected to Perforce server");
                                     return;
                                 }
@@ -178,7 +178,7 @@ namespace CasaEngine.SourceControl
 
         public void Disconnect()
         {
-            m_P4Connection.Disconnect();
+            _p4Connection.Disconnect();
         }
 
         public bool IsValidConnection()
@@ -190,17 +190,17 @@ namespace CasaEngine.SourceControl
             /*#if DEBUG
                         return false;
             #endif*/
-            return m_ValidWorkspaceDirectory && m_P4Connection.IsValidConnection(true, true);
+            return _validWorkspaceDirectory && _p4Connection.IsValidConnection(true, true);
         }
 
-        public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FileStatus(string[] filesName_)
+        public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FileStatus(string[] filesName)
         {
             Dictionary<string, Dictionary<SourceControlKeyWord, string>> res = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
             Dictionary<SourceControlKeyWord, string> fileRes;
             //P4RecordSet set = RunEx("files", filesName_);
             //P4RecordSet set = RunEx("fstat", "-Ol", "-Rc", "//" + SourceControlManager.Instance.Workspace + "/...");
-            //P4RecordSet set = RunEx("fstat", "-Olhp", "//LostKingdom_Workspace_Editor_XC/...");
-            P4RecordSet set = RunEx("fstat", filesName_);
+            //P4RecordSet set = RunEx("fstat", "-Olhp", "//LostKingdo_Workspace_Editor_XC/...");
+            P4RecordSet set = RunEx("fstat", filesName);
 
             if (set != null)
             {
@@ -210,9 +210,9 @@ namespace CasaEngine.SourceControl
 
                     foreach (string key in record.Fields.Keys)
                     {
-                        if (KeyWordMapping.ContainsKey(key) == true)
+                        if (_keyWordMapping.ContainsKey(key) == true)
                         {
-                            fileRes.Add(KeyWordMapping[key], record.Fields[key]);
+                            fileRes.Add(_keyWordMapping[key], record.Fields[key]);
                         }
                     }
 
@@ -224,12 +224,12 @@ namespace CasaEngine.SourceControl
             return res;
         }
 
-        public bool RevertFile(string fileName_)
+        public bool RevertFile(string fileName)
         {
-            return Run("revert", fileName_);
+            return Run("revert", fileName);
         }
 
-        public bool Submit(int changeListNum_)
+        public bool Submit(int changeListNu)
         {
             //P4PendingChangelist pc = new P4PendingChangelist();
             //pc.Number = 
@@ -238,20 +238,20 @@ namespace CasaEngine.SourceControl
             /*return Run("submit", new string[] 
 				{
 					"-c",
-					changeListNum_.ToString()
+					changeListNu_.ToString()
 				});*/
             return false;
         }
 
-        public bool CheckOut(string fileName_)
+        public bool CheckOut(string fileName)
         {
             //sync
-            return Run("edit", fileName_);
+            return Run("edit", fileName);
         }
 
-        public bool Sync(string fileName_)
+        public bool Sync(string fileName)
         {
-            return Run("sync", fileName_);
+            return Run("sync", fileName);
         }
 
         public bool SyncAll()
@@ -259,26 +259,26 @@ namespace CasaEngine.SourceControl
             return Run("sync");
         }
 
-        public bool LockFile(string fileName_)
+        public bool LockFile(string fileName)
         {
             //p4 [g-opts] lock [-c changelist] [file ...] 
-            return Run("lock", fileName_);
+            return Run("lock", fileName);
         }
 
-        public bool UnlockFile(string fileName_)
+        public bool UnlockFile(string fileName)
         {
             //p4 [g-opts] unlock [-c changelist | -s shelvedchange ] [-f] file...
-            return Run("unlock", fileName_);
+            return Run("unlock", fileName);
         }
 
-        public bool MarkFileForDelete(string fileName_)
+        public bool MarkFileForDelete(string fileName)
         {
-            return Run("delete", "-v", fileName_);
+            return Run("delete", "-v", fileName);
         }
 
-        public bool MarkFileForAdd(string fileName_)
+        public bool MarkFileForAdd(string fileName)
         {
-            return Run("add", "-f", fileName_);
+            return Run("add", "-f", fileName);
         }
 
     }

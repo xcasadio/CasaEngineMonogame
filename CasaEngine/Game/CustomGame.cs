@@ -10,37 +10,37 @@ namespace CasaEngine.Game
     public class CustomGame
         : IDisposable
     {
-        static private bool m_IsAssetContentManagerInitialized;
+        static private bool _isAssetContentManagerInitialized;
 
 
-        private IGraphicsDeviceManager graphicsDeviceManager;
-        private IGraphicsDeviceService graphicsDeviceService;
-        private readonly GameServiceContainer gameServices;
+        private IGraphicsDeviceManager _graphicsDeviceManager;
+        private IGraphicsDeviceService _graphicsDeviceService;
+        private readonly GameServiceContainer _gameServices;
 
-        private bool firstUpdateDone;
-        private bool firstDrawDone;
-        private bool drawingSlow;
+        private bool _firstUpdateDone;
+        private bool _firstDrawDone;
+        private bool _drawingSlow;
         //private bool inRun;
-        private bool isInitialized;
+        private bool _isInitialized;
 
-        private volatile bool ShouldExit;
+        private volatile bool _shouldExit;
 
-        private readonly WindowsGameTimer gameTimer;
-        private TimeSpan gameTimeAccu;
-        private GameTime gameTime;
-        private TimeSpan totalGameTime;
-        private long updatesSinceRunningSlowly1;
-        private long updatesSinceRunningSlowly2;
-        private bool suppressDraw;
+        private readonly WindowsGameTimer _gameTimer;
+        private TimeSpan _gameTimeAccu;
+        private GameTime _gameTime;
+        private TimeSpan _totalGameTime;
+        private long _updatesSinceRunningSlowly1;
+        private long _updatesSinceRunningSlowly2;
+        private bool _suppressDraw;
 
         //private GameTime gameUpdateTime;
 
-        private ContentManager content;
+        private ContentManager _content;
 
-        private readonly List<IGameComponent> drawableGameComponents;
+        private readonly List<IGameComponent> _drawableGameComponents;
 
-        private volatile bool m_NeedResize;
-        private DateTime m_NeedResizeLastTime = DateTime.MinValue;
+        private volatile bool _needResize;
+        private DateTime _needResizeLastTime = DateTime.MinValue;
 
 
         public event EventHandler<EventArgs> Activated;
@@ -63,22 +63,22 @@ namespace CasaEngine.Game
         }
 
 
-        public CustomGame(Control control_, IntPtr handle)
+        public CustomGame(Control control, IntPtr handle)
         {
-            Control = control_;
+            Control = control;
             Control.Resize += OnControlResize;
-            ControlHandle = control_.Handle;
+            ControlHandle = control.Handle;
 
             GameWindow = Control.FindForm();
             GameWindowHandle = handle;//GameWindow.Handle;
 
-            gameServices = new GameServiceContainer();
+            _gameServices = new GameServiceContainer();
 
             FrameworkDispatcher.Update();
 
-            content = new CustomContentManager(gameServices);
+            _content = new CustomContentManager(_gameServices);
 
-            gameTimer = new WindowsGameTimer();
+            _gameTimer = new WindowsGameTimer();
             IsFixedTimeStep = true;
             //this.gameUpdateTime = new GameTime();
             InactiveSleepTime = TimeSpan.FromMilliseconds(20.0);
@@ -88,22 +88,22 @@ namespace CasaEngine.Game
             Components = new GameComponentCollection();
             Components.ComponentAdded += components_ComponentAdded;
             Components.ComponentRemoved += components_ComponentRemoved;
-            drawableGameComponents = new List<IGameComponent>();
+            _drawableGameComponents = new List<IGameComponent>();
 
             IsActive = true;
 
-            if (m_IsAssetContentManagerInitialized == false)
+            if (_isAssetContentManagerInitialized == false)
             {
                 Engine.Instance.AssetContentManager = new AssetContentManager();
                 Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
                 Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
-                m_IsAssetContentManagerInitialized = true;
+                _isAssetContentManagerInitialized = true;
             }
         }
 
         void OnControlResize(object sender, EventArgs e)
         {
-            m_NeedResize = true;
+            _needResize = true;
         }
 
         ~CustomGame()
@@ -116,14 +116,14 @@ namespace CasaEngine.Game
 
         protected virtual void Initialize()
         {
-            if (!isInitialized)
+            if (!_isInitialized)
             {
                 foreach (GameComponent component in Components)
                 {
                     component.Initialize();
                 }
 
-                isInitialized = true;
+                _isInitialized = true;
 
                 LoadContent();
             }
@@ -144,7 +144,7 @@ namespace CasaEngine.Game
 
         protected virtual void Draw(GameTime gameTime)
         {
-            foreach (IDrawable drawable in drawableGameComponents)
+            foreach (IDrawable drawable in _drawableGameComponents)
             {
                 if (drawable.Visible)
                 {
@@ -178,7 +178,7 @@ namespace CasaEngine.Game
 
         public void SuppressDraw()
         {
-            suppressDraw = true;
+            _suppressDraw = true;
         }
 
         public void ResetElapsedTime()
@@ -188,7 +188,7 @@ namespace CasaEngine.Game
 
         protected virtual bool BeginDraw()
         {
-            if ((graphicsDeviceManager != null) && !graphicsDeviceManager.BeginDraw())
+            if ((_graphicsDeviceManager != null) && !_graphicsDeviceManager.BeginDraw())
             {
                 return false;
             }
@@ -198,24 +198,24 @@ namespace CasaEngine.Game
 
         protected virtual void EndDraw()
         {
-            if (graphicsDeviceManager != null)
+            if (_graphicsDeviceManager != null)
             {
-                graphicsDeviceManager.EndDraw();
+                _graphicsDeviceManager.EndDraw();
             }
         }
 
         public void Exit()
         {
-            ShouldExit = true;
+            _shouldExit = true;
         }
 
         public void Run()
         {
             try
             {
-                graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
-                if (graphicsDeviceManager != null)
-                    graphicsDeviceManager.CreateDevice();
+                _graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
+                if (_graphicsDeviceManager != null)
+                    _graphicsDeviceManager.CreateDevice();
 
                 Initialize();
                 LoadContent();
@@ -223,17 +223,17 @@ namespace CasaEngine.Game
                 //this.inRun = true;
                 BeginRun();
 
-                gameTime = new GameTime(totalGameTime, TimeSpan.Zero, false);
+                _gameTime = new GameTime(_totalGameTime, TimeSpan.Zero, false);
 
-                Update(gameTime);
-                firstUpdateDone = true;
+                Update(_gameTime);
+                _firstUpdateDone = true;
 
-                while (ShouldExit == false)
+                while (_shouldExit == false)
                 {
-                    if (m_NeedResize)
+                    if (_needResize)
                     {
                         DateTime dateTimeNow = DateTime.Now;
-                        TimeSpan span = dateTimeNow.Subtract(m_NeedResizeLastTime);
+                        TimeSpan span = dateTimeNow.Subtract(_needResizeLastTime);
 
                         if (span.TotalSeconds >= 1.0)
                         {
@@ -242,7 +242,7 @@ namespace CasaEngine.Game
                                 && (Control.Width != GraphicsDevice.PresentationParameters.BackBufferWidth
                                 || Control.Height != GraphicsDevice.PresentationParameters.BackBufferHeight))
                             {
-                                m_NeedResizeLastTime = dateTimeNow;
+                                _needResizeLastTime = dateTimeNow;
                                 PresentationParameters pp = GraphicsDevice.PresentationParameters;
                                 pp.BackBufferWidth = Control.Width;
                                 pp.BackBufferHeight = Control.Height;
@@ -250,7 +250,7 @@ namespace CasaEngine.Game
                                 //System.Diagnostics.Debug.WriteLine(Environment.TickCount.ToString() + " - GraphicsDevice.Reset()");
                                 LoadContent();
                             }
-                            m_NeedResize = false;
+                            _needResize = false;
                         }
                     }
 
@@ -269,7 +269,7 @@ namespace CasaEngine.Game
 
         public void Tick()
         {
-            if (ShouldExit)
+            if (_shouldExit)
             {
                 return;
             }
@@ -280,10 +280,10 @@ namespace CasaEngine.Game
                 Thread.Sleep(InactiveSleepTime);
             }
 
-            gameTimer.Update();
+            _gameTimer.Update();
 
-            bool skipDraw = IsFixedTimeStep ? DoFixedTimeStep(gameTimer.ElapsedTime) : DoTimeStep(gameTimer.ElapsedTime);
-            suppressDraw = false;
+            bool skipDraw = IsFixedTimeStep ? DoFixedTimeStep(_gameTimer.ElapsedTime) : DoTimeStep(_gameTimer.ElapsedTime);
+            _suppressDraw = false;
             if (skipDraw == false)
             {
                 DrawFrame();
@@ -299,8 +299,8 @@ namespace CasaEngine.Game
                 time = TargetElapsedTime;
             }
 
-            gameTimeAccu += time;
-            long updateCount = gameTimeAccu.Ticks / TargetElapsedTime.Ticks;
+            _gameTimeAccu += time;
+            long updateCount = _gameTimeAccu.Ticks / TargetElapsedTime.Ticks;
 
             if (updateCount <= 0)
             {
@@ -309,33 +309,33 @@ namespace CasaEngine.Game
 
             if (updateCount > 1)
             {
-                updatesSinceRunningSlowly2 = updatesSinceRunningSlowly1;
-                updatesSinceRunningSlowly1 = 0;
+                _updatesSinceRunningSlowly2 = _updatesSinceRunningSlowly1;
+                _updatesSinceRunningSlowly1 = 0;
             }
             else
             {
-                updatesSinceRunningSlowly1++;
-                updatesSinceRunningSlowly2++;
+                _updatesSinceRunningSlowly1++;
+                _updatesSinceRunningSlowly2++;
             }
 
-            drawingSlow = (updatesSinceRunningSlowly2 < 20);
+            _drawingSlow = (_updatesSinceRunningSlowly2 < 20);
 
             while (updateCount > 0)
             {
-                if (ShouldExit)
+                if (_shouldExit)
                 {
                     break;
                 }
 
                 updateCount -= 1L;
 
-                gameTime = new GameTime(totalGameTime, TargetElapsedTime, drawingSlow);
-                Update(gameTime);
-                skipDraw &= suppressDraw;
-                suppressDraw = false;
+                _gameTime = new GameTime(_totalGameTime, TargetElapsedTime, _drawingSlow);
+                Update(_gameTime);
+                skipDraw &= _suppressDraw;
+                _suppressDraw = false;
 
-                gameTimeAccu -= TargetElapsedTime;
-                totalGameTime += TargetElapsedTime;
+                _gameTimeAccu -= TargetElapsedTime;
+                _totalGameTime += TargetElapsedTime;
             }
 
             return skipDraw;
@@ -343,45 +343,45 @@ namespace CasaEngine.Game
 
         private bool DoTimeStep(TimeSpan time)
         {
-            gameTime = new GameTime(totalGameTime, TargetElapsedTime, false);
-            Update(gameTime);
-            totalGameTime += time;
-            return suppressDraw;
+            _gameTime = new GameTime(_totalGameTime, TargetElapsedTime, false);
+            Update(_gameTime);
+            _totalGameTime += time;
+            return _suppressDraw;
         }
 
         private void RunGame()
         {
-            graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
-            if (graphicsDeviceManager != null)
-                graphicsDeviceManager.CreateDevice();
+            _graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
+            if (_graphicsDeviceManager != null)
+                _graphicsDeviceManager.CreateDevice();
 
             Initialize();
             //this.inRun = true;
             BeginRun();
 
-            gameTime = new GameTime(totalGameTime, TimeSpan.Zero, false);
+            _gameTime = new GameTime(_totalGameTime, TimeSpan.Zero, false);
 
-            Update(gameTime);
-            firstUpdateDone = true;
+            Update(_gameTime);
+            _firstUpdateDone = true;
             EndRun();
         }
 
         private void DrawFrame()
         {
-            if (!ShouldExit)
+            if (!_shouldExit)
             {
-                if (firstUpdateDone)
+                if (_firstUpdateDone)
                 {
                     if (IsVisible(Control))
                     {
                         if (BeginDraw())
                         {
-                            Draw(gameTime);
+                            Draw(_gameTime);
                             EndDraw();
 
-                            if (!firstDrawDone)
+                            if (!_firstDrawDone)
                             {
-                                firstDrawDone = true;
+                                _firstDrawDone = true;
                             }
                         }
                     }
@@ -397,12 +397,12 @@ namespace CasaEngine.Game
             return (bool)(mi.Invoke(ctl, new object[] { 2 }));
         }
 
-        public GameServiceContainer Services => gameServices;
+        public GameServiceContainer Services => _gameServices;
 
         public ContentManager Content
         {
-            get => content;
-            set => content = value;
+            get => _content;
+            set => _content = value;
         }
 
         public GraphicsDevice GraphicsDevice
@@ -412,10 +412,10 @@ namespace CasaEngine.Game
                 //TODO: GraphicsDevice property is heavily used. Maybe it is better to hook an event to the services container and
                 //      cache the reference to the GraphicsDeviceService to prevent accessing the dictionary of the services container
 
-                IGraphicsDeviceService graphicsDeviceService = this.graphicsDeviceService;
+                IGraphicsDeviceService graphicsDeviceService = this._graphicsDeviceService;
                 if (graphicsDeviceService == null)
                 {
-                    this.graphicsDeviceService = graphicsDeviceService = Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
+                    this._graphicsDeviceService = graphicsDeviceService = Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
 
                     //TODO: exception if null
                 }
@@ -495,7 +495,7 @@ namespace CasaEngine.Game
                         disposable.Dispose();
                 }
 
-                disposable = (IDisposable)graphicsDeviceManager;
+                disposable = (IDisposable)_graphicsDeviceManager;
                 if (disposable != null)
                     disposable.Dispose();
 
@@ -536,7 +536,7 @@ namespace CasaEngine.Game
         {
             if (e.GameComponent is IDrawable)
             {
-                drawableGameComponents.Remove(e.GameComponent);
+                _drawableGameComponents.Remove(e.GameComponent);
             }
         }
 
@@ -544,10 +544,10 @@ namespace CasaEngine.Game
         {
             if (e.GameComponent is IDrawable)
             {
-                drawableGameComponents.Add(e.GameComponent);
+                _drawableGameComponents.Add(e.GameComponent);
             }
 
-            if (isInitialized)
+            if (_isInitialized)
             {
                 e.GameComponent.Initialize();
             }

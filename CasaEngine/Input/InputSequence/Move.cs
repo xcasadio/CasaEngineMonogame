@@ -35,16 +35,16 @@ namespace CasaEngine.Input
             Name = name;
         }
 
-        public Move(XmlElement el_, SaveOption option_)
+        public Move(XmlElement el, SaveOption option)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
-        public void Load(XmlElement el_, SaveOption option_)
+        public void Load(XmlElement el, SaveOption option)
         {
-            Name = el_.Attributes["name"].Value;
+            Name = el.Attributes["name"].Value;
 
-            XmlNodeList nodes = el_.SelectSingleNode("SequenceList").ChildNodes;
+            XmlNodeList nodes = el.SelectSingleNode("SequenceList").ChildNodes;
 
 #if !EDITOR
             Sequence = new InputManager.KeyState[nodes.Count][];
@@ -79,21 +79,21 @@ namespace CasaEngine.Input
 
 #if EDITOR
 
-        public void Save(XmlElement el_, SaveOption option_)
+        public void Save(XmlElement el, SaveOption option)
         {
-            el_.OwnerDocument.AddAttribute(el_, "name", Name);
+            el.OwnerDocument.AddAttribute(el, "name", Name);
 
-            XmlElement seq = el_.OwnerDocument.CreateElement("SequenceList");
-            el_.AppendChild(seq);
+            XmlElement seq = el.OwnerDocument.CreateElement("SequenceList");
+            el.AppendChild(seq);
 
             foreach (List<InputManager.KeyState> tab in Sequence)
             {
-                XmlElement s = el_.OwnerDocument.CreateElement("Sequence");
+                XmlElement s = el.OwnerDocument.CreateElement("Sequence");
                 seq.AppendChild(s);
 
                 foreach (InputManager.KeyState k in tab)
                 {
-                    XmlElement but = el_.OwnerDocument.CreateElement("Button");
+                    XmlElement but = el.OwnerDocument.CreateElement("Button");
                     but.OwnerDocument.AddAttribute(but, "key", k.Key.ToString());
                     but.OwnerDocument.AddAttribute(but, "state", Enum.GetName(typeof(ButtonState), k.State));
                     but.OwnerDocument.AddAttribute(but, "time", k.Time.ToString());
@@ -102,32 +102,32 @@ namespace CasaEngine.Input
             }
         }
 
-        public void Save(BinaryWriter bw_, SaveOption option_)
+        public void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write(Sequence.Count);
+            bw.Write(Sequence.Count);
 
             foreach (List<InputManager.KeyState> tab in Sequence)
             {
-                bw_.Write(tab.Count);
+                bw.Write(tab.Count);
 
                 foreach (InputManager.KeyState k in tab)
                 {
-                    bw_.Write(k.Key);
-                    bw_.Write((int)k.State);
-                    bw_.Write(k.Time);
+                    bw.Write(k.Key);
+                    bw.Write((int)k.State);
+                    bw.Write(k.Time);
                 }
             }
         }
 
 #endif
 
-        public bool Match(int i, InputManager.KeyState[] buttons_)
+        public bool Match(int i, InputManager.KeyState[] buttons)
         {
             int x = 0;
 
             foreach (InputManager.KeyState k in Sequence[i])
             {
-                foreach (InputManager.KeyState b in buttons_)
+                foreach (InputManager.KeyState b in buttons)
                 {
                     if (b.Match(k) == true)
                     {

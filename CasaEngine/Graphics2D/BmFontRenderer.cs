@@ -60,8 +60,8 @@ namespace CasaEngine.Graphics2D
                 
                 if (spriteFont.Kernings && !firstCharOfLine )
                 {
-                    m_nextChar = (char)text[i];
-                    Kerning kern = m_charSet.Characters[lastChar].KerningList.Find( FindKerningNode );
+                    _nextChar = (char)text[i];
+                    Kerning kern = _charSet.Characters[lastChar].KerningList.Find( FindKerningNode );
                     if ( kern != null )
                     {
                         kernAmount = kern.Amount * sizeScale;

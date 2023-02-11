@@ -22,20 +22,20 @@ namespace CasaEngine.FrontEnd.Screen
     public class ScreenManagerComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        readonly List<Screen> screens = new List<Screen>();
-        readonly List<Screen> screensToUpdate = new List<Screen>();
+        readonly List<Screen> _screens = new List<Screen>();
+        readonly List<Screen> _screensToUpdate = new List<Screen>();
 
-        readonly InputState input = new InputState();
+        readonly InputState _input = new InputState();
 
         //SpriteBatch spriteBatch;
         //SpriteFont font;
-        Texture2D blankTexture;
+        Texture2D _blankTexture;
 
-        bool isInitialized;
+        bool _isInitialized;
 
-        bool traceEnabled;
+        bool _traceEnabled;
 
-        Renderer2DComponent m_Renderer2DComponent = null;
+        Renderer2DComponent _renderer2DComponent = null;
 
 
 
@@ -45,8 +45,8 @@ namespace CasaEngine.FrontEnd.Screen
 
         public bool TraceEnabled
         {
-            get => traceEnabled;
-            set => traceEnabled = value;
+            get => _traceEnabled;
+            set => _traceEnabled = value;
         }
 
 
@@ -69,14 +69,14 @@ namespace CasaEngine.FrontEnd.Screen
 
         public override void Initialize()
         {
-            m_Renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
 
-            if (m_Renderer2DComponent == null)
+            if (_renderer2DComponent == null)
             {
                 throw new NullReferenceException("Renderer2DComponent is null");
             }
 
-            isInitialized = true;
+            _isInitialized = true;
 
             base.Initialize();
         }
@@ -87,30 +87,30 @@ namespace CasaEngine.FrontEnd.Screen
             ContentManager content = Game.Content;
 
             //#if !EDITOR
-            blankTexture = new Texture2D(GraphicsDevice, 1, 1);
+            _blankTexture = new Texture2D(GraphicsDevice, 1, 1);
             Color[] whitePixels = new Color[] { new Color(0, 0, 0, 0) };
-            blankTexture.SetData<Color>(whitePixels);
+            _blankTexture.SetData<Color>(whitePixels);
             //#endif
 
             // Tell each of the screens to load their content.
-            foreach (Screen screen in screens)
+            foreach (Screen screen in _screens)
             {
-                screen.LoadContent(m_Renderer2DComponent);
+                screen.LoadContent(_renderer2DComponent);
             }
         }
 
         protected override void UnloadContent()
         {
             // Tell each of the screens to unload their content.
-            foreach (Screen screen in screens)
+            foreach (Screen screen in _screens)
             {
                 screen.UnloadContent();
             }
 
-            if (blankTexture != null)
+            if (_blankTexture != null)
             {
-                blankTexture.Dispose();
-                blankTexture = null;
+                _blankTexture.Dispose();
+                _blankTexture = null;
             }
         }
 
@@ -122,21 +122,21 @@ namespace CasaEngine.FrontEnd.Screen
 
             // Make a copy of the master screen list, to avoid confusion if
             // the process of updating one screen adds or removes others.
-            screensToUpdate.Clear();
+            _screensToUpdate.Clear();
 
-            foreach (Screen screen in screens)
-                screensToUpdate.Add(screen);
+            foreach (Screen screen in _screens)
+                _screensToUpdate.Add(screen);
 
             bool otherScreenHasFocus = !Game.IsActive;
             bool coveredByOtherScreen = false;
 
             // Loop as long as there are screens waiting to be updated.
-            while (screensToUpdate.Count > 0)
+            while (_screensToUpdate.Count > 0)
             {
                 // Pop the topmost screen off the waiting list.
-                Screen screen = screensToUpdate[screensToUpdate.Count - 1];
+                Screen screen = _screensToUpdate[_screensToUpdate.Count - 1];
 
-                screensToUpdate.RemoveAt(screensToUpdate.Count - 1);
+                _screensToUpdate.RemoveAt(_screensToUpdate.Count - 1);
 
                 // Update the screen.
                 //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenUpdate(screen, elpasedTime, otherScreenHasFocus, coveredByOtherScreen);
@@ -149,7 +149,7 @@ namespace CasaEngine.FrontEnd.Screen
                     // give it a chance to handle input.
                     if (!otherScreenHasFocus)
                     {
-                        screen.HandleInput(input);
+                        screen.HandleInput(_input);
 
                         otherScreenHasFocus = true;
                     }
@@ -162,7 +162,7 @@ namespace CasaEngine.FrontEnd.Screen
             }
 
             // Print debug trace?
-            if (traceEnabled)
+            if (_traceEnabled)
                 TraceScreens();
         }
 
@@ -170,7 +170,7 @@ namespace CasaEngine.FrontEnd.Screen
         {
             List<string> screenNames = new List<string>();
 
-            foreach (Screen screen in screens)
+            foreach (Screen screen in _screens)
                 screenNames.Add(screen.GetType().Name);
 
             Trace.WriteLine(string.Join(", ", screenNames.ToArray()));
@@ -180,7 +180,7 @@ namespace CasaEngine.FrontEnd.Screen
         {
             float elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
 
-            foreach (Screen screen in screens)
+            foreach (Screen screen in _screens)
             {
                 if (screen.ScreenState == ScreenState.Hidden)
                     continue;
@@ -215,50 +215,50 @@ namespace CasaEngine.FrontEnd.Screen
             screen.IsExiting = false;
 
             // If we have a graphics device, tell the screen to load content.
-            if (isInitialized)
+            if (_isInitialized)
             {
-                screen.LoadContent(m_Renderer2DComponent);
+                screen.LoadContent(_renderer2DComponent);
             }
 
             //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenInitialized(screen);
-            screens.Add(screen);
+            _screens.Add(screen);
         }
 
         public void RemoveScreen(Screen screen)
         {
             // If we have a graphics device, tell the screen to unload content.
-            if (isInitialized)
+            if (_isInitialized)
             {
                 screen.UnloadContent();
             }
 
-            screens.Remove(screen);
-            screensToUpdate.Remove(screen);
+            _screens.Remove(screen);
+            _screensToUpdate.Remove(screen);
         }
 
 #if EDITOR
         public void ClearScreen()
         {
-            foreach (Screen screen in screens)
+            foreach (Screen screen in _screens)
             {
                 screen.UnloadContent();
             }
 
-            screens.Clear();
-            screensToUpdate.Clear();
+            _screens.Clear();
+            _screensToUpdate.Clear();
         }
 #endif
 
         public Screen[] GetScreens()
         {
-            return screens.ToArray();
+            return _screens.ToArray();
         }
 
         public void FadeBackBufferToBlack(int alpha)
         {
             Viewport viewport = this.GraphicsDevice.Viewport;
 
-            m_Renderer2DComponent.AddSprite2D(blankTexture,
+            _renderer2DComponent.AddSprite2D(_blankTexture,
                                 new Rectangle(0, 0, viewport.Width, viewport.Height),
                                 Point.Zero, Vector2.Zero, 0.0f, Vector2.One,
                                 new Color(0, 0, 0, alpha), 0.99f, SpriteEffects.None);

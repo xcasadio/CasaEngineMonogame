@@ -5,8 +5,8 @@ namespace CasaEngine.Graphics2D.Layer
     public class Layer
     {
 
-        private readonly List<IRenderable> m_ObjectList = new List<IRenderable>();
-        private int m_Min, m_Max;
+        private readonly List<IRenderable> _objectList = new List<IRenderable>();
+        private int _min, _max;
 
 
 
@@ -14,14 +14,14 @@ namespace CasaEngine.Graphics2D.Layer
 
 
 
-        public void AddObject(IRenderable r_)
+        public void AddObject(IRenderable r)
         {
-            m_ObjectList.Add(r_);
+            _objectList.Add(r);
         }
 
-        public void RemoveObject(IRenderable r_)
+        public void RemoveObject(IRenderable r)
         {
-            m_ObjectList.Remove(r_);
+            _objectList.Remove(r);
         }
 
         public void Update()
@@ -30,9 +30,9 @@ namespace CasaEngine.Graphics2D.Layer
 
             if (GetMinMax(out min, out max) == true)
             {
-                //m_ObjectList.Sort();
+                //_ObjectList.Sort();
 
-                foreach (IRenderable d in m_ObjectList.ToArray())
+                foreach (IRenderable d in _objectList.ToArray())
                 {
                     if (d.Visible == true)
                     {
@@ -42,28 +42,28 @@ namespace CasaEngine.Graphics2D.Layer
             }
         }
 
-        private bool GetMinMax(out int min_, out int max_)
+        private bool GetMinMax(out int min, out int max)
         {
-            min_ = int.MaxValue;
-            max_ = int.MinValue;
+            min = int.MaxValue;
+            max = int.MinValue;
 
-            foreach (IRenderable d in m_ObjectList.ToArray())
+            foreach (IRenderable d in _objectList.ToArray())
             {
                 if (d.Visible == true)
                 {
-                    if (min_ > d.Depth)
+                    if (min > d.Depth)
                     {
-                        min_ = d.Depth;
+                        min = d.Depth;
                     }
 
-                    if (max_ < d.Depth)
+                    if (max < d.Depth)
                     {
-                        max_ = d.Depth;
+                        max = d.Depth;
                     }
                 }
             }
 
-            return min_ < max_;
+            return min < max;
         }
 
     }

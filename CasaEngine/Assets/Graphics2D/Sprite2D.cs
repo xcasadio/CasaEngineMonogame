@@ -30,19 +30,19 @@ namespace CasaEngine.Assets.Graphics2D
     {
 
         //constant
-        private Texture2D m_Texture2D = null;
-        private Rectangle m_PositionInTexture = new Rectangle();
-        private Point m_Origin = Point.Zero;
+        private Texture2D _texture2D = null;
+        private Rectangle _positionInTexture = new Rectangle();
+        private Point _origin = Point.Zero;
 
 #if EDITOR
-        private readonly List<Shape2DObject> m_Collisions = new List<Shape2DObject>();
+        private readonly List<Shape2DObject> _collisions = new List<Shape2DObject>();
 #else
-        private Shape2DObject[] m_Collisions;
+        private Shape2DObject[] _Collisions;
 #endif
 
-        private readonly Dictionary<string, Vector2> m_Sockets = new Dictionary<string, Vector2>();
+        private readonly Dictionary<string, Vector2> _sockets = new Dictionary<string, Vector2>();
 
-        private readonly List<string> m_AssetFileNames = new List<string>();
+        private readonly List<string> _assetFileNames = new List<string>();
 
 
 
@@ -51,15 +51,15 @@ namespace CasaEngine.Assets.Graphics2D
 #endif
         public Texture2D Texture2D
         {
-            get { return m_Texture2D; }
+            get { return _texture2D; }
             internal set
             {
-                m_Texture2D = value;
+                _texture2D = value;
 
 #if EDITOR                
-                if (m_Texture2D != null)
+                if (_texture2D != null)
                 {
-                    PositionInTexture = new Rectangle(0, 0, m_Texture2D.Width, m_Texture2D.Height);
+                    PositionInTexture = new Rectangle(0, 0, _texture2D.Width, _texture2D.Height);
                 }
 #endif
             }
@@ -70,10 +70,10 @@ namespace CasaEngine.Assets.Graphics2D
 #endif
         public Rectangle PositionInTexture
         {
-            get { return m_PositionInTexture; }
+            get { return _positionInTexture; }
             set
             {
-                m_PositionInTexture = value;
+                _positionInTexture = value;
 #if EDITOR
                 NotifyPropertyChanged("PositionInTexture");
 #endif
@@ -85,12 +85,12 @@ namespace CasaEngine.Assets.Graphics2D
 #endif
         public Point HotSpot
         {
-            get { return m_Origin; }
+            get { return _origin; }
             set
             {
-                //if (value != this.m_Origin)
+                //if (value != this._Origin)
                 {
-                    this.m_Origin = value;
+                    this._origin = value;
 #if EDITOR
                     NotifyPropertyChanged("HotSpot");
 #endif
@@ -106,9 +106,9 @@ namespace CasaEngine.Assets.Graphics2D
             get
             {
 #if EDITOR
-                return m_Collisions.ToArray();
+                return _collisions.ToArray();
 #else
-                return m_Collisions;
+                return _Collisions;
 #endif
             }
         }
@@ -117,19 +117,19 @@ namespace CasaEngine.Assets.Graphics2D
 
         internal Sprite2D() { }
 
-        public Sprite2D(Texture2D tex_)
+        public Sprite2D(Texture2D tex)
         {
-            Texture2D = tex_;
+            Texture2D = tex;
         }
 
-        public Sprite2D(XmlElement node_, SaveOption option_)
+        public Sprite2D(XmlElement node, SaveOption option)
         {
-            Load(node_, option_);
+            Load(node, option);
         }
 
-        public Sprite2D(Sprite2D sprite_)
+        public Sprite2D(Sprite2D sprite)
         {
-            CopyFrom(sprite_);
+            CopyFrom(sprite);
         }
 
 
@@ -144,86 +144,86 @@ namespace CasaEngine.Assets.Graphics2D
 #else
 		internal
 #endif
-        void CopyFrom(Sprite2D sprite_)
+        void CopyFrom(Sprite2D sprite)
         {
-            if (sprite_ == null)
+            if (sprite == null)
             {
                 throw new ArgumentNullException("Sprite2D.Copy() : Sprite2D is null");
             }
 
 #if EDITOR
-            m_Collisions.Clear();
+            _collisions.Clear();
 
-            foreach (Shape2DObject o in sprite_.m_Collisions)
+            foreach (Shape2DObject o in sprite._collisions)
             {
-                m_Collisions.Add(o.Clone());
+                _collisions.Add(o.Clone());
             }
 #else
-            if (sprite_.m_Collisions != null)
+            if (sprite_._Collisions != null)
             {
-                this.m_Collisions = sprite_.m_Collisions;
-                //this.m_Collisions = (Shape2DObject[])sprite_.m_Collisions.Clone();
+                this._Collisions = sprite_._Collisions;
+                //this._Collisions = (Shape2DObject[])sprite_._Collisions.Clone();
             }
             else
             {
-                this.m_Collisions = null;
+                this._Collisions = null;
             }
 #endif
 
-            this.m_Origin = sprite_.m_Origin;
-            this.m_AssetFileNames.AddRange(sprite_.m_AssetFileNames);
-            this.m_PositionInTexture = sprite_.m_PositionInTexture;
+            this._origin = sprite._origin;
+            this._assetFileNames.AddRange(sprite._assetFileNames);
+            this._positionInTexture = sprite._positionInTexture;
 
-            base.CopyFrom(sprite_);
+            base.CopyFrom(sprite);
         }
 
 
-        public override void Load(XmlElement node_, SaveOption option_)
+        public override void Load(XmlElement node, SaveOption option)
         {
-            base.Load(node_, option_);
+            base.Load(node, option);
 
-            XmlNode rootNode = node_.SelectSingleNode("Sprite2D");
+            XmlNode rootNode = node.SelectSingleNode("Sprite2D");
 
             uint version = uint.Parse(rootNode.Attributes["version"].Value);
 
             if (version == 1)
             {
-                m_AssetFileNames.Add(rootNode.SelectSingleNode("AssetFileName").InnerText);
+                _assetFileNames.Add(rootNode.SelectSingleNode("AssetFileName").InnerText);
             }
             else
             {
                 foreach (XmlNode child in rootNode.SelectNodes("AssetFiles/AssetFileName"))
                 {
-                    m_AssetFileNames.Add(child.InnerText);
+                    _assetFileNames.Add(child.InnerText);
                 }
             }
 
-            ((XmlElement)rootNode.SelectSingleNode("PositionInTexture")).Read(ref m_PositionInTexture);
-            ((XmlElement)rootNode.SelectSingleNode("HotSpot")).Read(ref m_Origin);
+            ((XmlElement)rootNode.SelectSingleNode("PositionInTexture")).Read(ref _positionInTexture);
+            ((XmlElement)rootNode.SelectSingleNode("HotSpot")).Read(ref _origin);
 
             XmlNode collisionNode = rootNode.SelectSingleNode("CollisionList");
 
 #if EDITOR
-            m_Collisions.Clear();
+            _collisions.Clear();
 
             foreach (XmlNode node in collisionNode.ChildNodes)
             {
-                m_Collisions.Add(Shape2DObject.CreateShape2DObject((XmlElement)node, option_));
+                _collisions.Add(Shape2DObject.CreateShape2DObject((XmlElement)node, option));
             }
 #else
             if (collisionNode.ChildNodes.Count > 0)
             {
-                m_Collisions = new Shape2DObject[collisionNode.ChildNodes.Count];
+                _Collisions = new Shape2DObject[collisionNode.ChildNodes.Count];
                 int i = 0;
 
                 foreach (XmlNode node in collisionNode.ChildNodes)
                 {
-                    m_Collisions[i++] = (Shape2DObject.CreateShape2DObject((XmlElement)node, option_));
+                    _Collisions[i++] = (Shape2DObject.CreateShape2DObject((XmlElement)node, option_));
                 }
             }
             else
             {
-                m_Collisions = null;
+                _Collisions = null;
             }
 #endif
 
@@ -234,68 +234,68 @@ namespace CasaEngine.Assets.Graphics2D
             {
                 Vector2 position = new Vector2();
                 ((XmlElement)node.SelectSingleNode("Position")).Read(ref position);
-                m_Sockets.Add(node.SelectSingleNode("Name").InnerText, position);
+                _sockets.Add(node.SelectSingleNode("Name").InnerText, position);
             }
         }
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
-            base.Load(br_, option_);
+            base.Load(br, option);
             throw new NotImplementedException();
         }
 
         public void UnloadTexture()
         {
 #if !EDITOR
-			if (m_Texture2D == null)
+			if (_Texture2D == null)
 			{
 				throw new InvalidOperationException("Sprite2D.LoadTexture() : texture is null !");
 			}
 #endif
 
-            //m_Texture2D.Dispose();
-            m_Texture2D = null;
+            //_Texture2D.Dispose();
+            _texture2D = null;
         }
 
 
-        public Vector2 GetSocketByName(string name_)
+        public Vector2 GetSocketByName(string name)
         {
-            return m_Sockets[name_];
+            return _sockets[name];
         }
 
-        public void LoadTexture(ContentManager content_)
+        public void LoadTexture(ContentManager content)
         {
-            if (m_Texture2D != null
-                && m_Texture2D.IsDisposed == false)
+            if (_texture2D != null
+                && _texture2D.IsDisposed == false)
             {
                 return;
             }
 
-            string assetFile = System.IO.Path.GetDirectoryName(m_AssetFileNames[0]) + System.IO.Path.DirectorySeparatorChar +
-                System.IO.Path.GetFileNameWithoutExtension(m_AssetFileNames[0]);
+            string assetFile = System.IO.Path.GetDirectoryName(_assetFileNames[0]) + System.IO.Path.DirectorySeparatorChar +
+                System.IO.Path.GetFileNameWithoutExtension(_assetFileNames[0]);
 
-            m_Texture2D = content_.Load<Texture2D>(assetFile);
+            _texture2D = content.Load<Texture2D>(assetFile);
         }
 
-        public void LoadTextureFile(GraphicsDevice device_)
+        public void LoadTextureFile(GraphicsDevice device)
         {
             string assetFile;
 
 #if EDITOR
             assetFile = Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
-                ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + m_AssetFileNames[0];
+                ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
 #else
-            assetFile = Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + m_AssetFileNames[0];
+            assetFile = Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileNames[0];
 #endif
 
-            if (m_Texture2D != null
-                && m_Texture2D.IsDisposed == false
-                && m_Texture2D.GraphicsDevice.IsDisposed == false)
+            if (_texture2D != null
+                && _texture2D.IsDisposed == false
+                && _texture2D.GraphicsDevice.IsDisposed == false)
             {
                 return;
             }
 
-            m_Texture2D = Texture2D.FromStream(device_, File.OpenRead(assetFile));
+            _texture2D = Texture2D.FromStream(device, File.OpenRead(assetFile));
         }
 
     }

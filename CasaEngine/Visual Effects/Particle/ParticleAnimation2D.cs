@@ -7,19 +7,19 @@ namespace CasaEngine.Particle
         : Particle
     {
 
-        Animation2DPlayer m_Animation2DPlayer;
-        //Animation2D m_Animation2D;
+        Animation2DPlayer _animation2DPlayer;
+        //Animation2D _Animation2D;
 
 
 
 
 
-        public ParticleAnimation2D(Animation2D anim2D_)
+        public ParticleAnimation2D(Animation2D anim2D)
         {
             Dictionary<int, Animation2D> dic = new Dictionary<int, Animation2D>();
-            dic.Add(0, anim2D_);
-            m_Animation2DPlayer = new Animation2DPlayer(dic);
-            m_Animation2DPlayer.OnEndAnimationReached += new EventHandler(OnEndAnimationReached);
+            dic.Add(0, anim2D);
+            _animation2DPlayer = new Animation2DPlayer(dic);
+            _animation2DPlayer.OnEndAnimationReached += new EventHandler(OnEndAnimationReached);
         }
 
         void OnEndAnimationReached(object sender, EventArgs e)

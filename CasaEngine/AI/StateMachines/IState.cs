@@ -1,6 +1,6 @@
 namespace CasaEngine.AI.StateMachines
 {
-    public interface IState<T> where T : /*BaseEntity,*/ IFSMCapable<T>
+    public interface IState<T> where T : /*BaseEntity,*/ IFsmCapable<T>
     {
 
         string Name { get; }
@@ -9,7 +9,7 @@ namespace CasaEngine.AI.StateMachines
 
         void Exit(T entity);
 
-        void Update(T entity, float elpasedTime_);
+        void Update(T entity, float elpasedTime);
 
         bool HandleMessage(T entity, Message message);
 

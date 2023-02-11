@@ -41,7 +41,7 @@ namespace XNAFinalEngine.Helpers
 
 
 
-        private static readonly List<Chronometer> chronometers = new List<Chronometer>();
+        private static readonly List<Chronometer> Chronometers = new List<Chronometer>();
 
 
 
@@ -59,7 +59,7 @@ namespace XNAFinalEngine.Helpers
             Paused = true;
             TimeSpace = timeSpace;
             // If the application/game relies heavily in chronometers a pool should be used. TODO!!
-            chronometers.Add(this);
+            Chronometers.Add(this);
         } // Chronometer
 
 
@@ -99,14 +99,14 @@ namespace XNAFinalEngine.Helpers
 
         protected override void DisposeManagedResources()
         {
-            chronometers.Remove(this);
+            Chronometers.Remove(this);
         } // DisposeManagedResources
 
 
 
         public static void PauseAllChronometers()
         {
-            foreach (Chronometer chronometer in chronometers)
+            foreach (Chronometer chronometer in Chronometers)
             {
                 chronometer.Pause();
             }
@@ -114,7 +114,7 @@ namespace XNAFinalEngine.Helpers
 
         public static void StartAllChronometers()
         {
-            foreach (Chronometer chronometer in chronometers)
+            foreach (Chronometer chronometer in Chronometers)
             {
                 chronometer.Start();
             }
@@ -122,7 +122,7 @@ namespace XNAFinalEngine.Helpers
 
         internal static void UpdateGameDeltaTimeChronometers()
         {
-            foreach (Chronometer chronometer in chronometers)
+            foreach (Chronometer chronometer in Chronometers)
             {
                 if (chronometer.TimeSpace == TimeSpaceEnum.GameDeltaTime)
                     chronometer.Update();
@@ -131,7 +131,7 @@ namespace XNAFinalEngine.Helpers
 
         internal static void UpdateFrameTimeChronometers()
         {
-            foreach (Chronometer chronometer in chronometers)
+            foreach (Chronometer chronometer in Chronometers)
             {
                 if (chronometer.TimeSpace == TimeSpaceEnum.FrameTime)
                     chronometer.Update();

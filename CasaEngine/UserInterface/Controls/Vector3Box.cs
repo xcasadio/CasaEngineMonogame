@@ -38,20 +38,20 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Controls
-        private readonly TextBox xTextBox, yTextBox, zTextBox;
+        private readonly TextBox _xTextBox, _yTextBox, _zTextBox;
 
-        private Vector3 value;
+        private Vector3 _value;
 
 
 
         public virtual Vector3 Value
         {
-            get => value;
+            get => _value;
             set
             {
                 if (value != Value)
                 {
-                    this.value = value;
+                    this._value = value;
                     OnValueChanged(new EventArgs());
                 }
             }
@@ -72,8 +72,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Vector3Box(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Vector3Box(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
             Width = 420;
@@ -87,7 +87,7 @@ namespace XNAFinalEngine.UserInterface
                 Height = 25,
                 Text = "X"
             };
-            xTextBox = new TextBox(UserInterfaceManager)
+            _xTextBox = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Width = 100,
@@ -97,12 +97,12 @@ namespace XNAFinalEngine.UserInterface
             var yLabel = new Label(UserInterfaceManager)
             {
                 Parent = this,
-                Left = xTextBox.Left + xTextBox.Width + 8,
+                Left = _xTextBox.Left + _xTextBox.Width + 8,
                 Width = 15,
                 Height = 25,
                 Text = "Y"
             };
-            yTextBox = new TextBox(UserInterfaceManager)
+            _yTextBox = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Width = 100,
@@ -112,12 +112,12 @@ namespace XNAFinalEngine.UserInterface
             var zLabel = new Label(UserInterfaceManager)
             {
                 Parent = this,
-                Left = yTextBox.Left + yTextBox.Width + 8,
+                Left = _yTextBox.Left + _yTextBox.Width + 8,
                 Width = 15,
                 Height = 25,
                 Text = "Z"
             };
-            zTextBox = new TextBox(UserInterfaceManager)
+            _zTextBox = new TextBox(UserInterfaceManager)
             {
                 Parent = this,
                 Left = zLabel.Left + zLabel.Width,
@@ -132,42 +132,42 @@ namespace XNAFinalEngine.UserInterface
                 {
                     try
                     {
-                        Value = new Vector3((float)double.Parse(xTextBox.Text), (float)double.Parse(yTextBox.Text), (float)double.Parse(zTextBox.Text));
+                        Value = new Vector3((float)double.Parse(_xTextBox.Text), (float)double.Parse(_yTextBox.Text), (float)double.Parse(_zTextBox.Text));
                     }
                     catch // If not numeric
                     {
-                        xTextBox.Text = value.X.ToString();
-                        yTextBox.Text = value.Y.ToString();
-                        zTextBox.Text = value.Z.ToString();
+                        _xTextBox.Text = _value.X.ToString();
+                        _yTextBox.Text = _value.Y.ToString();
+                        _zTextBox.Text = _value.Z.ToString();
                     }
                 }
             };
-            xTextBox.KeyDown += keyHandler;
-            yTextBox.KeyDown += keyHandler;
-            zTextBox.KeyDown += keyHandler;
+            _xTextBox.KeyDown += keyHandler;
+            _yTextBox.KeyDown += keyHandler;
+            _zTextBox.KeyDown += keyHandler;
             // For tabs and other not so common things.
             EventHandler focusHandler = delegate
             {
                 try
                 {
-                    Value = new Vector3((float)double.Parse(xTextBox.Text), (float)double.Parse(yTextBox.Text), (float)double.Parse(zTextBox.Text));
+                    Value = new Vector3((float)double.Parse(_xTextBox.Text), (float)double.Parse(_yTextBox.Text), (float)double.Parse(_zTextBox.Text));
                 }
                 catch // If not numeric
                 {
-                    xTextBox.Text = value.X.ToString();
-                    yTextBox.Text = value.Y.ToString();
-                    zTextBox.Text = value.Z.ToString();
+                    _xTextBox.Text = _value.X.ToString();
+                    _yTextBox.Text = _value.Y.ToString();
+                    _zTextBox.Text = _value.Z.ToString();
                 }
             };
-            xTextBox.FocusLost += focusHandler;
-            yTextBox.FocusLost += focusHandler;
-            zTextBox.FocusLost += focusHandler;
+            _xTextBox.FocusLost += focusHandler;
+            _yTextBox.FocusLost += focusHandler;
+            _zTextBox.FocusLost += focusHandler;
 
             ValueChanged += delegate
             {
-                xTextBox.Text = value.X.ToString();
-                yTextBox.Text = value.Y.ToString();
-                zTextBox.Text = value.Z.ToString();
+                _xTextBox.Text = _value.X.ToString();
+                _yTextBox.Text = _value.Y.ToString();
+                _zTextBox.Text = _value.Z.ToString();
             };
 
 

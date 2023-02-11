@@ -16,8 +16,8 @@ namespace XNAFinalEngine.UserInterface
     public class SideBarPanel : Container
     {
 
-        public SideBarPanel(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public SideBarPanel(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
             Passive = true;

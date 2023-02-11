@@ -12,237 +12,237 @@ namespace CasaEngine.Math.Curves
         }
 
 
-        private readonly List<Vector2> m_ControlPoints = new List<Vector2>();
-        private readonly List<float> m_ModalNodes = new List<float>();
-        private readonly List<Vector2> m_CurvePoints = new List<Vector2>();
+        private readonly List<Vector2> _controlPoints = new List<Vector2>();
+        private readonly List<float> _modalNodes = new List<float>();
+        private readonly List<Vector2> _curvePoints = new List<Vector2>();
 
-        private readonly int m_Degree = 3;
-        private readonly bool m_Closed = false;
-        private readonly bool m_BeginToBounds = true;
-        private float m_Resolution = 0.1f;
-        private readonly VectorModalParametrization m_VectorModalParametrization = VectorModalParametrization.Uniform;
+        private readonly int _degree = 3;
+        private readonly bool _closed = false;
+        private readonly bool _beginToBounds = true;
+        private float _resolution = 0.1f;
+        private readonly VectorModalParametrization _vectorModalParametrization = VectorModalParametrization.Uniform;
 
 
 
         public float Resolution
         {
-            get => m_Resolution;
-            set => m_Resolution = value;
+            get => _resolution;
+            set => _resolution = value;
         }
 
-        public List<Vector2> CurvePoints => m_CurvePoints;
+        public List<Vector2> CurvePoints => _curvePoints;
 
-        public List<Vector2> ControlPoints => m_ControlPoints;
+        public List<Vector2> ControlPoints => _controlPoints;
 
 
         public void Compute()
         {
-            if (m_ControlPoints.Count == 0)
+            if (_controlPoints.Count == 0)
             {
                 return;
             }
 
             List<Vector2> ptControl = new List<Vector2>();
 
-            m_CurvePoints.Clear();
+            _curvePoints.Clear();
 
             //Algo
-            if ((m_ControlPoints.Count >= m_Degree && m_Closed == false)
-                || (m_Closed && m_ControlPoints.Count > m_Degree))
+            if ((_controlPoints.Count >= _degree && _closed == false)
+                || (_closed && _controlPoints.Count > _degree))
             {
-                if (m_BeginToBounds)
+                if (_beginToBounds)
                 {
-                    for (int i = 0; i < m_Degree; i++)
+                    for (int i = 0; i < _degree; i++)
                     {
-                        ptControl.Add(m_ControlPoints.First());
+                        ptControl.Add(_controlPoints.First());
                     }
                 }
 
                 //copie temporaire
-                for (int i = 0; i < m_ControlPoints.Count; i++)
+                for (int i = 0; i < _controlPoints.Count; i++)
                 {
-                    ptControl.Add(m_ControlPoints[i]);
+                    ptControl.Add(_controlPoints[i]);
                 }
 
                 //le cas de la spline partant des extremité
-                if (m_BeginToBounds)
+                if (_beginToBounds)
                 {
-                    for (int i = 0; i < m_Degree; i++)
+                    for (int i = 0; i < _degree; i++)
                     {
                         ptControl.Add(ptControl.Last());
                     }
                 }
-                else if (m_BeginToBounds) // bspline fermée
+                else if (_beginToBounds) // bspline fermée
                 {
-                    for (int i = 0; i <= m_Degree; i++)
+                    for (int i = 0; i <= _degree; i++)
                     {
-                        ptControl.Add(m_ControlPoints[i]);
+                        ptControl.Add(_controlPoints[i]);
                     }
                 }
 
                 ModalVectorParametrization(ptControl);
 
-                // Pour chaque sous courbes Bezier de la spline de degré m_Degree
+                // Pour chaque sous courbes Bezier de la spline de degré _Degree
                 int r;
                 float t;
 
-                for (r = m_Degree; r < ptControl.Count; r++)
+                for (r = _degree; r < ptControl.Count; r++)
                 {
                     // discrétisation de la sous spline
                     // ayant pour paramètre t : appartient [ t[r], t[r+1] ]
-                    for (t = m_ModalNodes[r]; t <= m_ModalNodes[r + 1]; t += m_Resolution)
+                    for (t = _modalNodes[r]; t <= _modalNodes[r + 1]; t += _resolution)
                     {
                         /*
 						 *  Composée de B-Spline définie par:
 						 *  S(t) = Somme( 0, n){ Pi * B(n, i)(t) }
 						 *  avec k le degré, n le nombre de point de contrôle
 						 */
-                        m_CurvePoints.Add(Cox_de_Boor(r, t, ptControl));
+                        _curvePoints.Add(Cox_de_Boor(r, t, ptControl));
                     }
                 }
             }
         }
 
-        Vector2 Cox_de_Boor(int r, float t, List<Vector2> ptControl_)
+        Vector2 Cox_de_Boor(int r, float t, List<Vector2> ptControl)
         {
-            List<Vector2> Pt = new List<Vector2>(m_Degree * (r + 1));
+            List<Vector2> pt = new List<Vector2>(_degree * (r + 1));
             float x, y;
 
-            for (int i = 0; i <= m_Degree * (r + 1); i++)
+            for (int i = 0; i <= _degree * (r + 1); i++)
             {
-                Pt.Add(Vector2.Zero);
+                pt.Add(Vector2.Zero);
             }
 
             // Initialisation
-            for (int i = r - m_Degree; i <= r; i++)
+            for (int i = r - _degree; i <= r; i++)
             {
-                Pt[0 * m_Degree + i] = ptControl_[i];
+                pt[0 * _degree + i] = ptControl[i];
             }
 
-            for (int j = 1; j <= m_Degree; j++)
+            for (int j = 1; j <= _degree; j++)
             {
-                for (int i = r - m_Degree + j; i <= r; i++)
+                for (int i = r - _degree + j; i <= r; i++)
                 {
-                    x = ((Pt[(j - 1) * m_Degree + i].X * (t - m_ModalNodes[i])) + (Pt[(j - 1) * m_Degree + i - 1].X * (m_ModalNodes[i - j + m_Degree + 1] - t))) / (m_ModalNodes[i - j + m_Degree + 1] - m_ModalNodes[i]);
-                    y = ((Pt[(j - 1) * m_Degree + i].Y * (t - m_ModalNodes[i])) + (Pt[(j - 1) * m_Degree + i - 1].Y * (m_ModalNodes[i - j + m_Degree + 1] - t))) / (m_ModalNodes[i - j + m_Degree + 1] - m_ModalNodes[i]);
-                    Pt[j * m_Degree + i] = new Vector2(x, y);
+                    x = ((pt[(j - 1) * _degree + i].X * (t - _modalNodes[i])) + (pt[(j - 1) * _degree + i - 1].X * (_modalNodes[i - j + _degree + 1] - t))) / (_modalNodes[i - j + _degree + 1] - _modalNodes[i]);
+                    y = ((pt[(j - 1) * _degree + i].Y * (t - _modalNodes[i])) + (pt[(j - 1) * _degree + i - 1].Y * (_modalNodes[i - j + _degree + 1] - t))) / (_modalNodes[i - j + _degree + 1] - _modalNodes[i]);
+                    pt[j * _degree + i] = new Vector2(x, y);
                 }
             }
 
-            return Pt[m_Degree * m_Degree + r];
+            return pt[_degree * _degree + r];
         }
 
-        void ModalVectorParametrization(List<Vector2> ptControl_)
+        void ModalVectorParametrization(List<Vector2> ptControl)
         {
-            int nbVectorModal = ptControl_.Count;
+            int nbVectorModal = ptControl.Count;
             int offset = 0;
             float t;
 
             //init
-            m_ModalNodes.Clear();
+            _modalNodes.Clear();
 
-            if (m_BeginToBounds)
+            if (_beginToBounds)
             {
-                offset = m_Degree;
-                nbVectorModal -= m_Degree - 1;
+                offset = _degree;
+                nbVectorModal -= _degree - 1;
 
-                /*for( int i = 0; i < m_Degree; i++)
+                /*for( int i = 0; i < _Degree; i++)
 				{
-					//m_ModalNodes.Add( 0.0f );
+					//_ModalNodes.Add( 0.0f );
 				}*/
             }
 
-            /*if ( m_Closed )
+            /*if ( _Closed )
 			{
-				//nbVectorModal += m_Degree;
+				//nbVectorModal += _Degree;
 			}*/
 
-            switch (m_VectorModalParametrization)
+            switch (_vectorModalParametrization)
             {
                 case VectorModalParametrization.Uniform:
-                    for (int i = 0; i <= ptControl_.Count + m_Degree; i++)
+                    for (int i = 0; i <= ptControl.Count + _degree; i++)
                     {
-                        m_ModalNodes.Add((float)i);
+                        _modalNodes.Add((float)i);
                     }
                     break;
 
                 case VectorModalParametrization.ArcLength: //bug
                                                            //for( int i = 0; i < nbVectorModal; i++)
                                                            //{
-                    m_ModalNodes.Add(0.0f);
-                    m_ModalNodes.Add(1.0f);
+                    _modalNodes.Add(0.0f);
+                    _modalNodes.Add(1.0f);
 
                     for (int i = 2; i < nbVectorModal; i++)
                     {
-                        float t1 = m_ModalNodes[i - 1];
-                        float t2 = (m_ModalNodes[i - 1] - m_ModalNodes[i - 2]);
+                        float t1 = _modalNodes[i - 1];
+                        float t2 = (_modalNodes[i - 1] - _modalNodes[i - 2]);
                         t = t1 + t2;
-                        float xx = Vector2.Distance(ptControl_[i + offset], ptControl_[i - 1 + offset]);
-                        float yy = Vector2.Distance(ptControl_[i - 1 + offset], ptControl_[i - 2 + offset]);
+                        float xx = Vector2.Distance(ptControl[i + offset], ptControl[i - 1 + offset]);
+                        float yy = Vector2.Distance(ptControl[i - 1 + offset], ptControl[i - 2 + offset]);
 
-                        if (Vector2.Distance(ptControl_[i - 1 + offset], ptControl_[i - 2 + offset]) != 0.0f)
+                        if (Vector2.Distance(ptControl[i - 1 + offset], ptControl[i - 2 + offset]) != 0.0f)
                         {
-                            t *= Vector2.Distance(ptControl_[i + offset], ptControl_[i - 1 + offset]) / Vector2.Distance(ptControl_[i - 1 + offset], ptControl_[i - 2 + offset]);
+                            t *= Vector2.Distance(ptControl[i + offset], ptControl[i - 1 + offset]) / Vector2.Distance(ptControl[i - 1 + offset], ptControl[i - 2 + offset]);
                         }
                         else
                         {
                             t = 0.0f;
                         }
 
-                        m_ModalNodes.Add(t);
+                        _modalNodes.Add(t);
                     }
 
-                    for (int i = m_ModalNodes.Count; i < ptControl_.Count + m_Degree; i++)
+                    for (int i = _modalNodes.Count; i < ptControl.Count + _degree; i++)
                     {
-                        m_ModalNodes.Add(m_ModalNodes.Last());
+                        _modalNodes.Add(_modalNodes.Last());
                     }
                     //}
                     break;
 
                 case VectorModalParametrization.Centripetal: //bug
-                    m_ModalNodes.Add(0.0f);
-                    m_ModalNodes.Add(1.0f);
+                    _modalNodes.Add(0.0f);
+                    _modalNodes.Add(1.0f);
 
                     for (int i = 2; i < nbVectorModal; i++)
                     {
-                        if (Vector2.Distance(ptControl_[i - 1], ptControl_[i - 2]) == 0.0f)
+                        if (Vector2.Distance(ptControl[i - 1], ptControl[i - 2]) == 0.0f)
                         {
                             t = 0.0f;
                         }
                         else
                         {
-                            t = m_ModalNodes[i - 1] + (m_ModalNodes[i - 1] - m_ModalNodes[i - 2]);
-                            t *= CasaEngineCommon.Helper.MathHelper.Sqrt(Vector2.Distance(ptControl_[i], ptControl_[i - 1]) / Vector2.Distance(ptControl_[i - 1], ptControl_[i - 2]));
+                            t = _modalNodes[i - 1] + (_modalNodes[i - 1] - _modalNodes[i - 2]);
+                            t *= CasaEngineCommon.Helper.MathHelper.Sqrt(Vector2.Distance(ptControl[i], ptControl[i - 1]) / Vector2.Distance(ptControl[i - 1], ptControl[i - 2]));
                         }
 
-                        m_ModalNodes.Add(t);
+                        _modalNodes.Add(t);
                     }
 
-                    for (int i = 0; i <= m_Degree; i++)
+                    for (int i = 0; i <= _degree; i++)
                     {
-                        m_ModalNodes.Add(nbVectorModal + i);
+                        _modalNodes.Add(nbVectorModal + i);
                     }
 
                     break;
             }
 
-            /*if ( m_BeginToBounds )
+            /*if ( _BeginToBounds )
 			{
-				for( int i = 0; i < m_Degree; i++)
+				for( int i = 0; i < _Degree; i++)
 				{
-					//m_ModalNodes.Add( m_ModalNodes.Last() );
+					//_ModalNodes.Add( _ModalNodes.Last() );
 				}
 			}*/
         }
 
-        public Vector2 GetPoint(float percent_)
+        public Vector2 GetPoint(float percent)
         {
-            if (percent_ < 0.0f || percent_ > 1.0f)
+            if (percent < 0.0f || percent > 1.0f)
             {
                 throw new ArgumentOutOfRangeException("percent_ has to be between 0 and 1");
             }
 
-            return m_CurvePoints[(int)(percent_ * (float)m_CurvePoints.Count)];
+            return _curvePoints[(int)(percent * (float)_curvePoints.Count)];
         }
 
     }

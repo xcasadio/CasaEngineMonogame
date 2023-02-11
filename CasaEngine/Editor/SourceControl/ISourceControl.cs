@@ -8,9 +8,9 @@
 
         bool IsValidConnection();
 
-        Dictionary<string, Dictionary<SourceControlKeyWord, string>> FileStatus(string[] filesName_);
+        Dictionary<string, Dictionary<SourceControlKeyWord, string>> FileStatus(string[] filesName);
 
-        bool RevertFile(string fileName_);
+        bool RevertFile(string fileName);
 
         //file history
 
@@ -18,20 +18,20 @@
 
         //ChangeList
 
-        bool Submit(int changeListNum_);
+        bool Submit(int changeListNu);
 
-        bool CheckOut(string fileName_);
+        bool CheckOut(string fileName);
 
-        bool Sync(string fileName_);
+        bool Sync(string fileName);
 
         bool SyncAll();
 
-        bool LockFile(string fileName_);
+        bool LockFile(string fileName);
 
-        bool UnlockFile(string fileName_);
+        bool UnlockFile(string fileName);
 
-        bool MarkFileForDelete(string fileName_);
+        bool MarkFileForDelete(string fileName);
 
-        bool MarkFileForAdd(string fileName_);
+        bool MarkFileForAdd(string fileName);
     }
 }

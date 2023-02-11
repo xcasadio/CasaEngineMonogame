@@ -15,30 +15,30 @@ namespace CasaEngine.Gameplay.Actor.Event
         : EventActor
     {
 
-        private string m_AssetName;
-        private Sound m_Sound;
+        private string _assetName;
+        private Sound _sound;
 
 
 
         public string AssetName
         {
-            get { return m_AssetName; }
+            get { return _assetName; }
 #if EDITOR
-            set { m_AssetName = value; }
+            set { _assetName = value; }
 #endif
         }
 
-        public Sound Sound => m_Sound;
+        public Sound Sound => _sound;
 
 
-        public PlaySoundEvent(string assetName_)
+        public PlaySoundEvent(string assetName)
             : base(EventActorType.PlaySound)
         {
 
         }
 
-        public PlaySoundEvent(XmlElement el_, SaveOption option_)
-            : base(el_, option_)
+        public PlaySoundEvent(XmlElement el, SaveOption option)
+            : base(el, option)
         {
 
         }
@@ -47,24 +47,24 @@ namespace CasaEngine.Gameplay.Actor.Event
 
         public override void Initialize()
         {
-            m_Sound = new Sound(Engine.Instance.Game.Content.Load<SoundEffect>("Content/" + m_AssetName));
-            m_Sound.Initialize();
+            _sound = new Sound(Engine.Instance.Game.Content.Load<SoundEffect>("Content/" + _assetName));
+            _sound.Initialize();
         }
 
         public override void Do()
         {
-            m_Sound.SoundEffectInstance.Play();
+            _sound.SoundEffectInstance.Play();
         }
 
         public override string ToString()
         {
-            return "Play Sound '" + m_AssetName + "'";
+            return "Play Sound '" + _assetName + "'";
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            base.Load(el_, option_);
-            m_AssetName = el_.Attributes["asset"].Value;
+            base.Load(el, option);
+            _assetName = el.Attributes["asset"].Value;
         }
 
     }

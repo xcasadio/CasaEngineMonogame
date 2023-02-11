@@ -18,15 +18,15 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private Rectangle headerRectangle = Rectangle.Empty;
+        private Rectangle _headerRectangle = Rectangle.Empty;
 
 
 
-        protected internal Rectangle HeaderRectangle => headerRectangle;
+        protected internal Rectangle HeaderRectangle => _headerRectangle;
 
 
-        public TabPage(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public TabPage(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Color = Color.Transparent;
             Passive = true;
@@ -41,7 +41,7 @@ namespace XNAFinalEngine.UserInterface
 
             if (first) offset.X = 0;
 
-            headerRectangle = new Rectangle(prev.Right + offset.X, prev.Top, size, prev.Height);
+            _headerRectangle = new Rectangle(prev.Right + offset.X, prev.Top, size, prev.Height);
         } // CalculateRectangle
 
 
@@ -60,29 +60,29 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly List<TabPage> tabPages = new List<TabPage>();
-        private int selectedIndex;
-        private int hoveredIndex = -1;
+        private readonly List<TabPage> _tabPages = new List<TabPage>();
+        private int _selectedIndex;
+        private int _hoveredIndex = -1;
 
 
 
-        public TabPage[] TabPages => tabPages.ToArray();
+        public TabPage[] TabPages => _tabPages.ToArray();
 
         public virtual int SelectedIndex
         {
-            get => selectedIndex;
+            get => _selectedIndex;
             set
             {
-                if (selectedIndex >= 0 && selectedIndex < tabPages.Count && value >= 0 && value < tabPages.Count)
+                if (_selectedIndex >= 0 && _selectedIndex < _tabPages.Count && value >= 0 && value < _tabPages.Count)
                 {
-                    TabPages[selectedIndex].Visible = false;
+                    TabPages[_selectedIndex].Visible = false;
                 }
-                if (value >= 0 && value < tabPages.Count)
+                if (value >= 0 && value < _tabPages.Count)
                 {
                     TabPages[value].Visible = true;
                     ControlsList c = TabPages[value].ChildrenControls as ControlsList;
                     if (c.Count > 0) c[0].Focused = true;
-                    selectedIndex = value;
+                    _selectedIndex = value;
                     if (!Suspended) OnPageChanged(new EventArgs());
                 }
             }
@@ -90,12 +90,12 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual TabPage SelectedPage
         {
-            get => tabPages[SelectedIndex];
+            get => _tabPages[SelectedIndex];
             set
             {
-                for (int i = 0; i < tabPages.Count; i++)
+                for (int i = 0; i < _tabPages.Count; i++)
                 {
-                    if (tabPages[i] == value)
+                    if (_tabPages[i] == value)
                     {
                         SelectedIndex = i;
                         break;
@@ -110,8 +110,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public TabControl(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public TabControl(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             CanFocus = false;
         } // TabControl
@@ -134,32 +134,32 @@ namespace XNAFinalEngine.UserInterface
             Color col = Color != UndefinedColor ? Color : Color.White;
 
             Rectangle r1 = new Rectangle(rect.Left, rect.Top + l1.OffsetY, rect.Width, rect.Height - l1.OffsetY);
-            if (tabPages.Count <= 0)
+            if (_tabPages.Count <= 0)
             {
                 r1 = rect;
             }
 
             base.DrawControl(r1);
 
-            if (tabPages.Count > 0)
+            if (_tabPages.Count > 0)
             {
 
                 Rectangle prev = new Rectangle(rect.Left, rect.Top + l2.OffsetY, 0, l2.Height);
-                for (int i = 0; i < tabPages.Count; i++)
+                for (int i = 0; i < _tabPages.Count; i++)
                 {
                     Font font = l2.Text.Font.Font;
                     Margins margins = l2.ContentMargins;
                     Point offset = new Point(l2.OffsetX, l2.OffsetY);
-                    if (i > 0) prev = tabPages[i - 1].HeaderRectangle;
+                    if (i > 0) prev = _tabPages[i - 1].HeaderRectangle;
 
-                    tabPages[i].CalculateRectangle(prev, font, margins, offset, i == 0);
+                    _tabPages[i].CalculateRectangle(prev, font, margins, offset, i == 0);
                 }
 
-                for (int i = tabPages.Count - 1; i >= 0; i--)
+                for (int i = _tabPages.Count - 1; i >= 0; i--)
                 {
-                    int li = tabPages[i].Enabled ? l2.States.Enabled.Index : l2.States.Disabled.Index;
-                    Color lc = tabPages[i].Enabled ? l2.Text.Colors.Enabled : l2.Text.Colors.Disabled;
-                    if (i == hoveredIndex)
+                    int li = _tabPages[i].Enabled ? l2.States.Enabled.Index : l2.States.Disabled.Index;
+                    Color lc = _tabPages[i].Enabled ? l2.Text.Colors.Enabled : l2.Text.Colors.Disabled;
+                    if (i == _hoveredIndex)
                     {
                         li = l2.States.Hovered.Index;
                         lc = l2.Text.Colors.Hovered;
@@ -167,20 +167,20 @@ namespace XNAFinalEngine.UserInterface
 
 
                     Margins m = l2.ContentMargins;
-                    Rectangle rx = tabPages[i].HeaderRectangle;
+                    Rectangle rx = _tabPages[i].HeaderRectangle;
                     Rectangle sx = new Rectangle(rx.Left + m.Left, rx.Top + m.Top, rx.Width - m.Horizontal, rx.Height - m.Vertical);
-                    if (i != selectedIndex)
+                    if (i != _selectedIndex)
                     {
                         UserInterfaceManager.Renderer.DrawLayer(l2, rx, col, li);
-                        UserInterfaceManager.Renderer.DrawString(l2.Text.Font.Font, tabPages[i].Text, sx, lc, l2.Text.Alignment);
+                        UserInterfaceManager.Renderer.DrawString(l2.Text.Font.Font, _tabPages[i].Text, sx, lc, l2.Text.Alignment);
                     }
                 }
 
                 Margins mi = l2.ContentMargins;
-                Rectangle ri = tabPages[selectedIndex].HeaderRectangle;
+                Rectangle ri = _tabPages[_selectedIndex].HeaderRectangle;
                 Rectangle si = new Rectangle(ri.Left + mi.Left, ri.Top + mi.Top, ri.Width - mi.Horizontal, ri.Height - mi.Vertical);
                 UserInterfaceManager.Renderer.DrawLayer(l2, ri, col, l2.States.Focused.Index);
-                UserInterfaceManager.Renderer.DrawString(l2.Text.Font.Font, tabPages[selectedIndex].Text, si, l2.Text.Colors.Focused, l2.Text.Alignment, l2.Text.OffsetX, l2.Text.OffsetY, false);
+                UserInterfaceManager.Renderer.DrawString(l2.Text.Font.Font, _tabPages[_selectedIndex].Text, si, l2.Text.Colors.Focused, l2.Text.Alignment, l2.Text.OffsetX, l2.Text.OffsetY, false);
             }
         } // DrawControl
 
@@ -203,20 +203,20 @@ namespace XNAFinalEngine.UserInterface
                 Width = ClientWidth,
                 Height = ClientHeight,
                 Anchor = Anchors.All,
-                Text = "Tab " + (tabPages.Count + 1),
+                Text = "Tab " + (_tabPages.Count + 1),
                 Visible = false,
                 AutoScroll = true,
             };
             Add(page, true);
-            tabPages.Add(page);
-            tabPages[0].Visible = true;
+            _tabPages.Add(page);
+            _tabPages[0].Visible = true;
 
             return page;
         } // AddPage
 
         public virtual void RemovePage(TabPage page, bool dispose)
         {
-            tabPages.Remove(page);
+            _tabPages.Remove(page);
             if (dispose)
             {
                 page.Dispose();
@@ -235,12 +235,12 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseDown(e);
 
-            if (tabPages.Count > 1)
+            if (_tabPages.Count > 1)
             {
                 Point p = new Point(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
-                for (int i = 0; i < tabPages.Count; i++)
+                for (int i = 0; i < _tabPages.Count; i++)
                 {
-                    Rectangle r = tabPages[i].HeaderRectangle;
+                    Rectangle r = _tabPages[i].HeaderRectangle;
                     if (p.X >= r.Left && p.X <= r.Right && p.Y >= r.Top && p.Y <= r.Bottom)
                     {
                         SelectedIndex = i;
@@ -253,23 +253,23 @@ namespace XNAFinalEngine.UserInterface
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            if (tabPages.Count > 1)
+            if (_tabPages.Count > 1)
             {
-                int index = hoveredIndex;
+                int index = _hoveredIndex;
                 Point p = new Point(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
-                for (int i = 0; i < tabPages.Count; i++)
+                for (int i = 0; i < _tabPages.Count; i++)
                 {
-                    Rectangle r = tabPages[i].HeaderRectangle;
-                    if (p.X >= r.Left && p.X <= r.Right && p.Y >= r.Top && p.Y <= r.Bottom && tabPages[i].Enabled)
+                    Rectangle r = _tabPages[i].HeaderRectangle;
+                    if (p.X >= r.Left && p.X <= r.Right && p.Y >= r.Top && p.Y <= r.Bottom && _tabPages[i].Enabled)
                     {
                         index = i;
                         break;
                     }
                     index = -1;
                 }
-                if (index != hoveredIndex)
+                if (index != _hoveredIndex)
                 {
-                    hoveredIndex = index;
+                    _hoveredIndex = index;
                     Invalidate();
                 }
             }

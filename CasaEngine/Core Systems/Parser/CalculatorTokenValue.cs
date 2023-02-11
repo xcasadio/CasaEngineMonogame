@@ -6,96 +6,96 @@ using CasaEngineCommon.Design;
 namespace CasaEngine.Design.Parser
 {
     class CalculatorTokenValue
-        : ICalculatorToken
+        : CalculatorToken
     {
 
-        int m_Type;
-        float m_Value;
-        string m_String;
+        int _type;
+        float _value;
+        string _string;
 
 
 
 
 
-        public CalculatorTokenValue(Calculator calculator_, float value_)
-            : base(calculator_)
+        public CalculatorTokenValue(Calculator calculator, float value)
+            : base(calculator)
         {
-            m_Value = value_;
-            m_Type = 0;
+            _value = value;
+            _type = 0;
         }
 
-        public CalculatorTokenValue(Calculator calculator_, string value_)
-            : base(calculator_)
+        public CalculatorTokenValue(Calculator calculator, string value)
+            : base(calculator)
         {
-            m_String = value_;
-            m_Type = 1;
+            _string = value;
+            _type = 1;
         }
 
-        public CalculatorTokenValue(Calculator calculator_, XmlElement el_, SaveOption option_)
-            : base(calculator_)
+        public CalculatorTokenValue(Calculator calculator, XmlElement el, SaveOption option)
+            : base(calculator)
         {
-            Load(el_, option_);
+            Load(el, option);
         }
 
-        public CalculatorTokenValue(Calculator calculator_, BinaryReader br_, SaveOption option_)
-            : base(calculator_)
+        public CalculatorTokenValue(Calculator calculator, BinaryReader br, SaveOption option)
+            : base(calculator)
         {
-            Load(br_, option_);
+            Load(br, option);
         }
 
 
 
         public override float Evaluate()
         {
-            return m_Value;
+            return _value;
         }
 
 
-        public override void Save(XmlElement el_, SaveOption option_)
+        public override void Save(XmlElement el, SaveOption option)
         {
-            XmlElement node = (XmlElement)el_.OwnerDocument.CreateElement("Node");
-            el_.AppendChild(node);
-            el_.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Value).ToString());
+            XmlElement node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            el.AppendChild(node);
+            el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Value).ToString());
 
-            string value = m_Type == 0 ? m_Value.ToString() : m_String;
+            string value = _type == 0 ? _value.ToString() : _string;
 
-            XmlElement valueNode = (XmlElement)el_.OwnerDocument.CreateElementWithText("Value", value);
-            el_.OwnerDocument.AddAttribute(valueNode, "type", m_Type.ToString());
+            XmlElement valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Value", value);
+            el.OwnerDocument.AddAttribute(valueNode, "type", _type.ToString());
             node.AppendChild(valueNode);
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
-            m_Type = int.Parse(el_.SelectSingleNode("Value").Attributes["type"].Value);
-            if (m_Type == 0)
+            _type = int.Parse(el.SelectSingleNode("Value").Attributes["type"].Value);
+            if (_type == 0)
             {
-                m_Value = float.Parse(el_.SelectSingleNode("Value").InnerText);
+                _value = float.Parse(el.SelectSingleNode("Value").InnerText);
             }
             else
             {
-                m_String = el_.SelectSingleNode("Value").InnerText;
+                _string = el.SelectSingleNode("Value").InnerText;
             }
         }
 
-        public override void Save(BinaryWriter bw_, SaveOption option_)
+        public override void Save(BinaryWriter bw, SaveOption option)
         {
-            bw_.Write((int)CalculatorTokenType.Value);
-            string value = m_Type == 0 ? m_Value.ToString() : m_String;
-            bw_.Write(value);
-            bw_.Write(m_Type);
+            bw.Write((int)CalculatorTokenType.Value);
+            string value = _type == 0 ? _value.ToString() : _string;
+            bw.Write(value);
+            bw.Write(_type);
         }
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
-            m_Type = br_.ReadInt32();
+            _type = br.ReadInt32();
 
-            if (m_Type == 0)
+            if (_type == 0)
             {
-                m_Value = float.Parse(br_.ReadString());
+                _value = float.Parse(br.ReadString());
             }
             else
             {
-                m_String = br_.ReadString();
+                _string = br.ReadString();
             }
         }
 

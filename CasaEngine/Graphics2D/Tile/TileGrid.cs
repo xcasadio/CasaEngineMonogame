@@ -16,15 +16,15 @@ namespace CasaEngine.Graphics2D.Tile
         : TileLayer
     {
 
-        private readonly int[][] grid;
+        private readonly int[][] _grid;
         //private SpriteSheet sheet;
-        private readonly int width;
-        private readonly int height;
-        private readonly int cellWidth;
-        private readonly int cellHeight;
-        private Rectangle visibleTiles;
+        private readonly int _width;
+        private readonly int _height;
+        private readonly int _cellWidth;
+        private readonly int _cellHeight;
+        private Rectangle _visibleTiles;
 
-        private Vector2 scaleValue;
+        private Vector2 _scaleValue;
 
 
 
@@ -32,10 +32,10 @@ namespace CasaEngine.Graphics2D.Tile
         {
             set
             {
-                scaleValue = value;
-                visibilityChanged = true;
+                _scaleValue = value;
+                VisibilityChanged = true;
             }
-            get => scaleValue;
+            get => _scaleValue;
         }
 
 
@@ -46,22 +46,22 @@ namespace CasaEngine.Graphics2D.Tile
             : base(offset, graphicsComponent/*, Renderer2DComponent_*/)
         {
             //sheet = tileSheet;
-            width = numXTiles;
-            height = numYTiles;
-            cellWidth = tileWidth;
-            cellHeight = tileHeight;
+            _width = numXTiles;
+            _height = numYTiles;
+            _cellWidth = tileWidth;
+            _cellHeight = tileHeight;
 
-            scaleValue = Vector2.One;
+            _scaleValue = Vector2.One;
 
-            visibleTiles = new Rectangle(0, 0, width, height);
+            _visibleTiles = new Rectangle(0, 0, _width, _height);
 
-            grid = new int[width][];
-            for (int i = 0; i < width; i++)
+            _grid = new int[_width][];
+            for (int i = 0; i < _width; i++)
             {
-                grid[i] = new int[height];
-                for (int j = 0; j < height; j++)
+                _grid[i] = new int[_height];
+                for (int j = 0; j < _height; j++)
                 {
-                    grid[i][j] = 0;
+                    _grid[i][j] = 0;
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace CasaEngine.Graphics2D.Tile
 
         public void SetTile(int xIndex, int yIndex, int tile)
         {
-            grid[xIndex][yIndex] = tile;
+            _grid[xIndex][yIndex] = tile;
         }
 
 
@@ -128,42 +128,42 @@ namespace CasaEngine.Graphics2D.Tile
 
 
             //now figure out where we are in the tile sheet
-            float scaledTileWidth = (float)cellWidth * scaleValue.X;
-            float scaledTileHeight = (float)cellHeight * scaleValue.Y;
+            float scaledTileWidth = (float)_cellWidth * _scaleValue.X;
+            float scaledTileHeight = (float)_cellHeight * _scaleValue.Y;
 
             //get the visible tiles
-            visibleTiles.X = (int)(left / (scaledTileWidth));
-            visibleTiles.Y = (int)(top / (scaledTileWidth));
+            _visibleTiles.X = (int)(left / (scaledTileWidth));
+            _visibleTiles.Y = (int)(top / (scaledTileWidth));
 
             //get the number of visible tiles
-            visibleTiles.Height =
-                (int)((bottom) / (scaledTileHeight)) - visibleTiles.Y + 1;
-            visibleTiles.Width =
-                (int)((right) / (scaledTileWidth)) - visibleTiles.X + 1;
+            _visibleTiles.Height =
+                (int)((bottom) / (scaledTileHeight)) - _visibleTiles.Y + 1;
+            _visibleTiles.Width =
+                (int)((right) / (scaledTileWidth)) - _visibleTiles.X + 1;
 
             //clamp the "upper left" values to 0
-            if (visibleTiles.X < 0) visibleTiles.X = 0;
-            if (visibleTiles.X > (width - 1)) visibleTiles.X = width;
-            if (visibleTiles.Y < 0) visibleTiles.Y = 0;
-            if (visibleTiles.Y > (height - 1)) visibleTiles.Y = height;
+            if (_visibleTiles.X < 0) _visibleTiles.X = 0;
+            if (_visibleTiles.X > (_width - 1)) _visibleTiles.X = _width;
+            if (_visibleTiles.Y < 0) _visibleTiles.Y = 0;
+            if (_visibleTiles.Y > (_height - 1)) _visibleTiles.Y = _height;
 
 
             //clamp the "lower right" values to the gameboard size
-            if (visibleTiles.Right > (width - 1))
-                visibleTiles.Width = (width - visibleTiles.X);
+            if (_visibleTiles.Right > (_width - 1))
+                _visibleTiles.Width = (_width - _visibleTiles.X);
 
-            if (visibleTiles.Right < 0) visibleTiles.Width = 0;
+            if (_visibleTiles.Right < 0) _visibleTiles.Width = 0;
 
-            if (visibleTiles.Bottom > (height - 1))
-                visibleTiles.Height = (height - visibleTiles.Y);
+            if (_visibleTiles.Bottom > (_height - 1))
+                _visibleTiles.Height = (_height - _visibleTiles.Y);
 
-            if (visibleTiles.Bottom < 0) visibleTiles.Height = 0;
+            if (_visibleTiles.Bottom < 0) _visibleTiles.Height = 0;
         }
 
         protected override void DrawTiles(SpriteBatch batch)
         {
-            float scaledTileWidth = (float)cellWidth * scaleValue.X;
-            float scaledTileHeight = (float)cellHeight * scaleValue.Y;
+            float scaledTileWidth = (float)_cellWidth * _scaleValue.X;
+            float scaledTileHeight = (float)_cellHeight * _scaleValue.Y;
             Vector2 screenCenter = new Vector2(
                 (DisplaySize.X / 2),
                 (DisplaySize.Y / 2));
@@ -176,11 +176,11 @@ namespace CasaEngine.Graphics2D.Tile
             Vector2 scale = Vector2.One;
             Vector2 vecDummy;
 
-            for (int x = visibleTiles.Left; x < visibleTiles.Right; x++)
+            for (int x = _visibleTiles.Left; x < _visibleTiles.Right; x++)
             {
-                for (int y = visibleTiles.Top; y < visibleTiles.Bottom; y++)
+                for (int y = _visibleTiles.Top; y < _visibleTiles.Bottom; y++)
                 {
-                    if (grid[x][y] != 0)
+                    if (_grid[x][y] != 0)
                     {
                         //Get the tile's position from the grid
                         //in this section we're using reference methods
@@ -204,7 +204,7 @@ namespace CasaEngine.Graphics2D.Tile
 
                         //get the tile's final size (note that scaling is done after 
                         //determining the position)
-                        Vector2.Multiply(ref scaleValue, CameraZoom, out scale);
+                        Vector2.Multiply(ref _scaleValue, CameraZoom, out scale);
 
                         //get the source rectangle that defines the tile
                         //sheet.GetRectangle(ref grid[x][y],out sourceRect);

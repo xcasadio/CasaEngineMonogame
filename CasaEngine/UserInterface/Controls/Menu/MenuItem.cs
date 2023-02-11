@@ -20,10 +20,10 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Default values.
-        private bool enabled = true;
+        private bool _enabled = true;
 
         // Children Items.
-        private List<MenuItem> items = new List<MenuItem>();
+        private List<MenuItem> _items = new List<MenuItem>();
 
 
 
@@ -37,14 +37,14 @@ namespace XNAFinalEngine.UserInterface
 
         public bool Enabled
         {
-            get => enabled;
-            set => enabled = value;
+            get => _enabled;
+            set => _enabled = value;
         }
 
         public List<MenuItem> Items
         {
-            get => items;
-            set => items = value;
+            get => _items;
+            set => _items = value;
         }
 
 

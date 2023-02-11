@@ -16,9 +16,9 @@ namespace CasaEngine.Asset.Cursors
 
 
 
-        public Cursor(GraphicsDevice graphicsDevice_, string filename)
+        public Cursor(GraphicsDevice graphicsDevice, string filename)
         {
-            GraphicsDevice = graphicsDevice_;
+            GraphicsDevice = graphicsDevice;
             Name = Path.GetFileName(filename);
             Filename = filename;
             if (File.Exists(Filename) == false)
@@ -41,7 +41,7 @@ namespace CasaEngine.Asset.Cursors
 
 
 
-        internal override void OnDeviceReset(GraphicsDevice device_)
+        internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (Resource == null)
                 Resource = Engine.Instance.AssetContentManager.Load<System.Windows.Forms.Cursor>(Filename, GraphicsDevice);
@@ -49,12 +49,12 @@ namespace CasaEngine.Asset.Cursors
 
 
 
-        public override void Load(BinaryReader br_, SaveOption option_)
+        public override void Load(BinaryReader br, SaveOption option)
         {
 
         }
 
-        public override void Load(XmlElement el_, SaveOption option_)
+        public override void Load(XmlElement el, SaveOption option)
         {
 
         }

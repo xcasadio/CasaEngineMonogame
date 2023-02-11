@@ -18,7 +18,7 @@ namespace CasaEngine.AI.Messaging
 
         Hit,
 
-        IHitSomeone,
+        HitSomeone,
 
     }
 }

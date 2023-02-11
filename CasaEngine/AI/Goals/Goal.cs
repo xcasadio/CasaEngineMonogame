@@ -8,15 +8,15 @@ namespace CasaEngine.AI.Goals
     public abstract class Goal<T> : IMessageable where T : BaseEntity
     {
 
-        protected internal T owner;
+        protected internal T Owner;
 
-        protected internal GoalProcessingState status;
+        protected internal GoalProcessingState Status;
 
 
 
         public Goal(T owner)
         {
-            this.owner = owner;
+            this.Owner = owner;
             this.status = GoalProcessingState.Inactive;
         }
 

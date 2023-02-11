@@ -22,17 +22,17 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             //Test to see if there´s a crossover or not
             if (base.Crossover(parents) != null)
             {
-                list.Add((Chromosome<int>)parents[generator.Next(0, 1)].Clone());
+                list.Add((Chromosome<int>)parents[Generator.Next(0, 1)].Clone());
 
                 return list;
             }
 
             //Generate 2 crossover points to cross the parents
-            first = generator.Next(0, parents[0].Genotype.Count - 1);
-            second = generator.Next(0, parents[0].Genotype.Count - 1);
+            first = Generator.Next(0, parents[0].Genotype.Count - 1);
+            second = Generator.Next(0, parents[0].Genotype.Count - 1);
 
             while (second == first)
-                second = generator.Next(0, parents[0].Genotype.Count - 1);
+                second = Generator.Next(0, parents[0].Genotype.Count - 1);
 
             // Order the indexes
             if (first > second)
@@ -42,14 +42,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
                 second = temp;
             }
 
-            chromosome = PMX(parents[0], parents[1], first, second);
+            chromosome = Pmx(parents[0], parents[1], first, second);
 
             list.Add(chromosome);
 
             return list;
         }
 
-        private Chromosome<int> PMX(Chromosome<int> firstParent, Chromosome<int> secondParent, int first, int second)
+        private Chromosome<int> Pmx(Chromosome<int> firstParent, Chromosome<int> secondParent, int first, int second)
         {
             List<int> selectedGenes, combinableGenes;
             Chromosome<int> chromosome;

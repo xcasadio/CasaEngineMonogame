@@ -33,18 +33,18 @@ namespace XNAFinalEngine.Helpers
 
 
         // The task.
-        private readonly Action<T> task;
+        private readonly Action<T> _task;
 
         // This are the synchronization elements.
-        private readonly ManualResetEvent[] taskDone, waitForWork;
+        private readonly ManualResetEvent[] _taskDone, _waitForWork;
 
         // The threads.
-        private readonly List<Thread> threads;
+        private readonly List<Thread> _threads;
 
         // Task parameters.
-        private readonly T[] parameters;
+        private readonly T[] _parameters;
 
-        private readonly int[] processorAffinity;
+        private readonly int[] _processorAffinity;
 
 
 
@@ -52,21 +52,21 @@ namespace XNAFinalEngine.Helpers
         {
             if (numberOfThreads <= 0)
                 throw new ArgumentOutOfRangeException("numberOfThreads");
-            this.task = task;
-            taskDone = new ManualResetEvent[numberOfThreads];
-            waitForWork = new ManualResetEvent[numberOfThreads];
-            parameters = new T[numberOfThreads];
-            threads = new List<Thread>(numberOfThreads);
+            this._task = task;
+            _taskDone = new ManualResetEvent[numberOfThreads];
+            _waitForWork = new ManualResetEvent[numberOfThreads];
+            _parameters = new T[numberOfThreads];
+            _threads = new List<Thread>(numberOfThreads);
             if (processorAffinity != null)
-                this.processorAffinity = processorAffinity;
+                this._processorAffinity = processorAffinity;
             else
-                this.processorAffinity = ProcessorsInformation.ProcessorsAffinity;
+                this._processorAffinity = ProcessorsInformation.ProcessorsAffinity;
             for (int i = 0; i < numberOfThreads; i++)
             {
-                taskDone[i] = new ManualResetEvent(false);
-                waitForWork[i] = new ManualResetEvent(false);
-                threads.Add(new Thread(TaskManager));
-                threads[i].Start(i);
+                _taskDone[i] = new ManualResetEvent(false);
+                _waitForWork[i] = new ManualResetEvent(false);
+                _threads.Add(new Thread(TaskManager));
+                _threads[i].Start(i);
             }
         } // MultiThreadingTask
 
@@ -84,10 +84,10 @@ namespace XNAFinalEngine.Helpers
 
             while (true)
             {
-                waitForWork[index].WaitOne(); // Wait until a task is added.
-                waitForWork[index].Reset();
-                task.Invoke(parameters[index]);
-                taskDone[index].Set(); // Indicates that that task was performed.
+                _waitForWork[index].WaitOne(); // Wait until a task is added.
+                _waitForWork[index].Reset();
+                _task.Invoke(_parameters[index]);
+                _taskDone[index].Set(); // Indicates that that task was performed.
             }
         } // TaskManager
 
@@ -95,25 +95,25 @@ namespace XNAFinalEngine.Helpers
 
         public void Start(int taskNumber, T parameter)
         {
-            parameters[taskNumber] = parameter;
-            waitForWork[taskNumber].Set();
+            _parameters[taskNumber] = parameter;
+            _waitForWork[taskNumber].Set();
         } // Start
 
 
 
         public void WaitForTaskCompletition()
         {
-            for (int i = 0; i < threads.Count; i++)
+            for (int i = 0; i < _threads.Count; i++)
             {
-                taskDone[i].WaitOne();
-                taskDone[i].Reset();
+                _taskDone[i].WaitOne();
+                _taskDone[i].Reset();
             }
         } // WaitForTaskCompletition
 
         public void WaitForTaskCompletition(int taskNumber)
         {
-            taskDone[taskNumber].WaitOne();
-            taskDone[taskNumber].Reset();
+            _taskDone[taskNumber].WaitOne();
+            _taskDone[taskNumber].Reset();
         } // WaitForTaskCompletition
 
 

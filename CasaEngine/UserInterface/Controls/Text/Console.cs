@@ -123,77 +123,77 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        private readonly TextBox textMain;
-        private readonly ComboBox cmbMain;
-        private readonly ScrollBar sbVert;
-        private EventedList<ConsoleMessage> buffer = new EventedList<ConsoleMessage>();
-        private ChannelList channels = new ChannelList();
-        private List<byte> filter = new List<byte>();
-        private ConsoleMessageFormats messageFormat = ConsoleMessageFormats.None;
-        private bool channelsVisible = true;
-        private bool textBoxVisible = true;
+        private readonly TextBox _textMain;
+        private readonly ComboBox _cmbMain;
+        private readonly ScrollBar _sbVert;
+        private EventedList<ConsoleMessage> _buffer = new EventedList<ConsoleMessage>();
+        private ChannelList _channels = new ChannelList();
+        private List<byte> _filter = new List<byte>();
+        private ConsoleMessageFormats _messageFormat = ConsoleMessageFormats.None;
+        private bool _channelsVisible = true;
+        private bool _textBoxVisible = true;
 
 
 
         public virtual EventedList<ConsoleMessage> MessageBuffer
         {
-            get => buffer;
+            get => _buffer;
             set
             {
-                buffer.ItemAdded -= Buffer_ItemAdded;
-                buffer = value;
-                buffer.ItemAdded += Buffer_ItemAdded;
+                _buffer.ItemAdded -= Buffer_ItemAdded;
+                _buffer = value;
+                _buffer.ItemAdded += Buffer_ItemAdded;
             }
         } // MessageBuffer
 
         public virtual ChannelList Channels
         {
-            get => channels;
+            get => _channels;
             set
             {
-                channels.ItemAdded -= Channels_ItemAdded;
-                channels = value;
-                channels.ItemAdded += Channels_ItemAdded;
+                _channels.ItemAdded -= Channels_ItemAdded;
+                _channels = value;
+                _channels.ItemAdded += Channels_ItemAdded;
                 Channels_ItemAdded(null, null);
             }
         } // Channels
 
         public virtual List<byte> ChannelFilter
         {
-            get => filter;
-            set => filter = value;
+            get => _filter;
+            set => _filter = value;
         } // ChannelFilter
 
         public virtual byte SelectedChannel
         {
-            set => cmbMain.Text = channels[value].Name;
-            get => channels[cmbMain.Text].Index;
+            set => _cmbMain.Text = _channels[value].Name;
+            get => _channels[_cmbMain.Text].Index;
         } // SelectedChannel
 
         public virtual ConsoleMessageFormats MessageFormat
         {
-            get => messageFormat;
-            set => messageFormat = value;
+            get => _messageFormat;
+            set => _messageFormat = value;
         } // MessageFormat
 
         public virtual bool ChannelsVisible
         {
-            get => channelsVisible;
+            get => _channelsVisible;
             set
             {
-                cmbMain.Visible = channelsVisible = value;
-                if (value && !textBoxVisible) TextBoxVisible = false;
+                _cmbMain.Visible = _channelsVisible = value;
+                if (value && !_textBoxVisible) TextBoxVisible = false;
                 PositionControls();
             }
         } // ChannelsVisible
 
         public virtual bool TextBoxVisible
         {
-            get => textBoxVisible;
+            get => _textBoxVisible;
             set
             {
-                textMain.Visible = textBoxVisible = value;
-                if (!value && channelsVisible) ChannelsVisible = false;
+                _textMain.Visible = _textBoxVisible = value;
+                if (!value && _channelsVisible) ChannelsVisible = false;
                 PositionControls();
             }
         } // TextBoxVisible
@@ -204,8 +204,8 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Console(UserInterfaceManager userInterfaceManager_)
-            : base(userInterfaceManager_)
+        public Console(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
         {
             Width = 320;
             Height = 160;
@@ -216,31 +216,31 @@ namespace XNAFinalEngine.UserInterface
             Resizable = false;
             Movable = false;
 
-            cmbMain = new ComboBox(UserInterfaceManager)
+            _cmbMain = new ComboBox(UserInterfaceManager)
             {
                 Left = 0,
                 Width = 128,
                 Anchor = Anchors.Left | Anchors.Bottom,
                 Detached = false,
                 DrawSelection = false,
-                Visible = channelsVisible
+                Visible = _channelsVisible
             };
-            cmbMain.Top = Height - cmbMain.Height;
-            Add(cmbMain, false);
+            _cmbMain.Top = Height - _cmbMain.Height;
+            Add(_cmbMain, false);
 
-            textMain = new TextBox(UserInterfaceManager)
+            _textMain = new TextBox(UserInterfaceManager)
             {
-                Left = cmbMain.Width + 1,
+                Left = _cmbMain.Width + 1,
                 Anchor = Anchors.Left | Anchors.Bottom | Anchors.Right,
                 Detached = false,
-                Visible = textBoxVisible
+                Visible = _textBoxVisible
             };
-            textMain.Top = Height - textMain.Height;
-            textMain.KeyDown += TextMain_KeyDown;
-            textMain.FocusGained += TextMain_FocusGained;
-            Add(textMain, false);
+            _textMain.Top = Height - _textMain.Height;
+            _textMain.KeyDown += TextMain_KeyDown;
+            _textMain.FocusGained += TextMain_FocusGained;
+            Add(_textMain, false);
 
-            sbVert = new ScrollBar(UserInterfaceManager, Orientation.Vertical)
+            _sbVert = new ScrollBar(UserInterfaceManager, Orientation.Vertical)
             {
                 Top = 2,
                 Left = Width - 18,
@@ -249,14 +249,14 @@ namespace XNAFinalEngine.UserInterface
                 PageSize = 1,
                 Value = 0
             };
-            sbVert.ValueChanged += ScrollBarVertical_ValueChanged;
-            Add(sbVert, false);
+            _sbVert.ValueChanged += ScrollBarVertical_ValueChanged;
+            Add(_sbVert, false);
 
             ClientArea.Draw += ClientArea_Draw;
 
-            buffer.ItemAdded += Buffer_ItemAdded;
-            channels.ItemAdded += Channels_ItemAdded;
-            channels.ItemRemoved += Channels_ItemRemoved;
+            _buffer.ItemAdded += Buffer_ItemAdded;
+            _channels.ItemAdded += Channels_ItemAdded;
+            _channels.ItemRemoved += Channels_ItemRemoved;
 
             PositionControls();
         } // Console
@@ -287,11 +287,11 @@ namespace XNAFinalEngine.UserInterface
             Rectangle r = new Rectangle(e.Rectangle.Left, e.Rectangle.Top, e.Rectangle.Width, e.Rectangle.Height);
             int pos = 0;
 
-            if (buffer.Count > 0)
+            if (_buffer.Count > 0)
             {
-                EventedList<ConsoleMessage> b = GetFilteredBuffer(filter);
-                int s = (sbVert.Value + sbVert.PageSize);
-                int f = s - sbVert.PageSize;
+                EventedList<ConsoleMessage> b = GetFilteredBuffer(_filter);
+                int s = (_sbVert.Value + _sbVert.PageSize);
+                int f = s - _sbVert.PageSize;
 
                 if (b.Count > 0)
                 {
@@ -302,13 +302,13 @@ namespace XNAFinalEngine.UserInterface
 
                             string msg = b[i].Text;
                             string pre = "";
-                            ConsoleChannel ch = channels[b[i].Channel];
+                            ConsoleChannel ch = _channels[b[i].Channel];
 
-                            if ((messageFormat & ConsoleMessageFormats.ChannelName) == ConsoleMessageFormats.ChannelName)
+                            if ((_messageFormat & ConsoleMessageFormats.ChannelName) == ConsoleMessageFormats.ChannelName)
                             {
-                                pre += string.Format("[{0}]", channels[b[i].Channel].Name);
+                                pre += string.Format("[{0}]", _channels[b[i].Channel].Name);
                             }
-                            if ((messageFormat & ConsoleMessageFormats.TimeStamp) == ConsoleMessageFormats.TimeStamp)
+                            if ((_messageFormat & ConsoleMessageFormats.TimeStamp) == ConsoleMessageFormats.TimeStamp)
                             {
                                 pre = string.Format("[{0}]", b[i].Time.ToLongTimeString()) + pre;
                             }
@@ -325,7 +325,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            int h = textMain.Visible ? (textMain.Height + 1) : 0;
+            int h = _textMain.Visible ? (_textMain.Height + 1) : 0;
             Rectangle r = new Rectangle(rect.Left, rect.Top, rect.Width, rect.Height - h);
             base.DrawControl(r);
         } // DrawControl
@@ -334,20 +334,20 @@ namespace XNAFinalEngine.UserInterface
 
         private void PositionControls()
         {
-            if (textMain != null)
+            if (_textMain != null)
             {
-                textMain.Left = channelsVisible ? cmbMain.Width + 1 : 0;
-                textMain.Width = channelsVisible ? Width - cmbMain.Width - 1 : Width;
+                _textMain.Left = _channelsVisible ? _cmbMain.Width + 1 : 0;
+                _textMain.Width = _channelsVisible ? Width - _cmbMain.Width - 1 : Width;
 
-                if (textBoxVisible)
+                if (_textBoxVisible)
                 {
-                    ClientMargins = new Margins(SkinInformation.ClientMargins.Left, SkinInformation.ClientMargins.Top + 4, sbVert.Width + 6, textMain.Height + 4);
-                    sbVert.Height = Height - textMain.Height - 5;
+                    ClientMargins = new Margins(SkinInformation.ClientMargins.Left, SkinInformation.ClientMargins.Top + 4, _sbVert.Width + 6, _textMain.Height + 4);
+                    _sbVert.Height = Height - _textMain.Height - 5;
                 }
                 else
                 {
-                    ClientMargins = new Margins(SkinInformation.ClientMargins.Left, SkinInformation.ClientMargins.Top + 4, sbVert.Width + 6, 2);
-                    sbVert.Height = Height - 4;
+                    ClientMargins = new Margins(SkinInformation.ClientMargins.Left, SkinInformation.ClientMargins.Top + 4, _sbVert.Width + 6, 2);
+                    _sbVert.Height = Height - 4;
                 }
                 Invalidate();
             }
@@ -357,8 +357,8 @@ namespace XNAFinalEngine.UserInterface
 
         private void TextMain_FocusGained(object sender, EventArgs e)
         {
-            ConsoleChannel ch = channels[cmbMain.Text];
-            if (ch != null) textMain.TextColor = ch.Color;
+            ConsoleChannel ch = _channels[_cmbMain.Text];
+            if (ch != null) _textMain.TextColor = ch.Color;
         } // TextMain_FocusGained
 
         private void TextMain_KeyDown(object sender, KeyEventArgs e)
@@ -372,12 +372,12 @@ namespace XNAFinalEngine.UserInterface
 
             if (x is KeyEventArgs) k = x as KeyEventArgs;
 
-            ConsoleChannel ch = channels[cmbMain.Text];
+            ConsoleChannel ch = _channels[_cmbMain.Text];
             if (ch != null)
             {
-                textMain.TextColor = ch.Color;
+                _textMain.TextColor = ch.Color;
 
-                string message = textMain.Text;
+                string message = _textMain.Text;
                 if ((k.Key == Microsoft.Xna.Framework.Input.Keys.Enter) && !string.IsNullOrEmpty(message))
                 {
                     x.Handled = true;
@@ -385,9 +385,9 @@ namespace XNAFinalEngine.UserInterface
                     ConsoleMessageEventArgs me = new ConsoleMessageEventArgs(new ConsoleMessage(message, ch.Index));
                     OnMessageSent(me);
 
-                    buffer.Add(new ConsoleMessage(me.Message.Text, me.Message.Channel));
+                    _buffer.Add(new ConsoleMessage(me.Message.Text, me.Message.Channel));
 
-                    textMain.Text = "";
+                    _textMain.Text = "";
                     ClientArea.Invalidate();
 
                     CalcScrolling();
@@ -402,19 +402,19 @@ namespace XNAFinalEngine.UserInterface
 
         private void Channels_ItemAdded(object sender, EventArgs e)
         {
-            cmbMain.Items.Clear();
-            foreach (ConsoleChannel t in channels)
+            _cmbMain.Items.Clear();
+            foreach (ConsoleChannel t in _channels)
             {
-                cmbMain.Items.Add(t.Name);
+                _cmbMain.Items.Add(t.Name);
             }
         } // Channels_ItemAdded
 
         private void Channels_ItemRemoved(object sender, EventArgs e)
         {
-            cmbMain.Items.Clear();
-            foreach (ConsoleChannel t in channels)
+            _cmbMain.Items.Clear();
+            foreach (ConsoleChannel t in _channels)
             {
-                cmbMain.Items.Add(t.Name);
+                _cmbMain.Items.Add(t.Name);
             }
         } // Channels_ItemRemoved
 
@@ -426,15 +426,15 @@ namespace XNAFinalEngine.UserInterface
 
         private void CalcScrolling()
         {
-            if (sbVert != null)
+            if (_sbVert != null)
             {
                 int line = SkinInformation.Layers[0].Text.Font.Font.LineSpacing;
-                int c = GetFilteredBuffer(filter).Count;
+                int c = GetFilteredBuffer(_filter).Count;
                 int p = (int)Math.Ceiling(ClientArea.ClientHeight / (float)line);
 
-                sbVert.Range = c == 0 ? 1 : c;
-                sbVert.PageSize = c == 0 ? 1 : p;
-                sbVert.Value = sbVert.Range;
+                _sbVert.Range = c == 0 ? 1 : c;
+                _sbVert.PageSize = c == 0 ? 1 : p;
+                _sbVert.Value = _sbVert.Range;
             }
         } // CalcScrolling
 
@@ -449,22 +449,22 @@ namespace XNAFinalEngine.UserInterface
             base.OnResize(e);
         } // OnResize
 
-        private EventedList<ConsoleMessage> GetFilteredBuffer(List<byte> _filter)
+        private EventedList<ConsoleMessage> GetFilteredBuffer(List<byte> filter)
         {
             EventedList<ConsoleMessage> ret = new EventedList<ConsoleMessage>();
 
-            if (_filter.Count > 0)
+            if (filter.Count > 0)
             {
-                for (int i = 0; i < buffer.Count; i++)
+                for (int i = 0; i < _buffer.Count; i++)
                 {
-                    if (_filter.Contains(buffer[i].Channel))
+                    if (filter.Contains(_buffer[i].Channel))
                     {
-                        ret.Add(buffer[i]);
+                        ret.Add(_buffer[i]);
                     }
                 }
                 return ret;
             }
-            return buffer;
+            return _buffer;
         } // GetFilteredBuffer
 
 

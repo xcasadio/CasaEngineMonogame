@@ -2,7 +2,7 @@
 {
     public class LayerManager
     {
-        readonly List<Layer> m_LayerList = new List<Layer>();
+        readonly List<Layer> _layerList = new List<Layer>();
 
 
 
@@ -10,19 +10,19 @@
 
 
 
-        public void AddLayer(Layer l_)
+        public void AddLayer(Layer l)
         {
-            m_LayerList.Add(l_);
+            _layerList.Add(l);
         }
 
-        public void AddLayer(int index_, Layer l_)
+        public void AddLayer(int index, Layer l)
         {
-            m_LayerList.Insert(index_, l_);
+            _layerList.Insert(index, l);
         }
 
         public void Update()
         {
-            foreach (Layer l in m_LayerList.ToArray())
+            foreach (Layer l in _layerList.ToArray())
             {
                 l.Update();
             }

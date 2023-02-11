@@ -3,9 +3,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
     public abstract class CrossoverAlgorithm<T>
     {
 
-        protected internal double probability;
+        protected internal double Probability;
 
-        protected internal Random generator;
+        protected internal Random Generator;
 
 
 
@@ -15,20 +15,20 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //Validate values
             if (ValidateProbability(probability, ref message) == false)
-                throw new AIException("probality", this.GetType().ToString(), message);
+                throw new AiException("probality", this.GetType().ToString(), message);
 
             if (ValidateGenerator(generator, ref message) == false)
-                throw new AIException("generator", this.GetType().ToString(), message);
+                throw new AiException("generator", this.GetType().ToString(), message);
 
-            this.probability = probability;
-            this.generator = generator;
+            this.Probability = probability;
+            this.Generator = generator;
         }
 
 
 
         public virtual List<Chromosome<T>> Crossover(List<Chromosome<T>> parents)
         {
-            if (generator.NextDouble() > probability)
+            if (Generator.NextDouble() > Probability)
                 return parents;
 
             return null;
