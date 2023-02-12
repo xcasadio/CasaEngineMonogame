@@ -60,10 +60,6 @@ namespace Editor
         private Sprite2DEditorForm m_Sprite2DEditorForm = null;
         private Animation2DEditorForm m_Animation2DEditorForm = null;
 
-
-
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -83,14 +79,11 @@ namespace Editor
             m_LogForm = new LogForm();
             m_LogForm.Show(dockPanel1, DockState.DockBottom);
 
-
-
             //ExternalTool.SaveProject = saveToolStripMenuItem_Click;
 
             //AnimationListEventForm.AddEventWindowFactory("PlaySound", new SoundEventWindowFactory());
 
             //SourceControlManager.Instance.Initialize(new P4SourceControl());
-
 
             m_MruManager = new MruManager();
             m_MruManager.Initialize(
@@ -128,9 +121,6 @@ namespace Editor
             }
 #endif
         }
-
-
-
 
         /// <summary>
         /// 
@@ -173,8 +163,7 @@ namespace Editor
             OpenFileDialog form = new OpenFileDialog();
 
             form.Title = "Open Project";
-            form.Filter = "Project Files (*.xml)|*.xml|" +
-                               "All Files (*.*)|*.*";
+            form.Filter = "Project Files (*.xml)|*.xml|All Files (*.*)|*.*";
 
             if (form.ShowDialog(this) == DialogResult.OK)
             {
@@ -371,7 +360,6 @@ namespace Editor
             }
         }
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -410,9 +398,6 @@ namespace Editor
             normalToolStripMenuItem.Checked = false;
             LogManager.Instance.Verbosity = LogManager.LogVerbosity.None;
         }
-
-
-
 
         /// <summary>
         /// 
@@ -581,8 +566,6 @@ namespace Editor
             }
         }
 
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -659,7 +642,6 @@ namespace Editor
             m_SubMainForm.Focus();
             m_SubMainForm.TopMost = false;
         }
-
 
         /// <summary>
         /// 
@@ -863,8 +845,6 @@ namespace Editor
             return string.Empty;
         }
 
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -875,9 +855,6 @@ namespace Editor
             ClearProject();
             Dispose(true);
         }
-
-
-
 
         /// <summary>
         /// 
@@ -966,7 +943,6 @@ namespace Editor
                 m_Animation2DEditorForm.SetCurrentAnimation2D(objectPath_, anim2D);
             }
         }*/
-
 
     }
 }

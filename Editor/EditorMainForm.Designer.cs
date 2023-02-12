@@ -94,6 +94,7 @@
             // 
             // imageListWorkspace
             // 
+            this.imageListWorkspace.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
             this.imageListWorkspace.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListWorkspace.ImageStream")));
             this.imageListWorkspace.TransparentColor = System.Drawing.Color.Transparent;
             this.imageListWorkspace.Images.SetKeyName(0, "p4v_folderlocal.png");
@@ -134,6 +135,7 @@
             this.splitContainerMain.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainerMain.IsSplitterFixed = true;
             this.splitContainerMain.Location = new System.Drawing.Point(0, 24);
+            this.splitContainerMain.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.splitContainerMain.Name = "splitContainerMain";
             // 
             // splitContainerMain.Panel1
@@ -146,18 +148,19 @@
             // splitContainerMain.Panel2
             // 
             this.splitContainerMain.Panel2.Controls.Add(this.tabControlMain);
-            this.splitContainerMain.Size = new System.Drawing.Size(593, 435);
+            this.splitContainerMain.Size = new System.Drawing.Size(891, 595);
             this.splitContainerMain.SplitterDistance = 216;
+            this.splitContainerMain.SplitterWidth = 5;
             this.splitContainerMain.TabIndex = 7;
             // 
             // buttonGameDocumentation
             // 
             this.buttonGameDocumentation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.buttonGameDocumentation.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            //this.buttonGameDocumentation.Image = global::Editor.Properties.Resources.chm_icon;
-            this.buttonGameDocumentation.Location = new System.Drawing.Point(12, 405);
+            this.buttonGameDocumentation.Location = new System.Drawing.Point(14, 560);
+            this.buttonGameDocumentation.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonGameDocumentation.Name = "buttonGameDocumentation";
-            this.buttonGameDocumentation.Size = new System.Drawing.Size(23, 23);
+            this.buttonGameDocumentation.Size = new System.Drawing.Size(27, 27);
             this.buttonGameDocumentation.TabIndex = 6;
             this.buttonGameDocumentation.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
             this.buttonGameDocumentation.UseVisualStyleBackColor = true;
@@ -171,18 +174,21 @@
             this.groupBox1.Controls.Add(this.buttonParticleEditor);
             this.groupBox1.Controls.Add(this.buttonProjectConfig);
             this.groupBox1.Controls.Add(this.buttonSprite2DEditor);
-            this.groupBox1.Location = new System.Drawing.Point(3, 3);
+            this.groupBox1.Location = new System.Drawing.Point(4, 3);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(204, 205);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.groupBox1.Size = new System.Drawing.Size(202, 237);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Internals Tools";
             // 
             // buttonMapEditor
             // 
-            this.buttonMapEditor.Location = new System.Drawing.Point(6, 173);
+            this.buttonMapEditor.Location = new System.Drawing.Point(7, 200);
+            this.buttonMapEditor.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonMapEditor.Name = "buttonMapEditor";
-            this.buttonMapEditor.Size = new System.Drawing.Size(192, 23);
+            this.buttonMapEditor.Size = new System.Drawing.Size(187, 27);
             this.buttonMapEditor.TabIndex = 5;
             this.buttonMapEditor.Text = "Map Editor";
             this.buttonMapEditor.UseVisualStyleBackColor = true;
@@ -190,9 +196,10 @@
             // 
             // buttonSoundEditor
             // 
-            this.buttonSoundEditor.Location = new System.Drawing.Point(6, 86);
+            this.buttonSoundEditor.Location = new System.Drawing.Point(7, 99);
+            this.buttonSoundEditor.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonSoundEditor.Name = "buttonSoundEditor";
-            this.buttonSoundEditor.Size = new System.Drawing.Size(192, 23);
+            this.buttonSoundEditor.Size = new System.Drawing.Size(187, 27);
             this.buttonSoundEditor.TabIndex = 4;
             this.buttonSoundEditor.Text = "Sound Editor";
             this.buttonSoundEditor.UseVisualStyleBackColor = true;
@@ -200,9 +207,10 @@
             // 
             // buttonScreenEditor
             // 
-            this.buttonScreenEditor.Location = new System.Drawing.Point(6, 144);
+            this.buttonScreenEditor.Location = new System.Drawing.Point(7, 166);
+            this.buttonScreenEditor.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonScreenEditor.Name = "buttonScreenEditor";
-            this.buttonScreenEditor.Size = new System.Drawing.Size(192, 23);
+            this.buttonScreenEditor.Size = new System.Drawing.Size(187, 27);
             this.buttonScreenEditor.TabIndex = 3;
             this.buttonScreenEditor.Text = "Screen Editor";
             this.buttonScreenEditor.UseVisualStyleBackColor = true;
@@ -210,18 +218,20 @@
             // 
             // buttonParticleEditor
             // 
-            this.buttonParticleEditor.Location = new System.Drawing.Point(6, 115);
+            this.buttonParticleEditor.Location = new System.Drawing.Point(7, 133);
+            this.buttonParticleEditor.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonParticleEditor.Name = "buttonParticleEditor";
-            this.buttonParticleEditor.Size = new System.Drawing.Size(192, 23);
+            this.buttonParticleEditor.Size = new System.Drawing.Size(187, 27);
             this.buttonParticleEditor.TabIndex = 2;
             this.buttonParticleEditor.Text = "Particle Editor";
             this.buttonParticleEditor.UseVisualStyleBackColor = true;
             // 
             // buttonProjectConfig
             // 
-            this.buttonProjectConfig.Location = new System.Drawing.Point(6, 19);
+            this.buttonProjectConfig.Location = new System.Drawing.Point(7, 22);
+            this.buttonProjectConfig.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonProjectConfig.Name = "buttonProjectConfig";
-            this.buttonProjectConfig.Size = new System.Drawing.Size(192, 23);
+            this.buttonProjectConfig.Size = new System.Drawing.Size(187, 27);
             this.buttonProjectConfig.TabIndex = 1;
             this.buttonProjectConfig.Text = "Project Config";
             this.buttonProjectConfig.UseVisualStyleBackColor = true;
@@ -229,9 +239,10 @@
             // 
             // buttonSprite2DEditor
             // 
-            this.buttonSprite2DEditor.Location = new System.Drawing.Point(6, 57);
+            this.buttonSprite2DEditor.Location = new System.Drawing.Point(7, 66);
+            this.buttonSprite2DEditor.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonSprite2DEditor.Name = "buttonSprite2DEditor";
-            this.buttonSprite2DEditor.Size = new System.Drawing.Size(192, 23);
+            this.buttonSprite2DEditor.Size = new System.Drawing.Size(187, 27);
             this.buttonSprite2DEditor.TabIndex = 0;
             this.buttonSprite2DEditor.Text = "Animation / Sprite 2D Editor";
             this.buttonSprite2DEditor.UseVisualStyleBackColor = true;
@@ -242,9 +253,11 @@
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox2.Location = new System.Drawing.Point(3, 214);
+            this.groupBox2.Location = new System.Drawing.Point(4, 247);
+            this.groupBox2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(204, 174);
+            this.groupBox2.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.groupBox2.Size = new System.Drawing.Size(202, 294);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Externals Tools";
@@ -253,9 +266,10 @@
             // 
             this.buttonLaunchGame.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonLaunchGame.Location = new System.Drawing.Point(41, 405);
+            this.buttonLaunchGame.Location = new System.Drawing.Point(48, 560);
+            this.buttonLaunchGame.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonLaunchGame.Name = "buttonLaunchGame";
-            this.buttonLaunchGame.Size = new System.Drawing.Size(166, 23);
+            this.buttonLaunchGame.Size = new System.Drawing.Size(158, 27);
             this.buttonLaunchGame.TabIndex = 2;
             this.buttonLaunchGame.Text = "Launch Game";
             this.buttonLaunchGame.UseVisualStyleBackColor = true;
@@ -266,18 +280,20 @@
             this.tabControlMain.Controls.Add(this.tabPageSourceControl);
             this.tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControlMain.Location = new System.Drawing.Point(0, 0);
+            this.tabControlMain.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
-            this.tabControlMain.Size = new System.Drawing.Size(373, 435);
+            this.tabControlMain.Size = new System.Drawing.Size(670, 595);
             this.tabControlMain.TabIndex = 5;
             // 
             // tabPageSourceControl
             // 
             this.tabPageSourceControl.Controls.Add(this.tabControlSourceControl);
-            this.tabPageSourceControl.Location = new System.Drawing.Point(4, 22);
+            this.tabPageSourceControl.Location = new System.Drawing.Point(4, 24);
+            this.tabPageSourceControl.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabPageSourceControl.Name = "tabPageSourceControl";
-            this.tabPageSourceControl.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSourceControl.Size = new System.Drawing.Size(365, 409);
+            this.tabPageSourceControl.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.tabPageSourceControl.Size = new System.Drawing.Size(662, 567);
             this.tabPageSourceControl.TabIndex = 0;
             this.tabPageSourceControl.Text = "Source Control";
             this.tabPageSourceControl.UseVisualStyleBackColor = true;
@@ -287,10 +303,11 @@
             this.tabControlSourceControl.Controls.Add(this.tabPage1);
             this.tabControlSourceControl.Controls.Add(this.tabPage2);
             this.tabControlSourceControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControlSourceControl.Location = new System.Drawing.Point(3, 3);
+            this.tabControlSourceControl.Location = new System.Drawing.Point(4, 3);
+            this.tabControlSourceControl.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabControlSourceControl.Name = "tabControlSourceControl";
             this.tabControlSourceControl.SelectedIndex = 0;
-            this.tabControlSourceControl.Size = new System.Drawing.Size(359, 403);
+            this.tabControlSourceControl.Size = new System.Drawing.Size(654, 561);
             this.tabControlSourceControl.TabIndex = 4;
             // 
             // tabPage1
@@ -298,10 +315,11 @@
             this.tabPage1.Controls.Add(this.label2);
             this.tabPage1.Controls.Add(this.treeViewFiles);
             this.tabPage1.Controls.Add(this.buttonRefresh);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Location = new System.Drawing.Point(4, 24);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(351, 377);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.tabPage1.Size = new System.Drawing.Size(646, 533);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Workspace";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -310,9 +328,10 @@
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.label2.Location = new System.Drawing.Point(3, 3);
+            this.label2.Location = new System.Drawing.Point(4, 3);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(345, 15);
+            this.label2.Size = new System.Drawing.Size(637, 17);
             this.label2.TabIndex = 2;
             this.label2.Text = "Files";
             this.label2.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -324,18 +343,20 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.treeViewFiles.ImageIndex = 0;
             this.treeViewFiles.ImageList = this.imageListWorkspace;
-            this.treeViewFiles.Location = new System.Drawing.Point(3, 21);
+            this.treeViewFiles.Location = new System.Drawing.Point(4, 24);
+            this.treeViewFiles.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.treeViewFiles.Name = "treeViewFiles";
             this.treeViewFiles.SelectedImageIndex = 0;
-            this.treeViewFiles.Size = new System.Drawing.Size(345, 324);
+            this.treeViewFiles.Size = new System.Drawing.Size(637, 467);
             this.treeViewFiles.TabIndex = 0;
             // 
             // buttonRefresh
             // 
             this.buttonRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRefresh.Location = new System.Drawing.Point(3, 351);
+            this.buttonRefresh.Location = new System.Drawing.Point(4, 499);
+            this.buttonRefresh.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonRefresh.Name = "buttonRefresh";
-            this.buttonRefresh.Size = new System.Drawing.Size(75, 23);
+            this.buttonRefresh.Size = new System.Drawing.Size(88, 27);
             this.buttonRefresh.TabIndex = 3;
             this.buttonRefresh.Text = "Refresh";
             this.buttonRefresh.UseVisualStyleBackColor = true;
@@ -347,10 +368,11 @@
             this.tabPage2.Controls.Add(this.label3);
             this.tabPage2.Controls.Add(this.treeViewChangeList);
             this.tabPage2.Controls.Add(this.buttonSubmit);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Location = new System.Drawing.Point(4, 24);
+            this.tabPage2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(351, 377);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.tabPage2.Size = new System.Drawing.Size(646, 533);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Change List";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -358,9 +380,10 @@
             // buttonRefreshChangeList
             // 
             this.buttonRefreshChangeList.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRefreshChangeList.Location = new System.Drawing.Point(6, 346);
+            this.buttonRefreshChangeList.Location = new System.Drawing.Point(7, 493);
+            this.buttonRefreshChangeList.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonRefreshChangeList.Name = "buttonRefreshChangeList";
-            this.buttonRefreshChangeList.Size = new System.Drawing.Size(75, 23);
+            this.buttonRefreshChangeList.Size = new System.Drawing.Size(88, 27);
             this.buttonRefreshChangeList.TabIndex = 4;
             this.buttonRefreshChangeList.Text = "Refresh";
             this.buttonRefreshChangeList.UseVisualStyleBackColor = true;
@@ -369,9 +392,10 @@
             // 
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.label3.Location = new System.Drawing.Point(3, 3);
+            this.label3.Location = new System.Drawing.Point(4, 3);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(0, 15);
+            this.label3.Size = new System.Drawing.Size(235, 17);
             this.label3.TabIndex = 3;
             this.label3.Text = "Change list";
             this.label3.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -383,22 +407,24 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.treeViewChangeList.ImageIndex = 28;
             this.treeViewChangeList.ImageList = this.imageListWorkspace;
-            this.treeViewChangeList.Location = new System.Drawing.Point(3, 21);
+            this.treeViewChangeList.Location = new System.Drawing.Point(4, 24);
+            this.treeViewChangeList.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.treeViewChangeList.Name = "treeViewChangeList";
             treeNode1.Name = "Nœud0";
             treeNode1.Text = "default";
             this.treeViewChangeList.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode1});
             this.treeViewChangeList.SelectedImageIndex = 0;
-            this.treeViewChangeList.Size = new System.Drawing.Size(0, 319);
+            this.treeViewChangeList.Size = new System.Drawing.Size(235, 461);
             this.treeViewChangeList.TabIndex = 2;
             // 
             // buttonSubmit
             // 
             this.buttonSubmit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSubmit.Location = new System.Drawing.Point(-127, 348);
+            this.buttonSubmit.Location = new System.Drawing.Point(87, 495);
+            this.buttonSubmit.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonSubmit.Name = "buttonSubmit";
-            this.buttonSubmit.Size = new System.Drawing.Size(75, 23);
+            this.buttonSubmit.Size = new System.Drawing.Size(88, 27);
             this.buttonSubmit.TabIndex = 1;
             this.buttonSubmit.Text = "Submit";
             this.buttonSubmit.UseVisualStyleBackColor = true;
@@ -412,7 +438,8 @@
             this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(593, 24);
+            this.menuStrip1.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
+            this.menuStrip1.Size = new System.Drawing.Size(891, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -434,51 +461,51 @@
             // newToolStripMenuItem
             // 
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.newToolStripMenuItem.Text = "New";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // saveAsToolStripMenuItem
             // 
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveAsToolStripMenuItem.Text = "Save as";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(147, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
             // 
             // toolStripMenuItemRecentProject
             // 
             this.toolStripMenuItemRecentProject.Name = "toolStripMenuItemRecentProject";
-            this.toolStripMenuItemRecentProject.Size = new System.Drawing.Size(150, 22);
+            this.toolStripMenuItemRecentProject.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemRecentProject.Text = "Recent Project";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(147, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -493,7 +520,7 @@
             this.toolStripSeparator4,
             this.debugVerbosityToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
             // 
             // windowToolStripMenuItem
@@ -595,14 +622,15 @@
             // 
             // EditorMainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(593, 459);
+            this.ClientSize = new System.Drawing.Size(891, 619);
             this.Controls.Add(this.splitContainerMain);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(509, 471);
+            this.MinimumSize = new System.Drawing.Size(591, 537);
             this.Name = "EditorMainForm";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
