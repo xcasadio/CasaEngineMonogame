@@ -3,9 +3,9 @@ using Microsoft.Xna.Framework;
 using CasaEngineCommon.Extension;
 using System.ComponentModel;
 using System.Xml;
-using CasaEngine.Math.Shape2D;
+using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Design;
-using CasaEngine.Gameplay.Actor.Object;
 
 
 namespace CasaEngine.Assets.Graphics2D
@@ -13,7 +13,7 @@ namespace CasaEngine.Assets.Graphics2D
     public partial class Sprite2D
     {
 
-        static private readonly uint Version = 2;
+        private static readonly uint Version = 2;
         public event PropertyChangedEventHandler PropertyChanged;
 
 
@@ -97,7 +97,7 @@ namespace CasaEngine.Assets.Graphics2D
         {
             if (other is Sprite2D)
             {
-                Sprite2D s = (Sprite2D)other;
+                var s = (Sprite2D)other;
 
                 if (_positionInTexture != s._positionInTexture
                     || _origin != s._origin
@@ -108,7 +108,7 @@ namespace CasaEngine.Assets.Graphics2D
                     return false;
                 }
 
-                for (int i = 0; i < _assetFileNames.Count; i++)
+                for (var i = 0; i < _assetFileNames.Count; i++)
                 {
                     if (_assetFileNames[i].Equals(s._assetFileNames[i]) == false)
                     {
@@ -116,7 +116,7 @@ namespace CasaEngine.Assets.Graphics2D
                     }
                 }
 
-                for (int i = 0; i < _collisions.Count; i++)
+                for (var i = 0; i < _collisions.Count; i++)
                 {
                     if (_collisions[i].CompareTo(s._collisions[i]) == false)
                     {
@@ -160,14 +160,14 @@ namespace CasaEngine.Assets.Graphics2D
 
             base.Save(el, option);
 
-            XmlElement rootNode = el.OwnerDocument.CreateElement("Sprite2D");
+            var rootNode = el.OwnerDocument.CreateElement("Sprite2D");
             el.AppendChild(rootNode);
             el.OwnerDocument.AddAttribute(rootNode, "version", Version.ToString());
 
-            XmlElement assetNode = el.OwnerDocument.CreateElement("AssetFiles");
+            var assetNode = el.OwnerDocument.CreateElement("AssetFiles");
             rootNode.AppendChild(assetNode);
 
-            foreach (string file in _assetFileNames)
+            foreach (var file in _assetFileNames)
             {
                 assetNode.AppendChild(el.OwnerDocument.CreateElementWithText("AssetFileName", file));
             }
@@ -176,10 +176,10 @@ namespace CasaEngine.Assets.Graphics2D
             rootNode.AppendChild(el.OwnerDocument.CreateElement("PositionInTexture", _positionInTexture));
 
             //Collisions
-            XmlElement collNode = el.OwnerDocument.CreateElement("CollisionList");
+            var collNode = el.OwnerDocument.CreateElement("CollisionList");
             rootNode.AppendChild(collNode);
 
-            foreach (Shape2DObject col in _collisions)
+            foreach (var col in _collisions)
             {
                 node = el.OwnerDocument.CreateElement("Shape");
                 col.Save(node, option);
@@ -187,7 +187,7 @@ namespace CasaEngine.Assets.Graphics2D
             }
 
             //Sockets
-            XmlElement socketNode = el.OwnerDocument.CreateElement("SocketList");
+            var socketNode = el.OwnerDocument.CreateElement("SocketList");
             rootNode.AppendChild(socketNode);
 
             foreach (var pair in _sockets)
@@ -207,7 +207,7 @@ namespace CasaEngine.Assets.Graphics2D
 
             bw.Write(_assetFileNames.Count);
             bw.Write(_assetFileNames.Count);
-            foreach (string assetFile in _assetFileNames)
+            foreach (var assetFile in _assetFileNames)
             {
                 bw.Write(assetFile);
             }
@@ -217,7 +217,7 @@ namespace CasaEngine.Assets.Graphics2D
 
             //Collisions
             bw.Write(_collisions.Count);
-            foreach (Shape2DObject col in _collisions)
+            foreach (var col in _collisions)
             {
                 col.Save(bw, option);
             }

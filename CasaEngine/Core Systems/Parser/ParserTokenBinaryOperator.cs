@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenBinaryOperator
         : ParserToken
@@ -18,7 +18,7 @@
 
         public override bool Check(string sentence)
         {
-            int index = sentence.IndexOf(Token);
+            var index = sentence.IndexOf(Token);
 
             if (index != -1)
             {

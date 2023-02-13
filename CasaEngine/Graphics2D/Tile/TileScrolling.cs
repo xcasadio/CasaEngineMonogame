@@ -68,7 +68,7 @@ namespace CasaEngine.Graphics2D.Tile
 
         protected override void DrawTiles(SpriteBatch batch)
         {
-            foreach (Sprite2D s in _displaySprites)
+            foreach (var s in _displaySprites)
             {
                 //SpriteRenderer.Draw(batch, s);
             }

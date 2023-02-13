@@ -1,9 +1,8 @@
-﻿using CasaEngine.Math.Shape2D;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using FarseerPhysics.Dynamics;
 using CasaEngine.AI.Messaging;
-using CasaEngine.Helper;
-using CasaEngine.Gameplay.Actor.Object;
+using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Helpers;
 using CasaEngineCommon.Helper;
 
 namespace CasaEngine.Gameplay.Actor
@@ -71,7 +70,7 @@ namespace CasaEngine.Gameplay.Actor
         {
             base.CopyFrom(ob);
 
-            ProjectilActor src = ob as ProjectilActor;
+            var src = ob as ProjectilActor;
 
             //_Body
             //_Shape2DObjectList
@@ -118,7 +117,7 @@ namespace CasaEngine.Gameplay.Actor
                     break;
 
                 case (int)MessageType.HitSomeone:
-                    HitInfo hitInfo = (HitInfo)message.ExtraInfo;
+                    var hitInfo = (HitInfo)message.ExtraInfo;
                     Remove = true;
                     break;
             }
@@ -137,12 +136,12 @@ namespace CasaEngine.Gameplay.Actor
         {
             base.Draw(elapsedTime);
 
-            if (ShapeRendererComponent.DisplayCollisions == true)
+            if (ShapeRendererComponent.DisplayCollisions)
             {
-                Shape2DObject[] geometry2DObjectList = Shape2DObjectList;
+                var geometry2DObjectList = Shape2DObjectList;
                 if (geometry2DObjectList != null)
                 {
-                    foreach (Shape2DObject g in geometry2DObjectList)
+                    foreach (var g in geometry2DObjectList)
                     {
                         _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
                     }
@@ -152,7 +151,7 @@ namespace CasaEngine.Gameplay.Actor
 
         public void SetTransform(Vector2 position, Vector2 direction)
         {
-            float rot = Vector2Helper.GetAngleBetweenVectors(Vector2.UnitX, direction);
+            var rot = Vector2Helper.GetAngleBetweenVectors(Vector2.UnitX, direction);
             _body.SetTransform(ref position, rot);
         }
 

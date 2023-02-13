@@ -11,9 +11,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
         public override void Mutate(Population<bool> population)
         {
-            for (int i = 0; i < population.Genome.Count; i++)
+            for (var i = 0; i < population.Genome.Count; i++)
             {
-                for (int j = 0; j < population[i].Genotype.Count; j++)
+                for (var j = 0; j < population[i].Genotype.Count; j++)
                 {
                     if (Generator.NextDouble() <= Probability)
                     {

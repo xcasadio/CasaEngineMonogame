@@ -23,7 +23,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
         public EvolutionaryAlgorithm(IEvolutionaryProblem<T> problem, SelectionMethod<T> selection, MutationMethod<T> mutation, ReplacementMethod<T> replacement,
             int numberOffsprings, int numberGenerations)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateMutation(mutation, ref message) == false)
             {
@@ -68,7 +68,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => mutation;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateMutation(value, ref message) == false)
                 {
@@ -84,7 +84,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => replacement;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateReplacement(value, ref message) == false)
                 {
@@ -100,7 +100,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => selection;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateSelection(value, ref message) == false)
                 {
@@ -116,7 +116,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => problem;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateProblem(value, ref message) == false)
                 {
@@ -132,7 +132,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => numberOffsprings;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateOffsprings(value, ref message) == false)
                 {
@@ -148,7 +148,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => numberGenerations;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateGenerations(value, ref message) == false)
                 {
@@ -242,7 +242,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 //Calculate the fitness of the parents and test if a perfect solution was found
                 problem.CalculateFitness(parents);
 
-                if (parents.HasPerfectSolution == true)
+                if (parents.HasPerfectSolution)
                 {
                     return parents[parents.PerfectSolutionIndex];
                 }
@@ -256,7 +256,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 //Calculate their fitness and test if a perfect solution was found
                 problem.CalculateFitness(offsprings);
 
-                if (offsprings.HasPerfectSolution == true)
+                if (offsprings.HasPerfectSolution)
                 {
                     return offsprings[offsprings.PerfectSolutionIndex];
                 }
@@ -302,12 +302,12 @@ namespace CasaEngine.AI.EvolutionaryComputing
             selected = new List<Chromosome<T>>();
             parents = problem.GenerateInitialPopulation();
 
-            for (int i = 0; i < numberGenerations; i++)
+            for (var i = 0; i < numberGenerations; i++)
             {
                 //Calculate the fitness of the parents and test if a perfect solution was found
                 problem.CalculateFitness(parents);
 
-                if (parents.HasPerfectSolution == true)
+                if (parents.HasPerfectSolution)
                 {
                     return parents[parents.PerfectSolutionIndex];
                 }
@@ -321,7 +321,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 //Calculate their fitness and test if a perfect solution was found
                 problem.CalculateFitness(offsprings);
 
-                if (offsprings.HasPerfectSolution == true)
+                if (offsprings.HasPerfectSolution)
                 {
                     return offsprings[offsprings.PerfectSolutionIndex];
                 }

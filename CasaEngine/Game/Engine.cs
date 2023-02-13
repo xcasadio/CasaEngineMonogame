@@ -1,13 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Assets;
+using CasaEngine.Core_Systems.Game;
+using CasaEngine.Front_End.Screen;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Graphics2D;
 using CasaEngine.Gameplay.Actor;
-using CasaEngine.CoreSystems.Game;
-using CasaEngine.FrontEnd.Screen;
 using CasaEngine.Gameplay;
 using CasaEngine.Project;
-using CasaEngine.Asset;
-using XNAFinalEngine.UserInterface;
+using CasaEngine.UserInterface;
 
 #if EDITOR
 using CasaEngine.Editor.Tools;
@@ -18,7 +18,7 @@ namespace CasaEngine.Game
 {
     public class Engine
     {
-        static readonly private Engine MsEngine = new();
+        private static readonly Engine MsEngine = new();
 
         private Microsoft.Xna.Framework.Game _game;
         private readonly Asset2DManager _asset2DManager;
@@ -42,7 +42,7 @@ namespace CasaEngine.Game
 		private List<string> _Warnings = new List<string>();
 		private string[] _Arguments = null;*/
 
-        static public Engine Instance => MsEngine;
+        public static Engine Instance => MsEngine;
 
         internal bool ResetDevice
         {
@@ -140,12 +140,12 @@ namespace CasaEngine.Game
             set;
         }
 
-        public Engine()
+        private Engine()
         {
             _game = null;
-            _asset2DManager = new Asset2DManager();
             _defaultSpriteFont = null;
             _spriteBatch = null;
+            _asset2DManager = new Asset2DManager();
             _projectConfig = new ProjectConfig();
             _objectRegistry = new ObjectRegistry();
             _projectManager = new ProjectManager();
@@ -161,6 +161,5 @@ namespace CasaEngine.Game
             _effect = null;
 #endif
         }
-
     }
 }

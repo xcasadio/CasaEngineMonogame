@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Math.Curves
+namespace CasaEngine.Core_Systems.Curves
 {
     public class Bezier2DCurve
     {
@@ -32,16 +32,16 @@ namespace CasaEngine.Math.Curves
 
             _curvePoints.Clear();
 
-            int nbPoint = (int)(1.0f / (float)_resolution);
+            var nbPoint = (int)(1.0f / (float)_resolution);
 
             //Algo
-            for (int u = 0; u <= nbPoint; u++)
+            for (var u = 0; u <= nbPoint; u++)
             {
                 _curvePoints.Add(Casteljau(_controlPoints, (float)u / (float)nbPoint));
             }
         }
 
-        static public Vector2 Casteljau(List<Vector2> controlPoints, float t)
+        public static Vector2 Casteljau(List<Vector2> controlPoints, float t)
         {
             if (t > 1.0f || t < 0.0f)
             {
@@ -49,7 +49,7 @@ namespace CasaEngine.Math.Curves
             }
 
             //Algo init
-            List<Vector2> pointTemp = new List<Vector2>();
+            var pointTemp = new List<Vector2>();
             int max;
 
             pointTemp.AddRange(controlPoints);
@@ -59,7 +59,7 @@ namespace CasaEngine.Math.Curves
 
             for (max = controlPoints.Count; max > 1; max--)
             {
-                for (int i = 0; i < max - 1; i++)
+                for (var i = 0; i < max - 1; i++)
                 {
                     a = pointTemp[i];
                     b = pointTemp[i + 1];

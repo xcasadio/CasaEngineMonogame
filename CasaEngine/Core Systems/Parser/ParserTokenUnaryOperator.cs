@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenUnaryOperator
         : ParserToken
@@ -18,7 +18,7 @@
 
         public override bool Check(string sentence)
         {
-            if (sentence.StartsWith(Token) == true)
+            if (sentence.StartsWith(Token))
             {
                 Parser.Check(Token.Substring(1));
             }

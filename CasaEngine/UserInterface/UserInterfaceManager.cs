@@ -10,19 +10,20 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-
 #if (!XBOX)
 #endif
+using CasaEngine.Assets.Textures;
+using CasaEngine.UserInterface.Controls.Windows;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using CasaEngine.Asset;
+using Cursor = CasaEngine.Assets.Cursors.Cursor;
+using Screen = CasaEngine.Core_Systems.Screen;
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface
 {
 
     public class UserInterfaceManager
     {
-
 
         /*private sealed class ScripUserInterface : Script
         {
@@ -45,7 +46,6 @@ namespace XNAFinalEngine.UserInterface
         } // ScripUserInterface
         */
 
-
         private struct ControlStates
         {
             public Control[] Buttons;
@@ -53,10 +53,8 @@ namespace XNAFinalEngine.UserInterface
             public Control Over;
         } // ControlStates
 
-
-
 #if (!XBOX)
-        private CasaEngine.Asset.Cursors.Cursor _cursor;
+        private Cursor _cursor;
 
         private Form _window;
 #endif
@@ -77,20 +75,18 @@ namespace XNAFinalEngine.UserInterface
         // Used to generate the resize event.
         private int _oldScreenWidth, _oldScreenHeight;
 
-
-
         public GraphicsDevice GraphicsDevice { get; private set; }
 
 #if (!XBOX)
 
-        public CasaEngine.Asset.Cursors.Cursor Cursor
+        public Cursor Cursor
         {
             get => _cursor;
             set
             {
                 _cursor = value;
 
-                if (_window.InvokeRequired == true)
+                if (_window.InvokeRequired)
                 {
                     _window.Invoke(new Action(() => _window.Cursor = value.Resource));
                 }
@@ -107,13 +103,11 @@ namespace XNAFinalEngine.UserInterface
 
         internal Renderer Renderer { get; private set; }
 
-        internal CasaEngine.CoreSystems.Screen Screen { get; private set; }
-
+        internal Screen Screen { get; private set; }
 
         public bool Visible { get; set; }
 
         public bool InputEnabled { get; set; }
-
 
         public Input InputSystem { get; set; }
 
@@ -153,7 +147,10 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (Visible)
+                {
                     return _focusedControl;
+                }
+
                 return null;
             }
             internal set
@@ -189,13 +186,13 @@ namespace XNAFinalEngine.UserInterface
                     BringToFront(value.Root);
                 }
                 else
+                {
                     _focusedControl = null;
+                }
             }
         } // FocusedControl
 
         //internal AssetContentManager UserInterfaceContentManager { get; private set; }
-
-
 
         internal event EventHandler DeviceReset;
 
@@ -207,17 +204,18 @@ namespace XNAFinalEngine.UserInterface
 
         public event ResizeEventHandler WindowResize;
 
-
-
         public void Initialize(GraphicsDevice graphicsDevice, IntPtr formHandle, Rectangle gameWindowClientBounds)
         {
             if (_initialized)
+            {
                 return;
+            }
+
             try
             {
                 Skin = new Skin();
                 Renderer = new Renderer();
-                Screen = new CasaEngine.CoreSystems.Screen(graphicsDevice);
+                Screen = new Screen(graphicsDevice);
 
                 GraphicsDevice = graphicsDevice;
                 Visible = true;
@@ -259,8 +257,8 @@ namespace XNAFinalEngine.UserInterface
                 /*AssetContentManager userContentManager = AssetContentManager.CurrentContentManager;
                 UserInterfaceContentManager = new AssetContentManager { Name = "User Interface Content Manager", Hidden = true };
                 AssetContentManager.CurrentContentManager = UserInterfaceContentManager;*/
-                XNAFinalEngine.Helpers.Size size = new XNAFinalEngine.Helpers.Size(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, Screen);
-                _renderTarget = new RenderTarget(graphicsDevice, size.FullScreen, SurfaceFormat.Color, false, RenderTarget.AntialiasingType.NoAntialiasing)
+                var size = new Helpers.Size(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, Screen);
+                _renderTarget = new RenderTarget(graphicsDevice, size.FullScreen, SurfaceFormat.Color, false)
                 {
                     Name = "User Interface Render Target",
                 };
@@ -291,56 +289,46 @@ namespace XNAFinalEngine.UserInterface
             {
                 throw new InvalidOperationException("User Interface Manager: Error occurred during initialization. Was the engine started?", e);
             }
-        } // Initialize
+        }
 
-
-
-        private void OnDeviceReset(object sender, System.EventArgs e)
+        private void OnDeviceReset(object? sender, System.EventArgs e)
         {
-            if (DeviceReset != null)
-                DeviceReset.Invoke(sender, new EventArgs());
-        } // OnPrepareGraphicsDevice
+            DeviceReset?.Invoke(sender, new EventArgs());
+        }
 
-
-
-        private void OnScreenSizeChanged(object sender, System.EventArgs e)
+        private void OnScreenSizeChanged(object? sender, System.EventArgs e)
         {
-            if (WindowResize != null)
-                WindowResize.Invoke(null, new ResizeEventArgs(GraphicsDevice.PresentationParameters.BackBufferWidth,
-                                                              GraphicsDevice.PresentationParameters.BackBufferHeight,
-                                                              _oldScreenWidth, _oldScreenHeight));
+            WindowResize?.Invoke(null, new ResizeEventArgs(GraphicsDevice.PresentationParameters.BackBufferWidth,
+                GraphicsDevice.PresentationParameters.BackBufferHeight,
+                _oldScreenWidth, _oldScreenHeight));
             _oldScreenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
             _oldScreenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
-        } // OnScreenSizeChanged
-
-
+        }
 
 #if (WINDOWS)
 
-        private void FormClosing(object sender, FormClosingEventArgs e)
+        private void FormClosing(object? sender, FormClosingEventArgs e)
         {
-            bool ret = false;
+            var ret = false;
 
-            WindowClosingEventArgs ex = new WindowClosingEventArgs();
+            var ex = new WindowClosingEventArgs();
             if (WindowClosing != null)
             {
                 WindowClosing.Invoke(null, ex);
                 ret = ex.Cancel;
             }
             e.Cancel = ret;
-        } // FormClosing
+        }
 
 #endif
-
-
 
         public void DisposeControls()
         {
             try
             {
-                for (int i = 0; i < RootControls.Count; i++)
+                foreach (var control in RootControls)
                 {
-                    RootControls[i].Dispose();
+                    control.Dispose();
                 }
                 RootControls.Clear();
                 OrderList.Clear();
@@ -350,14 +338,11 @@ namespace XNAFinalEngine.UserInterface
             {
                 throw new InvalidOperationException("User Interface Manager: Unable to dispose controls. Was the User Interface Manager started?", e);
             }
-        } // DisposeControls
-
-
+        }
 
         public void SetSkin(string skinName)
         {
-            if (SkinChanging != null)
-                SkinChanging.Invoke(new EventArgs());
+            SkinChanging?.Invoke(new EventArgs());
 
             Skin.LoadSkin(GraphicsDevice, skinName);
 
@@ -369,40 +354,40 @@ namespace XNAFinalEngine.UserInterface
 #endif
 
             // Initializing skins for every control created, even not visible or not added to the manager or another control.
-            foreach (Control control in Control.ControlList)
+            foreach (var control in Control.ControlList)
             {
                 control.InitSkin();
             }
 
-            if (SkinChanged != null)
-                SkinChanged.Invoke(new EventArgs());
+            SkinChanged?.Invoke(new EventArgs());
 
             //  Initializing all controls created, even not visible or not added to the manager or another control.
-            foreach (Control control in Control.ControlList)
+            foreach (var control in Control.ControlList)
             {
                 control.Init();
             }
         } // SetSkin
-
-
 
         internal void BringToFront(Control control)
         {
             if (control != null && !control.StayOnBack)
             {
                 // We search for the control's brothers.
-                ControlsList brotherControls = (control.Parent == null) ? RootControls : control.Parent.ChildrenControls;
+                var brotherControls = (control.Parent == null) ? RootControls : control.Parent.ChildrenControls;
                 if (brotherControls.Contains(control)) // The only case in which is false is when the control was not added to anything.
                 {
                     brotherControls.Remove(control);
                     if (!control.StayOnTop)
                     {
                         // We try to insert the control the higher that we can in the sorted list
-                        int newControlPosition = brotherControls.Count;
-                        for (int i = brotherControls.Count - 1; i >= 0; i--)
+                        var newControlPosition = brotherControls.Count;
+                        for (var i = brotherControls.Count - 1; i >= 0; i--)
                         {
                             if (!brotherControls[i].StayOnTop) // If there is a control that has to be in top then we won't go any further.
+                            {
                                 break;
+                            }
+
                             newControlPosition = i;
                         }
                         brotherControls.Insert(newControlPosition, control);
@@ -419,17 +404,20 @@ namespace XNAFinalEngine.UserInterface
         {
             if (control != null && !control.StayOnTop)
             {
-                ControlsList brotherControls = (control.Parent == null) ? RootControls : control.Parent.ChildrenControls;
+                var brotherControls = (control.Parent == null) ? RootControls : control.Parent.ChildrenControls;
                 if (brotherControls.Contains(control))
                 {
                     brotherControls.Remove(control);
                     if (!control.StayOnBack)
                     {
-                        int newControlPosition = 0;
-                        for (int i = 0; i < brotherControls.Count; i++)
+                        var newControlPosition = 0;
+                        for (var i = 0; i < brotherControls.Count; i++)
                         {
                             if (!brotherControls[i].StayOnBack)
+                            {
                                 break;
+                            }
+
                             newControlPosition = i;
                         }
                         brotherControls.Insert(newControlPosition, control);
@@ -442,12 +430,13 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SendToBack
 
-
-
         public void Update(float elapsedTime)
         {
             if (!Visible || !InputEnabled)
+            {
                 return;
+            }
+
             //try
             {
                 // Init new controls.
@@ -455,10 +444,9 @@ namespace XNAFinalEngine.UserInterface
 
                 InputSystem.Update(elapsedTime);
 
-
                 // In the control's update the Root Control list could be modified so we need to create an auxiliary list.
-                ControlsList controlList = new ControlsList(RootControls);
-                foreach (Control control in controlList)
+                var controlList = new ControlsList(RootControls);
+                foreach (var control in controlList)
                 {
                     control.Update(elapsedTime);
                 }
@@ -475,7 +463,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (controlList != null)
             {
-                for (int i = 0; i < controlList.Count; i++)
+                for (var i = 0; i < controlList.Count; i++)
                 {
                     if (controlList[i].Visible)
                     {
@@ -486,8 +474,6 @@ namespace XNAFinalEngine.UserInterface
             }
         } // SortLevel
 
-
-
         internal void Add(Control control)
         {
             if (control != null)
@@ -495,12 +481,14 @@ namespace XNAFinalEngine.UserInterface
                 // If the control father is the manager...
                 if (!RootControls.Contains(control))
                 {
-                    if (control.Parent != null)
-                        control.Parent.Remove(control);
+                    control.Parent?.Remove(control);
                     RootControls.Add(control);
                     control.Parent = null;
                     if (_focusedControl == null)
+                    {
                         control.Focused = true;
+                    }
+
                     WindowResize += control.OnParentResize;
                 }
             }
@@ -511,23 +499,27 @@ namespace XNAFinalEngine.UserInterface
             if (control != null)
             {
                 if (control.Focused)
+                {
                     control.Focused = false;
+                }
+
                 RootControls.Remove(control);
                 // Remove event
                 WindowResize -= control.OnParentResize;
             }
         } // Remove
 
-
-
         public void PreRenderControls()
         {
             if (!Visible)
+            {
                 return;
+            }
+
             if ((RootControls != null))
             {
                 // Render each control in its own render target.
-                foreach (Control control in RootControls)
+                foreach (var control in RootControls)
                 {
                     control.PreDrawControlOntoOwnTexture();
                 }
@@ -537,7 +529,7 @@ namespace XNAFinalEngine.UserInterface
                 GraphicsDevice.Clear(ClearOptions.Target, Color.Transparent, 1.0f, 0);
 
                 //GameInfo.Instance.Game.GraphicsDevice.Clear(Color.Transparent);
-                foreach (Control control in RootControls)
+                foreach (var control in RootControls)
                 {
                     control.DrawControlOntoMainTexture();
                 }
@@ -548,7 +540,10 @@ namespace XNAFinalEngine.UserInterface
         public void RenderUserInterfaceToScreen()
         {
             if (!Visible)
+            {
                 return;
+            }
+
             if (RootControls != null)
             {
                 Renderer.Begin();
@@ -557,26 +552,23 @@ namespace XNAFinalEngine.UserInterface
             }
         } // DrawTextureToScreen
 
-
-
         private bool CheckParent(Control control, Point pos)
         {
             if (control.Parent != null && !CheckDetached(control))
             {
-                Control parent = control.Parent;
-                Control root = control.Root;
+                var parent = control.Parent;
+                var root = control.Root;
 
-                Rectangle pr = new Rectangle(parent.ControlLeftAbsoluteCoordinate,
+                var pr = new Rectangle(parent.ControlLeftAbsoluteCoordinate,
                                              parent.ControlTopAbsoluteCoordinate,
                                              parent.Width,
                                              parent.Height);
 
-                Margins margins = root.SkinInformation.ClientMargins;
-                Rectangle rr = new Rectangle(root.ControlLeftAbsoluteCoordinate + margins.Left,
+                var margins = root.SkinInformation.ClientMargins;
+                var rr = new Rectangle(root.ControlLeftAbsoluteCoordinate + margins.Left,
                                              root.ControlTopAbsoluteCoordinate + margins.Top,
                                              root.ControlAndMarginsWidth - margins.Horizontal,
                                              root.ControlAndMarginsHeight - margins.Vertical);
-
 
                 return (rr.Contains(pos) && pr.Contains(pos));
             }
@@ -586,7 +578,7 @@ namespace XNAFinalEngine.UserInterface
 
         private bool CheckState(Control control)
         {
-            bool modal = (ModalWindow == null) ? true : (ModalWindow == control.Root);
+            var modal = (ModalWindow == null) ? true : (ModalWindow == control.Root);
 
             return (control != null && !control.Passive && control.Visible && control.Enabled && modal);
         } // CheckState
@@ -594,11 +586,13 @@ namespace XNAFinalEngine.UserInterface
         private bool CheckOrder(Control control, Point pos)
         {
             if (!CheckPosition(control, pos))
-                return false;
-
-            for (int i = OrderList.Count - 1; i > OrderList.IndexOf(control); i--)
             {
-                Control c = OrderList[i];
+                return false;
+            }
+
+            for (var i = OrderList.Count - 1; i > OrderList.IndexOf(control); i--)
+            {
+                var c = OrderList[i];
 
                 if (!c.Passive && CheckPosition(c, pos) && CheckParent(c, pos))
                 {
@@ -611,10 +605,13 @@ namespace XNAFinalEngine.UserInterface
 
         private bool CheckDetached(Control control)
         {
-            bool ret = control.Detached;
+            var ret = control.Detached;
             if (control.Parent != null)
             {
-                if (CheckDetached(control.Parent)) ret = true;
+                if (CheckDetached(control.Parent))
+                {
+                    ret = true;
+                }
             }
             return ret;
         } // CheckDetached
@@ -635,15 +632,19 @@ namespace XNAFinalEngine.UserInterface
 
         private void TabNextControl(Control control)
         {
-            int start = OrderList.IndexOf(control);
-            int i = start;
+            var start = OrderList.IndexOf(control);
+            var i = start;
 
             do
             {
                 if (i < OrderList.Count - 1)
+                {
                     i++;
+                }
                 else
+                {
                     i = 0;
+                }
             }
             while ((OrderList[i].Root != control.Root || !OrderList[i].CanFocus || OrderList[i].IsRoot || !OrderList[i].Enabled) && i != start);
 
@@ -652,13 +653,19 @@ namespace XNAFinalEngine.UserInterface
 
         private void TabPrevControl(Control control)
         {
-            int start = OrderList.IndexOf(control);
-            int i = start;
+            var start = OrderList.IndexOf(control);
+            var i = start;
 
             do
             {
-                if (i > 0) i -= 1;
-                else i = OrderList.Count - 1;
+                if (i > 0)
+                {
+                    i -= 1;
+                }
+                else
+                {
+                    i = OrderList.Count - 1;
+                }
             }
             while ((OrderList[i].Root != control.Root || !OrderList[i].CanFocus || OrderList[i].IsRoot || !OrderList[i].Enabled) && i != start);
             OrderList[i].Focused = true;
@@ -669,19 +676,22 @@ namespace XNAFinalEngine.UserInterface
             //Control control = control;
             if (control.Parent != null && control.Parent.ChildrenControls != null)
             {
-                int index = -1;
+                var index = -1;
 
                 if (kbe.Key == Keys.Left && !kbe.Handled)
                 {
-                    int miny = int.MaxValue;
-                    int minx = int.MinValue;
-                    for (int i = 0; i < ((ControlsList)control.Parent.ChildrenControls).Count; i++)
+                    var miny = int.MaxValue;
+                    var minx = int.MinValue;
+                    for (var i = 0; i < ((ControlsList)control.Parent.ChildrenControls).Count; i++)
                     {
-                        Control cx = (control.Parent.ChildrenControls as ControlsList)[i];
-                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus) continue;
+                        var cx = (control.Parent.ChildrenControls as ControlsList)[i];
+                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus)
+                        {
+                            continue;
+                        }
 
-                        int cay = control.Top + (control.Height / 2);
-                        int cby = cx.Top + (cx.Height / 2);
+                        var cay = control.Top + (control.Height / 2);
+                        var cby = cx.Top + (cx.Height / 2);
 
                         if (Math.Abs(cay - cby) <= miny && (cx.Left + cx.Width) >= minx && (cx.Left + cx.Width) <= control.Left)
                         {
@@ -693,15 +703,18 @@ namespace XNAFinalEngine.UserInterface
                 }
                 else if (kbe.Key == Keys.Right && !kbe.Handled)
                 {
-                    int miny = int.MaxValue;
-                    int minx = int.MaxValue;
-                    for (int i = 0; i < ((ControlsList)control.Parent.ChildrenControls).Count; i++)
+                    var miny = int.MaxValue;
+                    var minx = int.MaxValue;
+                    for (var i = 0; i < ((ControlsList)control.Parent.ChildrenControls).Count; i++)
                     {
-                        Control cx = ((ControlsList)control.Parent.ChildrenControls)[i];
-                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus) continue;
+                        var cx = ((ControlsList)control.Parent.ChildrenControls)[i];
+                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus)
+                        {
+                            continue;
+                        }
 
-                        int cay = control.Top + (control.Height / 2);
-                        int cby = cx.Top + (cx.Height / 2);
+                        var cay = control.Top + (control.Height / 2);
+                        var cby = cx.Top + (cx.Height / 2);
 
                         if (Math.Abs(cay - cby) <= miny && cx.Left <= minx && cx.Left >= (control.Left + control.Width))
                         {
@@ -713,15 +726,18 @@ namespace XNAFinalEngine.UserInterface
                 }
                 else if (kbe.Key == Keys.Up && !kbe.Handled)
                 {
-                    int miny = int.MinValue;
-                    int minx = int.MaxValue;
-                    for (int i = 0; i < (control.Parent.ChildrenControls).Count; i++)
+                    var miny = int.MinValue;
+                    var minx = int.MaxValue;
+                    for (var i = 0; i < (control.Parent.ChildrenControls).Count; i++)
                     {
-                        Control cx = (control.Parent.ChildrenControls)[i];
-                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus) continue;
+                        var cx = (control.Parent.ChildrenControls)[i];
+                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus)
+                        {
+                            continue;
+                        }
 
-                        int cax = control.Left + (control.Width / 2);
-                        int cbx = cx.Left + (cx.Width / 2);
+                        var cax = control.Left + (control.Width / 2);
+                        var cbx = cx.Left + (cx.Width / 2);
 
                         if (Math.Abs(cax - cbx) <= minx && (cx.Top + cx.Height) >= miny && (cx.Top + cx.Height) <= control.Top)
                         {
@@ -733,15 +749,18 @@ namespace XNAFinalEngine.UserInterface
                 }
                 else if (kbe.Key == Keys.Down && !kbe.Handled)
                 {
-                    int miny = int.MaxValue;
-                    int minx = int.MaxValue;
-                    for (int i = 0; i < (control.Parent.ChildrenControls).Count; i++)
+                    var miny = int.MaxValue;
+                    var minx = int.MaxValue;
+                    for (var i = 0; i < (control.Parent.ChildrenControls).Count; i++)
                     {
-                        Control cx = (control.Parent.ChildrenControls)[i];
-                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus) continue;
+                        var cx = (control.Parent.ChildrenControls)[i];
+                        if (cx == control || !cx.Visible || !cx.Enabled || cx.Passive || !cx.CanFocus)
+                        {
+                            continue;
+                        }
 
-                        int cax = control.Left + (control.Width / 2);
-                        int cbx = cx.Left + (cx.Width / 2);
+                        var cax = control.Left + (control.Width / 2);
+                        var cbx = cx.Left + (cx.Width / 2);
 
                         if (Math.Abs(cax - cbx) <= minx && cx.Top <= miny && cx.Top >= (control.Top + control.Height))
                         {
@@ -762,12 +781,12 @@ namespace XNAFinalEngine.UserInterface
 
         private void MouseDownProcess(object sender, MouseEventArgs e)
         {
-            ControlsList controlList = new ControlsList();
+            var controlList = new ControlsList();
             controlList.AddRange(OrderList);
 
             if (AutoUnfocus && _focusedControl != null && _focusedControl.Root != _modalWindow)
             {
-                bool hit = RootControls.Any(cx => cx.ControlRectangle.Contains(e.Position));
+                var hit = RootControls.Any(cx => cx.ControlRectangle.Contains(e.Position));
 
                 if (!hit)
                 {
@@ -776,10 +795,13 @@ namespace XNAFinalEngine.UserInterface
                         hit = true;
                     }
                 }
-                if (!hit) _focusedControl.Focused = false;
+                if (!hit)
+                {
+                    _focusedControl.Focused = false;
+                }
             }
 
-            for (int i = controlList.Count - 1; i >= 0; i--)
+            for (var i = controlList.Count - 1; i >= 0; i--)
             {
                 if (CheckState(controlList[i]) && CheckPosition(controlList[i], e.Position))
                 {
@@ -790,10 +812,7 @@ namespace XNAFinalEngine.UserInterface
                     {
                         _states.Click = (int)e.Button;
 
-                        if (FocusedControl != null)
-                        {
-                            FocusedControl.Invalidate();
-                        }
+                        FocusedControl?.Invalidate();
                         controlList[i].Focused = true;
                     }
                     return;
@@ -812,13 +831,13 @@ namespace XNAFinalEngine.UserInterface
 
         private void MouseUpProcess(object sender, MouseEventArgs e)
         {
-            Control control = _states.Buttons[(int)e.Button];
+            var control = _states.Buttons[(int)e.Button];
             if (control != null)
             {
-                bool res1 = CheckPosition(control, e.Position);
-                bool res2 = CheckOrder(control, e.Position);
-                bool res3 = _states.Click == (int)e.Button;
-                bool res4 = CheckButtons((int)e.Button);
+                var res1 = CheckPosition(control, e.Position);
+                var res2 = CheckOrder(control, e.Position);
+                var res3 = _states.Click == (int)e.Button;
+                var res4 = CheckButtons((int)e.Button);
 
                 if (res1 && res2 && res3 && res4)
                 {
@@ -833,7 +852,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void MousePressProcess(object sender, MouseEventArgs e)
         {
-            Control control = _states.Buttons[(int)e.Button];
+            var control = _states.Buttons[(int)e.Button];
             if (control != null)
             {
                 if (CheckPosition(control, e.Position))
@@ -845,13 +864,13 @@ namespace XNAFinalEngine.UserInterface
 
         private void MouseMoveProcess(object sender, MouseEventArgs e)
         {
-            ControlsList controlList = new ControlsList();
+            var controlList = new ControlsList();
             controlList.AddRange(OrderList);
 
-            for (int i = controlList.Count - 1; i >= 0; i--)
+            for (var i = controlList.Count - 1; i >= 0; i--)
             {
-                bool checkPosition = CheckPosition(controlList[i], e.Position);
-                bool checkState = CheckState(controlList[i]);
+                var checkPosition = CheckPosition(controlList[i], e.Position);
+                var checkState = CheckState(controlList[i]);
 
                 if (checkState && ((checkPosition && _states.Over == controlList[i]) || (_states.Buttons[(int)e.Button] == controlList[i])))
                 {
@@ -860,10 +879,10 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
 
-            for (int i = controlList.Count - 1; i >= 0; i--)
+            for (var i = controlList.Count - 1; i >= 0; i--)
             {
-                bool checkPosition = CheckPosition(controlList[i], e.Position);
-                bool checkState = CheckState(controlList[i]) || (controlList[i].toolTip != null && !string.IsNullOrEmpty(controlList[i].ToolTip.Text) && controlList[i].Visible);
+                var checkPosition = CheckPosition(controlList[i], e.Position);
+                var checkState = CheckState(controlList[i]) || (controlList[i].toolTip != null && !string.IsNullOrEmpty(controlList[i].ToolTip.Text) && controlList[i].Visible);
 
                 if (checkState && !checkPosition && _states.Over == controlList[i] && _states.Buttons[(int)e.Button] == null)
                 {
@@ -873,29 +892,28 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
 
-            for (int i = controlList.Count - 1; i >= 0; i--)
+            for (var i = controlList.Count - 1; i >= 0; i--)
             {
-                bool checkPosition = CheckPosition(controlList[i], e.Position);
-                bool checkState = CheckState(controlList[i]) || (controlList[i].toolTip != null && !string.IsNullOrEmpty(controlList[i].ToolTip.Text) && controlList[i].Visible);
+                var checkPosition = CheckPosition(controlList[i], e.Position);
+                var checkState = CheckState(controlList[i]) || (controlList[i].toolTip != null && !string.IsNullOrEmpty(controlList[i].ToolTip.Text) && controlList[i].Visible);
 
                 if (checkState && checkPosition && _states.Over != controlList[i] && _states.Buttons[(int)e.Button] == null)
                 {
-                    if (_states.Over != null)
-                    {
-                        _states.Over.SendMessage(Message.MouseOut, e);
-                    }
+                    _states.Over?.SendMessage(Message.MouseOut, e);
                     _states.Over = controlList[i];
                     controlList[i].SendMessage(Message.MouseOver, e);
                     break;
                 }
                 if (_states.Over == controlList[i])
+                {
                     break;
+                }
             }
         } // MouseMoveProcess
 
         private void KeyDownProcess(object sender, KeyEventArgs e)
         {
-            Control focusedControl = FocusedControl;
+            var focusedControl = FocusedControl;
 
             if (focusedControl != null && CheckState(focusedControl))
             {
@@ -915,7 +933,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void KeyUpProcess(object sender, KeyEventArgs e)
         {
-            Control control = _states.Buttons[(int)MouseButton.None];
+            var control = _states.Buttons[(int)MouseButton.None];
 
             if (control != null)
             {
@@ -931,7 +949,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void KeyPressProcess(object sender, KeyEventArgs e)
         {
-            Control control = _states.Buttons[(int)MouseButton.None];
+            var control = _states.Buttons[(int)MouseButton.None];
             if (control != null)
             {
                 control.SendMessage(Message.KeyPress, e);
@@ -957,17 +975,21 @@ namespace XNAFinalEngine.UserInterface
             }
         } // KeyPressProcess
 
-
-
         public bool IsOverThisControl(Control control, Point pos)
         {
             if (!control.Visible)
-                return false;
-            if (!CheckPosition(control, pos))
-                return false;
-            for (int i = OrderList.Count - 1; i > OrderList.IndexOf(control); i--)
             {
-                Control c = OrderList[i];
+                return false;
+            }
+
+            if (!CheckPosition(control, pos))
+            {
+                return false;
+            }
+
+            for (var i = OrderList.Count - 1; i > OrderList.IndexOf(control); i--)
+            {
+                var c = OrderList[i];
 
                 if (!c.Passive && CheckPosition(c, pos) && CheckParent(c, pos))
                 {
@@ -977,16 +999,13 @@ namespace XNAFinalEngine.UserInterface
             return true;
         } // IsOverThisControl
 
-
-
         public void Invalidate()
         {
-            foreach (Control rootControl in RootControls)
+            foreach (var rootControl in RootControls)
             {
                 rootControl.Invalidate();
             }
         } // Invalidate
-
 
     } // UserInterfaceManager
 } // // XNAFinalEngine.UserInterface

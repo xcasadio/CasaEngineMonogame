@@ -31,7 +31,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             chromosome = parents[0].FastEmptyInstance();
 
             //Get each gene from the genotype at random from the parents
-            for (int i = 0; i < parents[0].Genotype.Count; i++)
+            for (var i = 0; i < parents[0].Genotype.Count; i++)
             {
                 chromosome.Genotype.Add(parents[Generator.Next(0, parents.Count - 1)][i]);
             }

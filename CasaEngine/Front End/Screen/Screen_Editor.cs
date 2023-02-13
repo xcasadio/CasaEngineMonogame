@@ -9,7 +9,7 @@
 using System.Xml;
 using CasaEngineCommon.Design;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public abstract partial class Screen
     {

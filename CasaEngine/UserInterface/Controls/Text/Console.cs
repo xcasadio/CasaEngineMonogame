@@ -11,7 +11,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using ScrollBar = CasaEngine.UserInterface.Controls.Auxiliary.ScrollBar;
+
+namespace CasaEngine.UserInterface.Controls.Text
 {
 
 
@@ -38,9 +41,9 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                for (int i = 0; i < Count; i++)
+                for (var i = 0; i < Count; i++)
                 {
-                    ConsoleChannel s = this[i];
+                    var s = this[i];
                     if (s.Name.ToLower() == name.ToLower())
                     {
                         return s;
@@ -50,9 +53,9 @@ namespace XNAFinalEngine.UserInterface
             }
             set
             {
-                for (int i = 0; i < Count; i++)
+                for (var i = 0; i < Count; i++)
                 {
-                    ConsoleChannel s = this[i];
+                    var s = this[i];
                     if (s.Name.ToLower() == name.ToLower())
                     {
                         this[i] = value;
@@ -65,9 +68,9 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                for (int i = 0; i < Count; i++)
+                for (var i = 0; i < Count; i++)
                 {
-                    ConsoleChannel s = this[i];
+                    var s = this[i];
                     if (s.Index == index)
                     {
                         return s;
@@ -77,9 +80,9 @@ namespace XNAFinalEngine.UserInterface
             }
             set
             {
-                for (int i = 0; i < Count; i++)
+                for (var i = 0; i < Count; i++)
                 {
-                    ConsoleChannel s = this[i];
+                    var s = this[i];
                     if (s.Index == index)
                     {
                         this[i] = value;
@@ -182,7 +185,11 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 _cmbMain.Visible = _channelsVisible = value;
-                if (value && !_textBoxVisible) TextBoxVisible = false;
+                if (value && !_textBoxVisible)
+                {
+                    TextBoxVisible = false;
+                }
+
                 PositionControls();
             }
         } // ChannelsVisible
@@ -193,7 +200,11 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 _textMain.Visible = _textBoxVisible = value;
-                if (!value && _channelsVisible) ChannelsVisible = false;
+                if (!value && _channelsVisible)
+                {
+                    ChannelsVisible = false;
+                }
+
                 PositionControls();
             }
         } // TextBoxVisible
@@ -283,26 +294,26 @@ namespace XNAFinalEngine.UserInterface
 
         private void ClientArea_Draw(object sender, DrawEventArgs e)
         {
-            Font font = SkinInformation.Layers[0].Text.Font.Font;
-            Rectangle r = new Rectangle(e.Rectangle.Left, e.Rectangle.Top, e.Rectangle.Width, e.Rectangle.Height);
-            int pos = 0;
+            var font = SkinInformation.Layers[0].Text.Font.Font;
+            var r = new Rectangle(e.Rectangle.Left, e.Rectangle.Top, e.Rectangle.Width, e.Rectangle.Height);
+            var pos = 0;
 
             if (_buffer.Count > 0)
             {
-                EventedList<ConsoleMessage> b = GetFilteredBuffer(_filter);
-                int s = (_sbVert.Value + _sbVert.PageSize);
-                int f = s - _sbVert.PageSize;
+                var b = GetFilteredBuffer(_filter);
+                var s = (_sbVert.Value + _sbVert.PageSize);
+                var f = s - _sbVert.PageSize;
 
                 if (b.Count > 0)
                 {
-                    for (int i = s - 1; i >= f; i--)
+                    for (var i = s - 1; i >= f; i--)
                     {
                         {
-                            int y = r.Bottom - (pos + 1) * (font.LineSpacing + 0);
+                            var y = r.Bottom - (pos + 1) * (font.LineSpacing + 0);
 
-                            string msg = b[i].Text;
-                            string pre = "";
-                            ConsoleChannel ch = _channels[b[i].Channel];
+                            var msg = b[i].Text;
+                            var pre = "";
+                            var ch = _channels[b[i].Channel];
 
                             if ((_messageFormat & ConsoleMessageFormats.ChannelName) == ConsoleMessageFormats.ChannelName)
                             {
@@ -313,7 +324,10 @@ namespace XNAFinalEngine.UserInterface
                                 pre = string.Format("[{0}]", b[i].Time.ToLongTimeString()) + pre;
                             }
 
-                            if (pre != "") msg = pre + ": " + msg;
+                            if (pre != "")
+                            {
+                                msg = pre + ": " + msg;
+                            }
 
                             UserInterfaceManager.Renderer.DrawString(font, msg, 4, y, ch.Color);
                             pos += 1;
@@ -325,8 +339,8 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            int h = _textMain.Visible ? (_textMain.Height + 1) : 0;
-            Rectangle r = new Rectangle(rect.Left, rect.Top, rect.Width, rect.Height - h);
+            var h = _textMain.Visible ? (_textMain.Height + 1) : 0;
+            var r = new Rectangle(rect.Left, rect.Top, rect.Width, rect.Height - h);
             base.DrawControl(r);
         } // DrawControl
 
@@ -357,8 +371,11 @@ namespace XNAFinalEngine.UserInterface
 
         private void TextMain_FocusGained(object sender, EventArgs e)
         {
-            ConsoleChannel ch = _channels[_cmbMain.Text];
-            if (ch != null) _textMain.TextColor = ch.Color;
+            var ch = _channels[_cmbMain.Text];
+            if (ch != null)
+            {
+                _textMain.TextColor = ch.Color;
+            }
         } // TextMain_FocusGained
 
         private void TextMain_KeyDown(object sender, KeyEventArgs e)
@@ -368,21 +385,24 @@ namespace XNAFinalEngine.UserInterface
 
         private void SendMessage(EventArgs x)
         {
-            KeyEventArgs k = new KeyEventArgs();
+            var k = new KeyEventArgs();
 
-            if (x is KeyEventArgs) k = x as KeyEventArgs;
+            if (x is KeyEventArgs)
+            {
+                k = x as KeyEventArgs;
+            }
 
-            ConsoleChannel ch = _channels[_cmbMain.Text];
+            var ch = _channels[_cmbMain.Text];
             if (ch != null)
             {
                 _textMain.TextColor = ch.Color;
 
-                string message = _textMain.Text;
+                var message = _textMain.Text;
                 if ((k.Key == Keys.Enter) && !string.IsNullOrEmpty(message))
                 {
                     x.Handled = true;
 
-                    ConsoleMessageEventArgs me = new ConsoleMessageEventArgs(new ConsoleMessage(message, ch.Index));
+                    var me = new ConsoleMessageEventArgs(new ConsoleMessage(message, ch.Index));
                     OnMessageSent(me);
 
                     _buffer.Add(new ConsoleMessage(me.Message.Text, me.Message.Channel));
@@ -397,13 +417,16 @@ namespace XNAFinalEngine.UserInterface
 
         private void OnMessageSent(ConsoleMessageEventArgs e)
         {
-            if (MessageSent != null) MessageSent.Invoke(this, e);
+            if (MessageSent != null)
+            {
+                MessageSent.Invoke(this, e);
+            }
         } // OnMessageSent
 
         private void Channels_ItemAdded(object sender, EventArgs e)
         {
             _cmbMain.Items.Clear();
-            foreach (ConsoleChannel t in _channels)
+            foreach (var t in _channels)
             {
                 _cmbMain.Items.Add(t.Name);
             }
@@ -412,7 +435,7 @@ namespace XNAFinalEngine.UserInterface
         private void Channels_ItemRemoved(object sender, EventArgs e)
         {
             _cmbMain.Items.Clear();
-            foreach (ConsoleChannel t in _channels)
+            foreach (var t in _channels)
             {
                 _cmbMain.Items.Add(t.Name);
             }
@@ -428,9 +451,9 @@ namespace XNAFinalEngine.UserInterface
         {
             if (_sbVert != null)
             {
-                int line = SkinInformation.Layers[0].Text.Font.Font.LineSpacing;
-                int c = GetFilteredBuffer(_filter).Count;
-                int p = (int)Math.Ceiling(ClientArea.ClientHeight / (float)line);
+                var line = SkinInformation.Layers[0].Text.Font.Font.LineSpacing;
+                var c = GetFilteredBuffer(_filter).Count;
+                var p = (int)Math.Ceiling(ClientArea.ClientHeight / (float)line);
 
                 _sbVert.Range = c == 0 ? 1 : c;
                 _sbVert.PageSize = c == 0 ? 1 : p;
@@ -451,11 +474,11 @@ namespace XNAFinalEngine.UserInterface
 
         private EventedList<ConsoleMessage> GetFilteredBuffer(List<byte> filter)
         {
-            EventedList<ConsoleMessage> ret = new EventedList<ConsoleMessage>();
+            var ret = new EventedList<ConsoleMessage>();
 
             if (filter.Count > 0)
             {
-                for (int i = 0; i < _buffer.Count; i++)
+                for (var i = 0; i < _buffer.Count; i++)
                 {
                     if (filter.Contains(_buffer[i].Channel))
                     {

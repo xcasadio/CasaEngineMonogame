@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using CasaEngine.Core_Systems.Math.Shape2D;
 using CasaEngine.Editor.UndoRedo;
 using Editor.Tools.Graphics2D;
-using CasaEngine.Math.Shape2D;
 
 namespace Editor.UndoRedo
 {
@@ -19,28 +15,28 @@ namespace Editor.UndoRedo
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="ob_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ob_"></param>
         public UndoRedoAddCollisionCommand(Shape2DObject ob_, bool add_ = true)
-		{
-			if (ob_ == null)
-			{
+        {
+            if (ob_ == null)
+            {
                 throw new ArgumentNullException("UndoRedoAddCollisionCommand() : ob_ is null");
-			}
+            }
 
             m_IsAdd = add_;
 
             m_Object = ob_.Clone();
-		}
+        }
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
         public void Execute(object arg1_)
         {
             if (arg1_ is Sprite2DEditorForm)
@@ -48,28 +44,28 @@ namespace Editor.UndoRedo
                 Sprite2DEditorForm form = arg1_ as Sprite2DEditorForm;
 
                 if (m_IsAdd == true)
-                {                    
+                {
                     form.AddCollision(m_Object, form.CurrentSprite2D);
                 }
                 else
                 {
                     form.RemoveCollision(m_Object, form.CurrentSprite2D);
-                }                
+                }
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
-		public void Undo(object arg1_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
+        public void Undo(object arg1_)
+        {
             if (arg1_ is Sprite2DEditorForm)
             {
                 Sprite2DEditorForm form = arg1_ as Sprite2DEditorForm;
 
                 if (m_IsAdd == true)
-                {                    
+                {
                     form.RemoveCollision(m_Object, form.CurrentSprite2D);
                 }
                 else
@@ -77,7 +73,7 @@ namespace Editor.UndoRedo
                     form.AddCollision(m_Object, form.CurrentSprite2D);
                 }
             }
-		}
+        }
 
     }
 }

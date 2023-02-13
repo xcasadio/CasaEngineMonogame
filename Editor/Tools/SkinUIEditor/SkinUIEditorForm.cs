@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Editor.Tools;
+﻿using CasaEngine.Editor.Tools;
 using CasaEngine.Game;
 using CasaEngineCommon.Logger;
 using CasaEngine.Assets.UI;
+using CasaEngine.Gameplay.Actor;
 
 namespace Editor.Tools.SkinUIEditor
 {
@@ -61,7 +54,7 @@ namespace Editor.Tools.SkinUIEditor
         /// </summary>
         /// <param name="path_"></param>
         /// <param name="obj_"></param>
-        public void SetCurrentObject(string path_, CasaEngine.Gameplay.Actor.Object.BaseObject obj_)
+        public void SetCurrentObject(string path_, BaseObject obj_)
         {
             if (obj_ is SkinUi)
             {

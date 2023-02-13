@@ -21,7 +21,7 @@ namespace CasaEngine.AI.Pathfinding
 
         protected GraphSearchAlgorithm(Graph<T, TK> graph)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateGraph(graph, ref message) == false)
             {
@@ -72,7 +72,7 @@ namespace CasaEngine.AI.Pathfinding
 
         public virtual void Initialize(int source, int target)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateNode(source, ref message) == false)
             {

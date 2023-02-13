@@ -35,7 +35,7 @@ namespace CasaEngine.Project
         private string _dataSrcCtrlWorkspace = string.Empty;
 
 
-        static private readonly uint Version = 2;
+        private static readonly uint Version = 2;
 #endif
 
 
@@ -161,7 +161,7 @@ namespace CasaEngine.Project
 
         public void Load(XmlElement el, SaveOption option)
         {
-            uint version = uint.Parse(el.Attributes["version"].Value);
+            var version = uint.Parse(el.Attributes["version"].Value);
 
             _windowTitle = el.Attributes["windowTitle"].Value;
             _projectName = el.Attributes["name"].Value;
@@ -175,7 +175,7 @@ namespace CasaEngine.Project
             }
 
 #if !FINAL
-            XmlElement xmlElt = (XmlElement)el.SelectSingleNode("Debug");
+            var xmlElt = (XmlElement)el.SelectSingleNode("Debug");
 
             _debugIsFullScreen = bool.Parse(xmlElt.Attributes["debugIsFullScreen"].Value);
             _debugHeight = int.Parse(xmlElt.Attributes["debugHeight"].Value);
@@ -198,7 +198,7 @@ namespace CasaEngine.Project
             el.OwnerDocument.AddAttribute(el, "IsMouseVisible", _isMouseVisible.ToString());
 
             //Debug
-            XmlElement xmlElt = el.OwnerDocument.CreateElement("Debug");
+            var xmlElt = el.OwnerDocument.CreateElement("Debug");
             el.AppendChild(xmlElt);
             el.OwnerDocument.AddAttribute(xmlElt, "debugIsFullScreen", _debugIsFullScreen.ToString());
             el.OwnerDocument.AddAttribute(xmlElt, "debugHeight", _debugHeight.ToString());

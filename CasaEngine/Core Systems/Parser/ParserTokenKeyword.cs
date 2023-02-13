@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenKeyword
         : ParserToken
@@ -16,7 +16,7 @@
 
         public override bool Check(string sentence)
         {
-            if (Token.ToLower().Equals(sentence.ToLower()) == true)
+            if (Token.ToLower().Equals(sentence.ToLower()))
             {
                 Parser.AddCalculator(new CalculatorTokenKeyword(Parser.Calculator, Token));
                 return true;

@@ -56,7 +56,7 @@ namespace CasaEngine.Audio
 
         public void Clear()
         {
-            foreach (SoundEffect soundEffect in _soundEffects.Values)
+            foreach (var soundEffect in _soundEffects.Values)
             {
                 soundEffect.Dispose();
             }
@@ -83,11 +83,11 @@ namespace CasaEngine.Audio
         public override void Update(GameTime gameTime)
         {
             // Loop over all the currently playing 3D sounds.
-            int index = 0;
+            var index = 0;
 
             while (index < _activeSounds.Count)
             {
-                ActiveSound activeSound = _activeSounds[index];
+                var activeSound = _activeSounds[index];
 
                 if (activeSound.Instance.State == SoundState.Stopped)
                 {
@@ -112,7 +112,7 @@ namespace CasaEngine.Audio
 
         public SoundEffectInstance Play3DSound(string soundName, bool isLooped, IAudioEmitter emitter)
         {
-            ActiveSound activeSound = new ActiveSound();
+            var activeSound = new ActiveSound();
 
             // Fill in the instance and emitter fields.
             activeSound.Instance = _soundEffects[soundName].CreateInstance();

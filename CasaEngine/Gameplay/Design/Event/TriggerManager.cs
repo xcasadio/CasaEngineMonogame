@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Event
+﻿namespace CasaEngine.Gameplay.Design.Event
 {
     public class TriggerManager
     {
@@ -11,7 +11,7 @@
 
         public void Update(float elapsedTime)
         {
-            foreach (Trigger t in _triggers.ToArray())
+            foreach (var t in _triggers.ToArray())
             {
                 t.Update(elapsedTime);
             }
@@ -19,7 +19,7 @@
 
         public void Reset()
         {
-            foreach (Trigger t in _triggers.ToArray())
+            foreach (var t in _triggers.ToArray())
             {
                 t.Reset();
             }

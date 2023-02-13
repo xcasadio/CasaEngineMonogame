@@ -1,22 +1,21 @@
 using System.Xml;
 using CasaEngine.Gameplay.Actor;
-using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.AI.Messaging;
 using CasaEngine.AI.StateMachines;
 using CasaEngine.Debugger;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.Helper;
 using CasaEngineCommon.Logger;
-using CasaEngine.Math.Shape2D;
 using CasaEngine.Physics2D;
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Gameplay.Design;
-using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
+using CasaEngine.Core_Systems.Game;
+using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Helpers;
 
 namespace CasaEngine.Gameplay
 {
@@ -27,7 +26,7 @@ namespace CasaEngine.Gameplay
     class CharacterActor2D
         : Actor2D, IFsmCapable<CharacterActor2D>, IRenderable, IAttackable
     {
-        static public bool DisplayDebugInformation = true;
+        public static bool DisplayDebugInformation = true;
 
 
         private TeamInfo _teamInfo;
@@ -274,12 +273,12 @@ namespace CasaEngine.Gameplay
 
 
 
-        public override BaseObject Clone()
+        public override Actor.BaseObject Clone()
         {
             return new CharacterActor2D(this);
         }
 
-        protected override void CopyFrom(BaseObject ob)
+        protected override void CopyFrom(Actor.BaseObject ob)
         {
             if (ob is CharacterActor2D == false)
             {
@@ -288,7 +287,7 @@ namespace CasaEngine.Gameplay
 
             base.CopyFrom(ob);
 
-            CharacterActor2D f = ob as CharacterActor2D;
+            var f = ob as CharacterActor2D;
 
             _orientation = f._orientation;
             _velocity = f._velocity;
@@ -303,7 +302,7 @@ namespace CasaEngine.Gameplay
 
             _animations = new Dictionary<int, Animation2D>();
 
-            foreach (KeyValuePair<int, Animation2D> pair in f._animations)
+            foreach (var pair in f._animations)
             {
                 _animations.Add(pair.Key, (Animation2D)pair.Value.Clone());
             }
@@ -332,7 +331,7 @@ namespace CasaEngine.Gameplay
         {
             foreach (var pair in _animationListToLoad)
             {
-                Animation2D anim2d = Engine.Instance.ObjectManager.GetObjectByPath(pair.Value) as Animation2D;
+                var anim2d = Engine.Instance.ObjectManager.GetObjectByPath(pair.Value) as Animation2D;
 
                 if (anim2d != null)
                 {
@@ -341,7 +340,7 @@ namespace CasaEngine.Gameplay
 
                     foreach (var frame in anim2d.GetFrames())
                     {
-                        Sprite2D sprite2d = Engine.Instance.ObjectManager.GetObjectById(frame.SpriteId) as Sprite2D;
+                        var sprite2d = Engine.Instance.ObjectManager.GetObjectById(frame.SpriteId) as Sprite2D;
                         //sprite2d.LoadTextureFile(Engine.Instance.Game.GraphicsDevice);
                         sprite2d.LoadTexture(Engine.Instance.Game.Content);
                     }
@@ -352,7 +351,7 @@ namespace CasaEngine.Gameplay
                 }
             }
 
-            foreach (KeyValuePair<int, Animation2D> pair in _animations)
+            foreach (var pair in _animations)
             {
                 //Event
                 pair.Value.InitializeEvent();
@@ -364,7 +363,7 @@ namespace CasaEngine.Gameplay
             //Engine.Instance.Asset2DManager.LoadLoadingList(Engine.Instance.Game.Content);
 
             _animation2DPlayer = new Animation2DPlayer(_animations);
-            _animation2DPlayer.OnEndAnimationReached += new EventHandler(OnEndAnimationReached);
+            _animation2DPlayer.OnEndAnimationReached += OnEndAnimationReached;
             //_Animation2DPlayer.OnFrameChanged += new EventHandler<Animation2DFrameChangedEventArgs>(OnFrameChanged);
 
             InitializePhysics(physicWorld);
@@ -446,19 +445,19 @@ namespace CasaEngine.Gameplay
                 1 - Position.Y / Engine.Instance.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects);
 
-            if (ShapeRendererComponent.DisplayCollisions == true)
+            if (ShapeRendererComponent.DisplayCollisions)
             {
-                Shape2DObject[] geometry2DObjectList = Shape2DObjectList;
+                var geometry2DObjectList = Shape2DObjectList;
                 if (geometry2DObjectList != null)
                 {
-                    foreach (Shape2DObject g in geometry2DObjectList)
+                    foreach (var g in geometry2DObjectList)
                     {
                         _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
                     }
                 }
             }
 
-            if (DisplayDebugInformation == true)
+            if (DisplayDebugInformation)
             {
                 //display HP
                 _renderer2DComponent.AddSprite2D(
@@ -476,7 +475,7 @@ namespace CasaEngine.Gameplay
                     Color.Green, 0.0f, SpriteEffects.None);
 
                 //display direction
-                Vector2 rr = _velocity;
+                var rr = _velocity;
                 if (rr != Vector2.Zero)
                 {
                     rr.Normalize();
@@ -508,7 +507,7 @@ namespace CasaEngine.Gameplay
         {
             base.Load(el, opt);
 
-            XmlElement statusNode = (XmlElement)el.SelectSingleNode("Status");
+            var statusNode = (XmlElement)el.SelectSingleNode("Status");
 
             Speed = float.Parse(statusNode.Attributes["speed"].Value);
             Strength = int.Parse(statusNode.Attributes["strength"].Value);
@@ -516,7 +515,7 @@ namespace CasaEngine.Gameplay
             HpMax = int.Parse(statusNode.Attributes["HPMax"].Value);
             MpMax = int.Parse(statusNode.Attributes["MPMax"].Value);
 
-            XmlElement animListNode = (XmlElement)el.SelectSingleNode("AnimationList");
+            var animListNode = (XmlElement)el.SelectSingleNode("AnimationList");
 
             _animations.Clear();
             _animationListToLoad.Clear();
@@ -594,18 +593,18 @@ namespace CasaEngine.Gameplay
         private int GetAnimationDirectionOffset()
         {
 #if DEBUG
-            int val = (int)_orientation & _animationDirectioMask;
+            var val = (int)_orientation & _animationDirectioMask;
 #endif
             return _animationDirectionOffset[(int)_orientation & _animationDirectioMask];
         }
 
         public virtual void Hit(HitInfo info)
         {
-            CharacterActor2D a = (CharacterActor2D)info.ActorAttacking;
+            var a = (CharacterActor2D)info.ActorAttacking;
 
             AddHitEffect(ref info.ContactPoint);
 
-            int cost = a.Strength - Defense;
+            var cost = a.Strength - Defense;
             cost = cost < 0 ? 0 : cost;
             Hp -= cost;
 
@@ -629,7 +628,7 @@ namespace CasaEngine.Gameplay
 
         public virtual void KillSomeone(HitInfo info)
         {
-            if (IsPLayer == true)
+            if (IsPLayer)
             {
                 GameInfo.Instance.WorldInfo.BotKilled++;
             }
@@ -642,7 +641,7 @@ namespace CasaEngine.Gameplay
         {
             get
             {
-                Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(_animation2DPlayer.CurrentAnimation.CurrentSpriteId);
+                var sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(_animation2DPlayer.CurrentAnimation.CurrentSpriteId);
 
                 //return Manager.CreateShape2DFromSprite2D(id, position, SpriteEffects);
 
@@ -652,9 +651,9 @@ namespace CasaEngine.Gameplay
                 {
                     res = sprite.Collisions.ToArray();
 
-                    for (int i = 0; i < res.Length; i++)
+                    for (var i = 0; i < res.Length; i++)
                     {
-                        Shape2DObject g = res[i].Clone();
+                        var g = res[i].Clone();
 
                         //_PointTmp.X = g.Location.X + (int)(position.X - sprite.HotSpot.X);
                         //_PointTmp.Y = g.Location.Y + (int)(position.Y - sprite.HotSpot.Y);
@@ -720,7 +719,7 @@ namespace CasaEngine.Gameplay
                     break;
 
                 case (int)MessageType.HitSomeone:
-                    HitInfo hitInfo = (HitInfo)message.ExtraInfo;
+                    var hitInfo = (HitInfo)message.ExtraInfo;
                     _alreadyAttacked.Add(hitInfo.ActorHit as ICollide2Dable);
                     break;
             }
@@ -737,9 +736,9 @@ namespace CasaEngine.Gameplay
 
 
 
-        static public CharacterActor2DOrientation GetCharacterDirectionFromVector2(Vector2 v)
+        public static CharacterActor2DOrientation GetCharacterDirectionFromVector2(Vector2 v)
         {
-            float deadzone = 0.2f;
+            var deadzone = 0.2f;
             CharacterActor2DOrientation dir = 0;
 
             if (v.X < -deadzone)

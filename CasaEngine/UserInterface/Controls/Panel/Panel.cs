@@ -10,7 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+
+namespace CasaEngine.UserInterface.Controls.Panel
 {
 
     public class Panel : Container
@@ -34,7 +36,10 @@ namespace XNAFinalEngine.UserInterface
                 {
                     _bevelStyle = _bevel.Style = value;
                     AdjustMargins();
-                    if (!Suspended) OnBevelStyleChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnBevelStyleChanged(new EventArgs());
+                    }
                 }
             }
         } // BevelStyle
@@ -49,7 +54,10 @@ namespace XNAFinalEngine.UserInterface
                     _bevelBorder = _bevel.Border = value;
                     _bevel.Visible = _bevelBorder != BevelBorder.None;
                     AdjustMargins();
-                    if (!Suspended) OnBevelBorderChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnBevelBorderChanged(new EventArgs());
+                    }
                 }
             }
         } // BevelBorder
@@ -63,7 +71,10 @@ namespace XNAFinalEngine.UserInterface
                 {
                     _bevelMargin = value;
                     AdjustMargins();
-                    if (!Suspended) OnBevelMarginChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnBevelMarginChanged(new EventArgs());
+                    }
                 }
             }
         } // BevelMargin
@@ -129,27 +140,42 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void AdjustMargins()
         {
-            int l = 0;
-            int t = 0;
-            int r = 0;
-            int b = 0;
-            int s = _bevelMargin;
+            var l = 0;
+            var t = 0;
+            var r = 0;
+            var b = 0;
+            var s = _bevelMargin;
 
             if (_bevelBorder != BevelBorder.None)
             {
                 if (_bevelStyle != BevelStyle.Flat)
+                {
                     s += 2;
+                }
                 else
+                {
                     s += 1;
+                }
 
                 if (_bevelBorder == BevelBorder.Left || _bevelBorder == BevelBorder.All)
+                {
                     l = s;
+                }
+
                 if (_bevelBorder == BevelBorder.Top || _bevelBorder == BevelBorder.All)
+                {
                     t = s;
+                }
+
                 if (_bevelBorder == BevelBorder.Right || _bevelBorder == BevelBorder.All)
+                {
                     r = s;
+                }
+
                 if (_bevelBorder == BevelBorder.Bottom || _bevelBorder == BevelBorder.All)
+                {
                     b = s;
+                }
             }
             ClientMargins = new Margins(SkinInformation.ClientMargins.Left + l, SkinInformation.ClientMargins.Top + t, SkinInformation.ClientMargins.Right + r, SkinInformation.ClientMargins.Bottom + b);
 
@@ -160,11 +186,11 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            int x = rect.Left;
-            int y = rect.Top;
-            int w = rect.Width;
-            int h = rect.Height;
-            int s = _bevelMargin;
+            var x = rect.Left;
+            var y = rect.Top;
+            var w = rect.Width;
+            var h = rect.Height;
+            var s = _bevelMargin;
 
             if (_bevelBorder != BevelBorder.None)
             {
@@ -204,17 +230,26 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnBevelBorderChanged(EventArgs e)
         {
-            if (BevelBorderChanged != null) BevelBorderChanged.Invoke(this, e);
+            if (BevelBorderChanged != null)
+            {
+                BevelBorderChanged.Invoke(this, e);
+            }
         } // OnBevelBorderChanged
 
         protected virtual void OnBevelStyleChanged(EventArgs e)
         {
-            if (BevelStyleChanged != null) BevelStyleChanged.Invoke(this, e);
+            if (BevelStyleChanged != null)
+            {
+                BevelStyleChanged.Invoke(this, e);
+            }
         } // OnBevelStyleChanged
 
         protected virtual void OnBevelMarginChanged(EventArgs e)
         {
-            if (BevelMarginChanged != null) BevelMarginChanged.Invoke(this, e);
+            if (BevelMarginChanged != null)
+            {
+                BevelMarginChanged.Invoke(this, e);
+            }
         } // OnBevelMarginChanged
 
 

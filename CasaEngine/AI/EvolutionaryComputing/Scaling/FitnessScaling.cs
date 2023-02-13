@@ -18,7 +18,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
             mapping = new ScalingMapping<T>(population.Genome.Count);
 
             //Populate the mapping with the new fitness values
-            for (int i = 0; i < population.Genome.Count; i++)
+            for (var i = 0; i < population.Genome.Count; i++)
             {
                 if (Objective == EvolutionObjective.Maximize)
                 {

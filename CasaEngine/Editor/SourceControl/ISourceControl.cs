@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.SourceControl
+﻿namespace CasaEngine.Editor.SourceControl
 {
     public interface ISourceControl
     {

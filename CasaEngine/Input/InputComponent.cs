@@ -1,8 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Core_Systems.Game;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 using CasaEngine.Game;
-using CasaEngine.CoreSystems.Game;
+using CasaEngine.Input.InputSequence;
 using CasaEngineCommon.Helper;
 
 
@@ -47,13 +48,13 @@ namespace CasaEngine.Input
 
         //InputConfigurations _InputConfigurations = new InputConfigurations();
         ButtonConfiguration _buttonConfiguration;
-        InputManager.KeyState[] _keysState;
+        InputSequence.InputManager.KeyState[] _keysState;
 
-        readonly InputManager[] _inputManager;
+        readonly InputSequence.InputManager[] _inputManager;
 
 
 
-        public InputManager.KeyState[] KeysState => _keysState;
+        public InputSequence.InputManager.KeyState[] KeysState => _keysState;
 
 
         public bool MouseDetected => _mouseDetected;
@@ -208,14 +209,14 @@ namespace CasaEngine.Input
         public bool MouseInBox(Rectangle rect)
         {
 #if !XBOX360
-            bool ret = _mouseState.X >= rect.X &&
-                       _mouseState.Y >= rect.Y &&
-                       _mouseState.X < rect.Right &&
-                       _mouseState.Y < rect.Bottom;
-            bool lastRet = _mouseStateLastFrame.X >= rect.X &&
-                           _mouseStateLastFrame.Y >= rect.Y &&
-                           _mouseStateLastFrame.X < rect.Right &&
-                           _mouseStateLastFrame.Y < rect.Bottom;
+            var ret = _mouseState.X >= rect.X &&
+                      _mouseState.Y >= rect.Y &&
+                      _mouseState.X < rect.Right &&
+                      _mouseState.Y < rect.Bottom;
+            var lastRet = _mouseStateLastFrame.X >= rect.X &&
+                          _mouseStateLastFrame.Y >= rect.Y &&
+                          _mouseStateLastFrame.X < rect.Right &&
+                          _mouseStateLastFrame.Y < rect.Bottom;
 
             return ret;
 #else
@@ -248,7 +249,7 @@ namespace CasaEngine.Input
             // All keys except A-Z, 0-9 and `-\[];',./= (and space) are special keys.
             // With shift pressed this also results in this keys:
             // ~_|{}:"<>? !@#$%^&*().
-            int keyNum = (int)key;
+            var keyNum = (int)key;
             if ((keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z) ||
                 (keyNum >= (int)Keys.D0 && keyNum <= (int)Keys.D9) ||
                 key == Keys.Space || // well, space ^^
@@ -271,8 +272,8 @@ namespace CasaEngine.Input
         public char KeyToChar(Keys key, bool shiftPressed)
         {
             // If key will not be found, just return space
-            char ret = ' ';
-            int keyNum = (int)key;
+            var ret = ' ';
+            var keyNum = (int)key;
             if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z)
             {
                 if (shiftPressed)
@@ -439,7 +440,7 @@ namespace CasaEngine.Input
 
         public GamePadCapabilities GamePadCapabilities(PlayerIndex index)
         {
-            _gamePadCapabilities[(int)index] = GamePad.GetCapabilities(index);
+            _gamePadCapabilities[(int)index] = Microsoft.Xna.Framework.Input.GamePad.GetCapabilities(index);
             return _gamePadCapabilities[(int)index];
         }
 
@@ -912,7 +913,7 @@ namespace CasaEngine.Input
         public void SetCurrentConfiguration(ButtonConfiguration buttonConfiguration)
         {
             _buttonConfiguration = buttonConfiguration;
-            _keysState = new InputManager.KeyState[_buttonConfiguration.ButtonCount];
+            _keysState = new InputSequence.InputManager.KeyState[_buttonConfiguration.ButtonCount];
         }
 
         /*public bool InputConfigButtonJustPressed(PlayerIndex index_, int code_)
@@ -942,16 +943,16 @@ namespace CasaEngine.Input
 
             UpdateOrder = (int)ComponentUpdateOrder.Input;
 
-            _inputManager = new InputManager[4];
+            _inputManager = new InputSequence.InputManager[4];
 
-            for (int i = 0; i < _inputManager.Length; i++)
+            for (var i = 0; i < _inputManager.Length; i++)
             {
-                _inputManager[i] = new InputManager();
+                _inputManager[i] = new InputSequence.InputManager();
             }
 
             //TODO : add default config
             _buttonConfiguration = new ButtonConfiguration();
-            ButtonMapper map = new ButtonMapper();
+            var map = new ButtonMapper();
             map.Buttons = Buttons.A;
             map.Key = Keys.Enter;
             map.Name = "A";
@@ -969,7 +970,7 @@ namespace CasaEngine.Input
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing == true)
+            if (disposing)
             {
                 lock (this)
                 {
@@ -990,7 +991,7 @@ namespace CasaEngine.Input
 #else
             // Handle mouse input variables
             _mouseStateLastFrame = _mouseState;
-            _mouseState = Mouse.GetState();
+            _mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
             // Update mouseXMovement and mouseYMovement
             _lastMouseXMovement += _mouseState.X - _mouseStateLastFrame.X;
@@ -1062,18 +1063,17 @@ namespace CasaEngine.Input
             _keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 
             // And finally catch the XBox Controller input
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 _gamePadStateLastFrame[i] = _gamePadState[i];
-                _gamePadState[i] =
-                    GamePad.GetState((PlayerIndex)i, _gamePadDeadZoneMode[i]);
+                _gamePadState[i] = Microsoft.Xna.Framework.Input.GamePad.GetState((PlayerIndex)i, _gamePadDeadZoneMode[i]);
             }
 
             // Update all InputManager
-            Dictionary<int, ButtonMapper>.Enumerator enumerator = _buttonConfiguration.Buttons;
-            int j = 0;
+            var enumerator = _buttonConfiguration.Buttons;
+            var j = 0;
 
-            float elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
 
             //create button buffer
             while (enumerator.MoveNext())
@@ -1081,7 +1081,7 @@ namespace CasaEngine.Input
                 _keysState[j].Time = elapsedTime;
                 _keysState[j].Key = enumerator.Current.Key;
 
-                if (IsButtonPressed(_buttonConfiguration.PlayerIndex, enumerator.Current.Value.Buttons) == true)
+                if (IsButtonPressed(_buttonConfiguration.PlayerIndex, enumerator.Current.Value.Buttons))
                 {
                     _keysState[j].State = ButtonState.Pressed;
                 }
@@ -1104,7 +1104,7 @@ namespace CasaEngine.Input
 
 
 
-        public InputManager GetInputManager(PlayerIndex index)
+        public InputSequence.InputManager GetInputManager(PlayerIndex index)
         {
             return _inputManager[(int)index];
         }

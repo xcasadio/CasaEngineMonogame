@@ -1,6 +1,4 @@
-﻿using CasaEngine.Gameplay.Actor.Object;
-
-namespace CasaEngine.Gameplay.Actor
+﻿namespace CasaEngine.Gameplay.Actor
 {
     public class SoundActor2D
         : Actor2D

@@ -1,10 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-
-namespace Editor.Debugger
+﻿namespace Editor.Debugger
 {
     public class DebugHelper
     {

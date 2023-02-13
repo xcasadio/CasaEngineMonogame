@@ -1,5 +1,5 @@
 ﻿using CasaEngine.AI.Messaging;
-using CasaEngine.Math.Shape2D;
+using CasaEngine.Core_Systems.Math.Shape2D;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Gameplay.Design

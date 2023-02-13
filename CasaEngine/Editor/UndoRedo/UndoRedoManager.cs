@@ -26,7 +26,7 @@
 
         public void Add(ICommand command, object arg)
         {
-            UndoRedoParam param = new UndoRedoParam();
+            var param = new UndoRedoParam();
             param.Arg = arg;
             param.Command = command;
 
@@ -54,7 +54,7 @@
         {
             if (CanUndo)
             {
-                UndoRedoParam param = _undo.Pop();
+                var param = _undo.Pop();
                 param.Command.Undo(param.Arg);
                 _redo.Push(param);
 
@@ -69,7 +69,7 @@
         {
             if (CanRedo)
             {
-                UndoRedoParam param = _redo.Pop();
+                var param = _redo.Pop();
                 param.Command.Execute(param.Arg);
                 _undo.Push(param);
 
@@ -87,7 +87,7 @@
 
         public void RemoveLastCommands(int nu)
         {
-            for (int i = 0; i < nu; i++)
+            for (var i = 0; i < nu; i++)
             {
                 if (CanUndo)
                 {

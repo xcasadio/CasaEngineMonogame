@@ -1,11 +1,8 @@
-﻿using System.Xml;
+﻿using System.ComponentModel;
+using System.Xml;
 using CasaEngineCommon.Design;
 
-#if EDITOR
-using System.ComponentModel;
-#endif
-
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public
 #if EDITOR

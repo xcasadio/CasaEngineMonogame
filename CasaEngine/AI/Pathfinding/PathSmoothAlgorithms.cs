@@ -5,21 +5,21 @@ namespace CasaEngine.AI.Pathfinding
 {
     public static class PathSmoothAlgorithms
     {
-        public static void NoSmooth(MovingEntity entity, List<NavigationEdge> path)
+        public static void NoSmooth(MovingObject @object, List<NavigationEdge> path)
         { }
 
-        public static void PathSmoothQuick(MovingEntity entity, List<NavigationEdge> path)
+        public static void PathSmoothQuick(MovingObject @object, List<NavigationEdge> path)
         {
             int i, j;
 
             i = 0;
             j = 1;
 
-            //Move through all the edges of the path testing if the entity can move through 2 non-consecutive points
+            //Move through all the edges of the path testing if the @object can move through 2 non-consecutive points
             //and the edge information is the same in the edges to smooth
             while (j < path.Count)
             {
-                if (entity.CanMoveBetween(path[i].Start, path[j].End) && path[i].Information == path[j].Information)
+                if (@object.CanMoveBetween(path[i].Start, path[j].End) && path[i].Information == path[j].Information)
                 {
                     path[i].End = path[j].End;
                     path.RemoveAt(j);
@@ -33,7 +33,7 @@ namespace CasaEngine.AI.Pathfinding
             }
         }
 
-        public static void PathSmoothPrecise(MovingEntity entity, List<NavigationEdge> path)
+        public static void PathSmoothPrecise(MovingObject @object, List<NavigationEdge> path)
         {
             int i, j;
 
@@ -46,7 +46,7 @@ namespace CasaEngine.AI.Pathfinding
 
                 while (j < path.Count)
                 {
-                    if (entity.CanMoveBetween(path[i].Start, path[j].End) && path[i].Information == path[j].Information)
+                    if (@object.CanMoveBetween(path[i].Start, path[j].End) && path[i].Information == path[j].Information)
                     {
                         path[i].End = path[j].End;
                         path.RemoveRange(i, j - i);

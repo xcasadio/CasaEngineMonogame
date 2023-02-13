@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.FuzzyLogic
 {
     public class FuzzyVariable
     {
@@ -21,7 +21,7 @@
             }
 
             //for each set in the flv calculate the DOM for the given value
-            foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
+            foreach (var pair in _memberSets)
             {
                 pair.Value.Dom = pair.Value.CalculateDom(val);
             }
@@ -29,10 +29,10 @@
 
         public double DeFuzzifyMaxAv()
         {
-            double bottom = 0.0;
-            double top = 0.0;
+            var bottom = 0.0;
+            var top = 0.0;
 
-            foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
+            foreach (var pair in _memberSets)
             {
                 bottom += pair.Value.Dom;
 
@@ -51,10 +51,10 @@
         public double DeFuzzifyCentroid(int numSamples)
         {
             //calculate the step size
-            double stepSize = (_dMaxRange - _dMinRange) / (double)numSamples;
+            var stepSize = (_dMaxRange - _dMinRange) / (double)numSamples;
 
-            double totalArea = 0.0;
-            double sumOfMoments = 0.0;
+            var totalArea = 0.0;
+            var sumOfMoments = 0.0;
 
             //step through the range of this variable in increments equal to StepSize
             //adding up the contribution (lower of CalculateDOM or the actual DOM of this
@@ -66,14 +66,14 @@
             //in addition the moment of each slice is calculated and summed. Dividing
             //the total area by the sum of the moments gives the centroid. (Just like
             //calculating the center of mass of an object)
-            for (int samp = 1; samp <= numSamples; ++samp)
+            for (var samp = 1; samp <= numSamples; ++samp)
             {
                 //for each set get the contribution to the area. This is the lower of the 
                 //value returned from CalculateDOM or the actual DOM of the fuzzified 
                 //value itself   
-                foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
+                foreach (var pair in _memberSets)
                 {
-                    double contribution =
+                    var contribution =
                         System.Math.Min(pair.Value.CalculateDom(_dMinRange + samp * stepSize), pair.Value.Dom);
 
                     totalArea += contribution;
@@ -148,7 +148,7 @@
 
         public void WriteDoMs(BinaryWriter binW)
         {
-            foreach (KeyValuePair<string, FuzzySet> pair in _memberSets)
+            foreach (var pair in _memberSets)
             {
                 binW.Write("\n" + pair.Key + " is " + pair.Value.Dom);
             }

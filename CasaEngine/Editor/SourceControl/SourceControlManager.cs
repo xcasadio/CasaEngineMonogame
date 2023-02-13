@@ -1,14 +1,14 @@
-﻿using CasaEngine.Game;
-using CasaEngineCommon.Logger;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using CasaEngine.Game;
 using CasaEngineCommon.Config;
+using CasaEngineCommon.Logger;
 
-namespace CasaEngine.SourceControl
+namespace CasaEngine.Editor.SourceControl
 {
     public class SourceControlManager
     {
 
-        static private SourceControlManager _instance;
+        private static SourceControlManager _instance;
         private const int Version = 1;
         private readonly string _file = "SourceControl.ini";
         private ISourceControl _sourceControl;
@@ -61,7 +61,7 @@ namespace CasaEngine.SourceControl
             set => _sourceControl = value;
         }
 
-        static public SourceControlManager Instance
+        public static SourceControlManager Instance
         {
             get
             {
@@ -102,11 +102,11 @@ namespace CasaEngine.SourceControl
 
             if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectManager.ProjectPath) == false)
             {
-                string projectPath = Engine.Instance.ProjectManager.ProjectPath;
+                var projectPath = Engine.Instance.ProjectManager.ProjectPath;
 
                 try
                 {
-                    string[] files = Directory.GetFiles(projectPath, "*.*", SearchOption.AllDirectories);
+                    var files = Directory.GetFiles(projectPath, "*.*", SearchOption.AllDirectories);
                     _filesStatus = _sourceControl.FileStatus(files);
                 }
                 catch (Exception e)
@@ -118,13 +118,13 @@ namespace CasaEngine.SourceControl
 
         public void LoadConfig(string path)
         {
-            string filePath = Path.Combine(path, _file);
+            var filePath = Path.Combine(path, _file);
 
-            if (File.Exists(filePath) == true)
+            if (File.Exists(filePath))
             {
-                IniFile ini = new IniFile(filePath);
+                var ini = new IniFile(filePath);
 
-                int version = int.Parse(ini.GetValue("Config", "Version"));
+                var version = int.Parse(ini.GetValue("Config", "Version"));
                 Server = ini.GetValue("Config", "Server");
                 User = ini.GetValue("Config", "User");
                 Workspace = ini.GetValue("Config", "Workspace");
@@ -135,7 +135,7 @@ namespace CasaEngine.SourceControl
 
         public void SaveConfig(string path)
         {
-            IniFile ini = new IniFile();
+            var ini = new IniFile();
             ini.AddSection("Config", "Version", Version.ToString());
             ini.AddSection("Config", "Server", Server);
             ini.AddSection("Config", "User", User);

@@ -10,7 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+
+namespace CasaEngine.UserInterface.Controls.Windows
 {
 
     public abstract class ModalContainer : Container
@@ -31,7 +33,10 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 if (value)
+                {
                     Focused = true;
+                }
+
                 base.Visible = value;
             }
         } // Visible
@@ -73,7 +78,10 @@ namespace XNAFinalEngine.UserInterface
         {
             // You can't activate the modal mode twice at the same time.
             if (UserInterfaceManager.ModalWindow == this)
+            {
                 return;
+            }
+
             _lastModal = UserInterfaceManager.ModalWindow;
             UserInterfaceManager.ModalWindow = this;
             // This allow to close the modal window with the escape key.
@@ -85,7 +93,7 @@ namespace XNAFinalEngine.UserInterface
         public virtual void Close()
         {
             // Raise on closing event.
-            WindowClosingEventArgs ex = new WindowClosingEventArgs();
+            var ex = new WindowClosingEventArgs();
             OnClosing(ex);
             // If an event does not deny the closing...
             if (!ex.Cancel)
@@ -95,16 +103,23 @@ namespace XNAFinalEngine.UserInterface
                 // Restore previous modal window.
                 UserInterfaceManager.ModalWindow = _lastModal;
                 if (_lastModal != null)
+                {
                     _lastModal.Focused = true;
+                }
                 else
+                {
                     UserInterfaceManager.FocusedControl = null;
+                }
+
                 Hide();
                 // Raise on closed event.
-                WindowClosedEventArgs ev = new WindowClosedEventArgs();
+                var ev = new WindowClosedEventArgs();
                 OnClosed(ev);
                 // If an event does not change the dispose property.
                 if (ev.Dispose)
+                {
                     Dispose();
+                }
             }
         } // Close
 
@@ -119,13 +134,17 @@ namespace XNAFinalEngine.UserInterface
         protected virtual void OnClosing(WindowClosingEventArgs e)
         {
             if (Closing != null)
+            {
                 Closing.Invoke(this, e);
+            }
         } // OnClosing
 
         protected virtual void OnClosed(WindowClosedEventArgs e)
         {
             if (Closed != null)
+            {
                 Closed.Invoke(this, e);
+            }
         } // OnClosed
 
 

@@ -26,7 +26,7 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 */
 
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
     public class MultiThreadingTask<T>
     {
@@ -69,7 +69,7 @@ namespace XNAFinalEngine.Helpers
                 _processorAffinity = ProcessorsInformation.ProcessorsAffinity;
             }
 
-            for (int i = 0; i < numberOfThreads; i++)
+            for (var i = 0; i < numberOfThreads; i++)
             {
                 _taskDone[i] = new ManualResetEvent(false);
                 _waitForWork[i] = new ManualResetEvent(false);
@@ -82,7 +82,7 @@ namespace XNAFinalEngine.Helpers
 
         private void TaskManager(object parameter)
         {
-            int index = (int)parameter;
+            var index = (int)parameter;
 
             Thread.CurrentThread.IsBackground = true; // To destroy it when the application exits.
 #if XBOX
@@ -111,7 +111,7 @@ namespace XNAFinalEngine.Helpers
 
         public void WaitForTaskCompletition()
         {
-            for (int i = 0; i < _threads.Count; i++)
+            for (var i = 0; i < _threads.Count; i++)
             {
                 _taskDone[i].WaitOne();
                 _taskDone[i].Reset();

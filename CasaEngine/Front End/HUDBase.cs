@@ -60,7 +60,7 @@ namespace CasaEngine.Front_End
                 Vector2.Zero, 
                 0.0f, Vector2.One, Color.White, 0.0f);*/
 
-            Viewport viewport = Engine.Instance.Game.GraphicsDevice.Viewport;
+            var viewport = Engine.Instance.Game.GraphicsDevice.Viewport;
 
             _renderer2DComponent.AddText2D(
                 Engine.Instance.DefaultSpriteFont,

@@ -11,7 +11,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
         public RankScaling(EvolutionObjective objective, double alpha)
             : base(objective)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateAlpha(alpha, ref message) == false)
             {
@@ -45,7 +45,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
 
             //Calculate the new fitness values (ranks) for the mapping
             popSize = population.Genome.Count;
-            for (int i = 0; i < popSize; i++)
+            for (var i = 0; i < popSize; i++)
             {
                 temp = ((2.0 - Alpha) / popSize) + (2.0 * i * (Alpha - 1.0) / (popSize * (popSize - 1.0)));
                 mapping.AddChromosome(population[i], temp);

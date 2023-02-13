@@ -26,7 +26,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+
+namespace CasaEngine.UserInterface.Controls
 {
 
     public class AssetSelector : Control
@@ -150,25 +152,33 @@ namespace XNAFinalEngine.UserInterface
         protected virtual void OnAssetAdded(EventArgs e)
         {
             if (AssetAdded != null)
+            {
                 AssetAdded.Invoke(this, e);
+            }
         } // OnAssetAdded
 
         protected virtual void OnAssetEdited(EventArgs e)
         {
             if (AssetEdited != null)
+            {
                 AssetEdited.Invoke(this, e);
+            }
         } // OnAssetEdited
 
         protected virtual void OnMaxItemsChanged(EventArgs e)
         {
             if (MaxItemsChanged != null)
+            {
                 MaxItemsChanged.Invoke(this, e);
+            }
         } // OnMaxItemsChanged
 
         protected virtual void OnItemIndexChanged(EventArgs e)
         {
             if (ItemIndexChanged != null)
+            {
                 ItemIndexChanged.Invoke(this, e);
+            }
         } // OnItemIndexChanged
 
 

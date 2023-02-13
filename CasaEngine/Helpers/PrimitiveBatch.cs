@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Helper
+namespace CasaEngine.Helpers
 {
     public class PrimitiveBatch
         : IDisposable
@@ -154,7 +154,7 @@ namespace CasaEngine.Helper
             }
             if (_triangleVertsCount >= 3)
             {
-                int primitiveCount = _triangleVertsCount / 3;
+                var primitiveCount = _triangleVertsCount / 3;
                 // submit the draw call to the graphics card
                 _device.SamplerStates[0] = SamplerState.AnisotropicClamp;
                 _device.DrawUserPrimitives(PrimitiveType.TriangleList, _triangleVertices, 0, primitiveCount);
@@ -170,7 +170,7 @@ namespace CasaEngine.Helper
             }
             if (_lineVertsCount >= 2)
             {
-                int primitiveCount = _lineVertsCount / 2;
+                var primitiveCount = _lineVertsCount / 2;
                 // submit the draw call to the graphics card
                 _device.SamplerStates[0] = SamplerState.AnisotropicClamp;
                 _device.DrawUserPrimitives(PrimitiveType.LineList, _lineVertices, 0, primitiveCount);

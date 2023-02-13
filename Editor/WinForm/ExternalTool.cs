@@ -1,16 +1,9 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Editor.Tools;
-
-namespace Editor.WinForm
+﻿namespace Editor.WinForm
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	/*public abstract class ExternalTool
+    /// <summary>
+    /// 
+    /// </summary>
+    /*public abstract class ExternalTool
         : IExternalTool
 	{
 

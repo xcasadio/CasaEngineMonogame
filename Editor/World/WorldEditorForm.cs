@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using WeifenLuo.WinFormsUI.Docking;
+﻿using WeifenLuo.WinFormsUI.Docking;
 using Editor.Tools;
 using CasaEngine.Editor.UndoRedo;
-using CasaEngine.Game;
-using System.Threading;
 
 namespace Editor.World
 {

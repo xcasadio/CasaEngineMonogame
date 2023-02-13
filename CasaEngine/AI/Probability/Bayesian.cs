@@ -17,7 +17,7 @@
 
         public bool Equals(Pattern other)
         {
-            for (int i = 0; i < _pattern.Length; i++)
+            for (var i = 0; i < _pattern.Length; i++)
             {
                 if (other._pattern[i] != _pattern[i])
                 {
@@ -54,25 +54,25 @@
 
         private void BuildProbabilities()
         {
-            List<int[]> list = new List<int[]>();
-            int[] pattern = new int[_nbPossibilities];
-            int[] proba = new int[_nbActions + 1];
+            var list = new List<int[]>();
+            var pattern = new int[_nbPossibilities];
+            var proba = new int[_nbActions + 1];
 
-            for (int i = 0; i < _nbActions + 1; i++)
+            for (var i = 0; i < _nbActions + 1; i++)
             {
                 proba[i] = 0;
             }
 
-            for (int i = 0; i < _nbPossibilities; i++)
+            for (var i = 0; i < _nbPossibilities; i++)
             {
                 pattern[i] = 0;
             }
 
             CreatePattern(ref list, pattern, 1);
 
-            foreach (int[] a in list)
+            foreach (var a in list)
             {
-                Pattern p = new Pattern(a);
+                var p = new Pattern(a);
                 _listPattern.Add(p);
                 _probabilities.Add(p, proba.ToArray());
             }
@@ -99,7 +99,7 @@
             {
                 pattern[pos]++;
 
-                for (int i = 0; i < pos; i++)
+                for (var i = 0; i < pos; i++)
                 {
                     pattern[i] = 0;
                 }
@@ -123,13 +123,13 @@
 
         public int ComputeProbabilities(int[] currentPattern)
         {
-            Pattern pattern = GetPattern(currentPattern);
+            var pattern = GetPattern(currentPattern);
 
-            int[] proba = _probabilities[pattern];
-            int action = 0;
+            var proba = _probabilities[pattern];
+            var action = 0;
             double max = float.MinValue, x;
 
-            for (int i = 0; i < _nbActions; i++)
+            for (var i = 0; i < _nbActions; i++)
             {
                 x = (double)proba[i] / (double)proba[_nbActions];
                 if (max < x)
@@ -144,7 +144,7 @@
 
         public void UpdateProbabilities(int[] currentPattern, int action)
         {
-            Pattern pattern = GetPattern(currentPattern);
+            var pattern = GetPattern(currentPattern);
 
             _probabilities[pattern][_nbActions]++;
             _probabilities[pattern][action]++;
@@ -152,9 +152,9 @@
 
         Pattern GetPattern(int[] currentPattern)
         {
-            Pattern pattern = new Pattern(currentPattern);
+            var pattern = new Pattern(currentPattern);
 
-            foreach (Pattern p in _listPattern)
+            foreach (var p in _listPattern)
             {
                 if (p.Equals(pattern))
                 {

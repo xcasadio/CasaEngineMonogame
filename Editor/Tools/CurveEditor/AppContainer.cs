@@ -14,10 +14,6 @@
 
 using System.ComponentModel;
 using System.ComponentModel.Design;
-using System.Collections.Generic;
-using System.Text;
-
-
 
 
 namespace Editor.Tools.CurveEditor

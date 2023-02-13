@@ -5,13 +5,14 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
+using CasaEngine.Core_Systems.Game;
 using CasaEngine.Game;
 using CasaEngine.Input;
-using CasaEngine.CoreSystems.Game;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using GamePad = Microsoft.Xna.Framework.Input.GamePad;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public class InputState
     {
@@ -62,7 +63,7 @@ namespace CasaEngine.FrontEnd.Screen
             {
                 // Read input from the specified player.
                 playerIndex = controllingPlayer.Value;
-                if (GamePad.GetCapabilities(playerIndex).IsConnected == true)
+                if (GamePad.GetCapabilities(playerIndex).IsConnected)
                 {
                     return _inputComponent.IsButtonJustPressed(playerIndex, button);
                 }

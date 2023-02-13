@@ -22,7 +22,7 @@
 
         public void Update()
         {
-            foreach (Layer l in _layerList.ToArray())
+            foreach (var l in _layerList.ToArray())
             {
                 l.Update();
             }

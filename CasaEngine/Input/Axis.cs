@@ -27,11 +27,11 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
+using CasaEngine.Helpers;
 using Microsoft.Xna.Framework;
 //using XNAFinalEngine.EngineCore;
-using XNAFinalEngine.Helpers;
 
-namespace XNAFinalEngine.Input
+namespace CasaEngine.Input
 {
 
     public class Axis : Disposable
@@ -120,8 +120,8 @@ namespace XNAFinalEngine.Input
             if (AxisBehavior == AxisBehaviors.DigitalInput)
             {
                 // Check if the buttons were pressed.
-                bool positiveButtonPressed = PositiveKeyButton.Pressed(GamePadNumber) || AlternativePositiveKeyButton.Pressed(GamePadNumber);
-                bool negativeButtonPressed = NegativeKeyButton.Pressed(GamePadNumber) || AlternativeNegativeKeyButton.Pressed(GamePadNumber);
+                var positiveButtonPressed = PositiveKeyButton.Pressed(GamePadNumber) || AlternativePositiveKeyButton.Pressed(GamePadNumber);
+                var negativeButtonPressed = NegativeKeyButton.Pressed(GamePadNumber) || AlternativeNegativeKeyButton.Pressed(GamePadNumber);
 
                 // Raw value.
                 _valueRaw = 0;
@@ -203,7 +203,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
                             {
@@ -220,7 +220,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
                             {
@@ -237,7 +237,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
                             {
@@ -254,7 +254,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
                             {
@@ -271,7 +271,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(_valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
                             {
@@ -296,7 +296,7 @@ namespace XNAFinalEngine.Input
                 // GamePad
                 else
                 {
-                    float valueRawWithDeadZone = _valueRaw;
+                    var valueRawWithDeadZone = _valueRaw;
                     // Dead Zone: Size of the analog dead zone. All analog device values within this range result map to neutral.
                     if (_valueRaw > -DeadZone && _valueRaw < DeadZone)
                     {
@@ -315,7 +315,7 @@ namespace XNAFinalEngine.Input
             if (TemporalSmoothing)
             {
                 // Average the input of the current frame with the previous values.
-                float storeValue = _value;
+                var storeValue = _value;
                 _value = (_previousValues[0] + _previousValues[1] + _value) / (_previousValues.Length + 1);
                 _previousValues[1] = _previousValues[0];
                 _previousValues[0] = storeValue;
@@ -328,7 +328,7 @@ namespace XNAFinalEngine.Input
         public static float Value(string axisName)
         {
             float maxValue = 0;
-            bool foundAxis = false;
+            var foundAxis = false;
             foreach (var axis in Axes)
             {
                 if (axis.Name == axisName && Math.Abs(axis._value) >= Math.Abs(maxValue))
@@ -348,7 +348,7 @@ namespace XNAFinalEngine.Input
         public static float ValueRaw(string axisName)
         {
             float maxValue = 0;
-            bool foundAxis = false;
+            var foundAxis = false;
             foreach (var axis in Axes)
             {
                 if (axis.Name == axisName && Math.Abs(axis._valueRaw) >= Math.Abs(maxValue))

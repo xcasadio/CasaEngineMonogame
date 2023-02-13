@@ -1,15 +1,15 @@
-﻿using Microsoft.Xna.Framework;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngine.Game;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.FrontEnd.Screen.Gadget
+namespace CasaEngine.Front_End.Screen.Gadget
 {
     public partial class ScreenGadget
     {
 
-        static private readonly int Version = 1;
+        private static readonly int Version = 1;
 
 
 

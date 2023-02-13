@@ -1,30 +1,14 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
+﻿using System.ComponentModel;
 using CasaEngine.Game;
-using System.Xml;
-using CasaEngine.Graphics2D;
-using CasaEngineCommon.Extension;
-using System.IO;
 using CasaEngineCommon.Logger;
-using Editor.Log;
 using Editor.WinForm.DocToolkit;
 using System.Diagnostics;
-using CasaEngine.Editor;
-using CasaEngine.Editor.Tools;
 using Editor.WinForm;
 using System.Reflection;
-using System.Threading;
 using Editor.SoundEditor;
-using CasaEngine.SourceControl;
 using Editor.SourceControl;
-using Editor.Debugger;
 using CasaEngine.Editor.Assets;
+using CasaEngine.Editor.SourceControl;
 using Editor.Map;
 using Editor.Sprite2DEditor.SpriteSheetPacker;
 using CasaEngine.Project;
@@ -426,12 +410,12 @@ namespace Editor
             SourceControlManager.Instance.LoadConfig(Path.GetDirectoryName(fileName_) + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath);
 
 #if !UNITTEST
-            SourceControlManager.Instance.SourceControl.Connect();
+            /*SourceControlManager.Instance.SourceControl.Connect();
 
             if (SourceControlManager.Instance.SourceControl.IsValidConnection() == false)
             {
                 //Ask connection information
-                /*SourceControlConnectionForm form = new SourceControlConnectionForm();
+                SourceControlConnectionForm form = new SourceControlConnectionForm();
 
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -445,8 +429,8 @@ namespace Editor
                     {
                         SourceControlManager.Instance.CheckProjectFiles();
                     }
-                }*/
-            }
+                }
+            }*/
 #endif
 
             OnProjectLoaded(fileName_);

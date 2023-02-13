@@ -1,9 +1,8 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-
-namespace CasaEngine.Design.Parser
+namespace CasaEngine.Core_Systems.Parser
 {
     class CalculatorTokenKeyword
         : CalculatorToken
@@ -43,10 +42,10 @@ namespace CasaEngine.Design.Parser
 
         public override void Save(XmlElement el, SaveOption option)
         {
-            XmlElement node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            var node = (XmlElement)el.OwnerDocument.CreateElement("Node");
             el.AppendChild(node);
             el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Keyword).ToString());
-            XmlElement valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Keyword", _keyword);
+            var valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Keyword", _keyword);
             node.AppendChild(valueNode);
         }
 

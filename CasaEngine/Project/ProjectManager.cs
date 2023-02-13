@@ -12,34 +12,34 @@ namespace CasaEngine.Project
     {
 
 
-        static public readonly string NodeRootName = "Project";
-        static public readonly string NodeWorldListName = "WorldList";
-        static public readonly string NodeWorldName = "World";
-        static public readonly string NodeScreenListName = "ScreenList";
-        static public readonly string NodeScreenName = "Screen";
-        static public readonly string NodeAsset2DName = "Asset2D";
-        static public readonly string NodeSprite2DListName = "Sprite2DList";
-        static public readonly string NodeSprite2DName = "Sprite2D";
-        static public readonly string NodeAnimation2DListName = "Animation2DList";
-        static public readonly string NodeAnimation2DName = "Animation2D";
-        static public readonly string NodeAsset3DName = "Asset3D";
-        static public readonly string NodeAnimation3DListName = "Animation3DList";
-        static public readonly string NodeAnimation3DName = "Animation3D";
-        static public readonly string NodeAssetListName = "AssetList";
-        static public readonly string NodeAssetName = "Asset";
-        static public readonly string NodeObjectRegistryName = "ObjectRegistry";
-        static public readonly string NodeObjectListName = "Objects";
-        static public readonly string NodeObjectName = "Object";
-        static public readonly string NodeConfigName = "Config";
+        public static readonly string NodeRootName = "Project";
+        public static readonly string NodeWorldListName = "WorldList";
+        public static readonly string NodeWorldName = "World";
+        public static readonly string NodeScreenListName = "ScreenList";
+        public static readonly string NodeScreenName = "Screen";
+        public static readonly string NodeAsset2DName = "Asset2D";
+        public static readonly string NodeSprite2DListName = "Sprite2DList";
+        public static readonly string NodeSprite2DName = "Sprite2D";
+        public static readonly string NodeAnimation2DListName = "Animation2DList";
+        public static readonly string NodeAnimation2DName = "Animation2D";
+        public static readonly string NodeAsset3DName = "Asset3D";
+        public static readonly string NodeAnimation3DListName = "Animation3DList";
+        public static readonly string NodeAnimation3DName = "Animation3D";
+        public static readonly string NodeAssetListName = "AssetList";
+        public static readonly string NodeAssetName = "Asset";
+        public static readonly string NodeObjectRegistryName = "ObjectRegistry";
+        public static readonly string NodeObjectListName = "Objects";
+        public static readonly string NodeObjectName = "Object";
+        public static readonly string NodeConfigName = "Config";
 
 
 
 
         //Dir name
         //static public readonly string AnimationDirName = "Animation";
-        static public readonly string AssetDirName = "Asset";
+        public static readonly string AssetDirName = "Asset";
         //static public readonly string EffectDirName = "Effect";
-        static public readonly string ExternalToolsDirName = "ExternTools";
+        public static readonly string ExternalToolsDirName = "ExternTools";
         //static public readonly string ModelDirName = "Model";
         //static public readonly string XNBDirName = "XNB";
         //static public readonly string SoundDirName = "Sound";
@@ -48,7 +48,7 @@ namespace CasaEngine.Project
         //static readonly string WorldDirName = "Worlds";
 
         //dir path
-        static public readonly string AssetDirPath = AssetDirName;
+        public static readonly string AssetDirPath = AssetDirName;
         //asset
         //static public readonly string AnimationDirPath = AssetDirPath + Path.DirectorySeparatorChar + AnimationDirName;
         //static public readonly string EffectDirPath = AssetDirPath + Path.DirectorySeparatorChar + EffectDirName;
@@ -58,9 +58,9 @@ namespace CasaEngine.Project
         //static public readonly string ImageDirPath = AssetDirPath + Path.DirectorySeparatorChar + ImageDirName;
         //static public readonly string VideoDirPath = AssetDirPath + Path.DirectorySeparatorChar + VideoDirName;
         //editor
-        static public readonly string ExternalToolsDirPath = ExternalToolsDirName;
-        static public readonly string GameDirPath = "Game";
-        static public readonly string ConfigDirPath = "Config";
+        public static readonly string ExternalToolsDirPath = ExternalToolsDirName;
+        public static readonly string GameDirPath = "Game";
+        public static readonly string ConfigDirPath = "Config";
         //static public readonly string PackageDirPath = "Packages";
 
 
@@ -86,12 +86,12 @@ namespace CasaEngine.Project
             ProjectFileOpened = fileName;
 #endif
 
-            XmlDocument xmlDoc = new XmlDocument();
+            var xmlDoc = new XmlDocument();
             xmlDoc.Load(fileName);
 
-            XmlElement projectNode = (XmlElement)xmlDoc.SelectSingleNode(NodeRootName);
+            var projectNode = (XmlElement)xmlDoc.SelectSingleNode(NodeRootName);
 
-            XmlElement configNode = (XmlElement)projectNode.SelectSingleNode(NodeConfigName);
+            var configNode = (XmlElement)projectNode.SelectSingleNode(NodeConfigName);
             Engine.Instance.ProjectConfig.Load(configNode, SaveOption.Editor);
 
             /*XmlElement asset2DNode = (XmlElement)projectNode.SelectSingleNode(NodeAsset2DName);

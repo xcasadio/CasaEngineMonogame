@@ -30,8 +30,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-
-namespace XNAFinalEngine.Input
+namespace CasaEngine.Input
 {
 
     public class GamePad
@@ -168,7 +167,7 @@ namespace XNAFinalEngine.Input
 
 
         // The four possible gamepads.
-        private readonly static GamePad PlayerOneGamePad = new(PlayerIndex.One),
+        private static readonly GamePad PlayerOneGamePad = new(PlayerIndex.One),
                                         PlayerTwoGamePad = new(PlayerIndex.Two),
                                         PlayerThreeGamePad = new(PlayerIndex.Three),
                                         PlayerFourGamePad = new(PlayerIndex.Four);

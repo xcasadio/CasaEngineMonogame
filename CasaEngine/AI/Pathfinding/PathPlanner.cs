@@ -8,14 +8,14 @@ namespace CasaEngine.AI.Pathfinding
     public class PathPlanner<T> where T : WeightedEdge
     {
         public const int NoNodeFound = -1;
-        protected internal MovingEntity owner;
+        protected internal MovingObject owner;
         protected internal Graph<NavigationNode, T> graph;
         protected internal float neighboursSearchRange;
         protected internal GraphSearchAlgorithm<NavigationNode, T> search;
         protected internal Vector3 destination;
         protected internal PathSmoother smoothAlgorithm;
 
-        public PathPlanner(MovingEntity owner, Graph<NavigationNode, T> graph, GraphSearchAlgorithm<NavigationNode, T> search, float neighboursSearchRange, PathSmoother smoothAlgorithm)
+        public PathPlanner(MovingObject owner, Graph<NavigationNode, T> graph, GraphSearchAlgorithm<NavigationNode, T> search, float neighboursSearchRange, PathSmoother smoothAlgorithm)
         {
             this.owner = owner;
             this.graph = graph;
@@ -24,7 +24,7 @@ namespace CasaEngine.AI.Pathfinding
             this.smoothAlgorithm = smoothAlgorithm;
         }
 
-        public MovingEntity Owner => owner;
+        public MovingObject Owner => owner;
 
         public Graph<NavigationNode, T> Graph
         {
@@ -53,7 +53,7 @@ namespace CasaEngine.AI.Pathfinding
             destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            if (owner.CanMoveBetween(owner.Position, destination))
             {
                 MessageManagerRouter.Instance.SendMessage(0, owner.Id, 0, (int)MessageType.PathReady, null);
                 return true;
@@ -135,7 +135,7 @@ namespace CasaEngine.AI.Pathfinding
             destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            if (owner.CanMoveBetween(owner.Position, destination))
             {
                 return PathOfPositions;
             }
@@ -171,7 +171,7 @@ namespace CasaEngine.AI.Pathfinding
             destination = position;
 
             //If the entity can reach the destination directly, there´s no need to request a search
-            if (owner.CanMoveBetween(owner.Position, destination) == true)
+            if (owner.CanMoveBetween(owner.Position, destination))
             {
                 return PathOfEdges;
             }
@@ -234,10 +234,10 @@ namespace CasaEngine.AI.Pathfinding
             closestDistance = float.MaxValue;
 
             //See the closest node the entity can reach
-            for (int i = 0; i < neighbours.Count; i++)
+            for (var i = 0; i < neighbours.Count; i++)
             {
                 //If the entity can reach the position update the closest node values
-                if (owner.CanMoveBetween(position, neighbours[i].Position) == true)
+                if (owner.CanMoveBetween(position, neighbours[i].Position))
                 {
                     distance = (position - neighbours[i].Position).LengthSquared();
 
@@ -259,7 +259,7 @@ namespace CasaEngine.AI.Pathfinding
             path = new List<Vector3>();
 
             //Get the position of each node
-            for (int i = 0; i < nodes.Count; i++)
+            for (var i = 0; i < nodes.Count; i++)
             {
                 path.Add(graph.GetNode(i).Position);
             }
@@ -279,7 +279,7 @@ namespace CasaEngine.AI.Pathfinding
             if (annotatedGraph == null)
             {
                 //Create the list without extra edge information
-                for (int i = 0; i < nodes.Count - 1; i++)
+                for (var i = 0; i < nodes.Count - 1; i++)
                 {
                     path.Add(new NavigationEdge(graph.GetNode(nodes[i]).Position, graph.GetNode(nodes[i + 1]).Position, EdgeInformation.Normal));
                 }
@@ -288,7 +288,7 @@ namespace CasaEngine.AI.Pathfinding
             else
             {
                 //Create the list with extra edge information
-                for (int i = 0; i < nodes.Count - 1; i++)
+                for (var i = 0; i < nodes.Count - 1; i++)
                 {
                     path.Add(new NavigationEdge(annotatedGraph.GetNode(nodes[i]).Position, annotatedGraph.GetNode(nodes[i + 1]).Position, annotatedGraph.GetEdge(nodes[i], nodes[i + 1]).Information));
                 }

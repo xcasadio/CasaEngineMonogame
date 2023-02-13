@@ -1,5 +1,4 @@
-﻿using CasaEngine.Gameplay.Actor.Object;
-
+﻿using CasaEngine.Gameplay.Actor;
 
 namespace CasaEngine.AI.Reinforcement_Learning.QLearning
 {

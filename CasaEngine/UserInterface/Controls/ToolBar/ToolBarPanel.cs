@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.ToolBar
 {
 
     public class ToolBarPanel : Control
@@ -43,17 +43,19 @@ namespace XNAFinalEngine.UserInterface
 
         private void AlignBars()
         {
-            int[] rowOffset = new int[8];
-            int height = 0;
-            int rowMax = -1;
+            var rowOffset = new int[8];
+            var height = 0;
+            var rowMax = -1;
 
-            foreach (Control childControl in ChildrenControls)
+            foreach (var childControl in ChildrenControls)
             {
                 if (childControl is ToolBar)
                 {
-                    ToolBar toolBar = childControl as ToolBar;
+                    var toolBar = childControl as ToolBar;
                     if (toolBar.FullRow)
+                    {
                         toolBar.Width = Width;
+                    }
 
                     toolBar.Left = rowOffset[toolBar.Row];
                     toolBar.Top = (toolBar.Row * toolBar.Height) + (toolBar.Row > 0 ? 1 : 0);

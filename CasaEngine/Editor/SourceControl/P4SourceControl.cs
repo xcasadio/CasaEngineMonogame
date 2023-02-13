@@ -1,8 +1,8 @@
-﻿using P4API;
+﻿using CasaEngine.Game;
 using CasaEngineCommon.Logger;
-using CasaEngine.Game;
+using P4API;
 
-namespace CasaEngine.SourceControl
+namespace CasaEngine.Editor.SourceControl
 {
     public class P4SourceControl
         : ISourceControl
@@ -76,7 +76,7 @@ namespace CasaEngine.SourceControl
 
         private bool Run(string command, params string[] args)
         {
-            P4RecordSet set = RunEx(command, args);
+            var set = RunEx(command, args);
             return set == null ? false : set.Errors.Count() == 0;
         }
 
@@ -95,19 +95,19 @@ namespace CasaEngine.SourceControl
 
                 if (LogManager.Instance.Verbosity == LogManager.LogVerbosity.Debug)
                 {
-                    foreach (string warning in set.Warnings)
+                    foreach (var warning in set.Warnings)
                     {
                         LogManager.Instance.WriteLineWarning("{Perforce : " + command + args + " } " + warning);
                     }
                 }
 
-                foreach (string error in set.Errors)
+                foreach (var error in set.Errors)
                 {
                     LogManager.Instance.WriteLineError("{Perforce} " + error);
                 }
 
 #if DEBUG
-                foreach (string msg in set.Messages)
+                foreach (var msg in set.Messages)
                 {
                     LogManager.Instance.WriteLineWarning("{Perforce} " + msg);
                 }
@@ -139,17 +139,17 @@ namespace CasaEngine.SourceControl
             {
                 _p4Connection.Connect();
 
-                if (_p4Connection.IsValidConnection(true, true) == true)
+                if (_p4Connection.IsValidConnection(true, true))
                 {
-                    P4RecordSet set = _p4Connection.Run("workspaces", "-u", SourceControlManager.Instance.User);
+                    var set = _p4Connection.Run("workspaces", "-u", SourceControlManager.Instance.User);
 
                     if (set != null)
                     {
-                        foreach (P4Record r in set.Records)
+                        foreach (var r in set.Records)
                         {
-                            if (r.Fields["client"].Equals(SourceControlManager.Instance.Workspace) == true)
+                            if (r.Fields["client"].Equals(SourceControlManager.Instance.Workspace))
                             {
-                                if (_p4Connection.CWD.Equals(r.Fields["Root"]) == true)
+                                if (_p4Connection.CWD.Equals(r.Fields["Root"]))
                                 {
                                     _validWorkspaceDirectory = true;
                                     LogManager.Instance.WriteLine("Connected to Perforce server");
@@ -195,28 +195,28 @@ namespace CasaEngine.SourceControl
 
         public Dictionary<string, Dictionary<SourceControlKeyWord, string>> FileStatus(string[] filesName)
         {
-            Dictionary<string, Dictionary<SourceControlKeyWord, string>> res = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
+            var res = new Dictionary<string, Dictionary<SourceControlKeyWord, string>>();
             Dictionary<SourceControlKeyWord, string> fileRes;
             //P4RecordSet set = RunEx("files", filesName_);
             //P4RecordSet set = RunEx("fstat", "-Ol", "-Rc", "//" + SourceControlManager.Instance.Workspace + "/...");
             //P4RecordSet set = RunEx("fstat", "-Olhp", "//LostKingdo_Workspace_Editor_XC/...");
-            P4RecordSet set = RunEx("fstat", filesName);
+            var set = RunEx("fstat", filesName);
 
             if (set != null)
             {
-                foreach (P4Record record in set.Records)
+                foreach (var record in set.Records)
                 {
                     fileRes = new Dictionary<SourceControlKeyWord, string>();
 
-                    foreach (string key in record.Fields.Keys)
+                    foreach (var key in record.Fields.Keys)
                     {
-                        if (_keyWordMapping.ContainsKey(key) == true)
+                        if (_keyWordMapping.ContainsKey(key))
                         {
                             fileRes.Add(_keyWordMapping[key], record.Fields[key]);
                         }
                     }
 
-                    string file = record.Fields["clientFile"];
+                    var file = record.Fields["clientFile"];
                     res.Add(file, fileRes);
                 }
             }

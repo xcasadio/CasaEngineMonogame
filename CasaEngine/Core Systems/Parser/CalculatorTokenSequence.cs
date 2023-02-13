@@ -1,8 +1,7 @@
 ﻿using System.Xml;
 using CasaEngineCommon.Design;
 
-
-namespace CasaEngine.Design.Parser
+namespace CasaEngine.Core_Systems.Parser
 {
     class CalculatorTokenSequence
         : CalculatorToken

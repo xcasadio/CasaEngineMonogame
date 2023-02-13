@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenValue
         : ParserToken
@@ -22,12 +22,12 @@
         {
             //int value;
 
-            if (string.IsNullOrEmpty(sentence) == true)
+            if (string.IsNullOrEmpty(sentence))
             {
                 return false;
             }
 
-            if (float.TryParse(sentence, out _value) == true)
+            if (float.TryParse(sentence, out _value))
             {
                 Parser.AddCalculator(new CalculatorTokenValue(Parser.Calculator, _value));
             }

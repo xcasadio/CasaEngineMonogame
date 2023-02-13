@@ -1,9 +1,8 @@
-﻿using CasaEngineCommon.Extension;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-
-namespace CasaEngine.Design.Parser
+namespace CasaEngine.Core_Systems.Parser
 {
     class CalculatorTokenBinaryOperator
         : CalculatorToken
@@ -130,12 +129,12 @@ namespace CasaEngine.Design.Parser
 
         public override void Save(XmlElement el, SaveOption option)
         {
-            XmlElement node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            var node = (XmlElement)el.OwnerDocument.CreateElement("Node");
             el.AppendChild(node);
             el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.BinaryOperator).ToString());
             el.OwnerDocument.AddAttribute(node, "operator", ((int)_operator).ToString());
 
-            XmlElement child = (XmlElement)el.OwnerDocument.CreateElement("Left");
+            var child = (XmlElement)el.OwnerDocument.CreateElement("Left");
             node.AppendChild(child);
             _left.Save(child, option);
 
@@ -148,7 +147,7 @@ namespace CasaEngine.Design.Parser
         {
             _operator = (BinaryOperator)int.Parse(el.Attributes["operator"].Value);
 
-            XmlElement child = (XmlElement)el.SelectSingleNode("Left/Node");
+            var child = (XmlElement)el.SelectSingleNode("Left/Node");
             _left = Calculator.CreateCalculatorToken(Calculator, child, option);
 
             child = (XmlElement)el.SelectSingleNode("Right/Node");

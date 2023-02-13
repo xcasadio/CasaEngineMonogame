@@ -1,13 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.ComponentModel;
 using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
+using Microsoft.Xna.Framework;
 
-#if EDITOR
-using System.ComponentModel;
-#endif
-
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public
 #if EDITOR
@@ -56,14 +53,14 @@ namespace CasaEngine.Math.Shape2D
         {
             base.Load(el, option);
 
-            int version = int.Parse(el.Attributes["version"].Value);
+            var version = int.Parse(el.Attributes["version"].Value);
 
             if (version > 2)
             {
                 _isABox = bool.Parse(el.Attributes["isABox"].Value);
             }
 
-            XmlElement pointList = (XmlElement)el.SelectSingleNode("PointList");
+            var pointList = (XmlElement)el.SelectSingleNode("PointList");
 
 #if EDITOR
             _points.Clear();
@@ -74,7 +71,7 @@ namespace CasaEngine.Math.Shape2D
 
             foreach (XmlNode node in pointList.ChildNodes)
             {
-                Vector2 p = new Vector2();
+                var p = new Vector2();
                 ((XmlElement)node).Read(ref p);
 #if EDITOR
                 _points.Add(p);
@@ -98,7 +95,7 @@ namespace CasaEngine.Math.Shape2D
 
             base.CopyFrom(ob);
 
-            ShapePolygone s = (ShapePolygone)ob;
+            var s = (ShapePolygone)ob;
 
 #if EDITOR
             _points.AddRange(s._points);
@@ -111,12 +108,12 @@ namespace CasaEngine.Math.Shape2D
         public override void FlipHorizontally()
         {
 #if EDITOR
-            int c = _points.Count;
+            var c = _points.Count;
 #else
             int c = _Points.Length;
 #endif
 
-            for (int i = 0; i < c; i++)
+            for (var i = 0; i < c; i++)
             {
 #if EDITOR
                 _points[i] = new Vector2(-_points[i].X, _points[i].Y);
@@ -131,12 +128,12 @@ namespace CasaEngine.Math.Shape2D
         public override void FlipVertically()
         {
 #if EDITOR
-            int c = _points.Count;
+            var c = _points.Count;
 #else
             int c = _Points.Length;
 #endif
 
-            for (int i = 0; i < c; i++)
+            for (var i = 0; i < c; i++)
             {
 #if EDITOR
                 _points[i] = new Vector2(_points[i].X, -_points[i].Y);

@@ -11,7 +11,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+
+namespace CasaEngine.UserInterface.Controls.Auxiliary
 {
 
     public class ScrollBar : Control
@@ -46,12 +48,20 @@ namespace XNAFinalEngine.UserInterface
                 {
                     _value = value;
                     if (_value < 0)
+                    {
                         _value = 0;
+                    }
+
                     if (_value > _range - _pageSize)
+                    {
                         _value = _range - _pageSize;
+                    }
+
                     Invalidate();
                     if (!Suspended)
+                    {
                         OnValueChanged(new EventArgs());
+                    }
                 }
             }
         } // Value
@@ -64,9 +74,16 @@ namespace XNAFinalEngine.UserInterface
                 if (_range != value)
                 {
                     _range = value;
-                    if (_pageSize > _range) _pageSize = _range;
+                    if (_pageSize > _range)
+                    {
+                        _pageSize = _range;
+                    }
+
                     RecalculateParameters();
-                    if (!Suspended) OnRangeChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnRangeChanged(new EventArgs());
+                    }
                 }
             }
         } // Range
@@ -79,9 +96,16 @@ namespace XNAFinalEngine.UserInterface
                 if (_pageSize != value)
                 {
                     _pageSize = value;
-                    if (_pageSize > _range) _pageSize = _range;
+                    if (_pageSize > _range)
+                    {
+                        _pageSize = _range;
+                    }
+
                     RecalculateParameters();
-                    if (!Suspended) OnPageSizeChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnPageSizeChanged(new EventArgs());
+                    }
                 }
             }
         } // PageSize
@@ -94,7 +118,10 @@ namespace XNAFinalEngine.UserInterface
                 if (_stepSize != value)
                 {
                     _stepSize = value;
-                    if (!Suspended) OnStepSizeChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnStepSizeChanged(new EventArgs());
+                    }
                 }
             }
         } // StepSize
@@ -179,12 +206,12 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
 
-            SkinControlInformation sc = new SkinControlInformation(_buttonPlus.SkinInformation);
+            var sc = new SkinControlInformation(_buttonPlus.SkinInformation);
             sc.Layers["Control"] = new SkinLayer(SkinInformation.Layers[_skinButton]);
             sc.Layers[_skinButton].Name = "Control";
             _buttonPlus.SkinInformation = _buttonMinus.SkinInformation = sc;
 
-            SkinControlInformation ss = new SkinControlInformation(_buttonSlider.SkinInformation);
+            var ss = new SkinControlInformation(_buttonSlider.SkinInformation);
             ss.Layers["Control"] = new SkinLayer(SkinInformation.Layers[_skinSlider]);
             ss.Layers[_skinSlider].Name = "Control";
             _buttonSlider.SkinInformation = ss;
@@ -228,7 +255,7 @@ namespace XNAFinalEngine.UserInterface
         {
             RecalculateParameters();
 
-            SkinLayer bg = SkinInformation.Layers[_skinRail];
+            var bg = SkinInformation.Layers[_skinRail];
             UserInterfaceManager.Renderer.DrawLayer(bg, rect, Color.White, bg.States.Enabled.Index);
         } // DrawControl
 
@@ -241,12 +268,18 @@ namespace XNAFinalEngine.UserInterface
                 if (sender == _buttonMinus)
                 {
                     Value -= StepSize;
-                    if (Value < 0) Value = 0;
+                    if (Value < 0)
+                    {
+                        Value = 0;
+                    }
                 }
                 else if (sender == _buttonPlus)
                 {
                     Value += StepSize;
-                    if (Value > _range - _pageSize) Value = _range - _pageSize - 1;
+                    if (Value > _range - _pageSize)
+                    {
+                        Value = _range - _pageSize - 1;
+                    }
                 }
             }
         } // ArrowPress
@@ -268,19 +301,26 @@ namespace XNAFinalEngine.UserInterface
                     _buttonPlus.Top = 0;
 
                     _buttonSlider.Movable = true;
-                    int size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
+                    var size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
 
                     _buttonSlider.MinimumWidth = Height;
-                    int w = (Width - 2 * size);
+                    var w = (Width - 2 * size);
                     _buttonSlider.Width = (int)Math.Ceiling((_pageSize * w) / (float)_range);
                     _buttonSlider.Height = Height;
 
 
-                    float px = (float)(Range - PageSize) / (float)(w - _buttonSlider.Width);
-                    int pos = (int)(Math.Ceiling(Value / (float)px));
+                    var px = (float)(Range - PageSize) / (float)(w - _buttonSlider.Width);
+                    var pos = (int)(Math.Ceiling(Value / (float)px));
                     _buttonSlider.SetPosition(size + pos, 0);
-                    if (_buttonSlider.Left < size) _buttonSlider.SetPosition(size, 0);
-                    if (_buttonSlider.Left + _buttonSlider.Width + size > Width) _buttonSlider.SetPosition(Width - size - _buttonSlider.Width, 0);
+                    if (_buttonSlider.Left < size)
+                    {
+                        _buttonSlider.SetPosition(size, 0);
+                    }
+
+                    if (_buttonSlider.Left + _buttonSlider.Width + size > Width)
+                    {
+                        _buttonSlider.SetPosition(Width - size - _buttonSlider.Width, 0);
+                    }
                 }
                 else
                 {
@@ -292,18 +332,25 @@ namespace XNAFinalEngine.UserInterface
                     _buttonPlus.Top = Height - Width;
 
                     _buttonSlider.Movable = true;
-                    int size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
+                    var size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
 
                     _buttonSlider.MinimumHeight = Width;
-                    int h = (Height - 2 * size);
+                    var h = (Height - 2 * size);
                     _buttonSlider.Height = (int)Math.Ceiling((_pageSize * h) / (float)_range);
                     _buttonSlider.Width = Width;
 
-                    float px = (float)(Range - PageSize) / (float)(h - _buttonSlider.Height);
-                    int pos = (int)(Math.Ceiling(Value / (float)px));
+                    var px = (float)(Range - PageSize) / (float)(h - _buttonSlider.Height);
+                    var pos = (int)(Math.Ceiling(Value / (float)px));
                     _buttonSlider.SetPosition(0, size + pos);
-                    if (_buttonSlider.Top < size) _buttonSlider.SetPosition(0, size);
-                    if (_buttonSlider.Top + _buttonSlider.Height + size > Height) _buttonSlider.SetPosition(0, Height - size - _buttonSlider.Height);
+                    if (_buttonSlider.Top < size)
+                    {
+                        _buttonSlider.SetPosition(0, size);
+                    }
+
+                    if (_buttonSlider.Top + _buttonSlider.Height + size > Height)
+                    {
+                        _buttonSlider.SetPosition(0, Height - size - _buttonSlider.Height);
+                    }
                 }
             }
         } // RecalculateParameters
@@ -314,31 +361,45 @@ namespace XNAFinalEngine.UserInterface
         {
             if (_orientation == Orientation.Horizontal)
             {
-                int size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
+                var size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
                 _buttonSlider.SetPosition(e.Left, 0);
-                if (_buttonSlider.Left < size) _buttonSlider.SetPosition(size, 0);
-                if (_buttonSlider.Left + _buttonSlider.Width + size > Width) _buttonSlider.SetPosition(Width - size - _buttonSlider.Width, 0);
+                if (_buttonSlider.Left < size)
+                {
+                    _buttonSlider.SetPosition(size, 0);
+                }
+
+                if (_buttonSlider.Left + _buttonSlider.Width + size > Width)
+                {
+                    _buttonSlider.SetPosition(Width - size - _buttonSlider.Width, 0);
+                }
             }
             else
             {
-                int size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
+                var size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
                 _buttonSlider.SetPosition(0, e.Top);
-                if (_buttonSlider.Top < size) _buttonSlider.SetPosition(0, size);
-                if (_buttonSlider.Top + _buttonSlider.Height + size > Height) _buttonSlider.SetPosition(0, Height - size - _buttonSlider.Height);
+                if (_buttonSlider.Top < size)
+                {
+                    _buttonSlider.SetPosition(0, size);
+                }
+
+                if (_buttonSlider.Top + _buttonSlider.Height + size > Height)
+                {
+                    _buttonSlider.SetPosition(0, Height - size - _buttonSlider.Height);
+                }
             }
 
             if (_orientation == Orientation.Horizontal)
             {
-                int size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
-                int w = (Width - 2 * size) - _buttonSlider.Width;
-                float px = (float)(Range - PageSize) / (float)w;
+                var size = _buttonMinus.Width + SkinInformation.Layers[_skinSlider].OffsetX;
+                var w = (Width - 2 * size) - _buttonSlider.Width;
+                var px = (float)(Range - PageSize) / (float)w;
                 Value = (int)(Math.Ceiling((_buttonSlider.Left - size) * px));
             }
             else
             {
-                int size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
-                int h = (Height - 2 * size) - _buttonSlider.Height;
-                float px = (float)(Range - PageSize) / (float)h;
+                var size = _buttonMinus.Height + SkinInformation.Layers[_skinSlider].OffsetY;
+                var h = (Height - 2 * size) - _buttonSlider.Height;
+                var px = (float)(Range - PageSize) / (float)h;
                 Value = (int)(Math.Ceiling((_buttonSlider.Top - size) * px));
             }
         } // ButtonSliderMove
@@ -361,32 +422,44 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_orientation == Orientation.Horizontal)
                 {
-                    int pos = e.Position.X;
+                    var pos = e.Position.X;
 
                     if (pos < _buttonSlider.Left)
                     {
                         Value -= _pageSize;
-                        if (Value < 0) Value = 0;
+                        if (Value < 0)
+                        {
+                            Value = 0;
+                        }
                     }
                     else if (pos >= _buttonSlider.Left + _buttonSlider.Width)
                     {
                         Value += _pageSize;
-                        if (Value > _range - _pageSize) Value = _range - _pageSize;
+                        if (Value > _range - _pageSize)
+                        {
+                            Value = _range - _pageSize;
+                        }
                     }
                 }
                 else
                 {
-                    int pos = e.Position.Y;
+                    var pos = e.Position.Y;
 
                     if (pos < _buttonSlider.Top)
                     {
                         Value -= _pageSize;
-                        if (Value < 0) Value = 0;
+                        if (Value < 0)
+                        {
+                            Value = 0;
+                        }
                     }
                     else if (pos >= _buttonSlider.Top + _buttonSlider.Height)
                     {
                         Value += _pageSize;
-                        if (Value > _range - _pageSize) Value = _range - _pageSize;
+                        if (Value > _range - _pageSize)
+                        {
+                            Value = _range - _pageSize;
+                        }
                     }
                 }
             }
@@ -398,27 +471,42 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnResize(e);
             RecalculateParameters();
-            if (Value + PageSize > Range) Value = Range - PageSize;
+            if (Value + PageSize > Range)
+            {
+                Value = Range - PageSize;
+            }
         } // OnResize
 
         protected virtual void OnValueChanged(EventArgs e)
         {
-            if (ValueChanged != null) ValueChanged.Invoke(this, e);
+            if (ValueChanged != null)
+            {
+                ValueChanged.Invoke(this, e);
+            }
         } // OnValueChanged
 
         protected virtual void OnRangeChanged(EventArgs e)
         {
-            if (RangeChanged != null) RangeChanged.Invoke(this, e);
+            if (RangeChanged != null)
+            {
+                RangeChanged.Invoke(this, e);
+            }
         } // OnRangeChanged
 
         protected virtual void OnPageSizeChanged(EventArgs e)
         {
-            if (PageSizeChanged != null) PageSizeChanged.Invoke(this, e);
+            if (PageSizeChanged != null)
+            {
+                PageSizeChanged.Invoke(this, e);
+            }
         } // OnPageSizeChanged
 
         protected virtual void OnStepSizeChanged(EventArgs e)
         {
-            if (StepSizeChanged != null) StepSizeChanged.Invoke(this, e);
+            if (StepSizeChanged != null)
+            {
+                StepSizeChanged.Invoke(this, e);
+            }
         } // OnStepSizeChanged
 
 

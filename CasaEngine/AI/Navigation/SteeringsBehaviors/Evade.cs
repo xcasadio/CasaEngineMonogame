@@ -4,16 +4,16 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Evade : SteeringBehavior
     {
-        protected MovingEntity pursuer;
+        protected MovingObject pursuer;
         protected Flee flee;
 
-        public Evade(string name, MovingEntity owner, float modifier)
+        public Evade(string name, MovingObject owner, float modifier)
             : base(name, owner, modifier)
         {
             flee = new Flee(name + "Flee", owner, 0);
         }
 
-        public MovingEntity Pursuer
+        public MovingObject Pursuer
         {
             get => pursuer;
             set => pursuer = value;

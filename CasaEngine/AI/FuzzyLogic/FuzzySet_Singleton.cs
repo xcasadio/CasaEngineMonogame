@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.FuzzyLogic
 {
     public class FuzzySetSingleton
         : FuzzySet

@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Menu
 {
 
     public abstract class MenuBase : Control

@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Game;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Windows.Forms;
-using System.IO;
+using CasaEngine.Core_Systems.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.CoreSystems.Game;
-using Microsoft.Xna.Framework.Input;
 
 namespace Editor.Game
 {

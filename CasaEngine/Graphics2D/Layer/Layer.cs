@@ -28,13 +28,13 @@ namespace CasaEngine.Graphics2D.Layer
         {
             int min, max;
 
-            if (GetMinMax(out min, out max) == true)
+            if (GetMinMax(out min, out max))
             {
                 //_ObjectList.Sort();
 
-                foreach (IRenderable d in _objectList.ToArray())
+                foreach (var d in _objectList.ToArray())
                 {
-                    if (d.Visible == true)
+                    if (d.Visible)
                     {
                         d.ZOrder = (float)(d.Depth - min) / (float)max;
                     }
@@ -47,9 +47,9 @@ namespace CasaEngine.Graphics2D.Layer
             min = int.MaxValue;
             max = int.MinValue;
 
-            foreach (IRenderable d in _objectList.ToArray())
+            foreach (var d in _objectList.ToArray())
             {
-                if (d.Visible == true)
+                if (d.Visible)
                 {
                     if (min > d.Depth)
                     {

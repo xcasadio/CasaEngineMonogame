@@ -158,11 +158,11 @@
         public void RandomizeWeights()
         {
             int i, j;
-            int min = 0;
-            int max = 200;
+            var min = 0;
+            var max = 200;
             int number;
 
-            Random rand = new Random();
+            var rand = new Random();
 
             for (i = 0; i < _numberOfNodes; i++)
             {

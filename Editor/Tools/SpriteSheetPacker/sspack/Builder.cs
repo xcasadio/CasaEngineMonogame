@@ -1,10 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngineCommon.Logger;
-using System.IO;
-using System.Drawing;
+﻿using CasaEngineCommon.Logger;
 using System.ComponentModel;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack

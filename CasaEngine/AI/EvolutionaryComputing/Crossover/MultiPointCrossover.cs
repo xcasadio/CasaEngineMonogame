@@ -10,7 +10,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
         public MultiPointCrossover(double probability, Random generator, int crossoverPoints)
             : base(probability, generator)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateCrossoverPoints(crossoverPoints, ref message) == false)
             {
@@ -52,7 +52,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //Generate the crossover points
             pointsList = new List<int>();
-            for (int i = 0; i < CrossoverPoints; i++)
+            for (var i = 0; i < CrossoverPoints; i++)
             {
                 point = Generator.Next(1, parents[0].Genotype.Count - 1);
                 while (pointsList.Contains(point))

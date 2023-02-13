@@ -1,11 +1,8 @@
-﻿using System.Xml;
+﻿using System.ComponentModel;
+using System.Xml;
 using CasaEngineCommon.Design;
 
-#if EDITOR
-using System.ComponentModel;
-#endif
-
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public
 #if EDITOR
@@ -14,10 +11,7 @@ namespace CasaEngine.Math.Shape2D
     class ShapeRectangle
         : Shape2DObject
     {
-
         int _width, _height;
-
-
 
 #if EDITOR
         [Category("Shape Rectangle")]
@@ -49,15 +43,11 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-
-
         public ShapeRectangle() { }
 
         public ShapeRectangle(ShapeRectangle o)
             : base(o)
         { }
-
-
 
         public override void Load(XmlElement el, SaveOption option)
         {
@@ -83,6 +73,5 @@ namespace CasaEngine.Math.Shape2D
             _width = ((ShapeRectangle)ob)._width;
             _height = ((ShapeRectangle)ob)._height;
         }
-
     }
 }

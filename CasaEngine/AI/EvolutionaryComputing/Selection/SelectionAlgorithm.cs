@@ -26,7 +26,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
 
         public SelectionAlgorithm(int numberParents, Random generator, EvolutionObjective objective, CrossoverMethod<T> crossover, ScalingMethod<T> scaling)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateNumberParents(numberParents, ref message) == false)
             {

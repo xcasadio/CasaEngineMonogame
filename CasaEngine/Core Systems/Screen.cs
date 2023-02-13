@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.CoreSystems
+namespace CasaEngine.Core_Systems
 {
     public class Screen
     {

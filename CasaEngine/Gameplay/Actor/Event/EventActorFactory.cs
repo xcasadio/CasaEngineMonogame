@@ -12,9 +12,9 @@ namespace CasaEngine.Gameplay.Actor.Event
 
 
 
-        static public EventActor LoadEvent(XmlElement el, SaveOption option)
+        public static EventActor LoadEvent(XmlElement el, SaveOption option)
         {
-            EventActorType type = (EventActorType)Enum.Parse(typeof(EventActorType), el.Attributes["type"].Value);
+            var type = (EventActorType)Enum.Parse(typeof(EventActorType), el.Attributes["type"].Value);
 
             switch (type)
             {

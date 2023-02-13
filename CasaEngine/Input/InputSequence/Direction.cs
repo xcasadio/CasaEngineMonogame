@@ -8,10 +8,9 @@
 
 using Microsoft.Xna.Framework.Input;
 
-
-namespace CasaEngine.Input
+namespace CasaEngine.Input.InputSequence
 {
-    static public class Direction
+    public static class Direction
     {
         // Helper bit masks for directions defined with the Buttons flags enum.
         public const Buttons None = 0;
@@ -27,7 +26,7 @@ namespace CasaEngine.Input
 
         public static Buttons FromInput(GamePadState gamePad, KeyboardState keyboard)
         {
-            Buttons direction = None;
+            var direction = None;
 
             // Get vertical direction.
             if (gamePad.IsButtonDown(Buttons.DPadUp) ||

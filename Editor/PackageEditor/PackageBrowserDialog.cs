@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Game;
-using CasaEngine.Project;
-
-namespace Editor.PackageEditor
+﻿namespace Editor.PackageEditor
 {
     public partial class PackageBrowserDialog : Form
     {
@@ -51,11 +40,11 @@ namespace Editor.PackageEditor
             //Package p;
             string pckName = "New folder";
 
-            if ( node == null)
+            if (node == null)
             {
                 node = treeViewPackage.TopNode;
             }
-            
+
             /*p = GameInfo.Instance.PackageManager.GetPackage(node.Name);
 
             if (p == null)

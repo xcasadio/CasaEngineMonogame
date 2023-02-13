@@ -1,33 +1,28 @@
-﻿using System.Xml.Serialization;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Xml.Serialization;
+using CasaEngine.Editor.Assets;
+using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Design;
 using CasaEngineCommon.Extension;
-using CasaEngine.Gameplay.Actor.Object;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Texture = CasaEngine.Assets.Textures.Texture;
 
-
-#if EDITOR
-using System.ComponentModel;
-using CasaEngine.Editor.Assets;
-#endif
-
-namespace CasaEngine.Asset.Fonts
+namespace CasaEngine.Assets.Fonts
 {
     public
 #if EDITOR
     partial
 #endif  
-    class Font
-        : BaseObject
+    class Font : BaseObject
 #if EDITOR
         , INotifyPropertyChanged, IAssetable
 #endif
     {
         readonly Dictionary<char, FontChar> _charsDic;
         readonly List<string> _texturesFileNames;
-
 
         public GraphicsDevice GraphicsDevice { get; private set; }
 
@@ -93,8 +88,6 @@ namespace CasaEngine.Asset.Fonts
                                               //set { Resource.DefaultCharacter = value; }
                                               // DefaultCharacter
 
-
-
         private Font()
         {
             _charsDic = new Dictionary<char, FontChar>();
@@ -110,8 +103,6 @@ namespace CasaEngine.Asset.Fonts
             Load(node, option);
         }
 
-
-
         public Vector2 MeasureString(StringBuilder str)
         {
             return MeasureString(str.ToString());
@@ -119,11 +110,11 @@ namespace CasaEngine.Asset.Fonts
 
         public Vector2 MeasureString(string text)
         {
-            float width = 0.0f;
+            var width = 0.0f;
 
-            foreach (char c in text.ToCharArray())
+            foreach (var c in text.ToCharArray())
             {
-                if (_charsDic.ContainsKey(c) == true)
+                if (_charsDic.ContainsKey(c))
                 {
                     width += _charsDic[c].Width;
                 }
@@ -145,9 +136,9 @@ namespace CasaEngine.Asset.Fonts
                 Textures = new Texture[_texturesFileNames.Count];
             }
 
-            int i = 0;
+            var i = 0;
 
-            foreach (string texFileName in _texturesFileNames)
+            foreach (var texFileName in _texturesFileNames)
             {
                 //string fileName = path_ + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + texFileName;
                 //fileName = fileName.Replace(Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar, "");
@@ -176,8 +167,6 @@ namespace CasaEngine.Asset.Fonts
             */
         }
 
-
-
         public override void Load(XmlElement el, SaveOption opt)
         {
             base.Load(el, opt);
@@ -191,7 +180,7 @@ namespace CasaEngine.Asset.Fonts
 
             foreach (XmlNode n in el.SelectNodes("Font/Chars/Char"))
             {
-                FontChar f = new FontChar(n);
+                var f = new FontChar(n);
                 Chars.Add(f);
                 _charsDic.Add((char)f.Id, f);
             }
@@ -207,10 +196,9 @@ namespace CasaEngine.Asset.Fonts
             throw new Exception("The method or operation is not implemented.");
         }
 
-
         internal FontChar GetFontChar(char c)
         {
-            if (_charsDic.ContainsKey(c) == true)
+            if (_charsDic.ContainsKey(c))
             {
                 return _charsDic[c];
             }
@@ -227,7 +215,6 @@ namespace CasaEngine.Asset.Fonts
         {
             throw new Exception("The method or operation is not implemented.");
         }
-
 
     }
 
@@ -339,10 +326,10 @@ namespace CasaEngine.Asset.Fonts
         {
             //face="Arial" size="32" bold="0" italic="0" charset="" unicode="1" stretchH="100" smooth="1" aa="1" padding="0,0,0,0" spacing="1,1" outline="0"
 
-            string[] padding = node.Attributes["padding"].Value.Split(',');
+            var padding = node.Attributes["padding"].Value.Split(',');
             Padding = new Rectangle(Convert.ToInt32(padding[0]), Convert.ToInt32(padding[1]), Convert.ToInt32(padding[2]), Convert.ToInt32(padding[3]));
 
-            string[] spacing = node.Attributes["spacing"].Value.Split(',');
+            var spacing = node.Attributes["spacing"].Value.Split(',');
             Spacing = new Point(Convert.ToInt32(spacing[0]), Convert.ToInt32(spacing[1]));
         }
     }
@@ -418,7 +405,6 @@ namespace CasaEngine.Asset.Fonts
             get;
             set;
         }
-
 
         public FontCommon(XmlNode node)
         {

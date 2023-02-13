@@ -26,7 +26,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using CasaEngine.UserInterface.Controls.Buttons;
+
+namespace CasaEngine.UserInterface.Controls.Panel
 {
 
     public class PanelCollapsible : ClipControl
@@ -53,7 +56,7 @@ namespace XNAFinalEngine.UserInterface
             _treeButton.CanFocus = false;
 
             // The client area is lowered to make place to the previous control.
-            Margins m = ClientMargins;
+            var m = ClientMargins;
             m.Top += 20;
             ClientMargins = m;
 

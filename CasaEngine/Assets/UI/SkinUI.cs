@@ -1,8 +1,8 @@
-﻿using CasaEngine.Gameplay.Actor.Object;
-using System.Xml;
+﻿using System.Xml;
+using CasaEngine.Gameplay.Actor;
+using CasaEngine.UserInterface;
 using CasaEngineCommon.Design;
-using XNAFinalEngine.UserInterface;
-using Size = XNAFinalEngine.UserInterface.Size;
+using Size = CasaEngine.UserInterface.Size;
 
 #if EDITOR
 using System.ComponentModel;
@@ -81,7 +81,7 @@ namespace CasaEngine.Assets.UI
                 Size size;
                 Margins margin;
                 string parent;
-                bool inherit = false;
+                var inherit = false;
 
                 // Create skin control
                 parent = ReadAttribute(controlNode, "Inherits", null, false);
@@ -97,7 +97,7 @@ namespace CasaEngine.Assets.UI
                 }
 
                 // Load general information
-                string name = ""; node = controlNode.SelectSingleNode("DefaultSize");
+                var name = ""; node = controlNode.SelectSingleNode("DefaultSize");
                 ReadAttribute(ref name, inherit, controlNode, "Name", null, true);
                 skinControl.Name = name;
 
@@ -128,7 +128,7 @@ namespace CasaEngine.Assets.UI
                 skinControl.ClientMargins = margin;
 
                 node = controlNode.SelectSingleNode("ResizerSize");
-                int resizerSize = 0;
+                var resizerSize = 0;
                 ReadAttribute(ref resizerSize, inherit, node, "Value", 0, false);
                 skinControl.ResizerSize = resizerSize;
 
@@ -146,7 +146,7 @@ namespace CasaEngine.Assets.UI
 
             foreach (XmlNode controlNode in el.SelectNodes("Skin/Fonts/Font"))
             {
-                SkinFont skinFont = new SkinFont
+                var skinFont = new SkinFont
                 {
                     Name = ReadAttribute(controlNode, "Name", null, true),
                     Filename = ReadAttribute(controlNode, "Asset", null, true)
@@ -156,7 +156,7 @@ namespace CasaEngine.Assets.UI
 
             foreach (XmlNode controlNode in el.SelectNodes("Skin/Cursors/Cursor"))
             {
-                SkinCursor skinCursor = new SkinCursor
+                var skinCursor = new SkinCursor
                 {
                     Name = ReadAttribute(controlNode, "Name", null, true),
                     Filename = ReadAttribute(controlNode, "Asset", null, true)
@@ -166,7 +166,7 @@ namespace CasaEngine.Assets.UI
 
             foreach (XmlNode controlNode in el.SelectNodes("Skin/Images/Image"))
             {
-                SkinImage skinImage = new SkinImage
+                var skinImage = new SkinImage
                 {
                     Name = ReadAttribute(controlNode, "Name", null, true),
                     Filename = ReadAttribute(controlNode, "Asset", null, true)
@@ -177,11 +177,11 @@ namespace CasaEngine.Assets.UI
 
         private void LoadLayer(SkinControlInformation skinControl, XmlNode layerNode)
         {
-            string name = ReadAttribute(layerNode, "Name", null, true);
-            bool over = ReadAttribute(layerNode, "Override", false, false);
-            SkinLayer skinLayer = skinControl.Layers[name];
+            var name = ReadAttribute(layerNode, "Name", null, true);
+            var over = ReadAttribute(layerNode, "Override", false, false);
+            var skinLayer = skinControl.Layers[name];
 
-            bool inherent = true;
+            var inherent = true;
             if (skinLayer == null)
             {
                 skinLayer = new SkinLayer();
@@ -194,10 +194,10 @@ namespace CasaEngine.Assets.UI
                 skinControl.Layers[name] = skinLayer;
             }
 
-            Color color = new Color();
-            int integer = 0;
-            bool boolean = true;
-            Margins margin = new Margins();
+            var color = new Color();
+            var integer = 0;
+            var boolean = true;
+            var margin = new Margins();
             XmlNode node;
 
             ReadAttribute(ref name, inherent, layerNode, "Name", null, true);
@@ -209,7 +209,7 @@ namespace CasaEngine.Assets.UI
             ReadAttribute(ref integer, inherent, layerNode, "Height", 0, false);
             skinLayer.Height = integer;
 
-            string layerAlignment = skinLayer.Alignment.ToString();
+            var layerAlignment = skinLayer.Alignment.ToString();
             ReadAttribute(ref layerAlignment, inherent, layerNode, "Alignment", "MiddleCenter", false);
             skinLayer.Alignment = (Alignment)Enum.Parse(typeof(Alignment), layerAlignment, true);
 
@@ -236,11 +236,11 @@ namespace CasaEngine.Assets.UI
             node = layerNode.SelectSingleNode("States");
             if (node != null)
             {
-                SkinStates<LayerStates> states = new SkinStates<LayerStates>();
+                var states = new SkinStates<LayerStates>();
 
                 ReadAttribute(ref integer, inherent, node.SelectSingleNode("Enabled"), "Index", 0, false);
                 states.Enabled.Index = integer;
-                int di = skinLayer.States.Enabled.Index;
+                var di = skinLayer.States.Enabled.Index;
                 ReadAttribute(ref states.Hovered.Index, inherent, node.SelectSingleNode("Hovered"), "Index", di, false);
                 states.Hovered.Index = integer;
                 ReadAttribute(ref states.Pressed.Index, inherent, node.SelectSingleNode("Pressed"), "Index", di, false);
@@ -252,7 +252,7 @@ namespace CasaEngine.Assets.UI
 
                 ReadAttribute(ref color, inherent, node.SelectSingleNode("Enabled"), "Color", Color.White, false);
                 states.Enabled.Color = color;
-                Color dc = skinLayer.States.Enabled.Color;
+                var dc = skinLayer.States.Enabled.Color;
                 ReadAttribute(ref color, inherent, node.SelectSingleNode("Hovered"), "Color", dc, false);
                 states.Hovered.Color = color;
                 ReadAttribute(ref color, inherent, node.SelectSingleNode("Pressed"), "Color", dc, false);
@@ -264,7 +264,7 @@ namespace CasaEngine.Assets.UI
 
                 ReadAttribute(ref boolean, inherent, node.SelectSingleNode("Enabled"), "Overlay", false, false);
                 states.Enabled.Overlay = boolean;
-                bool dv = skinLayer.States.Enabled.Overlay;
+                var dv = skinLayer.States.Enabled.Overlay;
                 ReadAttribute(ref boolean, inherent, node.SelectSingleNode("Hovered"), "Overlay", dv, false);
                 states.Hovered.Overlay = boolean;
                 ReadAttribute(ref boolean, inherent, node.SelectSingleNode("Pressed"), "Overlay", dv, false);
@@ -282,11 +282,11 @@ namespace CasaEngine.Assets.UI
             node = layerNode.SelectSingleNode("Overlays");
             if (node != null)
             {
-                SkinStates<LayerOverlays> overlay = new SkinStates<LayerOverlays>();
+                var overlay = new SkinStates<LayerOverlays>();
 
                 ReadAttribute(ref integer, inherent, node.SelectSingleNode("Enabled"), "Index", 0, false);
                 overlay.Enabled.Index = integer;
-                int di = skinLayer.Overlays.Enabled.Index;
+                var di = skinLayer.Overlays.Enabled.Index;
                 ReadAttribute(ref overlay.Hovered.Index, inherent, node.SelectSingleNode("Hovered"), "Index", di, false);
                 overlay.Hovered.Index = integer;
                 ReadAttribute(ref overlay.Pressed.Index, inherent, node.SelectSingleNode("Pressed"), "Index", di, false);
@@ -298,7 +298,7 @@ namespace CasaEngine.Assets.UI
 
                 ReadAttribute(ref overlay.Enabled.Color, inherent, node.SelectSingleNode("Enabled"), "Color", Color.White, false);
                 overlay.Enabled.Color = color;
-                Color dc = skinLayer.Overlays.Enabled.Color;
+                var dc = skinLayer.Overlays.Enabled.Color;
                 ReadAttribute(ref overlay.Hovered.Color, inherent, node.SelectSingleNode("Hovered"), "Color", dc, false);
                 overlay.Hovered.Color = color;
                 ReadAttribute(ref overlay.Pressed.Color, inherent, node.SelectSingleNode("Pressed"), "Color", dc, false);
@@ -316,7 +316,7 @@ namespace CasaEngine.Assets.UI
             node = layerNode.SelectSingleNode("Text");
             if (node != null)
             {
-                SkinText skinText = new SkinText();
+                var skinText = new SkinText();
 
                 ReadAttribute(ref name, inherent, node, "Font", null, true);
                 skinText.Name = name;
@@ -329,7 +329,7 @@ namespace CasaEngine.Assets.UI
                 ReadAttribute(ref layerAlignment, inherent, node, "Alignment", "MiddleCenter", false);
                 skinLayer.Text.Alignment = (Alignment)Enum.Parse(typeof(Alignment), layerAlignment, true);
 
-                SkinStates<Color> colors = new SkinStates<Color>();
+                var colors = new SkinStates<Color>();
                 LoadColors(inherent, node, ref colors);
                 skinLayer.Text.Colors = colors;
 
@@ -367,9 +367,9 @@ namespace CasaEngine.Assets.UI
 
         private void LoadLayerAttribute(SkinLayer skinLayer, XmlNode e)
         {
-            string name = ReadAttribute(e, "Name", null, true);
-            SkinAttribute skinAttribute = skinLayer.Attributes[name];
-            bool inherent = true;
+            var name = ReadAttribute(e, "Name", null, true);
+            var skinAttribute = skinLayer.Attributes[name];
+            var inherent = true;
 
             if (skinAttribute == null)
             {
@@ -424,7 +424,7 @@ namespace CasaEngine.Assets.UI
 
         private void ReadAttribute(ref int retval, bool inherited, XmlNode element, string attrib, int defval, bool needed)
         {
-            string tmp = retval.ToString();
+            var tmp = retval.ToString();
             ReadAttribute(ref tmp, inherited, element, attrib, defval.ToString(), needed);
             retval = int.Parse(tmp);
         } // ReadAttributeInt
@@ -436,7 +436,7 @@ namespace CasaEngine.Assets.UI
 
         private void ReadAttribute(ref bool retval, bool inherited, XmlNode element, string attrib, bool defval, bool needed)
         {
-            string tmp = retval.ToString();
+            var tmp = retval.ToString();
             ReadAttribute(ref tmp, inherited, element, attrib, defval.ToString(), needed);
             retval = bool.Parse(tmp);
         } // ReadAttributeBool
@@ -448,7 +448,7 @@ namespace CasaEngine.Assets.UI
 
         private void ReadAttribute(ref Color retval, bool inherited, XmlNode element, string attrib, Color defval, bool needed)
         {
-            string tmp = ColorToString(retval);
+            var tmp = ColorToString(retval);
             ReadAttribute(ref tmp, inherited, element, attrib, ColorToString(defval), needed);
             retval = Utilities.ParseColor(tmp);
         } // ReadAttributeColor

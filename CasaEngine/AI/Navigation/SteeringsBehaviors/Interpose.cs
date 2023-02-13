@@ -4,23 +4,23 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Interpose : SteeringBehavior
     {
-        protected MovingEntity agentA;
-        protected MovingEntity agentB;
+        protected MovingObject agentA;
+        protected MovingObject agentB;
         protected Arrive arrive;
 
-        public Interpose(string name, MovingEntity owner, float modifier)
+        public Interpose(string name, MovingObject owner, float modifier)
             : base(name, owner, modifier)
         {
             arrive = new Arrive(name + "Arrive", owner, 0, 0.1f);
         }
 
-        public MovingEntity AgentA
+        public MovingObject AgentA
         {
             get => agentA;
             set => agentA = value;
         }
 
-        public MovingEntity AgentB
+        public MovingObject AgentB
         {
             get => agentB;
             set => agentB = value;

@@ -1,9 +1,9 @@
-﻿using System.Xml;
-using CasaEngineCommon.Extension;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.Xml;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public abstract
 #if EDITOR
@@ -14,13 +14,10 @@ namespace CasaEngine.Math.Shape2D
         : INotifyPropertyChanged
 #endif
     {
-
         private Shape2DType _type;
         private Point _location = Point.Zero;
         private float _rotation = 0.0f;
         private int _flag = 0;
-
-
 
 #if EDITOR
         [Category("Shape2D"), ReadOnly(true)]
@@ -75,8 +72,6 @@ namespace CasaEngine.Math.Shape2D
             }
         }
 
-
-
         protected Shape2DObject()
         { }
 
@@ -85,12 +80,9 @@ namespace CasaEngine.Math.Shape2D
             CopyFrom(o);
         }
 
-
-
-
-        static public Shape2DObject CreateShape2DObject(XmlElement el, SaveOption option)
+        public static Shape2DObject CreateShape2DObject(XmlElement el, SaveOption option)
         {
-            Shape2DType type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el.Attributes["type"].Value);
+            var type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el.Attributes["type"].Value);
             Shape2DObject res = null;
 
             switch (type)
@@ -122,16 +114,15 @@ namespace CasaEngine.Math.Shape2D
 
         public virtual void Load(XmlElement el, SaveOption option)
         {
-            int version = int.Parse(el.Attributes["version"].Value);
+            var version = int.Parse(el.Attributes["version"].Value);
 
             _type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el.Attributes["type"].Value);
-            Point p = new Point();
+            var p = new Point();
             ((XmlElement)el.SelectSingleNode("Location")).Read(ref p);
             Location = p;
             _rotation = float.Parse(el.Attributes["rotation"].Value);
             _flag = int.Parse(el.Attributes["flag"].Value);
         }
-
 
         public abstract Shape2DObject Clone();
 
@@ -152,6 +143,5 @@ namespace CasaEngine.Math.Shape2D
         {
 
         }
-
     }
 }

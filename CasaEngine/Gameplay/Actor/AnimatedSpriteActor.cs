@@ -1,13 +1,12 @@
-﻿using CasaEngine.Gameplay.Actor.Object;
-using CasaEngine.Graphics2D;
+﻿using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using CasaEngine.Game;
 using System.Xml;
 using CasaEngineCommon.Logger;
-using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
+using CasaEngine.Core_Systems.Game;
 
 namespace CasaEngine.Gameplay.Actor
 {
@@ -19,7 +18,7 @@ namespace CasaEngine.Gameplay.Actor
         {
             if (other is AnimatedSpriteActor)
             {
-                AnimatedSpriteActor asa = (AnimatedSpriteActor)other;
+                var asa = (AnimatedSpriteActor)other;
                 //asa._Animations
             }
 
@@ -77,11 +76,11 @@ namespace CasaEngine.Gameplay.Actor
         {
             base.CopyFrom(ob);
 
-            AnimatedSpriteActor src = ob as AnimatedSpriteActor;
+            var src = ob as AnimatedSpriteActor;
 
             _animations = new Dictionary<int, Animation2D>();
 
-            foreach (KeyValuePair<int, Animation2D> pair in src._animations)
+            foreach (var pair in src._animations)
             {
                 _animations.Add(pair.Key, (Animation2D)pair.Value.Clone());
             }
@@ -108,13 +107,13 @@ namespace CasaEngine.Gameplay.Actor
         {
             base.Load(el, opt);
 
-            XmlElement animListNode = (XmlElement)el.SelectSingleNode("AnimationList");
+            var animListNode = (XmlElement)el.SelectSingleNode("AnimationList");
 
             _animations.Clear();
 
             foreach (XmlNode node in animListNode.ChildNodes)
             {
-                Animation2D anim2d = Engine.Instance.Asset2DManager.GetAnimation2DByName(node.Attributes["name"].Value);
+                var anim2d = Engine.Instance.Asset2DManager.GetAnimation2DByName(node.Attributes["name"].Value);
                 if (anim2d != null)
                 {
                     _animations.Add(int.Parse(node.Attributes["index"].Value), anim2d);
@@ -134,7 +133,7 @@ namespace CasaEngine.Gameplay.Actor
 
             foreach (var frame in _animations[index].GetFrames())
             {
-                Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(frame.SpriteId);
+                var sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(frame.SpriteId);
                 //sprite.LoadTextureFile(Engine.Instance.Game.GraphicsDevice);
                 sprite.LoadTexture(Engine.Instance.Game.Content);
             }

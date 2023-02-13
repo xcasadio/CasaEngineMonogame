@@ -17,11 +17,11 @@
 
         public float GetQValues(string state, int numAction)
         {
-            int action = 0;
+            var action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
+            foreach (var pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state) == true)
+                if (pair.Key.Key.Equals(state))
                 {
                     //if (pair.Value != 0.0f) //check if action is possible
                     if (action == numAction)
@@ -43,11 +43,11 @@
 
         public int GetNumberOfActions(IQAgent agent, string state)
         {
-            int action = 0;
+            var action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
+            foreach (var pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state) == true && agent.IsActionIsPossible(pair.Key.Value))
+                if (pair.Key.Key.Equals(state) && agent.IsActionIsPossible(pair.Key.Value))
                 {
                     //if (pair.Value != 0.0f) //check if action is possible
                     action++;
@@ -59,11 +59,11 @@
 
         public string GetNewStateFromAction(IQAgent agent, string state, int numAction)
         {
-            int action = 0;
+            var action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
+            foreach (var pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state) == true && agent.IsActionIsPossible(pair.Key.Value))
+                if (pair.Key.Key.Equals(state) && agent.IsActionIsPossible(pair.Key.Value))
                 {
                     if (action == numAction)
                     {
@@ -80,11 +80,11 @@
 
         public string GetActionNumber(IQAgent agent, string state, int numAction)
         {
-            int action = 0;
+            var action = 0;
 
-            foreach (KeyValuePair<KeyValuePair<string, string>, float> pair in _qValues)
+            foreach (var pair in _qValues)
             {
-                if (pair.Key.Key.Equals(state) == true && agent.IsActionIsPossible(pair.Key.Value))
+                if (pair.Key.Key.Equals(state) && agent.IsActionIsPossible(pair.Key.Value))
                 {
                     if (action == numAction)
                     {
@@ -106,7 +106,7 @@
                 throw new ArgumentException("CreateStatesAndActions() : states_.Length != values_.Length");
             }
 
-            for (int i = 0; i < states.Length; i++)
+            for (var i = 0; i < states.Length; i++)
             {
                 _qValues.Add(states[i], values[i]);
             }

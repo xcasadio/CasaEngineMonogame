@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.FrontEnd.Screen.Gadget;
-using XNAFinalEngine.UserInterface;
+﻿using CasaEngine.UserInterface;
+using Control = CasaEngine.UserInterface.Control;
 
 namespace Editor.Tools.UIScreenEditor
 {
@@ -68,16 +64,16 @@ namespace Editor.Tools.UIScreenEditor
         /// 
         /// </summary>
         /// <param name="control_"></param>
-        public void AddControl(XNAFinalEngine.UserInterface.Control control_)
+        public void AddControl(Control control_)
         {
-            
+
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="control_"></param>
-        public void RemoveControl(XNAFinalEngine.UserInterface.Control control_)
+        public void RemoveControl(Control control_)
         {
             m_UIManager.RootControls.Remove(control_);
         }

@@ -1,9 +1,8 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public partial class ShapeCircle
     {
@@ -25,7 +24,7 @@ namespace CasaEngine.Math.Shape2D
         {
             if (o is ShapeCircle)
             {
-                ShapeCircle c = (ShapeCircle)o;
+                var c = (ShapeCircle)o;
                 return _radius == c.Radius && base.CompareTo(o);
             }
 

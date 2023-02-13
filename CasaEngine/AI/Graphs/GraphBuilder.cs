@@ -37,7 +37,7 @@ namespace CasaEngine.AI.Graphs
                 //Get the weights
                 separators = new string[1];
                 separators[0] = " ";
-                for (int i = 0; i < height; i++)
+                for (var i = 0; i < height; i++)
                 {
                     elements = file.ReadLine().Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
@@ -46,7 +46,7 @@ namespace CasaEngine.AI.Graphs
                         throw new Exception("Incorrect number of elements in row " + (i + 1));
                     }
 
-                    for (int j = 0; j < elements.Length; j++)
+                    for (var j = 0; j < elements.Length; j++)
                     {
                         if (int.TryParse(elements[j], out weight) == false)
                         {
@@ -59,9 +59,9 @@ namespace CasaEngine.AI.Graphs
 
                 //Generate all the nodes
                 graph = new Graph<T, TK>(true);
-                for (int i = 0; i < height; i++)
+                for (var i = 0; i < height; i++)
                 {
-                    for (int j = 0; j < width; j++)
+                    for (var j = 0; j < width; j++)
                     {
                         node = Activator.CreateInstance<T>();
                         node.Position = new Vector3(j, i, 0);
@@ -70,16 +70,16 @@ namespace CasaEngine.AI.Graphs
                 }
 
                 //Generate the edges
-                for (int z = 0; z < graph.ActiveNodeCount; z++)
+                for (var z = 0; z < graph.ActiveNodeCount; z++)
                 {
                     edges = graph.GetEdgesFromNode(z);
                     xPos = graph.GetNode(z).Index % width;
                     yPos = graph.GetNode(z).Index / width;
 
                     //For each node, generate the edges around it
-                    for (int i = -1; i < 2; i++)
+                    for (var i = -1; i < 2; i++)
                     {
-                        for (int j = -1; j < 2; j++)
+                        for (var j = -1; j < 2; j++)
                         {
                             if (i == 0 && j == 0)
                             {

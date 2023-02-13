@@ -72,7 +72,7 @@ namespace CasaEngine.Debugger
         public Vector2 Place(Vector2 size, float horizontalMargin,
                                             float verticalMargine, Alignment alignment)
         {
-            Rectangle rc = new Rectangle(0, 0, (int)size.X, (int)size.Y);
+            var rc = new Rectangle(0, 0, (int)size.X, (int)size.Y);
             rc = Place(rc, horizontalMargin, verticalMargine, alignment);
             return new Vector2(rc.X, rc.Y);
         }

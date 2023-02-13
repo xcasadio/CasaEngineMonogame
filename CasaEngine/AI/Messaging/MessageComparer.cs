@@ -9,7 +9,7 @@ namespace CasaEngine.AI.Messaging
 
         public MessageComparer(double precision)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidatePrecision(precision, ref message) == false)
             {

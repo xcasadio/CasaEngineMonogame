@@ -1,29 +1,20 @@
-﻿using System.Xml;
+﻿using System.ComponentModel;
+using System.Xml;
+using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Design;
 using CasaEngineCommon.Extension;
-using CasaEngine.Gameplay.Actor.Object;
 
-#if EDITOR
-using System.ComponentModel;
-#endif
-
-namespace CasaEngine.Asset.Fonts
+namespace CasaEngine.Assets.Fonts
 {
     public partial class Font
     {
         public event PropertyChangedEventHandler PropertyChanged;
-
-
-
-
 
         public Font(string fileName)
             : this()
         {
             ImportFromFile(fileName);
         }
-
-
 
         public override bool CompareTo(BaseObject other)
         {
@@ -32,10 +23,10 @@ namespace CasaEngine.Asset.Fonts
 
         private void ImportFromFile(string fileName)
         {
-            XmlDocument xmlDoc = new XmlDocument();
+            var xmlDoc = new XmlDocument();
             xmlDoc.Load(fileName);
 
-            XmlNode fontNode = xmlDoc.SelectSingleNode("font");
+            var fontNode = xmlDoc.SelectSingleNode("font");
 
             //Info = new FontInfo(xmlDoc.SelectSingleNode("font/info"));
             Common = new FontCommon(xmlDoc.SelectSingleNode("font/common"));
@@ -48,7 +39,7 @@ namespace CasaEngine.Asset.Fonts
 
             foreach (XmlNode n in xmlDoc.SelectNodes("font/chars/char"))
             {
-                FontChar f = new FontChar(n);
+                var f = new FontChar(n);
                 Chars.Add(f);
                 _charsDic.Add((char)f.Id, f);
             }
@@ -71,7 +62,7 @@ namespace CasaEngine.Asset.Fonts
             XmlNode pagesNode = el.OwnerDocument.CreateElement("Pages");
             fontNode.AppendChild(pagesNode);
 
-            foreach (string file in _texturesFileNames)
+            foreach (var file in _texturesFileNames)
             {
                 XmlNode pageNode = el.OwnerDocument.CreateElement("Page");
                 pagesNode.AppendChild(pageNode);
@@ -81,7 +72,7 @@ namespace CasaEngine.Asset.Fonts
             XmlNode charsNode = el.OwnerDocument.CreateElement("Chars");
             fontNode.AppendChild(charsNode);
 
-            foreach (FontChar f in Chars)
+            foreach (var f in Chars)
             {
                 f.Save(charsNode, opt);
             }
@@ -89,7 +80,7 @@ namespace CasaEngine.Asset.Fonts
             XmlNode kerningsNode = el.OwnerDocument.CreateElement("Kernings");
             fontNode.AppendChild(kerningsNode);
 
-            foreach (FontKerning kerning in Kernings)
+            foreach (var kerning in Kernings)
             {
                 kerning.Save(kerningsNode, opt);
             }
@@ -99,7 +90,6 @@ namespace CasaEngine.Asset.Fonts
         {
             throw new Exception("The method or operation is not implemented.");
         }
-
 
         public List<string> AssetFileNames => _texturesFileNames;
     }

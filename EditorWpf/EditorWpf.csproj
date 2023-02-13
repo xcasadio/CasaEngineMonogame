@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <StartupObject>EditorWpf.App</StartupObject>
+    <PlatformTarget>x64</PlatformTarget>
+    <Configurations>Debug;Release;DebugEditor</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.2.0.78" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CasaEngineCommon\CasaEngineCommon.Editor.csproj" />
+    <ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
+  </ItemGroup>
+
+</Project>

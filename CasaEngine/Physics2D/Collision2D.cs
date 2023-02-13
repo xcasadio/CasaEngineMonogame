@@ -1,12 +1,12 @@
-﻿using FarseerPhysics.Common;
-using CasaEngine.Math.Shape2D;
-using Microsoft.Xna.Framework;
-using FarseerPhysics.Collision.Shapes;
+﻿using CasaEngine.Core_Systems.Math.Shape2D;
 using FarseerPhysics.Collision;
+using FarseerPhysics.Collision.Shapes;
+using FarseerPhysics.Common;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Math.Collision
+namespace CasaEngine.Physics2D
 {
-    static public class Collision2D
+    public static class Collision2D
     {
 
         //to avoid GC
@@ -18,9 +18,9 @@ namespace CasaEngine.Math.Collision
         static readonly PolygonShape PolygonShape2 = new(1.0f);
 
 
-        static public bool CollidePolygons(ShapePolygone p1, ref Vector2 pos1, ShapePolygone p2, ref Vector2 pos2)
+        public static bool CollidePolygons(ShapePolygone p1, ref Vector2 pos1, ShapePolygone p2, ref Vector2 pos2)
         {
-            if (p1.IsABox == true)
+            if (p1.IsABox)
             {
                 PolygonShape1.SetAsBox(
                     System.Math.Abs((p1.Points[0].X - p1.Points[1].X) / 2.0f),
@@ -31,7 +31,7 @@ namespace CasaEngine.Math.Collision
                 PolygonShape1.Set(new Vertices(p1.Points));
             }
 
-            if (p1.IsABox == true)
+            if (p1.IsABox)
             {
                 PolygonShape2.SetAsBox(
                     System.Math.Abs((p2.Points[0].X - p2.Points[1].X) / 2.0f),
@@ -56,9 +56,9 @@ namespace CasaEngine.Math.Collision
             return false;
         }
 
-        static public bool CollidePolygonAndRectangle(ShapePolygone p1, ref Vector2 pos1, ShapeRectangle r2, ref Vector2 pos2)
+        public static bool CollidePolygonAndRectangle(ShapePolygone p1, ref Vector2 pos1, ShapeRectangle r2, ref Vector2 pos2)
         {
-            Vertices v = new Vertices(p1.Points);
+            var v = new Vertices(p1.Points);
             //v.Translate(ref pos1);
             PolygonShape1.Set(v);
             _transformA.Set(pos1, 0.0f);
@@ -77,7 +77,7 @@ namespace CasaEngine.Math.Collision
             return false;
         }
 
-        static public bool CollidePolygonAndCircle(ref Vector2 contactPoint, ShapePolygone p1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
+        public static bool CollidePolygonAndCircle(ref Vector2 contactPoint, ShapePolygone p1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
         {
             PolygonShape1.Set(new Vertices(p1.Points));
             CircleShape2.Radius = c2.Radius;
@@ -95,19 +95,19 @@ namespace CasaEngine.Math.Collision
             return false;
         }
 
-        static public bool CollideEdgeAndCircle(ref ShapeLine l1, ref Vector2 pos1, ref ShapeCircle c2, ref Vector2 pos2)
+        public static bool CollideEdgeAndCircle(ref ShapeLine l1, ref Vector2 pos1, ref ShapeCircle c2, ref Vector2 pos2)
         {
             throw new NotImplementedException();
             return true;
         }
 
-        static public bool CollideEdgeAndPolygon(ref ShapeLine l1, ref Vector2 pos1, ref ShapePolygone p2, ref Vector2 pos2)
+        public static bool CollideEdgeAndPolygon(ref ShapeLine l1, ref Vector2 pos1, ref ShapePolygone p2, ref Vector2 pos2)
         {
             throw new NotImplementedException();
             return true;
         }
 
-        static public bool CollideCircles(ref Vector2 contactPoint, ShapeCircle c1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
+        public static bool CollideCircles(ref Vector2 contactPoint, ShapeCircle c1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
         {
             CircleShape1.Radius = c1.Radius;
             CircleShape2.Radius = c2.Radius;

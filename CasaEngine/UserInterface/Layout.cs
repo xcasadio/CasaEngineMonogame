@@ -13,9 +13,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using System.Reflection;
 using System.Xml.Linq;
-using XNAFinalEngine.Assets;
+using CasaEngine.Assets.Documents;
+using CasaEngine.UserInterface.Controls.Auxiliary;
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface
 {
 
     public static class Layout
@@ -30,15 +31,15 @@ namespace XNAFinalEngine.UserInterface
             AssetContentManager.CurrentContentManager = temporalContent;*/
             try
             {
-                Document layoutDocument = new Document("Layout\\" + filename);
+                var layoutDocument = new Document("Layout\\" + filename);
                 try
                 {
                     if (layoutDocument.Resource.Element("Layout").Element("Controls") != null)
                     {
                         foreach (var control in layoutDocument.Resource.Element("Layout").Element("Controls").Elements())
                         {
-                            string className = control.Attribute("Class").Value;
-                            Type type = Type.GetType("XNAFinalEngine.UserInterface." + className);
+                            var className = control.Attribute("Class").Value;
+                            var type = Type.GetType("XNAFinalEngine.UserInterface." + className);
                             if (type == null)
                             {
                                 throw new Exception("Failed to load layout: Control doesn't exist");
@@ -67,10 +68,12 @@ namespace XNAFinalEngine.UserInterface
         private static Control LoadControl(XElement element, Type type, Control parent)
         {
             // Create control instance (it doesn't know the type in compiler time)
-            Control control = (Control)Activator.CreateInstance(type);
+            var control = (Control)Activator.CreateInstance(type);
 
             if (parent != null)
+            {
                 control.Parent = parent;
+            }
 
             control.Name = element.Attribute("Name").Value;
             // Load control's parameters
@@ -86,8 +89,8 @@ namespace XNAFinalEngine.UserInterface
             {
                 foreach (var subControl in element.Element("Controls").Elements())
                 {
-                    string className = subControl.Attribute("Class").Value;
-                    Type typeNewControl = Type.GetType("XNAFinalEngine.UserInterface." + className);
+                    var className = subControl.Attribute("Class").Value;
+                    var typeNewControl = Type.GetType("XNAFinalEngine.UserInterface." + className);
                     if (typeNewControl == null)
                     {
                         throw new Exception("Failed to load layout: Control doesn't exist");
@@ -103,10 +106,10 @@ namespace XNAFinalEngine.UserInterface
 
         private static void LoadProperty(XElement property, Control control)
         {
-            string name = property.Attribute("Name").Value;
-            string val = property.Attribute("Value").Value;
+            var name = property.Attribute("Name").Value;
+            var val = property.Attribute("Value").Value;
 
-            PropertyInfo i = control.GetType().GetProperty(name);
+            var i = control.GetType().GetProperty(name);
 
             if (i == null)
             {

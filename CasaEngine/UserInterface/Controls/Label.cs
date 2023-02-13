@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls
 {
 
     public class Label : Control
@@ -50,7 +50,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer skinLayer = SkinInformation.Layers[0];
+            var skinLayer = SkinInformation.Layers[0];
             UserInterfaceManager.Renderer.DrawString(this, skinLayer, Text, rect, true, 0, 0, _ellipsis);
         } // DrawControl
 

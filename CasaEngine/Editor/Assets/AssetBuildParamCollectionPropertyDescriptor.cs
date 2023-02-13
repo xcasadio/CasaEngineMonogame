@@ -28,7 +28,7 @@ namespace CasaEngine.Editor.Assets
         {
             get
             {
-                AssetBuildParam emp = _collection[_index];
+                var emp = _collection[_index];
                 return emp.Name;
             }
         }
@@ -37,7 +37,7 @@ namespace CasaEngine.Editor.Assets
         {
             get
             {
-                AssetBuildParam b = _collection[_index];
+                var b = _collection[_index];
                 return b.Name + ":" + b.Value;
             }
         }

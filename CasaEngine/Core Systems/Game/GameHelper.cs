@@ -1,15 +1,15 @@
 ﻿using CasaEngine.Game;
 
-namespace CasaEngine.CoreSystems.Game
+namespace CasaEngine.Core_Systems.Game
 {
-    static public class GameHelper
+    public static class GameHelper
     {
-        static public T GetService<T>(Microsoft.Xna.Framework.Game game) where T : class
+        public static T GetService<T>(Microsoft.Xna.Framework.Game game) where T : class
         {
             return (T)game.Services.GetService(typeof(T));
         }
 
-        static public void RemoveService<T>(Microsoft.Xna.Framework.Game game) where T : class
+        public static void RemoveService<T>(Microsoft.Xna.Framework.Game game) where T : class
         {
             if (game.Services.GetService(typeof(T)) != null)
             {
@@ -17,7 +17,7 @@ namespace CasaEngine.CoreSystems.Game
             }
         }
 
-        static public T GetGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
+        public static T GetGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
         {
             foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
             {
@@ -30,7 +30,7 @@ namespace CasaEngine.CoreSystems.Game
             return null;
         }
 
-        static public T GetDrawableGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
+        public static T GetDrawableGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
         {
             foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
             {
@@ -43,10 +43,10 @@ namespace CasaEngine.CoreSystems.Game
             return null;
         }
 
-        static public void RemoveGameComponent<T>(Microsoft.Xna.Framework.Game game)
+        public static void RemoveGameComponent<T>(Microsoft.Xna.Framework.Game game)
             where T : Microsoft.Xna.Framework.GameComponent
         {
-            T c = GetGameComponent<T>(game);
+            var c = GetGameComponent<T>(game);
 
             if (c != null)
             {
@@ -54,7 +54,7 @@ namespace CasaEngine.CoreSystems.Game
             }
         }
 
-        static public void EnableAllGameComponent(Microsoft.Xna.Framework.Game game, bool state)
+        public static void EnableAllGameComponent(Microsoft.Xna.Framework.Game game, bool state)
         {
             foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
             {
@@ -62,9 +62,9 @@ namespace CasaEngine.CoreSystems.Game
             }
         }
 
-        static public bool EnableGameComponent<T>(Microsoft.Xna.Framework.Game game, bool state) where T : class
+        public static bool EnableGameComponent<T>(Microsoft.Xna.Framework.Game game, bool state) where T : class
         {
-            Microsoft.Xna.Framework.GameComponent gc = GetGameComponent<T>(game) as Microsoft.Xna.Framework.GameComponent;
+            var gc = GetGameComponent<T>(game) as Microsoft.Xna.Framework.GameComponent;
 
             if (gc != null)
             {
@@ -75,7 +75,7 @@ namespace CasaEngine.CoreSystems.Game
             return false;
         }
 
-        static public void VisibleAllDrawableGameComponent(Microsoft.Xna.Framework.Game game, bool state)
+        public static void VisibleAllDrawableGameComponent(Microsoft.Xna.Framework.Game game, bool state)
         {
             foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
             {
@@ -86,9 +86,9 @@ namespace CasaEngine.CoreSystems.Game
             }
         }
 
-        static public bool VisibleDrawableGameComponent<T>(Microsoft.Xna.Framework.Game game, bool state) where T : class
+        public static bool VisibleDrawableGameComponent<T>(Microsoft.Xna.Framework.Game game, bool state) where T : class
         {
-            Microsoft.Xna.Framework.DrawableGameComponent dgc = GetDrawableGameComponent<T>(game) as Microsoft.Xna.Framework.DrawableGameComponent;
+            var dgc = GetDrawableGameComponent<T>(game) as Microsoft.Xna.Framework.DrawableGameComponent;
 
             if (dgc != null)
             {
@@ -99,7 +99,7 @@ namespace CasaEngine.CoreSystems.Game
             return false;
         }
 
-        static public void ScreenResize(Microsoft.Xna.Framework.Game game)
+        public static void ScreenResize(Microsoft.Xna.Framework.Game game)
         {
             foreach (Microsoft.Xna.Framework.GameComponent c in game.Components)
             {

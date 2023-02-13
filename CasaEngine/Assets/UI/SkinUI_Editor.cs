@@ -1,5 +1,5 @@
-﻿using CasaEngine.Gameplay.Actor.Object;
-using System.Xml;
+﻿using System.Xml;
+using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Assets.UI

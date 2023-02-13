@@ -12,7 +12,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
 
         protected ReplacementAlgorithm(int newPopulationSize, EvolutionObjective objective)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateNewPopulationSize(newPopulationSize, ref message) == false)
             {

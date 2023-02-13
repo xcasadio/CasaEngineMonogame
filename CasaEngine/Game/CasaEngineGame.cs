@@ -1,17 +1,17 @@
+using CasaEngine.Assets;
+using CasaEngine.Assets.Loaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Debugger;
+using CasaEngine.Front_End.Screen;
 using CasaEngine.Graphics2D;
-using CasaEngine.FrontEnd.Screen;
+using CasaEngine.Helpers;
 using CasaEngine.Input;
-using CasaEngine.Helper;
 using CasaEngineCommon.Helper;
-using CasaEngine.Asset;
 
 namespace CasaEngine.Game
 {
-    public abstract class CasaEngineGame
-        : Microsoft.Xna.Framework.Game
+    public abstract class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
         private readonly Microsoft.Xna.Framework.GraphicsDeviceManager _graphics;
         private readonly Renderer2DComponent _renderer2DComponent;
@@ -27,13 +27,12 @@ namespace CasaEngine.Game
 
         public string ProjectFile { get; } = string.Empty;
 
-
         public CasaEngineGame()
         {
             Engine.Instance.Game = this;
 
             _graphics = new Microsoft.Xna.Framework.GraphicsDeviceManager(this);
-            _graphics.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(graphics_PreparingDeviceSettings);
+            _graphics.PreparingDeviceSettings += PreparingDeviceSettings;
 
             Engine.Instance.AssetContentManager = new AssetContentManager();
             Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
@@ -47,7 +46,7 @@ namespace CasaEngine.Game
             _shapeRendererComponent = new ShapeRendererComponent(this);
 
 #if !FINAL
-            string[] args = Environment.CommandLine.Split(' ');
+            var args = Environment.CommandLine.Split(' ');
 
             if (args.Length > 1)
             {
@@ -63,18 +62,10 @@ namespace CasaEngine.Game
 #endif
         }
 
-
-        void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
+        private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
         {
-            for (int i = 0; i < GraphicsAdapter.Adapters.Count; i++)
-            {
-                if (GraphicsAdapter.Adapters[i].IsProfileSupported(GraphicsProfile.HiDef))
-                {
-                    //e.GraphicsDeviceInformation.Adapter = GraphicsAdapter.Adapters[i];
-                    e.GraphicsDeviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
-                    break;
-                }
-            }
+            e.GraphicsDeviceInformation.GraphicsProfile =
+                GraphicsAdapter.Adapters.Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
         }
 
         protected override void Initialize()
@@ -91,7 +82,7 @@ namespace CasaEngine.Game
             _graphics.PreferredBackBufferWidth = Engine.Instance.ProjectConfig.DebugWidth;
             _graphics.PreferredBackBufferHeight = Engine.Instance.ProjectConfig.DebugHeight;
 #else
-            //recuperer la resolution des optionsS
+            //recuperer la resolution des options
             graphics.PreferredBackBufferWidth = 1024;
             graphics.PreferredBackBufferHeight = 768;
 #endif
@@ -111,7 +102,7 @@ namespace CasaEngine.Game
             Engine.Instance.AssetContentManager.Initialize(GraphicsDevice);
             Engine.Instance.AssetContentManager.RootDirectory = ContentPath;
 
-            Engine.Instance.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
+            //Engine.Instance.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
 
             Engine.Instance.SpriteBatch = new SpriteBatch(GraphicsDevice);
             //TODO : defaultSpriteFont
@@ -128,11 +119,11 @@ namespace CasaEngine.Game
             base.BeginRun();
         }
 
-        protected abstract void Update(float elpasedTime);
+        protected abstract void Update(float elapsedTime);
 
         protected override void Update(GameTime gameTime)
         {
-            if (Engine.Instance.ResetDevice == true)
+            if (Engine.Instance.ResetDevice)
             {
                 GraphicsDeviceManager.ApplyChanges();
                 Engine.Instance.ResetDevice = false;
@@ -146,8 +137,8 @@ namespace CasaEngine.Game
             //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
             //    DebugSystem.Instance.DebugCommandUI.Show(); 
 
-            float time = GameTimeHelper.GameTimeToMilliseconds(gameTime);
-            Engine.Instance.UiManager.Update(time);
+            var time = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            //Engine.Instance.UiManager.Update(time);
             base.Update(gameTime);
             Update(time);
 
@@ -156,7 +147,7 @@ namespace CasaEngine.Game
 #endif // !FINAL
         }
 
-        protected abstract void Draw(float elpasedTime);
+        protected abstract void Draw(float elapsedTime);
 
         protected override void Draw(GameTime gameTime)
         {
@@ -165,14 +156,14 @@ namespace CasaEngine.Game
             DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif // !FINAL
 
-            float time = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            var time = GameTimeHelper.GameTimeToMilliseconds(gameTime);
 
-            Engine.Instance.UiManager.PreRenderControls();
+            //Engine.Instance.UiManager.PreRenderControls();
 
             Draw(time);
             base.Draw(gameTime);
 
-            Engine.Instance.UiManager.RenderUserInterfaceToScreen();
+            //Engine.Instance.UiManager.RenderUserInterfaceToScreen();
 #if !FINAL
             DebugSystem.Instance.TimeRuler.EndMark("Draw");
 #endif // !FINAL

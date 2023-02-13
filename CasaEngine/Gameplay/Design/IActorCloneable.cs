@@ -1,9 +1,9 @@
-﻿using CasaEngine.Gameplay.Actor.Object;
+﻿using CasaEngine.Gameplay.Actor;
 
 namespace CasaEngine.Gameplay.Design
 {
     public interface IActorCloneable
     {
-        BaseObject Clone();
+        Actor.BaseObject Clone();
     }
 }

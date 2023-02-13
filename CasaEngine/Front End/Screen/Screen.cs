@@ -6,13 +6,13 @@
 //-----------------------------------------------------------------------------
 
 
-using Microsoft.Xna.Framework;
-using CasaEngine.Graphics2D;
 using System.Xml;
+using CasaEngine.Gameplay.Actor;
+using CasaEngine.Graphics2D;
 using CasaEngineCommon.Design;
-using CasaEngine.Gameplay.Actor.Object;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public enum ScreenState
     {
@@ -261,7 +261,7 @@ namespace CasaEngine.FrontEnd.Screen
                 return false;
             }
 
-            Screen screen = other as Screen;
+            var screen = other as Screen;
 
             return _isPopup == screen._isPopup
                 && _transitionOnTime == screen._transitionOnTime

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Forms;
-using Editor.Debugger;
+﻿using Editor.Debugger;
 using CasaEngine.Game;
-using CasaEngine.Input;
 
 namespace Editor
 {

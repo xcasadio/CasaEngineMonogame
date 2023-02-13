@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Threading;
+﻿using CasaEngineCommon.Logger;
 using Editor.Game;
-using CasaEngineCommon.Logger;
+using Microsoft.Xna.Framework.Input;
 
 namespace Editor.Tools
 {
@@ -20,26 +15,16 @@ namespace Editor.Tools
         IntPtr m_XnaControlHandle;
         IntPtr m_PreviousHandle;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public Thread ThreadGame
         {
             get { return m_ThreadGame; }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public CustomGameEditor Game
         {
             get { return m_Game; }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="form_"></param>
         public XnaEditorForm(IEditorForm form_)
         {
             if (form_ == null)
@@ -55,83 +40,62 @@ namespace Editor.Tools
             m_Form = form_;
             Form win = (Form)m_Form;
             m_XnaControlHandle = m_Form.XnaPanel.Handle;
-            win.FormClosed += new FormClosedEventHandler(OnFormClosed);
-            win.Disposed += new EventHandler(OnFormDisposed);
-            win.Activated += new EventHandler(OnActivated);
-            win.Deactivate += new EventHandler(OnDeactivate);
-            m_Game = new CustomGameEditor(m_Form.XnaPanel, m_Form.XnaPanel.Handle);
+            win.FormClosed += OnFormClosed;
+            win.Disposed += OnFormDisposed;
+            win.Activated += OnActivated;
+            win.Deactivate += OnDeactivate;
+            win.Resize += OnResize;
+            m_Game = new CustomGameEditor(m_Form.XnaPanel.Handle, win.Width, win.Height);
 
             m_EventWaitHandle = new AutoResetEvent(true);
+
+            Mouse.WindowHandle = m_XnaControlHandle;
         }
 
+        private void OnResize(object? sender, EventArgs e)
+        {
+            m_Game.Resize(m_Form.XnaPanel.Width, m_Form.XnaPanel.Height);
+        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void OnDeactivate(object sender, EventArgs e)
         {
-            Microsoft.Xna.Framework.Input.Mouse.WindowHandle = m_PreviousHandle;
+            Mouse.WindowHandle = m_PreviousHandle;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void OnActivated(object sender, EventArgs e)
         {
-            m_PreviousHandle = Microsoft.Xna.Framework.Input.Mouse.WindowHandle;
-            Microsoft.Xna.Framework.Input.Mouse.WindowHandle = m_XnaControlHandle;
+            m_PreviousHandle = Mouse.WindowHandle;
+            Mouse.WindowHandle = m_XnaControlHandle;
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
         public void StartGame()
         {
-            m_ThreadGame = new Thread(
-                new ParameterizedThreadStart(delegate (object g)
+            m_ThreadGame = new Thread(g =>
+            {
+                try
                 {
-                    try
-                    {
-                        ((CustomGameEditor)g).Run();
-                    }
-                    catch (Exception ex)
-                    {
-                        LogManager.Instance.WriteLineError("Exception in the game thread (" + ((Form)m_Form).Text + ")");
-                        LogManager.Instance.WriteException(ex);
-                    }
-                }));
+                    ((CustomGameEditor)g).Run();
+                }
+                catch (Exception ex)
+                {
+                    LogManager.Instance.WriteLineError("Exception in the game thread (" + ((Form)m_Form).Text + ")");
+                    LogManager.Instance.WriteException(ex);
+                }
+            });
             m_ThreadGame.Start(m_Game);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         private void Exit()
         {
             m_Game.Exit();
             //m_ThreadGame.Abort();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void OnFormClosed(object sender, FormClosedEventArgs e)
         {
             Exit();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         void OnFormDisposed(object sender, EventArgs e)
         {
             Exit();

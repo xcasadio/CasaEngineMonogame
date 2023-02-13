@@ -53,21 +53,21 @@ namespace CasaEngine.World
 
         public List<T> GetActors<T>()
         {
-            List<T> res = new List<T>();
+            var res = new List<T>();
 
             return res;
         }
 
         public List<CharacterActor2D> GetPlayers()
         {
-            List<CharacterActor2D> res = new List<CharacterActor2D>();
+            var res = new List<CharacterActor2D>();
 
-            foreach (Actor2D a in _world.Actors)
+            foreach (var a in _world.Actors)
             {
                 if (a is CharacterActor2D)
                 {
-                    CharacterActor2D c = (CharacterActor2D)a;
-                    if (c.IsPLayer == true)
+                    var c = (CharacterActor2D)a;
+                    if (c.IsPLayer)
                     {
                         res.Add(c);
                     }

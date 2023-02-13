@@ -11,7 +11,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
         public ElitismReplacement(int newPopulationSize, EvolutionObjective objective, int numberParents)
             : base(newPopulationSize, objective)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             //Validate arguments
             if (ValidateNumberParents(newPopulationSize, numberParents, ref message) == false)

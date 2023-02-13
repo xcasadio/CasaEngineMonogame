@@ -26,7 +26,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using TextBox = CasaEngine.UserInterface.Controls.Text.TextBox;
+
+namespace CasaEngine.UserInterface.Controls.Windows
 {
 
     public class AssetWindow : Window
@@ -86,7 +88,9 @@ namespace XNAFinalEngine.UserInterface
             _nameTextBox.KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Keys.Enter)
+                {
                     AssetName = _nameTextBox.Text;
+                }
             };
             _nameTextBox.FocusLost += delegate
             {
@@ -108,7 +112,9 @@ namespace XNAFinalEngine.UserInterface
         protected virtual void OnAssetNameChanged(EventArgs e)
         {
             if (AssetNameChanged != null)
+            {
                 AssetNameChanged.Invoke(this, e);
+            }
         } // OnAssetNameChanged
 
 

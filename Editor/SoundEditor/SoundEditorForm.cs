@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Game;
-using System.IO;
-using CasaEngine.Editor;
+﻿using CasaEngine.Game;
 using CasaEngineCommon.Logger;
 using CasaEngine.Editor.Assets;
 
@@ -44,7 +34,7 @@ namespace Editor.SoundEditor
                 }
 
                 listBoxSoundAsset.SelectedIndex = listBoxSoundAsset.Items.Count - 1;
-                
+
                 Cursor = Cursors.Default;
             }
         }
@@ -60,8 +50,8 @@ namespace Editor.SoundEditor
 
             if (Engine.Instance.AssetManager.AddAsset(
                 fileName_,
-                assetName, 
-                AssetType.Audio, 
+                assetName,
+                AssetType.Audio,
                 ref assetFileName) == true)
             {
                 listBoxSoundAsset.Items.Add(assetName);

@@ -10,10 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using CasaEngine.Asset;
+using CasaEngine.Assets.Textures;
 
-
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Auxiliary
 {
 
 
@@ -56,7 +55,10 @@ namespace XNAFinalEngine.UserInterface
                 if (_border != value)
                 {
                     _border = value;
-                    if (!Suspended) OnBorderChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnBorderChanged(new EventArgs());
+                    }
                 }
             }
         } // Border
@@ -69,7 +71,10 @@ namespace XNAFinalEngine.UserInterface
                 if (_style != value)
                 {
                     _style = value;
-                    if (!Suspended) OnStyleChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnStyleChanged(new EventArgs());
+                    }
                 }
             }
         } // Style
@@ -122,17 +127,20 @@ namespace XNAFinalEngine.UserInterface
 
         private void DrawPart(Rectangle rect, BevelBorder pos, BevelStyle style, bool all)
         {
-            SkinLayer layer = SkinInformation.Layers["Control"];
-            Color c1 = Utilities.ParseColor(layer.Attributes["LightColor"].Value);
-            Color c2 = Utilities.ParseColor(layer.Attributes["DarkColor"].Value);
-            Color c3 = Utilities.ParseColor(layer.Attributes["FlatColor"].Value);
+            var layer = SkinInformation.Layers["Control"];
+            var c1 = Utilities.ParseColor(layer.Attributes["LightColor"].Value);
+            var c2 = Utilities.ParseColor(layer.Attributes["DarkColor"].Value);
+            var c3 = Utilities.ParseColor(layer.Attributes["FlatColor"].Value);
 
-            if (Color != UndefinedColor) c3 = Color;
+            if (Color != UndefinedColor)
+            {
+                c3 = Color;
+            }
 
-            Texture texture = SkinInformation.Layers["Control"].Image.Texture;
+            var texture = SkinInformation.Layers["Control"].Image.Texture;
 
-            int x1 = 0; int y1 = 0; int w1 = 0; int h1 = 0;
-            int x2 = 0; int y2 = 0; int w2 = 0; int h2 = 0;
+            var x1 = 0; var y1 = 0; var w1 = 0; var h1 = 0;
+            var x2 = 0; var y2 = 0; var w2 = 0; var h2 = 0;
 
             if (style == BevelStyle.Bumped || style == BevelStyle.Etched)
             {
@@ -215,18 +223,30 @@ namespace XNAFinalEngine.UserInterface
                     }
                 case BevelStyle.Raised:
                     {
-                        Color c = c1;
-                        if (pos == BevelBorder.Left || pos == BevelBorder.Top) c = c1;
-                        else c = c2;
+                        var c = c1;
+                        if (pos == BevelBorder.Left || pos == BevelBorder.Top)
+                        {
+                            c = c1;
+                        }
+                        else
+                        {
+                            c = c2;
+                        }
 
                         UserInterfaceManager.Renderer.Draw(texture.Resource, new Rectangle(x1, y1, w1, h1), c);
                         break;
                     }
                 case BevelStyle.Lowered:
                     {
-                        Color c = c1;
-                        if (pos == BevelBorder.Left || pos == BevelBorder.Top) c = c2;
-                        else c = c1;
+                        var c = c1;
+                        if (pos == BevelBorder.Left || pos == BevelBorder.Top)
+                        {
+                            c = c2;
+                        }
+                        else
+                        {
+                            c = c1;
+                        }
 
                         UserInterfaceManager.Renderer.Draw(texture.Resource, new Rectangle(x1, y1, w1, h1), c);
                         break;
@@ -243,14 +263,20 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnBorderChanged(EventArgs e)
         {
-            if (BorderChanged != null) BorderChanged.Invoke(this, e);
+            if (BorderChanged != null)
+            {
+                BorderChanged.Invoke(this, e);
+            }
         } // OnBorderChanged
 
 
 
         protected virtual void OnStyleChanged(EventArgs e)
         {
-            if (StyleChanged != null) StyleChanged.Invoke(this, e);
+            if (StyleChanged != null)
+            {
+                StyleChanged.Invoke(this, e);
+            }
         } // OnStyleChanged
 
 

@@ -10,7 +10,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
         public LinealCrossover(double probability, Random generator, double intervalModifier)
             : base(probability, generator)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateIntervalModifier(intervalModifier, ref message) == false)
             {
@@ -49,7 +49,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             chromosome2 = parents[0].FastEmptyInstance();
 
             //Calculate the genotype of each chromosome. The scale factor is calcultated every time
-            for (int i = 0; i < parents[0].Genotype.Count; i++)
+            for (var i = 0; i < parents[0].Genotype.Count; i++)
             {
                 scaleFactor = Generator.NextDouble() * (1 - 2 * IntervalModifier) + IntervalModifier;
 

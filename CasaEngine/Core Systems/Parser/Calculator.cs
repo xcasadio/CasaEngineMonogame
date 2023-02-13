@@ -1,8 +1,7 @@
 ﻿using System.Xml;
 using CasaEngineCommon.Design;
 
-
-namespace CasaEngine.Design.Parser
+namespace CasaEngine.Core_Systems.Parser
 {
     class Calculator
     {
@@ -38,7 +37,7 @@ namespace CasaEngine.Design.Parser
         {
             _root = null;
 
-            XmlElement root = (XmlElement)el.SelectSingleNode("Root/Node");
+            var root = (XmlElement)el.SelectSingleNode("Root/Node");
 
             if (root != null)
             {
@@ -64,11 +63,11 @@ namespace CasaEngine.Design.Parser
             }
         }
 
-        static public CalculatorToken CreateCalculatorToken(Calculator calculator, XmlElement el, SaveOption option)
+        public static CalculatorToken CreateCalculatorToken(Calculator calculator, XmlElement el, SaveOption option)
         {
             CalculatorToken token = null;
 
-            CalculatorTokenType type = (CalculatorTokenType)int.Parse(el.Attributes["type"].Value);
+            var type = (CalculatorTokenType)int.Parse(el.Attributes["type"].Value);
 
             switch (type)
             {
@@ -99,11 +98,11 @@ namespace CasaEngine.Design.Parser
             return token;
         }
 
-        static public CalculatorToken CreateCalculatorToken(Calculator calculator, BinaryReader br, SaveOption option)
+        public static CalculatorToken CreateCalculatorToken(Calculator calculator, BinaryReader br, SaveOption option)
         {
             CalculatorToken token = null;
 
-            CalculatorTokenType type = (CalculatorTokenType)br.ReadInt32();
+            var type = (CalculatorTokenType)br.ReadInt32();
 
             switch (type)
             {

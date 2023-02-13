@@ -49,9 +49,9 @@ namespace CasaEngine.Project
         {
             get
             {
-                List<string> res = new List<string>();
+                var res = new List<string>();
 
-                foreach (PackageItem item in Items)
+                foreach (var item in Items)
                 {
                     if (res.Contains(item.DirectoryPath) == false
                         && string.IsNullOrWhiteSpace(item.DirectoryPath) == false)
@@ -84,9 +84,9 @@ namespace CasaEngine.Project
 
         public T GetItem<T>(string name) where T : class
         {
-            foreach (PackageItem item in Items)
+            foreach (var item in Items)
             {
-                if (item.Name.Equals(name) == true)
+                if (item.Name.Equals(name))
                 {
                     return item as T;
                 }
@@ -106,7 +106,7 @@ namespace CasaEngine.Project
                 return;
             }
 
-            XmlDocument xmlDoc = new XmlDocument();
+            var xmlDoc = new XmlDocument();
             xmlDoc.Load(file);
 
             PackageFileName = file;
@@ -114,7 +114,7 @@ namespace CasaEngine.Project
 
         public void SaveXml(string file, SaveOption opt)
         {
-            XmlDocument xmlDoc = new XmlDocument();
+            var xmlDoc = new XmlDocument();
 
 
             //add in workspace
@@ -143,7 +143,7 @@ namespace CasaEngine.Project
                 return;
             }
 
-            BinaryReader br = new BinaryReader(File.Open(file, FileMode.Open));
+            var br = new BinaryReader(File.Open(file, FileMode.Open));
 
             br.Close();
 
@@ -152,7 +152,7 @@ namespace CasaEngine.Project
 
         public void SaveBinary(string file, SaveOption opt)
         {
-            BinaryWriter bw = new BinaryWriter(File.Open(file, FileMode.Create));
+            var bw = new BinaryWriter(File.Open(file, FileMode.Create));
 
             bw.Close();
 

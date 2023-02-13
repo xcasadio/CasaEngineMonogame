@@ -10,7 +10,7 @@ namespace CasaEngine.AI.Graphs
 
         public WeightedEdge(int start, int end, float cost) : base(start, end)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateCost(cost, ref message) == false)
             {
@@ -25,7 +25,7 @@ namespace CasaEngine.AI.Graphs
             get => cost;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateCost(value, ref message) == false)
                 {

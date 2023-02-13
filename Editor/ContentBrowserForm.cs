@@ -1,33 +1,26 @@
 ﻿
 using System.ComponentModel;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
-using System.Linq;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.Math.Shape2D;
 using CasaEngine.Project;
 using CasaEngineCommon.Logger;
-using Editor.Sprite2DEditor;
 using Editor.Sprite2DEditor.SpriteSheetPacker.sspack;
 using Editor.WinForm;
 using Microsoft.Xna.Framework;
 using WeifenLuo.WinFormsUI.Docking;
-using CasaEngine.Gameplay.Actor.Object;
-using CasaEngine.SourceControl;
-using System.Collections.Generic;
 using CasaEngine.Gameplay;
-using Editor.Tools.Audio;
 using CasaEngine.Audio;
 using Microsoft.Xna.Framework.Audio;
 using Editor.Tools.Graphics2D;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.FrontEnd.Screen;
 using System.Diagnostics;
-using CasaEngine.Asset.Fonts;
 using Editor.Tools.Font;
 using CasaEngine.Assets.UI;
+using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Front_End.Screen;
+using CasaEngine.Gameplay.Actor;
+using BaseObject = CasaEngine.Gameplay.Actor.BaseObject;
+using Font = CasaEngine.Assets.Fonts.Font;
 
 namespace Editor
 {
@@ -1313,7 +1306,7 @@ namespace Editor
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     List<string> newAssetFiles = new List<string>();
-                    CasaEngine.Asset.Fonts.Font font = new CasaEngine.Asset.Fonts.Font(form.BmFile);
+                    Font font = new Font(form.BmFile);
 
                     foreach (string p in font.AssetFileNames)
                     {

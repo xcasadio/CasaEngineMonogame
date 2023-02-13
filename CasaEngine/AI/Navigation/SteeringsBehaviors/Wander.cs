@@ -12,13 +12,13 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
         protected internal Vector3 force;
         protected internal Vector3 targetPosition;
 
-        public Wander(string name, MovingEntity owner, float modifier)
+        public Wander(string name, MovingObject owner, float modifier)
             : base(name, owner, modifier)
         {
             generator = new Random();
         }
 
-        public Wander(string name, MovingEntity owner, float modifier, float radius, float distance, float jitter)
+        public Wander(string name, MovingObject owner, float modifier, float radius, float distance, float jitter)
             : base(name, owner, modifier)
         {
             double alfa, beta, theta;

@@ -28,8 +28,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Microsoft.Xna.Framework.Input;
 
-
-namespace XNAFinalEngine.Input
+namespace CasaEngine.Input
 {
 
     public static class Keyboard
@@ -59,7 +58,7 @@ namespace XNAFinalEngine.Input
         public static bool IsSpecialKey(Keys key)
         {
             // ~_|{}:"<>? !@#$%^&*().
-            int keyNum = (int)key;
+            var keyNum = (int)key;
             if ((keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z) ||
                 (keyNum >= (int)Keys.D0 && keyNum <= (int)Keys.D9) ||
                 key == Keys.Space ||            // space
@@ -86,9 +85,9 @@ namespace XNAFinalEngine.Input
 
         public static string KeyToString(Keys key, bool shift, bool caps)
         {
-            bool uppercase = (caps && !shift) || (!caps && shift);
+            var uppercase = (caps && !shift) || (!caps && shift);
 
-            int keyNum = (int)key;
+            var keyNum = (int)key;
             if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z)
             {
                 if (uppercase)

@@ -20,7 +20,7 @@ namespace CasaEngine.AI.Graphs
 
         public Edge(int start, int end)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateNode(start, ref message) == false)
             {
@@ -41,7 +41,7 @@ namespace CasaEngine.AI.Graphs
             get => start;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateNode(value, ref message) == false)
                 {
@@ -58,7 +58,7 @@ namespace CasaEngine.AI.Graphs
             set
             {
 
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateNode(value, ref message) == false)
                 {

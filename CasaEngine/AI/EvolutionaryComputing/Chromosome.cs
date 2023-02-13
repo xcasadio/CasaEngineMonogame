@@ -26,7 +26,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => genotype;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateGenotype(value, ref message) == false)
                 {
@@ -56,7 +56,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 newChrom = (Chromosome<T>)MemberwiseClone();
                 newChrom.Genotype.Clear();
 
-                for (int i = 0; i < genotype.Count; i++)
+                for (var i = 0; i < genotype.Count; i++)
                 {
                     newChrom.Genotype.Add(genotype[i]);
                 }
@@ -70,7 +70,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
                 newChrom = (Chromosome<T>)MemberwiseClone();
                 newChrom.Genotype.Clear();
 
-                for (int i = 0; i < genotype.Count; i++)
+                for (var i = 0; i < genotype.Count; i++)
                 {
                     newChrom.Genotype.Add((T)((ICloneable)genotype[i]).Clone());
                 }

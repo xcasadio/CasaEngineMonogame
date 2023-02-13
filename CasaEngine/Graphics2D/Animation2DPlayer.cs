@@ -6,7 +6,7 @@ namespace CasaEngine.Graphics2D
     {
 
 #if !FINAL
-        static public float AnimationSpeed = 1.0f;
+        public static float AnimationSpeed = 1.0f;
 #endif
 
         private readonly Dictionary<int, Animation2D> _animations;
@@ -26,10 +26,10 @@ namespace CasaEngine.Graphics2D
         {
             _animations = animations;
 
-            foreach (KeyValuePair<int, Animation2D> pair in animations)
+            foreach (var pair in animations)
             {
-                pair.Value.OnFrameChanged += new EventHandler<Animation2DFrameChangedEventArgs>(FrameChanging);
-                pair.Value.OnEndAnimationReached += new EventHandler(EventHandler_OnEndAnimationReached);
+                pair.Value.OnFrameChanged += FrameChanging;
+                pair.Value.OnEndAnimationReached += EventHandler_OnEndAnimationReached;
             }
         }
 
@@ -63,11 +63,11 @@ namespace CasaEngine.Graphics2D
 
         public void SetCurrentAnimationByName(string name)
         {
-            int index = -1;
+            var index = -1;
 
-            foreach (KeyValuePair<int, Animation2D> pair in _animations)
+            foreach (var pair in _animations)
             {
-                if (pair.Value.Name.Equals(name) == true)
+                if (pair.Value.Name.Equals(name))
                 {
                     index = pair.Key;
                 }

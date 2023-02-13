@@ -27,10 +27,10 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using Screen = CasaEngine.CoreSystems.Screen;
+using Screen = CasaEngine.Core_Systems.Screen;
 
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
 
     public struct Size

@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Buttons
 {
 
     public abstract class ButtonBase : Control
@@ -21,16 +21,36 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                if (DesignMode) return ControlState.Enabled;
-                if (Suspended) return ControlState.Disabled;
-                if (!Enabled) return ControlState.Disabled;
+                if (DesignMode)
+                {
+                    return ControlState.Enabled;
+                }
+
+                if (Suspended)
+                {
+                    return ControlState.Disabled;
+                }
+
+                if (!Enabled)
+                {
+                    return ControlState.Disabled;
+                }
 
                 if ((Pressed[(int)MouseButton.Left] && Inside) || Pressed[(int)MouseButton.None])
+                {
                     return ControlState.Pressed;
+                }
+
                 if (Hovered && Inside)
+                {
                     return ControlState.Hovered;
+                }
+
                 if ((Focused && !Inside) || (Hovered && !Inside) || (Focused && !Hovered && Inside))
+                {
                     return ControlState.Focused;
+                }
+
                 return ControlState.Enabled;
             }
         } // ControlState
@@ -48,7 +68,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnClick(EventArgs e)
         {
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
             if (ex.Button == MouseButton.Left)
             {
                 base.OnClick(e);

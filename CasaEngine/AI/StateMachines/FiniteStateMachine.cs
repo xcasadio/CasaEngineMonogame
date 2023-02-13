@@ -77,12 +77,12 @@ namespace CasaEngine.AI.StateMachines
 
         public bool HandleMessage(Message message)
         {
-            if (_currentState.HandleMessage(Owner, message) == true)
+            if (_currentState.HandleMessage(Owner, message))
             {
                 return true;
             }
 
-            if (_globalState.HandleMessage(Owner, message) == true)
+            if (_globalState.HandleMessage(Owner, message))
             {
                 return true;
             }

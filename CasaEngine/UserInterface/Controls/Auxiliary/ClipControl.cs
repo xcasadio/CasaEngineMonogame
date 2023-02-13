@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Auxiliary
 {
 
     public class ClipControl : Control
@@ -21,7 +21,7 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                int max = 0;
+                var max = 0;
                 foreach (var childrenControl in ClientArea.ChildrenControls)
                 {
                     if (childrenControl.Top + childrenControl.Height > max)
@@ -42,13 +42,24 @@ namespace XNAFinalEngine.UserInterface
             {
                 // Fix the range
                 if (value.Left < 0)
+                {
                     value.Left = 0;
+                }
+
                 if (value.Right < 0)
+                {
                     value.Right = 0;
+                }
+
                 if (value.Top < 0)
+                {
                     value.Top = 0;
+                }
+
                 if (value.Bottom < 0)
+                {
                     value.Bottom = 0;
+                }
 
                 base.ClientMargins = value;
                 if (ClientArea != null)
@@ -84,9 +95,13 @@ namespace XNAFinalEngine.UserInterface
         public virtual void Add(Control control, bool client)
         {
             if (client)
+            {
                 ClientArea.Add(control);
+            }
             else
+            {
                 base.Add(control);
+            }
         } // Add
 
         public override void Add(Control control)
@@ -108,8 +123,8 @@ namespace XNAFinalEngine.UserInterface
             // The collection might change from its children, so we check it on count greater than zero.
             if (ClientArea.ChildrenControls != null)
             {
-                int childrenControlsCount = ClientArea.ChildrenControls.Count;
-                for (int i = childrenControlsCount - 1; i >= 0; i--)
+                var childrenControlsCount = ClientArea.ChildrenControls.Count;
+                for (var i = childrenControlsCount - 1; i >= 0; i--)
                 {
                     ClientArea.ChildrenControls[i].Dispose();
                 }

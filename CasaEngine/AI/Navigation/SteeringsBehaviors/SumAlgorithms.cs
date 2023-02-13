@@ -14,8 +14,8 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             totalForce = Vector3.Zero;
 
-            foreach (SteeringBehavior behavior in behaviors)
-                if (behavior.Active == true)
+            foreach (var behavior in behaviors)
+                if (behavior.Active)
                 {
                     totalForce += behavior.Calculate() * behavior.Modifier;
                 }

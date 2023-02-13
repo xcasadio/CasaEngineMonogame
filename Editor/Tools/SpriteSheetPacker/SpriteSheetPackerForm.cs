@@ -22,15 +22,7 @@
  */
 
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Threading;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Reflection;
 using CasaEngineCommon.Logger;
 using CasaEngine.Game;
 

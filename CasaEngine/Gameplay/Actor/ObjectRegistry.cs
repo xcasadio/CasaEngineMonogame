@@ -1,5 +1,4 @@
 ﻿using System.Xml;
-using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Game;
 using CasaEngineCommon.Extension;
 using System.Reflection;
@@ -11,16 +10,16 @@ namespace CasaEngine.Gameplay.Actor
     public class ObjectRegistry
     {
 #if EDITOR
-        static private readonly uint Version = 1;
+        private static readonly uint Version = 1;
 
         private ObjectRegistryStatus CreateObjectRegistryStatus(BaseObject ob, bool add)
         {
-            ObjectRegistryStatus objectRegistryStatus = new ObjectRegistryStatus();
+            var objectRegistryStatus = new ObjectRegistryStatus();
             objectRegistryStatus.ClassName = ob.GetType().FullName;
             objectRegistryStatus.BaseObject = ob;
             //objectRegistryStatus.Name = ob_.Name;
 
-            if (add == true)
+            if (add)
             {
                 objectRegistryStatus.Id = _unusedId++;
                 ob.Id = objectRegistryStatus.Id;
@@ -36,7 +35,7 @@ namespace CasaEngine.Gameplay.Actor
         public void AddObject(BaseObject obj, string name)
         {
             //obj_.Name = name_;
-            ObjectRegistryStatus o = CreateObjectRegistryStatus(obj, true);
+            var o = CreateObjectRegistryStatus(obj, true);
             _objectRegistry.Add(o);
         }
 
@@ -47,9 +46,9 @@ namespace CasaEngine.Gameplay.Actor
 
         public void RemoveObject(string name)
         {
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
-                if (o.Name.Equals(name) == true)
+                if (o.Name.Equals(name))
                 {
                     _objectRegistry.Remove(o);
                     break;
@@ -59,7 +58,7 @@ namespace CasaEngine.Gameplay.Actor
 
         public void RenameObject(string name, string newName)
         {
-            if (ContainsObjectNamed(newName) == true)
+            if (ContainsObjectNamed(newName))
             {
                 throw new Exception("_ObjectRegistry.RenameObject() : an object named " + newName + " already exist.");
             }
@@ -69,14 +68,14 @@ namespace CasaEngine.Gameplay.Actor
                 throw new Exception("_ObjectRegistry.RenameObject() : the object named " + name + " doesn't exist.");
             }
 
-            for (int i = 0; i < _objectRegistry.Count; i++)
+            for (var i = 0; i < _objectRegistry.Count; i++)
             {
-                if (_objectRegistry[i].Name.Equals(name) == true)
+                if (_objectRegistry[i].Name.Equals(name))
                 {
-                    ObjectRegistryStatus o = new ObjectRegistryStatus(_objectRegistry[i]);
+                    var o = new ObjectRegistryStatus(_objectRegistry[i]);
                     o.Name = newName;
 
-                    bool loaded = o.IsLoaded;
+                    var loaded = o.IsLoaded;
                     if (o.IsLoaded == false)
                     {
                         Load(o);
@@ -101,9 +100,9 @@ namespace CasaEngine.Gameplay.Actor
 
         public List<string> GetAllObjectName()
         {
-            List<string> res = new List<string>();
+            var res = new List<string>();
 
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
                 res.Add(o.Name);
             }
@@ -113,9 +112,9 @@ namespace CasaEngine.Gameplay.Actor
 
         public bool IsValidName(string name)
         {
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
-                if (o.Name.Equals(name) == true)
+                if (o.Name.Equals(name))
                 {
                     return false;
                 }
@@ -131,9 +130,9 @@ namespace CasaEngine.Gameplay.Actor
                 throw new ArgumentNullException("Please give a valid no empty string");
             }
 
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
-                if (o.Name.Equals(name) == true)
+                if (o.Name.Equals(name))
                 {
                     return o.Id;
                 }
@@ -154,11 +153,11 @@ namespace CasaEngine.Gameplay.Actor
                 xmlDocLast.Load(Engine.Instance.ProjectManager.ProjectFileOpened);
             }
 
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
-                XmlElement objectNode = CreateObjectNode(el, o);
+                var objectNode = CreateObjectNode(el, o);
 
-                if (o.IsLoaded == true)
+                if (o.IsLoaded)
                 {
                     o.BaseObject.Save(objectNode, SaveOption.Editor);
                 }
@@ -167,14 +166,14 @@ namespace CasaEngine.Gameplay.Actor
                 //On est obligé de mixer le nouveau fichier avec le nouveau
                 //Car on ne sauvegarde a chaque fois que le monde courant avec ses objets chargés
                 //(on ne peut pas sauvegarder les autres mondes sinon il faudrait les chargés a chaque fois)
-                else if (xmlDocLast != null)
+                else
                 {
-                    XmlNode oldNode = xmlDocLast.SelectSingleNode("Project/ObjectRegistry/Object[@id='" + o.Id + "']");
+                    var oldNode = xmlDocLast?.SelectSingleNode("Project/ObjectRegistry/Object[@id='" + o.Id + "']");
 
                     if (oldNode != null)
                     {
                         //copy attributes
-                        bool alreadyExist = false;
+                        var alreadyExist = false;
                         foreach (XmlAttribute attLast in oldNode.Attributes)
                         {
                             alreadyExist = false;
@@ -196,7 +195,7 @@ namespace CasaEngine.Gameplay.Actor
                         //copy child
                         foreach (XmlNode node in oldNode.ChildNodes)
                         {
-                            XmlNode importNode = objectNode.OwnerDocument.ImportNode(node, true);
+                            var importNode = objectNode.OwnerDocument.ImportNode(node, true);
                             objectNode.AppendChild(importNode);
                         }
                     }
@@ -206,7 +205,7 @@ namespace CasaEngine.Gameplay.Actor
 
         private XmlElement CreateObjectNode(XmlElement el, ObjectRegistryStatus o)
         {
-            XmlElement objectNode = el.OwnerDocument.CreateElement("Object");
+            var objectNode = el.OwnerDocument.CreateElement("Object");
             el.AppendChild(objectNode);
 
             el.OwnerDocument.AddAttribute(objectNode, "id", o.Id.ToString());
@@ -298,7 +297,7 @@ namespace CasaEngine.Gameplay.Actor
 
         public BaseObject GetObjectById(uint id)
         {
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
                 if (o.Id == id)
                 {
@@ -321,9 +320,9 @@ namespace CasaEngine.Gameplay.Actor
 
         public BaseObject GetObjectByName(string name)
         {
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
-                if (o.Name.Equals(name) == true)
+                if (o.Name.Equals(name))
                 {
                     if (o.IsLoaded == false)
                     {
@@ -339,9 +338,9 @@ namespace CasaEngine.Gameplay.Actor
 
         public BaseObject[] GetObjectByType(string className)
         {
-            List<BaseObject> res = new List<BaseObject>();
+            var res = new List<BaseObject>();
 
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
                 if (className.Equals(o.ClassName))
                 {
@@ -359,7 +358,7 @@ namespace CasaEngine.Gameplay.Actor
 
         public bool ContainsObjectId(uint id)
         {
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
                 if (o.Id == id)
                 {
@@ -372,7 +371,7 @@ namespace CasaEngine.Gameplay.Actor
 
         public bool ContainsObjectNamed(string name)
         {
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
                 if (o.Name.Equals(name))
                 {
@@ -389,11 +388,11 @@ namespace CasaEngine.Gameplay.Actor
             Engine.Instance.ObjectRegistry.Clear();
 #endif
 
-            uint version = uint.Parse(el.Attributes["version"].Value);
+            var version = uint.Parse(el.Attributes["version"].Value);
 
             foreach (XmlNode node in el.ChildNodes)
             {
-                ObjectRegistryStatus o = new ObjectRegistryStatus();
+                var o = new ObjectRegistryStatus();
 
                 o.Id = int.Parse(node.Attributes["id"].Value);
 
@@ -413,9 +412,9 @@ namespace CasaEngine.Gameplay.Actor
         {
             Type t = null;// = Type.GetType(className_);
 
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-            foreach (Assembly a in assemblies)
+            foreach (var a in assemblies)
             {
                 t = a.GetType(className, false, true);
 
@@ -438,7 +437,7 @@ namespace CasaEngine.Gameplay.Actor
 
         private void Load(ObjectRegistryStatus objectRegistryStatus)
         {
-            if (objectRegistryStatus.IsLoaded == true)
+            if (objectRegistryStatus.IsLoaded)
             {
                 return;
             }
@@ -449,8 +448,8 @@ namespace CasaEngine.Gameplay.Actor
 			try
 #endif
             {
-                XmlDocument xmlDoc = new XmlDocument();
-                string xmlFile = string.Empty;
+                var xmlDoc = new XmlDocument();
+                var xmlFile = string.Empty;
 
 #if EDITOR
                 xmlFile = Engine.Instance.ProjectManager.ProjectFileOpened;
@@ -460,8 +459,8 @@ namespace CasaEngine.Gameplay.Actor
                 xmlFile = "Content\\" + game.ProjectFile;
                 xmlDoc.Load(xmlFile);
 #endif
-                string xmlPath = ProjectManager.NodeRootName + "/" + ProjectManager.NodeObjectRegistryName + "/" + ProjectManager.NodeObjectName + "[@id='" + objectRegistryStatus.Id + "']";
-                XmlElement el = (XmlElement)xmlDoc.SelectSingleNode(xmlPath);
+                var xmlPath = ProjectManager.NodeRootName + "/" + ProjectManager.NodeObjectRegistryName + "/" + ProjectManager.NodeObjectName + "[@id='" + objectRegistryStatus.Id + "']";
+                var el = (XmlElement)xmlDoc.SelectSingleNode(xmlPath);
 
                 if (el == null)
                 {
@@ -489,7 +488,7 @@ namespace CasaEngine.Gameplay.Actor
 
         public void CloseAllObjects()
         {
-            foreach (ObjectRegistryStatus o in _objectRegistry)
+            foreach (var o in _objectRegistry)
             {
                 o.Close();
             }

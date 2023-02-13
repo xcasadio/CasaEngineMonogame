@@ -46,7 +46,7 @@
 
         public QLearning()
         {
-            for (int i = 0; i < _pastReward.Length; i++)
+            for (var i = 0; i < _pastReward.Length; i++)
             {
                 _pastReward[i] = 0.0f;
             }
@@ -57,17 +57,17 @@
 
         public void Learn(IQAgent agent, string currentState)
         {
-            float reward = 1.0f;
+            var reward = 1.0f;
             float newQvalue = 0.0f, res;
-            string newState = string.Empty;
-            string maxNewState = string.Empty;
-            string maxAction = string.Empty;
-            string action = string.Empty;
+            var newState = string.Empty;
+            var maxNewState = string.Empty;
+            var maxAction = string.Empty;
+            var action = string.Empty;
 
             //float newQvalue = (1.0f - _Alpha) * _Policy.GetQValues(currentState_, action_) + _Alpha * (reward * _Gamma * ValueState(newState_, action_));
             //_Policy.SetQValue(currentState_, action_, newQvalue);
 
-            for (int i = 0; i < _policy.GetNumberOfActions(agent, currentState); i++)
+            for (var i = 0; i < _policy.GetNumberOfActions(agent, currentState); i++)
             {
                 newState = _policy.GetNewStateFromAction(agent, currentState, i);
                 action = _policy.GetActionNumber(agent, currentState, i);
@@ -103,10 +103,10 @@
 
         float MaxValueState(IQAgent agent, string state)
         {
-            float res = 0.0f;
+            var res = 0.0f;
             float r;
 
-            for (int i = 0; i < _policy.GetNumberOfActions(agent, state); i++)
+            for (var i = 0; i < _policy.GetNumberOfActions(agent, state); i++)
             {
                 r = ValueState(state, i);
                 if (r > res)

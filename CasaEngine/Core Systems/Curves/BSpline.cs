@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Math.Curves
+namespace CasaEngine.Core_Systems.Curves
 {
     public class BSpline
     {
@@ -42,7 +42,7 @@ namespace CasaEngine.Math.Curves
                 return;
             }
 
-            List<Vector2> ptControl = new List<Vector2>();
+            var ptControl = new List<Vector2>();
 
             _curvePoints.Clear();
 
@@ -52,14 +52,14 @@ namespace CasaEngine.Math.Curves
             {
                 if (_beginToBounds)
                 {
-                    for (int i = 0; i < _degree; i++)
+                    for (var i = 0; i < _degree; i++)
                     {
                         ptControl.Add(_controlPoints.First());
                     }
                 }
 
                 //copie temporaire
-                for (int i = 0; i < _controlPoints.Count; i++)
+                for (var i = 0; i < _controlPoints.Count; i++)
                 {
                     ptControl.Add(_controlPoints[i]);
                 }
@@ -67,14 +67,14 @@ namespace CasaEngine.Math.Curves
                 //le cas de la spline partant des extremité
                 if (_beginToBounds)
                 {
-                    for (int i = 0; i < _degree; i++)
+                    for (var i = 0; i < _degree; i++)
                     {
                         ptControl.Add(ptControl.Last());
                     }
                 }
                 else if (_beginToBounds) // bspline fermée
                 {
-                    for (int i = 0; i <= _degree; i++)
+                    for (var i = 0; i <= _degree; i++)
                     {
                         ptControl.Add(_controlPoints[i]);
                     }
@@ -105,23 +105,23 @@ namespace CasaEngine.Math.Curves
 
         Vector2 Cox_de_Boor(int r, float t, List<Vector2> ptControl)
         {
-            List<Vector2> pt = new List<Vector2>(_degree * (r + 1));
+            var pt = new List<Vector2>(_degree * (r + 1));
             float x, y;
 
-            for (int i = 0; i <= _degree * (r + 1); i++)
+            for (var i = 0; i <= _degree * (r + 1); i++)
             {
                 pt.Add(Vector2.Zero);
             }
 
             // Initialisation
-            for (int i = r - _degree; i <= r; i++)
+            for (var i = r - _degree; i <= r; i++)
             {
                 pt[0 * _degree + i] = ptControl[i];
             }
 
-            for (int j = 1; j <= _degree; j++)
+            for (var j = 1; j <= _degree; j++)
             {
-                for (int i = r - _degree + j; i <= r; i++)
+                for (var i = r - _degree + j; i <= r; i++)
                 {
                     x = ((pt[(j - 1) * _degree + i].X * (t - _modalNodes[i])) + (pt[(j - 1) * _degree + i - 1].X * (_modalNodes[i - j + _degree + 1] - t))) / (_modalNodes[i - j + _degree + 1] - _modalNodes[i]);
                     y = ((pt[(j - 1) * _degree + i].Y * (t - _modalNodes[i])) + (pt[(j - 1) * _degree + i - 1].Y * (_modalNodes[i - j + _degree + 1] - t))) / (_modalNodes[i - j + _degree + 1] - _modalNodes[i]);
@@ -134,8 +134,8 @@ namespace CasaEngine.Math.Curves
 
         void ModalVectorParametrization(List<Vector2> ptControl)
         {
-            int nbVectorModal = ptControl.Count;
-            int offset = 0;
+            var nbVectorModal = ptControl.Count;
+            var offset = 0;
             float t;
 
             //init
@@ -160,7 +160,7 @@ namespace CasaEngine.Math.Curves
             switch (_vectorModalParametrization)
             {
                 case VectorModalParametrization.Uniform:
-                    for (int i = 0; i <= ptControl.Count + _degree; i++)
+                    for (var i = 0; i <= ptControl.Count + _degree; i++)
                     {
                         _modalNodes.Add((float)i);
                     }
@@ -172,13 +172,13 @@ namespace CasaEngine.Math.Curves
                     _modalNodes.Add(0.0f);
                     _modalNodes.Add(1.0f);
 
-                    for (int i = 2; i < nbVectorModal; i++)
+                    for (var i = 2; i < nbVectorModal; i++)
                     {
-                        float t1 = _modalNodes[i - 1];
-                        float t2 = (_modalNodes[i - 1] - _modalNodes[i - 2]);
+                        var t1 = _modalNodes[i - 1];
+                        var t2 = (_modalNodes[i - 1] - _modalNodes[i - 2]);
                         t = t1 + t2;
-                        float xx = Vector2.Distance(ptControl[i + offset], ptControl[i - 1 + offset]);
-                        float yy = Vector2.Distance(ptControl[i - 1 + offset], ptControl[i - 2 + offset]);
+                        var xx = Vector2.Distance(ptControl[i + offset], ptControl[i - 1 + offset]);
+                        var yy = Vector2.Distance(ptControl[i - 1 + offset], ptControl[i - 2 + offset]);
 
                         if (Vector2.Distance(ptControl[i - 1 + offset], ptControl[i - 2 + offset]) != 0.0f)
                         {
@@ -192,7 +192,7 @@ namespace CasaEngine.Math.Curves
                         _modalNodes.Add(t);
                     }
 
-                    for (int i = _modalNodes.Count; i < ptControl.Count + _degree; i++)
+                    for (var i = _modalNodes.Count; i < ptControl.Count + _degree; i++)
                     {
                         _modalNodes.Add(_modalNodes.Last());
                     }
@@ -203,7 +203,7 @@ namespace CasaEngine.Math.Curves
                     _modalNodes.Add(0.0f);
                     _modalNodes.Add(1.0f);
 
-                    for (int i = 2; i < nbVectorModal; i++)
+                    for (var i = 2; i < nbVectorModal; i++)
                     {
                         if (Vector2.Distance(ptControl[i - 1], ptControl[i - 2]) == 0.0f)
                         {
@@ -218,7 +218,7 @@ namespace CasaEngine.Math.Curves
                         _modalNodes.Add(t);
                     }
 
-                    for (int i = 0; i <= _degree; i++)
+                    for (var i = 0; i <= _degree; i++)
                     {
                         _modalNodes.Add(nbVectorModal + i);
                     }

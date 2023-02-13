@@ -22,8 +22,6 @@
  */
 
 
-using System.IO;
-
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 {
     public static class MiscHelper

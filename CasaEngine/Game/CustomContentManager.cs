@@ -29,7 +29,7 @@ namespace CasaEngine.Game
             }
 
             // If there isn't, load a new one
-            T read = ReadAsset<T>(assetName, RecordDisposableAsset);
+            var read = ReadAsset<T>(assetName, RecordDisposableAsset);
             _loaded.Add(assetName, read);
 
             return read;
@@ -51,7 +51,7 @@ namespace CasaEngine.Game
         // Unload everything
         public override void Unload()
         {
-            foreach (IDisposable disposable in _disposableAssets)
+            foreach (var disposable in _disposableAssets)
                 disposable.Dispose();
 
             _loaded.Clear();
@@ -65,7 +65,7 @@ namespace CasaEngine.Game
             {
                 if (_loaded[name] is IDisposable && _disposableAssets.Contains((IDisposable)_loaded[name]))
                 {
-                    IDisposable disp = (IDisposable)_loaded[name];
+                    var disp = (IDisposable)_loaded[name];
                     _disposableAssets.Remove(disp);
                     disp.Dispose();
                 }

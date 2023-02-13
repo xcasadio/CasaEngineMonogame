@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.FuzzyLogic
 {
     public enum DefuzzifyMethod
     {
@@ -8,7 +8,7 @@
 
     public class FuzzyModule
     {
-        static public readonly int NumSamples = 15;
+        public static readonly int NumSamples = 15;
 
 
         private readonly Dictionary<string, FuzzyVariable> _variables = new();
@@ -42,7 +42,7 @@
             SetConfidencesOfConsequentsToZero();
 
             //process the rules
-            foreach (FuzzyRule rule in _rules)
+            foreach (var rule in _rules)
             {
                 rule.Calculate();
             }
@@ -68,7 +68,7 @@
 
         private void SetConfidencesOfConsequentsToZero()
         {
-            foreach (FuzzyRule rule in _rules)
+            foreach (var rule in _rules)
             {
                 rule.SetConfidenceOfConsequentToZero();
             }
@@ -90,7 +90,7 @@
         {
             binW.Write("\n\n");
 
-            foreach (KeyValuePair<string, FuzzyVariable> pair in _variables)
+            foreach (var pair in _variables)
             {
                 binW.Write("\n--------------------------- " + pair.Key);
                 pair.Value.WriteDoMs(binW);

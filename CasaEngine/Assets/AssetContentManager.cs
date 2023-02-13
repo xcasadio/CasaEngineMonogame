@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets
 {
     public class AssetContentManager
     {
@@ -29,7 +29,7 @@ namespace CasaEngine.Asset
 
         public void Initialize(GraphicsDevice device)
         {
-            device.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
+            device.DeviceReset += OnDeviceReset;
         }
 
         public void RegisterAssetLoader(Type type, IAssetLoader loader)
@@ -44,7 +44,7 @@ namespace CasaEngine.Asset
             Dictionary<string, object> categoryAssetList = null;
 
             //find category
-            if (_loadedAssets.ContainsKey(categoryName) == true)
+            if (_loadedAssets.ContainsKey(categoryName))
             {
                 categoryAssetList = _loadedAssets[categoryName];
             }
@@ -55,7 +55,7 @@ namespace CasaEngine.Asset
             }
 
             //find asset
-            if (categoryAssetList.ContainsKey(filePath) == true)
+            if (categoryAssetList.ContainsKey(filePath))
             {
                 return (T)categoryAssetList[filePath];
             }
@@ -63,9 +63,9 @@ namespace CasaEngine.Asset
             {
                 type = typeof(T);
 
-                if (_assetLoader.ContainsKey(type) == true)
+                if (_assetLoader.ContainsKey(type))
                 {
-                    T asset = (T)_assetLoader[type].LoadAsset(filePath, device);
+                    var asset = (T)_assetLoader[type].LoadAsset(filePath, device);
                     categoryAssetList.Add(filePath, asset);
                     return asset;
                 }
@@ -113,7 +113,7 @@ namespace CasaEngine.Asset
 
         internal void OnDeviceReset(object sender, EventArgs e)
         {
-            GraphicsDevice device = sender as GraphicsDevice;
+            var device = sender as GraphicsDevice;
 
             //TODO : useful or buggy ?
             /*foreach (var pair in _LoadedAssets)

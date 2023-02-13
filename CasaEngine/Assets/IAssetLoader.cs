@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets
 {
     public interface IAssetLoader
     {

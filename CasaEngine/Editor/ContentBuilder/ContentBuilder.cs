@@ -3,7 +3,7 @@ using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 
-namespace CasaEngine.Editor.Builder
+namespace CasaEngine.Editor.ContentBuilder
 {
     public class ContentBuilder
         : IDisposable
@@ -146,7 +146,7 @@ namespace CasaEngine.Editor.Builder
         }
         public ProjectItem Add(string filename, string name, string importer, string processor)
         {
-            ProjectItem item = _buildProject.AddItem("Compile", filename)[0];
+            var item = _buildProject.AddItem("Compile", filename)[0];
 
             item.SetMetadataValue("Link", Path.GetFileName(filename));
             item.SetMetadataValue("Name", name);
@@ -180,12 +180,12 @@ namespace CasaEngine.Editor.Builder
             _errorLogger.Errors.Clear();
 
             //BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
-            BuildRequestData request = new BuildRequestData(_buildProject.CreateProjectInstance(), new string[0]);
+            var request = new BuildRequestData(_buildProject.CreateProjectInstance(), new string[0]);
             //BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(request);
             //BuildResult br = submission.Execute();
             //BuildManager.DefaultBuildManager.EndBuild();
 
-            BuildResult br = BuildManager.DefaultBuildManager.Build(_buildParameters, request);
+            var br = BuildManager.DefaultBuildManager.Build(_buildParameters, request);
             if (br.OverallResult == BuildResultCode.Failure)
             {
                 return string.Join("\n", _errorLogger.Errors.ToArray());
@@ -221,7 +221,7 @@ namespace CasaEngine.Editor.Builder
             //
             //  %temp%\WinFormsContentLoading.ContentBuilder\<ProcessId>
 
-            int processId = Process.GetCurrentProcess().Id;
+            var processId = Process.GetCurrentProcess().Id;
 
             _processDirectory = Path.Combine(_baseDirectory, processId.ToString());
 
@@ -264,7 +264,7 @@ namespace CasaEngine.Editor.Builder
         void PurgeStaleTempDirectories()
         {
             // Check all subdirectories of our base location.
-            foreach (string directory in Directory.GetDirectories(_baseDirectory))
+            foreach (var directory in Directory.GetDirectories(_baseDirectory))
             {
                 // The subdirectory name is the ID of the process which created it.
                 int processId;

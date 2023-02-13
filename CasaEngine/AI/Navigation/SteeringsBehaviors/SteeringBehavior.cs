@@ -5,14 +5,14 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
     public abstract class SteeringBehavior
     {
         protected internal string name;
-        protected internal MovingEntity owner;
+        protected internal MovingObject owner;
         protected internal float modifier;
         protected internal bool active;
         protected internal bool ignoreX;
         protected internal bool ignoreY;
         protected internal bool ignoreZ;
 
-        public SteeringBehavior(string name, MovingEntity owner, float modifier)
+        public SteeringBehavior(string name, MovingObject owner, float modifier)
         {
             this.name = name;
             this.owner = owner;
@@ -25,7 +25,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             ignoreZ = false;
         }
 
-        public MovingEntity Owner => owner;
+        public MovingObject Owner => owner;
 
         public string Name
         {
@@ -67,17 +67,17 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
         protected Vector3 ConstraintVector(Vector3 vector)
         {
-            if (ignoreX == true)
+            if (ignoreX)
             {
                 vector.X = 0;
             }
 
-            if (ignoreY == true)
+            if (ignoreY)
             {
                 vector.Y = 0;
             }
 
-            if (ignoreZ == true)
+            if (ignoreZ)
             {
                 vector.Y = 0;
             }
@@ -87,17 +87,17 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
         protected void ConstraintVector(ref Vector3 vector)
         {
-            if (ignoreX == true)
+            if (ignoreX)
             {
                 vector.X = 0;
             }
 
-            if (ignoreY == true)
+            if (ignoreY)
             {
                 vector.Y = 0;
             }
 
-            if (ignoreZ == true)
+            if (ignoreZ)
             {
                 vector.Y = 0;
             }

@@ -123,7 +123,7 @@ namespace CasaEngine.Graphics2D.Tile
         private void InitializeGraphics()
         {
             _graphics.DeviceReset +=
-                new EventHandler<EventArgs>(OnGraphicsComponentDeviceReset);
+                OnGraphicsComponentDeviceReset;
 
             OnGraphicsComponentDeviceReset(this, new EventArgs());
         }

@@ -1,46 +1,44 @@
 ﻿using System.Text;
-using CasaEngine.Asset.Fonts;
+using CasaEngine.Assets.Fonts;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-
-
 namespace CasaEngine.Graphics2D
 {
-    static public class BmFontRenderer
+    public static class BmFontRenderer
     {
-        static public void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color)
         {
             DrawString(spriteBatch, spriteFont, text, position, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.00001f);
         }
 
-        static public void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color)
         {
             DrawString(spriteBatch, spriteFont, text.ToString(), position, color);
         }
 
-        static public void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
             DrawString(spriteBatch, spriteFont, text, position, color, rotation, origin, new Vector2(scale), effects, layerDepth);
         }
 
-        static public void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
             DrawString(spriteBatch, spriteFont, text.ToString(), position, color, rotation, origin, new Vector2(scale), effects, layerDepth);
         }
 
-        static public void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
             DrawString(spriteBatch, spriteFont, text.ToString(), position, color, rotation, origin, scale, effects, layerDepth);
         }
 
-        static public void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
-            char[] array = text.ToCharArray();
+            var array = text.ToCharArray();
 
-            for (int i = 0; i < array.Length; i++)
+            for (var i = 0; i < array.Length; i++)
             {
-                FontChar c = spriteFont.GetFontChar(array[i]);
+                var c = spriteFont.GetFontChar(array[i]);
 
                 if (c == null || array[i] == '\n' || array[i] == '\r' || array[i] == '\t')
                 {
@@ -48,9 +46,9 @@ namespace CasaEngine.Graphics2D
                     continue;
                 }
 
-                float xOffset = c.XOffset * scale.X;
-                float yOffset = c.YOffset * scale.Y;
-                float xAdvance = c.XAdvance * scale.X;
+                var xOffset = c.XOffset * scale.X;
+                var yOffset = c.YOffset * scale.Y;
+                var xAdvance = c.XAdvance * scale.X;
                 //float width = c.Width * scale.X;
                 //float height = c.Height * scale.Y;                
 

@@ -8,7 +8,7 @@
 
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public class PlayerIndexEventArgs : EventArgs
     {

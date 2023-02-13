@@ -11,7 +11,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
         public override void Mutate(Population<int> population)
         {
-            for (int i = 0; i < population.Genome.Count; i++)
+            for (var i = 0; i < population.Genome.Count; i++)
             {
                 if (Generator.NextDouble() <= Probability)
                 {
@@ -44,7 +44,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             finalChromosome = chromosome.FastEmptyInstance();
 
             //Copy the first genes into the new chromosome
-            for (int i = 0; i < first; i++)
+            for (var i = 0; i < first; i++)
             {
                 finalChromosome.Genotype.Add(chromosome[i]);
             }
@@ -52,7 +52,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             chromosome.Genotype.RemoveRange(0, first);
 
             //Scramble the selected genes
-            for (int i = 0; i < second - first; i++)
+            for (var i = 0; i < second - first; i++)
             {
                 temp = Generator.Next(0, second - first - i);
                 finalChromosome.Genotype.Add(chromosome[temp]);

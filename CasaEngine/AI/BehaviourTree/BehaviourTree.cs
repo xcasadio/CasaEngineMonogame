@@ -1,6 +1,9 @@
-﻿namespace CasaEngine.AI.BehaviourTree
+﻿using CasaEngine.Gameplay;
+using CasaEngine.Gameplay.Actor;
+
+namespace CasaEngine.AI.BehaviourTree
 {
-    public class BehaviourTree<T> where T : BaseEntity
+    public class BehaviourTree<T> where T : BaseObject
     {
         protected internal T Owner;
 
@@ -16,22 +19,16 @@
 
             if (_root.EnterCondition(Owner) == false)
             {
-                if (_currentNode != null)
-                {
-                    _currentNode.Exit(Owner);
-                }
+                _currentNode?.Exit(Owner);
 
                 _currentNode = null; //rester dans l'etat ??
             }
 
-            BehaviourTreeNode<T> node = Update(_root.Children);
+            var node = Update(_root.Children);
 
             if (node == null)
             {
-                if (_currentNode != null)
-                {
-                    _currentNode.Exit(Owner);
-                }
+                _currentNode?.Exit(Owner);
 
                 _currentNode = null;
             }
@@ -48,9 +45,9 @@
 
         BehaviourTreeNode<T> Update(List<BehaviourTreeNode<T>> nodes)
         {
-            foreach (BehaviourTreeNode<T> node in nodes)
+            foreach (var node in nodes)
             {
-                if (node.EnterCondition(Owner) == true)
+                if (node.EnterCondition(Owner))
                 {
                     if (node.Children.Count == 0)
                     {
@@ -81,7 +78,7 @@
 
         BehaviourTreeNode<T> SearchNodeByName(string name, List<BehaviourTreeNode<T>> nodes)
         {
-            foreach (BehaviourTreeNode<T> node in nodes)
+            foreach (var node in nodes)
             {
                 if (node.Name.Equals(name))
                 {
@@ -106,7 +103,7 @@
                 _root = node;
             }
 
-            BehaviourTreeNode<T> parent = GetNodeByName(parentNodeName);
+            var parent = GetNodeByName(parentNodeName);
 
             if (parent == null)
             {

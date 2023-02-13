@@ -1,9 +1,8 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-
-namespace CasaEngine.Design.Parser
+namespace CasaEngine.Core_Systems.Parser
 {
     class CalculatorTokenFunction
         : CalculatorToken
@@ -45,16 +44,16 @@ namespace CasaEngine.Design.Parser
 
         public override void Save(XmlElement el, SaveOption option)
         {
-            XmlElement node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            var node = (XmlElement)el.OwnerDocument.CreateElement("Node");
             el.AppendChild(node);
             el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Function).ToString());
-            XmlElement valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("FunctionName", _functionName);
+            var valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("FunctionName", _functionName);
             node.AppendChild(valueNode);
 
-            XmlElement argNode = (XmlElement)el.OwnerDocument.CreateElement("ArgumentList");
+            var argNode = (XmlElement)el.OwnerDocument.CreateElement("ArgumentList");
             node.AppendChild(argNode);
 
-            foreach (string a in _args)
+            foreach (var a in _args)
             {
                 valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Argument", a);
                 argNode.AppendChild(valueNode);
@@ -64,7 +63,7 @@ namespace CasaEngine.Design.Parser
         public override void Load(XmlElement el, SaveOption option)
         {
             _functionName = el.SelectSingleNode("FunctionName").InnerText;
-            List<string> args = new List<string>();
+            var args = new List<string>();
 
             foreach (XmlNode n in el.SelectNodes("ArgumentList/Argument"))
             {
@@ -80,7 +79,7 @@ namespace CasaEngine.Design.Parser
             bw.Write(_functionName);
             bw.Write(_args.Length);
 
-            foreach (string a in _args)
+            foreach (var a in _args)
             {
                 bw.Write(a);
             }
@@ -90,10 +89,10 @@ namespace CasaEngine.Design.Parser
         {
             br.ReadInt32();
             _functionName = br.ReadString();
-            int count = br.ReadInt32();
+            var count = br.ReadInt32();
             _args = new string[count];
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 _args[i] = br.ReadString();
             }

@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Editor.Assets
 {
-    static public class AssetBuildParamFactory
+    public static class AssetBuildParamFactory
     {
         public enum AssetBuildParamType
         {
@@ -15,7 +15,7 @@ namespace CasaEngine.Editor.Assets
             Xml
         }
 
-        static public void SetBuildParams(ref AssetBuildParamCollection @params, AssetBuildParamType type)
+        public static void SetBuildParams(ref AssetBuildParamCollection @params, AssetBuildParamType type)
         {
             switch (type)
             {
@@ -70,11 +70,11 @@ namespace CasaEngine.Editor.Assets
             }
         }
 
-        static public AssetBuildParam Load(XmlElement el)
+        public static AssetBuildParam Load(XmlElement el)
         {
             AssetBuildParam param;
 
-            string name = el.SelectSingleNode("Name").InnerText;
+            var name = el.SelectSingleNode("Name").InnerText;
 
             switch (name)
             {

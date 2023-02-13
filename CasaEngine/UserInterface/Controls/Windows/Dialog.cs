@@ -11,16 +11,18 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+
+namespace CasaEngine.UserInterface.Controls.Windows
 {
 
     public class Dialog : Window
     {
 
 
-        public Panel TopPanel { get; private set; }
+        public Panel.Panel TopPanel { get; private set; }
 
-        public Panel BottomPanel { get; private set; }
+        public Panel.Panel BottomPanel { get; private set; }
 
         public Label Caption { get; private set; }
 
@@ -31,7 +33,7 @@ namespace XNAFinalEngine.UserInterface
         public Dialog(UserInterfaceManager userInterfaceManager)
             : base(userInterfaceManager)
         {
-            TopPanel = new Panel(UserInterfaceManager)
+            TopPanel = new Panel.Panel(UserInterfaceManager)
             {
                 Anchor = Anchors.Left | Anchors.Top | Anchors.Right,
                 Height = 64,
@@ -60,7 +62,7 @@ namespace XNAFinalEngine.UserInterface
             };
             Description.Width = Description.Parent.ClientWidth - 16;
 
-            BottomPanel = new Panel(UserInterfaceManager)
+            BottomPanel = new Panel.Panel(UserInterfaceManager)
             {
                 Parent = this,
                 Width = ClientWidth,
@@ -77,13 +79,13 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
 
-            SkinLayer lc = new SkinLayer(Caption.SkinInformation.Layers[0]);
-            SkinStates<Color> skinColor = lc.Text.Colors;
+            var lc = new SkinLayer(Caption.SkinInformation.Layers[0]);
+            var skinColor = lc.Text.Colors;
             lc.Text.Font.Font = UserInterfaceManager.Skin.Fonts[UserInterfaceManager.Skin.Controls["Dialog"].Layers["TopPanel"].Attributes["CaptFont"].Value].Font;
             skinColor.Enabled = Utilities.ParseColor(UserInterfaceManager.Skin.Controls["Dialog"].Layers["TopPanel"].Attributes["CaptFontColor"].Value);
             lc.Text.Colors = skinColor;
 
-            SkinLayer ld = new SkinLayer(Description.SkinInformation.Layers[0]);
+            var ld = new SkinLayer(Description.SkinInformation.Layers[0]);
             ld.Text.Font.Font = UserInterfaceManager.Skin.Fonts[UserInterfaceManager.Skin.Controls["Dialog"].Layers["TopPanel"].Attributes["DescFont"].Value].Font;
             skinColor = ld.Text.Colors;
             skinColor.Enabled = Utilities.ParseColor(UserInterfaceManager.Skin.Controls["Dialog"].Layers["TopPanel"].Attributes["DescFontColor"].Value);

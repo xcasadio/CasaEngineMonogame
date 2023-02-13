@@ -10,7 +10,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+using TextBox = CasaEngine.UserInterface.Controls.Text.TextBox;
+
+namespace CasaEngine.UserInterface.Controls
 {
 
     public class ComboBox : TextBox
@@ -72,7 +76,9 @@ namespace XNAFinalEngine.UserInterface
                 {
                     _maxItems = value;
                     if (!Suspended)
+                    {
                         OnMaxItemsChanged(new EventArgs());
+                    }
                 }
             }
         } // MaxItems
@@ -92,7 +98,9 @@ namespace XNAFinalEngine.UserInterface
                     _listCombo.ItemIndex = -1;
                 }
                 if (!Suspended)
+                {
                     OnItemIndexChanged(new EventArgs());
+                }
             }
         } // ItemIndex
 
@@ -176,8 +184,8 @@ namespace XNAFinalEngine.UserInterface
 
             if (ReadOnly && (Focused || _listCombo.Focused) && _drawSelection)
             {
-                SkinLayer lr = SkinInformation.Layers[0];
-                Rectangle rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
+                var lr = SkinInformation.Layers[0];
+                var rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
                                              rect.Top + lr.ContentMargins.Top,
                                              Width - lr.ContentMargins.Horizontal - _buttonDown.Width,
                                              Height - lr.ContentMargins.Vertical);
@@ -204,7 +212,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void ListComboClick(object sender, EventArgs e)
         {
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if (ex.Button == MouseButton.Left || ex.Button == MouseButton.None)
             {
@@ -245,7 +253,9 @@ namespace XNAFinalEngine.UserInterface
                 _listCombo.AutoHeight(_maxItems);
                 // If there is no place to put the list box under the control then is moved up.
                 if (_listCombo.ControlTopAbsoluteCoordinate + _listCombo.Height > UserInterfaceManager.Screen.Height)
+                {
                     _listCombo.Top = _listCombo.Top - Height - _listCombo.Height - 2;
+                }
 
                 _listCombo.Visible = !_listCombo.Visible;
                 if (_listCombo.Visible)
@@ -273,7 +283,9 @@ namespace XNAFinalEngine.UserInterface
                  e.Position.X <= ControlLeftAbsoluteCoordinate + Width &&
                  e.Position.Y >= ControlTopAbsoluteCoordinate &&
                  e.Position.Y <= ControlTopAbsoluteCoordinate + Height))
+            {
                 return;
+            }
 
             // If the user click outside the list box then it is hide.
             if (_listCombo.Visible &&
@@ -306,19 +318,25 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseDown(e);
             if (ReadOnly && e.Button == MouseButton.Left)
+            {
                 ButtonDownClick(this, e);
+            }
         } // OnMouseDown
 
         protected virtual void OnMaxItemsChanged(EventArgs e)
         {
             if (MaxItemsChanged != null)
+            {
                 MaxItemsChanged.Invoke(this, e);
+            }
         } // OnMaxItemsChanged
 
         protected virtual void OnItemIndexChanged(EventArgs e)
         {
             if (ItemIndexChanged != null)
+            {
                 ItemIndexChanged.Invoke(this, e);
+            }
         } // OnItemIndexChanged
 
 

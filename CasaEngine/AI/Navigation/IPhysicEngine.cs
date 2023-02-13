@@ -11,6 +11,6 @@ namespace CasaEngine.AI.Navigation
 
     public static class PhysicEngine
     {
-        static public IPhysicEngine Physic = null;
+        public static IPhysicEngine Physic = null;
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System.Xml;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
+using CasaEngine.Assets.Graphics2D;
 using CasaEngine.Game;
 using CasaEngineCommon.Design;
-using CasaEngine.Assets.Graphics2D;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.FrontEnd.Screen.Gadget
+namespace CasaEngine.Front_End.Screen.Gadget
 {
     public
 #if EDITOR
@@ -53,7 +53,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 #endif
         override void DrawGadget(float elapsedTime)
         {
-            Rectangle area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
+            var area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
 
             Renderer2DComponent.AddSprite2D(
                 WhiteTexture,
@@ -100,7 +100,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         {
             base.Load(el, opt);
 
-            int spriteId = int.Parse(el.SelectSingleNode("Image").InnerText);
+            var spriteId = int.Parse(el.SelectSingleNode("Image").InnerText);
 
             if (spriteId != int.MaxValue)
             {

@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using CasaEngineCommon.Design;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public
 #if EDITOR
@@ -20,9 +20,9 @@ namespace CasaEngine.FrontEnd.Screen
 
         public void Load(XmlElement el, SaveOption opt)
         {
-            int version = int.Parse(el.Attributes["version"].Value);
+            var version = int.Parse(el.Attributes["version"].Value);
 
-            XmlNode nodeList = el.SelectSingleNode("ScreenList");
+            var nodeList = el.SelectSingleNode("ScreenList");
 
             _screens.Clear();
 

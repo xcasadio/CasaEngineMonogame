@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Game;
 using CasaEngine.Graphics2D;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public class WorldScreen
         : Screen

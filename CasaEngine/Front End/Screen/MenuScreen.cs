@@ -1,10 +1,10 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using CasaEngine.Core_Systems.Game;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.CoreSystems.Game;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public class MenuScreen
         : Screen
@@ -102,9 +102,9 @@ namespace CasaEngine.FrontEnd.Screen
             base.Update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen);
 
             // Update each nested MenuEntry object.
-            for (int i = 0; i < _menuEntries.Count; i++)
+            for (var i = 0; i < _menuEntries.Count; i++)
             {
-                bool isSelected = IsActive && (i == _selectedEntry);
+                var isSelected = IsActive && (i == _selectedEntry);
 
                 _menuEntries[i].Update(this, isSelected, elapsedTime);
             }
@@ -112,15 +112,15 @@ namespace CasaEngine.FrontEnd.Screen
 
         public override void Draw(float elapsedTime)
         {
-            SpriteBatch spriteBatch = Engine.Instance.SpriteBatch;
-            SpriteFont font = Engine.Instance.DefaultSpriteFont;
+            var spriteBatch = Engine.Instance.SpriteBatch;
+            var font = Engine.Instance.DefaultSpriteFont;
 
-            Vector2 position = new Vector2(100, 150);
+            var position = new Vector2(100, 150);
 
             // Make the menu slide into place during transitions, using a
             // power curve to make things look more interesting (this makes
             // the movement slow down as it nears the end).
-            float transitionOffset = (float)System.Math.Pow(TransitionPosition, 2);
+            var transitionOffset = (float)System.Math.Pow(TransitionPosition, 2);
 
             if (ScreenState == ScreenState.TransitionOn)
             {
@@ -134,11 +134,11 @@ namespace CasaEngine.FrontEnd.Screen
             //spriteBatch.Begin();
 
             // Draw each menu entry in turn.
-            for (int i = 0; i < _menuEntries.Count; i++)
+            for (var i = 0; i < _menuEntries.Count; i++)
             {
-                MenuEntry menuEntry = _menuEntries[i];
+                var menuEntry = _menuEntries[i];
 
-                bool isSelected = IsActive && (i == _selectedEntry);
+                var isSelected = IsActive && (i == _selectedEntry);
 
                 menuEntry.Draw(this, position, isSelected, elapsedTime);
 
@@ -146,11 +146,11 @@ namespace CasaEngine.FrontEnd.Screen
             }
 
             // Draw the menu title.
-            Vector2 titlePosition = new Vector2(426, 80);
-            Vector2 titleOrigin = font.MeasureString(_menuTitle) / 2.0f;
+            var titlePosition = new Vector2(426, 80);
+            var titleOrigin = font.MeasureString(_menuTitle) / 2.0f;
             titlePosition = Vector2.Subtract(titlePosition, titleOrigin);
-            Color titleColor = new Color((byte)192, (byte)192, (byte)192, TransitionAlpha);
-            float titleScale = 1.25f;
+            var titleColor = new Color((byte)192, (byte)192, (byte)192, TransitionAlpha);
+            var titleScale = 1.25f;
 
             titlePosition.Y -= transitionOffset * 100;
 

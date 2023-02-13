@@ -25,7 +25,7 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 
 */
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
     public static class ProcessorsInformation
     {

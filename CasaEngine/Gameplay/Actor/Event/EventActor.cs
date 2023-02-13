@@ -1,5 +1,5 @@
-﻿using CasaEngine.Design.Event;
-using System.Xml;
+﻿using System.Xml;
+using CasaEngine.Gameplay.Design.Event;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Gameplay.Actor.Event

@@ -11,9 +11,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 using Microsoft.Xna.Framework.Graphics;
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
 
-
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Windows
 {
 
     public class Window : ModalContainer
@@ -67,7 +67,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 _closeButtonVisible = value;
                 if (_buttonClose != null)
+                {
                     _buttonClose.Visible = value;
+                }
             }
         } // CloseButtonVisible
 
@@ -138,7 +140,7 @@ namespace XNAFinalEngine.UserInterface
         protected internal override void Init()
         {
             base.Init();
-            SkinLayer skinLayer = _buttonClose.SkinInformation.Layers[LayerButton];
+            var skinLayer = _buttonClose.SkinInformation.Layers[LayerButton];
             _buttonClose.Width = skinLayer.Width - _buttonClose.SkinInformation.OriginMargins.Horizontal;
             _buttonClose.Height = skinLayer.Height - _buttonClose.SkinInformation.OriginMargins.Vertical;
             _buttonClose.Left = ControlAndMarginsWidth - SkinInformation.OriginMargins.Right - _buttonClose.Width + skinLayer.OffsetX;
@@ -182,10 +184,10 @@ namespace XNAFinalEngine.UserInterface
 
             if (Visible && Shadow)
             {
-                SkinControlInformation skinControlShadow = UserInterfaceManager.Skin.Controls[SkinShadow];
-                SkinLayer skinLayerShadow = skinControlShadow.Layers[LayerShadow];
+                var skinControlShadow = UserInterfaceManager.Skin.Controls[SkinShadow];
+                var skinLayerShadow = skinControlShadow.Layers[LayerShadow];
 
-                Color shadowColor = Color.FromNonPremultiplied(skinLayerShadow.States.Enabled.Color.R,
+                var shadowColor = Color.FromNonPremultiplied(skinLayerShadow.States.Enabled.Color.R,
                                                                skinLayerShadow.States.Enabled.Color.G,
                                                                skinLayerShadow.States.Enabled.Color.B, Alpha);
 
@@ -205,10 +207,10 @@ namespace XNAFinalEngine.UserInterface
 
         private Rectangle GetIconRectangle()
         {
-            SkinLayer skinLayerCaption = SkinInformation.Layers[LayerCaption];
-            SkinLayer skinLayerIcon = SkinInformation.Layers[LayerIcon];
+            var skinLayerCaption = SkinInformation.Layers[LayerCaption];
+            var skinLayerIcon = SkinInformation.Layers[LayerIcon];
 
-            int iconHeight = skinLayerCaption.Height - skinLayerCaption.ContentMargins.Vertical;
+            var iconHeight = skinLayerCaption.Height - skinLayerCaption.ContentMargins.Vertical;
             return new Rectangle(DrawingRectangle.Left + skinLayerCaption.ContentMargins.Left + skinLayerIcon.OffsetX,
                                  DrawingRectangle.Top + skinLayerCaption.ContentMargins.Top + skinLayerIcon.OffsetY,
                                  iconHeight, iconHeight);
@@ -217,13 +219,13 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer skinLayerFrameTop = _captionVisible ? SkinInformation.Layers[LayerCaption] : SkinInformation.Layers[LayerFrameTop];
-            SkinLayer skinLayerFrameLeft = SkinInformation.Layers[LayerFrameLeft];
-            SkinLayer skinLayerFrameRight = SkinInformation.Layers[LayerFrameRight];
-            SkinLayer skinLayerFrameBottom = SkinInformation.Layers[LayerFrameBottom];
-            SkinLayer skinLayerIcon = SkinInformation.Layers[LayerIcon];
+            var skinLayerFrameTop = _captionVisible ? SkinInformation.Layers[LayerCaption] : SkinInformation.Layers[LayerFrameTop];
+            var skinLayerFrameLeft = SkinInformation.Layers[LayerFrameLeft];
+            var skinLayerFrameRight = SkinInformation.Layers[LayerFrameRight];
+            var skinLayerFrameBottom = SkinInformation.Layers[LayerFrameBottom];
+            var skinLayerIcon = SkinInformation.Layers[LayerIcon];
             LayerStates layerStateFrameTop, layerStateFrameLeft, layerStateFrameRight, layerStateFrameButtom;
-            Font font = skinLayerFrameTop.Text.Font.Font;
+            var font = skinLayerFrameTop.Text.Font.Font;
             Color color;
 
             if ((Focused || (UserInterfaceManager.FocusedControl != null && UserInterfaceManager.FocusedControl.Root == Root)) && ControlState != ControlState.Disabled)
@@ -262,27 +264,27 @@ namespace XNAFinalEngine.UserInterface
 
                 if (_iconVisible && (Icon != null || skinLayerIcon != null) && _captionVisible)
                 {
-                    Texture2D i = Icon ?? skinLayerIcon.Image.Texture.Resource;
+                    var i = Icon ?? skinLayerIcon.Image.Texture.Resource;
                     UserInterfaceManager.Renderer.Draw(i, GetIconRectangle(), Color.White);
                 }
 
-                int icosize = 0;
+                var icosize = 0;
                 if (skinLayerIcon != null && _iconVisible && _captionVisible)
                 {
                     icosize = skinLayerFrameTop.Height - skinLayerFrameTop.ContentMargins.Vertical + 4 + skinLayerIcon.OffsetX;
                 }
-                int closesize = 0;
+                var closesize = 0;
                 if (_buttonClose.Visible)
                 {
                     closesize = _buttonClose.Width - (_buttonClose.SkinInformation.Layers[LayerButton].OffsetX);
                 }
 
-                Rectangle r = new Rectangle(rect.Left + skinLayerFrameTop.ContentMargins.Left + icosize,
+                var r = new Rectangle(rect.Left + skinLayerFrameTop.ContentMargins.Left + icosize,
                                             rect.Top + skinLayerFrameTop.ContentMargins.Top,
                                             rect.Width - skinLayerFrameTop.ContentMargins.Horizontal - closesize - icosize,
                                             skinLayerFrameTop.Height - skinLayerFrameTop.ContentMargins.Top - skinLayerFrameTop.ContentMargins.Bottom);
-                int ox = skinLayerFrameTop.Text.OffsetX;
-                int oy = skinLayerFrameTop.Text.OffsetY;
+                var ox = skinLayerFrameTop.Text.OffsetX;
+                var oy = skinLayerFrameTop.Text.OffsetY;
                 UserInterfaceManager.Renderer.DrawString(font, Text, r, color, skinLayerFrameTop.Text.Alignment, ox, oy, true);
             }
         } // DrawControl
@@ -320,11 +322,11 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnDoubleClick(e);
 
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if (IconVisible && ex.Button == MouseButton.Left)
             {
-                Rectangle r = GetIconRectangle();
+                var r = GetIconRectangle();
                 r.Offset(ControlLeftAbsoluteCoordinate, ControlTopAbsoluteCoordinate);
                 if (r.Contains(ex.Position))
                 {

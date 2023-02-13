@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using CasaEngine.Input.InputSequence;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Input

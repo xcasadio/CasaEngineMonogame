@@ -2,8 +2,8 @@ using System.Xml;
 using CasaEngine.Game;
 using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
-using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Assets.Graphics2D;
+using CasaEngine.Gameplay.Actor;
 
 namespace CasaEngine.Gameplay
 {
@@ -20,7 +20,7 @@ namespace CasaEngine.Gameplay
         {
             base.Save(el, opt);
 
-            XmlElement statusNode = el.OwnerDocument.CreateElement("Status");
+            var statusNode = el.OwnerDocument.CreateElement("Status");
             el.AppendChild(statusNode);
             el.OwnerDocument.AddAttribute(statusNode, "speed", Speed.ToString());
             el.OwnerDocument.AddAttribute(statusNode, "strength", Strength.ToString());
@@ -29,11 +29,11 @@ namespace CasaEngine.Gameplay
             el.OwnerDocument.AddAttribute(statusNode, "MPMax", MpMax.ToString());
 
             XmlElement animNode;
-            XmlElement animListNode = el.OwnerDocument.CreateElement("AnimationList");
+            var animListNode = el.OwnerDocument.CreateElement("AnimationList");
             el.AppendChild(animListNode);
 
             //foreach (KeyValuePair<int, Animation2D> pair in _Animations)
-            foreach (KeyValuePair<int, string> pair in _animationListToLoad)
+            foreach (var pair in _animationListToLoad)
             {
                 animNode = el.OwnerDocument.CreateElement("Animation");
                 animListNode.AppendChild(animNode);
@@ -54,7 +54,7 @@ namespace CasaEngine.Gameplay
 
             bw.Write(_animations.Count);
 
-            foreach (KeyValuePair<int, Animation2D> pair in _animations)
+            foreach (var pair in _animations)
             {
                 bw.Write(pair.Key);
                 bw.Write(pair.Value.Name);
@@ -63,7 +63,7 @@ namespace CasaEngine.Gameplay
 
         public void AddOrSetAnimation(int index, string name)
         {
-            Animation2D anim = Engine.Instance.ObjectManager.GetObjectByPath(name) as Animation2D;
+            var anim = Engine.Instance.ObjectManager.GetObjectByPath(name) as Animation2D;
 
             if (anim != null)
             {
@@ -82,14 +82,14 @@ namespace CasaEngine.Gameplay
 
         public int AddAnimation(string name)
         {
-            int index = 0;
+            var index = 0;
 
-            while (_animationListToLoad.ContainsKey(index) == true)
+            while (_animationListToLoad.ContainsKey(index))
             {
                 index++;
             }
 
-            Animation2D anim = Engine.Instance.Asset2DManager.GetAnimation2DByName(name);
+            var anim = Engine.Instance.Asset2DManager.GetAnimation2DByName(name);
 
             if (anim != null)
             {
@@ -115,10 +115,10 @@ namespace CasaEngine.Gameplay
 
         public List<string> GetAllAnimationName()
         {
-            List<string> res = new List<string>();
+            var res = new List<string>();
 
             //foreach (KeyValuePair<int, Animation2D> pair in _Animations)
-            foreach (KeyValuePair<int, string> pair in _animationListToLoad)
+            foreach (var pair in _animationListToLoad)
             {
                 res.Add(pair.Value); //pair.Value.Name
             }
@@ -126,7 +126,7 @@ namespace CasaEngine.Gameplay
             return res;
         }
 
-        public override bool CompareTo(BaseObject other)
+        public override bool CompareTo(Actor.BaseObject other)
         {
             throw new NotImplementedException();
         }

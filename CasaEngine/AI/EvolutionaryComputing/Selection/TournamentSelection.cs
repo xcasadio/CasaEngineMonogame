@@ -15,7 +15,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
         public TournamentSelection(int numberParents, Random generator, EvolutionObjective objective, CrossoverMethod<T> crossover, ScalingMethod<T> scaling, int size)
             : base(numberParents, generator, objective, crossover, scaling)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateSize(size, ref message) == false)
             {
@@ -33,7 +33,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
 
             //Select the chromosomes using tournaments
             selectedChromosomes = new List<Chromosome<T>>();
-            for (int i = 0; i < NumberParents; i++)
+            for (var i = 0; i < NumberParents; i++)
             {
                 selectedChromosomes.Add(Tournament(Population));
             }
@@ -57,7 +57,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Selection
             }
 
             //Search the winner chromosome
-            for (int i = 0; i < Size; i++)
+            for (var i = 0; i < Size; i++)
             {
                 //Select the chromosome that will participate in the tournament
                 tournamentTry = Generator.Next(0, population.Genome.Count - 1);

@@ -88,7 +88,7 @@ namespace CasaEngine.AI.Pathfinding
             Frontier = new List<TK>(Graph.NodeCount);
 
             //Initialize the values
-            for (int i = 0; i < Graph.NodeCount; i++)
+            for (var i = 0; i < Graph.NodeCount; i++)
             {
                 CostToNode.Add(double.MaxValue);
                 ShortestPathTree.Add(default(TK));
@@ -126,7 +126,7 @@ namespace CasaEngine.AI.Pathfinding
 
                 //Get all edges that start from the current node
                 edges = Graph.GetEdgesFromNode(closestNode);
-                for (int i = 0; i < edges.Count; i++)
+                for (var i = 0; i < edges.Count; i++)
                 {
                     //Calculate the cost to reach the next node with the current one and the edge
                     newCost = CostToNode[closestNode] + edges[i].Cost;
@@ -181,7 +181,7 @@ namespace CasaEngine.AI.Pathfinding
 
             //Get all edges that start from the current node
             edges = Graph.GetEdgesFromNode(closestNode);
-            for (int i = 0; i < edges.Count; i++)
+            for (var i = 0; i < edges.Count; i++)
             {
                 //Calculate the cost to reach the next node with the current one and the edge
                 newCost = CostToNode[closestNode] + edges[i].Cost;

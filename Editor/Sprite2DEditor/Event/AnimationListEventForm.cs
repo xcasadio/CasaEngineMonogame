@@ -1,13 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Gameplay.Actor.Event;
-using CasaEngine.Design.Event;
+﻿using CasaEngine.Gameplay.Actor.Event;
 
 namespace Editor.Sprite2DEditor.Event
 {

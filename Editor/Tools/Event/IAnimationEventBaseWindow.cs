@@ -1,19 +1,11 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Gameplay.Actor.Event;
+﻿using CasaEngine.Gameplay.Actor.Event;
 
 namespace Editor.Tools.Event
 {
     /// <summary>
     /// 
     /// </summary>
-    public interface IAnimationEventBaseWindow 
+    public interface IAnimationEventBaseWindow
     {
         EventActor EventActor { get; }
     }

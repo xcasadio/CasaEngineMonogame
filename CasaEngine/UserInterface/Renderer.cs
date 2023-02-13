@@ -11,12 +11,12 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
+using CasaEngine.Graphics2D;
+using CasaEngine.UserInterface.Controls.Auxiliary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Graphics2D;
 
-
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface
 {
     internal class Renderer
     {
@@ -141,7 +141,7 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (margins)
                 {
-                    Margins m = layer.ContentMargins;
+                    var m = layer.ContentMargins;
                     rect = new Rectangle(rect.Left + m.Left, rect.Top + m.Top, rect.Width - m.Horizontal, rect.Height - m.Vertical);
                 }
 
@@ -171,9 +171,12 @@ namespace XNAFinalEngine.UserInterface
 
                 if (!string.IsNullOrEmpty(text))
                 {
-                    SkinText font = layer.Text;
+                    var font = layer.Text;
                     if (control.TextColor != Control.UndefinedColor && control.ControlState != ControlState.Disabled)
+                    {
                         color = control.TextColor;
+                    }
+
                     DrawString(font.Font.Font, text, rect, color, font.Alignment, font.OffsetX + ox, font.OffsetY + oy, ellipsis);
                 }
             }
@@ -184,13 +187,13 @@ namespace XNAFinalEngine.UserInterface
             if (ellipsis)
             {
                 const string elli = "...";
-                int size = (int)Math.Ceiling(font.MeasureString(text).X);
+                var size = (int)Math.Ceiling(font.MeasureString(text).X);
                 if (size > rect.Width)
                 {
-                    int es = (int)Math.Ceiling(font.MeasureString(elli).X);
-                    for (int i = text.Length - 1; i > 0; i--)
+                    var es = (int)Math.Ceiling(font.MeasureString(elli).X);
+                    for (var i = text.Length - 1; i > 0; i--)
                     {
-                        int c = 1;
+                        var c = 1;
                         if (char.IsWhiteSpace(text[i - 1]))
                         {
                             c = 2;
@@ -209,10 +212,10 @@ namespace XNAFinalEngine.UserInterface
 
             if (rect.Width > 0 && rect.Height > 0)
             {
-                Vector2 pos = new Vector2(rect.Left, rect.Top);
-                Vector2 size = font.MeasureString(text);
+                var pos = new Vector2(rect.Left, rect.Top);
+                var size = font.MeasureString(text);
 
-                int x = 0; int y = 0;
+                var x = 0; var y = 0;
 
                 switch (alignment)
                 {
@@ -265,8 +268,8 @@ namespace XNAFinalEngine.UserInterface
 
         public void DrawLayer(SkinLayer layer, Rectangle rect, Color color, int index)
         {
-            Size imageSize = new Size(layer.Image.Texture.Width, layer.Image.Texture.Height);
-            Size partSize = new Size(layer.Width, layer.Height);
+            var imageSize = new Size(layer.Image.Texture.Width, layer.Image.Texture.Height);
+            var partSize = new Size(layer.Width, layer.Height);
 
             Draw(layer.Image.Texture.Resource, GetDestinationArea(rect, layer.SizingMargins, Alignment.TopLeft), GetSourceArea(imageSize, partSize, layer.SizingMargins, Alignment.TopLeft, index), color);
             Draw(layer.Image.Texture.Resource, GetDestinationArea(rect, layer.SizingMargins, Alignment.TopCenter), GetSourceArea(imageSize, partSize, layer.SizingMargins, Alignment.TopCenter, index), color);
@@ -287,9 +290,9 @@ namespace XNAFinalEngine.UserInterface
         public void DrawLayer(Control control, SkinLayer layer, Rectangle rect, ControlState state)
         {
             Color color;
-            Color overlayColor = Color.White;
+            var overlayColor = Color.White;
             int index;
-            int overlayIndex = -1;
+            var overlayIndex = -1;
 
             if (state == ControlState.Hovered && (layer.States.Hovered.Index != -1))
             {
@@ -348,7 +351,10 @@ namespace XNAFinalEngine.UserInterface
             }
 
             if (control.Color != Control.UndefinedColor)
+            {
                 color = control.Color * (control.Color.A / 255f);
+            }
+
             DrawLayer(layer, rect, color, index);
 
             if (overlayIndex != -1)
@@ -359,11 +365,11 @@ namespace XNAFinalEngine.UserInterface
 
         private Rectangle GetSourceArea(Size imageSize, Size partSize, Margins margins, Alignment alignment, int index)
         {
-            Rectangle rect = new Rectangle();
-            int xc = (int)((float)imageSize.Width / partSize.Width);
+            var rect = new Rectangle();
+            var xc = (int)((float)imageSize.Width / partSize.Width);
 
-            int xm = (index) % xc;
-            int ym = (index) / xc;
+            var xm = (index) % xc;
+            var ym = (index) / xc;
 
             const int adj = 1;
             margins.Left += margins.Left > 0 ? adj : 0;
@@ -453,9 +459,9 @@ namespace XNAFinalEngine.UserInterface
 
         public Rectangle GetDestinationArea(Rectangle area, Margins margins, Alignment alignment)
         {
-            Rectangle rect = new Rectangle();
+            var rect = new Rectangle();
 
-            int adj = 1;
+            var adj = 1;
             margins.Left += margins.Left > 0 ? adj : 0;
             margins.Top += margins.Top > 0 ? adj : 0;
             margins.Right += margins.Right > 0 ? adj : 0;
@@ -549,7 +555,7 @@ namespace XNAFinalEngine.UserInterface
 
         public void DrawGlyph(Glyph glyph, Rectangle rect)
         {
-            Size imageSize = new Size(glyph.Texture.Width, glyph.Texture.Height);
+            var imageSize = new Size(glyph.Texture.Width, glyph.Texture.Height);
 
             if (!glyph.SourceRectangle.IsEmpty)
             {

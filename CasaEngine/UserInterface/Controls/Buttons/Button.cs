@@ -10,7 +10,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using CasaEngine.UserInterface.Controls.Windows;
+
+namespace CasaEngine.UserInterface.Controls.Buttons
 {
 
 
@@ -41,7 +44,10 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 _glyph = value;
-                if (!Suspended) OnGlyphChanged(new EventArgs());
+                if (!Suspended)
+                {
+                    OnGlyphChanged(new EventArgs());
+                }
             }
         } // Glyph
 
@@ -102,7 +108,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (_mode == ButtonMode.PushButton && _pushed)
             {
-                SkinLayer l = SkinInformation.Layers["Control"];
+                var l = SkinInformation.Layers["Control"];
                 UserInterfaceManager.Renderer.DrawLayer(l, rect, l.States.Pressed.Color, l.States.Pressed.Index);
                 if (l.States.Pressed.Overlay)
                 {
@@ -114,8 +120,8 @@ namespace XNAFinalEngine.UserInterface
                 base.DrawControl(rect);
             }
 
-            SkinLayer layer = SkinInformation.Layers["Control"];
-            int ox = 0; int oy = 0;
+            var layer = SkinInformation.Layers["Control"];
+            var ox = 0; var oy = 0;
 
             if (ControlState == ControlState.Pressed)
             {
@@ -123,8 +129,8 @@ namespace XNAFinalEngine.UserInterface
             }
             if (_glyph != null)
             {
-                Margins cont = layer.ContentMargins;
-                Rectangle r = new Rectangle(rect.Left + cont.Left, rect.Top + cont.Top, rect.Width - cont.Horizontal, rect.Height - cont.Vertical);
+                var cont = layer.ContentMargins;
+                var r = new Rectangle(rect.Left + cont.Left, rect.Top + cont.Top, rect.Width - cont.Horizontal, rect.Height - cont.Vertical);
                 UserInterfaceManager.Renderer.DrawGlyph(_glyph, r);
             }
             else
@@ -137,14 +143,17 @@ namespace XNAFinalEngine.UserInterface
 
         private void OnGlyphChanged(EventArgs e)
         {
-            if (GlyphChanged != null) GlyphChanged.Invoke(this, e);
+            if (GlyphChanged != null)
+            {
+                GlyphChanged.Invoke(this, e);
+            }
         } // OnGlyphChanged
 
 
 
         protected override void OnClick(EventArgs e)
         {
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if (ex.Button == MouseButton.Left)
             {

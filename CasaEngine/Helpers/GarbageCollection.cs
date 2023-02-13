@@ -30,9 +30,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using System.Runtime;
 using CasaEngine.Debugger;
 
-
-
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
     public sealed class GarbageCollector
     {

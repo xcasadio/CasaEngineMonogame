@@ -1,14 +1,14 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System.Xml;
+﻿using System.Xml;
+using CasaEngine.Core_Systems.Game;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.CoreSystems.Game;
-using Microsoft.Xna.Framework.Input;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
-namespace CasaEngine.FrontEnd.Screen.Gadget
+namespace CasaEngine.Front_End.Screen.Gadget
 {
     public abstract
 #if EDITOR
@@ -151,7 +151,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
             //TODO : faire autrement
             _whiteTexture = new Texture2D(game.GraphicsDevice, 1, 1);
-            Color[] whitePixels = new Color[] { Color.White };
+            var whitePixels = new Color[] { Color.White };
             _whiteTexture.SetData<Color>(whitePixels);
 
             Font = Engine.Instance.DefaultSpriteFont;
@@ -161,12 +161,12 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         public virtual void Update(float elapsedTime)
         {
             int mouseX = Mouse.GetState().X, mouseY = Mouse.GetState().Y;
-            bool mouseOver = Bounds.Contains(mouseX, mouseY);
+            var mouseOver = Bounds.Contains(mouseX, mouseY);
 
             if (Mouse.GetState().LeftButton == ButtonState.Pressed)
             {
                 if (_mouseLeftPressed == false
-                    && mouseOver == true)
+                    && mouseOver)
                 {
                     if (Click != null)
                     {
@@ -181,7 +181,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 _mouseLeftPressed = false;
             }
 
-            if (mouseOver == true
+            if (mouseOver
                 && _mouseOver == false)
             {
                 if (MouseEnter != null)
@@ -190,14 +190,14 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
                 }
             }
             else if (mouseOver == false
-                && _mouseOver == true)
+                && _mouseOver)
             {
                 if (MouseLeave != null)
                 {
                     MouseLeave.Invoke(this, EventArgs.Empty);
                 }
             }
-            else if (mouseOver == true)
+            else if (mouseOver)
             {
                 mouseOver = true;
 
@@ -223,10 +223,10 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
         public virtual void Load(XmlElement el, SaveOption opt)
         {
-            Color c = Color.White;
-            Vector2 v = Vector2.Zero;
+            var c = Color.White;
+            var v = Vector2.Zero;
 
-            int version = int.Parse(el.Attributes["version"].Value);
+            var version = int.Parse(el.Attributes["version"].Value);
 
             AutoSize = bool.Parse(el.SelectSingleNode("AutoSize").InnerText);
             ((XmlElement)el.SelectSingleNode("BackgroundColor")).Read(ref c);
@@ -274,9 +274,9 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
 
 
-        static public ScreenGadget LoadScreenGadget(XmlElement el, SaveOption opt)
+        public static ScreenGadget LoadScreenGadget(XmlElement el, SaveOption opt)
         {
-            string typeName = el.Attributes["typeName"].Value;
+            var typeName = el.Attributes["typeName"].Value;
 
             switch (typeName)
             {

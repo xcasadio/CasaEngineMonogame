@@ -1,7 +1,6 @@
-﻿using CasaEngine.Math.Shape2D;
-using CasaEngine.Math.Collision;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using CasaEngine.AI.Messaging;
+using CasaEngine.Core_Systems.Math.Shape2D;
 using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay;
 
@@ -11,7 +10,7 @@ namespace CasaEngine.Physics2D
     public class Collision2DManager
     {
 
-        static private Collision2DManager _instance = null;
+        private static Collision2DManager _instance = null;
 
         private readonly List<IAttackable> _objects = new();
         private readonly Message _message1 = new(0, 0, (int)MessageType.Hit, 0, null);
@@ -26,7 +25,7 @@ namespace CasaEngine.Physics2D
 
 
 
-        static public Collision2DManager Instance
+        public static Collision2DManager Instance
         {
             get
             {
@@ -58,29 +57,29 @@ namespace CasaEngine.Physics2D
         {
             Shape2DObject g1, g2;
 
-            for (int i = 0; i < _objects.Count; i++)
+            for (var i = 0; i < _objects.Count; i++)
             {
-                Shape2DObject[] g1List = _objects[i].Shape2DObjectList;
+                var g1List = _objects[i].Shape2DObjectList;
 
                 if (g1List == null)
                 {
                     continue;
                 }
 
-                for (int a = 0; a < g1List.Length; a++)
+                for (var a = 0; a < g1List.Length; a++)
                 {
                     g1 = g1List[a];
 
-                    for (int j = i + 1; j < _objects.Count; j++)
+                    for (var j = i + 1; j < _objects.Count; j++)
                     {
-                        Shape2DObject[] g2List = _objects[j].Shape2DObjectList;
+                        var g2List = _objects[j].Shape2DObjectList;
 
                         if (g2List == null)
                         {
                             continue;
                         }
 
-                        for (int b = 0; b < g2List.Length; b++)
+                        for (var b = 0; b < g2List.Length; b++)
                         {
                             g2 = g2List[b];
 
@@ -100,11 +99,11 @@ namespace CasaEngine.Physics2D
                                         {
                                             case Shape2DType.Circle:
 
-                                                if (Collision2D.CollideCircles(ref _contactPoint, (ShapeCircle)g1, ref _v1, (ShapeCircle)g2, ref _v2) == true)
+                                                if (Collision2D.CollideCircles(ref _contactPoint, (ShapeCircle)g1, ref _v1, (ShapeCircle)g2, ref _v2))
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]))
                                                     {
                                                         SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
@@ -119,11 +118,11 @@ namespace CasaEngine.Physics2D
 
                                             case Shape2DType.Polygone:
 
-                                                if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g2, ref _v2, (ShapeCircle)g1, ref _v1) == true)
+                                                if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g2, ref _v2, (ShapeCircle)g1, ref _v1))
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]))
                                                     {
                                                         SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
@@ -147,11 +146,11 @@ namespace CasaEngine.Physics2D
                                         {
                                             case Shape2DType.Circle:
 
-                                                if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g1, ref _v1, (ShapeCircle)g2, ref _v2) == true)
+                                                if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g1, ref _v1, (ShapeCircle)g2, ref _v2))
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]))
                                                     {
                                                         SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
@@ -166,11 +165,11 @@ namespace CasaEngine.Physics2D
 
                                             case Shape2DType.Polygone:
 
-                                                if (Collision2D.CollidePolygons((ShapePolygone)g2, ref _v2, (ShapePolygone)g1, ref _v1) == true)
+                                                if (Collision2D.CollidePolygons((ShapePolygone)g2, ref _v2, (ShapePolygone)g1, ref _v1))
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]))
                                                     {
                                                         SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }
@@ -185,11 +184,11 @@ namespace CasaEngine.Physics2D
 
                                             case Shape2DType.Rectangle:
 
-                                                if (Collision2D.CollidePolygonAndRectangle((ShapePolygone)g1, ref _v1, (ShapeRectangle)g2, ref _v2) == true)
+                                                if (Collision2D.CollidePolygonAndRectangle((ShapePolygone)g1, ref _v1, (ShapeRectangle)g2, ref _v2))
                                                 {
                                                     if (g1.Flag == 0 // defense
                                                         && g2.Flag == 1 // attack
-                                                        && _objects[j].CanAttackHim(_objects[i]) == true)
+                                                        && _objects[j].CanAttackHim(_objects[i]))
                                                     {
                                                         SendMessage(_objects[j], _objects[i], ref _contactPoint);
                                                     }

@@ -61,7 +61,7 @@ namespace CasaEngine.AI.Pathfinding
 
         public void Register(PathPlanner<T> planner)
         {
-            if (SearchRequests.Contains(planner) == true)
+            if (SearchRequests.Contains(planner))
             {
                 return;
             }

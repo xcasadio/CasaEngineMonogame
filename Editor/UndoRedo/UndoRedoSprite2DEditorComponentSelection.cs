@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Editor.UndoRedo;
-using Editor.Tools.Graphics2D;
-using Editor.Game;
-using System.Windows.Forms;
+﻿using CasaEngine.Editor.UndoRedo;
 
 namespace Editor.UndoRedo
 {
     /// <summary>
     /// 
     /// </summary>
-    public class UndoRedoListControlSelection 
+    public class UndoRedoListControlSelection
         : ICommand
     {
 
@@ -22,23 +15,23 @@ namespace Editor.UndoRedo
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="ob_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ob_"></param>
         public UndoRedoListControlSelection(int index_)
-		{
+        {
             m_Selectedindex = index_;
-		}
+        }
 
 
 
         delegate void DelegateCallback(ListControl c_);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
         public void Execute(object arg1_)
         {
             if (arg1_ is ListControl)
@@ -52,18 +45,18 @@ namespace Editor.UndoRedo
                 else
                 {
                     Do(c);
-                }                
+                }
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
-		public void Undo(object arg1_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
+        public void Undo(object arg1_)
+        {
             Execute(arg1_);
-		}
+        }
 
         /// <summary>
         /// 

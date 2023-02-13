@@ -1,4 +1,4 @@
-﻿using XNAFinalEngine.Helpers;
+﻿using CasaEngine.Helpers;
 
 namespace CasaEngine.Debugger
 {

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
+﻿using System.Xml;
 using CasaEngineCommon.Logger;
-using System.Windows.Forms;
-using System.Windows;
 using CasaEngineCommon.Extension;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker

@@ -6,15 +6,15 @@
 //-----------------------------------------------------------------------------
 
 
+using CasaEngine.Core_Systems.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.Helper;
 using CasaEngine.Gameplay;
-using CasaEngine.CoreSystems.Game;
+using CasaEngine.Helpers;
 
 #if EDITOR
 //using CasaEngine.Editor.GameComponent;
@@ -148,13 +148,13 @@ namespace CasaEngine.Debugger
             RegisterCommand("help", "Show Command helps",
                 delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
-                    int maxLen = 0;
-                    foreach (CommandInfo cmd in _commandTable.Values)
+                    var maxLen = 0;
+                    foreach (var cmd in _commandTable.Values)
                         maxLen = System.Math.Max(maxLen, cmd.Command.Length);
 
-                    string fmt = string.Format("{{0,-{0}}}    {{1}}", maxLen);
+                    var fmt = string.Format("{{0,-{0}}}    {{1}}", maxLen);
 
-                    foreach (CommandInfo cmd in _commandTable.Values)
+                    foreach (var cmd in _commandTable.Values)
                     {
                         Echo(string.Format(fmt, cmd.Command, cmd.Description));
                     }
@@ -178,16 +178,16 @@ namespace CasaEngine.Debugger
             RegisterCommand("displayCollisions", "Display Collisions of each sprite. Argument 'on'/'off'",
                 delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
-                    bool error = false;
-                    bool state = false;
+                    var error = false;
+                    var state = false;
 
                     if (args.Count == 1)
                     {
-                        if (args[0].ToLower().Equals("on") == true)
+                        if (args[0].ToLower().Equals("on"))
                         {
                             state = true;
                         }
-                        else if (args[0].ToLower().Equals("off") == true)
+                        else if (args[0].ToLower().Equals("off"))
                         {
                             state = false;
                         }
@@ -201,7 +201,7 @@ namespace CasaEngine.Debugger
                         error = true;
                     }
 
-                    if (error == true)
+                    if (error)
                     {
                         EchoError("Please use DisplayCollisions with one argument : 'on' or 'off'");
                     }
@@ -216,8 +216,8 @@ namespace CasaEngine.Debugger
             RegisterCommand("AnimationSpeed", "Speed of animations.",
             delegate (IDebugCommandHost host, string command, IList<string> args)
             {
-                bool ok = true;
-                float value = 1.0f;
+                var ok = true;
+                var value = 1.0f;
 
                 if (args.Count == 1)
                 {
@@ -240,16 +240,16 @@ namespace CasaEngine.Debugger
             RegisterCommand("DisplayCharacterDebugInformation", "Display Debug Information from character.",
             delegate (IDebugCommandHost host, string command, IList<string> args)
             {
-                bool error = false;
-                bool state = false;
+                var error = false;
+                var state = false;
 
                 if (args.Count == 1)
                 {
-                    if (args[0].ToLower().Equals("on") == true)
+                    if (args[0].ToLower().Equals("on"))
                     {
                         state = true;
                     }
-                    else if (args[0].ToLower().Equals("off") == true)
+                    else if (args[0].ToLower().Equals("off"))
                     {
                         state = false;
                     }
@@ -263,7 +263,7 @@ namespace CasaEngine.Debugger
                     error = true;
                 }
 
-                if (error == true)
+                if (error)
                 {
                     EchoError("Please use DisplayCollisions with one argument : 'on' or 'off'");
                 }
@@ -307,7 +307,7 @@ namespace CasaEngine.Debugger
         public void RegisterCommand(
             string command, string description, DebugCommandExecute callback)
         {
-            string lowerCommand = command.ToLower();
+            var lowerCommand = command.ToLower();
             if (_commandTable.ContainsKey(lowerCommand))
             {
                 throw new InvalidOperationException(
@@ -320,7 +320,7 @@ namespace CasaEngine.Debugger
 
         public void UnregisterCommand(string command)
         {
-            string lowerCommand = command.ToLower();
+            var lowerCommand = command.ToLower();
             if (!_commandTable.ContainsKey(lowerCommand))
             {
                 throw new InvalidOperationException(
@@ -340,14 +340,14 @@ namespace CasaEngine.Debugger
             }
 
             // Run the command.
-            char[] spaceChars = new char[] { ' ' };
+            var spaceChars = new char[] { ' ' };
 
             Echo(Prompt + command);
 
             command = command.TrimStart(spaceChars);
 
-            List<string> args = new List<string>(command.Split(spaceChars));
-            string cmdText = args[0];
+            var args = new List<string>(command.Split(spaceChars));
+            var cmdText = args[0];
             args.RemoveAt(0);
 
             CommandInfo cmd;
@@ -363,8 +363,8 @@ namespace CasaEngine.Debugger
                     // Exception occurred while running command.
                     EchoError("Unhandled Exception occurred");
 
-                    string[] lines = e.Message.Split(new char[] { '\n' });
-                    foreach (string line in lines)
+                    var lines = e.Message.Split(new char[] { '\n' });
+                    foreach (var line in lines)
                         EchoError(line);
                 }
             }
@@ -398,7 +398,7 @@ namespace CasaEngine.Debugger
                 _lines.Dequeue();
 
             // Call registered listeners.
-            foreach (IDebugEchoListner listner in _listenrs)
+            foreach (var listner in _listenrs)
                 listner.Echo(messageType, text);
         }
 
@@ -449,9 +449,9 @@ namespace CasaEngine.Debugger
 
         public override void Update(GameTime gameTime)
         {
-            KeyboardState keyState = Keyboard.GetState();
+            var keyState = Keyboard.GetState();
 
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             const float openSpeed = 8.0f;
             const float closeSpeed = 8.0f;
 
@@ -492,13 +492,13 @@ namespace CasaEngine.Debugger
 
         public void ProcessKeyInputs(float dt)
         {
-            KeyboardState keyState = Keyboard.GetState();
-            Keys[] keys = keyState.GetPressedKeys();
+            var keyState = Keyboard.GetState();
+            var keys = keyState.GetPressedKeys();
 
-            bool shift = keyState.IsKeyDown(Keys.LeftShift) ||
-                            keyState.IsKeyDown(Keys.RightShift);
+            var shift = keyState.IsKeyDown(Keys.LeftShift) ||
+                        keyState.IsKeyDown(Keys.RightShift);
 
-            foreach (Keys key in keys)
+            foreach (var key in keys)
             {
                 if (!IsKeyPressed(key, dt))
                 {
@@ -612,15 +612,15 @@ namespace CasaEngine.Debugger
                 return;
             }
 
-            SpriteFont font = Engine.Instance.DefaultSpriteFont;
-            Texture2D whiteTexture = _debugManager.WhiteTexture;
-            float depth = 0.0f;
+            var font = Engine.Instance.DefaultSpriteFont;
+            var whiteTexture = _debugManager.WhiteTexture;
+            var depth = 0.0f;
 
             // Compute command window size and draw.
             float w = GraphicsDevice.Viewport.Width;
             float h = GraphicsDevice.Viewport.Height;
-            float topMargin = h * 0.1f;
-            float leftMargin = w * 0.1f;
+            var topMargin = h * 0.1f;
+            var leftMargin = w * 0.1f;
 
             /*Rectangle rect = new Rectangle();
             rect.X = (int)leftMargin;
@@ -643,8 +643,8 @@ namespace CasaEngine.Debugger
                 _backgroundColor, depth + 0.001f, SpriteEffects.None);
 
             // Draw each lines.
-            Vector2 pos = new Vector2(leftMargin, topMargin);
-            foreach (string line in _lines)
+            var pos = new Vector2(leftMargin, topMargin);
+            foreach (var line in _lines)
             {
                 //spriteBatch.DrawString(font, line, pos, Color.White);
                 _renderer2DComponent.AddText2D(font, line, pos, 0.0f, Vector2.One, Color.White, depth);
@@ -652,8 +652,8 @@ namespace CasaEngine.Debugger
             }
 
             // Draw prompt string.
-            string leftPart = Prompt + _commandLine.Substring(0, _cursorIndex);
-            Vector2 cursorPos = pos + font.MeasureString(leftPart);
+            var leftPart = Prompt + _commandLine.Substring(0, _cursorIndex);
+            var cursorPos = pos + font.MeasureString(leftPart);
             cursorPos.Y = pos.Y;
 
             // spriteBatch.DrawString(font,

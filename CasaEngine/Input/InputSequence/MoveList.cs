@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 
 
-namespace CasaEngine.Input
+namespace CasaEngine.Input.InputSequence
 {
     public class MoveManager
     {
@@ -28,7 +28,7 @@ namespace CasaEngine.Input
         {
             // Perform a linear search for a move which matches the input. This relies
             // on the moves array being in order of decreasing sequence length.
-            foreach (Move move in _moves)
+            foreach (var move in _moves)
             {
                 if (input.Matches(move))
                 {

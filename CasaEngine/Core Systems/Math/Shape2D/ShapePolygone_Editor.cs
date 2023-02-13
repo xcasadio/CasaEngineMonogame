@@ -1,12 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.ComponentModel;
 using System.Xml;
-using CasaEngineCommon.Extension;
-using FarseerPhysics.Common.PolygonManipulation;
-using FarseerPhysics.Common;
 using CasaEngineCommon.Design;
-using System.ComponentModel;
+using CasaEngineCommon.Extension;
+using FarseerPhysics.Common;
+using FarseerPhysics.Common.PolygonManipulation;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public partial class ShapePolygone
         : Shape2DObject
@@ -109,24 +109,24 @@ namespace CasaEngine.Math.Shape2D
         {
             int i1, i2;
 
-            Vertices v = new Vertices(_points);
+            var v = new Vertices(_points);
             v = SimplifyTools.MergeIdenticalPoints(v);
             v = SimplifyTools.CollinearSimplify(v);
             _points.Clear();
             _points.AddRange(v);
 
-            List<int> p = new List<int>();
+            var p = new List<int>();
 
             // Ensure the polygon is convex and the interior
             // is to the left of each edge.
-            for (int i = 0; i < _points.Count; ++i)
+            for (var i = 0; i < _points.Count; ++i)
             {
                 i1 = i;
                 i2 = i + 1 < _points.Count ? i + 1 : 0;
 
-                Vector2 edge = _points[i2] - _points[i1];
+                var edge = _points[i2] - _points[i1];
 
-                for (int j = 0; j < _points.Count; ++j)
+                for (var j = 0; j < _points.Count; ++j)
                 {
                     // Don't check vertices on the current edge.
                     if (j == i1 || j == i2)
@@ -134,11 +134,11 @@ namespace CasaEngine.Math.Shape2D
                         continue;
                     }
 
-                    Vector2 r = _points[j] - _points[i1];
+                    var r = _points[j] - _points[i1];
 
                     // Your polygon is non-convex (it has an indentation) or
                     // has colinear edges.
-                    float s = edge.X * r.Y - edge.Y * r.X;
+                    var s = edge.X * r.Y - edge.Y * r.X;
 
                     if (s > 0.0f && p.Contains(i1) == false)
                     {
@@ -172,7 +172,7 @@ namespace CasaEngine.Math.Shape2D
         {
             if (o is ShapePolygone)
             {
-                ShapePolygone p = (ShapePolygone)o;
+                var p = (ShapePolygone)o;
 
                 if (_isABox != p._isABox)
                 {
@@ -184,7 +184,7 @@ namespace CasaEngine.Math.Shape2D
                     return false;
                 }
 
-                for (int i = 0; i < _points.Count; i++)
+                for (var i = 0; i < _points.Count; i++)
                 {
                     if (_points[i] != p._points[i])
                     {
@@ -202,15 +202,15 @@ namespace CasaEngine.Math.Shape2D
         {
             base.Save(el, option);
 
-            XmlElement box = el.OwnerDocument.CreateElementWithText("IsABox", _isABox.ToString());
+            var box = el.OwnerDocument.CreateElementWithText("IsABox", _isABox.ToString());
             el.AppendChild(box);
 
-            XmlElement pointList = el.OwnerDocument.CreateElement("PointList");
+            var pointList = el.OwnerDocument.CreateElement("PointList");
             el.AppendChild(pointList);
 
-            foreach (Vector2 p in _points)
+            foreach (var p in _points)
             {
-                XmlElement point = el.OwnerDocument.CreateElement("Point", p);
+                var point = el.OwnerDocument.CreateElement("Point", p);
                 pointList.AppendChild(point);
             }
         }
@@ -224,7 +224,7 @@ namespace CasaEngine.Math.Shape2D
             bw.Write(_isABox);
             bw.Write(_points.Count);
 
-            foreach (Vector2 p in _points)
+            foreach (var p in _points)
             {
                 bw.Write(p);
             }

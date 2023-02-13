@@ -10,7 +10,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
     public class WallAvoidance : SteeringBehavior
     {
 
-        public WallAvoidance(string name, MovingEntity owner, float modifier)
+        public WallAvoidance(string name, MovingObject owner, float modifier)
             : base(name, owner, modifier)
         { }
 
@@ -20,7 +20,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
         {
             if (PhysicEngine.Physic == null)
             {
-                throw new NullReferenceException("MovingEntity.CanMoveBetween() : PhysicEngine.Physic not defined");
+                throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
             }
 
             Vector3 force, position, overShoot, contactPoint, contactNormal;
@@ -38,7 +38,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 
             nearIntersectionDist = float.MaxValue;
 
-            for (int i = 0; i < feelers.Length; i++)
+            for (var i = 0; i < feelers.Length; i++)
             {
                 position = owner.Position;
 
@@ -46,9 +46,9 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
                 owner.Position = position;
 
                 //If there was a collision see the collision distance
-                if (PhysicEngine.Physic.NearBodyWorldRayCast(ref position, ref feelers[i], out contactPoint, out contactNormal) == true)
+                if (PhysicEngine.Physic.NearBodyWorldRayCast(ref position, ref feelers[i], out contactPoint, out contactNormal))
                 {
-                    float intersectionDist = (contactPoint - owner.Position).Length();
+                    var intersectionDist = (contactPoint - owner.Position).Length();
 
                     //If it was closer than the the closer collision so far, update the values
                     if (intersectionDist < nearIntersectionDist)

@@ -27,11 +27,11 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
-using Size = XNAFinalEngine.Helpers.Size;
+using Microsoft.Xna.Framework.Graphics;
+using Size = CasaEngine.Helpers.Size;
 
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets.Textures
 {
     public sealed class RenderTarget : Texture
     {
@@ -211,7 +211,7 @@ namespace CasaEngine.Asset
             // Redo the bindings
             if (_renderTargetBinding.HasValue)
             {
-                for (int i = 0; i < _renderTargetBinding.Value.InternalBinding.Length; i++)
+                for (var i = 0; i < _renderTargetBinding.Value.InternalBinding.Length; i++)
                 {
                     _renderTargetBinding.Value.InternalBinding[i] =
                         new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(_renderTargetBinding.Value.RenderTargets[i]._renderTarget);
@@ -263,7 +263,7 @@ namespace CasaEngine.Asset
                 throw new InvalidOperationException("Render Target: unable to set render target. Another render target is still set.");
             }
 
-            for (int i = 0; i < renderTargetBinding.RenderTargets.Length; i++)
+            for (var i = 0; i < renderTargetBinding.RenderTargets.Length; i++)
             {
                 currentRenderTarget[i] = renderTargetBinding.RenderTargets[i];
                 renderTargetBinding.RenderTargets[i]._alreadyResolved = false;
@@ -332,7 +332,7 @@ namespace CasaEngine.Asset
 
         public static void DisableCurrentRenderTargets(GraphicsDevice graphicsDevice)
         {
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 if (currentRenderTarget[i] != null)
                 {
@@ -348,7 +348,7 @@ namespace CasaEngine.Asset
 
         public static RenderTargetBinding BindRenderTargets(RenderTarget renderTarget1, RenderTarget renderTarget2)
         {
-            RenderTargetBinding renderTargetsBinding = new RenderTargetBinding
+            var renderTargetsBinding = new RenderTargetBinding
             {
                 InternalBinding = new[]
                 {
@@ -364,7 +364,7 @@ namespace CasaEngine.Asset
 
         public static RenderTargetBinding BindRenderTargets(RenderTarget renderTarget1, RenderTarget renderTarget2, RenderTarget renderTarget3)
         {
-            RenderTargetBinding renderTargetsBinding = new RenderTargetBinding
+            var renderTargetsBinding = new RenderTargetBinding
             {
                 InternalBinding = new[]
                 {
@@ -382,7 +382,7 @@ namespace CasaEngine.Asset
 
         public static RenderTargetBinding BindRenderTargets(RenderTarget renderTarget1, RenderTarget renderTarget2, RenderTarget renderTarget3, RenderTarget renderTarget4)
         {
-            RenderTargetBinding renderTargetsBinding = new RenderTargetBinding
+            var renderTargetsBinding = new RenderTargetBinding
             {
                 InternalBinding = new[]
                 {
@@ -408,7 +408,7 @@ namespace CasaEngine.Asset
         public static RenderTarget Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntialiasingType antialiasingType, bool mipMap = false)
         {
             RenderTarget renderTarget;
-            for (int i = 0; i < RenderTargets.Count; i++)
+            for (var i = 0; i < RenderTargets.Count; i++)
             {
                 renderTarget = RenderTargets[i];
                 if (renderTarget.Size == size && renderTarget.SurfaceFormat == surfaceFormat &&
@@ -432,7 +432,7 @@ namespace CasaEngine.Asset
                 return;
             }
 
-            for (int i = 0; i < RenderTargets.Count; i++)
+            for (var i = 0; i < RenderTargets.Count; i++)
             {
                 if (rendertarget == RenderTargets[i])
                 {
@@ -446,7 +446,7 @@ namespace CasaEngine.Asset
 
         public static void ClearRenderTargetPool()
         {
-            for (int i = 0; i < RenderTargets.Count; i++)
+            for (var i = 0; i < RenderTargets.Count; i++)
             {
                 RenderTargets[i].Dispose();
             }
@@ -462,7 +462,7 @@ namespace CasaEngine.Asset
         public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
         {
             RenderTargetBinding renderTargetBinding;
-            for (int i = 0; i < MultipleRenderTargets.Count; i++)
+            for (var i = 0; i < MultipleRenderTargets.Count; i++)
             {
                 renderTargetBinding = MultipleRenderTargets[i];
                 // If is a multiple render target of three render targets.
@@ -479,8 +479,8 @@ namespace CasaEngine.Asset
                 }
             }
             // If there is not one unlook or present we create one.
-            RenderTarget renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat, AntialiasingType.NoAntialiasing);
-            RenderTarget renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false, AntialiasingType.NoAntialiasing);
+            var renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat);
+            var renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false);
             renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2);
             MultipleRenderTargets.Add(renderTargetBinding);
             renderTargetBinding.RenderTargets[0]._looked = true;
@@ -490,7 +490,7 @@ namespace CasaEngine.Asset
         public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2, SurfaceFormat surfaceFormat3)
         {
             RenderTargetBinding renderTargetBinding;
-            for (int i = 0; i < MultipleRenderTargets.Count; i++)
+            for (var i = 0; i < MultipleRenderTargets.Count; i++)
             {
                 renderTargetBinding = MultipleRenderTargets[i];
                 // If is a multiple render target of three render targets.
@@ -508,9 +508,9 @@ namespace CasaEngine.Asset
                 }
             }
             // If there is not one unlook or present we create one.
-            RenderTarget renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat, AntialiasingType.NoAntialiasing);
-            RenderTarget renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false, AntialiasingType.NoAntialiasing);
-            RenderTarget renderTarget3 = new RenderTarget(graphicsDevice, size, surfaceFormat3, false, AntialiasingType.NoAntialiasing);
+            var renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat);
+            var renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false);
+            var renderTarget3 = new RenderTarget(graphicsDevice, size, surfaceFormat3, false);
             renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2, renderTarget3);
             MultipleRenderTargets.Add(renderTargetBinding);
             renderTargetBinding.RenderTargets[0]._looked = true;
@@ -519,7 +519,7 @@ namespace CasaEngine.Asset
 
         public static void Release(RenderTargetBinding renderTargetBinding)
         {
-            for (int i = 0; i < MultipleRenderTargets.Count; i++)
+            for (var i = 0; i < MultipleRenderTargets.Count; i++)
             {
                 if (renderTargetBinding == MultipleRenderTargets[i])
                 {
@@ -533,9 +533,9 @@ namespace CasaEngine.Asset
 
         public static void ClearMultpleRenderTargetPool()
         {
-            for (int i = 0; i < MultipleRenderTargets.Count; i++)
+            for (var i = 0; i < MultipleRenderTargets.Count; i++)
             {
-                for (int j = 0; j < MultipleRenderTargets[i].RenderTargets.Length; j++)
+                for (var j = 0; j < MultipleRenderTargets[i].RenderTargets.Length; j++)
                 {
                     MultipleRenderTargets[i].RenderTargets[j].Dispose();
                 }

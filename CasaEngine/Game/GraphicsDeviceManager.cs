@@ -159,7 +159,7 @@ namespace CasaEngine.Game
 
         public void ApplyChanges()
         {
-            GraphicsDeviceInformation graphicsDeviceInformation = FindBestDevice(true);
+            var graphicsDeviceInformation = FindBestDevice(true);
             OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
 
             if (_graphicsDevice != null)

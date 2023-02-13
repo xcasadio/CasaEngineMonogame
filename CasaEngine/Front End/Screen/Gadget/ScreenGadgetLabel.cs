@@ -1,9 +1,9 @@
 ﻿using System.Xml;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
 using CasaEngineCommon.Design;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.FrontEnd.Screen.Gadget
+namespace CasaEngine.Front_End.Screen.Gadget
 {
     public
 #if EDITOR

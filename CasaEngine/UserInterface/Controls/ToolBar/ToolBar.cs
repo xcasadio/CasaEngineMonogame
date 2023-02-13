@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.ToolBar
 {
 
     public class ToolBar : Control
@@ -27,8 +27,15 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 _row = value;
-                if (_row < 0) _row = 0;
-                if (_row > 7) _row = 7;
+                if (_row < 0)
+                {
+                    _row = 0;
+                }
+
+                if (_row > 7)
+                {
+                    _row = 7;
+                }
             }
         } // Row
 

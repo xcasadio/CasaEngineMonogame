@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using CasaEngine.Gameplay.Actor.Object;
 using System.Xml;
 using CasaEngineCommon.Design;
 

@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Buttons
 {
 
 
@@ -55,13 +55,13 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnClick(EventArgs e)
         {
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if (ex.Button == MouseButton.Left && _mode == RadioButtonMode.Auto)
             {
                 if (Parent != null)
                 {
-                    foreach (Control control in Parent.ChildrenControls) // Check for brothers.
+                    foreach (var control in Parent.ChildrenControls) // Check for brothers.
                     {
                         if (control is RadioButton)
                         {
@@ -71,7 +71,7 @@ namespace XNAFinalEngine.UserInterface
                 }
                 else // If the parent is the manager.
                 {
-                    foreach (Control control in UserInterfaceManager.RootControls)
+                    foreach (var control in UserInterfaceManager.RootControls)
                     {
                         if (control is RadioButton)
                         {

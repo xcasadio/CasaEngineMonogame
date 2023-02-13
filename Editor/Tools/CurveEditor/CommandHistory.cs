@@ -12,14 +12,8 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Diagnostics;
-using System.Text;
-
-
-
 
 
 namespace Editor.Tools.CurveEditor

@@ -10,10 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using CasaEngine.Asset;
+using CasaEngine.Assets.Textures;
 
-
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls
 {
 
     public class ImageBox : Control
@@ -36,7 +35,10 @@ namespace XNAFinalEngine.UserInterface
                 _texture = value;
                 _sourceRectangle = new Rectangle(0, 0, _texture.Width, _texture.Height);
                 Invalidate();
-                if (!Suspended) OnImageChanged(new EventArgs());
+                if (!Suspended)
+                {
+                    OnImageChanged(new EventArgs());
+                }
             }
         } // Texture
 
@@ -47,17 +49,40 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_texture != null)
                 {
-                    int left = value.Left;
-                    int top = value.Top;
-                    int width = value.Width;
-                    int height = value.Height;
+                    var left = value.Left;
+                    var top = value.Top;
+                    var width = value.Width;
+                    var height = value.Height;
 
-                    if (left < 0) left = 0;
-                    if (top < 0) top = 0;
-                    if (width > _texture.Width) width = _texture.Width;
-                    if (height > _texture.Height) height = _texture.Height;
-                    if (left + width > _texture.Width) width = (_texture.Width - left);
-                    if (top + height > _texture.Height) height = (_texture.Height - top);
+                    if (left < 0)
+                    {
+                        left = 0;
+                    }
+
+                    if (top < 0)
+                    {
+                        top = 0;
+                    }
+
+                    if (width > _texture.Width)
+                    {
+                        width = _texture.Width;
+                    }
+
+                    if (height > _texture.Height)
+                    {
+                        height = _texture.Height;
+                    }
+
+                    if (left + width > _texture.Width)
+                    {
+                        width = (_texture.Width - left);
+                    }
+
+                    if (top + height > _texture.Height)
+                    {
+                        height = (_texture.Height - top);
+                    }
 
                     _sourceRectangle = new Rectangle(left, top, width, height);
                 }
@@ -81,7 +106,10 @@ namespace XNAFinalEngine.UserInterface
                 }
                 _sizeMode = value;
                 Invalidate();
-                if (!Suspended) OnSizeModeChanged(new EventArgs());
+                if (!Suspended)
+                {
+                    OnSizeModeChanged(new EventArgs());
+                }
             }
         } // SizeMode
 
@@ -126,12 +154,12 @@ namespace XNAFinalEngine.UserInterface
                         UserInterfaceManager.Renderer.Draw(_texture.Resource, rect, _sourceRectangle, Color);
                         break;
                     case SizeMode.Centered:
-                        int x = (rect.Width / 2) - (_texture.Width / 2);
-                        int y = (rect.Height / 2) - (_texture.Height / 2);
+                        var x = (rect.Width / 2) - (_texture.Width / 2);
+                        var y = (rect.Height / 2) - (_texture.Height / 2);
                         UserInterfaceManager.Renderer.Draw(_texture.Resource, x, y, _sourceRectangle, Color);
                         break;
                     case SizeMode.Fit:
-                        Rectangle aspectRatiorectangle = rect;
+                        var aspectRatiorectangle = rect;
                         if (_texture.Width / _texture.Height > rect.Width / rect.Height)
                         {
                             aspectRatiorectangle.Height = (int)(rect.Height * ((float)rect.Width / rect.Height) / ((float)_texture.Width / _texture.Height));
@@ -153,12 +181,18 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnImageChanged(EventArgs e)
         {
-            if (ImageChanged != null) ImageChanged.Invoke(this, e);
+            if (ImageChanged != null)
+            {
+                ImageChanged.Invoke(this, e);
+            }
         } // OnImageChanged
 
         protected virtual void OnSizeModeChanged(EventArgs e)
         {
-            if (SizeModeChanged != null) SizeModeChanged.Invoke(this, e);
+            if (SizeModeChanged != null)
+            {
+                SizeModeChanged.Invoke(this, e);
+            }
         } // OnSizeModeChanged
 
 

@@ -27,9 +27,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using XNAFinalEngine.Helpers;
+using CasaEngine.Helpers;
 
-namespace XNAFinalEngine.Input
+namespace CasaEngine.Input
 {
 
     public class Button : Disposable
@@ -133,7 +133,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
                             {
@@ -150,7 +150,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
                             {
@@ -167,7 +167,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
                             {
@@ -184,7 +184,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
                             {
@@ -201,7 +201,7 @@ namespace XNAFinalEngine.Input
                     }
                     else
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (var i = 0; i < 4; i++)
                         {
                             if (Math.Abs(valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
                             {
@@ -228,8 +228,8 @@ namespace XNAFinalEngine.Input
 
         public static bool Pressed(string buttonName)
         {
-            bool foundValue = false;
-            bool foundAxis = false;
+            var foundValue = false;
+            var foundAxis = false;
             foreach (var axis in Buttons)
             {
                 if (axis.Name == buttonName)
@@ -248,9 +248,9 @@ namespace XNAFinalEngine.Input
 
         public static bool JustPressed(string buttonName)
         {
-            bool foundPressed = false;
-            bool foundPressedPreviousFrame = false;
-            bool foundAxis = false;
+            var foundPressed = false;
+            var foundPressedPreviousFrame = false;
+            var foundAxis = false;
             foreach (var axis in Buttons)
             {
                 if (axis.Name == buttonName)

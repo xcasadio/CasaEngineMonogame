@@ -10,7 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Buttons
 {
 
     public class TreeButton : ButtonBase
@@ -29,7 +29,9 @@ namespace XNAFinalEngine.UserInterface
                 _isChecked = value;
                 Invalidate();
                 if (!Suspended)
+                {
                     OnCheckedChanged(new EventArgs());
+                }
             }
         } // Checked
 
@@ -69,7 +71,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer layer = SkinInformation.Layers["Checked"];
+            var layer = SkinInformation.Layers["Checked"];
 
             if (!_isChecked)
             {
@@ -78,7 +80,7 @@ namespace XNAFinalEngine.UserInterface
 
             rect.Width = layer.Width;
             rect.Height = layer.Height;
-            Rectangle rc = new Rectangle(rect.Left + rect.Width + 4, rect.Y, Width - (layer.Width + 4), rect.Height);
+            var rc = new Rectangle(rect.Left + rect.Width + 4, rect.Y, Width - (layer.Width + 4), rect.Height);
 
             UserInterfaceManager.Renderer.DrawLayer(this, layer, rect);
             UserInterfaceManager.Renderer.DrawString(this, layer, Text, rc, false, 0, 0);
@@ -88,7 +90,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnClick(EventArgs e)
         {
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if (ex.Button == MouseButton.Left || ex.Button == MouseButton.None)
             {
@@ -101,7 +103,10 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnCheckedChanged(EventArgs e)
         {
-            if (CheckedChanged != null) CheckedChanged.Invoke(this, e);
+            if (CheckedChanged != null)
+            {
+                CheckedChanged.Invoke(this, e);
+            }
         } // OnCheckedChanged
 
 

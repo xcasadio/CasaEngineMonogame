@@ -27,7 +27,12 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.Input;
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using CasaEngine.UserInterface.Controls.Windows;
+using TextBox = CasaEngine.UserInterface.Controls.Text.TextBox;
+
+namespace CasaEngine.UserInterface.Controls.Sliders
 {
 
     public class SliderColor : Control
@@ -72,7 +77,7 @@ namespace XNAFinalEngine.UserInterface
 
 
             // Square color
-            Control squareColor = new Panel(UserInterfaceManager)
+            Control squareColor = new Panel.Panel(UserInterfaceManager)
             {
                 Left = label.Left + label.Width + 5,
                 Top = 17,
@@ -101,12 +106,18 @@ namespace XNAFinalEngine.UserInterface
                                         };
 
 
-                                        int left = squareColor.ControlLeftAbsoluteCoordinate;
+                                        var left = squareColor.ControlLeftAbsoluteCoordinate;
                                         if (left + _colorPickerDialog.Width > UserInterfaceManager.Screen.Width)
+                                        {
                                             left -= _colorPickerDialog.Width;
-                                        int top = squareColor.ControlTopAbsoluteCoordinate + squareColor.Height;
+                                        }
+
+                                        var top = squareColor.ControlTopAbsoluteCoordinate + squareColor.Height;
                                         if (top + _colorPickerDialog.Height > UserInterfaceManager.Screen.Height)
+                                        {
                                             top -= _colorPickerDialog.Height + squareColor.Height;
+                                        }
+
                                         _colorPickerDialog.SetPosition(left, top);
 
 
@@ -147,7 +158,7 @@ namespace XNAFinalEngine.UserInterface
                                         _textBoxR.Text = Math.Round(_sliderR.Value, 3).ToString();
                                         if (!_updatingColor)
                                         {
-                                            if (XNAFinalEngine.Input.Keyboard.KeyPressed(Keys.LeftControl))
+                                            if (Keyboard.KeyPressed(Keys.LeftControl))
                                             {
                                                 _sliderG.Value = _sliderR.Value;
                                                 _sliderB.Value = _sliderR.Value;
@@ -220,7 +231,7 @@ namespace XNAFinalEngine.UserInterface
                                             _textBoxG.Text = Math.Round(_sliderG.Value, 3).ToString();
                                             if (!_updatingColor)
                                             {
-                                                if (XNAFinalEngine.Input.Keyboard.KeyPressed(Keys.LeftControl))
+                                                if (Keyboard.KeyPressed(Keys.LeftControl))
                                                 {
                                                     _sliderR.Value = _sliderG.Value;
                                                     _sliderB.Value = _sliderG.Value;
@@ -293,7 +304,7 @@ namespace XNAFinalEngine.UserInterface
                                         _textBoxB.Text = Math.Round(_sliderB.Value, 3).ToString();
                                         if (!_updatingColor)
                                         {
-                                            if (XNAFinalEngine.Input.Keyboard.KeyPressed(Keys.LeftControl))
+                                            if (Keyboard.KeyPressed(Keys.LeftControl))
                                             {
                                                 _sliderR.Value = _sliderB.Value;
                                                 _sliderG.Value = _sliderB.Value;
@@ -341,10 +352,15 @@ namespace XNAFinalEngine.UserInterface
                 _updatingColor = true;
                 squareColor.Color = Color;
                 if (!_updatingRgb)
+                {
                     UpdateRgbFromColor();
+                }
+
                 _updatingColor = false;
                 if (_colorPickerDialog != null && !_colorPickerDialog.IsDisposed && _colorPickerDialog.Color != Color)
+                {
                     _colorPickerDialog.Color = Color;
+                }
             };
 
             // To init all values with a color
@@ -399,19 +415,25 @@ namespace XNAFinalEngine.UserInterface
         protected virtual void OnSliderDown(object obj, MouseEventArgs e)
         {
             if (SliderDown != null)
+            {
                 SliderDown(this, e);
+            }
         } // OnSliderDown
 
         protected virtual void OnSliderUp(object obj, MouseEventArgs e)
         {
             if (SliderUp != null)
+            {
                 SliderUp(this, e);
+            }
         } // OnSliderUp
 
         protected virtual void OnSliderPress(object obj, MouseEventArgs e)
         {
             if (SliderPress != null)
+            {
                 SliderPress(this, e);
+            }
         } // OnSliderPress
 
 

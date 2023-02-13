@@ -1,13 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Game;
-using System.IO;
+﻿using CasaEngine.Game;
 
 namespace Editor.Tools.Graphics2D
 {
@@ -18,15 +9,15 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         public string PackageName
         {
-            get { return textBoxPackage.Text; }            
+            get { return textBoxPackage.Text; }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
         public string[] Files
         {
-            get 
+            get
             {
                 List<string> res = new List<string>();
 
@@ -35,7 +26,7 @@ namespace Editor.Tools.Graphics2D
                     res.Add(obj.ToString());
                 }
 
-                return res.ToArray(); 
+                return res.ToArray();
             }
         }
 
@@ -93,7 +84,7 @@ namespace Editor.Tools.Graphics2D
                 {
                     listBoxFiles.Items.RemoveAt(index);
                 }
-            }            
+            }
         }
 
         /// <summary>

@@ -8,18 +8,26 @@
 		<TieredCompilation>false</TieredCompilation>
 		<AssemblyName>CasaEngineCommon</AssemblyName>
 		<RootNamespace>CasaEngineCommon</RootNamespace>
+		<PlatformTarget>x64</PlatformTarget>
+		<Configurations>Debug;Release;DebugEditor</Configurations>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-		<DefineConstants>TRACE;DEBUG;WINDOWS;EDITOR</DefineConstants>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' ">
+		<DefineConstants>$(DefineConstants);TRACE;DEBUG;WINDOWS;EDITOR</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-		<DefineConstants>TRACE;WINDOWS;EDITOR</DefineConstants>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|x64'">
+	  <DefineConstants>$(DefineConstants);TRACE;DEBUG;WINDOWS;EDITOR</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' ">
+		<DefineConstants>$(DefineConstants);TRACE;WINDOWS;EDITOR</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DefineConstants>$(DefineConstants)TRACE;EDITOR</DefineConstants>
+	  <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DefineConstants>$(DefineConstants)TRACE;EDITOR</DefineConstants>
+	  <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />

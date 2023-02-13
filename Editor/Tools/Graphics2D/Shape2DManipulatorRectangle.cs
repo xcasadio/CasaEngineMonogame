@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Math.Shape2D;
-using CasaEngine.Editor.Manipulation;
+﻿using CasaEngine.Editor.Manipulation;
 using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using System.Windows.Forms;
+using CasaEngine.Core_Systems.Math.Shape2D;
 using Color = Microsoft.Xna.Framework.Color;
 
 namespace Editor.Tools.Graphics2D

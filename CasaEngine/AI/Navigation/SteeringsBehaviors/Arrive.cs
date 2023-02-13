@@ -9,10 +9,10 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
         protected internal Vector3 force;
         protected internal float maximumSpeed;
 
-        public Arrive(string name, MovingEntity owner, float modifier)
+        public Arrive(string name, MovingObject owner, float modifier)
             : this(name, owner, modifier, 1.0f) { }
 
-        public Arrive(string name, MovingEntity owner, float modifier, float slowingDistance)
+        public Arrive(string name, MovingObject owner, float modifier, float slowingDistance)
             : base(name, owner, modifier)
         {
             this.slowingDistance = slowingDistance;

@@ -22,48 +22,44 @@
  */
 
 
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 {
-	public class TxtMapExporter : IMapExporter
-	{
-		public string MapExtension
-		{
-			get { return "txt"; }
-		}
+    public class TxtMapExporter : IMapExporter
+    {
+        public string MapExtension
+        {
+            get { return "txt"; }
+        }
 
         public void Save(string filename, Dictionary<string, SpriteInfo> map)
-		{
-			// copy the files list and sort alphabetically
-			string[] keys = new string[map.Count];
-			map.Keys.CopyTo(keys, 0);
-			List<string> outputFiles = new List<string>(keys);
-			outputFiles.Sort();
+        {
+            // copy the files list and sort alphabetically
+            string[] keys = new string[map.Count];
+            map.Keys.CopyTo(keys, 0);
+            List<string> outputFiles = new List<string>(keys);
+            outputFiles.Sort();
 
-			using (StreamWriter writer = new StreamWriter(filename))
-			{
-				foreach (var image in outputFiles)
-				{
-					// get the destination rectangle
+            using (StreamWriter writer = new StreamWriter(filename))
+            {
+                foreach (var image in outputFiles)
+                {
+                    // get the destination rectangle
                     SpriteInfo info = map[image];
 
                     Rectangle destination = info.rectangle;
 
-					// write out the destination rectangle for this bitmap
-					writer.WriteLine(string.Format(
-                        "{0} = {1} {2} {3} {4} {5} {6}", 
-	                 	Path.GetFileNameWithoutExtension(image), 
-	                 	destination.X, 
-	                 	destination.Y, 
-	                 	destination.Width, 
-	                 	destination.Height,
+                    // write out the destination rectangle for this bitmap
+                    writer.WriteLine(string.Format(
+                        "{0} = {1} {2} {3} {4} {5} {6}",
+                         Path.GetFileNameWithoutExtension(image),
+                         destination.X,
+                         destination.Y,
+                         destination.Width,
+                         destination.Height,
                         info.origin.X,
                         info.origin.Y));
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 }

@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 
 
-namespace CasaEngine.Input
+namespace CasaEngine.Input.InputSequence
 {
     public partial class InputManager
     {
@@ -156,11 +156,11 @@ namespace CasaEngine.Input
 
         public void Update(KeyState[] keysState, float globalTime)
         {
-            List<KeyState> keyStateList = new List<KeyState>(keysState);
-            List<KeyStateFrame> toDelete = new List<KeyStateFrame>();
+            var keyStateList = new List<KeyState>(keysState);
+            var toDelete = new List<KeyStateFrame>();
 
             // Delete old frame (> 2 secondes)
-            foreach (KeyStateFrame keyStateFrame in _buffer)
+            foreach (var keyStateFrame in _buffer)
             {
                 if (globalTime - keyStateFrame.GlobalTime >= 2.0f)
                 {
@@ -168,15 +168,15 @@ namespace CasaEngine.Input
                 }
             }
 
-            foreach (KeyStateFrame keyStateFrame in toDelete)
+            foreach (var keyStateFrame in toDelete)
             {
                 _buffer.Remove(keyStateFrame);
             }
 
             //check buffer no empty
-            bool isEntryEmpty = true;
+            var isEntryEmpty = true;
 
-            foreach (KeyState k in keysState)
+            foreach (var k in keysState)
             {
                 if (k.State != ButtonState.Released)
                 {
@@ -185,35 +185,35 @@ namespace CasaEngine.Input
                 }
             }
 
-            int last = _buffer.Count - 1;
+            var last = _buffer.Count - 1;
             // It is very hard to press two buttons on exactly the same frame.
             // If they are close enough, consider them pressed at the same time.
-            bool merged = false;
+            var merged = false;
 
             if (_buffer.Count > 0)
             {
                 merged = globalTime - _buffer[_buffer.Count - 1].GlobalTime <= MergeInputTime
-                    && CheckDirectionCollisionForMerge(keyStateList) == true
+                    && CheckDirectionCollisionForMerge(keyStateList)
                     && CheckIfReleasedButtonCollisionForMerge(keyStateList) == false;
             }
 
-            bool found = false;
-            int i = 0;
+            var found = false;
+            var i = 0;
 
-            if (merged == true)
+            if (merged)
             {
-                foreach (KeyState k2 in keysState)
+                foreach (var k2 in keysState)
                 {
                     found = false;
                     i = 0;
 
-                    foreach (KeyState k1 in _buffer[last].KeysState)
+                    foreach (var k1 in _buffer[last].KeysState)
                     {
                         if (k1.Key == k2.Key)
                         {
                             found = true;
 
-                            KeyState k = k1;
+                            var k = k1;
                             k.Time += k2.Time;
                             _buffer[last].KeysState[i] = k;
                             break;
@@ -232,18 +232,18 @@ namespace CasaEngine.Input
             }
             else if (isEntryEmpty == false)
             {
-                List<KeyState> keysToAdd = new List<KeyState>();
+                var keysToAdd = new List<KeyState>();
 
                 if (_buffer.Count > 0)
                 {
-                    Dictionary<int, KeyState> tmp = new Dictionary<int, KeyState>();
+                    var tmp = new Dictionary<int, KeyState>();
 
-                    foreach (KeyState k2 in keysState)
+                    foreach (var k2 in keysState)
                     {
                         i = 0;
                         found = false;
 
-                        foreach (KeyState k1 in _buffer[last].KeysState)
+                        foreach (var k1 in _buffer[last].KeysState)
                         {
                             if (k1.Key == k2.Key)
                             {
@@ -255,7 +255,7 @@ namespace CasaEngine.Input
                                     /*&& verif released == false*/)
                                 {
                                     tmp.Add(i, k1);
-                                    KeyState ks = new KeyState();
+                                    var ks = new KeyState();
                                     ks.Key = k1.Key;
                                     ks.State = k1.State;
                                     ks.Time = k2.Time + k1.Time;
@@ -285,11 +285,11 @@ namespace CasaEngine.Input
                     //if same buttons (case hold button)
                     if (_buffer[last].KeysState.Count == tmp.Count)
                     {
-                        foreach (KeyValuePair<int, KeyState> pair in tmp)
+                        foreach (var pair in tmp)
                         {
                             found = false;
 
-                            foreach (KeyState k in _buffer[last].KeysState)
+                            foreach (var k in _buffer[last].KeysState)
                             {
                                 if (k.Key == pair.Value.Key)
                                 {
@@ -304,9 +304,9 @@ namespace CasaEngine.Input
                             }
                         }
 
-                        if (found == true)
+                        if (found)
                         {
-                            foreach (KeyValuePair<int, KeyState> pair in tmp)
+                            foreach (var pair in tmp)
                             {
                                 _buffer[last].KeysState.Remove(pair.Value);
                             }
@@ -322,7 +322,7 @@ namespace CasaEngine.Input
                     //ajout new frame
                     if (keysToAdd.Count > 0)
                     {
-                        KeyStateFrame ksf = new KeyStateFrame(globalTime); // factory
+                        var ksf = new KeyStateFrame(globalTime); // factory
                         ksf.KeysState = keysToAdd;
                         _buffer.Add(ksf);
                     }
@@ -330,7 +330,7 @@ namespace CasaEngine.Input
                 // first element
                 else
                 {
-                    foreach (KeyState k in keyStateList)
+                    foreach (var k in keyStateList)
                     {
                         if (k.State == ButtonState.Pressed)
                         {
@@ -340,7 +340,7 @@ namespace CasaEngine.Input
 
                     if (keysToAdd.Count > 0)
                     {
-                        KeyStateFrame ksf = new KeyStateFrame(globalTime); // factory
+                        var ksf = new KeyStateFrame(globalTime); // factory
                         ksf.KeysState = keysToAdd;
                         _buffer.Add(ksf);
                     }
@@ -370,7 +370,7 @@ namespace CasaEngine.Input
 
         public bool Matches(Move move)
         {
-            int moveSequencecount = 0;
+            var moveSequencecount = 0;
 
 #if EDITOR
             moveSequencecount = move.Sequence.Count;
@@ -385,7 +385,7 @@ namespace CasaEngine.Input
             }
 
             // Loop backwards to match against the most recent input.
-            for (int i = 1; i <= moveSequencecount; ++i)
+            for (var i = 1; i <= moveSequencecount; ++i)
             {
                 if (move.Match(moveSequencecount - i, _buffer[_buffer.Count - i].KeysState.ToArray()) == false)
                 {

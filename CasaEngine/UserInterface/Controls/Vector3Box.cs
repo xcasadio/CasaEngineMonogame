@@ -27,10 +27,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 using Microsoft.Xna.Framework;
+using TextBox = CasaEngine.UserInterface.Controls.Text.TextBox;
 
-
-
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls
 {
 
     public class Vector3Box : Control
@@ -185,7 +184,9 @@ namespace XNAFinalEngine.UserInterface
         protected virtual void OnValueChanged(EventArgs e)
         {
             if (ValueChanged != null)
+            {
                 ValueChanged.Invoke(this, e);
+            }
         } // OnValueChanged
 
 

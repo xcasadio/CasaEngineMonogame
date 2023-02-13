@@ -1,16 +1,15 @@
-using CasaEngine.AI.Navigation.SteeringsBehaviors;
-using Microsoft.Xna.Framework;
 using CasaEngineCommon.Helper;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.AI.Navigation.Steeringsbehaviors
+namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Steeringbehaviors
     {
-        protected internal MovingEntity owner;
+        protected internal MovingObject owner;
         protected internal List<SteeringBehavior> behaviors;
         protected internal SumMethod sumAlgorithm;
 
-        public Steeringbehaviors(MovingEntity owner, SumMethod sumAlgorithm)
+        public Steeringbehaviors(MovingObject owner, SumMethod sumAlgorithm)
         {
             owner = owner;
             this.sumAlgorithm = sumAlgorithm;
@@ -29,7 +28,7 @@ namespace CasaEngine.AI.Navigation.Steeringsbehaviors
             object newBehavior;
             object[] parametters;
 
-            foreach (SteeringBehavior behavior in behaviors)
+            foreach (var behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
                 {
                     return;
@@ -47,7 +46,7 @@ namespace CasaEngine.AI.Navigation.Steeringsbehaviors
 
         public void RegisterBehavior(SteeringBehavior behavior)
         {
-            for (int i = 0; i < behaviors.Count; i++)
+            for (var i = 0; i < behaviors.Count; i++)
             {
                 if (behaviors[i].GetType() == behavior.GetType() && behaviors[i].Name == behavior.Name)
                 {
@@ -61,7 +60,7 @@ namespace CasaEngine.AI.Navigation.Steeringsbehaviors
 
         public void UnregisterBehavior<T>(string name)
         {
-            for (int i = 0; i < behaviors.Count; i++)
+            for (var i = 0; i < behaviors.Count; i++)
             {
                 if (behaviors[i] is T && behaviors[i].Name == name)
                 {
@@ -72,7 +71,7 @@ namespace CasaEngine.AI.Navigation.Steeringsbehaviors
 
         public void ActivateBehavior<T>(string name)
         {
-            foreach (SteeringBehavior behavior in behaviors)
+            foreach (var behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
                 {
                     behavior.Active = true;
@@ -81,7 +80,7 @@ namespace CasaEngine.AI.Navigation.Steeringsbehaviors
 
         public void DeactivateBehavior<T>(string name)
         {
-            foreach (SteeringBehavior behavior in behaviors)
+            foreach (var behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
                 {
                     behavior.Active = false;
@@ -90,7 +89,7 @@ namespace CasaEngine.AI.Navigation.Steeringsbehaviors
 
         public T GetBehavior<T>(string name) where T : SteeringBehavior
         {
-            foreach (SteeringBehavior behavior in behaviors)
+            foreach (var behavior in behaviors)
                 if (behavior is T && behavior.Name == name)
                 {
                     return (T)behavior;

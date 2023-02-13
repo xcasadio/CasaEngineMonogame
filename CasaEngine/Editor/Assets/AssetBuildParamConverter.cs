@@ -11,7 +11,7 @@ namespace CasaEngine.Editor.Assets
             if (destType == typeof(string) && value is AssetBuildParam)
             {
                 // Cast the value to an Employee type
-                AssetBuildParam emp = (AssetBuildParam)value;
+                var emp = (AssetBuildParam)value;
 
                 // Return department and department role separated by comma.
                 return emp.SubName + " : " + emp.Value;

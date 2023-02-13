@@ -1,25 +1,15 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Game;
+﻿using CasaEngine.Game;
 using CasaEngine.Editor.UndoRedo;
 using Editor.Game;
-using CasaEngine.Graphics2D;
 using CasaEngine.Gameplay.Actor.Event;
 using Editor.Tools.CurveEditor;
 using Microsoft.Xna.Framework;
 using Editor.Sprite2DEditor;
-using System.Threading;
 using CasaEngine.Editor.Tools;
 using CasaEngineCommon.Logger;
-using CasaEngine.Gameplay.Actor.Object;
 using Editor.Sprite2DEditor.Event;
 using CasaEngine.Assets.Graphics2D;
+using CasaEngine.Gameplay.Actor;
 
 namespace Editor.Tools.Graphics2D
 {

@@ -56,10 +56,10 @@ namespace CasaEngine.Graphics2D.Tile
             _visibleTiles = new Rectangle(0, 0, _width, _height);
 
             _grid = new int[_width][];
-            for (int i = 0; i < _width; i++)
+            for (var i = 0; i < _width; i++)
             {
                 _grid[i] = new int[_height];
-                for (int j = 0; j < _height; j++)
+                for (var j = 0; j < _height; j++)
                 {
                     _grid[i][j] = 0;
                 }
@@ -77,10 +77,10 @@ namespace CasaEngine.Graphics2D.Tile
         protected override void DetermineVisibility()
         {
             //create the view rectangle
-            Vector2 upperLeft = Vector2.Zero;
-            Vector2 upperRight = Vector2.Zero;
-            Vector2 lowerLeft = Vector2.Zero;
-            Vector2 lowerRight = Vector2.Zero;
+            var upperLeft = Vector2.Zero;
+            var upperRight = Vector2.Zero;
+            var lowerLeft = Vector2.Zero;
+            var lowerRight = Vector2.Zero;
             lowerRight.X = ((DisplaySize.X / 2) / CameraZoom);
             lowerRight.Y = ((DisplaySize.Y / 2) / CameraZoom);
             upperRight.X = lowerRight.X;
@@ -92,7 +92,7 @@ namespace CasaEngine.Graphics2D.Tile
 
 
             //rotate the view rectangle appropriately
-            Matrix rot = RotationMatrix;
+            var rot = RotationMatrix;
             Vector2.Transform(ref upperLeft, ref rot, out upperLeft);
             Vector2.Transform(ref lowerRight, ref rot, out lowerRight);
             Vector2.Transform(ref upperRight, ref rot, out upperRight);
@@ -108,28 +108,28 @@ namespace CasaEngine.Graphics2D.Tile
             //the idea here is to figure out the smallest square
             //(in tile space) that contains tiles
             //the offset is calculated before scaling
-            float top = MathHelper.Min(
-                MathHelper.Min(upperLeft.Y, lowerRight.Y),
-                MathHelper.Min(upperRight.Y, lowerLeft.Y)) -
-                WorldOffset.Y;
+            var top = MathHelper.Min(
+                          MathHelper.Min(upperLeft.Y, lowerRight.Y),
+                          MathHelper.Min(upperRight.Y, lowerLeft.Y)) -
+                      WorldOffset.Y;
 
-            float bottom = MathHelper.Max(
-                MathHelper.Max(upperLeft.Y, lowerRight.Y),
-                MathHelper.Max(upperRight.Y, lowerLeft.Y)) -
-                WorldOffset.Y;
-            float right = MathHelper.Max(
-                MathHelper.Max(upperLeft.X, lowerRight.X),
-                MathHelper.Max(upperRight.X, lowerLeft.X)) -
-                WorldOffset.X;
-            float left = MathHelper.Min(
-                MathHelper.Min(upperLeft.X, lowerRight.X),
-                MathHelper.Min(upperRight.X, lowerLeft.X)) -
-                WorldOffset.X;
+            var bottom = MathHelper.Max(
+                             MathHelper.Max(upperLeft.Y, lowerRight.Y),
+                             MathHelper.Max(upperRight.Y, lowerLeft.Y)) -
+                         WorldOffset.Y;
+            var right = MathHelper.Max(
+                            MathHelper.Max(upperLeft.X, lowerRight.X),
+                            MathHelper.Max(upperRight.X, lowerLeft.X)) -
+                        WorldOffset.X;
+            var left = MathHelper.Min(
+                           MathHelper.Min(upperLeft.X, lowerRight.X),
+                           MathHelper.Min(upperRight.X, lowerLeft.X)) -
+                       WorldOffset.X;
 
 
             //now figure out where we are in the tile sheet
-            float scaledTileWidth = (float)_cellWidth * _scaleValue.X;
-            float scaledTileHeight = (float)_cellHeight * _scaleValue.Y;
+            var scaledTileWidth = (float)_cellWidth * _scaleValue.X;
+            var scaledTileHeight = (float)_cellHeight * _scaleValue.Y;
 
             //get the visible tiles
             _visibleTiles.X = (int)(left / (scaledTileWidth));
@@ -187,9 +187,9 @@ namespace CasaEngine.Graphics2D.Tile
 
         protected override void DrawTiles(SpriteBatch batch)
         {
-            float scaledTileWidth = (float)_cellWidth * _scaleValue.X;
-            float scaledTileHeight = (float)_cellHeight * _scaleValue.Y;
-            Vector2 screenCenter = new Vector2(
+            var scaledTileWidth = (float)_cellWidth * _scaleValue.X;
+            var scaledTileHeight = (float)_cellHeight * _scaleValue.Y;
+            var screenCenter = new Vector2(
                 (DisplaySize.X / 2),
                 (DisplaySize.Y / 2));
 
@@ -198,19 +198,19 @@ namespace CasaEngine.Graphics2D.Tile
                 SaveStateMode.None);*/
 
             //Rectangle sourceRect = new Rectangle();
-            Vector2 scale = Vector2.One;
+            var scale = Vector2.One;
             Vector2 vecDummy;
 
-            for (int x = _visibleTiles.Left; x < _visibleTiles.Right; x++)
+            for (var x = _visibleTiles.Left; x < _visibleTiles.Right; x++)
             {
-                for (int y = _visibleTiles.Top; y < _visibleTiles.Bottom; y++)
+                for (var y = _visibleTiles.Top; y < _visibleTiles.Bottom; y++)
                 {
                     if (_grid[x][y] != 0)
                     {
                         //Get the tile's position from the grid
                         //in this section we're using reference methods
                         //for the high frequency math functions
-                        Vector2 position = Vector2.Zero;
+                        var position = Vector2.Zero;
                         position.X = (float)x * scaledTileWidth;
                         position.Y = (float)y * scaledTileHeight;
 

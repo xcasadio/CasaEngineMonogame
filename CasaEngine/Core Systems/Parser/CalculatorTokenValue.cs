@@ -1,9 +1,8 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-
-namespace CasaEngine.Design.Parser
+namespace CasaEngine.Core_Systems.Parser
 {
     class CalculatorTokenValue
         : CalculatorToken
@@ -53,13 +52,13 @@ namespace CasaEngine.Design.Parser
 
         public override void Save(XmlElement el, SaveOption option)
         {
-            XmlElement node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            var node = (XmlElement)el.OwnerDocument.CreateElement("Node");
             el.AppendChild(node);
             el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Value).ToString());
 
-            string value = _type == 0 ? _value.ToString() : _string;
+            var value = _type == 0 ? _value.ToString() : _string;
 
-            XmlElement valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Value", value);
+            var valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Value", value);
             el.OwnerDocument.AddAttribute(valueNode, "type", _type.ToString());
             node.AppendChild(valueNode);
         }
@@ -80,7 +79,7 @@ namespace CasaEngine.Design.Parser
         public override void Save(BinaryWriter bw, SaveOption option)
         {
             bw.Write((int)CalculatorTokenType.Value);
-            string value = _type == 0 ? _value.ToString() : _string;
+            var value = _type == 0 ? _value.ToString() : _string;
             bw.Write(value);
             bw.Write(_type);
         }

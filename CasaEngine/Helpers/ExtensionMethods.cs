@@ -36,7 +36,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
     public static class ExtensionMethods
     {
@@ -102,8 +102,8 @@ namespace XNAFinalEngine.Helpers
                 stringBuilder.Append('-');
             }
 
-            int i = 0;
-            int index = stringBuilder.Length;
+            var i = 0;
+            var index = stringBuilder.Length;
             do
             {
                 if (insertDots && i == 3)
@@ -153,7 +153,7 @@ namespace XNAFinalEngine.Helpers
             // $ allows in the first,last,don't allow in middle of the string
             // , allows in the last,middle,don't allow in first char of the string
             // . allows in the first,last,middle, allows in all the indexs
-            bool retVal = false;
+            var retVal = false;
 
             // If string is just 1 letter, don't allow it to be a sign
             if (str.Length == 1 &&
@@ -162,10 +162,10 @@ namespace XNAFinalEngine.Helpers
                 return false;
             }
 
-            for (int i = 0; i < str.Length; i++)
+            for (var i = 0; i < str.Length; i++)
             {
                 // For first indexchar
-                char pChar =
+                var pChar =
                     //char.Parse(str.Substring(i, 1));
                     Convert.ToChar(str.Substring(i, 1));
 
@@ -210,8 +210,8 @@ namespace XNAFinalEngine.Helpers
             }
 
             // Go through every letter in str
-            int strPos = 0;
-            foreach (char ch in str)
+            var strPos = 0;
+            foreach (var ch in str)
             {
                 // Only 0-9 are allowed
                 if ("0123456789".IndexOf(ch) < 0 &&
@@ -232,10 +232,10 @@ namespace XNAFinalEngine.Helpers
 
         private static bool AllowOnlyOneDecimalPoint(string str, NumberFormatInfo numberFormat)
         {
-            char[] strInChars = str.ToCharArray();
-            bool hasGroupSeperator = false;
-            int decimalSeperatorCount = 0;
-            for (int i = 0; i < strInChars.Length; i++)
+            var strInChars = str.ToCharArray();
+            var hasGroupSeperator = false;
+            var decimalSeperatorCount = 0;
+            for (var i = 0; i < strInChars.Length; i++)
             {
                 if (numberFormat.CurrencyDecimalSeparator.IndexOf(strInChars[i]) == 0)
                 {
@@ -260,21 +260,21 @@ namespace XNAFinalEngine.Helpers
                 }
 
                 // look only at the digits in front of the decimal point
-                string[] splittedByDecimalSeperator = str.Split(
+                var splittedByDecimalSeperator = str.Split(
                     numberFormat.CurrencyDecimalSeparator.ToCharArray());
 
                 //   ==> 1.000 -> 000.1  ==> only after 3 digits 
-                char[] firstSplittedInChars = splittedByDecimalSeperator[0].ToCharArray();
-                int arrayLength = firstSplittedInChars.Length;
-                char[] firstSplittedInCharsInverted = new char[arrayLength];
-                for (int i = 0; i < arrayLength; i++)
+                var firstSplittedInChars = splittedByDecimalSeperator[0].ToCharArray();
+                var arrayLength = firstSplittedInChars.Length;
+                var firstSplittedInCharsInverted = new char[arrayLength];
+                for (var i = 0; i < arrayLength; i++)
                 {
                     firstSplittedInCharsInverted[i] =
                         firstSplittedInChars[arrayLength - 1 - i];
                 } // for (int)
 
                 // group seperators are only allowed between 3 digits -> 1.000.000
-                for (int i = 0; i < arrayLength; i++)
+                for (var i = 0; i < arrayLength; i++)
                 {
                     if (i % 3 != 0 && numberFormat.CurrencyGroupSeparator.IndexOf(
                         firstSplittedInCharsInverted[i]) == 0)
@@ -295,12 +295,12 @@ namespace XNAFinalEngine.Helpers
 
         public static string PlusOne(this string name)
         {
-            Regex regex = new Regex(@"(\d+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-            Match match = regex.Match(name);
+            var regex = new Regex(@"(\d+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            var match = regex.Match(name);
 
             if (match.Success)
             {
-                int numberPlusOne = (int)double.Parse(match.Value) + 1;
+                var numberPlusOne = (int)double.Parse(match.Value) + 1;
                 return regex.Replace(name, numberPlusOne.ToString());
             }
             return name + "1";
@@ -339,8 +339,8 @@ namespace XNAFinalEngine.Helpers
 
         public static Vector3 AngleTo(Vector3 from, Vector3 location)
         {
-            Vector3 angle = new Vector3();
-            Vector3 v3 = Vector3.Normalize(location - from);
+            var angle = new Vector3();
+            var v3 = Vector3.Normalize(location - from);
             angle.X = (float)Math.Asin(v3.Y);
             angle.Y = ArcTanAngle(-v3.Z, -v3.X);
             return angle;
@@ -348,10 +348,10 @@ namespace XNAFinalEngine.Helpers
 
         public static Vector3 GetYawPitchRoll(this Quaternion quaternion)
         {
-            Vector3 rotationaxes = new Vector3();
+            var rotationaxes = new Vector3();
 
-            Vector3 forward = Vector3.Transform(Vector3.Forward, quaternion);
-            Vector3 up = Vector3.Transform(Vector3.Up, quaternion);
+            var forward = Vector3.Transform(Vector3.Forward, quaternion);
+            var up = Vector3.Transform(Vector3.Up, quaternion);
             rotationaxes = AngleTo(new Vector3(), forward);
             if (rotationaxes.X == MathHelper.PiOver2)
             {

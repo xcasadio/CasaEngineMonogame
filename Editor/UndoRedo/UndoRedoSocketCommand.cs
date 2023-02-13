@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Editor.UndoRedo;
+﻿using CasaEngine.Editor.UndoRedo;
 using Microsoft.Xna.Framework;
 using Editor.Game;
 
@@ -19,23 +15,23 @@ namespace Editor.UndoRedo
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="pair_"></param>
-		/// <param name="index_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pair_"></param>
+        /// <param name="index_"></param>
         public UndoRedoSocketCommand(KeyValuePair<string, Vector2> pair_, int index_)
-		{
+        {
             m_Object = pair_;
             m_Index = index_;
-		}
+        }
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
         public void Execute(object arg1_)
         {
             if (arg1_ is Sprite2DEditorComponent)
@@ -47,14 +43,14 @@ namespace Editor.UndoRedo
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
-		public void Undo(object arg1_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
+        public void Undo(object arg1_)
+        {
             Execute(arg1_);
-		}
+        }
 
     }
 }

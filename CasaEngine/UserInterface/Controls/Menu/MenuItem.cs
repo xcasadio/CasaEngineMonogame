@@ -12,7 +12,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Microsoft.Xna.Framework.Graphics;
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Menu
 {
 
     public class MenuItem
@@ -66,13 +66,17 @@ namespace XNAFinalEngine.UserInterface
         internal void OnClick(EventArgs e)
         {
             if (Click != null)
+            {
                 Click.Invoke(this, e);
+            }
         } // OnClick
 
         internal void OnSelected(EventArgs e)
         {
             if (Selected != null)
+            {
                 Selected.Invoke(this, e);
+            }
         } // OnSelected
 
 

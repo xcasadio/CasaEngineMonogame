@@ -22,12 +22,6 @@
  */
 
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
 using CasaEngineCommon.Logger;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack

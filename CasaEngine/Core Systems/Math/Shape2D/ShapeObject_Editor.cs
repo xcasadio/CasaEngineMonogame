@@ -1,9 +1,9 @@
-﻿using System.Xml;
-using CasaEngineCommon.Extension;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.Xml;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public partial class Shape2DObject
     {
@@ -46,7 +46,7 @@ namespace CasaEngine.Math.Shape2D
             el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
             el.OwnerDocument.AddAttribute(el, "type", Enum.GetName(typeof(Shape2DType), _type));
 
-            XmlElement location = el.OwnerDocument.CreateElement("Location", Location);
+            var location = el.OwnerDocument.CreateElement("Location", Location);
             el.AppendChild(location);
 
             el.OwnerDocument.AddAttribute(el, "rotation", _rotation.ToString());
@@ -64,7 +64,7 @@ namespace CasaEngine.Math.Shape2D
         public void NotifyPropertyChanged(string info)
         {
             if (PropertyChanged != null
-                && PropertyChangedActivated == true)
+                && PropertyChangedActivated)
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(info));
             }

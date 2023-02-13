@@ -26,23 +26,18 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-
-using System.Xml.Linq;
-using CasaEngine.Asset;
-using CasaEngine.Game;
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngineCommon.Design;
 using System.Xml;
+using System.Xml.Linq;
+using CasaEngine.Game;
+using CasaEngineCommon.Design;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace XNAFinalEngine.Assets
+namespace CasaEngine.Assets.Documents
 {
 
     public class Document : Asset
     {
-
         public XDocument Resource { get; private set; }
-
-
 
         public Document(string filename)
         {
@@ -70,8 +65,6 @@ namespace XNAFinalEngine.Assets
             }
         } // Document
 
-
-
         internal override void OnDeviceReset(GraphicsDevice device)
         {
             if (Resource == null)
@@ -79,8 +72,6 @@ namespace XNAFinalEngine.Assets
                 Resource = Engine.Instance.AssetContentManager.Load<XDocument>(Filename, device);
             }
         } // RecreateResource
-
-
 
         public override void Load(BinaryReader br, SaveOption option)
         {
@@ -92,7 +83,5 @@ namespace XNAFinalEngine.Assets
 
         }
 
-
     } // Document
 } // XNAFinalEngine.Assets
-

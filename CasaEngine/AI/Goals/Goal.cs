@@ -1,18 +1,14 @@
 using CasaEngine.AI.Messaging;
-
-
+using CasaEngine.Gameplay;
+using CasaEngine.Gameplay.Actor;
 
 namespace CasaEngine.AI.Goals
 {
     [Serializable]
-    public abstract class Goal<T> : IMessageable where T : BaseEntity
+    public abstract class Goal<T> : IMessageable where T : BaseObject
     {
-
         protected internal T Owner;
-
         protected internal GoalProcessingState status;
-
-
 
         public Goal(T owner)
         {
@@ -20,10 +16,7 @@ namespace CasaEngine.AI.Goals
             status = GoalProcessingState.Inactive;
         }
 
-
-
         public GoalProcessingState Status => status;
-
 
         public abstract void Activate();
 
@@ -46,8 +39,6 @@ namespace CasaEngine.AI.Goals
             return false;
         }
 
-
-
         protected void ActivateIfInactive()
         {
             if (status == GoalProcessingState.Inactive)
@@ -63,6 +54,5 @@ namespace CasaEngine.AI.Goals
                 status = GoalProcessingState.Inactive;
             }
         }
-
     }
 }

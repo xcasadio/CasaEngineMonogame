@@ -19,7 +19,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             get => genome;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateGenome(value, ref message) == false)
                 {
@@ -36,7 +36,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             {
                 double total = 0;
 
-                for (int i = 0; i < genome.Count; i++)
+                for (var i = 0; i < genome.Count; i++)
                 {
                     total += genome[i].Fitness;
                 }
@@ -70,7 +70,7 @@ namespace CasaEngine.AI.EvolutionaryComputing
             Population<T> newPopulation;
 
             newPopulation = (Population<T>)MemberwiseClone();
-            for (int i = 0; i < genome.Count; i++)
+            for (var i = 0; i < genome.Count; i++)
             {
                 newPopulation.Genome.Add((Chromosome<T>)genome[i].Clone());
             }

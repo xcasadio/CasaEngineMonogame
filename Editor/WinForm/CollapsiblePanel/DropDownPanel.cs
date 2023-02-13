@@ -1,14 +1,10 @@
 
 
 using System.ComponentModel;
-using System.ComponentModel.Design;
 using System.Collections;
-using System.Windows.Forms;
 using System.Windows.Forms.Design;
-using System.Drawing;
 using System.Drawing.Design;
 using System.Drawing.Drawing2D;
-using System.Threading;
 using Control = System.Windows.Forms.Control;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;

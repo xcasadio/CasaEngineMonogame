@@ -1,11 +1,8 @@
-﻿using System.Xml;
+﻿using System.ComponentModel;
+using System.Xml;
 using CasaEngineCommon.Design;
 
-#if EDITOR
-using System.ComponentModel;
-#endif
-
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public
 #if EDITOR
@@ -87,14 +84,14 @@ namespace CasaEngine.Math.Shape2D
 
         public override void FlipHorizontally()
         {
-            int x = _end.X - _start.X;
+            var x = _end.X - _start.X;
             _start.X += x;
             _end.X -= x;
         }
 
         public override void FlipVertically()
         {
-            int y = _end.Y - _start.Y;
+            var y = _end.Y - _start.Y;
             _start.Y += y;
             _end.Y -= y;
         }

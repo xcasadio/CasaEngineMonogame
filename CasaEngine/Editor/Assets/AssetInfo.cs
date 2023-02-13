@@ -4,7 +4,7 @@ namespace CasaEngine.Editor.Assets
 {
     public struct AssetInfo
     {
-        static private int _freeId = 0;
+        private static int _freeId = 0;
 
         public int Id;
         public string Name;
@@ -27,7 +27,7 @@ namespace CasaEngine.Editor.Assets
         {
             if (obj is AssetInfo)
             {
-                AssetInfo a = (AssetInfo)obj;
+                var a = (AssetInfo)obj;
                 return a.Name.Equals(Name)
                     && a.Type.Equals(Type)
                     && a.FileName.Equals(FileName);

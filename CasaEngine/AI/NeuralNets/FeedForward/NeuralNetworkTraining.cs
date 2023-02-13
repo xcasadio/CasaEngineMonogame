@@ -42,8 +42,8 @@
         public void Training()
         {
             int i;
-            double error = 1.0;
-            int c = 0;
+            var error = 1.0;
+            var c = 0;
 
             while ((error > 0.05) && (c < 50000))
             {
@@ -51,12 +51,12 @@
                 c++;
                 for (i = 0; i < _numberOfData; i++)
                 {
-                    for (int j = 0; j < _neuralNetwork.NumberOfInputNode; j++)
+                    for (var j = 0; j < _neuralNetwork.NumberOfInputNode; j++)
                     {
                         _neuralNetwork.SetInput(j, _trainingSet[i, j]);
                     }
 
-                    for (int j = _neuralNetwork.NumberOfInputNode; j < _neuralNetwork.NumberOfOutputNode; j++)
+                    for (var j = _neuralNetwork.NumberOfInputNode; j < _neuralNetwork.NumberOfOutputNode; j++)
                     {
                         _neuralNetwork.SetDesiredOutput(j, _trainingSet[i, j]);
                     }

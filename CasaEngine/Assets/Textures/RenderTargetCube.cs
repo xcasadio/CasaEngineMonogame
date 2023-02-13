@@ -27,11 +27,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
+using Microsoft.Xna.Framework.Graphics;
 
-
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets.Textures
 {
     public sealed class RenderTargetCube : TextureCube
     {
@@ -216,7 +215,7 @@ namespace CasaEngine.Asset
         public static RenderTargetCube Fetch(int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntialiasingType antialiasingType, bool mipMap = false)
         {
             RenderTargetCube renderTarget;
-            for (int i = 0; i < RenderTargets.Count; i++)
+            for (var i = 0; i < RenderTargets.Count; i++)
             {
                 renderTarget = RenderTargets[i];
                 if (renderTarget.Size == size && renderTarget.SurfaceFormat == surfaceFormat &&
@@ -240,7 +239,7 @@ namespace CasaEngine.Asset
                 return;
             }
 
-            for (int i = 0; i < RenderTargets.Count; i++)
+            for (var i = 0; i < RenderTargets.Count; i++)
             {
                 if (rendertarget == RenderTargets[i])
                 {
@@ -254,7 +253,7 @@ namespace CasaEngine.Asset
 
         public static void ClearRenderTargetPool()
         {
-            for (int i = 0; i < RenderTargets.Count; i++)
+            for (var i = 0; i < RenderTargets.Count; i++)
             {
                 RenderTargets[i].Dispose();
             }

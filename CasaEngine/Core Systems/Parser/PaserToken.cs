@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     abstract class ParserToken
     {

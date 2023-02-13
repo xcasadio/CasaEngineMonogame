@@ -10,7 +10,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Menu;
+using CasaEngine.UserInterface.Controls.ToolBar;
+
+namespace CasaEngine.UserInterface.Controls.Auxiliary
 {
 
     public struct ScrollBarValue
@@ -42,7 +45,7 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                ScrollBarValue scrollBarValue = new ScrollBarValue
+                var scrollBarValue = new ScrollBarValue
                 {
                     Vertical = _scrollBarVertical.Value,
                     Horizontal = _scrollBarHorizontal.Value
@@ -59,7 +62,9 @@ namespace XNAFinalEngine.UserInterface
                 if (value)
                 {
                     if (DefaultControl != null)
+                    {
                         DefaultControl.Focused = true;
+                    }
                 }
                 base.Visible = value;
             }
@@ -72,7 +77,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 _defaultControl = value;
                 if (DefaultControl != null)
+                {
                     _defaultControl.Focused = true;
+                }
             }
         } // DefaultControl
 
@@ -183,7 +190,7 @@ namespace XNAFinalEngine.UserInterface
         protected override void AdjustMargins()
         {
             // We get the default size of the client area.
-            Margins m = SkinInformation.ClientMargins;
+            var m = SkinInformation.ClientMargins;
 
             // But probably this was changed in a upper AdjustMargins version.
             if (GetType() != typeof(Container))
@@ -286,24 +293,29 @@ namespace XNAFinalEngine.UserInterface
         {
             // To avoid infinite recursion.
             if (_adjustingScrolling)
+            {
                 return;
+            }
+
             _adjustingScrolling = true;
 
             if (AutoScroll)
             {
 
 
-                bool scrollBarVisible = _scrollBarVertical.Visible;
+                var scrollBarVisible = _scrollBarVertical.Visible;
                 _scrollBarVertical.Visible = ClientArea.VirtualHeight > ClientArea.ClientHeight;
                 if (ClientArea.VirtualHeight <= ClientArea.ClientHeight)
+                {
                     _scrollBarVertical.Value = 0;
+                }
 
                 // If visibility changes...
                 if (scrollBarVisible != _scrollBarVertical.Visible)
                 {
                     if (!_scrollBarVertical.Visible)
                     {
-                        foreach (Control c in ClientArea.ChildrenControls)
+                        foreach (var c in ClientArea.ChildrenControls)
                         {
                             c.VerticalScrollingAmount = 0;
                             _scrollBarHorizontal.Refresh();
@@ -314,7 +326,7 @@ namespace XNAFinalEngine.UserInterface
                 }
                 PositionScrollBars();
 
-                foreach (Control childControl in ClientArea.ChildrenControls)
+                foreach (var childControl in ClientArea.ChildrenControls)
                 {
                     childControl.VerticalScrollingAmount = -_scrollBarVertical.Value;
                     _scrollBarVertical.Refresh();
@@ -325,13 +337,16 @@ namespace XNAFinalEngine.UserInterface
 
                 scrollBarVisible = _scrollBarHorizontal.Visible;
                 _scrollBarHorizontal.Visible = ClientArea.VirtualWidth > ClientArea.ClientWidth;
-                if (ClientArea.VirtualWidth <= ClientArea.ClientWidth) _scrollBarHorizontal.Value = 0;
+                if (ClientArea.VirtualWidth <= ClientArea.ClientWidth)
+                {
+                    _scrollBarHorizontal.Value = 0;
+                }
 
                 if (scrollBarVisible != _scrollBarHorizontal.Visible)
                 {
                     if (!_scrollBarHorizontal.Visible)
                     {
-                        foreach (Control c in ClientArea.ChildrenControls)
+                        foreach (var c in ClientArea.ChildrenControls)
                         {
                             c.HorizontalScrollingAmount = 0;
                             _scrollBarVertical.Refresh();
@@ -342,7 +357,7 @@ namespace XNAFinalEngine.UserInterface
                 }
                 PositionScrollBars();
 
-                foreach (Control childControl in ClientArea.ChildrenControls)
+                foreach (var childControl in ClientArea.ChildrenControls)
                 {
                     childControl.HorizontalScrollingAmount = -_scrollBarHorizontal.Value;
                     _scrollBarHorizontal.Refresh();
@@ -389,7 +404,7 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnClick(EventArgs e)
         {
-            MouseEventArgs ex = e as MouseEventArgs;
+            var ex = e as MouseEventArgs;
             ex.Position = new Point(ex.Position.X + _scrollBarHorizontal.Value, ex.Position.Y + _scrollBarVertical.Value);
             base.OnClick(e);
         } // OnClick

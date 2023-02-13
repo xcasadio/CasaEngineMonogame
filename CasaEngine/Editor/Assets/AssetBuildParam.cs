@@ -32,7 +32,7 @@ namespace CasaEngine.Editor.Assets
 
         protected AssetBuildParam(string name)
         {
-            if (string.IsNullOrWhiteSpace(name) == true)
+            if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException("AssetBuildParams() : name is null or empty");
             }
@@ -55,7 +55,7 @@ namespace CasaEngine.Editor.Assets
 
         public void Load(XmlElement el)
         {
-            XmlNode node = el.SelectSingleNode("Name");
+            var node = el.SelectSingleNode("Name");
             SetName(node.InnerText);
             node = el.SelectSingleNode("Value");
             LoadValue(node.InnerText);
@@ -65,7 +65,7 @@ namespace CasaEngine.Editor.Assets
 
         public void Save(XmlElement el)
         {
-            XmlElement node = el.OwnerDocument.CreateElementWithText("Name", SubName);
+            var node = el.OwnerDocument.CreateElementWithText("Name", SubName);
             el.AppendChild(node);
             node = el.OwnerDocument.CreateElementWithText("Value", Value);
             el.AppendChild(node);
@@ -100,7 +100,7 @@ namespace CasaEngine.Editor.Assets
 
         protected override void LoadValue(string val)
         {
-            string[] a = val.Split(',');
+            var a = val.Split(',');
 
             ColorKey = new Color(
                 byte.Parse(a[0]),
@@ -110,7 +110,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamColor o = (AssetBuildParamColor)para;
+            var o = (AssetBuildParamColor)para;
 
             if (o != null)
             {
@@ -150,7 +150,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamColorKeyEnabled o = (AssetBuildParamColorKeyEnabled)para;
+            var o = (AssetBuildParamColorKeyEnabled)para;
 
             if (o != null)
             {
@@ -190,7 +190,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamGenerateMipmaps o = (AssetBuildParamGenerateMipmaps)para;
+            var o = (AssetBuildParamGenerateMipmaps)para;
 
             if (o != null)
             {
@@ -230,7 +230,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamPremultiplyAlpha o = (AssetBuildParamPremultiplyAlpha)para;
+            var o = (AssetBuildParamPremultiplyAlpha)para;
 
             if (o != null)
             {
@@ -270,7 +270,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamResizeToPowerOfTwo o = (AssetBuildParamResizeToPowerOfTwo)para;
+            var o = (AssetBuildParamResizeToPowerOfTwo)para;
 
             if (o != null)
             {
@@ -317,7 +317,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamTextureFormat o = (AssetBuildParamTextureFormat)para;
+            var o = (AssetBuildParamTextureFormat)para;
 
             if (o != null)
             {
@@ -366,7 +366,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamDebuggingOptions o = (AssetBuildParamDebuggingOptions)para;
+            var o = (AssetBuildParamDebuggingOptions)para;
 
             if (o != null)
             {
@@ -406,7 +406,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamDefines o = (AssetBuildParamDefines)para;
+            var o = (AssetBuildParamDefines)para;
 
             if (o != null)
             {
@@ -448,7 +448,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamFirstCharacter o = (AssetBuildParamFirstCharacter)para;
+            var o = (AssetBuildParamFirstCharacter)para;
 
             if (o != null)
             {
@@ -499,7 +499,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamDefaultEffect o = (AssetBuildParamDefaultEffect)para;
+            var o = (AssetBuildParamDefaultEffect)para;
 
             if (o != null)
             {
@@ -539,7 +539,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamPremultiplyTextureAlpha o = (AssetBuildParamPremultiplyTextureAlpha)para;
+            var o = (AssetBuildParamPremultiplyTextureAlpha)para;
 
             if (o != null)
             {
@@ -579,7 +579,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamPremultiplyVertexColor o = (AssetBuildParamPremultiplyVertexColor)para;
+            var o = (AssetBuildParamPremultiplyVertexColor)para;
 
             if (o != null)
             {
@@ -619,7 +619,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamGenerateTangentFrames o = (AssetBuildParamGenerateTangentFrames)para;
+            var o = (AssetBuildParamGenerateTangentFrames)para;
 
             if (o != null)
             {
@@ -659,7 +659,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamScale o = (AssetBuildParamScale)para;
+            var o = (AssetBuildParamScale)para;
 
             if (o != null)
             {
@@ -699,7 +699,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamSwapWindingOrder o = (AssetBuildParamSwapWindingOrder)para;
+            var o = (AssetBuildParamSwapWindingOrder)para;
 
             if (o != null)
             {
@@ -739,7 +739,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamXRotation o = (AssetBuildParamXRotation)para;
+            var o = (AssetBuildParamXRotation)para;
 
             if (o != null)
             {
@@ -779,7 +779,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamYRotation o = (AssetBuildParamYRotation)para;
+            var o = (AssetBuildParamYRotation)para;
 
             if (o != null)
             {
@@ -819,7 +819,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamZRotation o = (AssetBuildParamZRotation)para;
+            var o = (AssetBuildParamZRotation)para;
 
             if (o != null)
             {
@@ -868,7 +868,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamCompressionQuality o = (AssetBuildParamCompressionQuality)para;
+            var o = (AssetBuildParamCompressionQuality)para;
 
             if (o != null)
             {
@@ -917,7 +917,7 @@ namespace CasaEngine.Editor.Assets
 
         public override bool Compare(AssetBuildParam para)
         {
-            AssetBuildParamVideoSoundTrackType o = (AssetBuildParamVideoSoundTrackType)para;
+            var o = (AssetBuildParamVideoSoundTrackType)para;
 
             if (o != null)
             {

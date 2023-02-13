@@ -28,7 +28,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Microsoft.Xna.Framework;
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
     public class ArrayHelper
     {
@@ -51,7 +51,7 @@ namespace XNAFinalEngine.Helpers
             }
 
             //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (int i = 0; i < a1.Length; i++)
+            for (var i = 0; i < a1.Length; i++)
             {
                 if (a1[i] != a2[i])
                 {
@@ -79,7 +79,7 @@ namespace XNAFinalEngine.Helpers
             }
 
             //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (int i = 0; i < a1.Length; i++)
+            for (var i = 0; i < a1.Length; i++)
             {
                 if (a1[i] != a2[i])
                 {
@@ -107,7 +107,7 @@ namespace XNAFinalEngine.Helpers
             }
 
             //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (int i = 0; i < a1.Length; i++)
+            for (var i = 0; i < a1.Length; i++)
             {
                 if (a1[i] != a2[i])
                 {
@@ -135,7 +135,7 @@ namespace XNAFinalEngine.Helpers
             }
 
             //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (int i = 0; i < a1.Length; i++)
+            for (var i = 0; i < a1.Length; i++)
             {
                 if (a1[i] != a2[i])
                 {

@@ -20,8 +20,8 @@ namespace CasaEngine.Graphics2D
 
         public void DrawLine(SpriteBatch batch, Color color, Vector2 point1, Vector2 point2, float layer)
         {
-            float angle = (float)System.Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
-            float length = (point2 - point1).Length();
+            var angle = (float)System.Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
+            var length = (point2 - point1).Length();
 
             batch.Draw(_emptyTexture, point1, null, color,
                 angle, Vector2.Zero, new Vector2(length, 1),

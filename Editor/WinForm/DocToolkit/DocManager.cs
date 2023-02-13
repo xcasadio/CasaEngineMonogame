@@ -1,8 +1,4 @@
-
-
-using System.Windows.Forms;
 using System.Diagnostics;
-using System.IO;
 using System.Globalization;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;

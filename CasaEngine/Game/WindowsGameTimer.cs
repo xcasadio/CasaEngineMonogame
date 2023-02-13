@@ -8,7 +8,6 @@ namespace CasaEngine.Game
         private readonly Stopwatch _stopwatch;
         private TimeSpan _lastElapsed;
 
-
         public WindowsGameTimer()
         {
             if (!Stopwatch.IsHighResolution)
@@ -21,7 +20,7 @@ namespace CasaEngine.Game
 
         public void Update()
         {
-            TimeSpan elapsed = _stopwatch.Elapsed;
+            var elapsed = _stopwatch.Elapsed;
             ElapsedTime = elapsed - _lastElapsed;
             _lastElapsed = elapsed;
         }

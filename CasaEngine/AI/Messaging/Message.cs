@@ -14,7 +14,7 @@ namespace CasaEngine.AI.Messaging
 
         public Message(int senderId, int recieverId, int type, double dispatchTime, object extraInfo)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateId(senderId, ref message) == false)
             {
@@ -45,7 +45,7 @@ namespace CasaEngine.AI.Messaging
             get => _senderId;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateId(value, ref message) == false)
                 {
@@ -61,7 +61,7 @@ namespace CasaEngine.AI.Messaging
             get => _recieverId;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateId(value, ref message) == false)
                 {
@@ -83,7 +83,7 @@ namespace CasaEngine.AI.Messaging
             get => _dispatchTime;
             set
             {
-                string message = string.Empty;
+                var message = string.Empty;
 
                 if (ValidateTime(value, ref message) == false)
                 {

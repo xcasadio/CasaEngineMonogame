@@ -46,7 +46,7 @@ namespace CasaEngine.Assets.Graphics2D
                 return false;
             }
 
-            for (int i = 0; i < Events.Count; i++)
+            for (var i = 0; i < Events.Count; i++)
             {
                 if (Events[i].CompareTo(other.Events[i]) == false)
                 {

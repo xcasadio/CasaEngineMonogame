@@ -32,7 +32,7 @@ namespace CasaEngine.World
 
         public World(bool usePhysics = true)
         {
-            if (usePhysics == true)
+            if (usePhysics)
             {
                 _physicWorld = new FarseerPhysics.Dynamics.World(GameInfo.Instance.WorldInfo.WorldGravity);
             }
@@ -85,9 +85,9 @@ namespace CasaEngine.World
 
         public virtual void Update(float elapsedTime)
         {
-            List<Actor2D> toRemove = new List<Actor2D>();
+            var toRemove = new List<Actor2D>();
 
-            foreach (Actor2D a in _actorsToAdd)
+            foreach (var a in _actorsToAdd)
             {
                 _actors.Add(a);
             }
@@ -101,17 +101,17 @@ namespace CasaEngine.World
                 _physicWorld.Step(elapsedTime);
             }
 
-            foreach (Actor2D a in _actors)
+            foreach (var a in _actors)
             {
                 a.Update(elapsedTime);
 
-                if (a.Remove == true)
+                if (a.Remove)
                 {
                     toRemove.Add(a);
                 }
             }
 
-            foreach (Actor2D a in toRemove)
+            foreach (var a in toRemove)
             {
                 _actors.Remove(a);
             }
@@ -126,7 +126,7 @@ namespace CasaEngine.World
 
         public virtual void Draw(float elapsedTime)
         {
-            foreach (Actor2D a in _actors)
+            foreach (var a in _actors)
             {
                 if (a is IRenderable)
                 {

@@ -1,8 +1,8 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-namespace CasaEngine.FrontEnd.Screen.Gadget
+namespace CasaEngine.Front_End.Screen.Gadget
 {
     public partial class ScreenGadgetButton
     {
@@ -30,7 +30,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
             base.Save(el, opt);
 
-            int spriteId = Image == null ? int.MaxValue : Image.Id;
+            var spriteId = Image == null ? int.MaxValue : Image.Id;
             node = el.OwnerDocument.CreateElementWithText("Image", spriteId.ToString());
             el.AppendChild(node);
             node = el.OwnerDocument.CreateElementWithText("SizeImage", Enum.GetName(typeof(SizeImage), SizeImage));
@@ -41,7 +41,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
         {
             base.Save(bw, opt);
 
-            int spriteId = Image == null ? int.MaxValue : Image.Id;
+            var spriteId = Image == null ? int.MaxValue : Image.Id;
             bw.Write(spriteId);
             bw.Write((int)SizeImage);
         }

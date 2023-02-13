@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Editor.UndoRedo;
-using Microsoft.Xna.Framework;
+﻿using CasaEngine.Editor.UndoRedo;
 using Editor.Game;
 using Point = Microsoft.Xna.Framework.Point;
 

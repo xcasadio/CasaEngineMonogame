@@ -13,7 +13,7 @@ namespace CasaEngine.Physics2D
 
 
 
-        static public Sprite2DPhysicsManager Instance
+        public static Sprite2DPhysicsManager Instance
         {
             get
             {

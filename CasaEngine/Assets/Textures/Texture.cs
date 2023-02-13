@@ -27,14 +27,14 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Game;
 using System.Xml;
+using CasaEngine.Game;
 using CasaEngineCommon.Design;
-using Screen = CasaEngine.CoreSystems.Screen;
-using Size = XNAFinalEngine.Helpers.Size;
+using Microsoft.Xna.Framework.Graphics;
+using Screen = CasaEngine.Core_Systems.Screen;
+using Size = CasaEngine.Helpers.Size;
 
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets.Textures
 {
 
     public class Texture : Asset
@@ -160,7 +160,7 @@ namespace CasaEngine.Asset
             {
                 XnaTexture = new Texture2D(device, Size.Width, Size.Height);
             }
-            else if (XnaTexture.IsDisposed == true)
+            else if (XnaTexture.IsDisposed)
             {
                 XnaTexture = Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, device);
             }

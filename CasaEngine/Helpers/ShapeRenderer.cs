@@ -1,18 +1,17 @@
-﻿using FarseerPhysics.Common;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using System.Diagnostics;
 using CasaEngine.Game;
 using FarseerPhysics;
-using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Collision;
-using FarseerPhysics.Dynamics;
 using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Dynamics.Joints;
+using FarseerPhysics.Common;
 using FarseerPhysics.Controllers;
-using System.Diagnostics;
+using FarseerPhysics.Dynamics;
+using FarseerPhysics.Dynamics.Contacts;
+using FarseerPhysics.Dynamics.Joints;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-
-namespace CasaEngine.Helper
+namespace CasaEngine.Helpers
 {
     public class ShapeRenderer
         : DebugView, IDisposable
@@ -139,14 +138,14 @@ namespace CasaEngine.Helper
         {
             if ((Flags & DebugViewFlags.ContactPoints) == DebugViewFlags.ContactPoints)
             {
-                Manifold manifold = contact.Manifold;
+                var manifold = contact.Manifold;
 
                 if (manifold.PointCount == 0)
                 {
                     return;
                 }
 
-                Fixture fixtureA = contact.FixtureA;
+                var fixtureA = contact.FixtureA;
 
                 FixedArray2<PointState> state1, state2;
                 Collision.GetPointStates(out state1, out state2, ref oldManifold, ref manifold);
@@ -155,13 +154,13 @@ namespace CasaEngine.Helper
                 Vector2 normal;
                 contact.GetWorldManifold(out normal, out points);
 
-                for (int i = 0; i < manifold.PointCount && _pointCount < MaxContactPoints; ++i)
+                for (var i = 0; i < manifold.PointCount && _pointCount < MaxContactPoints; ++i)
                 {
                     if (fixtureA == null)
                     {
                         _points[i] = new ContactPoint();
                     }
-                    ContactPoint cp = _points[_pointCount];
+                    var cp = _points[_pointCount];
                     cp.Position = points[i];
                     cp.Normal = normal;
                     cp.State = state2[i];
@@ -175,11 +174,11 @@ namespace CasaEngine.Helper
         {
             if ((Flags & DebugViewFlags.Shape) == DebugViewFlags.Shape)
             {
-                foreach (Body b in World.BodyList)
+                foreach (var b in World.BodyList)
                 {
                     Transform xf;
                     b.GetTransform(out xf);
-                    foreach (Fixture f in b.FixtureList)
+                    foreach (var f in b.FixtureList)
                     {
                         if (b.Enabled == false)
                         {
@@ -208,9 +207,9 @@ namespace CasaEngine.Helper
             {
                 const float axisScale = 0.3f;
 
-                for (int i = 0; i < _pointCount; ++i)
+                for (var i = 0; i < _pointCount; ++i)
                 {
-                    ContactPoint point = _points[i];
+                    var point = _points[i];
 
                     if (point.State == PointState.Add)
                     {
@@ -225,8 +224,8 @@ namespace CasaEngine.Helper
 
                     if ((Flags & DebugViewFlags.ContactNormals) == DebugViewFlags.ContactNormals)
                     {
-                        Vector2 p1 = point.Position;
-                        Vector2 p2 = p1 + axisScale * point.Normal;
+                        var p1 = point.Position;
+                        var p2 = p1 + axisScale * point.Normal;
                         DrawSegment(p1, p2, new Color(0.4f, 0.9f, 0.4f));
                     }
                 }
@@ -234,19 +233,19 @@ namespace CasaEngine.Helper
             }
             if ((Flags & DebugViewFlags.PolygonPoints) == DebugViewFlags.PolygonPoints)
             {
-                foreach (Body body in World.BodyList)
+                foreach (var body in World.BodyList)
                 {
-                    foreach (Fixture f in body.FixtureList)
+                    foreach (var f in body.FixtureList)
                     {
-                        PolygonShape polygon = f.Shape as PolygonShape;
+                        var polygon = f.Shape as PolygonShape;
                         if (polygon != null)
                         {
                             Transform xf;
                             body.GetTransform(out xf);
 
-                            for (int i = 0; i < polygon.Vertices.Count; i++)
+                            for (var i = 0; i < polygon.Vertices.Count; i++)
                             {
-                                Vector2 tmp = MathUtils.Multiply(ref xf, polygon.Vertices[i]);
+                                var tmp = MathUtils.Multiply(ref xf, polygon.Vertices[i]);
                                 DrawPoint(tmp, 0.1f, Color.Red);
                             }
                         }
@@ -255,48 +254,48 @@ namespace CasaEngine.Helper
             }
             if ((Flags & DebugViewFlags.Joint) == DebugViewFlags.Joint)
             {
-                foreach (Joint j in World.JointList)
+                foreach (var j in World.JointList)
                 {
                     DrawJoint(j);
                 }
             }
             if ((Flags & DebugViewFlags.Pair) == DebugViewFlags.Pair)
             {
-                Color color = new Color(0.3f, 0.9f, 0.9f);
-                for (int i = 0; i < World.ContactManager.ContactList.Count; i++)
+                var color = new Color(0.3f, 0.9f, 0.9f);
+                for (var i = 0; i < World.ContactManager.ContactList.Count; i++)
                 {
-                    Contact c = World.ContactManager.ContactList[i];
-                    Fixture fixtureA = c.FixtureA;
-                    Fixture fixtureB = c.FixtureB;
+                    var c = World.ContactManager.ContactList[i];
+                    var fixtureA = c.FixtureA;
+                    var fixtureB = c.FixtureB;
 
                     AABB aabbA;
                     fixtureA.GetAABB(out aabbA, 0);
                     AABB aabbB;
                     fixtureB.GetAABB(out aabbB, 0);
 
-                    Vector2 cA = aabbA.Center;
-                    Vector2 cB = aabbB.Center;
+                    var cA = aabbA.Center;
+                    var cB = aabbB.Center;
 
                     DrawSegment(cA, cB, color);
                 }
             }
             if ((Flags & DebugViewFlags.AABB) == DebugViewFlags.AABB)
             {
-                Color color = new Color(0.9f, 0.3f, 0.9f);
-                IBroadPhase bp = World.ContactManager.BroadPhase;
+                var color = new Color(0.9f, 0.3f, 0.9f);
+                var bp = World.ContactManager.BroadPhase;
 
-                foreach (Body b in World.BodyList)
+                foreach (var b in World.BodyList)
                 {
                     if (b.Enabled == false)
                     {
                         continue;
                     }
 
-                    foreach (Fixture f in b.FixtureList)
+                    foreach (var f in b.FixtureList)
                     {
-                        for (int t = 0; t < f.ProxyCount; ++t)
+                        for (var t = 0; t < f.ProxyCount; ++t)
                         {
-                            FixtureProxy proxy = f.Proxies[t];
+                            var proxy = f.Proxies[t];
                             AABB aabb;
                             bp.GetFatAABB(proxy.ProxyId, out aabb);
 
@@ -307,7 +306,7 @@ namespace CasaEngine.Helper
             }
             if ((Flags & DebugViewFlags.CenterOfMass) == DebugViewFlags.CenterOfMass)
             {
-                foreach (Body b in World.BodyList)
+                foreach (var b in World.BodyList)
                 {
                     Transform xf;
                     b.GetTransform(out xf);
@@ -317,14 +316,14 @@ namespace CasaEngine.Helper
             }
             if ((Flags & DebugViewFlags.Controllers) == DebugViewFlags.Controllers)
             {
-                for (int i = 0; i < World.ControllerList.Count; i++)
+                for (var i = 0; i < World.ControllerList.Count; i++)
                 {
-                    Controller controller = World.ControllerList[i];
+                    var controller = World.ControllerList[i];
 
-                    BuoyancyController buoyancy = controller as BuoyancyController;
+                    var buoyancy = controller as BuoyancyController;
                     if (buoyancy != null)
                     {
-                        AABB container = buoyancy.Container;
+                        var container = buoyancy.Container;
                         DrawAabb(ref container, Color.LightBlue);
                     }
                 }
@@ -345,8 +344,8 @@ namespace CasaEngine.Helper
             }
 
             float x = PerformancePanelBounds.X;
-            float deltaX = PerformancePanelBounds.Width / (float)ValuesToGraph;
-            float yScale = PerformancePanelBounds.Bottom - (float)PerformancePanelBounds.Top;
+            var deltaX = PerformancePanelBounds.Width / (float)ValuesToGraph;
+            var yScale = PerformancePanelBounds.Bottom - (float)PerformancePanelBounds.Top;
 
             // we must have at least 2 values to start rendering
             if (_graphValues.Count > 2)
@@ -363,18 +362,18 @@ namespace CasaEngine.Helper
 
                 // start at last value (newest value added)
                 // continue until no values are left
-                for (int i = _graphValues.Count - 1; i > 0; i--)
+                for (var i = _graphValues.Count - 1; i > 0; i--)
                 {
-                    float y1 = PerformancePanelBounds.Bottom -
-                               ((_graphValues[i] / (MaximumValue - MinimumValue)) * yScale);
-                    float y2 = PerformancePanelBounds.Bottom -
-                               ((_graphValues[i - 1] / (MaximumValue - MinimumValue)) * yScale);
+                    var y1 = PerformancePanelBounds.Bottom -
+                             ((_graphValues[i] / (MaximumValue - MinimumValue)) * yScale);
+                    var y2 = PerformancePanelBounds.Bottom -
+                             ((_graphValues[i - 1] / (MaximumValue - MinimumValue)) * yScale);
 
-                    Vector2 x1 =
+                    var x1 =
                         new Vector2(MathHelper.Clamp(x, PerformancePanelBounds.Left, PerformancePanelBounds.Right),
                                     MathHelper.Clamp(y1, PerformancePanelBounds.Top, PerformancePanelBounds.Bottom));
 
-                    Vector2 x2 =
+                    var x2 =
                         new Vector2(
                             MathHelper.Clamp(x + deltaX, PerformancePanelBounds.Left, PerformancePanelBounds.Right),
                             MathHelper.Clamp(y2, PerformancePanelBounds.Top, PerformancePanelBounds.Bottom));
@@ -403,14 +402,14 @@ namespace CasaEngine.Helper
 
         private void DrawDebugPanel()
         {
-            int fixtures = 0;
-            for (int i = 0; i < World.BodyList.Count; i++)
+            var fixtures = 0;
+            for (var i = 0; i < World.BodyList.Count; i++)
             {
                 fixtures += World.BodyList[i].FixtureList.Count;
             }
 
-            int x = (int)DebugPanelPosition.X;
-            int y = (int)DebugPanelPosition.Y;
+            var x = (int)DebugPanelPosition.X;
+            var y = (int)DebugPanelPosition.Y;
 
             DrawString(x, y, "Objects:" +
                              "\n- Bodies: " + World.BodyList.Count +
@@ -431,7 +430,7 @@ namespace CasaEngine.Helper
 
         public void DrawAabb(ref AABB aabb, Color color)
         {
-            Vector2[] verts = new Vector2[4];
+            var verts = new Vector2[4];
             verts[0] = new Vector2(aabb.LowerBound.X, aabb.LowerBound.Y);
             verts[1] = new Vector2(aabb.UpperBound.X, aabb.LowerBound.Y);
             verts[2] = new Vector2(aabb.UpperBound.X, aabb.UpperBound.Y);
@@ -447,12 +446,12 @@ namespace CasaEngine.Helper
                 return;
             }
 
-            Body b1 = joint.BodyA;
-            Body b2 = joint.BodyB;
+            var b1 = joint.BodyA;
+            var b2 = joint.BodyB;
             Transform xf1, xf2;
             b1.GetTransform(out xf1);
 
-            Vector2 x2 = Vector2.Zero;
+            var x2 = Vector2.Zero;
 
             // WIP David
             if (!joint.IsFixedType())
@@ -461,11 +460,11 @@ namespace CasaEngine.Helper
                 x2 = xf2.Position;
             }
 
-            Vector2 p1 = joint.WorldAnchorA;
-            Vector2 p2 = joint.WorldAnchorB;
-            Vector2 x1 = xf1.Position;
+            var p1 = joint.WorldAnchorA;
+            var p2 = joint.WorldAnchorB;
+            var x1 = xf1.Position;
 
-            Color color = new Color(0.5f, 0.8f, 0.8f);
+            var color = new Color(0.5f, 0.8f, 0.8f);
 
             switch (joint.JointType)
             {
@@ -473,9 +472,9 @@ namespace CasaEngine.Helper
                     DrawSegment(p1, p2, color);
                     break;
                 case JointType.Pulley:
-                    PulleyJoint pulley = (PulleyJoint)joint;
-                    Vector2 s1 = pulley.GroundAnchorA;
-                    Vector2 s2 = pulley.GroundAnchorB;
+                    var pulley = (PulleyJoint)joint;
+                    var s1 = pulley.GroundAnchorA;
+                    var s2 = pulley.GroundAnchorB;
                     DrawSegment(s1, p1, color);
                     DrawSegment(s2, p2, color);
                     DrawSegment(s1, s2, color);
@@ -528,11 +527,11 @@ namespace CasaEngine.Helper
             {
                 case ShapeType.Circle:
                     {
-                        CircleShape circle = (CircleShape)fixture.Shape;
+                        var circle = (CircleShape)fixture.Shape;
 
-                        Vector2 center = MathUtils.Multiply(ref xf, circle.Position);
-                        float radius = circle.Radius;
-                        Vector2 axis = xf.R.Col1;
+                        var center = MathUtils.Multiply(ref xf, circle.Position);
+                        var radius = circle.Radius;
+                        var axis = xf.R.Col1;
 
                         DrawSolidCircle(center, radius, axis, color);
                     }
@@ -540,11 +539,11 @@ namespace CasaEngine.Helper
 
                 case ShapeType.Polygon:
                     {
-                        PolygonShape poly = (PolygonShape)fixture.Shape;
-                        int vertexCount = poly.Vertices.Count;
+                        var poly = (PolygonShape)fixture.Shape;
+                        var vertexCount = poly.Vertices.Count;
                         Debug.Assert(vertexCount <= Settings.MaxPolygonVertices);
 
-                        for (int i = 0; i < vertexCount; ++i)
+                        for (var i = 0; i < vertexCount; ++i)
                         {
                             _tempVertices[i] = MathUtils.Multiply(ref xf, poly.Vertices[i]);
                         }
@@ -556,23 +555,23 @@ namespace CasaEngine.Helper
 
                 case ShapeType.Edge:
                     {
-                        EdgeShape edge = (EdgeShape)fixture.Shape;
-                        Vector2 v1 = MathUtils.Multiply(ref xf, edge.Vertex1);
-                        Vector2 v2 = MathUtils.Multiply(ref xf, edge.Vertex2);
+                        var edge = (EdgeShape)fixture.Shape;
+                        var v1 = MathUtils.Multiply(ref xf, edge.Vertex1);
+                        var v2 = MathUtils.Multiply(ref xf, edge.Vertex2);
                         DrawSegment(v1, v2, color);
                     }
                     break;
 
                 case ShapeType.Loop:
                     {
-                        LoopShape loop = (LoopShape)fixture.Shape;
-                        int count = loop.Vertices.Count;
+                        var loop = (LoopShape)fixture.Shape;
+                        var count = loop.Vertices.Count;
 
-                        Vector2 v1 = MathUtils.Multiply(ref xf, loop.Vertices[count - 1]);
+                        var v1 = MathUtils.Multiply(ref xf, loop.Vertices[count - 1]);
                         DrawCircle(v1, 0.05f, color);
-                        for (int i = 0; i < count; ++i)
+                        for (var i = 0; i < count; ++i)
                         {
-                            Vector2 v2 = MathUtils.Multiply(ref xf, loop.Vertices[i]);
+                            var v2 = MathUtils.Multiply(ref xf, loop.Vertices[i]);
                             DrawSegment(v1, v2, color);
                             v1 = v2;
                         }
@@ -595,7 +594,7 @@ namespace CasaEngine.Helper
 
             Vector2 m, n;
 
-            for (int i = 0; i < count - 1; i++)
+            for (var i = 0; i < count - 1; i++)
             {
                 _primitiveBatch.AddVertex(vertices[i], color, PrimitiveType.LineList);
                 _primitiveBatch.AddVertex(vertices[i + 1], color, PrimitiveType.LineList);
@@ -643,9 +642,9 @@ namespace CasaEngine.Helper
                 return;
             }
 
-            Color colorFill = color * (outline ? 0.5f : 1.0f);
+            var colorFill = color * (outline ? 0.5f : 1.0f);
 
-            for (int i = 1; i < count - 1; i++)
+            for (var i = 1; i < count - 1; i++)
             {
                 _primitiveBatch.AddVertex(vertices[0], colorFill, PrimitiveType.TriangleList);
                 _primitiveBatch.AddVertex(vertices[i], colorFill, PrimitiveType.TriangleList);
@@ -670,14 +669,14 @@ namespace CasaEngine.Helper
                 throw new InvalidOperationException("BeginCustomDraw must be called before drawing anything.");
             }
             const double increment = System.Math.PI * 2.0 / CircleSegments;
-            double theta = 0.0;
+            var theta = 0.0;
 
-            for (int i = 0; i < CircleSegments; i++)
+            for (var i = 0; i < CircleSegments; i++)
             {
-                Vector2 v1 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
-                Vector2 v2 = center +
-                             radius *
-                             new Vector2((float)System.Math.Cos(theta + increment), (float)System.Math.Sin(theta + increment));
+                var v1 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
+                var v2 = center +
+                         radius *
+                         new Vector2((float)System.Math.Cos(theta + increment), (float)System.Math.Sin(theta + increment));
 
                 _primitiveBatch.AddVertex(v1, color, PrimitiveType.LineList);
                 _primitiveBatch.AddVertex(v2, color, PrimitiveType.LineList);
@@ -699,19 +698,19 @@ namespace CasaEngine.Helper
                 throw new InvalidOperationException("BeginCustomDraw must be called before drawing anything.");
             }
             const double increment = System.Math.PI * 2.0 / CircleSegments;
-            double theta = 0.0;
+            var theta = 0.0;
 
-            Color colorFill = color * 0.5f;
+            var colorFill = color * 0.5f;
 
-            Vector2 v0 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
+            var v0 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
             theta += increment;
 
-            for (int i = 1; i < CircleSegments - 1; i++)
+            for (var i = 1; i < CircleSegments - 1; i++)
             {
-                Vector2 v1 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
-                Vector2 v2 = center +
-                             radius *
-                             new Vector2((float)System.Math.Cos(theta + increment), (float)System.Math.Sin(theta + increment));
+                var v1 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
+                var v2 = center +
+                         radius *
+                         new Vector2((float)System.Math.Cos(theta + increment), (float)System.Math.Sin(theta + increment));
 
                 _primitiveBatch.AddVertex(v0, colorFill, PrimitiveType.TriangleList);
                 _primitiveBatch.AddVertex(v1, colorFill, PrimitiveType.TriangleList);
@@ -742,9 +741,9 @@ namespace CasaEngine.Helper
         public override void DrawTransform(ref Transform transform)
         {
             const float axisScale = 0.4f;
-            Vector2 p1 = transform.Position;
+            var p1 = transform.Position;
 
-            Vector2 p2 = p1 + axisScale * transform.R.Col1;
+            var p2 = p1 + axisScale * transform.R.Col1;
             DrawSegment(p1, p2, Color.Red);
 
             p2 = p1 + axisScale * transform.R.Col2;
@@ -753,8 +752,8 @@ namespace CasaEngine.Helper
 
         public void DrawPoint(Vector2 p, float size, Color color)
         {
-            Vector2[] verts = new Vector2[4];
-            float hs = size / 2.0f;
+            var verts = new Vector2[4];
+            var hs = size / 2.0f;
             verts[0] = p + new Vector2(-hs, -hs);
             verts[1] = p + new Vector2(hs, -hs);
             verts[2] = p + new Vector2(hs, hs);
@@ -775,21 +774,21 @@ namespace CasaEngine.Helper
             DrawSegment(start, end, color);
 
             // Precalculate halfwidth
-            float halfWidth = width / 2;
+            var halfWidth = width / 2;
 
             // Create directional reference
-            Vector2 rotation = (start - end);
+            var rotation = (start - end);
             rotation.Normalize();
 
             // Calculate angle of directional vector
-            float angle = (float)System.Math.Atan2(rotation.X, -rotation.Y);
+            var angle = (float)System.Math.Atan2(rotation.X, -rotation.Y);
             // Create matrix for rotation
-            Matrix rotMatrix = Matrix.CreateRotationZ(angle);
+            var rotMatrix = Matrix.CreateRotationZ(angle);
             // Create translation matrix for end-point
-            Matrix endMatrix = Matrix.CreateTranslation(end.X, end.Y, 0);
+            var endMatrix = Matrix.CreateTranslation(end.X, end.Y, 0);
 
             // Setup arrow end shape
-            Vector2[] verts = new Vector2[3];
+            var verts = new Vector2[3];
             verts[0] = new Vector2(0, 0);
             verts[1] = new Vector2(-halfWidth, -length);
             verts[2] = new Vector2(halfWidth, -length);
@@ -805,9 +804,9 @@ namespace CasaEngine.Helper
             if (drawStartIndicator)
             {
                 // Create translation matrix for start
-                Matrix startMatrix = Matrix.CreateTranslation(start.X, start.Y, 0);
+                var startMatrix = Matrix.CreateTranslation(start.X, start.Y, 0);
                 // Setup arrow start shape
-                Vector2[] baseVerts = new Vector2[4];
+                var baseVerts = new Vector2[4];
                 baseVerts[0] = new Vector2(-halfWidth, length / 4);
                 baseVerts[1] = new Vector2(halfWidth, length / 4);
                 baseVerts[2] = new Vector2(halfWidth, 0);
@@ -853,7 +852,7 @@ namespace CasaEngine.Helper
             _batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
             // draw any strings we have
-            for (int i = 0; i < _stringData.Count; i++)
+            for (var i = 0; i < _stringData.Count; i++)
             {
                 _batch.DrawString(_font, string.Format(_stringData[i].S, _stringData[i].Args),
                                   new Vector2(_stringData[i].X + 1f, _stringData[i].Y + 1f), Color.Black);

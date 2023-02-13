@@ -12,8 +12,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 
 using CasaEngine.Game;
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Windows
 {
 
     public class ExitDialog : Dialog
@@ -30,7 +31,7 @@ namespace XNAFinalEngine.UserInterface
         public ExitDialog(UserInterfaceManager userInterfaceManager)
             : base(userInterfaceManager)
         {
-            string msg = "Do you really want to exit?";
+            var msg = "Do you really want to exit?";
             ClientWidth = (int)UserInterfaceManager.Skin.Controls["Label"].Layers[0].Text.Font.Font.MeasureString(msg).X + 48 + 16 + 16 + 16;
             ClientHeight = 120;
             TopPanel.Visible = false;

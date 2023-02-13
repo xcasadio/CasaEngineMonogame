@@ -8,10 +8,10 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
         protected internal float fleeDistance;
         protected internal Vector3 fleePosition;
 
-        public Flee(string name, MovingEntity owner, float modifier)
+        public Flee(string name, MovingObject owner, float modifier)
             : this(name, owner, modifier, AlwaysFlee) { }
 
-        public Flee(string name, MovingEntity owner, float modifier, float fleeDistance)
+        public Flee(string name, MovingObject owner, float modifier, float fleeDistance)
             : base(name, owner, modifier)
         {
             this.fleeDistance = fleeDistance;

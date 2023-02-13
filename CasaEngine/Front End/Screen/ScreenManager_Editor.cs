@@ -1,13 +1,13 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public partial class ScreenManager
     {
 
-        static private readonly int Version = 1;
+        private static readonly int Version = 1;
 
 
 
@@ -17,9 +17,9 @@ namespace CasaEngine.FrontEnd.Screen
 
         public bool IsValidName(string name)
         {
-            foreach (UiScreen screen in _screens)
+            foreach (var screen in _screens)
             {
-                if (screen.Name.Equals(name) == true)
+                if (screen.Name.Equals(name))
                 {
                     return false;
                 }
@@ -30,9 +30,9 @@ namespace CasaEngine.FrontEnd.Screen
 
         public UiScreen GetScreen(string name)
         {
-            foreach (UiScreen screen in _screens)
+            foreach (var screen in _screens)
             {
-                if (screen.Name.Equals(name) == true)
+                if (screen.Name.Equals(name))
                 {
                     return screen;
                 }
@@ -55,9 +55,9 @@ namespace CasaEngine.FrontEnd.Screen
         {
             UiScreen s = null;
 
-            foreach (UiScreen screen in _screens)
+            foreach (var screen in _screens)
             {
-                if (screen.Name.Equals(name) == true)
+                if (screen.Name.Equals(name))
                 {
                     RemoveScreen(s);
                     return;
@@ -71,12 +71,12 @@ namespace CasaEngine.FrontEnd.Screen
         {
             el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
-            XmlElement nodeList = el.OwnerDocument.CreateElement("ScreenList");
+            var nodeList = el.OwnerDocument.CreateElement("ScreenList");
             el.AppendChild(nodeList);
 
-            foreach (UiScreen screen in _screens)
+            foreach (var screen in _screens)
             {
-                XmlElement node = el.OwnerDocument.CreateElement("Screen");
+                var node = el.OwnerDocument.CreateElement("Screen");
                 nodeList.AppendChild(node);
 
                 screen.Save(node, opt);
@@ -88,7 +88,7 @@ namespace CasaEngine.FrontEnd.Screen
             bw.Write(Version);
             bw.Write(_screens.Count);
 
-            foreach (UiScreen screen in _screens)
+            foreach (var screen in _screens)
             {
                 screen.Save(bw, opt);
             }

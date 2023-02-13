@@ -32,7 +32,7 @@ using Microsoft.Xna.Framework.Input;
 
 //using XNAFinalEngine.EngineCore;
 
-namespace XNAFinalEngine.Input
+namespace CasaEngine.Input
 {
 
 

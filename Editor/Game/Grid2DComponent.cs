@@ -1,8 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;

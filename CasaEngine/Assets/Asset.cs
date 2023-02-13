@@ -1,10 +1,10 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using XNAFinalEngine.Helpers;
+﻿using System.Xml;
 using CasaEngine.Game;
+using CasaEngine.Helpers;
 using CasaEngineCommon.Design;
-using System.Xml;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets
 {
     public abstract
 #if EDITOR

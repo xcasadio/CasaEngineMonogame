@@ -1,32 +1,29 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Core_Systems.Math.Shape2D;
 using CasaEngine.Game;
-using CasaEngine.Math.Shape2D;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Helper
+namespace CasaEngine.Helpers
 {
     public class ShapeRendererComponent
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
-        private struct DisplayCollisionData
+        private struct Shape2dData
         {
             public Shape2DObject Shape2DObject;
             public Color Color;
         }
 
-
-        static public bool DisplayCollisions = true;
-        static public bool DisplayPhysics = false;
+        public static bool DisplayCollisions = true;
+        public static bool DisplayPhysics = false;
 
         private ShapeRenderer _shapeRenderer;
         Matrix _projectionMatrix, _worldMatrix, _view;
         private FarseerPhysics.Dynamics.World _world;
-        private readonly List<DisplayCollisionData> _displayCollisionData = new();
+        private readonly List<Shape2dData> _displayCollisionData = new();
 
         //to avoid GC
-        private readonly Stack<DisplayCollisionData> _freeDisplayCollisionData = new();
+        private readonly Stack<Shape2dData> _freeDisplayCollisionData = new();
         private Vector2 _vector2D1 = new();
-
-
 
         public ShapeRenderer ShapeRenderer => _shapeRenderer;
 
@@ -73,7 +70,7 @@ namespace CasaEngine.Helper
 
         public void AddShape2DObject(Shape2DObject g, Color color)
         {
-            DisplayCollisionData data = GetDisplayCollisionData();
+            var data = GetShape2dData();
             data.Shape2DObject = g;
             data.Color = color;
             _displayCollisionData.Add(data);
@@ -81,7 +78,7 @@ namespace CasaEngine.Helper
 
         public override void Update(GameTime gameTime)
         {
-            foreach (DisplayCollisionData d in _displayCollisionData)
+            foreach (var d in _displayCollisionData)
             {
                 _freeDisplayCollisionData.Push(d);
             }
@@ -98,11 +95,11 @@ namespace CasaEngine.Helper
                 return;
             }
 
-            if (DisplayCollisions == true)
+            if (DisplayCollisions)
             {
                 _shapeRenderer.BeginCustomDraw(ref _projectionMatrix, ref _view, ref _worldMatrix);
 
-                foreach (DisplayCollisionData d in _displayCollisionData)
+                foreach (var d in _displayCollisionData)
                 {
                     DisplayShape2D(d);
                 }
@@ -110,13 +107,13 @@ namespace CasaEngine.Helper
                 _shapeRenderer.EndCustomDraw();
             }
 
-            if (DisplayPhysics == true)
+            if (DisplayPhysics)
             {
                 _shapeRenderer.RenderDebugData(ref _projectionMatrix, ref _view, ref _worldMatrix);
             }
         }
 
-        private void DisplayShape2D(DisplayCollisionData data)
+        private void DisplayShape2D(Shape2dData data)
         {
             _vector2D1.X = data.Shape2DObject.Location.X;
             _vector2D1.Y = data.Shape2DObject.Location.Y;
@@ -124,7 +121,7 @@ namespace CasaEngine.Helper
             switch (data.Shape2DObject.Shape2DType)
             {
                 case Shape2DType.Circle:
-                    ShapeCircle c = (ShapeCircle)data.Shape2DObject;
+                    var c = (ShapeCircle)data.Shape2DObject;
                     _shapeRenderer.DrawCircle(
                         _vector2D1,
                         c.Radius,
@@ -132,16 +129,16 @@ namespace CasaEngine.Helper
                     break;
 
                 case Shape2DType.Polygone:
-                    ShapePolygone p = (ShapePolygone)data.Shape2DObject;
+                    var p = (ShapePolygone)data.Shape2DObject;
 
 #if EDITOR
-                    Vector2[] vec = p.Points.ToArray();
+                    var vec = p.Points.ToArray();
 #else
                     Vector2[] vec = new Vector2[p.Points.Length];
                     p.Points.CopyTo(vec, 0);
 #endif
 
-                    for (int i = 0; i < vec.Length; i++)
+                    for (var i = 0; i < vec.Length; i++)
                     {
                         vec[i] = Vector2.Add(vec[i], _vector2D1);
                     }
@@ -151,17 +148,17 @@ namespace CasaEngine.Helper
                     break;
 
                 case Shape2DType.Rectangle:
-                    ShapeRectangle r = (ShapeRectangle)data.Shape2DObject;
+                    var r = (ShapeRectangle)data.Shape2DObject;
 
-                    Vector2[] vecs = new Vector2[4];
-                    float w = r.Width / 2.0f;
-                    float h = r.Height / 2.0f;
+                    var vecs = new Vector2[4];
+                    var w = r.Width / 2.0f;
+                    var h = r.Height / 2.0f;
                     vecs[0] = new Vector2(_vector2D1.X - w, _vector2D1.Y - h);
                     vecs[1] = new Vector2(_vector2D1.X + w, _vector2D1.Y - h);
                     vecs[2] = new Vector2(_vector2D1.X + w, _vector2D1.Y + h);
                     vecs[3] = new Vector2(_vector2D1.X - w, _vector2D1.Y + h);
 
-                    _shapeRenderer.DrawPolygon(vecs, 4, data.Color);
+                    _shapeRenderer.DrawSolidPolygon(vecs, 4, data.Color);
                     break;
 
                 default:
@@ -175,23 +172,23 @@ namespace CasaEngine.Helper
             /*width = w;
             height = h;*/
 
-            int tw = GraphicsDevice.Viewport.Width;
-            int th = GraphicsDevice.Viewport.Height;
-            int x = GraphicsDevice.Viewport.X;
-            int y = GraphicsDevice.Viewport.Y;
+            var tw = GraphicsDevice.Viewport.Width;
+            var th = GraphicsDevice.Viewport.Height;
+            var x = GraphicsDevice.Viewport.X;
+            var y = GraphicsDevice.Viewport.Y;
 
-            float ratio = (float)tw / (float)th;
+            var ratio = (float)tw / (float)th;
 
-            Vector2 extents = new Vector2(ratio * 25.0f, 25.0f);
+            var extents = new Vector2(ratio * 25.0f, 25.0f);
             //extents *= viewZoom;
-            Vector2 viewCenter = new Vector2(0.0f, 20.0f);
-            Vector2 lower = viewCenter - extents;
-            Vector2 upper = viewCenter + extents;
+            var viewCenter = new Vector2(0.0f, 20.0f);
+            var lower = viewCenter - extents;
+            var upper = viewCenter + extents;
 
             // L/R/B/T
             //_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(lower.X, upper.X, lower.Y, upper.Y, -1, 1);
-            float ww = (float)tw / 2.0f;
-            float hh = (float)th / 2.0f;
+            var ww = (float)tw / 2.0f;
+            var hh = (float)th / 2.0f;
 
             //pour jeux utilisant le spritebatch (screen coordinate)
             _projectionMatrix = Matrix.CreateOrthographicOffCenter(
@@ -206,14 +203,14 @@ namespace CasaEngine.Helper
             //_BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(0, ww * 2, 0, hh * 2, 0f, 1f);
         }
 
-        private DisplayCollisionData GetDisplayCollisionData()
+        private Shape2dData GetShape2dData()
         {
             if (_freeDisplayCollisionData.Count > 0)
             {
                 return _freeDisplayCollisionData.Pop();
             }
 
-            return new DisplayCollisionData();
+            return new Shape2dData();
         }
     }
 }

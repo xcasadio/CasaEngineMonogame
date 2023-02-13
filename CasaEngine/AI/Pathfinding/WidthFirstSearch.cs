@@ -66,7 +66,7 @@ namespace CasaEngine.AI.Pathfinding
 
                 //Get the edges between the nodes from the graph
                 path = new List<TK>();
-                for (int i = 0; i < nodes.Count - 1; i++)
+                for (var i = 0; i < nodes.Count - 1; i++)
                 {
                     path.Add(Graph.GetEdge(nodes[i], nodes[i + 1]));
                 }
@@ -88,7 +88,7 @@ namespace CasaEngine.AI.Pathfinding
             Route = new List<int>();
 
             //Initialize list values
-            for (int i = 0; i < Graph.NodeCount; i++)
+            for (var i = 0; i < Graph.NodeCount; i++)
             {
                 Visited.Add(Visibility.Unvisited);
                 Route.Add(Node.NoParent);
@@ -126,7 +126,7 @@ namespace CasaEngine.AI.Pathfinding
 
                 //Enqueue all child edges from this node that aren´t visited
                 nodeEdges = Graph.GetEdgesFromNode(next.End);
-                for (int i = 0; i < nodeEdges.Count; i++)
+                for (var i = 0; i < nodeEdges.Count; i++)
                 {
                     if (Visited[nodeEdges[i].End] == Visibility.Unvisited)
                     {
@@ -167,7 +167,7 @@ namespace CasaEngine.AI.Pathfinding
 
             //Enqueue all child edges from this node that aren´t visited
             nodeEdges = Graph.GetEdgesFromNode(next.End);
-            for (int i = 0; i < nodeEdges.Count; i++)
+            for (var i = 0; i < nodeEdges.Count; i++)
             {
                 if (Visited[nodeEdges[i].End] == Visibility.Unvisited)
                 {

@@ -26,7 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
     public class Pool<T> where T : new()
     {
@@ -74,14 +74,14 @@ namespace XNAFinalEngine.Helpers
             }
 
             Elements = new T[capacity];
-            for (int i = 0; i < capacity; i++)
+            for (var i = 0; i < capacity; i++)
             {
                 // If T is a reference type then the explicit creation is need it.
                 Elements[i] = new T();
             }
             // They are created using another for sentence because we want memory locality.
             _accessors = new Accessor[capacity];
-            for (int i = 0; i < capacity; i++)
+            for (var i = 0; i < capacity; i++)
             {
                 _accessors[i] = new Accessor { Index = i };
             }
@@ -103,10 +103,10 @@ namespace XNAFinalEngine.Helpers
 
         private void ResizePool(int newCapacity)
         {
-            int oldCapacity = Capacity;
-            T[] newElements = new T[newCapacity];
+            var oldCapacity = Capacity;
+            var newElements = new T[newCapacity];
             // If T is a reference type then the explicit creation is need it.
-            for (int i = 0; i < newCapacity; i++)
+            for (var i = 0; i < newCapacity; i++)
             {
                 if (i < oldCapacity)
                 {
@@ -118,8 +118,8 @@ namespace XNAFinalEngine.Helpers
                 }
             }
             Elements = newElements;
-            Accessor[] newAccessors = new Accessor[newCapacity];
-            for (int i = 0; i < newCapacity; i++)
+            var newAccessors = new Accessor[newCapacity];
+            for (var i = 0; i < newCapacity; i++)
             {
                 if (i < oldCapacity)
                 {
@@ -144,15 +144,15 @@ namespace XNAFinalEngine.Helpers
 
             // To accomplish our second objective (memory locality) the last available element will be moved to the place where the released element resided.
             // First swap elements values.
-            T accesorPoolElement = Elements[accessor.Index]; // If T is a type by reference we can lost its value
+            var accesorPoolElement = Elements[accessor.Index]; // If T is a type by reference we can lost its value
             Elements[accessor.Index] = Elements[Count - 1];
             Elements[Count - 1] = accesorPoolElement;
             // The indices have the wrong value.The last has to index its new place and vice versa.
-            int accesorOldIndex = accessor.Index;
+            var accesorOldIndex = accessor.Index;
             accessor.Index = Count - 1;
             _accessors[Count - 1].Index = accesorOldIndex;
             // Also the accessor array has to be sorted. If not the fetch method will give a used accessor element.
-            Accessor lastActiveAccessor = _accessors[Count - 1]; // Accessor is a reference type.
+            var lastActiveAccessor = _accessors[Count - 1]; // Accessor is a reference type.
             _accessors[Count - 1] = accessor;
             _accessors[accesorOldIndex] = lastActiveAccessor;
 
@@ -163,15 +163,15 @@ namespace XNAFinalEngine.Helpers
 
         public void Swap(int i, int j)
         {
-            T temp = Elements[i];
+            var temp = Elements[i];
             Elements[i] = Elements[j];
             Elements[j] = temp;
             // The indices have the wrong value.The last has to index its new place and vice versa.
-            int accesorOldIndex = _accessors[i].Index;
+            var accesorOldIndex = _accessors[i].Index;
             _accessors[i].Index = j;
             _accessors[j].Index = accesorOldIndex;
             // Also the accessor array has to be sorted. If not the fetch method will give a used accessor element.
-            Accessor lastActiveAccessor = _accessors[i]; // Accessor is a reference type.
+            var lastActiveAccessor = _accessors[i]; // Accessor is a reference type.
             _accessors[i] = _accessors[j];
             _accessors[j] = lastActiveAccessor;
         } // Swap

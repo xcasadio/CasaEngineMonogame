@@ -11,7 +11,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+
+namespace CasaEngine.UserInterface.Controls
 {
 
     public class TabPage : Container
@@ -37,9 +39,12 @@ namespace XNAFinalEngine.UserInterface
 
         protected internal void CalculateRectangle(Rectangle prev, Font font, Margins margins, Point offset, bool first)
         {
-            int size = (int)Math.Ceiling(font.MeasureString(Text).X) + margins.Horizontal;
+            var size = (int)Math.Ceiling(font.MeasureString(Text).X) + margins.Horizontal;
 
-            if (first) offset.X = 0;
+            if (first)
+            {
+                offset.X = 0;
+            }
 
             _headerRectangle = new Rectangle(prev.Right + offset.X, prev.Top, size, prev.Height);
         } // CalculateRectangle
@@ -80,10 +85,17 @@ namespace XNAFinalEngine.UserInterface
                 if (value >= 0 && value < _tabPages.Count)
                 {
                     TabPages[value].Visible = true;
-                    ControlsList c = TabPages[value].ChildrenControls as ControlsList;
-                    if (c.Count > 0) c[0].Focused = true;
+                    var c = TabPages[value].ChildrenControls as ControlsList;
+                    if (c.Count > 0)
+                    {
+                        c[0].Focused = true;
+                    }
+
                     _selectedIndex = value;
-                    if (!Suspended) OnPageChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnPageChanged(new EventArgs());
+                    }
                 }
             }
         } // SelectedIndex
@@ -93,7 +105,7 @@ namespace XNAFinalEngine.UserInterface
             get => _tabPages[SelectedIndex];
             set
             {
-                for (int i = 0; i < _tabPages.Count; i++)
+                for (var i = 0; i < _tabPages.Count; i++)
                 {
                     if (_tabPages[i] == value)
                     {
@@ -129,11 +141,11 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer l1 = SkinInformation.Layers["Control"];
-            SkinLayer l2 = SkinInformation.Layers["Header"];
-            Color col = Color != UndefinedColor ? Color : Color.White;
+            var l1 = SkinInformation.Layers["Control"];
+            var l2 = SkinInformation.Layers["Header"];
+            var col = Color != UndefinedColor ? Color : Color.White;
 
-            Rectangle r1 = new Rectangle(rect.Left, rect.Top + l1.OffsetY, rect.Width, rect.Height - l1.OffsetY);
+            var r1 = new Rectangle(rect.Left, rect.Top + l1.OffsetY, rect.Width, rect.Height - l1.OffsetY);
             if (_tabPages.Count <= 0)
             {
                 r1 = rect;
@@ -144,21 +156,24 @@ namespace XNAFinalEngine.UserInterface
             if (_tabPages.Count > 0)
             {
 
-                Rectangle prev = new Rectangle(rect.Left, rect.Top + l2.OffsetY, 0, l2.Height);
-                for (int i = 0; i < _tabPages.Count; i++)
+                var prev = new Rectangle(rect.Left, rect.Top + l2.OffsetY, 0, l2.Height);
+                for (var i = 0; i < _tabPages.Count; i++)
                 {
-                    Font font = l2.Text.Font.Font;
-                    Margins margins = l2.ContentMargins;
-                    Point offset = new Point(l2.OffsetX, l2.OffsetY);
-                    if (i > 0) prev = _tabPages[i - 1].HeaderRectangle;
+                    var font = l2.Text.Font.Font;
+                    var margins = l2.ContentMargins;
+                    var offset = new Point(l2.OffsetX, l2.OffsetY);
+                    if (i > 0)
+                    {
+                        prev = _tabPages[i - 1].HeaderRectangle;
+                    }
 
                     _tabPages[i].CalculateRectangle(prev, font, margins, offset, i == 0);
                 }
 
-                for (int i = _tabPages.Count - 1; i >= 0; i--)
+                for (var i = _tabPages.Count - 1; i >= 0; i--)
                 {
-                    int li = _tabPages[i].Enabled ? l2.States.Enabled.Index : l2.States.Disabled.Index;
-                    Color lc = _tabPages[i].Enabled ? l2.Text.Colors.Enabled : l2.Text.Colors.Disabled;
+                    var li = _tabPages[i].Enabled ? l2.States.Enabled.Index : l2.States.Disabled.Index;
+                    var lc = _tabPages[i].Enabled ? l2.Text.Colors.Enabled : l2.Text.Colors.Disabled;
                     if (i == _hoveredIndex)
                     {
                         li = l2.States.Hovered.Index;
@@ -166,9 +181,9 @@ namespace XNAFinalEngine.UserInterface
                     }
 
 
-                    Margins m = l2.ContentMargins;
-                    Rectangle rx = _tabPages[i].HeaderRectangle;
-                    Rectangle sx = new Rectangle(rx.Left + m.Left, rx.Top + m.Top, rx.Width - m.Horizontal, rx.Height - m.Vertical);
+                    var m = l2.ContentMargins;
+                    var rx = _tabPages[i].HeaderRectangle;
+                    var sx = new Rectangle(rx.Left + m.Left, rx.Top + m.Top, rx.Width - m.Horizontal, rx.Height - m.Vertical);
                     if (i != _selectedIndex)
                     {
                         UserInterfaceManager.Renderer.DrawLayer(l2, rx, col, li);
@@ -176,9 +191,9 @@ namespace XNAFinalEngine.UserInterface
                     }
                 }
 
-                Margins mi = l2.ContentMargins;
-                Rectangle ri = _tabPages[_selectedIndex].HeaderRectangle;
-                Rectangle si = new Rectangle(ri.Left + mi.Left, ri.Top + mi.Top, ri.Width - mi.Horizontal, ri.Height - mi.Vertical);
+                var mi = l2.ContentMargins;
+                var ri = _tabPages[_selectedIndex].HeaderRectangle;
+                var si = new Rectangle(ri.Left + mi.Left, ri.Top + mi.Top, ri.Width - mi.Horizontal, ri.Height - mi.Vertical);
                 UserInterfaceManager.Renderer.DrawLayer(l2, ri, col, l2.States.Focused.Index);
                 UserInterfaceManager.Renderer.DrawString(l2.Text.Font.Font, _tabPages[_selectedIndex].Text, si, l2.Text.Colors.Focused, l2.Text.Alignment, l2.Text.OffsetX, l2.Text.OffsetY, false);
             }
@@ -188,7 +203,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual TabPage AddPage(string text)
         {
-            TabPage p = AddPage();
+            var p = AddPage();
             p.Text = text;
 
             return p;
@@ -196,7 +211,7 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual TabPage AddPage()
         {
-            TabPage page = new TabPage(UserInterfaceManager)
+            var page = new TabPage(UserInterfaceManager)
             {
                 Left = 0,
                 Top = 0,
@@ -237,10 +252,10 @@ namespace XNAFinalEngine.UserInterface
 
             if (_tabPages.Count > 1)
             {
-                Point p = new Point(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
-                for (int i = 0; i < _tabPages.Count; i++)
+                var p = new Point(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
+                for (var i = 0; i < _tabPages.Count; i++)
                 {
-                    Rectangle r = _tabPages[i].HeaderRectangle;
+                    var r = _tabPages[i].HeaderRectangle;
                     if (p.X >= r.Left && p.X <= r.Right && p.Y >= r.Top && p.Y <= r.Bottom)
                     {
                         SelectedIndex = i;
@@ -255,11 +270,11 @@ namespace XNAFinalEngine.UserInterface
             base.OnMouseMove(e);
             if (_tabPages.Count > 1)
             {
-                int index = _hoveredIndex;
-                Point p = new Point(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
-                for (int i = 0; i < _tabPages.Count; i++)
+                var index = _hoveredIndex;
+                var p = new Point(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
+                for (var i = 0; i < _tabPages.Count; i++)
                 {
-                    Rectangle r = _tabPages[i].HeaderRectangle;
+                    var r = _tabPages[i].HeaderRectangle;
                     if (p.X >= r.Left && p.X <= r.Right && p.Y >= r.Top && p.Y <= r.Bottom && _tabPages[i].Enabled)
                     {
                         index = i;
@@ -277,7 +292,10 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnPageChanged(EventArgs e)
         {
-            if (PageChanged != null) PageChanged.Invoke(this, e);
+            if (PageChanged != null)
+            {
+                PageChanged.Invoke(this, e);
+            }
         } // OnPageChanged
 
 

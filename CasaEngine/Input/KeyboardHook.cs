@@ -31,8 +31,7 @@ This class was based in the work of Emma Burrows. That work doesn't have a licen
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-
-namespace XNAFinalEngine.Input
+namespace CasaEngine.Input
 {
     public class KeyboardHook : IDisposable
     {
@@ -60,9 +59,9 @@ namespace XNAFinalEngine.Input
 
         public KeyboardHook()
         {
-            _proc = new HookHandlerDelegate(HookCallback);
-            using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule)
+            _proc = HookCallback;
+            using (var curProcess = Process.GetCurrentProcess())
+            using (var curModule = curProcess.MainModule)
             {
                 _hookId = NativeMethods.SetWindowsHookEx(KeyboardHookId, _proc, NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
             }
@@ -113,7 +112,7 @@ namespace XNAFinalEngine.Input
 
 
 
-        [ComVisibleAttribute(false), System.Security.SuppressUnmanagedCodeSecurity]
+        [ComVisible(false), System.Security.SuppressUnmanagedCodeSecurity]
         internal class NativeMethods
         {
 

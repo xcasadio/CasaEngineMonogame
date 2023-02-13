@@ -1,9 +1,3 @@
-
-
-using System.Windows.Forms;
-using System.Diagnostics;
-
-
 namespace Editor.WinForm.DocToolkit
 {
     /// <summary>

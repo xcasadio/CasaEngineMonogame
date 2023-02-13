@@ -1,10 +1,9 @@
 ﻿using System.Xml;
+using CasaEngine.Editor.SourceControl;
 using CasaEngineCommon.Extension;
 using CasaEngine.Game;
 using CasaEngineCommon.Logger;
-using CasaEngine.Editor.Builder;
 using Microsoft.Build.Evaluation;
-using CasaEngine.SourceControl;
 using CasaEngineCommon.Design;
 using CasaEngine.Project;
 
@@ -13,10 +12,10 @@ namespace CasaEngine.Editor.Assets
     public class AssetManager
     {
 
-        static private readonly uint Version = 1;
+        private static readonly uint Version = 1;
 
-        private readonly ContentBuilder _contentBuilder = null;
-        private ContentBuilder _contentBuilderTempFiles = null;
+        private readonly ContentBuilder.ContentBuilder _contentBuilder = null;
+        private ContentBuilder.ContentBuilder _contentBuilderTempFiles = null;
 
         private readonly List<AssetInfo> _assets = new();
         private readonly List<AssetBuildInfo> _assetBuildInfo = new();
@@ -32,13 +31,13 @@ namespace CasaEngine.Editor.Assets
 
         public AssetManager()
         {
-            _contentBuilder = new ContentBuilder();
-            _contentBuilderTempFiles = new ContentBuilder();
+            _contentBuilder = new ContentBuilder.ContentBuilder();
+            _contentBuilderTempFiles = new ContentBuilder.ContentBuilder();
 
             _fileWatcher = new FileSystemWatcher(_contentBuilder.OutputDirectory.Replace("bin/Content", ""), "*.xnb");
             _fileWatcher.IncludeSubdirectories = true;
             _fileWatcher.EnableRaisingEvents = true;
-            _fileWatcher.Created += new FileSystemEventHandler(_FileWatcher_Created);
+            _fileWatcher.Created += _FileWatcher_Created;
         }
 
 
@@ -79,7 +78,7 @@ namespace CasaEngine.Editor.Assets
 
         public void BuildAll(string destPath)
         {
-            string buildError = _contentBuilder.Build();
+            var buildError = _contentBuilder.Build();
 
             if (string.IsNullOrEmpty(buildError) == false)
             {
@@ -87,11 +86,11 @@ namespace CasaEngine.Editor.Assets
                 return;
             }
 
-            string contentDir = _contentBuilder.OutputDirectory.Replace("/", "\\");
+            var contentDir = _contentBuilder.OutputDirectory.Replace("/", "\\");
 
-            foreach (string file in _assetToCopy)
+            foreach (var file in _assetToCopy)
             {
-                string fileDest = file.Replace(contentDir, file);
+                var fileDest = file.Replace(contentDir, file);
                 File.Copy(
                     file,
                     fileDest,
@@ -131,7 +130,7 @@ namespace CasaEngine.Editor.Assets
                     break;
             }
 
-            string buildError = _contentBuilder.Build();
+            var buildError = _contentBuilder.Build();
 
             if (string.IsNullOrEmpty(buildError) == false)
             {
@@ -143,7 +142,7 @@ namespace CasaEngine.Editor.Assets
 #endif
             }
 
-            foreach (string file in _assetToCopy)
+            foreach (var file in _assetToCopy)
             {
                 File.Copy(
                     file,
@@ -166,10 +165,10 @@ namespace CasaEngine.Editor.Assets
         {
             _assets.Remove(info);
 
-            string file = GetAssetXnbFullPath(info);
+            var file = GetAssetXnbFullPath(info);
             File.Delete(file);
 
-            string fullpath = GetAssetFullPath(info);
+            var fullpath = GetAssetFullPath(info);
 
             //FileInfo fileInfo = new FileInfo(fullpath);
             //info_.ModificationDate = fileInfo.LastWriteTime;
@@ -181,7 +180,7 @@ namespace CasaEngine.Editor.Assets
 
         private void SetBuildSucceed(AssetInfo info)
         {
-            FileInfo fi = new FileInfo(GetAssetFullPath(info));
+            var fi = new FileInfo(GetAssetFullPath(info));
             int i;
 
             for (i = 0; i < _assetBuildInfo.Count; i++)
@@ -194,7 +193,7 @@ namespace CasaEngine.Editor.Assets
 
             if (i == _assetBuildInfo.Count)
             {
-                AssetBuildInfo b1 = new AssetBuildInfo();
+                var b1 = new AssetBuildInfo();
                 b1.Id = info.Id;
                 b1.ModificationTime = fi.LastAccessTime;
                 b1.Params = info.Params;
@@ -202,7 +201,7 @@ namespace CasaEngine.Editor.Assets
             }
             else
             {
-                AssetBuildInfo b = _assetBuildInfo[i];
+                var b = _assetBuildInfo[i];
                 b.ModificationTime = fi.LastAccessTime;
                 b.Params = info.Params;
                 _assetBuildInfo[i] = b;
@@ -211,7 +210,7 @@ namespace CasaEngine.Editor.Assets
 
         public bool AssetNeedToBeRebuild(AssetInfo info)
         {
-            FileInfo fi = new FileInfo(GetAssetFullPath(info));
+            var fi = new FileInfo(GetAssetFullPath(info));
             int i;
 
             for (i = 0; i < _assetBuildInfo.Count; i++)
@@ -233,7 +232,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetAssetFullPath(AssetInfo info)
         {
-            string fullpath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+            var fullpath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
             fullpath += ProjectManager.AssetDirPath + Path.DirectorySeparatorChar;
 
@@ -340,14 +339,14 @@ namespace CasaEngine.Editor.Assets
 
         public AssetInfo? GetAssetByName(string name)
         {
-            if (string.IsNullOrEmpty(name) == true)
+            if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentNullException("AssetManager.GetAssetByName() : the name is null or empty");
             }
 
-            foreach (AssetInfo info in _assets)
+            foreach (var info in _assets)
             {
-                if (info.Name.Equals(name) == true)
+                if (info.Name.Equals(name))
                 {
                     return info;
                 }
@@ -358,13 +357,13 @@ namespace CasaEngine.Editor.Assets
 
         public bool AddAsset(string fileName, string name, AssetType type, ref string assetFileName)
         {
-            AssetInfo info = new AssetInfo(0, name, type, Path.GetFileName(fileName));
+            var info = new AssetInfo(0, name, type, Path.GetFileName(fileName));
             info.GetNewId();
             AddBuildParams(ref info);
 
-            foreach (AssetInfo i in _assets)
+            foreach (var i in _assets)
             {
-                if (i.Equals(info) == true)
+                if (i.Equals(info))
                 {
                     //replace asset
                     /*assetFileName_ = GetPathFromType(type_) + Path.DirectorySeparatorChar + Path.GetFileName(fileName_);
@@ -399,7 +398,7 @@ namespace CasaEngine.Editor.Assets
                 return false;
             }*/
 
-            string assetFile = GetPathFromType(type);
+            var assetFile = GetPathFromType(type);
             assetFile += Path.DirectorySeparatorChar + Path.GetFileName(fileName);
             assetFileName = assetFile;
 
@@ -414,7 +413,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetPathFromType(AssetType type)
         {
-            string assetFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+            var assetFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
             assetFile += ProjectManager.AssetDirPath;
 
@@ -457,7 +456,7 @@ namespace CasaEngine.Editor.Assets
 
         public void DeleteAsset(string name, AssetType type)
         {
-            foreach (AssetInfo info in _assets)
+            foreach (var info in _assets)
             {
                 if (info.Name.Equals(name)
                     && info.Type == type)
@@ -481,7 +480,7 @@ namespace CasaEngine.Editor.Assets
 
         public void AddFileInSourceControl(string fileName)
         {
-            if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
+            if (SourceControlManager.Instance.SourceControl.IsValidConnection())
             {
                 SourceControlManager.Instance.SourceControl.MarkFileForAdd(fileName);
             }
@@ -489,20 +488,20 @@ namespace CasaEngine.Editor.Assets
 
         public void DeleteFileInSourceControl(string fileName)
         {
-            if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
+            if (SourceControlManager.Instance.SourceControl.IsValidConnection())
             {
-                Dictionary<string, Dictionary<SourceControlKeyWord, string>> dic = SourceControlManager.Instance.SourceControl.FileStatus(new string[] { fileName });
+                var dic = SourceControlManager.Instance.SourceControl.FileStatus(new string[] { fileName });
 
-                if (dic.ContainsKey(fileName) == true)
+                if (dic.ContainsKey(fileName))
                 {
-                    if (dic[fileName].ContainsKey(SourceControlKeyWord.Action) == true)
+                    if (dic[fileName].ContainsKey(SourceControlKeyWord.Action))
                     {
-                        if (dic[fileName][SourceControlKeyWord.Action].ToLower().Equals("add") == true)
+                        if (dic[fileName][SourceControlKeyWord.Action].ToLower().Equals("add"))
                         {
                             SourceControlManager.Instance.SourceControl.RevertFile(fileName);
                             File.Delete(fileName);
                         }
-                        else if (dic[fileName][SourceControlKeyWord.Action].ToLower().Equals("edit") == true)
+                        else if (dic[fileName][SourceControlKeyWord.Action].ToLower().Equals("edit"))
                         {
                             SourceControlManager.Instance.SourceControl.RevertFile(fileName);
                             SourceControlManager.Instance.SourceControl.MarkFileForDelete(fileName);
@@ -526,9 +525,9 @@ namespace CasaEngine.Editor.Assets
 
         public string[] GetAllAssetByType(AssetType type)
         {
-            List<string> res = new List<string>();
+            var res = new List<string>();
 
-            foreach (AssetInfo info in _assets)
+            foreach (var info in _assets)
             {
                 if (info.Type == type)
                 {
@@ -546,7 +545,7 @@ namespace CasaEngine.Editor.Assets
             el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
             XmlElement xmlEl;
 
-            foreach (AssetInfo info in _assets)
+            foreach (var info in _assets)
             {
                 xmlEl = el.OwnerDocument.CreateElement(ProjectManager.NodeAssetName);
                 el.OwnerDocument.AddAttribute(xmlEl, "id", info.Id.ToString());
@@ -555,12 +554,12 @@ namespace CasaEngine.Editor.Assets
                 //el_.OwnerDocument.AddAttribute(xmlEl, "modificationDate", info.ModificationDate.ToString());
                 el.OwnerDocument.AddAttribute(xmlEl, "type", ((int)info.Type).ToString());
 
-                XmlElement paramNodes = el.OwnerDocument.CreateElement("BuildParameterList");
+                var paramNodes = el.OwnerDocument.CreateElement("BuildParameterList");
                 xmlEl.AppendChild(paramNodes);
 
                 foreach (AssetBuildParam param in info.Params)
                 {
-                    XmlElement buildNode = el.OwnerDocument.CreateElement("BuildParameter");
+                    var buildNode = el.OwnerDocument.CreateElement("BuildParameter");
                     param.Save(buildNode);
                     paramNodes.AppendChild(buildNode);
                 }
@@ -585,13 +584,13 @@ namespace CasaEngine.Editor.Assets
 
         public bool Load(XmlElement el, SaveOption option)
         {
-            uint version = uint.Parse(el.Attributes["version"].Value);
+            var version = uint.Parse(el.Attributes["version"].Value);
 
             _assets.Clear();
 
             foreach (XmlNode node in el.SelectNodes(ProjectManager.NodeAssetName))
             {
-                AssetInfo info = new AssetInfo(
+                var info = new AssetInfo(
                     0,
                     node.Attributes["name"].Value,
                     (AssetType)Enum.Parse(typeof(AssetType), node.Attributes["type"].Value),
@@ -656,7 +655,7 @@ namespace CasaEngine.Editor.Assets
 
         private void LoadAssetBuildInfo()
         {
-            string buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
+            var buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
 
             if (File.Exists(buildFile) == false)
             {
@@ -664,14 +663,14 @@ namespace CasaEngine.Editor.Assets
                 return;
             }
 
-            XmlDocument xmlDoc = new XmlDocument();
+            var xmlDoc = new XmlDocument();
             xmlDoc.Load(buildFile);
 
-            XmlElement elRoot = (XmlElement)xmlDoc.SelectSingleNode("AssetBuildInfo");
+            var elRoot = (XmlElement)xmlDoc.SelectSingleNode("AssetBuildInfo");
 
             foreach (XmlNode node in elRoot.SelectNodes("BuildInfo"))
             {
-                AssetBuildInfo info = new AssetBuildInfo();
+                var info = new AssetBuildInfo();
                 info.Id = int.Parse(node.Attributes["id"].Value);
                 info.ModificationTime = DateTime.Parse(node.Attributes["date"].Value);
                 info.Params = new AssetBuildParamCollection();
@@ -691,7 +690,7 @@ namespace CasaEngine.Editor.Assets
             try
             {
 #endif
-            string buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
+            var buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
 
             if (Directory.Exists(Path.GetDirectoryName(buildFile)) == false)
             {
@@ -706,23 +705,23 @@ namespace CasaEngine.Editor.Assets
                 }
             }
 
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlElement elRoot = xmlDoc.AddRootNode("AssetBuildInfo");
+            var xmlDoc = new XmlDocument();
+            var elRoot = xmlDoc.AddRootNode("AssetBuildInfo");
 
-            foreach (AssetBuildInfo info in _assetBuildInfo)
+            foreach (var info in _assetBuildInfo)
             {
-                XmlElement node = xmlDoc.CreateElement("BuildInfo");
+                var node = xmlDoc.CreateElement("BuildInfo");
                 elRoot.AppendChild(node);
 
                 xmlDoc.AddAttribute(node, "id", info.Id.ToString());
                 xmlDoc.AddAttribute(node, "date", info.ModificationTime.ToString());
 
-                XmlElement paramNodes = xmlDoc.CreateElement("BuildParameterList");
+                var paramNodes = xmlDoc.CreateElement("BuildParameterList");
                 node.AppendChild(paramNodes);
 
                 foreach (AssetBuildParam param in info.Params)
                 {
-                    XmlElement buildNode = xmlDoc.CreateElement("BuildParameter");
+                    var buildNode = xmlDoc.CreateElement("BuildParameter");
                     param.Save(buildNode);
                     paramNodes.AppendChild(buildNode);
                 }

@@ -9,7 +9,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
         protected CrossoverAlgorithm(double probability, Random generator)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             //Validate values
             if (ValidateProbability(probability, ref message) == false)

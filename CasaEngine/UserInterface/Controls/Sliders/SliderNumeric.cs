@@ -27,7 +27,9 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+using TextBox = CasaEngine.UserInterface.Controls.Text.TextBox;
+
+namespace CasaEngine.UserInterface.Controls.Sliders
 {
 
     public class SliderNumeric : Control
@@ -197,43 +199,57 @@ namespace XNAFinalEngine.UserInterface
         protected virtual void OnSliderDown(object obj, MouseEventArgs e)
         {
             if (SliderDown != null)
+            {
                 SliderDown(this, e);
+            }
         } // OnSliderDown
 
         protected virtual void OnSliderUp(object obj, MouseEventArgs e)
         {
             if (SliderUp != null)
+            {
                 SliderUp(this, e);
+            }
         } // OnSliderUp
 
         protected virtual void OnSliderPress(object obj, MouseEventArgs e)
         {
             if (SliderPress != null)
+            {
                 SliderPress(this, e);
+            }
         } // OnSliderPress
 
         protected virtual void OnValueChanged(object obj, EventArgs e)
         {
             if (ValueChanged != null)
+            {
                 ValueChanged(this, e);
+            }
         } // OnValueChanged
 
         protected virtual void OnRangeChanged(object obj, EventArgs e)
         {
             if (RangeChanged != null)
+            {
                 RangeChanged(this, e);
+            }
         } // OnRangeChanged
 
         protected virtual void OnPageSizeChanged(object obj, EventArgs e)
         {
             if (PageSizeChanged != null)
+            {
                 PageSizeChanged(this, e);
+            }
         } // OnPageSizeChanged
 
         protected virtual void OnStepSizeChanged(object obj, EventArgs e)
         {
             if (StepSizeChanged != null)
+            {
                 StepSizeChanged(this, e);
+            }
         } // OnStepSizeChanged
 
 

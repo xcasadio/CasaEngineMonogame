@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.FrontEnd.Screen.Gadget
+﻿namespace CasaEngine.Front_End.Screen.Gadget
 {
     public partial class ScreenGadgetLabel
     {

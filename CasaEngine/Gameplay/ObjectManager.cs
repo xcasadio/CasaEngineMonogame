@@ -1,9 +1,9 @@
 ﻿using CasaEngineCommon.Design;
 using System.Xml;
-using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Game;
 using CasaEngineCommon.Logger;
 using System.Reflection;
+using CasaEngine.Gameplay.Actor;
 using CasaEngine.Project;
 
 namespace CasaEngine.Gameplay
@@ -12,16 +12,14 @@ namespace CasaEngine.Gameplay
 #if EDITOR
     partial
 #endif
-    class ObjectManager
-        : ISaveLoad
+    class ObjectManager : ISaveLoad
     {
-
 #if EDITOR
         partial
 #endif
         class ObjectContainer
         {
-            BaseObject _baseObject;
+            Actor.BaseObject _baseObject;
             private Type _itemType;
 
 
@@ -59,7 +57,7 @@ namespace CasaEngine.Gameplay
                 set;
             }
 
-            internal BaseObject Object
+            internal Actor.BaseObject Object
             {
                 get
                 {
@@ -81,7 +79,7 @@ namespace CasaEngine.Gameplay
                             projectFile = Engine.Instance.AssetContentManager.RootDirectory + System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
 #endif
 
-                            XmlDocument xmlDoc = new XmlDocument();
+                            var xmlDoc = new XmlDocument();
                             xmlDoc.Load(projectFile);
                             el = (XmlElement)xmlDoc.SelectSingleNode("Root/Object");
 
@@ -96,7 +94,7 @@ namespace CasaEngine.Gameplay
                             }
                             //else (Binary)
 
-                            _baseObject = (BaseObject)Activator.CreateInstance(ItemType, args);
+                            _baseObject = (Actor.BaseObject)Activator.CreateInstance(ItemType, args);
                             ClassName = _baseObject.GetType().FullName;
                         }
                         catch (Exception ex)
@@ -120,9 +118,9 @@ namespace CasaEngine.Gameplay
                 {
                     if (_itemType == null)
                     {
-                        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-                        foreach (Assembly a in assemblies)
+                        foreach (var a in assemblies)
                         {
                             _itemType = a.GetType(ClassName, false, true);
 
@@ -174,7 +172,7 @@ namespace CasaEngine.Gameplay
 
             public void Load(XmlElement el, SaveOption option)
             {
-                int version = int.Parse(el.Attributes["version"].Value);
+                var version = int.Parse(el.Attributes["version"].Value);
 
                 Id = int.Parse(el.Attributes["id"].Value);
 
@@ -210,7 +208,7 @@ namespace CasaEngine.Gameplay
 
 
 
-        public BaseObject GetObjectByPath(string fullpath)
+        public Actor.BaseObject GetObjectByPath(string fullpath)
         {
             if (_objects.ContainsKey(fullpath) == false)
             {
@@ -218,14 +216,14 @@ namespace CasaEngine.Gameplay
             }
 
             //_Objects[fullpath_].Object return a copy!
-            ObjectContainer obj = _objects[fullpath];
-            BaseObject res = obj.Object;
+            var obj = _objects[fullpath];
+            var res = obj.Object;
             res.Id = obj.Id;
             _objects[fullpath] = obj;
             return res;
         }
 
-        public BaseObject GetObjectById(int id)
+        public Actor.BaseObject GetObjectById(int id)
         {
             //_Objects[fullpath_].Object return a copy!
             ObjectContainer obj = null;
@@ -241,7 +239,7 @@ namespace CasaEngine.Gameplay
 
             if (obj != null)
             {
-                BaseObject res = obj.Object;
+                var res = obj.Object;
                 res.Id = obj.Id;
                 //_Objects[obj.Path] = obj;
                 return res;
@@ -266,13 +264,13 @@ namespace CasaEngine.Gameplay
 
             //CasaEngine.Editor.Assets.AssetManager assetManager = new CasaEngine.Editor.Assets.AssetManager();
 
-            XmlNode node = el.SelectSingleNode("Objects");
+            var node = el.SelectSingleNode("Objects");
 
             _objects.Clear();
 
             foreach (XmlNode child in node.ChildNodes)
             {
-                ObjectContainer oc = new ObjectContainer((XmlElement)child, option);
+                var oc = new ObjectContainer((XmlElement)child, option);
                 _objects.Add(oc.Path, oc);
 
                 //to build missing asset

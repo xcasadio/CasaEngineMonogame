@@ -8,7 +8,7 @@ namespace CasaEngine.Project
 {
     public partial class ProjectManager
     {
-        static private readonly uint Version = 1;
+        private static readonly uint Version = 1;
 
         public event EventHandler ProjectLoaded;
         public event EventHandler ProjectClosed;
@@ -82,7 +82,7 @@ namespace CasaEngine.Project
             //si le fichier existe deja on le charge
             if (string.IsNullOrEmpty(ProjectFileOpened) == false)
             {
-                if (File.Exists(fileName) == true)
+                if (File.Exists(fileName))
                 {
                     //ProjectFileOpened = fileName_;
                     //TODO
@@ -106,11 +106,11 @@ namespace CasaEngine.Project
             }*/
 
             //nouveau fichier
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlElement projectNode = xmlDoc.AddRootNode(NodeRootName);
+            var xmlDoc = new XmlDocument();
+            var projectNode = xmlDoc.AddRootNode(NodeRootName);
             xmlDoc.AddAttribute(projectNode, "version", Version.ToString());
 
-            XmlElement configNode = xmlDoc.CreateElement(NodeConfigName);
+            var configNode = xmlDoc.CreateElement(NodeConfigName);
             projectNode.AppendChild(configNode);
             Engine.Instance.ProjectConfig.Save(configNode, SaveOption.Editor);
 

@@ -1,15 +1,15 @@
 ﻿using System.Xml;
+using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Event;
 using CasaEngineCommon.Design;
-using CasaEngine.Gameplay.Actor.Object;
 
 namespace CasaEngine.Assets.Graphics2D
 {
     public partial class Animation2D
     {
 
-        static private readonly uint Version = 1;
+        private static readonly uint Version = 1;
         //static private uint _UnusedID = 0;
 
 
@@ -19,7 +19,7 @@ namespace CasaEngine.Assets.Graphics2D
 
         public void AddFrame(int spriteId, float delay, EventActor[] events)
         {
-            Frame2D frame = new Frame2D(spriteId, delay);
+            var frame = new Frame2D(spriteId, delay);
 #if EDITOR
             if (events != null)
             {
@@ -51,7 +51,7 @@ namespace CasaEngine.Assets.Graphics2D
 
         public void SetFrameDelay(int frameIndex, float delay)
         {
-            Frame2D frame = _frames[frameIndex];
+            var frame = _frames[frameIndex];
             frame.Time = delay;
             _frames[frameIndex] = frame;
             ComputeTotalTime();
@@ -59,7 +59,7 @@ namespace CasaEngine.Assets.Graphics2D
 
         public void SetFrameEvents(int frameIndex, List<EventActor> eventList)
         {
-            Frame2D frame = _frames[frameIndex];
+            var frame = _frames[frameIndex];
             frame.Events = eventList;
             _frames[frameIndex] = frame;
         }
@@ -77,7 +77,7 @@ namespace CasaEngine.Assets.Graphics2D
 
         public void SetFrameSprite2D(int sprite2Did, int frameIndex)
         {
-            Frame2D frame = _frames[frameIndex];
+            var frame = _frames[frameIndex];
             frame.SpriteId = sprite2Did;
             _frames[frameIndex] = frame;
         }
@@ -86,28 +86,28 @@ namespace CasaEngine.Assets.Graphics2D
         {
             base.Save(el, option);
 
-            XmlElement animNode = el.OwnerDocument.CreateElement("Animation2D");
+            var animNode = el.OwnerDocument.CreateElement("Animation2D");
             el.AppendChild(animNode);
 
             el.OwnerDocument.AddAttribute(animNode, "version", Version.ToString());
             el.OwnerDocument.AddAttribute(animNode, "name", _name);
             el.OwnerDocument.AddAttribute(animNode, "type", Enum.GetName(typeof(Animation2DType), _animation2DType));
 
-            XmlElement frameListNode = el.OwnerDocument.CreateElement("FrameList");
+            var frameListNode = el.OwnerDocument.CreateElement("FrameList");
             animNode.AppendChild(frameListNode);
 
-            for (int i = 0; i < _frames.Count; i++)
+            for (var i = 0; i < _frames.Count; i++)
             {
-                XmlElement frameNode = el.OwnerDocument.CreateElement("Frame");
+                var frameNode = el.OwnerDocument.CreateElement("Frame");
                 el.OwnerDocument.AddAttribute(frameNode, "spriteID", _frames[i].SpriteId.ToString());
                 el.OwnerDocument.AddAttribute(frameNode, "time", GetFrameTime(i).ToString());
 
                 //events
-                XmlElement eventListNode = el.OwnerDocument.CreateElement("EventNodeList");
+                var eventListNode = el.OwnerDocument.CreateElement("EventNodeList");
                 frameNode.AppendChild(eventListNode);
-                foreach (EventActor e in _frames[i].Events)
+                foreach (var e in _frames[i].Events)
                 {
-                    XmlElement eventNode = el.OwnerDocument.CreateElement("EventNode");
+                    var eventNode = el.OwnerDocument.CreateElement("EventNode");
                     eventListNode.AppendChild(eventNode);
                     e.Save(eventNode, option);
                 }
@@ -125,13 +125,13 @@ namespace CasaEngine.Assets.Graphics2D
             bw.Write((int)_animation2DType);
             bw.Write(_frames.Count);
 
-            for (int i = 0; i < _frames.Count; i++)
+            for (var i = 0; i < _frames.Count; i++)
             {
                 bw.Write(_frames[i].SpriteId);
                 bw.Write(GetFrameTime(i));
                 bw.Write(_frames[i].Events.Count);
 
-                foreach (EventActor e in _frames[i].Events)
+                foreach (var e in _frames[i].Events)
                 {
                     e.Save(bw, option);
                 }
@@ -142,7 +142,7 @@ namespace CasaEngine.Assets.Graphics2D
         {
             if (index < _frames.Count - 1)
             {
-                Frame2D frameTmp = _frames[index + 1];
+                var frameTmp = _frames[index + 1];
                 _frames[index + 1] = _frames[index];
                 _frames[index] = frameTmp;
             }
@@ -152,7 +152,7 @@ namespace CasaEngine.Assets.Graphics2D
         {
             if (index > 0)
             {
-                Frame2D frameTmp = _frames[index - 1];
+                var frameTmp = _frames[index - 1];
                 _frames[index - 1] = _frames[index];
                 _frames[index] = frameTmp;
             }
@@ -162,7 +162,7 @@ namespace CasaEngine.Assets.Graphics2D
         {
             if (other is Animation2D)
             {
-                Animation2D o = other as Animation2D;
+                var o = other as Animation2D;
 
                 if (_animation2DType != o._animation2DType
                     || _frames.Count != o._frames.Count)
@@ -170,7 +170,7 @@ namespace CasaEngine.Assets.Graphics2D
                     return false;
                 }
 
-                for (int i = 0; i < _frames.Count; i++)
+                for (var i = 0; i < _frames.Count; i++)
                 {
                     if (_frames[i].CompareTo(o._frames[i]) == false)
                     {

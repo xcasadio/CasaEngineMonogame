@@ -11,7 +11,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls
 {
 
 
@@ -48,11 +48,22 @@ namespace XNAFinalEngine.UserInterface
                     if (_value != value)
                     {
                         _value = value;
-                        if (_value > _range) _value = _range;
-                        if (_value < 0) _value = 0;
+                        if (_value > _range)
+                        {
+                            _value = _range;
+                        }
+
+                        if (_value < 0)
+                        {
+                            _value = 0;
+                        }
+
                         Invalidate();
 
-                        if (!Suspended) OnValueChanged(new EventArgs());
+                        if (!Suspended)
+                        {
+                            OnValueChanged(new EventArgs());
+                        }
                     }
                 }
             }
@@ -80,7 +91,10 @@ namespace XNAFinalEngine.UserInterface
                     }
                     Invalidate();
 
-                    if (!Suspended) OnModeChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnModeChanged(new EventArgs());
+                    }
                 }
             }
         } // Mode
@@ -95,11 +109,22 @@ namespace XNAFinalEngine.UserInterface
                     if (_mode == ProgressBarMode.Default)
                     {
                         _range = value;
-                        if (_range < 0) _range = 0;
-                        if (_range < _value) _value = _range;
+                        if (_range < 0)
+                        {
+                            _range = 0;
+                        }
+
+                        if (_range < _value)
+                        {
+                            _value = _range;
+                        }
+
                         Invalidate();
 
-                        if (!Suspended) OnRangeChanged(new EventArgs());
+                        if (!Suspended)
+                        {
+                            OnRangeChanged(new EventArgs());
+                        }
                     }
                 }
             }
@@ -146,25 +171,33 @@ namespace XNAFinalEngine.UserInterface
 
             if (Value > 0 || _mode == ProgressBarMode.Infinite)
             {
-                SkinLayer p = SkinInformation.Layers["Control"];
-                SkinLayer l = SkinInformation.Layers["Scale"];
-                Rectangle r = new Rectangle(rect.Left + p.ContentMargins.Left,
+                var p = SkinInformation.Layers["Control"];
+                var l = SkinInformation.Layers["Scale"];
+                var r = new Rectangle(rect.Left + p.ContentMargins.Left,
                                             rect.Top + p.ContentMargins.Top,
                                             rect.Width - p.ContentMargins.Vertical,
                                             rect.Height - p.ContentMargins.Horizontal);
 
-                float perc = ((float)_value / _range) * 100;
-                int w = (int)((perc / 100) * r.Width);
+                var perc = ((float)_value / _range) * 100;
+                var w = (int)((perc / 100) * r.Width);
                 Rectangle rx;
                 if (_mode == ProgressBarMode.Default)
                 {
-                    if (w < l.SizingMargins.Vertical) w = l.SizingMargins.Vertical;
+                    if (w < l.SizingMargins.Vertical)
+                    {
+                        w = l.SizingMargins.Vertical;
+                    }
+
                     rx = new Rectangle(r.Left, r.Top, w, r.Height);
                 }
                 else
                 {
-                    int s = r.Left + w;
-                    if (s > r.Left + p.ContentMargins.Left + r.Width - (r.Width / 4)) s = r.Left + p.ContentMargins.Left + r.Width - (r.Width / 4);
+                    var s = r.Left + w;
+                    if (s > r.Left + p.ContentMargins.Left + r.Width - (r.Width / 4))
+                    {
+                        s = r.Left + p.ContentMargins.Left + r.Width - (r.Width / 4);
+                    }
+
                     rx = new Rectangle(s, r.Top, (r.Width / 4), r.Height);
                 }
 
@@ -204,17 +237,26 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnValueChanged(EventArgs e)
         {
-            if (ValueChanged != null) ValueChanged.Invoke(this, e);
+            if (ValueChanged != null)
+            {
+                ValueChanged.Invoke(this, e);
+            }
         } // OnValueChanged
 
         protected virtual void OnRangeChanged(EventArgs e)
         {
-            if (RangeChanged != null) RangeChanged.Invoke(this, e);
+            if (RangeChanged != null)
+            {
+                RangeChanged.Invoke(this, e);
+            }
         } // OnRangeChanged
 
         protected virtual void OnModeChanged(EventArgs e)
         {
-            if (ModeChanged != null) ModeChanged.Invoke(this, e);
+            if (ModeChanged != null)
+            {
+                ModeChanged.Invoke(this, e);
+            }
         } // OnModeChanged
 
 

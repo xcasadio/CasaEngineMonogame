@@ -11,7 +11,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+
+namespace CasaEngine.UserInterface.Controls.Sliders
 {
 
 
@@ -53,7 +56,10 @@ namespace XNAFinalEngine.UserInterface
             {
                 _minimumValue = value;
                 RecalculateParameters();
-                if (!Suspended) OnRangeChanged(new EventArgs());
+                if (!Suspended)
+                {
+                    OnRangeChanged(new EventArgs());
+                }
             }
         } // MinimumValue
 
@@ -64,7 +70,10 @@ namespace XNAFinalEngine.UserInterface
             {
                 _maximumValue = value;
                 RecalculateParameters();
-                if (!Suspended) OnRangeChanged(new EventArgs());
+                if (!Suspended)
+                {
+                    OnRangeChanged(new EventArgs());
+                }
             }
         } // MaximumValue
 
@@ -82,12 +91,19 @@ namespace XNAFinalEngine.UserInterface
                     _internalValue = value;
                     if (!ValueCanBeOutOfRange) // Then, we need to check that the internal value is between 0 and 100.
                     {
-                        if (_internalValue < 0) _internalValue = 0;
-                        if (_internalValue > 100) _internalValue = 100;
+                        if (_internalValue < 0)
+                        {
+                            _internalValue = 0;
+                        }
+
+                        if (_internalValue > 100)
+                        {
+                            _internalValue = 100;
+                        }
                     }
                     else if (IfOutOfRangeRescale) // Is posible that we need to rescale. In other words the maximum or minimum value changes.
                     {
-                        float tempCurrentRealValue = CalculateRealValue(_internalValue);
+                        var tempCurrentRealValue = CalculateRealValue(_internalValue);
                         if (_internalValue < 0)
                         {
                             _minimumValue = _minimumValue - (2 * (_minimumValue - CalculateRealValue(_internalValue)));
@@ -101,7 +117,9 @@ namespace XNAFinalEngine.UserInterface
                     }
                     Invalidate();
                     if (!Suspended)
+                    {
                         OnValueChanged(new EventArgs());
+                    }
                 }
             }
         } // InternalValue
@@ -120,9 +138,16 @@ namespace XNAFinalEngine.UserInterface
                 if (_pageSize != value)
                 {
                     _pageSize = value;
-                    if (_pageSize > 100) _pageSize = 100;
+                    if (_pageSize > 100)
+                    {
+                        _pageSize = 100;
+                    }
+
                     RecalculateParameters();
-                    if (!Suspended) OnPageSizeChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnPageSizeChanged(new EventArgs());
+                    }
                 }
             }
         } // PageSize
@@ -135,8 +160,15 @@ namespace XNAFinalEngine.UserInterface
                 if (_stepSize != value)
                 {
                     _stepSize = value;
-                    if (_stepSize > 100) _stepSize = 100;
-                    if (!Suspended) OnStepSizeChanged(new EventArgs());
+                    if (_stepSize > 100)
+                    {
+                        _stepSize = 100;
+                    }
+
+                    if (!Suspended)
+                    {
+                        OnStepSizeChanged(new EventArgs());
+                    }
                 }
             }
         } // StepSize
@@ -224,25 +256,30 @@ namespace XNAFinalEngine.UserInterface
         {
             RecalculateParameters();
 
-            SkinLayer p = SkinInformation.Layers["Control"];
-            SkinLayer l = SkinInformation.Layers["ScaleOrange"];
+            var p = SkinInformation.Layers["Control"];
+            var l = SkinInformation.Layers["ScaleOrange"];
 
             const float ratio = 0.66f;
-            int h = (int)(ratio * rect.Height);
-            int t = rect.Top + (Height - h) / 2;
+            var h = (int)(ratio * rect.Height);
+            var t = rect.Top + (Height - h) / 2;
 
-            float px = ((float)_internalValue / (float)100);
-            int w = (int)Math.Ceiling(px * (rect.Width - p.ContentMargins.Horizontal - _buttonSlider.Width)) + 2;
+            var px = ((float)_internalValue / (float)100);
+            var w = (int)Math.Ceiling(px * (rect.Width - p.ContentMargins.Horizontal - _buttonSlider.Width)) + 2;
 
             if (w < l.SizingMargins.Vertical)
+            {
                 w = l.SizingMargins.Vertical;
+            }
+
             if (w > rect.Width - p.ContentMargins.Horizontal)
+            {
                 w = rect.Width - p.ContentMargins.Horizontal;
+            }
 
             // Draw control
             base.DrawControl(new Rectangle(rect.Left, t, rect.Width, h));
             // Draw progress line.
-            Rectangle r1 = new Rectangle(rect.Left + p.ContentMargins.Left, t + p.ContentMargins.Top, w, h - p.ContentMargins.Vertical);
+            var r1 = new Rectangle(rect.Left + p.ContentMargins.Left, t + p.ContentMargins.Top, w, h - p.ContentMargins.Vertical);
             if (_drawScale)
             {
                 switch (_scaleColor)
@@ -271,19 +308,26 @@ namespace XNAFinalEngine.UserInterface
 
         private void ButtonSlider_Move(object sender, MoveEventArgs e)
         {
-            SkinLayer p = SkinInformation.Layers["Control"];
-            int size = _buttonSlider.Width;
-            int w = Width - p.ContentMargins.Horizontal - size;
-            int pos = e.Left;
+            var p = SkinInformation.Layers["Control"];
+            var size = _buttonSlider.Width;
+            var w = Width - p.ContentMargins.Horizontal - size;
+            var pos = e.Left;
 
-            if (pos < p.ContentMargins.Left) pos = p.ContentMargins.Left;
-            if (pos > w + p.ContentMargins.Left) pos = w + p.ContentMargins.Left;
+            if (pos < p.ContentMargins.Left)
+            {
+                pos = p.ContentMargins.Left;
+            }
+
+            if (pos > w + p.ContentMargins.Left)
+            {
+                pos = w + p.ContentMargins.Left;
+            }
 
             _buttonSlider.SetPosition(pos, 0);
-            float px = (float)100 / (float)w;
+            var px = (float)100 / (float)w;
 
             // Update value. But in this case the value can't be out of range.
-            bool temp = ValueCanBeOutOfRange;
+            var temp = ValueCanBeOutOfRange;
             ValueCanBeOutOfRange = false;
             InternalValue = (pos - p.ContentMargins.Left) * px;
             ValueCanBeOutOfRange = temp;
@@ -292,17 +336,29 @@ namespace XNAFinalEngine.UserInterface
         void ButtonSlider_KeyPress(object sender, KeyEventArgs e)
         {
             if (e.Key == Keys.Left || e.Key == Keys.Down)
+            {
                 InternalValue -= _stepSize;
+            }
             else if (e.Key == Keys.Right || e.Key == Keys.Up)
+            {
                 InternalValue += _stepSize;
+            }
             else if (e.Key == Keys.PageDown)
+            {
                 InternalValue -= _pageSize;
+            }
             else if (e.Key == Keys.PageUp)
+            {
                 InternalValue += _pageSize;
+            }
             else if (e.Key == Keys.Home)
+            {
                 InternalValue = 0;
+            }
             else if (e.Key == Keys.End)
+            {
                 InternalValue = 100;
+            }
         } // ButtonSlider_KeyPress
 
 
@@ -320,19 +376,24 @@ namespace XNAFinalEngine.UserInterface
                     _buttonSlider.Glyph = null;
                 }
 
-                SkinLayer p = SkinInformation.Layers["Control"];
+                var p = SkinInformation.Layers["Control"];
                 _buttonSlider.Width = (int)(Height * 0.8);
                 _buttonSlider.Height = Height;
-                int size = _buttonSlider.Width;
-                int w = Width - p.ContentMargins.Horizontal - size;
+                var size = _buttonSlider.Width;
+                var w = Width - p.ContentMargins.Horizontal - size;
 
-                float px = (float)100 / (float)w;
-                int pos = p.ContentMargins.Left + (int)(Math.Ceiling(_internalValue / (float)px));
+                var px = (float)100 / (float)w;
+                var pos = p.ContentMargins.Left + (int)(Math.Ceiling(_internalValue / (float)px));
 
                 if (pos < p.ContentMargins.Left)
+                {
                     pos = p.ContentMargins.Left;
+                }
+
                 if (pos > w + p.ContentMargins.Left)
+                {
                     pos = w + p.ContentMargins.Left;
+                }
 
                 _buttonSlider.SetPosition(pos, 0);
             }
@@ -344,23 +405,32 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseDown(e);
             if (SliderDown != null)
+            {
                 SliderDown(this, e);
+            }
         } // OnMouseDown
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
             if (SliderUp != null)
+            {
                 SliderUp(this, e);
+            }
         } // OnMouseUp
 
         protected override void OnMousePress(MouseEventArgs e)
         {
             base.OnMousePress(e);
             if (e.Button == MouseButton.Left)
+            {
                 _buttonSlider.Left = e.Position.X - _buttonSlider.Width / 2;
+            }
+
             if (SliderPress != null)
+            {
                 SliderPress(this, e);
+            }
         } // OnMousePress
 
         protected override void OnResize(ResizeEventArgs e)
@@ -372,25 +442,33 @@ namespace XNAFinalEngine.UserInterface
         protected virtual void OnValueChanged(EventArgs e)
         {
             if (ValueChanged != null)
+            {
                 ValueChanged.Invoke(this, e);
+            }
         } // OnValueChanged
 
         protected virtual void OnRangeChanged(EventArgs e)
         {
             if (RangeChanged != null)
+            {
                 RangeChanged.Invoke(this, e);
+            }
         } // OnRangeChanged
 
         protected virtual void OnPageSizeChanged(EventArgs e)
         {
             if (PageSizeChanged != null)
+            {
                 PageSizeChanged.Invoke(this, e);
+            }
         } // OnPageSizeChanged
 
         protected virtual void OnStepSizeChanged(EventArgs e)
         {
             if (StepSizeChanged != null)
+            {
                 StepSizeChanged.Invoke(this, e);
+            }
         } // OnStepSizeChanged
 
 

@@ -26,7 +26,7 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
 
     public struct RectangleF

@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenVariable
         : ParserToken
@@ -18,12 +18,12 @@
 
         public override bool Check(string sentence)
         {
-            if (string.IsNullOrEmpty(sentence) == true)
+            if (string.IsNullOrEmpty(sentence))
             {
                 return true;
             }
 
-            int c = (int)sentence.ToCharArray(0, 1)[0];
+            var c = (int)sentence.ToCharArray(0, 1)[0];
 
             if (c >= (int)'0' || c <= (int)'9')
             {

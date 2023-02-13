@@ -10,7 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+
+namespace CasaEngine.UserInterface.Controls.Group
 {
 
     public class GroupPanel : Container
@@ -30,9 +32,9 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer layer = SkinInformation.Layers["Control"];
-            Font font = (layer.Text != null && layer.Text.Font != null) ? layer.Text.Font.Font : null;
-            Point offset = new Point(layer.Text.OffsetX, layer.Text.OffsetY);
+            var layer = SkinInformation.Layers["Control"];
+            var font = (layer.Text != null && layer.Text.Font != null) ? layer.Text.Font.Font : null;
+            var offset = new Point(layer.Text.OffsetX, layer.Text.OffsetY);
 
             UserInterfaceManager.Renderer.DrawLayer(this, layer, rect);
 

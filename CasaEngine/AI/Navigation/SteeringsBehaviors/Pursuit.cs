@@ -4,12 +4,12 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
 {
     public class Pursuit : SteeringBehavior
     {
-        protected internal MovingEntity evader;
+        protected internal MovingObject evader;
         protected internal Seek Seek;
         protected internal Vector3 force;
         protected internal Vector3 targetPosition;
 
-        public Pursuit(string name, MovingEntity owner, float modifier)
+        public Pursuit(string name, MovingObject owner, float modifier)
             : base(name, owner, modifier)
         {
             Seek = new Seek(name + "Seek", owner, 0);
@@ -45,7 +45,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             }
         }
 
-        public MovingEntity Evader
+        public MovingObject Evader
         {
             get => evader;
             set => evader = value;
@@ -91,7 +91,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             return force;
         }
 
-        private float TurnTime(MovingEntity agent, Vector3 position)
+        private float TurnTime(MovingObject agent, Vector3 position)
         {
             Vector3 toTarget;
             float dot;

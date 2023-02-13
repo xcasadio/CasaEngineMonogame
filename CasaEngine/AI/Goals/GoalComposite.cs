@@ -1,20 +1,19 @@
+using CasaEngine.Gameplay;
+using CasaEngine.Gameplay.Actor;
+
 namespace CasaEngine.AI.Goals
 {
     [Serializable]
-    public abstract class GoalComposite<T> : Goal<T> where T : BaseEntity
+    public abstract class GoalComposite<T> : Goal<T> where T : BaseObject
     {
 
         protected internal List<Goal<T>> SubGoals;
-
-
 
         public GoalComposite(T owner)
             : base(owner)
         {
             SubGoals = new List<Goal<T>>();
         }
-
-
 
         public override void Terminate()
         {
@@ -35,8 +34,6 @@ namespace CasaEngine.AI.Goals
         {
             return ForwardMessage(message);
         }
-
-
 
         protected GoalProcessingState ProcessSubgoals()
         {
@@ -71,7 +68,7 @@ namespace CasaEngine.AI.Goals
 
         protected void RemoveAllSubgoals()
         {
-            for (int i = 0; i < SubGoals.Count; i++)
+            for (var i = 0; i < SubGoals.Count; i++)
             {
                 SubGoals[i].Terminate();
             }

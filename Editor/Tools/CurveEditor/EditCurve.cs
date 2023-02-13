@@ -5,14 +5,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Forms;
-using System.IO;
-using System.Xml;
-
-using System.Drawing;
-
 using Microsoft.Xna.Framework;
 
 namespace Editor.Tools.CurveEditor

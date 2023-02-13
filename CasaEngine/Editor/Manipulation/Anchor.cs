@@ -65,9 +65,9 @@ namespace CasaEngine.Editor.Manipulation
         {
             get
             {
-                foreach (Anchor a in _anchors)
+                foreach (var a in _anchors)
                 {
-                    if (a.IsManipulating == true)
+                    if (a.IsManipulating)
                     {
                         return false;
                     }
@@ -149,8 +149,8 @@ namespace CasaEngine.Editor.Manipulation
                 && controlKeyPressed == false
                 && altKeyPressed == false)
             {
-                int offsetX = MoveOnX ? mouseState.X - (int)_mouseStart.X : 0;
-                int offsetY = MoveOnY ? mouseState.Y - (int)_mouseStart.Y : 0;
+                var offsetX = MoveOnX ? mouseState.X - (int)_mouseStart.X : 0;
+                var offsetY = MoveOnY ? mouseState.Y - (int)_mouseStart.Y : 0;
 
                 _position = new Vector2(_position.X + offsetX, _position.Y + offsetY);
 
@@ -162,7 +162,7 @@ namespace CasaEngine.Editor.Manipulation
 
             if (mouseState.LeftButton == ButtonState.Released)
             {
-                if (IsManipulating == true)
+                if (IsManipulating)
                 {
                     IsManipulating = false;
                     if (FinishManipulating != null)
@@ -172,11 +172,11 @@ namespace CasaEngine.Editor.Manipulation
                 }
             }
 
-            if (Bounds.Contains(mouseX, mouseY) == true)
+            if (Bounds.Contains(mouseX, mouseY))
             {
                 if (mouseState.LeftButton == ButtonState.Pressed
                     && _mousePressed == false
-                    && CanManipulate == true)
+                    && CanManipulate)
                 {
                     if (IsManipulating == false
                         && StartManipulating != null)
@@ -190,7 +190,7 @@ namespace CasaEngine.Editor.Manipulation
 
                 _isOver = true;
 
-                if (IsManipulating == true)
+                if (IsManipulating)
                 {
                     InvokeCursorChanged(CursorPressed);
                 }
@@ -202,7 +202,7 @@ namespace CasaEngine.Editor.Manipulation
             else
             {
                 if (IsManipulating == false
-                    && _isOver == true)
+                    && _isOver)
                 {
                     InvokeCursorChanged(Cursors.Default);
                     _isOver = false;
@@ -215,7 +215,7 @@ namespace CasaEngine.Editor.Manipulation
                     _shiftPressed = true;
                 }
                 else if (shiftKeyPressed == false
-                    && _shiftPressed == true)
+                    && _shiftPressed)
                 {
                     InvokeCursorChanged(Cursors.Default);
                     _shiftPressed = false;
@@ -228,7 +228,7 @@ namespace CasaEngine.Editor.Manipulation
                     _controlPressed = true;
                 }
                 else if (controlKeyPressed == false
-                    && _controlPressed == true)
+                    && _controlPressed)
                 {
                     InvokeCursorChanged(Cursors.Default);
                     _controlPressed = false;
@@ -269,7 +269,7 @@ namespace CasaEngine.Editor.Manipulation
             _position.X = x;
             _position.Y = y;
 
-            if (callHandler == true
+            if (callHandler
                 && LocationChanged != null)
             {
                 LocationChanged.Invoke(this, new AnchorLocationChangedEventArgs(x, y));
@@ -281,7 +281,7 @@ namespace CasaEngine.Editor.Manipulation
             _position.X += offsetX;
             _position.Y += offsetY;
 
-            if (callHandler == true
+            if (callHandler
                 && LocationChanged != null)
             {
                 LocationChanged.Invoke(this, new AnchorLocationChangedEventArgs(offsetX, offsetY));

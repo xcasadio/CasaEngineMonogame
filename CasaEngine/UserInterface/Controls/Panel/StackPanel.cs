@@ -10,7 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+
+namespace CasaEngine.UserInterface.Controls.Panel
 {
     public class StackPanel : Container
     {
@@ -38,12 +40,12 @@ namespace XNAFinalEngine.UserInterface
 
         private void CalculateLayout()
         {
-            int top = Top;
-            int left = Left;
+            var top = Top;
+            var left = Left;
 
-            foreach (Control c in ClientArea.ChildrenControls)
+            foreach (var c in ClientArea.ChildrenControls)
             {
-                Margins m = c.DefaultDistanceFromAnotherControl;
+                var m = c.DefaultDistanceFromAnotherControl;
 
                 if (_orientation == Orientation.Vertical)
                 {

@@ -1,7 +1,7 @@
-﻿using CasaEngine.Graphics2D;
-using CasaEngine.Assets.Graphics2D;
+﻿using CasaEngine.Assets.Graphics2D;
+using CasaEngine.Graphics2D;
 
-namespace CasaEngine.Particle
+namespace CasaEngine.Visual_Effects.Particle
 {
     public class ParticleAnimation2D
         : Particle
@@ -16,10 +16,10 @@ namespace CasaEngine.Particle
 
         public ParticleAnimation2D(Animation2D anim2D)
         {
-            Dictionary<int, Animation2D> dic = new Dictionary<int, Animation2D>();
+            var dic = new Dictionary<int, Animation2D>();
             dic.Add(0, anim2D);
             _animation2DPlayer = new Animation2DPlayer(dic);
-            _animation2DPlayer.OnEndAnimationReached += new EventHandler(OnEndAnimationReached);
+            _animation2DPlayer.OnEndAnimationReached += OnEndAnimationReached;
         }
 
         void OnEndAnimationReached(object sender, EventArgs e)

@@ -1,11 +1,10 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using CasaEngine.Core_Systems.Game;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.CoreSystems.Game;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public class LoadingScreen
         : Screen
@@ -36,11 +35,11 @@ namespace CasaEngine.FrontEnd.Screen
                                 params Screen[] screensToLoad)
         {
             // Tell all the current screens to transition off.
-            foreach (Screen screen in screenManager.GetScreens())
+            foreach (var screen in screenManager.GetScreens())
                 screen.ExitScreen();
 
             // Create and activate the loading screen.
-            LoadingScreen loadingScreen = new LoadingScreen(screenManager,
+            var loadingScreen = new LoadingScreen(screenManager,
                                                             loadingIsSlow,
                                                             screensToLoad);
 
@@ -60,7 +59,7 @@ namespace CasaEngine.FrontEnd.Screen
             {
                 ScreenManagerComponent.RemoveScreen(this);
 
-                foreach (Screen screen in _screensToLoad)
+                foreach (var screen in _screensToLoad)
                 {
                     if (screen != null)
                     {
@@ -99,12 +98,12 @@ namespace CasaEngine.FrontEnd.Screen
                 const string message = "Loading...";
 
                 // Center the text in the viewport.
-                Viewport viewport = Engine.Instance.GraphicsDeviceManager.GraphicsDevice.Viewport;
-                Vector2 viewportSize = new Vector2(viewport.Width, viewport.Height);
-                Vector2 textSize = Engine.Instance.DefaultSpriteFont.MeasureString(message);
-                Vector2 textPosition = (viewportSize - textSize) / 2;
+                var viewport = Engine.Instance.GraphicsDeviceManager.GraphicsDevice.Viewport;
+                var viewportSize = new Vector2(viewport.Width, viewport.Height);
+                var textSize = Engine.Instance.DefaultSpriteFont.MeasureString(message);
+                var textPosition = (viewportSize - textSize) / 2;
 
-                Color color = new Color((byte)255, (byte)255, (byte)255, TransitionAlpha);
+                var color = new Color((byte)255, (byte)255, (byte)255, TransitionAlpha);
 
                 // Draw the text.
                 /*spriteBatch.Begin();

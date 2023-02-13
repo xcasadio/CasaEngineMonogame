@@ -6,16 +6,15 @@
 */
 
 
+using CasaEngine.Game;
 using Microsoft.Xna.Framework.Graphics;
 
-using CasaEngine.Game;
-
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets.Textures
 {
 
     public class LookupTable : Asset
     {
-        static private readonly string AssetContentManagerCategoryName = "temp";
+        private static readonly string AssetContentManagerCategoryName = "temp";
 
 
         public GraphicsDevice GraphicsDevice { get; private set; }
@@ -60,13 +59,13 @@ namespace CasaEngine.Asset
 
         private void Create(GraphicsDevice graphicsDevice, string filename)
         {
-            Texture lookupTableTexture2D = new Texture(graphicsDevice, filename);
+            var lookupTableTexture2D = new Texture(graphicsDevice, filename);
             // SideSize is inaccurate because Math.Pow is a bad way to calculate cube roots.
-            int sideSize = (int)System.Math.Pow(lookupTableTexture2D.Width * lookupTableTexture2D.Height, 1 / 3.0);
+            var sideSize = (int)System.Math.Pow(lookupTableTexture2D.Width * lookupTableTexture2D.Height, 1 / 3.0);
             // hence this second step to snap to nearest power of 2.
             Size = (int)System.Math.Pow(2, System.Math.Round(System.Math.Log(sideSize, 2)));
             //Create the cube lut and dump the 2d lut into it
-            Color[] colors = new Color[Size * Size * Size];
+            var colors = new Color[Size * Size * Size];
             Resource = new Texture3D(graphicsDevice, Size, Size, Size, false, SurfaceFormat.Color);
             lookupTableTexture2D.Resource.GetData(colors);
             Resource.SetData(colors);
@@ -87,18 +86,18 @@ namespace CasaEngine.Asset
 
         private static Texture3D IdentityTexture(GraphicsDevice graphicsDevice, int size)
         {
-            Color[] colors = new Color[size * size * size];
-            Texture3D lookupTableTexture = new Texture3D(graphicsDevice, size, size, size, false, SurfaceFormat.Color);
-            for (int redIndex = 0; redIndex < size; redIndex++)
+            var colors = new Color[size * size * size];
+            var lookupTableTexture = new Texture3D(graphicsDevice, size, size, size, false, SurfaceFormat.Color);
+            for (var redIndex = 0; redIndex < size; redIndex++)
             {
-                for (int greenIndex = 0; greenIndex < size; greenIndex++)
+                for (var greenIndex = 0; greenIndex < size; greenIndex++)
                 {
-                    for (int blueIndex = 0; blueIndex < size; blueIndex++)
+                    for (var blueIndex = 0; blueIndex < size; blueIndex++)
                     {
-                        float red = (float)redIndex / size;
-                        float green = (float)greenIndex / size;
-                        float blue = (float)blueIndex / size;
-                        Color col = new Color(red, green, blue);
+                        var red = (float)redIndex / size;
+                        var green = (float)greenIndex / size;
+                        var blue = (float)blueIndex / size;
+                        var col = new Color(red, green, blue);
                         colors[redIndex + (greenIndex * size) + (blueIndex * size * size)] = col;
                     }
                 }
@@ -113,9 +112,9 @@ namespace CasaEngine.Asset
         {
             // Calculate closest to square proportions for 2d table
             // We assume power-of-two sides, otherwise I don't know
-            int size = lookupTable.Resource.Width;
-            int side1 = size * size;
-            int side2 = size;
+            var size = lookupTable.Resource.Width;
+            var side1 = size * size;
+            var side2 = size;
             while (side1 / 2 >= side2 * 2)
             {
                 side1 /= 2;
@@ -123,8 +122,8 @@ namespace CasaEngine.Asset
             }
 
             // Dump 3D texture into 2D texture.
-            Color[] colors = new Color[size * size * size];
-            Texture2D lookupTable2DTexture = new Texture2D(graphicsDevice, side1, side2, false, SurfaceFormat.Color);
+            var colors = new Color[size * size * size];
+            var lookupTable2DTexture = new Texture2D(graphicsDevice, side1, side2, false, SurfaceFormat.Color);
             lookupTable.Resource.GetData(colors);
             lookupTable2DTexture.SetData(colors);
             return new Texture(lookupTable2DTexture) { Name = lookupTable.Name + "-Texture" };

@@ -3,11 +3,15 @@
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<Configurations>Debug;Release;DebugEditor</Configurations>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' ">
 		<DefineConstants>TRACE;DEBUG;WINDOWS;</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|x64'">
+	  <DefineConstants>TRACE;DEBUG;WINDOWS;</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' ">
 		<DefineConstants>TRACE;WINDOWS</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>

@@ -1,9 +1,11 @@
+using CasaEngine.Gameplay;
+using CasaEngine.Gameplay.Actor;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Navigation
 {
     [Serializable]
-    public abstract class MovingEntity : BaseEntity
+    public abstract class MovingObject : BaseObject
     {
         protected internal Vector3 position;
         protected internal Vector3 velocity;
@@ -82,17 +84,17 @@ namespace CasaEngine.AI.Navigation
         {
             if (PhysicEngine.Physic == null)
             {
-                throw new NullReferenceException("MovingEntity.CanMoveBetween() : PhysicEngine.Physic not defined");
+                throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
             }
             return !PhysicEngine.Physic.WorldRayCast(ref start, ref end, look);
         }
 
         protected override void Destroy()
         {
-            if (meshObject is BaseEntity)
+            if (meshObject is BaseObject)
             {
                 throw new NotImplementedException();
-                //EntityManager.Instance.RemoveEntity(meshObject as BaseEntity);
+                //EntityManager.Instance.RemoveEntity(meshObject as BaseObject);
             }
         }
 

@@ -8,7 +8,7 @@ namespace CasaEngine.Graphics2D
     public partial class Asset2DManager
     {
 
-        static private readonly uint Version = 1;
+        private static readonly uint Version = 1;
 
         public event EventHandler<Asset2DEventArg> AnimationAdded;
         public event EventHandler<Asset2DEventArg> AnimationRemoved;
@@ -26,7 +26,7 @@ namespace CasaEngine.Graphics2D
 
         public string[] GetAllSprite2DName()
         {
-            List<string> res = new List<string>();
+            var res = new List<string>();
 
             /*foreach(KeyValuePair<uint, Sprite2D> pair in _Sprite2DList)
 			{
@@ -89,7 +89,7 @@ namespace CasaEngine.Graphics2D
 
         public void ReplaceSprite2D(Sprite2D sprite2D)
         {
-            int id = int.MaxValue;
+            var id = int.MaxValue;
 
             /*foreach (KeyValuePair<uint, Sprite2D> pair in _Sprite2DList)
             {
@@ -111,9 +111,9 @@ namespace CasaEngine.Graphics2D
 
         public string[] GetAllAnimation2DName()
         {
-            List<string> res = new List<string>();
+            var res = new List<string>();
 
-            foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
+            foreach (var pair in _animation2DList)
             {
                 res.Add(pair.Value.Name);
             }
@@ -138,9 +138,9 @@ namespace CasaEngine.Graphics2D
         {
             name = name.ToLower();
 
-            foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
+            foreach (var pair in _animation2DList)
             {
-                if (pair.Value.Name.ToLower().Equals(name) == true)
+                if (pair.Value.Name.ToLower().Equals(name))
                 {
                     return false;
                 }
@@ -151,7 +151,7 @@ namespace CasaEngine.Graphics2D
 
         public bool RenameAnimation2D(string anim2DName, string newName)
         {
-            Animation2D tmp = GetAnimation2DByName(anim2DName);
+            var tmp = GetAnimation2DByName(anim2DName);
 
             if (tmp == null)
             {
@@ -177,9 +177,9 @@ namespace CasaEngine.Graphics2D
 
         public void DeleteAnimation2DByName(string name)
         {
-            foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
+            foreach (var pair in _animation2DList)
             {
-                if (pair.Value.Name.Equals(name) == true)
+                if (pair.Value.Name.Equals(name))
                 {
                     _animation2DList.Remove(pair.Key);
 
@@ -195,7 +195,7 @@ namespace CasaEngine.Graphics2D
 
         public void DeleteAnimation2DById(int id)
         {
-            string name = _animation2DList[id].Name;
+            var name = _animation2DList[id].Name;
             _animation2DList.Remove(id);
 
             if (AnimationRemoved != null)
@@ -209,22 +209,22 @@ namespace CasaEngine.Graphics2D
         {
             el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
-            XmlElement sprite2DListNode = el.OwnerDocument.CreateElement("Sprite2DList");
+            var sprite2DListNode = el.OwnerDocument.CreateElement("Sprite2DList");
             el.AppendChild(sprite2DListNode);
 
-            foreach (KeyValuePair<int, Sprite2D> pair in _sprite2DList)
+            foreach (var pair in _sprite2DList)
             {
-                XmlElement spriteNode = el.OwnerDocument.CreateElement("Sprite2D");
+                var spriteNode = el.OwnerDocument.CreateElement("Sprite2D");
                 sprite2DListNode.AppendChild(spriteNode);
                 pair.Value.Save(spriteNode, option);
             }
 
-            XmlElement anim2DListNode = el.OwnerDocument.CreateElement("Animation2DList");
+            var anim2DListNode = el.OwnerDocument.CreateElement("Animation2DList");
             el.AppendChild(anim2DListNode);
 
-            foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
+            foreach (var pair in _animation2DList)
             {
-                XmlElement animNode = el.OwnerDocument.CreateElement("Animation2D");
+                var animNode = el.OwnerDocument.CreateElement("Animation2D");
                 anim2DListNode.AppendChild(animNode);
                 pair.Value.Save(animNode, option);
             }
@@ -235,14 +235,14 @@ namespace CasaEngine.Graphics2D
             bw.Write(Version);
             bw.Write(_sprite2DList.Count);
 
-            foreach (KeyValuePair<int, Sprite2D> pair in _sprite2DList)
+            foreach (var pair in _sprite2DList)
             {
                 pair.Value.Save(bw, option);
             }
 
             bw.Write(_animation2DList.Count);
 
-            foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
+            foreach (var pair in _animation2DList)
             {
                 pair.Value.Save(bw, option);
             }

@@ -6,13 +6,13 @@
 //-----------------------------------------------------------------------------
 
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using CasaEngine.Core_Systems.Game;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.CoreSystems.Game;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public class MenuEntry
     {
@@ -67,7 +67,7 @@ namespace CasaEngine.FrontEnd.Screen
             // When the menu selection changes, entries gradually fade between
             // their selected and deselected appearance, rather than instantly
             // popping to the new state.
-            float fadeSpeed = elapsedTime * 4.0f;//(float)gameTime.ElapsedGameTime.TotalSeconds * 4;
+            var fadeSpeed = elapsedTime * 4.0f;//(float)gameTime.ElapsedGameTime.TotalSeconds * 4;
 
             if (isSelected)
             {
@@ -84,25 +84,25 @@ namespace CasaEngine.FrontEnd.Screen
                                  bool isSelected, float elapsedTime)
         {
             // Draw the selected entry in yellow, otherwise white.
-            Color color = isSelected ? Color.Yellow : Color.White;
+            var color = isSelected ? Color.Yellow : Color.White;
 
             // Pulsate the size of the selected menu entry.
             //double time = gameTime.TotalGameTime.TotalSeconds;
-            float time = elapsedTime;
+            var time = elapsedTime;
 
-            float pulsate = CasaEngineCommon.Helper.MathHelper.Sin(time * 6) + 1;
+            var pulsate = CasaEngineCommon.Helper.MathHelper.Sin(time * 6) + 1;
 
-            float scale = 1 + pulsate * 0.05f * _selectionFade;
+            var scale = 1 + pulsate * 0.05f * _selectionFade;
 
             // Modify the alpha to fade text out during transitions.
             color = new Color(color.R, color.G, color.B, screen.TransitionAlpha);
 
             // Draw text, centered on the middle of each line.
-            ScreenManagerComponent screenManager = screen.ScreenManagerComponent;
-            SpriteBatch spriteBatch = Engine.Instance.SpriteBatch;
-            SpriteFont font = Engine.Instance.DefaultSpriteFont;
+            var screenManager = screen.ScreenManagerComponent;
+            var spriteBatch = Engine.Instance.SpriteBatch;
+            var font = Engine.Instance.DefaultSpriteFont;
 
-            Vector2 origin = new Vector2(0, font.LineSpacing / 2);
+            var origin = new Vector2(0, font.LineSpacing / 2);
 
             position = Vector2.Subtract(position, origin);
 

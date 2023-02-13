@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using CasaEngine.Game;
+using CasaEngine.Gameplay.Actor;
 using CasaEngine.Project;
-using CasaEngine.Gameplay.Actor.Object;
 using CasaEngineCommon.Logger;
 
 namespace CasaEngine.Editor.Tools
@@ -15,38 +15,32 @@ namespace CasaEngine.Editor.Tools
 
         public event EventHandler EventExternalToolChanged;
 
-
-
-
-
-
-
         public void Initialize()
         {
             Clear();
 
-            if (string.IsNullOrEmpty(Engine.Instance.ProjectManager.ProjectPath) == true)
+            if (string.IsNullOrEmpty(Engine.Instance.ProjectManager.ProjectPath))
             {
                 return;
             }
 
-            string fullPath = Engine.Instance.ProjectManager.ProjectPath;
+            var fullPath = Engine.Instance.ProjectManager.ProjectPath;
             fullPath += Path.DirectorySeparatorChar + ProjectManager.ExternalToolsDirPath;
 
             //AppDomain.CurrentDomain.SetupInformation.PrivateBiAnPath = fullPath;
 
             Assembly assembly;
-            string msg = string.Empty;
+            var msg = string.Empty;
 
-            foreach (string file in Directory.GetFiles(fullPath, "*.dll"))
+            foreach (var file in Directory.GetFiles(fullPath, "*.dll"))
             {
                 assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(file));
 
                 try
                 {
-                    foreach (Type t in assembly.GetTypes())
+                    foreach (var t in assembly.GetTypes())
                     {
-                        foreach (Type intf in t.GetInterfaces())
+                        foreach (var intf in t.GetInterfaces())
                         {
                             if (intf.Equals(typeof(IContentObject)))
                             {
@@ -55,13 +49,13 @@ namespace CasaEngine.Editor.Tools
                             }
                         }
 
-                        foreach (object attribute in t.GetCustomAttributes(true))
+                        foreach (var attribute in t.GetCustomAttributes(true))
                         {
                             if (attribute is CustomEditor)
                             {
-                                foreach (Type inter in t.GetInterfaces())
+                                foreach (var inter in t.GetInterfaces())
                                 {
-                                    if (inter.Equals(typeof(IExternalTool)) == true)
+                                    if (inter.Equals(typeof(IExternalTool)))
                                     {
                                         RegisterEditor(attribute.ToString(), t);
                                         break;
@@ -73,7 +67,7 @@ namespace CasaEngine.Editor.Tools
                 }
                 catch (ReflectionTypeLoadException rtle)
                 {
-                    foreach (Exception e in rtle.LoaderExceptions)
+                    foreach (var e in rtle.LoaderExceptions)
                     {
                         msg += e.Message + "\n";
                     }
@@ -95,7 +89,7 @@ namespace CasaEngine.Editor.Tools
 
         public string[] GetAllCustomObjectNames()
         {
-            List<string> res = new List<string>();
+            var res = new List<string>();
 
             foreach (var pair in _customObjects)
             {
@@ -147,7 +141,6 @@ namespace CasaEngine.Editor.Tools
             _customObjectAssembly.Clear();
         }
 
-
         public void RunSubEditor(string path, BaseObject obj)
         {
             if (obj == null)
@@ -155,23 +148,23 @@ namespace CasaEngine.Editor.Tools
                 throw new ArgumentNullException("ExternalToolManager.RunSubEditor() : BaseObject is null");
             }
 
-            if (string.IsNullOrWhiteSpace(path) == true)
+            if (string.IsNullOrWhiteSpace(path))
             {
                 throw new ArgumentNullException("ExternalToolManager.RunSubEditor() : path_ is null or empty");
             }
 
-            if (_customEditorsTemplate.ContainsKey(obj.GetType().FullName) == true)
+            if (_customEditorsTemplate.ContainsKey(obj.GetType().FullName))
             {
-                Type t = _customEditorsTemplate[obj.GetType().FullName];
+                var t = _customEditorsTemplate[obj.GetType().FullName];
                 IExternalTool tool = null;
 
-                if (_customEditors.ContainsKey(t) == true)
+                if (_customEditors.ContainsKey(t))
                 {
                     tool = _customEditors[t];
                 }
 
                 if (tool == null
-                    || tool.ExternalTool.Window.IsDisposed == true)
+                    || tool.ExternalTool.Window.IsDisposed)
                 {
 #if !DEBUG
                     try
@@ -214,7 +207,6 @@ namespace CasaEngine.Editor.Tools
                 }
             }
         }
-
 
     }
 }

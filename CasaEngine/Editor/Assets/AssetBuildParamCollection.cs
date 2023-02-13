@@ -81,13 +81,13 @@ namespace CasaEngine.Editor.Assets
         public PropertyDescriptorCollection GetProperties()
         {
             // Create a collection object to hold property descriptors
-            PropertyDescriptorCollection pds = new PropertyDescriptorCollection(null);
+            var pds = new PropertyDescriptorCollection(null);
 
             // Iterate the list of employees
-            for (int i = 0; i < List.Count; i++)
+            for (var i = 0; i < List.Count; i++)
             {
                 // Create a property descriptor for the employee item and add to the property descriptor collection
-                AssetBuildParamCollectionPropertyDescriptor pd = new AssetBuildParamCollectionPropertyDescriptor(this, i);
+                var pd = new AssetBuildParamCollectionPropertyDescriptor(this, i);
                 pds.Add(pd);
             }
             // return the property descriptor collection
@@ -95,14 +95,14 @@ namespace CasaEngine.Editor.Assets
         }
 
 
-        static public int Compare(AssetBuildParamCollection c1, AssetBuildParamCollection c2)
+        public static int Compare(AssetBuildParamCollection c1, AssetBuildParamCollection c2)
         {
             if (c1.Count != c2.Count)
             {
                 return -1;
             }
 
-            for (int i = 0; i < c1.Count; i++)
+            for (var i = 0; i < c1.Count; i++)
             {
                 if (c1[i].Compare(c2[i]) == false)
                 {

@@ -60,13 +60,13 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
 
             //Create an empty array to copy the genes we select
             genes = new int[firstParent.Genotype.Count];
-            for (int i = 0; i < genes.Length; i++)
+            for (var i = 0; i < genes.Length; i++)
             {
                 genes[i] = -1;
             }
 
             //Copy all the genes of the first parent between the 2 crossover points
-            for (int i = first; i < second; i++)
+            for (var i = first; i < second; i++)
             {
                 genes[i] = firstParent[i];
             }
@@ -74,14 +74,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             //Take note of the genes from the first and second parent that were between the crossover points
             selectedGenes = new List<int>();
             combinableGenes = new List<int>();
-            for (int i = first; i < second; i++)
+            for (var i = first; i < second; i++)
             {
                 selectedGenes.Add(firstParent[i]);
                 combinableGenes.Add(secondParent[i]);
             }
 
             //Check if some selected gene from the second parent was between the selected genes and we mark it
-            for (int i = 0; i < selectedGenes.Count; i++)
+            for (var i = 0; i < selectedGenes.Count; i++)
             {
                 if (selectedGenes.Contains(combinableGenes[i]))
                 {
@@ -94,14 +94,14 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
                 combinableGenes.Remove(-1);
 
             //Search for the position to insert the non-marked genes
-            for (int i = 0; i < combinableGenes.Count; i++)
+            for (var i = 0; i < combinableGenes.Count; i++)
             {
                 position = SearchPosition(combinableGenes[i], firstParent, secondParent, first, second);
                 genes[position] = combinableGenes[i];
             }
 
             //Copy the left genes
-            for (int i = 0; i < genes.Length; i++)
+            for (var i = 0; i < genes.Length; i++)
             {
                 if (genes[i] == -1)
                 {
@@ -112,7 +112,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             //Create the new chromosome and return it
             chromosome = firstParent.FastEmptyInstance();
 
-            for (int i = 0; i < genes.Length; i++)
+            for (var i = 0; i < genes.Length; i++)
             {
                 chromosome.Genotype.Add(genes[i]);
             }

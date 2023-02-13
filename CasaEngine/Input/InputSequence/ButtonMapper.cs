@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Input;
 
-
-namespace CasaEngine.Input
+namespace CasaEngine.Input.InputSequence
 {
     public struct ButtonMapper
     {

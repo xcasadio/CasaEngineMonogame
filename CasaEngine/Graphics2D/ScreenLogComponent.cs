@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Core_Systems.Game;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
-using CasaEngine.CoreSystems.Game;
 using CasaEngineCommon.Helper;
 
 namespace CasaEngine.Graphics2D
@@ -34,7 +34,7 @@ namespace CasaEngine.Graphics2D
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing == true)
+            if (disposing)
             {
                 lock (this)
                 {
@@ -63,7 +63,7 @@ namespace CasaEngine.Graphics2D
 
         public void AddText(string text, SpriteFont spriteFont, Color color)
         {
-            LogText log = new LogText();
+            var log = new LogText();
             log.Color = color;
             log.Text = text;
             log.SpriteFont = spriteFont;
@@ -79,11 +79,11 @@ namespace CasaEngine.Graphics2D
 
         public override void Update(GameTime gameTime)
         {
-            List<LogText> toDelete = new List<LogText>();
+            var toDelete = new List<LogText>();
 
-            float elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
 
-            for (int i = 0; i < _logText.Count; i++)
+            for (var i = 0; i < _logText.Count; i++)
             {
                 _logText[i].Time += elapsedTime;
 
@@ -93,7 +93,7 @@ namespace CasaEngine.Graphics2D
                 }
             }
 
-            foreach (LogText log in toDelete)
+            foreach (var log in toDelete)
             {
                 _logText.Remove(log);
             }
@@ -108,9 +108,9 @@ namespace CasaEngine.Graphics2D
                 return;
             }
 
-            Vector2 pos = new Vector2(10, (float)GraphicsDevice.Viewport.Height * 0.75f);
+            var pos = new Vector2(10, (float)GraphicsDevice.Viewport.Height * 0.75f);
 
-            for (int i = _logText.Count - 1; i >= 0; i--)
+            for (var i = _logText.Count - 1; i >= 0; i--)
             {
                 _renderer2DComponent.AddText2D(_logText[i].SpriteFont, _logText[i].Text, pos, 0.0f, Vector2.One, _logText[i].Color, 0.99f);
                 pos.Y -= _logText[i].SpriteFont.MeasureString(_logText[i].Text).Y + 5;

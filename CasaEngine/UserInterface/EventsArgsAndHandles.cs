@@ -10,10 +10,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
+using CasaEngine.UserInterface.Controls.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface
 {
 
 

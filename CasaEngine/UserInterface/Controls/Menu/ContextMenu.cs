@@ -11,10 +11,11 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using CasaEngine.UserInterface.Controls.Windows;
 using Microsoft.Xna.Framework.Input;
 
-
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Menu
 {
 
     public class ContextMenu : MenuBase
@@ -66,33 +67,35 @@ namespace XNAFinalEngine.UserInterface
         {
             base.DrawControl(rect);
 
-            SkinLayer layerControl = SkinInformation.Layers["Control"];
-            SkinLayer layerSelection = SkinInformation.Layers["Selection"];
-            int verticalSize = LineHeight();
+            var layerControl = SkinInformation.Layers["Control"];
+            var layerSelection = SkinInformation.Layers["Selection"];
+            var verticalSize = LineHeight();
             Color color;
 
             // Find maximum width (not including right side text)
             // This information will be used to render the right side text, if any.
-            int maximumWidth = 0;
-            foreach (MenuItem menuItem in Items)
+            var maximumWidth = 0;
+            foreach (var menuItem in Items)
             {
-                int textWidth = (int)layerControl.Text.Font.Font.MeasureString(menuItem.Text).X + 16;
+                var textWidth = (int)layerControl.Text.Font.Font.MeasureString(menuItem.Text).X + 16;
                 if (textWidth > maximumWidth)
+                {
                     maximumWidth = textWidth;
+                }
             }
 
             // Render all menu items.
-            for (int i = 0; i < Items.Count; i++)
+            for (var i = 0; i < Items.Count; i++)
             {
-                int mod = i > 0 ? 2 : 0;
-                int left = rect.Left + layerControl.ContentMargins.Left + verticalSize;
-                int hight = verticalSize - mod - (i < (Items.Count - 1) ? 1 : 0);
-                int top = rect.Top + layerControl.ContentMargins.Top + (i * verticalSize) + mod;
+                var mod = i > 0 ? 2 : 0;
+                var left = rect.Left + layerControl.ContentMargins.Left + verticalSize;
+                var hight = verticalSize - mod - (i < (Items.Count - 1) ? 1 : 0);
+                var top = rect.Top + layerControl.ContentMargins.Top + (i * verticalSize) + mod;
 
 
                 if (Items[i].SeparationLine && i > 0)
                 {
-                    Rectangle rectangle = new Rectangle(left, rect.Top + layerControl.ContentMargins.Top + (i * verticalSize), LineWidth() - verticalSize + 4, 1);
+                    var rectangle = new Rectangle(left, rect.Top + layerControl.ContentMargins.Top + (i * verticalSize), LineWidth() - verticalSize + 4, 1);
                     UserInterfaceManager.Renderer.Draw(UserInterfaceManager.Skin.Controls["Control"].Layers[0].Image.Texture.Resource, rectangle, layerControl.Text.Colors.Enabled);
                 }
 
@@ -100,7 +103,7 @@ namespace XNAFinalEngine.UserInterface
                 {
                     if (Items[i].Enabled)
                     {
-                        Rectangle rectangle = new Rectangle(left, top, LineWidth() - verticalSize, hight);
+                        var rectangle = new Rectangle(left, top, LineWidth() - verticalSize, hight);
                         // Render Text.
                         UserInterfaceManager.Renderer.DrawString(this, layerControl, Items[i].Text, rectangle, false);
                         // Render Right Side Text.
@@ -114,7 +117,7 @@ namespace XNAFinalEngine.UserInterface
                     }
                     else
                     {
-                        Rectangle rectangle = new Rectangle(left + layerControl.Text.OffsetX, top + layerControl.Text.OffsetY, LineWidth() - verticalSize, hight);
+                        var rectangle = new Rectangle(left + layerControl.Text.OffsetX, top + layerControl.Text.OffsetY, LineWidth() - verticalSize, hight);
                         // Render Text.
                         UserInterfaceManager.Renderer.DrawString(layerControl.Text.Font.Font, Items[i].Text, rectangle, layerControl.Text.Colors.Disabled, layerControl.Text.Alignment);
                         // Render Right Side Text.
@@ -132,13 +135,13 @@ namespace XNAFinalEngine.UserInterface
                 {
                     if (Items[i].Enabled)
                     {
-                        Rectangle rs = new Rectangle(rect.Left + layerControl.ContentMargins.Left,
+                        var rs = new Rectangle(rect.Left + layerControl.ContentMargins.Left,
                                                      top,
                                                      Width - (layerControl.ContentMargins.Horizontal - SkinInformation.OriginMargins.Horizontal),
                                                      hight);
                         UserInterfaceManager.Renderer.DrawLayer(this, layerSelection, rs);
 
-                        Rectangle rectangle = new Rectangle(left, top, LineWidth() - verticalSize, hight);
+                        var rectangle = new Rectangle(left, top, LineWidth() - verticalSize, hight);
                         // Render String.
                         UserInterfaceManager.Renderer.DrawString(this, layerSelection, Items[i].Text, rectangle, false);
                         // Render Right Side Text.
@@ -152,13 +155,13 @@ namespace XNAFinalEngine.UserInterface
                     }
                     else
                     {
-                        Rectangle rs = new Rectangle(rect.Left + layerControl.ContentMargins.Left,
+                        var rs = new Rectangle(rect.Left + layerControl.ContentMargins.Left,
                                                      top,
                                                      Width - (layerControl.ContentMargins.Horizontal - SkinInformation.OriginMargins.Horizontal),
                                                      verticalSize);
                         UserInterfaceManager.Renderer.DrawLayer(layerSelection, rs, layerSelection.States.Disabled.Color, layerSelection.States.Disabled.Index);
 
-                        Rectangle rectangle = new Rectangle(left + layerControl.Text.OffsetX,
+                        var rectangle = new Rectangle(left + layerControl.Text.OffsetX,
                                                     top + layerControl.Text.OffsetY,
                                                     LineWidth() - verticalSize, hight);
                         // Render Text.
@@ -178,7 +181,7 @@ namespace XNAFinalEngine.UserInterface
 
                 if (Items[i].Icon != null)
                 {
-                    Rectangle r = new Rectangle(rect.Left + layerControl.ContentMargins.Left + 3, rect.Top + top + 3, LineHeight() - 6, LineHeight() - 6);
+                    var r = new Rectangle(rect.Left + layerControl.ContentMargins.Left + 3, rect.Top + top + 3, LineHeight() - 6, LineHeight() - 6);
                     UserInterfaceManager.Renderer.Draw(Items[i].Icon, r, Color.White);
                 }
 
@@ -193,7 +196,7 @@ namespace XNAFinalEngine.UserInterface
 
         private int LineHeight()
         {
-            int height = 0;
+            var height = 0;
             if (Items.Count > 0)
             {
                 height = SkinInformation.Layers["Control"].Text.Font.Font.LineSpacing + 9;
@@ -203,25 +206,35 @@ namespace XNAFinalEngine.UserInterface
 
         private int LineWidth()
         {
-            int maximumWidth = 0;
-            int maximumRightSideWidth = 0;
-            SkinFont font = SkinInformation.Layers["Control"].Text.Font;
+            var maximumWidth = 0;
+            var maximumRightSideWidth = 0;
+            var font = SkinInformation.Layers["Control"].Text.Font;
             if (Items.Count > 0)
             {
-                foreach (MenuItem item in Items)
+                foreach (var item in Items)
                 {
                     // Text maximum.
-                    int itemWidth = (int)font.Font.MeasureString(item.Text).X + 16;
+                    var itemWidth = (int)font.Font.MeasureString(item.Text).X + 16;
                     if (itemWidth > maximumWidth)
+                    {
                         maximumWidth = itemWidth;
+                    }
+
                     // Right side text maximum.
                     int itemRightSideWidth;
                     if (string.IsNullOrEmpty(item.RightSideText))
+                    {
                         itemRightSideWidth = 0;
+                    }
                     else
+                    {
                         itemRightSideWidth = (int)font.Font.MeasureString(item.RightSideText).X + 16;
+                    }
+
                     if (itemRightSideWidth > maximumRightSideWidth)
+                    {
                         maximumRightSideWidth = itemRightSideWidth;
+                    }
                 }
             }
             maximumWidth += maximumRightSideWidth + 4 + LineHeight();
@@ -232,7 +245,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void AutoSize()
         {
-            SkinText font = SkinInformation.Layers["Control"].Text;
+            var font = SkinInformation.Layers["Control"].Text;
             if (Items != null && Items.Count > 0)
             {
                 Height = (LineHeight() * Items.Count) + (SkinInformation.Layers["Control"].ContentMargins.Vertical - SkinInformation.OriginMargins.Vertical);
@@ -251,9 +264,9 @@ namespace XNAFinalEngine.UserInterface
         {
             if (Items != null && Items.Count > 0)
             {
-                int h = LineHeight();
+                var h = LineHeight();
                 y -= SkinInformation.Layers["Control"].ContentMargins.Top;
-                int i = (int)((float)y / h);
+                var i = (int)((float)y / h);
                 if (i < Items.Count)
                 {
                     if (i != ItemIndex && Items[i].Enabled)
@@ -289,7 +302,7 @@ namespace XNAFinalEngine.UserInterface
 
             AutoSize();
 
-            long time = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
+            var time = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
 
             if (_timer != 0 && time - _timer >= UserInterfaceManager.MenuDelay && ItemIndex >= 0 && Items[ItemIndex].Items.Count > 0 && ChildMenu == null)
             {
@@ -317,11 +330,15 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void OnClick(EventArgs e)
         {
-            if (_sender != null && !(_sender is MenuBase)) _sender.Focused = true;
+            if (_sender != null && !(_sender is MenuBase))
+            {
+                _sender.Focused = true;
+            }
+
             base.OnClick(e);
             _timer = 0;
 
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if (ex.Button == MouseButton.Left || ex.Button == MouseButton.None)
             {
@@ -338,9 +355,12 @@ namespace XNAFinalEngine.UserInterface
                             ChildMenu.Items.AddRange(Items[ItemIndex].Items);
                             (ChildMenu as ContextMenu).AutoSize();
                         }
-                        int y = ControlTopAbsoluteCoordinate + SkinInformation.Layers["Control"].ContentMargins.Top + (ItemIndex * LineHeight());
+                        var y = ControlTopAbsoluteCoordinate + SkinInformation.Layers["Control"].ContentMargins.Top + (ItemIndex * LineHeight());
                         ((ContextMenu)ChildMenu).Show(_sender, ControlLeftAbsoluteCoordinate + Width - 1, y);
-                        if (ex.Button == MouseButton.None) (ChildMenu as ContextMenu).ItemIndex = 0;
+                        if (ex.Button == MouseButton.None)
+                        {
+                            (ChildMenu as ContextMenu).ItemIndex = 0;
+                        }
                     }
                     else
                     {
@@ -348,7 +368,10 @@ namespace XNAFinalEngine.UserInterface
                         {
                             Items[ItemIndex].OnClick(ex);
                         }
-                        if (RootMenu is ContextMenu) (RootMenu as ContextMenu).HideMenu(true);
+                        if (RootMenu is ContextMenu)
+                        {
+                            (RootMenu as ContextMenu).HideMenu(true);
+                        }
                         else if (RootMenu is MainMenu)
                         {
                             (RootMenu as MainMenu).HideMenu();
@@ -376,8 +399,15 @@ namespace XNAFinalEngine.UserInterface
                 ItemIndex -= 1;
             }
 
-            if (ItemIndex > Items.Count - 1) ItemIndex = 0;
-            if (ItemIndex < 0) ItemIndex = Items.Count - 1;
+            if (ItemIndex > Items.Count - 1)
+            {
+                ItemIndex = 0;
+            }
+
+            if (ItemIndex < 0)
+            {
+                ItemIndex = Items.Count - 1;
+            }
 
             if (e.Key == Keys.Right && Items[ItemIndex].Items.Count > 0)
             {
@@ -396,7 +426,11 @@ namespace XNAFinalEngine.UserInterface
             if (e.Key == Keys.Escape)
             {
                 e.Handled = true;
-                if (ParentMenu != null) ParentMenu.Focused = true;
+                if (ParentMenu != null)
+                {
+                    ParentMenu.Focused = true;
+                }
+
                 HideMenu(true);
             }
         } // OnKeyPress
@@ -504,7 +538,7 @@ namespace XNAFinalEngine.UserInterface
                     y <= ControlTopAbsoluteCoordinate ||
                     y >= ControlTopAbsoluteCoordinate + Height)
                 {
-                    bool ret = false;
+                    var ret = false;
                     if (ChildMenu != null)
                     {
                         ret = ((ContextMenu)ChildMenu).CheckArea(x, y);

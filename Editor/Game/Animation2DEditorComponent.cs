@@ -1,16 +1,11 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Editor.UndoRedo;
+﻿using CasaEngine.Editor.UndoRedo;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Graphics2D;
 using CasaEngineCommon.Helper;
 using CasaEngine.Game;
-using CasaEngine.CoreSystems.Game;
-using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Assets.Graphics2D;
+using CasaEngine.Gameplay.Actor;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;

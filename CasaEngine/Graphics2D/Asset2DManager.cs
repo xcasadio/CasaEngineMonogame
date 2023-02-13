@@ -25,7 +25,7 @@ namespace CasaEngine.Graphics2D
 
         public void ClearLoadingList()
         {
-            foreach (int id in _sprite2DLoadingList)
+            foreach (var id in _sprite2DLoadingList)
             {
                 _sprite2DList[id].UnloadTexture();
             }
@@ -35,7 +35,7 @@ namespace CasaEngine.Graphics2D
 
         public void LoadLoadingList(ContentManager content)
         {
-            foreach (int id in _sprite2DLoadingList)
+            foreach (var id in _sprite2DLoadingList)
             {
                 _sprite2DList[id].LoadTexture(content);
             }
@@ -73,7 +73,7 @@ namespace CasaEngine.Graphics2D
                 throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Animation2D is null.");
             }
 
-            foreach (Frame2D frame in anim2D.GetFrames())
+            foreach (var frame in anim2D.GetFrames())
             {
                 AddSprite2DToLoadingList(frame.SpriteId);
             }
@@ -81,16 +81,16 @@ namespace CasaEngine.Graphics2D
 
         public void Load(XmlElement el, SaveOption option)
         {
-            uint version = uint.Parse(el.Attributes["version"].Value);
+            var version = uint.Parse(el.Attributes["version"].Value);
 
-            XmlNode sprite2DListNode = el.SelectSingleNode("Sprite2DList");
+            var sprite2DListNode = el.SelectSingleNode("Sprite2DList");
 
             foreach (XmlNode node in sprite2DListNode.ChildNodes)
             {
                 AddSprite2D(new Sprite2D((XmlElement)node, option));
             }
 
-            XmlNode animation2DListNode = el.SelectSingleNode("Animation2DList");
+            var animation2DListNode = el.SelectSingleNode("Animation2DList");
 
             foreach (XmlNode node in animation2DListNode.ChildNodes)
             {
@@ -118,9 +118,9 @@ namespace CasaEngine.Graphics2D
 
         public Animation2D GetAnimation2DByName(string name, StringComparison compare = StringComparison.InvariantCultureIgnoreCase)
         {
-            foreach (KeyValuePair<int, Animation2D> pair in _animation2DList)
+            foreach (var pair in _animation2DList)
             {
-                if (pair.Value.Name.Equals(name, compare) == true)
+                if (pair.Value.Name.Equals(name, compare))
                 {
                     return pair.Value;
                 }

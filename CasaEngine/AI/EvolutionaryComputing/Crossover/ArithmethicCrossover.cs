@@ -8,7 +8,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
         public ArithmethicCrossover(double probability, Random generator, double intervalModifier)
             : base(probability, generator)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateIntervalModifier(intervalModifier, ref message) == false)
             {
@@ -49,7 +49,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Crossover
             scaleFactor = Generator.NextDouble() * (1 - 2 * IntervalModifier) + IntervalModifier;
 
             //Calculate the genotype of each chromosome
-            for (int i = 0; i < parents[0].Genotype.Count; i++)
+            for (var i = 0; i < parents[0].Genotype.Count; i++)
             {
                 chromosome1.Genotype.Add(parents[0][i] * scaleFactor + parents[0][i] * (1 - scaleFactor));
                 chromosome2.Genotype.Add(parents[0][i] * (1 - scaleFactor) + parents[0][i] * scaleFactor);

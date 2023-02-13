@@ -1,7 +1,9 @@
-﻿namespace CasaEngine.AI.BehaviourTree
+﻿using CasaEngine.Gameplay;
+using CasaEngine.Gameplay.Actor;
+
+namespace CasaEngine.AI.BehaviourTree
 {
-    public abstract class BehaviourTreeNode<T>
-        : BaseEntity
+    public abstract class BehaviourTreeNode<T> : BaseObject
     {
         readonly string _name;
         readonly BehaviourTreeNode<T> _parent = null;

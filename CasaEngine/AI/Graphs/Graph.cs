@@ -30,9 +30,9 @@ namespace CasaEngine.AI.Graphs
         {
             get
             {
-                int count = 0;
+                var count = 0;
 
-                for (int i = 0; i < Nodes.Count; i++)
+                for (var i = 0; i < Nodes.Count; i++)
                 {
                     if (Nodes[i].Index != Edge.InvalidNode)
                     {
@@ -48,9 +48,9 @@ namespace CasaEngine.AI.Graphs
         {
             get
             {
-                int count = 0;
+                var count = 0;
 
-                for (int i = 0; i < Edges.Count; i++)
+                for (var i = 0; i < Edges.Count; i++)
                 {
                     count += Edges[i].Count;
                 }
@@ -63,11 +63,11 @@ namespace CasaEngine.AI.Graphs
         {
             get
             {
-                int count = 0;
+                var count = 0;
 
-                for (int i = 0; i < Edges.Count; i++)
+                for (var i = 0; i < Edges.Count; i++)
                 {
-                    for (int j = 0; j < Edges[i].Count; j++)
+                    for (var j = 0; j < Edges[i].Count; j++)
                     {
                         if ((Nodes[Edges[i][j].Start].Index != Edge.InvalidNode) && (Nodes[Edges[i][j].End].Index != Edge.InvalidNode))
                         {
@@ -99,7 +99,7 @@ namespace CasaEngine.AI.Graphs
         {
             if (IsNodeActive(start) && IsNodeActive(end))
             {
-                for (int i = 0; i < Edges[start].Count; i++)
+                for (var i = 0; i < Edges[start].Count; i++)
                 {
                     if (Edges[start][i].End == end)
                     {
@@ -125,7 +125,7 @@ namespace CasaEngine.AI.Graphs
         {
             if (IsNodeActive(start) && IsNodeActive(end))
             {
-                for (int i = 0; i < Edges[start].Count; i++)
+                for (var i = 0; i < Edges[start].Count; i++)
                 {
                     if (Edges[start][i].End == end)
                     {
@@ -177,7 +177,7 @@ namespace CasaEngine.AI.Graphs
         {
             if (IsNodeActive(start) && IsNodeActive(end))
             {
-                for (int i = 0; i < Edges[start].Count; i++)
+                for (var i = 0; i < Edges[start].Count; i++)
                 {
                     if (Edges[start][i].End == end)
                     {
@@ -189,7 +189,7 @@ namespace CasaEngine.AI.Graphs
                 //If the graph is a digraph remove the revesed edge
                 if (Digraph)
                 {
-                    for (int i = 0; i < Edges[end].Count; i++)
+                    for (var i = 0; i < Edges[end].Count; i++)
                     {
                         if (Edges[end][i].End == start)
                         {
@@ -218,17 +218,17 @@ namespace CasaEngine.AI.Graphs
 
         public void RemoveNode(T node)
         {
-            int nodeIndex = Nodes.IndexOf(node);
-            List<TK> toDelete = new List<TK>();
+            var nodeIndex = Nodes.IndexOf(node);
+            var toDelete = new List<TK>();
 
             Edges.RemoveAt(nodeIndex);
             Nodes.Remove(node);
 
-            foreach (List<TK> edgeList in Edges)
+            foreach (var edgeList in Edges)
             {
                 toDelete.Clear();
 
-                foreach (TK edge in edgeList)
+                foreach (var edge in edgeList)
                 {
                     if (edge.Start == nodeIndex || edge.End == nodeIndex)
                     {
@@ -236,7 +236,7 @@ namespace CasaEngine.AI.Graphs
                     }
                 }
 
-                foreach (TK edge in toDelete)
+                foreach (var edge in toDelete)
                 {
                     edgeList.Remove(edge);
                 }
@@ -248,9 +248,9 @@ namespace CasaEngine.AI.Graphs
             List<T> neighbours;
 
             neighbours = new List<T>();
-            for (int i = 0; i < Nodes.Count; i++)
+            for (var i = 0; i < Nodes.Count; i++)
             {
-                if (Nodes[i].IsNeighbour(spacePartitionSector, searchPosition, searchRange) == true)
+                if (Nodes[i].IsNeighbour(spacePartitionSector, searchPosition, searchRange))
                 {
                     neighbours.Add(Nodes[i]);
                 }

@@ -7,11 +7,10 @@
 
 
 using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-
-namespace CasaEngine.Input
+namespace CasaEngine.Input.InputSequence
 {
     public class Move
     {
@@ -44,25 +43,25 @@ namespace CasaEngine.Input
         {
             Name = el.Attributes["name"].Value;
 
-            XmlNodeList nodes = el.SelectSingleNode("SequenceList").ChildNodes;
+            var nodes = el.SelectSingleNode("SequenceList").ChildNodes;
 
 #if !EDITOR
             Sequence = new InputManager.KeyState[nodes.Count][];
 #endif
 
-            for (int i = 0; i < nodes.Count; i++)
+            for (var i = 0; i < nodes.Count; i++)
             {
-                XmlNodeList seqNodes = nodes[i].SelectNodes("Button");
+                var seqNodes = nodes[i].SelectNodes("Button");
 #if EDITOR
                 Sequence.Add(new List<InputManager.KeyState>());
 #else
                 Sequence[i] = new InputManager.KeyState[seqNodes.Count];
 #endif
 
-                for (int j = 0; j < seqNodes.Count; j++)
+                for (var j = 0; j < seqNodes.Count; j++)
                 {
 #if EDITOR
-                    InputManager.KeyState k = new InputManager.KeyState();
+                    var k = new InputManager.KeyState();
                     k.Key = int.Parse(seqNodes[j].Attributes["key"].Value);
                     k.State = (ButtonState)Enum.Parse(typeof(ButtonState), seqNodes[j].Attributes["state"].Value);
                     k.Time = float.Parse(seqNodes[j].Attributes["time"].Value);
@@ -83,17 +82,17 @@ namespace CasaEngine.Input
         {
             el.OwnerDocument.AddAttribute(el, "name", Name);
 
-            XmlElement seq = el.OwnerDocument.CreateElement("SequenceList");
+            var seq = el.OwnerDocument.CreateElement("SequenceList");
             el.AppendChild(seq);
 
-            foreach (List<InputManager.KeyState> tab in Sequence)
+            foreach (var tab in Sequence)
             {
-                XmlElement s = el.OwnerDocument.CreateElement("Sequence");
+                var s = el.OwnerDocument.CreateElement("Sequence");
                 seq.AppendChild(s);
 
-                foreach (InputManager.KeyState k in tab)
+                foreach (var k in tab)
                 {
-                    XmlElement but = el.OwnerDocument.CreateElement("Button");
+                    var but = el.OwnerDocument.CreateElement("Button");
                     but.OwnerDocument.AddAttribute(but, "key", k.Key.ToString());
                     but.OwnerDocument.AddAttribute(but, "state", Enum.GetName(typeof(ButtonState), k.State));
                     but.OwnerDocument.AddAttribute(but, "time", k.Time.ToString());
@@ -106,11 +105,11 @@ namespace CasaEngine.Input
         {
             bw.Write(Sequence.Count);
 
-            foreach (List<InputManager.KeyState> tab in Sequence)
+            foreach (var tab in Sequence)
             {
                 bw.Write(tab.Count);
 
-                foreach (InputManager.KeyState k in tab)
+                foreach (var k in tab)
                 {
                     bw.Write(k.Key);
                     bw.Write((int)k.State);
@@ -123,13 +122,13 @@ namespace CasaEngine.Input
 
         public bool Match(int i, InputManager.KeyState[] buttons)
         {
-            int x = 0;
+            var x = 0;
 
-            foreach (InputManager.KeyState k in Sequence[i])
+            foreach (var k in Sequence[i])
             {
-                foreach (InputManager.KeyState b in buttons)
+                foreach (var b in buttons)
                 {
-                    if (b.Match(k) == true)
+                    if (b.Match(k))
                     {
                         x++;
                         break;

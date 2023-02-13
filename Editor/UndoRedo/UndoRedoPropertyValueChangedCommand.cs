@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Editor.UndoRedo;
+﻿using CasaEngine.Editor.UndoRedo;
 using System.ComponentModel;
 
 namespace Editor.UndoRedo

@@ -1,12 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Project;
-using CasaEngine.Gameplay.Actor.Object;
-using CasaEngineCommon.Logger;
-
-namespace Editor
+﻿namespace Editor
 {
     /// <summary>
     /// 

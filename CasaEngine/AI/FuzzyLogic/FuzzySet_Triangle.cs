@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.FuzzyLogic
 {
     public class FuzzySetTriangle
         : FuzzySet
@@ -34,14 +34,14 @@
             //find DOM if left of center
             if ((val <= _dPeakPoint) && (val >= (_dPeakPoint - _dLeftOffset)))
             {
-                double grad = 1.0 / _dLeftOffset;
+                var grad = 1.0 / _dLeftOffset;
 
                 return grad * (val - (_dPeakPoint - _dLeftOffset));
             }
             //find DOM if right of center
             else if ((val > _dPeakPoint) && (val < (_dPeakPoint + _dRightOffset)))
             {
-                double grad = 1.0 / -_dRightOffset;
+                var grad = 1.0 / -_dRightOffset;
 
                 return grad * (val - _dPeakPoint) + 1.0;
             }

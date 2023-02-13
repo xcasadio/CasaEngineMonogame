@@ -1,8 +1,8 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public partial class ShapeRectangle
     {
@@ -25,7 +25,7 @@ namespace CasaEngine.Math.Shape2D
         {
             if (o is ShapeRectangle)
             {
-                ShapeRectangle l = (ShapeRectangle)o;
+                var l = (ShapeRectangle)o;
                 return _height == l._height
                     && _width == l._width
                     && base.CompareTo(o);

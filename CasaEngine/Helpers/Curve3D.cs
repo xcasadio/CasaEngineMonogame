@@ -30,7 +30,7 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Microsoft.Xna.Framework;
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
 
     public class Curve3D
@@ -101,7 +101,7 @@ namespace XNAFinalEngine.Helpers
         {
             if (!IsClose)
             {
-                float newTime = (CurveTotalTime / (PointCount - 1)) * PointCount;
+                var newTime = (CurveTotalTime / (PointCount - 1)) * PointCount;
                 AddPoint(GetPoint(0), newTime);
                 CurveTotalTime = newTime;
                 IsClose = true;
@@ -119,10 +119,10 @@ namespace XNAFinalEngine.Helpers
 
         public void Reparametrize(float newTotalTime)
         {
-            Curve newCurveX = new Curve();
-            Curve newCurveY = new Curve();
-            Curve newCurveZ = new Curve();
-            float proportion = newTotalTime / CurveTotalTime;
+            var newCurveX = new Curve();
+            var newCurveY = new Curve();
+            var newCurveZ = new Curve();
+            var proportion = newTotalTime / CurveTotalTime;
             foreach (var key in _curveX.Keys)
             {
                 newCurveX.Keys.Add(new CurveKey(key.Position * proportion, key.Value));
@@ -147,7 +147,7 @@ namespace XNAFinalEngine.Helpers
             int nextIndex;
             bool border; // If it's the border then the tangent calculations change.
 
-            for (int i = 0; i < PointCount; i++)
+            for (var i = 0; i < PointCount; i++)
             {
                 border = false;
                 prevIndex = i - 1;
@@ -200,7 +200,7 @@ namespace XNAFinalEngine.Helpers
 
         private static void SetCurveKeyTangent(ref CurveKey prev, ref CurveKey cur, ref CurveKey next, bool border)
         {
-            float dt = next.Position - prev.Position;
+            var dt = next.Position - prev.Position;
             float dv;
 
             if (border)
@@ -229,11 +229,11 @@ namespace XNAFinalEngine.Helpers
 
         public static Curve3D Circle(Matrix worldMatrix, float radius = 1, int numberOfPoints = 50)
         {
-            Curve3D circle = new Curve3D();
+            var circle = new Curve3D();
             for (float i = 0; i < 3.1416f * 2; i = i + (3.1416f / numberOfPoints))
             {
-                float x = (float)Math.Sin(i) * radius;
-                float y = (float)Math.Cos(i) * radius;
+                var x = (float)Math.Sin(i) * radius;
+                var y = (float)Math.Cos(i) * radius;
                 circle.AddPoint(Vector3.Transform(new Vector3(x, y, 0), worldMatrix), i);
             }
             circle.Close();
@@ -243,19 +243,19 @@ namespace XNAFinalEngine.Helpers
 
         public static Curve3D Circle(float radius = 1, int numberOfPoints = 50)
         {
-            return Circle(Matrix.Identity, radius, 50);
+            return Circle(Matrix.Identity, radius);
         } // Circle
 
 
 
         public static Curve3D Polygon(Matrix worldMatrix, float sideLenght, int sides, bool buildTangents)
         {
-            Curve3D poly = new Curve3D();
+            var poly = new Curve3D();
             float rotationAngle = (((((sides * 180) - 360) / sides) / 2) + 180);
 
-            for (int indexer = 0; indexer < sides; indexer++)
+            for (var indexer = 0; indexer < sides; indexer++)
             {
-                Vector3 coord = new Vector3((sideLenght * (float)Math.Cos(indexer * 2 * Math.PI / sides)), (sideLenght * (float)Math.Sin(indexer * 2 * Math.PI / sides)), 0);
+                var coord = new Vector3((sideLenght * (float)Math.Cos(indexer * 2 * Math.PI / sides)), (sideLenght * (float)Math.Sin(indexer * 2 * Math.PI / sides)), 0);
 
                 if (sides % 2 == 0) // even
                 {
@@ -286,15 +286,15 @@ namespace XNAFinalEngine.Helpers
 
         public static Curve3D Hexagon(Matrix worldMatrix, float sideLength = 50, bool buildTangents = true)
         {
-            Curve3D hexagon = new Curve3D();
+            var hexagon = new Curve3D();
             // Math things
-            float sl = sideLength;
-            float hs = sl / 2;
-            float ls = (float)Math.Sin((double)MathHelper.ToRadians(60)) * sl;
-            float h = (float)Math.Sin((double)MathHelper.ToRadians(15)) * hs;
+            var sl = sideLength;
+            var hs = sl / 2;
+            var ls = (float)Math.Sin((double)MathHelper.ToRadians(60)) * sl;
+            var h = (float)Math.Sin((double)MathHelper.ToRadians(15)) * hs;
 
             // Coords generation
-            Vector3[] coords = new Vector3[6];
+            var coords = new Vector3[6];
             coords[0] = new Vector3(0, ls, 0);
             coords[1] = new Vector3(hs, 0, 0);
             coords[2] = new Vector3(hs + sl, 0, 0);
@@ -306,7 +306,7 @@ namespace XNAFinalEngine.Helpers
             worldMatrix = worldMatrix * Matrix.CreateTranslation(new Vector3(-sideLength, -(sideLength - h), 0));
 
             // add Points
-            for (int indexer = 0; indexer < coords.Length; indexer++)
+            for (var indexer = 0; indexer < coords.Length; indexer++)
             {
                 hexagon.AddPoint(Vector3.Transform(coords[indexer], worldMatrix), indexer);
             }

@@ -26,7 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
 
     public abstract class Disposable : IDisposable

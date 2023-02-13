@@ -1,38 +1,25 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Windows.Forms;
-using CasaEngine.Gameplay.Actor.Object;
 using CasaEngine.Editor.Assets;
 using CasaEngine.Game;
-using CasaEngine.Graphics2D;
 using CasaEngine.Project;
-using CasaEngine.SourceControl;
 using CasaEngineCommon.Logger;
-using Editor.Game;
 using Editor.Log;
 using Editor.SourceControl;
 using Editor.Sprite2DEditor.SpriteSheetPacker;
-using Editor.WinForm;
 using Editor.WinForm.DocToolkit;
 using WeifenLuo.WinFormsUI.Docking;
 using Editor.World;
 using Editor.Tools.Graphics2D;
 using CasaEngine.Assets.Graphics2D;
-using Editor.Sprite2DEditor.Event;
-using Editor.Tools.Event.EventForm;
-using CasaEngine.FrontEnd.Screen;
 using Editor.Tools.UIScreenEditor;
-using CasaEngine.Asset;
-using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset.Fonts;
 using Editor.Tools.Font;
 using Editor.Tools.SkinUIEditor;
 using CasaEngine.Assets.UI;
-using Font = CasaEngine.Asset.Fonts.Font;
+using CasaEngine.Editor.SourceControl;
+using CasaEngine.Front_End.Screen;
+using Font = CasaEngine.Assets.Fonts.Font;
 
 #if !DEBUG
 using Editor.Debugger;
@@ -47,7 +34,6 @@ namespace Editor
     public partial class MainForm
         : Form
     {
-
         private MruManager m_MruManager;
         private const string m_RegistryPath = "Software\\Studio_XC\\CasaEngineEditor";
 

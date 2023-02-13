@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Math.Shape2D;
-using CasaEngine.Editor.Manipulation;
+﻿using CasaEngine.Editor.Manipulation;
 using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Windows.Forms;
 using Editor.UndoRedo;
 using Microsoft.Xna.Framework.Input;
-using System.IO;
-using CasaEngineCommon.Logger;
+using CasaEngine.Core_Systems.Math.Shape2D;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 

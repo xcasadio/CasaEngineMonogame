@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Framework;
 
-namespace CasaEngine.Editor.Builder
+namespace CasaEngine.Editor.ContentBuilder
 {
     class ErrorLogger : ILogger
     {

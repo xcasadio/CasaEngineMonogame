@@ -8,14 +8,13 @@
 
 using System.Diagnostics;
 using System.Text;
-
+using CasaEngine.Core_Systems.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngineCommon.Extension;
 
 using CasaEngine.Graphics2D;
 using CasaEngine.Game;
-using CasaEngine.CoreSystems.Game;
 
 
 #if EDITOR
@@ -92,7 +91,7 @@ namespace CasaEngine.Debugger
             }
 
             // Register 'fps' command if debug command is registered as a service.
-            IDebugCommandHost host =
+            var host =
                                 Game.Services.GetService(typeof(IDebugCommandHost))
                                                                 as IDebugCommandHost;
 
@@ -141,7 +140,7 @@ namespace CasaEngine.Debugger
                 Visible = !Visible;
             }
 
-            foreach (string arg in arguments)
+            foreach (var arg in arguments)
             {
                 switch (arg.ToLower())
                 {
@@ -186,7 +185,7 @@ namespace CasaEngine.Debugger
                 _stringBuilder.Append("FPS: ");
                 _stringBuilder.AppendNumber(Fps);
 
-                foreach (CasaEngineCommon.Design.IObserver<FpsCounter> ob in _listObserver)
+                foreach (var ob in _listObserver)
                 {
                     ob.OnNotify(this);
                 }
@@ -201,20 +200,20 @@ namespace CasaEngine.Debugger
 
         public override void Draw(GameTime gameTime)
         {
-            SpriteFont font = Engine.Instance.DefaultSpriteFont;
+            var font = Engine.Instance.DefaultSpriteFont;
 
             // Compute size of border area.
-            Vector2 size = font.MeasureString("X");
-            Rectangle rc =
+            var size = font.MeasureString("X");
+            var rc =
                 new Rectangle(0, 0, (int)(size.X * 14f), (int)(size.Y * 1.3f));
 
-            Layout layout = new Layout(Engine.Instance.SpriteBatch.GraphicsDevice.Viewport);
+            var layout = new Layout(Engine.Instance.SpriteBatch.GraphicsDevice.Viewport);
             rc = layout.Place(rc, 0.01f, 0.01f, Alignment.TopLeft);
 
             // Place FPS string in border area.
             size = font.MeasureString(_stringBuilder);
             layout.ClientArea = rc;
-            Vector2 pos = layout.Place(size, 0, 0.1f, Alignment.Center);
+            var pos = layout.Place(size, 0, 0.1f, Alignment.Center);
 
             // Draw
             _renderer2DComponent.AddSprite2D(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
@@ -239,7 +238,7 @@ namespace CasaEngine.Debugger
 
         public void NotifyObservers()
         {
-            foreach (CasaEngineCommon.Design.IObserver<FpsCounter> ob in _listObserver)
+            foreach (var ob in _listObserver)
             {
                 ob.OnNotify(this);
             }

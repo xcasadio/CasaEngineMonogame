@@ -10,7 +10,10 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+
+namespace CasaEngine.UserInterface.Controls.Text
 {
 
 
@@ -81,9 +84,15 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 if (value < 0)
+                {
                     value = 0;
+                }
+
                 if (value > _items.Count - 1)
+                {
                     value = _items.Count - 1;
+                }
+
                 if (_mode == SpinBoxMode.List && _items.Count != 0)
                 {
                     _itemIndex = value;
@@ -134,7 +143,7 @@ namespace XNAFinalEngine.UserInterface
         {
             base.Init();
 
-            SkinControlInformation sc = new SkinControlInformation(_btnUp.SkinInformation);
+            var sc = new SkinControlInformation(_btnUp.SkinInformation);
             sc.Layers["Control"] = new SkinLayer(SkinInformation.Layers["Button"]);
             sc.Layers["Button"].Name = "Control";
             _btnUp.SkinInformation = _btnDown.SkinInformation = sc;
@@ -166,8 +175,8 @@ namespace XNAFinalEngine.UserInterface
 
             if (ReadOnly && Focused)
             {
-                SkinLayer lr = SkinInformation.Layers[0];
-                Rectangle rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
+                var lr = SkinInformation.Layers[0];
+                var rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
                                              rect.Top + lr.ContentMargins.Top,
                                              Width - lr.ContentMargins.Horizontal - _btnDown.Width - _btnUp.Width,
                                              Height - lr.ContentMargins.Vertical);
@@ -184,14 +193,23 @@ namespace XNAFinalEngine.UserInterface
                 if (_items.Count > 0)
                 {
                     if (direction)
+                    {
                         _itemIndex += 1;
+                    }
                     else
+                    {
                         _itemIndex -= 1;
+                    }
 
                     if (_itemIndex < 0)
+                    {
                         _itemIndex = 0;
+                    }
+
                     if (_itemIndex > _items.Count - 1)
+                    {
                         _itemIndex = _itemIndex = _items.Count - 1;
+                    }
 
                     Text = _items[_itemIndex].ToString();
                 }
@@ -199,14 +217,23 @@ namespace XNAFinalEngine.UserInterface
             else
             {
                 if (direction)
+                {
                     _value += Step;
+                }
                 else
+                {
                     _value -= Step;
+                }
 
                 if (_value < Minimum)
+                {
                     _value = Minimum;
+                }
+
                 if (_value > Maximum)
+                {
                     _value = Maximum;
+                }
 
                 Text = _value.ToString("n" + _rounding);
             }
@@ -218,9 +245,13 @@ namespace XNAFinalEngine.UserInterface
         {
             Focused = true;
             if (sender == _btnUp)
+            {
                 ShiftIndex(true);
+            }
             else if (sender == _btnDown)
+            {
                 ShiftIndex(false);
+            }
         } // Button_MousePress
 
 

@@ -1,8 +1,8 @@
 ﻿using System.Xml;
 using CasaEngine.Game;
+using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay.Actor.Event;
 using CasaEngineCommon.Design;
-using CasaEngine.Gameplay.Actor.Object;
 
 #if EDITOR
 #endif
@@ -94,7 +94,7 @@ namespace CasaEngine.Assets.Graphics2D
         {
             _totalTime = 0;
 
-            foreach (Frame2D frame in _frames)
+            foreach (var frame in _frames)
             {
                 _totalTime += frame.Time;
             }
@@ -108,12 +108,12 @@ namespace CasaEngine.Assets.Graphics2D
 
         private void ComputeCurrentFrame()
         {
-            bool endAnim = false;
+            var endAnim = false;
 
             switch (_animation2DType)
             {
                 case Animation2DType.Loop:
-                    float r = _currentTime / _totalTime;
+                    var r = _currentTime / _totalTime;
 
                     if (r >= 1.0f)
                     {
@@ -143,16 +143,16 @@ namespace CasaEngine.Assets.Graphics2D
                     throw new NotImplementedException("Animation2D.ComputeCurrentFrame() : Animation2DType '" + Enum.GetName(typeof(Animation2DType), _animation2DType) + "' is not supported");
             }
 
-            if (endAnim == true
+            if (endAnim
                 && OnEndAnimationReached != null)
             {
                 OnEndAnimationReached(this, EventArgs.Empty);
             }
 
-            int index = 0;
+            var index = 0;
             float time = 0;
 
-            foreach (Frame2D frame in _frames)
+            foreach (var frame in _frames)
             {
                 time += frame.Time;
 
@@ -166,7 +166,7 @@ namespace CasaEngine.Assets.Graphics2D
 
             if (index != _currentFrame)
             {
-                int old = _currentFrame;
+                var old = _currentFrame;
                 _currentFrame = index;
 
                 //@todo : check if skip frame
@@ -190,7 +190,7 @@ namespace CasaEngine.Assets.Graphics2D
 
         public Sprite2D GetCurrentSprite()
         {
-            int id = _frames[_currentFrame].SpriteId;
+            var id = _frames[_currentFrame].SpriteId;
             return Engine.Instance.Asset2DManager.GetSprite2DById(id);
         }
 
@@ -205,9 +205,9 @@ namespace CasaEngine.Assets.Graphics2D
         {
             base.Load(element, option);
 
-            XmlNode animNode = element.SelectSingleNode("Animation2D");
+            var animNode = element.SelectSingleNode("Animation2D");
 
-            uint version = uint.Parse(animNode.Attributes["version"].Value);
+            var version = uint.Parse(animNode.Attributes["version"].Value);
 
             //_ID = uint.Parse(node_.Attributes["id"].Value);
             _name = animNode.Attributes["name"].Value;
@@ -216,7 +216,7 @@ namespace CasaEngine.Assets.Graphics2D
 
             int spriteId;
             float delay;
-            List<EventActor> list = new List<EventActor>();
+            var list = new List<EventActor>();
 
 #if !EDITOR
             _Frames = new Frame2D[animNode.SelectSingleNode("FrameList").ChildNodes.Count];
@@ -260,7 +260,7 @@ namespace CasaEngine.Assets.Graphics2D
 
         public override BaseObject Clone()
         {
-            Animation2D anim2D = new Animation2D();
+            var anim2D = new Animation2D();
             anim2D._animation2DType = _animation2DType;
             anim2D._currentFrame = _currentFrame;
             anim2D._currentTime = _currentTime;
@@ -280,16 +280,16 @@ namespace CasaEngine.Assets.Graphics2D
 
         public void InitializeEvent()
         {
-            int count =
+            var count =
 #if EDITOR
                 _frames.Count;
 #else
                 _Frames.Length;
 #endif
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
-                foreach (EventActor e in _frames[i].Events)
+                foreach (var e in _frames[i].Events)
                 {
                     e.Initialize();
                 }

@@ -1,11 +1,11 @@
-﻿using CasaEngine.Graphics2D;
-using System.Xml;
-using CasaEngineCommon.Design;
-using CasaEngine.Gameplay.Actor.Object;
+﻿using System.Xml;
+using CasaEngine.Gameplay.Actor;
+using CasaEngine.Graphics2D;
 using CasaEngine.UserInterface;
-using Control = XNAFinalEngine.UserInterface.Control;
+using CasaEngineCommon.Design;
+using Control = CasaEngine.UserInterface.Control;
 
-namespace CasaEngine.FrontEnd.Screen
+namespace CasaEngine.Front_End.Screen
 {
     public
 #if EDITOR
@@ -59,7 +59,7 @@ namespace CasaEngine.FrontEnd.Screen
         {
             base.Update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen);
 
-            foreach (Control g in _controls)
+            foreach (var g in _controls)
             {
                 g.Update(elapsedTime);
             }
@@ -67,9 +67,9 @@ namespace CasaEngine.FrontEnd.Screen
 
         public Control GetGadget(string name)
         {
-            foreach (Control g in _controls)
+            foreach (var g in _controls)
             {
-                if (g.Name.Equals(name) == true)
+                if (g.Name.Equals(name))
                 {
                     return g;
                 }
@@ -84,7 +84,7 @@ namespace CasaEngine.FrontEnd.Screen
 
             if (screen is UiScreen)
             {
-                UiScreen e = screen as UiScreen;
+                var e = screen as UiScreen;
                 _controls.Clear();
                 _controls.AddRange(e._controls);
             }
@@ -103,11 +103,11 @@ namespace CasaEngine.FrontEnd.Screen
                 return false;
             }
 
-            bool res = true;
+            var res = true;
 
             if (other is UiScreen)
             {
-                UiScreen e = other as UiScreen;
+                var e = other as UiScreen;
 
                 if (_controls.Count != e._controls.Count)
                 {
@@ -115,7 +115,7 @@ namespace CasaEngine.FrontEnd.Screen
                 }
                 else
                 {
-                    for (int i = 0; i < _controls.Count; i++)
+                    for (var i = 0; i < _controls.Count; i++)
                     {
                         //res &= e._Controls[i].Compare(_Controls[i]);
                     }
@@ -135,7 +135,7 @@ namespace CasaEngine.FrontEnd.Screen
         {
             base.Load(el, opt);
 
-            XmlNode nodeList = el.SelectSingleNode("GadgetList");
+            var nodeList = el.SelectSingleNode("GadgetList");
 
             foreach (XmlNode node in nodeList.ChildNodes)
             {

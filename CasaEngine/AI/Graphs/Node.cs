@@ -19,7 +19,7 @@ namespace CasaEngine.AI.Graphs
 
         public Node(int index)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             if (ValidateIndex(index, ref message) == false)
             {

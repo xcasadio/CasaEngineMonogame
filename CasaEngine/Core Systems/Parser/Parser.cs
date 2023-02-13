@@ -1,8 +1,7 @@
 ﻿using System.Xml;
 using CasaEngineCommon.Design;
 
-
-namespace CasaEngine.Design.Parser
+namespace CasaEngine.Core_Systems.Parser
 {
     public abstract class Parser
     {
@@ -62,13 +61,13 @@ namespace CasaEngine.Design.Parser
 
         private void AddParserToken(ParserToken token, int priority)
         {
-            if (_tokens.ContainsKey(priority) == true)
+            if (_tokens.ContainsKey(priority))
             {
                 _tokens[priority].Add(token);
             }
             else
             {
-                List<ParserToken> list = new List<ParserToken>();
+                var list = new List<ParserToken>();
                 list.Add(token);
                 _tokens.Add(priority, list);
             }
@@ -88,7 +87,7 @@ namespace CasaEngine.Design.Parser
         {
             sentence = sentence.Trim();
 
-            if (string.IsNullOrEmpty(sentence) == true)
+            if (string.IsNullOrEmpty(sentence))
             {
                 return false;
             }
@@ -96,11 +95,11 @@ namespace CasaEngine.Design.Parser
             //trie le dictionnaire par priorité
             _tokens = _tokens.OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            foreach (KeyValuePair<int, List<ParserToken>> pair in _tokens)
+            foreach (var pair in _tokens)
             {
-                foreach (ParserToken token in pair.Value)
+                foreach (var token in pair.Value)
                 {
-                    if (token.Check(sentence) == true)
+                    if (token.Check(sentence))
                     {
                         return true;
                     }
@@ -114,7 +113,7 @@ namespace CasaEngine.Design.Parser
         {
             _calculatorList.Clear();
 
-            if (Check(sentence) == true)
+            if (Check(sentence))
             {
                 CalculatorToken root;
                 CompileCalculatorToken(out root, 0);
@@ -133,7 +132,7 @@ namespace CasaEngine.Design.Parser
         {
             sentence = sentence.ToLower();
 
-            if (Compile(sentence) == true)
+            if (Compile(sentence))
             {
                 return _calculator.Evaluate();
             }
@@ -194,10 +193,10 @@ namespace CasaEngine.Design.Parser
         private int CompileSequence(CalculatorToken parent, out CalculatorToken res, int index)
         {
             CalculatorTokenSequence seq;
-            int end = -1;
+            var end = -1;
             res = null;
 
-            for (int i = index; i < _calculatorList.Count; i++)
+            for (var i = index; i < _calculatorList.Count; i++)
             {
                 if (_calculatorList[i] is CalculatorTokenSequence)
                 {

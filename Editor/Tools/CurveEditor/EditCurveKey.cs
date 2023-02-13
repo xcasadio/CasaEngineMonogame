@@ -5,8 +5,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 
 namespace Editor.Tools.CurveEditor
@@ -65,7 +63,7 @@ namespace Editor.Tools.CurveEditor
         /// <summary>
         /// Gets key position.
         /// </summary>
-        public float Position   { get { return originalKey.Position; } }
+        public float Position { get { return originalKey.Position; } }
 
         /// <summary>
         /// Sets/Gets key value.
@@ -119,9 +117,9 @@ namespace Editor.Tools.CurveEditor
         public EditCurveKey Clone()
         {
             EditCurveKey a = new EditCurveKey(Id, OriginalKey.Clone());
-            a.Selection         = Selection;
-            a.TangentInType     = TangentInType;
-            a.TangentOutType    = TangentOutType;
+            a.Selection = Selection;
+            a.TangentInType = TangentInType;
+            a.TangentOutType = TangentOutType;
 
             return a;
         }
@@ -135,7 +133,7 @@ namespace Editor.Tools.CurveEditor
             return (
                 other != null &&
                 Id == other.Id &&
-                OriginalKey.Equals( other.OriginalKey )
+                OriginalKey.Equals(other.OriginalKey)
                 );
         }
 

@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.FuzzyLogic
 {
     public class FzAnd
         : IFuzzyTerm
@@ -16,9 +16,9 @@
         {
             get
             {
-                double smallest = double.MaxValue;
+                var smallest = double.MaxValue;
 
-                foreach (IFuzzyTerm t in _terms)
+                foreach (var t in _terms)
                 {
                     if (t.Dom < smallest)
                     {
@@ -34,7 +34,7 @@
 
         public FzAnd(FzAnd fa)
         {
-            foreach (IFuzzyTerm f in fa._terms)
+            foreach (var f in fa._terms)
             {
                 _terms.Add(f.Clone());
             }
@@ -65,7 +65,7 @@
 
         public void ORwithDom(double val)
         {
-            foreach (IFuzzyTerm t in _terms)
+            foreach (var t in _terms)
             {
                 t.ORwithDom(val);
             }
@@ -73,7 +73,7 @@
 
         public void ClearDom()
         {
-            foreach (IFuzzyTerm t in _terms)
+            foreach (var t in _terms)
             {
                 t.ClearDom();
             }
@@ -104,7 +104,7 @@
             {
                 double largest = float.MinValue;
 
-                foreach (IFuzzyTerm t in _terms)
+                foreach (var t in _terms)
                 {
                     if (t.Dom > largest)
                     {
@@ -120,7 +120,7 @@
 
         public FzOr(FzOr fa)
         {
-            foreach (IFuzzyTerm f in fa._terms)
+            foreach (var f in fa._terms)
             {
                 _terms.Add(f.Clone());
             }

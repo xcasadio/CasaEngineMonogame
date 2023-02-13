@@ -1,9 +1,9 @@
-﻿using CasaEngine.Game;
-using Microsoft.Xna.Framework.Graphics;
-using System.Xml;
+﻿using System.Xml;
+using CasaEngine.Game;
 using CasaEngineCommon.Design;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Asset.Cursors
+namespace CasaEngine.Assets.Cursors
 {
 #if (WINDOWS)
 

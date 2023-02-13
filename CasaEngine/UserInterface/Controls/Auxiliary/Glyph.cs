@@ -10,7 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.Assets.Textures;
+
+namespace CasaEngine.UserInterface.Controls.Auxiliary
 {
 
     public class Glyph
@@ -18,7 +20,7 @@ namespace XNAFinalEngine.UserInterface
 
 
         // Texture.
-        private CasaEngine.Asset.Texture _texture;
+        private Texture _texture;
 
         // Size Mode (Normal, Streched, Centered and Auto).
         // Auto mode changes the control's width and height to the texture's dimentions.
@@ -47,7 +49,7 @@ namespace XNAFinalEngine.UserInterface
             set => _offset = value;
         }
 
-        public CasaEngine.Asset.Texture Texture
+        public Texture Texture
         {
             get => _texture;
             set
@@ -64,23 +66,40 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_texture != null)
                 {
-                    int left = value.Left;
-                    int top = value.Top;
-                    int width = value.Width;
-                    int height = value.Height;
+                    var left = value.Left;
+                    var top = value.Top;
+                    var width = value.Width;
+                    var height = value.Height;
 
                     if (left < 0)
+                    {
                         left = 0;
+                    }
+
                     if (top < 0)
+                    {
                         top = 0;
+                    }
+
                     if (width > _texture.Width)
+                    {
                         width = _texture.Width;
+                    }
+
                     if (height > _texture.Height)
+                    {
                         height = _texture.Height;
+                    }
+
                     if (left + width > _texture.Width)
+                    {
                         width = (_texture.Width - left);
+                    }
+
                     if (top + height > _texture.Height)
+                    {
                         height = (_texture.Height - top);
+                    }
 
                     _sourceRectangle = new Rectangle(left, top, width, height);
                 }
@@ -99,7 +118,7 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-        public Glyph(CasaEngine.Asset.Texture texture)
+        public Glyph(Texture texture)
         {
             Texture = texture;
         } // Glyph

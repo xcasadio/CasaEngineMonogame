@@ -1,10 +1,10 @@
-﻿using System.Xml;
-using CasaEngineCommon.Design;
-using XNAFinalEngine.Helpers;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.Xml;
 using CasaEngine.Editor.Assets;
+using CasaEngine.Helpers;
+using CasaEngineCommon.Design;
 
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets
 {
     public abstract partial class Asset
         : Disposable, ISaveLoad

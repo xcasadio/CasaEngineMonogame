@@ -46,7 +46,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Scaling
         {
             if (minFitness < 0)
             {
-                for (int i = 0; i < fitness.Length - 1; i++)
+                for (var i = 0; i < fitness.Length - 1; i++)
                 {
                     fitness[i] -= minFitness;
                 }

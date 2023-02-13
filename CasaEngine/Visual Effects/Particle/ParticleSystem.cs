@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Particle
+﻿namespace CasaEngine.Visual_Effects.Particle
 {
     public class ParticleSystem
     {

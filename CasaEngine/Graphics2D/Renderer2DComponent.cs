@@ -2,9 +2,8 @@
 using Microsoft.Xna.Framework.Graphics;
 
 using CasaEngine.Game;
-using CasaEngine.CoreSystems.Game;
 using CasaEngine.Assets.Graphics2D;
-
+using CasaEngine.Core_Systems.Game;
 
 
 namespace CasaEngine.Graphics2D
@@ -49,7 +48,7 @@ namespace CasaEngine.Graphics2D
         }
 
 
-        static public bool DrawDebug = false;
+        public static bool DrawDebug = false;
 
         readonly List<SpriteDisplayData> _listSprite2D = new(50);
         //used to create a resource pool
@@ -113,7 +112,7 @@ namespace CasaEngine.Graphics2D
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing == true)
+            if (disposing)
             {
                 lock (this)
                 {
@@ -143,8 +142,8 @@ namespace CasaEngine.Graphics2D
             //RasterizerState r = new RasterizerState() { ScissorTestEnable = true };
             //GraphicsDevice.RasterizerState = r;
 
-            Vector2 tmpVec2 = Vector2.Zero;
-            Vector2 hotspot = Vector2.Zero;
+            var tmpVec2 = Vector2.Zero;
+            var hotspot = Vector2.Zero;
 
             SpriteBatch.Begin(
                 SpriteSortMode.BackToFront,
@@ -154,7 +153,7 @@ namespace CasaEngine.Graphics2D
                 RasterizerState.CullCounterClockwise);
 
             //sprite2D
-            foreach (SpriteDisplayData sprite in _listSprite2D)
+            foreach (var sprite in _listSprite2D)
             {
                 switch (sprite.SpriteEffect)
                 {
@@ -173,7 +172,7 @@ namespace CasaEngine.Graphics2D
                         break;
                 }
 
-                if (DrawDebug == true)
+                if (DrawDebug)
                 {
                     DrawCross(sprite.Position, 6, Color.Violet);
                 }
@@ -219,7 +218,7 @@ namespace CasaEngine.Graphics2D
             }
 
             //Text2D
-            foreach (Text2DDisplayData text2D in _listText2D)
+            foreach (var text2D in _listText2D)
             {
                 tmpVec2.X = (int)text2D.Position.X;
                 tmpVec2.Y = (int)text2D.Position.Y;
@@ -231,7 +230,7 @@ namespace CasaEngine.Graphics2D
             }
 
             //Line2D
-            foreach (Line2DDisplayData line2D in _listLine2D)
+            foreach (var line2D in _listLine2D)
             {
                 _line2DRenderer.DrawLine(SpriteBatch, line2D.Color, line2D.Start, line2D.End, line2D.ZOrder);
             }
@@ -255,7 +254,7 @@ namespace CasaEngine.Graphics2D
 
         public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
         {
-            Sprite2D sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(spriteId);
+            var sprite = (Sprite2D)Engine.Instance.ObjectManager.GetObjectById(spriteId);
             AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
         }
 
@@ -283,12 +282,12 @@ namespace CasaEngine.Graphics2D
                 throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is null");
             }
 
-            if (tex.IsDisposed == true)
+            if (tex.IsDisposed)
             {
                 throw new ArgumentException("Graphic2DComponent.AddSprite2D() : Texture2D is disposed");
             }
 
-            SpriteDisplayData sprite = GetSpriteDisplayData();
+            var sprite = GetSpriteDisplayData();
             sprite.Texture2D = tex;
             sprite.PositionInTexture = src;
             sprite.Position = pos;
@@ -332,12 +331,12 @@ namespace CasaEngine.Graphics2D
                 throw new ArgumentException("Graphic2DComponent.AddText2D() : SpriteFont is null");
             }
 
-            if (string.IsNullOrEmpty(text) == true)
+            if (string.IsNullOrEmpty(text))
             {
                 throw new ArgumentException("Graphic2DComponent.AddText2D() : text is null");
             }
 
-            Text2DDisplayData text2D = GetText2DDisplayData();
+            var text2D = GetText2DDisplayData();
             text2D.SpriteFont = font;
             text2D.Text = text;
             text2D.Position = pos;
@@ -354,7 +353,7 @@ namespace CasaEngine.Graphics2D
 
         public void AddLine2D(Vector2 start, Vector2 end, Color color, float zOrder, Rectangle scissorRectangle)
         {
-            Line2DDisplayData line2D = GetLine2DDisplayData();
+            var line2D = GetLine2DDisplayData();
             line2D.Start = start;
             line2D.End = end;
             line2D.Color = color;
@@ -396,8 +395,8 @@ namespace CasaEngine.Graphics2D
 
         private void DrawCross(Vector2 pos, int size, Color color)
         {
-            AddLine2D(pos.X - size, pos.Y, pos.X + size, pos.Y, color, 0.0f);
-            AddLine2D(pos.X, pos.Y - size, pos.X, pos.Y + size, color, 0.0f);
+            AddLine2D(pos.X - size, pos.Y, pos.X + size, pos.Y, color);
+            AddLine2D(pos.X, pos.Y - size, pos.X, pos.Y + size, color);
         }
 
 
@@ -435,21 +434,21 @@ namespace CasaEngine.Graphics2D
 
         public void Clear()
         {
-            foreach (SpriteDisplayData sprite in _listSprite2D)
+            foreach (var sprite in _listSprite2D)
             {
                 _listFreeSpriteDisplayData.Push(sprite);
             }
 
             _listSprite2D.Clear();
 
-            foreach (Text2DDisplayData t in _listText2D)
+            foreach (var t in _listText2D)
             {
                 _listFreeTextDisplayData.Push(t);
             }
 
             _listText2D.Clear();
 
-            foreach (Line2DDisplayData t in _listLine2D)
+            foreach (var t in _listLine2D)
             {
                 _listFreeLine2DDisplayData.Push(t);
             }

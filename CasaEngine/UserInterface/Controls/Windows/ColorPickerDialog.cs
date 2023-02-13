@@ -30,9 +30,13 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 //using XNAFinalEngine.Editor; // This can be avoided and ideally I have to avoid this.
 
 //using XNAFinalEngine.Graphics;
-using XNAFinalEngine.Helpers;
 
-namespace XNAFinalEngine.UserInterface
+using CasaEngine.Helpers;
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+using TextBox = CasaEngine.UserInterface.Controls.Text.TextBox;
+
+namespace CasaEngine.UserInterface.Controls.Windows
 {
 
     public class ColorPickerDialog : Dialog
@@ -92,7 +96,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 base.Color = value;
                 if (!_updatingColorSquareAndIntensityBar)
+                {
                     _positionSquareColor = PositionFromColor(Color);
+                }
             }
         } // Color
 
@@ -152,7 +158,9 @@ namespace XNAFinalEngine.UserInterface
                                                      BringToFront();
                                                  }
                                                  else
+                                                 {
                                                      Close();
+                                                 }
                                              }
                                          };
 
@@ -323,15 +331,25 @@ namespace XNAFinalEngine.UserInterface
                 if (_update)
                 {
                     _updatingColorSquareAndIntensityBar = true;
-                    Point position = new Point(_positionBeginningMovement.X + (e.Left - SquareColorLeft), _positionBeginningMovement.Y + (e.Top - SquareColorTop));
+                    var position = new Point(_positionBeginningMovement.X + (e.Left - SquareColorLeft), _positionBeginningMovement.Y + (e.Top - SquareColorTop));
                     if (position.X < 0)
+                    {
                         position.X = 0;
+                    }
                     else if (position.X > SquareColorlenght)
+                    {
                         position.X = SquareColorlenght;
+                    }
+
                     if (position.Y < 0)
+                    {
                         position.Y = 0;
+                    }
                     else if (position.Y >= SquareColorlenght)
+                    {
                         position.Y = SquareColorlenght;
+                    }
+
                     Color = ColorFromPositionWithIntensity(position);
                     _positionSquareColor = position;
                     _updatingColorSquareAndIntensityBar = false;
@@ -368,11 +386,16 @@ namespace XNAFinalEngine.UserInterface
                 if (_update)
                 {
                     _updatingColorSquareAndIntensityBar = true;
-                    float intensity = 1 - (_intensityLevelValueBeginningMovement - (e.Top - SquareColorTop) / (float)SquareColorlenght);
+                    var intensity = 1 - (_intensityLevelValueBeginningMovement - (e.Top - SquareColorTop) / (float)SquareColorlenght);
                     if (intensity < 0)
+                    {
                         intensity = 0;
+                    }
                     else if (intensity > 1)
+                    {
                         intensity = 1;
+                    }
+
                     _intensityLevel = 1 - intensity;
                     Color = ColorFromPositionWithIntensity(_positionSquareColor);
                     _updatingColorSquareAndIntensityBar = false;
@@ -402,9 +425,15 @@ namespace XNAFinalEngine.UserInterface
                     if (_textBoxRed.Text.IsNumericFloat())
                     {
                         if ((float)double.Parse(_textBoxRed.Text) < 0)
+                        {
                             _textBoxRed.Text = "0";
+                        }
+
                         if ((float)double.Parse(_textBoxRed.Text) > 1)
+                        {
                             _textBoxRed.Text = "1";
+                        }
+
                         UpdateColorFromRgb();
                     }
                     else
@@ -419,9 +448,15 @@ namespace XNAFinalEngine.UserInterface
                 if (_textBoxRed.Text.IsNumericFloat())
                 {
                     if ((float)double.Parse(_textBoxRed.Text) < 0)
+                    {
                         _textBoxRed.Text = "0";
+                    }
+
                     if ((float)double.Parse(_textBoxRed.Text) > 1)
+                    {
                         _textBoxRed.Text = "1";
+                    }
+
                     UpdateColorFromRgb();
                 }
                 else
@@ -439,9 +474,15 @@ namespace XNAFinalEngine.UserInterface
                     if (_textBoxGreen.Text.IsNumericFloat())
                     {
                         if ((float)double.Parse(_textBoxGreen.Text) < 0)
+                        {
                             _textBoxGreen.Text = "0";
+                        }
+
                         if ((float)double.Parse(_textBoxGreen.Text) > 1)
+                        {
                             _textBoxGreen.Text = "1";
+                        }
+
                         UpdateColorFromRgb();
                     }
                     else
@@ -456,9 +497,15 @@ namespace XNAFinalEngine.UserInterface
                 if (_textBoxGreen.Text.IsNumericFloat())
                 {
                     if ((float)double.Parse(_textBoxGreen.Text) < 0)
+                    {
                         _textBoxGreen.Text = "0";
+                    }
+
                     if ((float)double.Parse(_textBoxGreen.Text) > 1)
+                    {
                         _textBoxGreen.Text = "1";
+                    }
+
                     UpdateColorFromRgb();
                 }
                 else
@@ -476,9 +523,15 @@ namespace XNAFinalEngine.UserInterface
                     if (_textBoxBlue.Text.IsNumericFloat())
                     {
                         if ((float)double.Parse(_textBoxBlue.Text) < 0)
+                        {
                             _textBoxBlue.Text = "0";
+                        }
+
                         if ((float)double.Parse(_textBoxBlue.Text) > 1)
+                        {
                             _textBoxBlue.Text = "1";
+                        }
+
                         UpdateColorFromRgb();
                     }
                     else
@@ -493,9 +546,15 @@ namespace XNAFinalEngine.UserInterface
                 if (_textBoxBlue.Text.IsNumericFloat())
                 {
                     if ((float)double.Parse(_textBoxBlue.Text) < 0)
+                    {
                         _textBoxBlue.Text = "0";
+                    }
+
                     if ((float)double.Parse(_textBoxBlue.Text) > 1)
+                    {
                         _textBoxBlue.Text = "1";
+                    }
+
                     UpdateColorFromRgb();
                 }
                 else
@@ -606,10 +665,10 @@ namespace XNAFinalEngine.UserInterface
 
         private static Color ColorFromPosition(Point position)
         {
-            Color color = new Color(0, 0, 0, 255);
+            var color = new Color(0, 0, 0, 255);
             // the position in the step or band (unknown for now)
-            int j = position.X % (SquareColorlenght / 6);
-            float porcentaje = (j / (SquareColorlenght / 6f/* - 1*/)); // The porcentaje of advance in the step
+            var j = position.X % (SquareColorlenght / 6);
+            var porcentaje = (j / (SquareColorlenght / 6f/* - 1*/)); // The porcentaje of advance in the step
             if (position.X < SquareColorlenght / 6f)               // Red to Yellow
             {
                 color.R = 255;
@@ -645,9 +704,13 @@ namespace XNAFinalEngine.UserInterface
                 color.R = 255;
                 color.G = 0;
                 if (position.X == SquareColorlenght) // Last column is a special case.
+                {
                     color.B = 0;
+                }
                 else
+                {
                     color.B = (byte)(255 - 255 * porcentaje);
+                }
             }
             return color;
         } // ColorFromPosition
@@ -656,7 +719,7 @@ namespace XNAFinalEngine.UserInterface
 
         private Point PositionFromColor(Color color)
         {
-            Point position = new Point();
+            var position = new Point();
             float percentage;
             // The higher color tells us the intensity level.
             // The lowest color tells us the position Y, but directly, it has to take the intensity level into consideration.
@@ -722,7 +785,7 @@ namespace XNAFinalEngine.UserInterface
 
         private static Color MultiplyColorByFloat(Color color, float intensityLevel)
         {
-            Color result = Color.White;
+            var result = Color.White;
             result.R = (byte)(color.R * intensityLevel);
             result.G = (byte)(color.G * intensityLevel);
             result.B = (byte)(color.B * intensityLevel);
@@ -744,27 +807,36 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnMouseDown(e);
             if (SquareColorDown != null)
+            {
                 SquareColorDown(this, e);
+            }
         } // OnMouseDown
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
             if (SquareColorUp != null)
+            {
                 SquareColorUp(this, e);
+            }
         } // OnMouseUp
 
         protected override void OnMousePress(MouseEventArgs e)
         {
             base.OnMousePress(e);
             if (SquareColorPress != null)
+            {
                 SquareColorPress(this, e);
+            }
         } // OnMousePress
 
         protected override void OnKeyPress(KeyEventArgs e)
         {
             if (e.Key == Keys.Escape)
+            {
                 Close();
+            }
+
             base.OnKeyPress(e);
         } // OnKeyPress
 

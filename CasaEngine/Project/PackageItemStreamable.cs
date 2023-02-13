@@ -31,9 +31,9 @@ namespace CasaEngine.Project
             {
                 if (_itemType == null)
                 {
-                    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-                    foreach (Assembly a in assemblies)
+                    foreach (var a in assemblies)
                     {
                         _itemType = a.GetType(ClassName, false, true);
 
@@ -75,9 +75,9 @@ namespace CasaEngine.Project
                 try
                 {
                     //if (XML)
-                    XmlDocument xmlDoc = new XmlDocument();
+                    var xmlDoc = new XmlDocument();
                     xmlDoc.Load(Package.PackageFileName);
-                    XmlElement el = (XmlElement)xmlDoc.SelectSingleNode(_xmlPath);
+                    var el = (XmlElement)xmlDoc.SelectSingleNode(_xmlPath);
                     //else (Binary)
 
                     _item = (IPackageable)Activator.CreateInstance(ItemType,

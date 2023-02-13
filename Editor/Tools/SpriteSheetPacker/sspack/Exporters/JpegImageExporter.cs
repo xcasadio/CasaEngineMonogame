@@ -22,21 +22,20 @@
  */
 
 
-using System.Drawing;
 using System.Drawing.Imaging;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 {
-	public class JpegImageExporter : IImageExporter
-	{
-		public string ImageExtension
-		{
-			get { return "jpg"; }
-		}
+    public class JpegImageExporter : IImageExporter
+    {
+        public string ImageExtension
+        {
+            get { return "jpg"; }
+        }
 
-		public void Save(string filename, Bitmap image)
-		{
-			image.Save(filename, ImageFormat.Jpeg);
-		}
-	}
+        public void Save(string filename, Bitmap image)
+        {
+            image.Save(filename, ImageFormat.Jpeg);
+        }
+    }
 }

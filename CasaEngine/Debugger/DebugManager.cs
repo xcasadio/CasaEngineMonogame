@@ -49,8 +49,8 @@ namespace CasaEngine.Debugger
             /*UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
 			DrawOrder = (int)ComponentDrawOrder.DebugManager;*/
 
-            VisibleChanged += new EventHandler<EventArgs>(DebugManager_VisibleChanged);
-            EnabledChanged += new EventHandler<EventArgs>(DebugManager_EnabledChanged);
+            VisibleChanged += DebugManager_VisibleChanged;
+            EnabledChanged += DebugManager_EnabledChanged;
         }
 
         void DebugManager_EnabledChanged(object sender, EventArgs e)
@@ -72,7 +72,7 @@ namespace CasaEngine.Debugger
 
             // Create white texture.
             WhiteTexture = new Texture2D(GraphicsDevice, 1, 1);
-            Color[] whitePixels = new Color[] { Color.White };
+            var whitePixels = new Color[] { Color.White };
             WhiteTexture.SetData<Color>(whitePixels);
 
             base.LoadContent();

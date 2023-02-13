@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Pong": {
+      "commandName": "Project",
+      "commandLineArgs": "PongGame.xml"
+    }
+  }
+}

@@ -3,11 +3,10 @@ using Microsoft.Xna.Framework;
 using CasaEngineCommon.Extension;
 using Microsoft.Xna.Framework.Content;
 using System.Xml;
-using CasaEngine.Math.Shape2D;
+using CasaEngine.Core_Systems.Math.Shape2D;
 using CasaEngineCommon.Design;
 using CasaEngine.Game;
-using CasaEngine.Gameplay.Actor.Object;
-
+using CasaEngine.Gameplay.Actor;
 
 
 #if EDITOR
@@ -154,7 +153,7 @@ namespace CasaEngine.Assets.Graphics2D
 #if EDITOR
             _collisions.Clear();
 
-            foreach (Shape2DObject o in sprite._collisions)
+            foreach (var o in sprite._collisions)
             {
                 _collisions.Add(o.Clone());
             }
@@ -182,9 +181,9 @@ namespace CasaEngine.Assets.Graphics2D
         {
             base.Load(element, option);
 
-            XmlNode rootNode = element.SelectSingleNode("Sprite2D");
+            var rootNode = element.SelectSingleNode("Sprite2D");
 
-            uint version = uint.Parse(rootNode.Attributes["version"].Value);
+            var version = uint.Parse(rootNode.Attributes["version"].Value);
 
             if (version == 1)
             {
@@ -201,7 +200,7 @@ namespace CasaEngine.Assets.Graphics2D
             ((XmlElement)rootNode.SelectSingleNode("PositionInTexture")).Read(ref _positionInTexture);
             ((XmlElement)rootNode.SelectSingleNode("HotSpot")).Read(ref _origin);
 
-            XmlNode collisionNode = rootNode.SelectSingleNode("CollisionList");
+            var collisionNode = rootNode.SelectSingleNode("CollisionList");
 
 #if EDITOR
             _collisions.Clear();
@@ -228,11 +227,11 @@ namespace CasaEngine.Assets.Graphics2D
 #endif
 
             //Sockets
-            XmlNode socketNode = rootNode.SelectSingleNode("SocketList");
+            var socketNode = rootNode.SelectSingleNode("SocketList");
 
             foreach (XmlNode node in socketNode.ChildNodes)
             {
-                Vector2 position = new Vector2();
+                var position = new Vector2();
                 ((XmlElement)node.SelectSingleNode("position")).Read(ref position);
                 _sockets.Add(node.SelectSingleNode("Name").InnerText, position);
             }
@@ -271,8 +270,8 @@ namespace CasaEngine.Assets.Graphics2D
                 return;
             }
 
-            string assetFile = Path.GetDirectoryName(_assetFileNames[0]) + Path.DirectorySeparatorChar +
-                Path.GetFileNameWithoutExtension(_assetFileNames[0]);
+            var assetFile = Path.GetDirectoryName(_assetFileNames[0]) + Path.DirectorySeparatorChar +
+                            Path.GetFileNameWithoutExtension(_assetFileNames[0]);
 
             _texture2D = content.Load<Texture2D>(assetFile);
         }

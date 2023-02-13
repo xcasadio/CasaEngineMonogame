@@ -12,7 +12,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
         protected MutationAlgorithm(double probability, Random generator)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             //Validate the params
             if (ValidateProbability(probability, ref message) == false)

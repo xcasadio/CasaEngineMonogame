@@ -27,10 +27,10 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Asset
+namespace CasaEngine.Assets.Textures
 {
 
     public class TextureCube : Asset

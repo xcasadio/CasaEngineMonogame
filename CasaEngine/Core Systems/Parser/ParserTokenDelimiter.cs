@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenDelimiter
         : ParserToken
@@ -23,9 +23,9 @@
             string res;
             string outside;
 
-            if (GetStringBetweenDelimiter(sentence, Token, _close, out res, out outside) == true)
+            if (GetStringBetweenDelimiter(sentence, Token, _close, out res, out outside))
             {
-                bool r = true;
+                var r = true;
 
                 //attention inverse droite et gauche !!!!!!
                 if (string.IsNullOrEmpty(outside) == false)
@@ -43,27 +43,27 @@
             return false;
         }
 
-        static public bool GetStringBetweenDelimiter(string str, string open, string close, out string s1, out string s2)
+        public static bool GetStringBetweenDelimiter(string str, string open, string close, out string s1, out string s2)
         {
             s1 = string.Empty;
             s2 = string.Empty;
 
-            int first = str.IndexOf(open);
+            var first = str.IndexOf(open);
 
             if (first != -1)
             {
-                int p = 1; // one open found
-                int index = -1;
+                var p = 1; // one open found
+                var index = -1;
 
-                for (int i = first + open.Length; i < str.Length; i += open.Length)
+                for (var i = first + open.Length; i < str.Length; i += open.Length)
                 {
-                    string tmp = str.Substring(i, str.Length - open.Length - i + 1);
+                    var tmp = str.Substring(i, str.Length - open.Length - i + 1);
 
-                    if (tmp.StartsWith(open) == true)
+                    if (tmp.StartsWith(open))
                     {
                         p++;
                     }
-                    else if (tmp.StartsWith(close) == true)
+                    else if (tmp.StartsWith(close))
                     {
                         p--;
                     }

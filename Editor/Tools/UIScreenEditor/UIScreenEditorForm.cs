@@ -1,19 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Editor.Tools;
-using CasaEngine.Gameplay.Actor.Object;
+﻿using CasaEngine.Editor.Tools;
 using CasaEngine.Editor.UndoRedo;
 using CasaEngine.Game;
-using System.Threading;
-using XNAFinalEngine.UserInterface;
 using System.Globalization;
+using CasaEngine.Gameplay.Actor;
+using CasaEngine.UserInterface.Controls;
+using CasaEngine.UserInterface.Controls.Buttons;
+using CasaEngine.UserInterface.Controls.Group;
+using CasaEngine.UserInterface.Controls.Menu;
+using CasaEngine.UserInterface.Controls.Panel;
+using CasaEngine.UserInterface.Controls.Sliders;
+using CasaEngine.UserInterface.Controls.Text;
+using CasaEngine.UserInterface.Controls.ToolBar;
 using CasaEngineCommon.Logger;
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+using CheckBox = CasaEngine.UserInterface.Controls.Buttons.CheckBox;
+using ComboBox = CasaEngine.UserInterface.Controls.ComboBox;
+using Console = CasaEngine.UserInterface.Controls.Text.Console;
+using Control = CasaEngine.UserInterface.Control;
+using GroupBox = CasaEngine.UserInterface.Controls.Group.GroupBox;
+using Label = CasaEngine.UserInterface.Controls.Label;
+using ListBox = CasaEngine.UserInterface.Controls.ListBox;
+using Panel = CasaEngine.UserInterface.Controls.Panel.Panel;
+using ProgressBar = CasaEngine.UserInterface.Controls.ProgressBar;
+using RadioButton = CasaEngine.UserInterface.Controls.Buttons.RadioButton;
+using TabControl = CasaEngine.UserInterface.Controls.TabControl;
+using TextBox = CasaEngine.UserInterface.Controls.Text.TextBox;
+using TrackBar = CasaEngine.UserInterface.Controls.Sliders.TrackBar;
 
 namespace Editor.Tools.UIScreenEditor
 {
@@ -41,7 +53,7 @@ namespace Editor.Tools.UIScreenEditor
 
         Dictionary<string, Type> m_ControlTypes = new();
         System.Windows.Forms.RadioButton m_DefaultRadioButton;
-        Dictionary<string, XNAFinalEngine.UserInterface.Control> m_Controls = new();
+        Dictionary<string, Control> m_Controls = new();
 
 
 
@@ -96,27 +108,27 @@ namespace Editor.Tools.UIScreenEditor
             FormClosed += new FormClosedEventHandler(ScreenEditorFormClosed);
 
             m_ControlTypes.Add("Cursor", null);
-            m_ControlTypes.Add("ComboBox", typeof(XNAFinalEngine.UserInterface.ComboBox));
+            m_ControlTypes.Add("ComboBox", typeof(ComboBox));
             m_ControlTypes.Add("ImageBox", typeof(ImageBox));
-            m_ControlTypes.Add("Label", typeof(XNAFinalEngine.UserInterface.Label));
-            m_ControlTypes.Add("ListBox", typeof(XNAFinalEngine.UserInterface.ListBox));
-            m_ControlTypes.Add("ProgressBar", typeof(XNAFinalEngine.UserInterface.ProgressBar));
-            m_ControlTypes.Add("TabControl", typeof(XNAFinalEngine.UserInterface.TabControl));
+            m_ControlTypes.Add("Label", typeof(Label));
+            m_ControlTypes.Add("ListBox", typeof(ListBox));
+            m_ControlTypes.Add("ProgressBar", typeof(ProgressBar));
+            m_ControlTypes.Add("TabControl", typeof(TabControl));
             m_ControlTypes.Add("Vector3Box", typeof(Vector3Box));
             m_ControlTypes.Add("AssetSelector", typeof(AssetSelector));
 
-            m_ControlTypes.Add("Button", typeof(XNAFinalEngine.UserInterface.Button));
-            m_ControlTypes.Add("CheckBox", typeof(XNAFinalEngine.UserInterface.CheckBox));
-            m_ControlTypes.Add("RadioButton", typeof(XNAFinalEngine.UserInterface.RadioButton));
+            m_ControlTypes.Add("Button", typeof(Button));
+            m_ControlTypes.Add("CheckBox", typeof(CheckBox));
+            m_ControlTypes.Add("RadioButton", typeof(RadioButton));
             m_ControlTypes.Add("TreeButton", typeof(TreeButton));
 
-            m_ControlTypes.Add("GroupBox", typeof(XNAFinalEngine.UserInterface.GroupBox));
+            m_ControlTypes.Add("GroupBox", typeof(GroupBox));
             m_ControlTypes.Add("GroupPanel", typeof(GroupPanel));
 
             m_ControlTypes.Add("ContextMenu", typeof(ContextMenu));
             m_ControlTypes.Add("MainMenu", typeof(MainMenu));
 
-            m_ControlTypes.Add("Panel", typeof(XNAFinalEngine.UserInterface.Panel));
+            m_ControlTypes.Add("Panel", typeof(Panel));
             m_ControlTypes.Add("PanelCollapsible", typeof(PanelCollapsible));
             m_ControlTypes.Add("SideBar", typeof(SideBar));
             m_ControlTypes.Add("SideBarPanel", typeof(SideBarPanel));
@@ -124,11 +136,11 @@ namespace Editor.Tools.UIScreenEditor
 
             m_ControlTypes.Add("SliderColor", typeof(SliderColor));
             m_ControlTypes.Add("SliderNumeric", typeof(SliderNumeric));
-            m_ControlTypes.Add("TrackBar", typeof(XNAFinalEngine.UserInterface.TrackBar));
+            m_ControlTypes.Add("TrackBar", typeof(TrackBar));
 
-            m_ControlTypes.Add("Console", typeof(XNAFinalEngine.UserInterface.Console));
+            m_ControlTypes.Add("Console", typeof(Console));
             m_ControlTypes.Add("SpinBox", typeof(SpinBox));
-            m_ControlTypes.Add("TextBox", typeof(XNAFinalEngine.UserInterface.TextBox));
+            m_ControlTypes.Add("TextBox", typeof(TextBox));
 
             m_ControlTypes.Add("ToolBar", typeof(ToolBar));
             m_ControlTypes.Add("ToolBarButton", typeof(ToolBarButton));
@@ -371,7 +383,7 @@ namespace Editor.Tools.UIScreenEditor
         /// <param name="e"></param>
         private void panelXna_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            XNAFinalEngine.UserInterface.Control control = m_UIScreenEditorComponent.GetControlAt(e.X, e.Y);
+            Control control = m_UIScreenEditorComponent.GetControlAt(e.X, e.Y);
 
             if (control != null)
             {
@@ -405,8 +417,8 @@ namespace Editor.Tools.UIScreenEditor
             {
                 try
                 {
-                    XNAFinalEngine.UserInterface.Control control =
-                    (XNAFinalEngine.UserInterface.Control)m_ToolControlType.Assembly.CreateInstance(
+                    Control control =
+                    (Control)m_ToolControlType.Assembly.CreateInstance(
                         m_ToolControlType.FullName, false,
                         System.Reflection.BindingFlags.Default, null, new Object[] { m_XnaEditorForm.Game.UIManager },
                     CultureInfo.InvariantCulture, null);

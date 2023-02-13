@@ -1,14 +1,10 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using CasaEngine.Assets.Fonts;
 using Editor.Game;
 using Microsoft.Xna.Framework;
 using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset.Fonts;
 using CasaEngine.Game;
-using CasaEngine.CoreSystems.Game;
 using Color = Microsoft.Xna.Framework.Color;
 
 namespace Editor.Tools.Font
@@ -19,7 +15,7 @@ namespace Editor.Tools.Font
     class FontPreviewEditorComponent
         : CasaEngine.Game.DrawableGameComponent
     {
-        CasaEngine.Asset.Fonts.Font m_Font, m_NewFont;
+        CasaEngine.Assets.Fonts.Font m_Font, m_NewFont;
         bool m_NeedChangeFont = false;
         SpriteBatch m_SpriteBatch;
         string m_Text;
@@ -27,7 +23,7 @@ namespace Editor.Tools.Font
         /// <summary>
         /// 
         /// </summary>
-        public CasaEngine.Asset.Fonts.Font Font
+        public CasaEngine.Assets.Fonts.Font Font
         {
             get { return m_Font; }
             set

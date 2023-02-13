@@ -10,13 +10,15 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
+using CasaEngine.Assets.Textures;
+using CasaEngine.Helpers;
+using CasaEngine.UserInterface.Controls.Auxiliary;
+using CasaEngine.UserInterface.Controls.Menu;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Asset;
+using Cursor = CasaEngine.Assets.Cursors.Cursor;
+using ToolTip = CasaEngine.UserInterface.Controls.Auxiliary.ToolTip;
 
-using XNAFinalEngine.Helpers;
-using Cursor = CasaEngine.Asset.Cursors.Cursor;
-
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface
 {
 
     public class ControlsList : EventedList<Control>
@@ -163,17 +165,21 @@ namespace XNAFinalEngine.UserInterface
                 if (Parent is Container && (Parent as Container).AutoScroll)
                 {
                     // So it is a client area...
-                    int maxHeight = 0;
-                    foreach (Control childControl in ChildrenControls)
+                    var maxHeight = 0;
+                    foreach (var childControl in ChildrenControls)
                     {
                         if ((childControl.Anchor & Anchors.Bottom) != Anchors.Bottom && childControl.Visible)
                         {
                             if (childControl.Top + childControl.Height > maxHeight)
+                            {
                                 maxHeight = childControl.Top + childControl.Height;
+                            }
                         }
                     }
                     if (maxHeight < Height)
+                    {
                         maxHeight = Height;
+                    }
 
                     return maxHeight;
                 }
@@ -188,18 +194,22 @@ namespace XNAFinalEngine.UserInterface
                 if (Parent is Container && (Parent as Container).AutoScroll)
                 {
                     // So it is a client area...
-                    int maxWidth = 0;
+                    var maxWidth = 0;
 
-                    foreach (Control c in ChildrenControls)
+                    foreach (var c in ChildrenControls)
                     {
                         if ((c.Anchor & Anchors.Right) != Anchors.Right && c.Visible)
                         {
                             if (c.Left + c.Width > maxWidth)
+                            {
                                 maxWidth = c.Left + c.Width;
+                            }
                         }
                     }
                     if (maxWidth < Width)
+                    {
                         maxWidth = Width;
+                    }
 
                     return maxWidth;
                 }
@@ -214,13 +224,15 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_left != value)
                 {
-                    int old = _left;
+                    var old = _left;
                     _left = value;
 
                     SetAnchorMargins();
 
                     if (!Suspended)
+                    {
                         OnMove(new MoveEventArgs(_left, _top, old, _top));
+                    }
                 }
             }
         } // Left
@@ -232,13 +244,15 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_top != value)
                 {
-                    int old = _top;
+                    var old = _top;
                     _top = value;
 
                     SetAnchorMargins();
 
                     if (!Suspended)
+                    {
                         OnMove(new MoveEventArgs(_left, _top, _left, old));
+                    }
                 }
             }
         } // Top
@@ -250,27 +264,37 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_width != value)
                 {
-                    int old = _width;
+                    var old = _width;
                     _width = value;
 
                     if (_skinControl != null)
                     {
                         if (_width + _skinControl.OriginMargins.Horizontal > MaximumWidth)
+                        {
                             _width = MaximumWidth - _skinControl.OriginMargins.Horizontal;
+                        }
                     }
                     else
                     {
                         if (_width > MaximumWidth)
+                        {
                             _width = MaximumWidth;
+                        }
                     }
                     if (_width < MinimumWidth)
+                    {
                         _width = MinimumWidth;
+                    }
 
                     if (_width > MinimumWidth)
+                    {
                         SetAnchorMargins();
+                    }
 
                     if (!Suspended)
+                    {
                         OnResize(new ResizeEventArgs(_width, _height, old, _height));
+                    }
                 }
             }
         } // Width
@@ -282,25 +306,38 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_height != value)
                 {
-                    int old = _height;
+                    var old = _height;
 
                     _height = value;
 
                     if (_skinControl != null)
                     {
                         if (_height + _skinControl.OriginMargins.Vertical > MaximumHeight)
+                        {
                             _height = MaximumHeight - _skinControl.OriginMargins.Vertical;
+                        }
                     }
                     else
                     {
-                        if (_height > MaximumHeight) _height = MaximumHeight;
+                        if (_height > MaximumHeight)
+                        {
+                            _height = MaximumHeight;
+                        }
                     }
-                    if (_height < MinimumHeight) _height = MinimumHeight;
+                    if (_height < MinimumHeight)
+                    {
+                        _height = MinimumHeight;
+                    }
 
-                    if (_height > MinimumHeight) SetAnchorMargins();
+                    if (_height > MinimumHeight)
+                    {
+                        SetAnchorMargins();
+                    }
 
                     if (!Suspended)
+                    {
                         OnResize(new ResizeEventArgs(_width, _height, _width, old));
+                    }
                 }
 
             }
@@ -313,11 +350,19 @@ namespace XNAFinalEngine.UserInterface
             {
                 _minimumWidth = value;
                 if (_minimumWidth < 0)
+                {
                     _minimumWidth = 0;
+                }
+
                 if (_minimumWidth > _maximumWidth)
+                {
                     _minimumWidth = _maximumWidth;
+                }
+
                 if (_width < MinimumWidth)
+                {
                     Width = MinimumWidth;
+                }
             }
         } // MinimumWidth
 
@@ -328,11 +373,19 @@ namespace XNAFinalEngine.UserInterface
             {
                 _minimumHeight = value;
                 if (_minimumHeight < 0)
+                {
                     _minimumHeight = 0;
+                }
+
                 if (_minimumHeight > _maximumHeight)
+                {
                     _minimumHeight = _maximumHeight;
+                }
+
                 if (_height < MinimumHeight)
+                {
                     Height = MinimumHeight;
+                }
             }
         } // MinimumHeight
 
@@ -340,18 +393,26 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                int max = _maximumWidth;
+                var max = _maximumWidth;
                 if (max > UserInterfaceManager.Screen.Width)
+                {
                     max = UserInterfaceManager.Screen.Width;
+                }
+
                 return max;
             }
             set
             {
                 _maximumWidth = value;
                 if (_maximumWidth < _minimumWidth)
+                {
                     _maximumWidth = _minimumWidth;
+                }
+
                 if (_width > MaximumWidth)
+                {
                     Width = MaximumWidth;
+                }
             }
         } // MaximumWidth
 
@@ -359,18 +420,26 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                int max = _maximumHeight;
+                var max = _maximumHeight;
                 if (max > UserInterfaceManager.Screen.Height)
+                {
                     max = UserInterfaceManager.Screen.Height;
+                }
+
                 return max;
             }
             set
             {
                 _maximumHeight = value;
                 if (_maximumHeight < _minimumHeight)
+                {
                     _maximumHeight = _minimumHeight;
+                }
+
                 if (_height > MaximumHeight)
+                {
                     Height = MaximumHeight;
+                }
             }
         } // MaximumHeight
 
@@ -383,9 +452,15 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (_parent == null)
+                {
                     return _left + HorizontalScrollingAmount;
+                }
+
                 if (_parent.SkinInformation == null)
+                {
                     return _parent.ControlLeftAbsoluteCoordinate + _left + HorizontalScrollingAmount;
+                }
+
                 return _parent.ControlLeftAbsoluteCoordinate + _left - _parent.SkinInformation.OriginMargins.Left + HorizontalScrollingAmount;
             }
         } // ControlLeftAbsoluteCoordinate
@@ -395,9 +470,15 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (_parent == null)
+                {
                     return _top + VerticalScrollingAmount;
+                }
+
                 if (_parent.SkinInformation == null)
+                {
                     return _parent.ControlTopAbsoluteCoordinate + _top + VerticalScrollingAmount;
+                }
+
                 return _parent.ControlTopAbsoluteCoordinate + _top - _parent.SkinInformation.OriginMargins.Top + VerticalScrollingAmount;
             }
         } // ControlTopAbsoluteCoordinate
@@ -407,7 +488,10 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (_skinControl == null)
+                {
                     return ControlLeftAbsoluteCoordinate;
+                }
+
                 return ControlLeftAbsoluteCoordinate - _skinControl.OriginMargins.Left;
             }
         } // ControlAndMarginsLeftAbsoluteCoordinate
@@ -417,7 +501,10 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (_skinControl == null)
+                {
                     return ControlTopAbsoluteCoordinate;
+                }
+
                 return ControlTopAbsoluteCoordinate - _skinControl.OriginMargins.Top;
             }
         } // ControlAndMarginsTopAbsoluteCoordinate
@@ -427,7 +514,10 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (_skinControl == null)
+                {
                     return _width;
+                }
+
                 return _width + _skinControl.OriginMargins.Left + _skinControl.OriginMargins.Right;
             }
         } // ControlAndMarginsWidth
@@ -437,7 +527,10 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (_skinControl == null)
+                {
                     return _height;
+                }
+
                 return _height + _skinControl.OriginMargins.Top + _skinControl.OriginMargins.Bottom;
             }
         } // ControlAndMarginsHeight
@@ -476,10 +569,25 @@ namespace XNAFinalEngine.UserInterface
                 _outlineRectangle = value;
                 if (value != Rectangle.Empty)
                 {
-                    if (_outlineRectangle.Width > MaximumWidth) _outlineRectangle.Width = MaximumWidth;
-                    if (_outlineRectangle.Height > MaximumHeight) _outlineRectangle.Height = MaximumHeight;
-                    if (_outlineRectangle.Width < MinimumWidth) _outlineRectangle.Width = MinimumWidth;
-                    if (_outlineRectangle.Height < MinimumHeight) _outlineRectangle.Height = MinimumHeight;
+                    if (_outlineRectangle.Width > MaximumWidth)
+                    {
+                        _outlineRectangle.Width = MaximumWidth;
+                    }
+
+                    if (_outlineRectangle.Height > MaximumHeight)
+                    {
+                        _outlineRectangle.Height = MaximumHeight;
+                    }
+
+                    if (_outlineRectangle.Width < MinimumWidth)
+                    {
+                        _outlineRectangle.Width = MinimumWidth;
+                    }
+
+                    if (_outlineRectangle.Height < MinimumHeight)
+                    {
+                        _outlineRectangle.Height = MinimumHeight;
+                    }
                 }
             }
         } // OutlineRectangle
@@ -578,7 +686,10 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 if (value && _stayOnTop)
+                {
                     _stayOnTop = false;
+                }
+
                 _stayOnBack = value;
             }
         } // StayOnBack
@@ -589,7 +700,10 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 if (value && _stayOnBack)
+                {
                     _stayOnBack = false;
+                }
+
                 _stayOnTop = value;
             }
         } // StayOnTop
@@ -602,21 +716,31 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 Invalidate();
-                bool previousValue = Focused;
+                var previousValue = Focused;
                 if (value)
                 {
                     UserInterfaceManager.FocusedControl = this;
                     if (!Suspended && !previousValue)
+                    {
                         OnFocusGained();
+                    }
+
                     if (Focused && Root != null && Root is Container)
+                    {
                         (Root as Container).ScrollTo(this);
+                    }
                 }
                 else
                 {
                     if (UserInterfaceManager.FocusedControl == this)
+                    {
                         UserInterfaceManager.FocusedControl = null;
+                    }
+
                     if (!Suspended && previousValue)
+                    {
                         OnFocusLost();
+                    }
                 }
             }
         } // Focused
@@ -626,17 +750,35 @@ namespace XNAFinalEngine.UserInterface
             get
             {
                 if (DesignMode)
+                {
                     return ControlState.Enabled;
+                }
+
                 if (Suspended)
+                {
                     return ControlState.Disabled;
+                }
+
                 if (!_enabled)
+                {
                     return ControlState.Disabled;
+                }
+
                 if ((IsPressed && _inside) || (Focused && IsPressed))
+                {
                     return ControlState.Pressed;
+                }
+
                 if (_hovered && !IsPressed)
+                {
                     return ControlState.Hovered;
+                }
+
                 if ((Focused && !_inside) || (_hovered && IsPressed && !_inside) || (Focused && !_hovered && _inside))
+                {
                     return ControlState.Focused;
+                }
+
                 return ControlState.Enabled;
             }
         } // ControlState
@@ -647,13 +789,16 @@ namespace XNAFinalEngine.UserInterface
             set => toolTip = value;
         } // ToolTip
 
-        internal protected virtual bool IsPressed
+        protected internal virtual bool IsPressed
         {
             get
             {
-                for (int i = 0; i < _pressed.Length - 1; i++)
+                for (var i = 0; i < _pressed.Length - 1; i++)
                 {
-                    if (_pressed[i]) return true;
+                    if (_pressed[i])
+                    {
+                        return true;
+                    }
                 }
                 return false;
             }
@@ -667,11 +812,11 @@ namespace XNAFinalEngine.UserInterface
 
         public virtual bool Suspended { get; set; }
 
-        internal protected virtual bool Hovered => _hovered;
+        protected internal virtual bool Hovered => _hovered;
 
-        internal protected virtual bool Inside => _inside;
+        protected internal virtual bool Inside => _inside;
 
-        internal protected virtual bool[] Pressed => _pressed;
+        protected internal virtual bool[] Pressed => _pressed;
 
         protected virtual bool IsMoving { get; set; }
 
@@ -684,7 +829,10 @@ namespace XNAFinalEngine.UserInterface
             {
                 _anchor = value;
                 SetAnchorMargins();
-                if (!Suspended) OnAnchorChanged(new EventArgs());
+                if (!Suspended)
+                {
+                    OnAnchorChanged(new EventArgs());
+                }
             }
         } // Anchor
 
@@ -712,7 +860,9 @@ namespace XNAFinalEngine.UserInterface
                 _text = value;
                 Invalidate();
                 if (!Suspended)
+                {
                     OnTextChanged(new EventArgs());
+                }
             }
         } // Text
 
@@ -723,7 +873,9 @@ namespace XNAFinalEngine.UserInterface
             {
                 _alpha = value;
                 if (!Suspended)
+                {
                     OnAlphaChanged(new EventArgs());
+                }
             }
         } // Alpha
 
@@ -735,7 +887,9 @@ namespace XNAFinalEngine.UserInterface
                 _backgroundColor = value;
                 Invalidate();
                 if (!Suspended)
+                {
                     OnBackColorChanged(new EventArgs());
+                }
             }
         } // BackgroundColor
 
@@ -749,7 +903,9 @@ namespace XNAFinalEngine.UserInterface
                     _color = value;
                     Invalidate();
                     if (!Suspended)
+                    {
                         OnColorChanged(new EventArgs());
+                    }
                 }
             }
         } // Color
@@ -763,7 +919,10 @@ namespace XNAFinalEngine.UserInterface
                 {
                     _textColor = value;
                     Invalidate();
-                    if (!Suspended) OnTextColorChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnTextColorChanged(new EventArgs());
+                    }
                 }
             }
         } // TextColor
@@ -774,15 +933,20 @@ namespace XNAFinalEngine.UserInterface
             set
             {
                 if (Root != null && Root != this && !Root.Enabled && value)
+                {
                     return;
+                }
+
                 _enabled = value;
                 Invalidate();
-                foreach (Control c in _childrenControls)
+                foreach (var c in _childrenControls)
                 {
                     c.Enabled = value;
                 }
                 if (!Suspended)
+                {
                     OnEnabledChanged(new EventArgs());
+                }
             }
         } // Enabled
 
@@ -794,7 +958,9 @@ namespace XNAFinalEngine.UserInterface
                 _visible = value;
                 Invalidate();
                 if (!Suspended)
+                {
                     OnVisibleChanged(new EventArgs());
+                }
             }
         } // Visible
 
@@ -805,14 +971,23 @@ namespace XNAFinalEngine.UserInterface
             {
                 // Remove it from old parent
                 if (_parent == null)
+                {
                     UserInterfaceManager.Remove(_parent);
+                }
                 else
+                {
                     _parent.Remove(this);
+                }
+
                 // Add this control to the new parent
                 if (value != null)
+                {
                     value.Add(this);
+                }
                 else
+                {
                     UserInterfaceManager.Add(this);
+                }
             }
         } // Parent
 
@@ -824,11 +999,14 @@ namespace XNAFinalEngine.UserInterface
                 if (_root != value)
                 {
                     _root = value;
-                    foreach (Control c in _childrenControls)
+                    foreach (var c in _childrenControls)
                     {
                         c.Root = _root;
                     }
-                    if (!Suspended) OnRootChanged(new EventArgs());
+                    if (!Suspended)
+                    {
+                        OnRootChanged(new EventArgs());
+                    }
                 }
             }
         } // Root
@@ -920,11 +1098,15 @@ namespace XNAFinalEngine.UserInterface
         {
             if (UserInterfaceManager.Skin.Controls != null)
             {
-                SkinControlInformation skinControl = UserInterfaceManager.Skin.Controls[Utilities.ControlTypeName(this)];
+                var skinControl = UserInterfaceManager.Skin.Controls[Utilities.ControlTypeName(this)];
                 if (skinControl != null)
+                {
                     SkinInformation = skinControl;
+                }
                 else
+                {
                     SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["Control"]);
+                }
             }
             else
             {
@@ -988,32 +1170,33 @@ namespace XNAFinalEngine.UserInterface
             RootChanged = null;
 
             if (_parent != null)
+            {
                 _parent.Remove(this);
+            }
             else
+            {
                 UserInterfaceManager.Remove(this);
+            }
 
-            if (UserInterfaceManager.OrderList != null)
-                UserInterfaceManager.OrderList.Remove(this);
+            UserInterfaceManager.OrderList?.Remove(this);
 
             // Possibly we added the menu to another parent than this control, 
             // so we dispose it manually, because in logic it belongs to this control.        
-            if (ContextMenu != null)
-                ContextMenu.Dispose();
+            ContextMenu?.Dispose();
 
             // Recursively disposing all children controls.
             // The collection might change from its children, so we check it on count greater than zero.
             if (_childrenControls != null)
             {
-                int childrenControlsCount = _childrenControls.Count;
-                for (int i = childrenControlsCount - 1; i >= 0; i--)
+                var childrenControlsCount = _childrenControls.Count;
+                for (var i = childrenControlsCount - 1; i >= 0; i--)
                 {
                     _childrenControls[i].Dispose();
                 }
             }
 
             // Disposes tooltip owned by Manager        
-            if (toolTip != null)
-                toolTip.Dispose();
+            toolTip?.Dispose();
 
             // Removing this control from the global stack.
             controlList.Remove(this);
@@ -1032,8 +1215,7 @@ namespace XNAFinalEngine.UserInterface
                 }
             }
 
-            if (_renderTarget != null)
-                _renderTarget.Dispose();
+            _renderTarget?.Dispose();
         } // DisposeManagedResources
 
         protected internal virtual void Update(float elapsedTime)
@@ -1065,8 +1247,8 @@ namespace XNAFinalEngine.UserInterface
                 catch (IndexOutOfRangeException)
                 {*/
                 // This is the alternative that produces garbage but it does not have out of range problems.
-                ControlsList childrenControlsAuxList = new ControlsList(_childrenControls);
-                foreach (Control control in childrenControlsAuxList)
+                var childrenControlsAuxList = new ControlsList(_childrenControls);
+                foreach (var control in childrenControlsAuxList)
                     control.Update(elapsedTime);
                 //}
             }
@@ -1087,7 +1269,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (UserInterfaceManager.ToolTipsEnabled && toolTip != null && _tooltipTimer == 0)
             {
-                TimeSpan ts = new TimeSpan(DateTime.Now.Ticks);
+                var ts = new TimeSpan(DateTime.Now.Ticks);
                 _tooltipTimer = (long)ts.TotalMilliseconds;
             }
         } // ToolTipOver
@@ -1108,14 +1290,20 @@ namespace XNAFinalEngine.UserInterface
             {
                 if (_renderTarget == null || _renderTarget.Width < ControlAndMarginsWidth || _renderTarget.Height < ControlAndMarginsHeight)
                 {
-                    if (_renderTarget != null)
-                        _renderTarget.Dispose();
+                    _renderTarget?.Dispose();
 
-                    int w = ControlAndMarginsWidth + (UserInterfaceManager.TextureResizeIncrement - (ControlAndMarginsWidth % UserInterfaceManager.TextureResizeIncrement));
-                    int h = ControlAndMarginsHeight + (UserInterfaceManager.TextureResizeIncrement - (ControlAndMarginsHeight % UserInterfaceManager.TextureResizeIncrement));
+                    var w = ControlAndMarginsWidth + (UserInterfaceManager.TextureResizeIncrement - (ControlAndMarginsWidth % UserInterfaceManager.TextureResizeIncrement));
+                    var h = ControlAndMarginsHeight + (UserInterfaceManager.TextureResizeIncrement - (ControlAndMarginsHeight % UserInterfaceManager.TextureResizeIncrement));
 
-                    if (h > UserInterfaceManager.Screen.Height) h = UserInterfaceManager.Screen.Height;
-                    if (w > UserInterfaceManager.Screen.Width) w = UserInterfaceManager.Screen.Width;
+                    if (h > UserInterfaceManager.Screen.Height)
+                    {
+                        h = UserInterfaceManager.Screen.Height;
+                    }
+
+                    if (w > UserInterfaceManager.Screen.Width)
+                    {
+                        w = UserInterfaceManager.Screen.Width;
+                    }
 
                     if (_width > 0 && _height > 0)
                     {
@@ -1123,21 +1311,23 @@ namespace XNAFinalEngine.UserInterface
                         //AssetContentManager.CurrentContentManager = UserInterfaceManager.UserInterfaceContentManager;
                         _renderTarget = new RenderTarget(
                             UserInterfaceManager.GraphicsDevice, new Helpers.Size(w, h, UserInterfaceManager.Screen),
-                            SurfaceFormat.Color, false, RenderTarget.AntialiasingType.NoAntialiasing)
+                            SurfaceFormat.Color, false)
                         {
                             Name = "User Interface Render Target"
                         };
                         //AssetContentManager.CurrentContentManager = userContentManager;
                     }
                     else
+                    {
                         _renderTarget = null;
+                    }
                 }
                 if (_renderTarget != null)
                 {
                     _renderTarget.EnableRenderTarget();
                     _renderTarget.Clear(_backgroundColor);
 
-                    Rectangle rect = new Rectangle(0, 0, ControlAndMarginsWidth, ControlAndMarginsHeight);
+                    var rect = new Rectangle(0, 0, ControlAndMarginsWidth, ControlAndMarginsHeight);
 
                     DrawControls(rect, false);
 
@@ -1171,7 +1361,7 @@ namespace XNAFinalEngine.UserInterface
 
             DrawingRectangle = rectangle;
 
-            DrawEventArgs args = new DrawEventArgs { Rectangle = rectangle, };
+            var args = new DrawEventArgs { Rectangle = rectangle, };
             OnDraw(args);
 
             DrawControl(rectangle);
@@ -1185,7 +1375,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (_childrenControls != null)
             {
-                foreach (Control childControl in _childrenControls)
+                foreach (var childControl in _childrenControls)
                 {
                     // We skip detached controls for first level (after root) because they are rendered separately in the Draw method.
                     if (((childControl.Root == childControl.Parent && !childControl.Detached) || childControl.Root != childControl.Parent) && ControlRectangle.Intersects(childControl.ControlRectangle) && childControl._visible)
@@ -1193,7 +1383,7 @@ namespace XNAFinalEngine.UserInterface
                         UserInterfaceManager.GraphicsDevice.ScissorRectangle = ClippingRectangle(childControl);
 
                         // The position relative to its parent plus its width and height.
-                        Rectangle rect = new Rectangle(childControl.ControlAndMarginsLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate, childControl.ControlAndMarginsTopAbsoluteCoordinate - _root.ControlTopAbsoluteCoordinate, childControl.ControlAndMarginsWidth, childControl.ControlAndMarginsHeight);
+                        var rect = new Rectangle(childControl.ControlAndMarginsLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate, childControl.ControlAndMarginsTopAbsoluteCoordinate - _root.ControlTopAbsoluteCoordinate, childControl.ControlAndMarginsWidth, childControl.ControlAndMarginsHeight);
                         if (childControl.Root != childControl.Parent && ((!childControl.Detached && CheckDetached(childControl)) || firstDetachedLevel))
                         {
                             rect = new Rectangle(childControl.ControlAndMarginsLeftAbsoluteCoordinate, childControl.ControlAndMarginsTopAbsoluteCoordinate, childControl.ControlAndMarginsWidth, childControl.ControlAndMarginsHeight);
@@ -1227,7 +1417,7 @@ namespace XNAFinalEngine.UserInterface
                         UserInterfaceManager.Renderer.Begin();
                         childControl.DrawingRectangle = rect;
 
-                        DrawEventArgs args = new DrawEventArgs { Rectangle = rect, };
+                        var args = new DrawEventArgs { Rectangle = rect, };
                         childControl.OnDraw(args);
 
                         childControl.DrawControl(rect);
@@ -1246,7 +1436,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (control.ChildrenControls != null)
             {
-                foreach (Control c in control.ChildrenControls)
+                foreach (var c in control.ChildrenControls)
                 {
                     if (c.Detached && c.Visible)
                     {
@@ -1262,46 +1452,62 @@ namespace XNAFinalEngine.UserInterface
         {
             if (!OutlineRectangle.IsEmpty)
             {
-                Rectangle r = OutlineRectangle;
+                var r = OutlineRectangle;
                 if (child)
                 {
                     r = new Rectangle(OutlineRectangle.Left + (_parent.ControlLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate), OutlineRectangle.Top + (_parent.ControlTopAbsoluteCoordinate - _root.ControlTopAbsoluteCoordinate), OutlineRectangle.Width, OutlineRectangle.Height);
                 }
 
-                Texture2D t = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].Image.Texture.Resource;
+                var t = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].Image.Texture.Resource;
 
-                int s = _resizerSize;
-                Rectangle r1 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + VerticalScrollingAmount, r.Width, s);
-                Rectangle r2 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, _resizerSize, r.Height - (2 * s));
-                Rectangle r3 = new Rectangle(r.Right - s + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, s, r.Height - (2 * s));
-                Rectangle r4 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Bottom - s + VerticalScrollingAmount, r.Width, s);
+                var s = _resizerSize;
+                var r1 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + VerticalScrollingAmount, r.Width, s);
+                var r2 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, _resizerSize, r.Height - (2 * s));
+                var r3 = new Rectangle(r.Right - s + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, s, r.Height - (2 * s));
+                var r4 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Bottom - s + VerticalScrollingAmount, r.Width, s);
 
-                Color c = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].States.Enabled.Color;
+                var c = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].States.Enabled.Color;
 
                 UserInterfaceManager.Renderer.Begin();
-                if ((ResizeEdge & Anchors.Top) == Anchors.Top || !_partialOutline) UserInterfaceManager.Renderer.Draw(t, r1, c);
-                if ((ResizeEdge & Anchors.Left) == Anchors.Left || !_partialOutline) UserInterfaceManager.Renderer.Draw(t, r2, c);
-                if ((ResizeEdge & Anchors.Right) == Anchors.Right || !_partialOutline) UserInterfaceManager.Renderer.Draw(t, r3, c);
-                if ((ResizeEdge & Anchors.Bottom) == Anchors.Bottom || !_partialOutline) UserInterfaceManager.Renderer.Draw(t, r4, c);
+                if ((ResizeEdge & Anchors.Top) == Anchors.Top || !_partialOutline)
+                {
+                    UserInterfaceManager.Renderer.Draw(t, r1, c);
+                }
+
+                if ((ResizeEdge & Anchors.Left) == Anchors.Left || !_partialOutline)
+                {
+                    UserInterfaceManager.Renderer.Draw(t, r2, c);
+                }
+
+                if ((ResizeEdge & Anchors.Right) == Anchors.Right || !_partialOutline)
+                {
+                    UserInterfaceManager.Renderer.Draw(t, r3, c);
+                }
+
+                if ((ResizeEdge & Anchors.Bottom) == Anchors.Bottom || !_partialOutline)
+                {
+                    UserInterfaceManager.Renderer.Draw(t, r4, c);
+                }
+
                 UserInterfaceManager.Renderer.End();
             }
             else if (DesignMode && Focused)
             {
-                Rectangle r = ControlRectangleRelativeToParent;
+                var r = ControlRectangleRelativeToParent;
                 if (child)
                 {
                     r = new Rectangle(r.Left + (_parent.ControlLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate), r.Top + (_parent.ControlTopAbsoluteCoordinate - _root.ControlTopAbsoluteCoordinate), r.Width, r.Height);
                 }
 
-                Texture2D t = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].Image.Texture.Resource;
+                var t = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].Image.Texture.Resource;
 
-                int s = _resizerSize;
-                Rectangle r1 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + VerticalScrollingAmount, r.Width, s);
-                Rectangle r2 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, _resizerSize, r.Height - (2 * s));
-                Rectangle r3 = new Rectangle(r.Right - s + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, s, r.Height - (2 * s));
-                Rectangle r4 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Bottom - s + VerticalScrollingAmount, r.Width, s);
+                var s = _resizerSize;
+                var r1 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + VerticalScrollingAmount, r.Width, s);
+                var r2 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, _resizerSize, r.Height - (2 * s));
+                var r3 = new Rectangle(r.Right - s + HorizontalScrollingAmount, r.Top + s + VerticalScrollingAmount, s, r.Height - (2 * s));
+                var r4 = new Rectangle(r.Left + HorizontalScrollingAmount, r.Bottom - s + VerticalScrollingAmount, r.Width, s);
 
-                Color c = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].States.Enabled.Color;
+                var c = UserInterfaceManager.Skin.Controls["Control.Outline"].Layers[0].States.Enabled.Color;
 
                 UserInterfaceManager.Renderer.Begin();
                 UserInterfaceManager.Renderer.Draw(t, r1, c);
@@ -1321,54 +1527,102 @@ namespace XNAFinalEngine.UserInterface
             // This is a little concession that I did.
             // If the control is a container then it is not renderer, except its children.
             if (Utilities.ControlTypeName(this) != "Container")
+            {
                 UserInterfaceManager.Renderer.DrawLayer(this, _skinControl.Layers[0], rect);
+            }
         } // DrawControl
 
         private Rectangle ClippingRectangle(Control c)
         {
-            Rectangle rectangle = new Rectangle(c.ControlAndMarginsLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate,
+            var rectangle = new Rectangle(c.ControlAndMarginsLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate,
                                                 c.ControlAndMarginsTopAbsoluteCoordinate - _root.ControlTopAbsoluteCoordinate,
                                                 c.ControlAndMarginsWidth, c.ControlAndMarginsHeight);
 
-            int x1 = rectangle.Left;
-            int x2 = rectangle.Right;
-            int y1 = rectangle.Top;
-            int y2 = rectangle.Bottom;
+            var x1 = rectangle.Left;
+            var x2 = rectangle.Right;
+            var y1 = rectangle.Top;
+            var y2 = rectangle.Bottom;
 
-            Control control = c.Parent;
+            var control = c.Parent;
             while (control != null)
             {
-                int cx1 = control.ControlAndMarginsLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate;
-                int cy1 = control.ControlAndMarginsTopAbsoluteCoordinate - _root.ControlTopAbsoluteCoordinate;
-                int cx2 = cx1 + control.ControlAndMarginsWidth;
-                int cy2 = cy1 + control.ControlAndMarginsHeight;
+                var cx1 = control.ControlAndMarginsLeftAbsoluteCoordinate - _root.ControlLeftAbsoluteCoordinate;
+                var cy1 = control.ControlAndMarginsTopAbsoluteCoordinate - _root.ControlTopAbsoluteCoordinate;
+                var cx2 = cx1 + control.ControlAndMarginsWidth;
+                var cy2 = cy1 + control.ControlAndMarginsHeight;
 
-                if (x1 < cx1) x1 = cx1;
-                if (y1 < cy1) y1 = cy1;
-                if (x2 > cx2) x2 = cx2;
-                if (y2 > cy2) y2 = cy2;
+                if (x1 < cx1)
+                {
+                    x1 = cx1;
+                }
+
+                if (y1 < cy1)
+                {
+                    y1 = cy1;
+                }
+
+                if (x2 > cx2)
+                {
+                    x2 = cx2;
+                }
+
+                if (y2 > cy2)
+                {
+                    y2 = cy2;
+                }
 
                 control = control.Parent;
             }
 
-            int fx2 = x2 - x1;
-            int fy2 = y2 - y1;
+            var fx2 = x2 - x1;
+            var fy2 = y2 - y1;
 
-            if (x1 < 0) x1 = 0;
-            if (y1 < 0) y1 = 0;
-            if (fx2 < 0) fx2 = 0;
-            if (fy2 < 0) fy2 = 0;
-            if (x1 > _root.Width) x1 = _root.Width;
-            if (y1 > _root.Height) y1 = _root.Height;
-            if (fx2 > _root.Width) fx2 = _root.Width;
-            if (fy2 > _root.Height) fy2 = _root.Height;
+            if (x1 < 0)
+            {
+                x1 = 0;
+            }
+
+            if (y1 < 0)
+            {
+                y1 = 0;
+            }
+
+            if (fx2 < 0)
+            {
+                fx2 = 0;
+            }
+
+            if (fy2 < 0)
+            {
+                fy2 = 0;
+            }
+
+            if (x1 > _root.Width)
+            {
+                x1 = _root.Width;
+            }
+
+            if (y1 > _root.Height)
+            {
+                y1 = _root.Height;
+            }
+
+            if (fx2 > _root.Width)
+            {
+                fx2 = _root.Width;
+            }
+
+            if (fy2 > _root.Height)
+            {
+                fy2 = _root.Height;
+            }
 
             return new Rectangle(x1, y1, fx2, fy2);
         } // ClippingRectangle
 
         private static bool CheckDetached(Control c)
         {
-            Control parent = c.Parent;
+            var parent = c.Parent;
             while (parent != null)
             {
                 if (parent.Detached)
@@ -1387,9 +1641,13 @@ namespace XNAFinalEngine.UserInterface
                 if (!_childrenControls.Contains(control))
                 {
                     if (control.Parent != null)
+                    {
                         control.Parent.Remove(control);
+                    }
                     else
+                    {
                         UserInterfaceManager.Remove(control);
+                    }
 
                     control._parent = this;
                     control.Root = _root;
@@ -1401,7 +1659,9 @@ namespace XNAFinalEngine.UserInterface
                     control.SetAnchorMargins();
 
                     if (!Suspended)
+                    {
                         OnParentChanged(new EventArgs());
+                    }
                 }
             }
         } // Add
@@ -1411,9 +1671,13 @@ namespace XNAFinalEngine.UserInterface
             if (control != null)
             {
                 if (control.Focused && control.Root != null)
+                {
                     control.Root.Focused = true;
+                }
                 else if (control.Focused)
+                {
                     control.Focused = false;
+                }
 
                 _childrenControls.Remove(control);
 
@@ -1423,7 +1687,9 @@ namespace XNAFinalEngine.UserInterface
                 Resize -= control.OnParentResize;
 
                 if (!Suspended)
+                {
                     OnParentChanged(new EventArgs());
+                }
             }
         } // Remove
 
@@ -1431,12 +1697,17 @@ namespace XNAFinalEngine.UserInterface
         {
             if (ChildrenControls != null)
             {
-                foreach (Control c in ChildrenControls)
+                foreach (var c in ChildrenControls)
                 {
                     if (c == control)
+                    {
                         return true;
+                    }
+
                     if (recursively && c.Contains(control))
+                    {
                         return true;
+                    }
                 }
             }
             return false;
@@ -1445,7 +1716,7 @@ namespace XNAFinalEngine.UserInterface
         public virtual Control SearchChildControlByName(string name)
         {
             Control ret = null;
-            foreach (Control c in ChildrenControls)
+            foreach (var c in ChildrenControls)
             {
                 if (c.Name.ToLower() == name.ToLower())
                 {
@@ -1454,7 +1725,9 @@ namespace XNAFinalEngine.UserInterface
                 }
                 ret = c.SearchChildControlByName(name);
                 if (ret != null)
+                {
                     break;
+                }
             }
             return ret;
         } // SearchChildControlByName
@@ -1462,8 +1735,7 @@ namespace XNAFinalEngine.UserInterface
         public virtual void Invalidate()
         {
             _invalidated = true;
-            if (_parent != null)
-                _parent.Invalidate();
+            _parent?.Invalidate();
         } // Invalidate
 
         public void BringToFront()
@@ -1552,7 +1824,10 @@ namespace XNAFinalEngine.UserInterface
         private void KeyPressProcess(KeyEventArgs e)
         {
             Invalidate();
-            if (!Suspended) OnKeyPress(e);
+            if (!Suspended)
+            {
+                OnKeyPress(e);
+            }
         } // KeyPressProcess
 
         private void KeyDownProcess(KeyEventArgs e)
@@ -1566,7 +1841,10 @@ namespace XNAFinalEngine.UserInterface
                 _pressed[(int)MouseButton.None] = true;
             }
 
-            if (!Suspended) OnKeyDown(e);
+            if (!Suspended)
+            {
+                OnKeyDown(e);
+            }
         } // KeyDownProcess
 
         private void KeyUpProcess(KeyEventArgs e)
@@ -1578,14 +1856,14 @@ namespace XNAFinalEngine.UserInterface
                 _pressed[(int)MouseButton.None] = false;
             }
 
-            if (!Suspended) OnKeyUp(e);
+            if (!Suspended)
+            {
+                OnKeyUp(e);
+            }
 
             if (e.Key == Keys.Apps && !e.Handled)
             {
-                if (ContextMenu != null)
-                {
-                    ContextMenu.Show(this, ControlLeftAbsoluteCoordinate + 8, ControlTopAbsoluteCoordinate + 8);
-                }
+                ContextMenu?.Show(this, ControlLeftAbsoluteCoordinate + 8, ControlTopAbsoluteCoordinate + 8);
             }
         } // KeyUpProcess
 
@@ -1607,24 +1885,36 @@ namespace XNAFinalEngine.UserInterface
 
                     IsResizing = true;
                     if (_outlineResizing)
+                    {
                         OutlineRectangle = ControlRectangleRelativeToParent;
+                    }
+
                     if (!Suspended)
+                    {
                         OnResizeBegin(e);
+                    }
                 }
                 else if (CheckMovableArea(e.Position))
                 {
                     IsMoving = true;
                     if (_outlineMoving)
+                    {
                         OutlineRectangle = ControlRectangleRelativeToParent;
+                    }
+
                     if (!Suspended)
+                    {
                         OnMoveBegin(e);
+                    }
                 }
             }
 
             ToolTipOut();
 
             if (!Suspended)
+            {
                 OnMouseDown(TransformPosition(e));
+            }
         } // MouseDownProcess
 
         private void MouseUpProcess(MouseEventArgs e)
@@ -1647,7 +1937,10 @@ namespace XNAFinalEngine.UserInterface
                             Height = OutlineRectangle.Height;
                             OutlineRectangle = Rectangle.Empty;
                         }
-                        if (!Suspended) OnResizeEnd(e);
+                        if (!Suspended)
+                        {
+                            OnResizeEnd(e);
+                        }
                     }
                     else if (IsMoving)
                     {
@@ -1658,10 +1951,16 @@ namespace XNAFinalEngine.UserInterface
                             Top = OutlineRectangle.Top;
                             OutlineRectangle = Rectangle.Empty;
                         }
-                        if (!Suspended) OnMoveEnd(e);
+                        if (!Suspended)
+                        {
+                            OnMoveEnd(e);
+                        }
                     }
                 }
-                if (!Suspended) OnMouseUp(TransformPosition(e));
+                if (!Suspended)
+                {
+                    OnMouseUp(TransformPosition(e));
+                }
             }
         } // MouseUpProcess
 
@@ -1670,7 +1969,9 @@ namespace XNAFinalEngine.UserInterface
             if (_pressed[(int)e.Button] && !IsMoving && !IsResizing)
             {
                 if (!Suspended)
+                {
                     OnMousePress(TransformPosition(e));
+                }
             }
         } // MousePressProcess
 
@@ -1682,11 +1983,15 @@ namespace XNAFinalEngine.UserInterface
 
 #if (WINDOWS)
             if (Cursor != null && UserInterfaceManager.Cursor != Cursor)
+            {
                 UserInterfaceManager.Cursor = Cursor;
+            }
 #endif
 
             if (!Suspended)
+            {
                 OnMouseOver(e);
+            }
         } // MouseOverProcess
 
         private void MouseOutProcess(MouseEventArgs e)
@@ -1700,7 +2005,9 @@ namespace XNAFinalEngine.UserInterface
 #endif
 
             if (!Suspended)
+            {
                 OnMouseOut(e);
+            }
         } // MouseOutProcess
 
         private void MouseMoveProcess(MouseEventArgs e)
@@ -1720,15 +2027,15 @@ namespace XNAFinalEngine.UserInterface
 
             if (!IsResizing && IsMoving)
             {
-                int x = (_parent != null) ? _parent.ControlLeftAbsoluteCoordinate : 0;
-                int y = (_parent != null) ? _parent.ControlTopAbsoluteCoordinate : 0;
+                var x = (_parent != null) ? _parent.ControlLeftAbsoluteCoordinate : 0;
+                var y = (_parent != null) ? _parent.ControlTopAbsoluteCoordinate : 0;
 
-                int l = e.Position.X - x - _pressSpot.X - HorizontalScrollingAmount;
-                int t = e.Position.Y - y - _pressSpot.Y - VerticalScrollingAmount;
+                var l = e.Position.X - x - _pressSpot.X - HorizontalScrollingAmount;
+                var t = e.Position.Y - y - _pressSpot.Y - VerticalScrollingAmount;
 
                 if (!Suspended)
                 {
-                    MoveEventArgs v = new MoveEventArgs(l, t, Left, Top);
+                    var v = new MoveEventArgs(l, t, Left, Top);
                     OnValidateMove(v);
 
                     l = v.Left;
@@ -1738,7 +2045,7 @@ namespace XNAFinalEngine.UserInterface
                 if (_outlineMoving)
                 {
                     OutlineRectangle = new Rectangle(l, t, OutlineRectangle.Width, OutlineRectangle.Height);
-                    if (_parent != null) _parent.Invalidate();
+                    _parent?.Invalidate();
                 }
                 else
                 {
@@ -1755,22 +2062,28 @@ namespace XNAFinalEngine.UserInterface
 
         private void ClickProcess(EventArgs e)
         {
-            long timer = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
+            var timer = (long)TimeSpan.FromTicks(DateTime.Now.Ticks).TotalMilliseconds;
 
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if ((_doubleClickTimer == 0 || (timer - _doubleClickTimer > UserInterfaceManager.DoubleClickTime)) || !_doubleClicks)
             {
-                TimeSpan ts = new TimeSpan(DateTime.Now.Ticks);
+                var ts = new TimeSpan(DateTime.Now.Ticks);
                 _doubleClickTimer = (long)ts.TotalMilliseconds;
                 _doubleClickButton = ex.Button;
 
-                if (!Suspended) OnClick(e);
+                if (!Suspended)
+                {
+                    OnClick(e);
+                }
             }
             else if (timer - _doubleClickTimer <= UserInterfaceManager.DoubleClickTime && (ex.Button == _doubleClickButton && ex.Button != MouseButton.None))
             {
                 _doubleClickTimer = 0;
-                if (!Suspended) OnDoubleClick(e);
+                if (!Suspended)
+                {
+                    OnDoubleClick(e);
+                }
             }
             else
             {
@@ -1799,7 +2112,7 @@ namespace XNAFinalEngine.UserInterface
         {
             if (_movable)
             {
-                Rectangle rect = _movableArea;
+                var rect = _movableArea;
 
                 if (rect == Rectangle.Empty)
                 {
@@ -1840,7 +2153,7 @@ namespace XNAFinalEngine.UserInterface
 
         private MouseEventArgs TransformPosition(MouseEventArgs e)
         {
-            MouseEventArgs ee = new MouseEventArgs(e.State, e.Button, e.Position) { Difference = e.Difference };
+            var ee = new MouseEventArgs(e.State, e.Button, e.Position) { Difference = e.Difference };
 
             ee.Position.X = ee.State.X - ControlLeftAbsoluteCoordinate;
             ee.Position.Y = ee.State.Y - ControlTopAbsoluteCoordinate;
@@ -1890,7 +2203,7 @@ namespace XNAFinalEngine.UserInterface
             // No left nor right
             else if (((Anchor & Anchors.Right) != Anchors.Right) && ((Anchor & Anchors.Left) != Anchors.Left))
             {
-                int diff = (e.Width - e.OldWidth);
+                var diff = (e.Width - e.OldWidth);
                 if (e.Width % 2 != 0 && diff != 0)
                 {
                     diff += (diff / Math.Abs(diff));
@@ -1910,7 +2223,7 @@ namespace XNAFinalEngine.UserInterface
             // No bottom nor top
             else if (((Anchor & Anchors.Bottom) != Anchors.Bottom) && ((Anchor & Anchors.Top) != Anchors.Top))
             {
-                int diff = (e.Height - e.OldHeight);
+                var diff = (e.Height - e.OldHeight);
                 if (e.Height % 2 != 0 && diff != 0)
                 {
                     diff += (diff / Math.Abs(diff));
@@ -1935,25 +2248,33 @@ namespace XNAFinalEngine.UserInterface
                 {
                     _invalidated = true;
 
-                    bool top = false;
-                    bool bottom = false;
-                    bool left = false;
-                    bool right = false;
+                    var top = false;
+                    var bottom = false;
+                    var left = false;
+                    var right = false;
 
                     if ((_resizeArea == Alignment.TopCenter || _resizeArea == Alignment.TopLeft || _resizeArea == Alignment.TopRight) && (_resizeEdge & Anchors.Top) == Anchors.Top)
+                    {
                         top = true;
+                    }
                     else if ((_resizeArea == Alignment.BottomCenter || _resizeArea == Alignment.BottomLeft || _resizeArea == Alignment.BottomRight) && (_resizeEdge & Anchors.Bottom) == Anchors.Bottom)
+                    {
                         bottom = true;
+                    }
 
                     if ((_resizeArea == Alignment.MiddleLeft || _resizeArea == Alignment.BottomLeft || _resizeArea == Alignment.TopLeft) && (_resizeEdge & Anchors.Left) == Anchors.Left)
+                    {
                         left = true;
+                    }
                     else if ((_resizeArea == Alignment.MiddleRight || _resizeArea == Alignment.BottomRight || _resizeArea == Alignment.TopRight) && (_resizeEdge & Anchors.Right) == Anchors.Right)
+                    {
                         right = true;
+                    }
 
-                    int newWidth = Width;
-                    int newHeight = Height;
-                    int newLeft = Left;
-                    int newTop = Top;
+                    var newWidth = Width;
+                    var newHeight = Height;
+                    var newLeft = Left;
+                    var newTop = Top;
 
                     if (_outlineResizing && !OutlineRectangle.IsEmpty)
                     {
@@ -1963,8 +2284,8 @@ namespace XNAFinalEngine.UserInterface
                         newHeight = OutlineRectangle.Height;
                     }
 
-                    int px = e.Position.X - (_parent != null ? _parent.ControlLeftAbsoluteCoordinate : 0);
-                    int py = e.Position.Y - (_parent != null ? _parent.ControlTopAbsoluteCoordinate : 0);
+                    var px = e.Position.X - (_parent != null ? _parent.ControlLeftAbsoluteCoordinate : 0);
+                    var py = e.Position.Y - (_parent != null ? _parent.ControlTopAbsoluteCoordinate : 0);
 
                     if (left)
                     {
@@ -1990,7 +2311,7 @@ namespace XNAFinalEngine.UserInterface
 
                     if (!Suspended)
                     {
-                        ResizeEventArgs v = new ResizeEventArgs(newWidth, newHeight, Width, Height);
+                        var v = new ResizeEventArgs(newWidth, newHeight, Width, Height);
                         OnValidateResize(v);
 
                         if (top)
@@ -2010,7 +2331,7 @@ namespace XNAFinalEngine.UserInterface
                     if (_outlineResizing)
                     {
                         OutlineRectangle = new Rectangle(newLeft, newTop, newWidth, newHeight);
-                        if (_parent != null) _parent.Invalidate();
+                        _parent?.Invalidate();
                     }
                     else
                     {
@@ -2025,7 +2346,7 @@ namespace XNAFinalEngine.UserInterface
 
         private int CheckWidth(ref int w)
         {
-            int diff = 0;
+            var diff = 0;
 
             if (w > MaximumWidth)
             {
@@ -2043,7 +2364,7 @@ namespace XNAFinalEngine.UserInterface
 
         private int CheckHeight(ref int h)
         {
-            int diff = 0;
+            var diff = 0;
 
             if (h > MaximumHeight)
             {
@@ -2103,27 +2424,66 @@ namespace XNAFinalEngine.UserInterface
 
         private void ResizePosition(MouseEventArgs e)
         {
-            int x = e.Position.X - ControlLeftAbsoluteCoordinate;
-            int y = e.Position.Y - ControlTopAbsoluteCoordinate;
+            var x = e.Position.X - ControlLeftAbsoluteCoordinate;
+            var y = e.Position.Y - ControlTopAbsoluteCoordinate;
             bool l = false, t = false, r = false, b = false;
 
             _resizeArea = Alignment.None;
 
             if (CheckResizableArea(e.Position))
             {
-                if (x < _resizerSize) l = true;
-                if (x >= Width - _resizerSize) r = true;
-                if (y < _resizerSize) t = true;
-                if (y >= Height - _resizerSize) b = true;
+                if (x < _resizerSize)
+                {
+                    l = true;
+                }
 
-                if (l && t) _resizeArea = Alignment.TopLeft;
-                else if (l && b) _resizeArea = Alignment.BottomLeft;
-                else if (r && t) _resizeArea = Alignment.TopRight;
-                else if (r && b) _resizeArea = Alignment.BottomRight;
-                else if (l) _resizeArea = Alignment.MiddleLeft;
-                else if (t) _resizeArea = Alignment.TopCenter;
-                else if (r) _resizeArea = Alignment.MiddleRight;
-                else if (b) _resizeArea = Alignment.BottomCenter;
+                if (x >= Width - _resizerSize)
+                {
+                    r = true;
+                }
+
+                if (y < _resizerSize)
+                {
+                    t = true;
+                }
+
+                if (y >= Height - _resizerSize)
+                {
+                    b = true;
+                }
+
+                if (l && t)
+                {
+                    _resizeArea = Alignment.TopLeft;
+                }
+                else if (l && b)
+                {
+                    _resizeArea = Alignment.BottomLeft;
+                }
+                else if (r && t)
+                {
+                    _resizeArea = Alignment.TopRight;
+                }
+                else if (r && b)
+                {
+                    _resizeArea = Alignment.BottomRight;
+                }
+                else if (l)
+                {
+                    _resizeArea = Alignment.MiddleLeft;
+                }
+                else if (t)
+                {
+                    _resizeArea = Alignment.TopCenter;
+                }
+                else if (r)
+                {
+                    _resizeArea = Alignment.MiddleRight;
+                }
+                else if (b)
+                {
+                    _resizeArea = Alignment.BottomCenter;
+                }
             }
             else
             {
@@ -2134,100 +2494,86 @@ namespace XNAFinalEngine.UserInterface
         protected internal void OnDeviceReset(object sender, EventArgs e)
         {
             if (!e.Handled)
+            {
                 Invalidate();
+            }
         } // OnDeviceSettingsChanged
 
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
-            if (MouseUp != null)
-                MouseUp.Invoke(this, e);
+            MouseUp?.Invoke(this, e);
         } // OnMouseUp
 
         protected virtual void OnMouseDown(MouseEventArgs e)
         {
-            if (MouseDown != null)
-                MouseDown.Invoke(this, e);
+            MouseDown?.Invoke(this, e);
         } // OnMouseDown
 
         protected virtual void OnMouseMove(MouseEventArgs e)
         {
-            if (MouseMove != null)
-                MouseMove.Invoke(this, e);
+            MouseMove?.Invoke(this, e);
         } // OnMouseMove
 
         protected virtual void OnMouseOver(MouseEventArgs e)
         {
-            if (MouseOver != null)
-                MouseOver.Invoke(this, e);
+            MouseOver?.Invoke(this, e);
         } // OnMouseOver
 
         protected virtual void OnMouseOut(MouseEventArgs e)
         {
-            if (MouseOut != null)
-                MouseOut.Invoke(this, e);
+            MouseOut?.Invoke(this, e);
         } // OnMouseOut
 
         protected virtual void OnClick(EventArgs e)
         {
-            if (Click != null)
-                Click.Invoke(this, e);
+            Click?.Invoke(this, e);
         } // OnClick
 
         protected virtual void OnDoubleClick(EventArgs e)
         {
-            if (DoubleClick != null)
-                DoubleClick.Invoke(this, e);
+            DoubleClick?.Invoke(this, e);
         } // OnDoubleClick
 
         protected virtual void OnMove(MoveEventArgs e)
         {
-            if (_parent != null)
-                _parent.Invalidate();
-            if (Move != null)
-                Move.Invoke(this, e);
+            _parent?.Invalidate();
+            Move?.Invoke(this, e);
         } // OnMove
 
         protected virtual void OnResize(ResizeEventArgs e)
         {
             Invalidate();
-            if (Resize != null)
-                Resize.Invoke(this, e);
+            Resize?.Invoke(this, e);
         } // OnResize
 
         protected virtual void OnValidateResize(ResizeEventArgs e)
         {
-            if (ValidateResize != null)
-                ValidateResize.Invoke(this, e);
+            ValidateResize?.Invoke(this, e);
         } // OnValidateResize
 
         protected virtual void OnValidateMove(MoveEventArgs e)
         {
-            if (ValidateMove != null)
-                ValidateMove.Invoke(this, e);
+            ValidateMove?.Invoke(this, e);
         } // OnValidateMove
 
         protected virtual void OnMoveBegin(EventArgs e)
         {
-            if (MoveBegin != null)
-                MoveBegin.Invoke(this, e);
+            MoveBegin?.Invoke(this, e);
         } // OnMoveBegin
 
         protected virtual void OnMoveEnd(EventArgs e)
         {
-            if (MoveEnd != null)
-                MoveEnd.Invoke(this, e);
+            MoveEnd?.Invoke(this, e);
         } // OnMoveEnd
 
         protected virtual void OnResizeBegin(EventArgs e)
         {
-            if (ResizeBegin != null)
-                ResizeBegin.Invoke(this, e);
+            ResizeBegin?.Invoke(this, e);
         } // OnResizeBegin
 
         protected virtual void OnResizeEnd(EventArgs e)
         {
-            if (ResizeEnd != null)
-                ResizeEnd.Invoke(this, e);
+            ResizeEnd?.Invoke(this, e);
         } // OnResizeEnd
 
         internal virtual void OnParentResize(object sender, ResizeEventArgs e)
@@ -2237,116 +2583,97 @@ namespace XNAFinalEngine.UserInterface
 
         protected virtual void OnKeyUp(KeyEventArgs e)
         {
-            if (KeyUp != null)
-                KeyUp.Invoke(this, e);
+            KeyUp?.Invoke(this, e);
         } // OnKeyUp
 
         protected virtual void OnKeyDown(KeyEventArgs e)
         {
-            if (KeyDown != null)
-                KeyDown.Invoke(this, e);
+            KeyDown?.Invoke(this, e);
         } // OnKeyDown
 
         protected virtual void OnKeyPress(KeyEventArgs e)
         {
-            if (KeyPress != null)
-                KeyPress.Invoke(this, e);
+            KeyPress?.Invoke(this, e);
         } // OnKeyPress
 
         protected internal void OnDraw(DrawEventArgs e)
         {
-            if (Draw != null)
-                Draw.Invoke(this, e);
+            Draw?.Invoke(this, e);
         } // OnDraw
 
         protected virtual void OnColorChanged(EventArgs e)
         {
-            if (ColorChanged != null)
-                ColorChanged.Invoke(this, e);
+            ColorChanged?.Invoke(this, e);
         } // OnColorChanged
 
         protected virtual void OnTextColorChanged(EventArgs e)
         {
-            if (TextColorChanged != null)
-                TextColorChanged.Invoke(this, e);
+            TextColorChanged?.Invoke(this, e);
         } // OnTextColorChanged
 
         protected virtual void OnBackColorChanged(EventArgs e)
         {
-            if (BackColorChanged != null)
-                BackColorChanged.Invoke(this, e);
+            BackColorChanged?.Invoke(this, e);
         } // OnBackColorChanged
 
         protected virtual void OnTextChanged(EventArgs e)
         {
-            if (TextChanged != null)
-                TextChanged.Invoke(this, e);
+            TextChanged?.Invoke(this, e);
         } // OnTextChanged
 
         protected virtual void OnAnchorChanged(EventArgs e)
         {
-            if (AnchorChanged != null)
-                AnchorChanged.Invoke(this, e);
+            AnchorChanged?.Invoke(this, e);
         } // OnAnchorChanged
 
         protected internal virtual void OnSkinChanged(EventArgs e)
         {
-            if (SkinChanged != null)
-                SkinChanged.Invoke(this, e);
+            SkinChanged?.Invoke(this, e);
         } // OnSkinChanged
 
         protected internal virtual void OnSkinChanging(EventArgs e)
         {
-            if (SkinChanging != null)
-                SkinChanging.Invoke(this, e);
+            SkinChanging?.Invoke(this, e);
         } // OnSkinChanged
 
         protected virtual void OnParentChanged(EventArgs e)
         {
-            if (ParentChanged != null)
-                ParentChanged.Invoke(this, e);
+            ParentChanged?.Invoke(this, e);
         } // OnParentChanged
 
         protected virtual void OnRootChanged(EventArgs e)
         {
-            if (RootChanged != null)
-                RootChanged.Invoke(this, e);
+            RootChanged?.Invoke(this, e);
         } // OnRootChanged
 
         protected virtual void OnVisibleChanged(EventArgs e)
         {
-            if (VisibleChanged != null)
-                VisibleChanged.Invoke(this, e);
+            VisibleChanged?.Invoke(this, e);
         } // OnVisibleChanged
 
         protected virtual void OnEnabledChanged(EventArgs e)
         {
-            if (EnabledChanged != null)
-                EnabledChanged.Invoke(this, e);
+            EnabledChanged?.Invoke(this, e);
         } // OnEnabledChanged
 
         protected virtual void OnAlphaChanged(EventArgs e)
         {
-            if (AlphaChanged != null)
-                AlphaChanged.Invoke(this, e);
+            AlphaChanged?.Invoke(this, e);
         } // OnAlphaChanged
 
         protected virtual void OnMousePress(MouseEventArgs e)
         {
-            if (MousePress != null)
-                MousePress.Invoke(this, e);
+            MousePress?.Invoke(this, e);
         } // OnMousePress
 
         protected virtual void OnFocusLost()
         {
-            if (FocusLost != null)
-                FocusLost.Invoke(this, new EventArgs());
+            FocusLost?.Invoke(this, new EventArgs());
         } // OnFocusLost
 
         protected virtual void OnFocusGained()
         {
-            if (FocusGained != null)
-                FocusGained.Invoke(this, new EventArgs());
+            FocusGained?.Invoke(this, new EventArgs());
         } // OnFocusGained
 
         internal static void InitializeNewControls()

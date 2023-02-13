@@ -1,4 +1,4 @@
-﻿namespace HopField
+﻿namespace CasaEngine.AI.NeuralNets.HopField
 {
     class Hopfield
     {
@@ -130,7 +130,7 @@
             iteration = 0;
             iterationOfLastChange = 0;
 
-            Random rand = new Random();
+            var rand = new Random();
 
             do
             {

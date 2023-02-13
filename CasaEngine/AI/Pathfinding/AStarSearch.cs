@@ -95,7 +95,7 @@ namespace CasaEngine.AI.Pathfinding
             Frontier = new List<TK>(Graph.NodeCount);
 
             //Initialize the values
-            for (int i = 0; i < Graph.NodeCount; i++)
+            for (var i = 0; i < Graph.NodeCount; i++)
             {
                 FCosts.Add(0.0);
                 GCosts.Add(0.0);
@@ -132,7 +132,7 @@ namespace CasaEngine.AI.Pathfinding
 
                 //Get all edges that start from the current node
                 edges = Graph.GetEdgesFromNode(closestNode);
-                for (int i = 0; i < edges.Count; i++)
+                for (var i = 0; i < edges.Count; i++)
                 {
                     //Calculate the estimated cost to reach the target from the next node
                     hCost = Heuristic(Graph, Target, edges[i].End);
@@ -193,7 +193,7 @@ namespace CasaEngine.AI.Pathfinding
 
             //Get all edges that start from the current node
             edges = Graph.GetEdgesFromNode(closestNode);
-            for (int i = 0; i < edges.Count; i++)
+            for (var i = 0; i < edges.Count; i++)
             {
                 //Calculate the estimated cost to reach the target from the next node
                 hCost = Heuristic(Graph, Target, edges[i].End);

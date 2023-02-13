@@ -24,13 +24,13 @@ namespace CasaEngine.Debugger
         }
 
         // key:Keys, value:CharPair
-        static private readonly Dictionary<Keys, CharPair> KeyMap = new();
+        private static readonly Dictionary<Keys, CharPair> KeyMap = new();
 
 
         public static bool KeyToString(Keys key, bool shitKeyPressed,
                                                                     out char character)
         {
-            bool result = false;
+            var result = false;
             character = ' ';
             CharPair charPair;
 
@@ -113,7 +113,7 @@ namespace CasaEngine.Debugger
 
         static void AddKeyMap(Keys key, string charPair)
         {
-            char char1 = charPair[0];
+            var char1 = charPair[0];
             Nullable<char> char2 = null;
             if (charPair.Length > 1)
             {

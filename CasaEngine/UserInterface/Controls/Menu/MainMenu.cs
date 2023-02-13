@@ -12,7 +12,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Microsoft.Xna.Framework.Input;
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface.Controls.Menu
 {
 
     public class MainMenu : MenuBase
@@ -47,29 +47,33 @@ namespace XNAFinalEngine.UserInterface
 
         protected override void DrawControl(Rectangle rect)
         {
-            SkinLayer layerControl = SkinInformation.Layers["Control"];
-            SkinLayer layerSelection = SkinInformation.Layers["Selection"];
+            var layerControl = SkinInformation.Layers["Control"];
+            var layerSelection = SkinInformation.Layers["Selection"];
             _rectangle = new Rectangle[Items.Count];
 
             UserInterfaceManager.Renderer.DrawLayer(this, layerControl, rect, ControlState.Enabled);
 
-            int prev = layerControl.ContentMargins.Left;
+            var prev = layerControl.ContentMargins.Left;
 
             // Draw root menu items (the others are rendered using context menu controls)
-            for (int i = 0; i < Items.Count; i++)
+            for (var i = 0; i < Items.Count; i++)
             {
-                MenuItem menuItem = Items[i];
+                var menuItem = Items[i];
 
-                int textWidth = (int)layerControl.Text.Font.Font.MeasureString(menuItem.Text).X + layerControl.ContentMargins.Horizontal;
+                var textWidth = (int)layerControl.Text.Font.Font.MeasureString(menuItem.Text).X + layerControl.ContentMargins.Horizontal;
                 _rectangle[i] = new Rectangle(rect.Left + prev, rect.Top + layerControl.ContentMargins.Top, textWidth, Height - layerControl.ContentMargins.Vertical);
                 prev += textWidth;
 
                 if (ItemIndex != i)
                 {
                     if (menuItem.Enabled && Enabled)
+                    {
                         UserInterfaceManager.Renderer.DrawString(this, layerControl, menuItem.Text, _rectangle[i], ControlState.Enabled, false);
+                    }
                     else
+                    {
                         UserInterfaceManager.Renderer.DrawString(this, layerControl, menuItem.Text, _rectangle[i], ControlState.Disabled, false);
+                    }
                 }
                 else
                 {
@@ -92,7 +96,7 @@ namespace XNAFinalEngine.UserInterface
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            int i = _lastIndex;
+            var i = _lastIndex;
 
             TrackItem(e.State.X - Root.ControlLeftAbsoluteCoordinate, e.State.Y - Root.ControlTopAbsoluteCoordinate);
 
@@ -114,7 +118,7 @@ namespace XNAFinalEngine.UserInterface
             if (Items != null && Items.Count > 0 && _rectangle != null)
             {
                 Invalidate();
-                for (int i = 0; i < _rectangle.Length; i++)
+                for (var i = 0; i < _rectangle.Length; i++)
                 {
                     if (_rectangle[i].Contains(x, y))
                     {
@@ -127,7 +131,9 @@ namespace XNAFinalEngine.UserInterface
                     }
                 }
                 if (ChildMenu == null)
+                {
                     ItemIndex = -1;
+                }
             }
         } // TrackItem
 
@@ -160,7 +166,10 @@ namespace XNAFinalEngine.UserInterface
                 ChildMenu = null;
             }
             if (UserInterfaceManager.FocusedControl is MenuBase)
+            {
                 Focused = true;
+            }
+
             Invalidate();
             ItemIndex = -1;
         } // HideMenu
@@ -171,7 +180,7 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnClick(e);
 
-            MouseEventArgs ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
+            var ex = (e is MouseEventArgs) ? (MouseEventArgs)e : new MouseEventArgs();
 
             if (ex.Button == MouseButton.Left || ex.Button == MouseButton.None)
             {
@@ -190,10 +199,12 @@ namespace XNAFinalEngine.UserInterface
                         (ChildMenu as ContextMenu).Sender = Root;
                         ChildMenu.Items.AddRange(Items[ItemIndex].Items);
 
-                        int y = Root.ControlTopAbsoluteCoordinate + _rectangle[ItemIndex].Bottom + 1;
+                        var y = Root.ControlTopAbsoluteCoordinate + _rectangle[ItemIndex].Bottom + 1;
                         (ChildMenu as ContextMenu).Show(Root, Root.ControlLeftAbsoluteCoordinate + _rectangle[ItemIndex].Left, y);
                         if (ex.Button == MouseButton.None)
+                        {
                             (ChildMenu as ContextMenu).ItemIndex = 0;
+                        }
                     }
                     else
                     {
@@ -223,8 +234,15 @@ namespace XNAFinalEngine.UserInterface
                 e.Handled = true;
             }
 
-            if (ItemIndex > Items.Count - 1) ItemIndex = 0;
-            if (ItemIndex < 0) ItemIndex = Items.Count - 1;
+            if (ItemIndex > Items.Count - 1)
+            {
+                ItemIndex = 0;
+            }
+
+            if (ItemIndex < 0)
+            {
+                ItemIndex = Items.Count - 1;
+            }
 
             if (e.Key == Keys.Down && Items.Count > 0 && Items[ItemIndex].Items.Count > 0)
             {
@@ -244,14 +262,18 @@ namespace XNAFinalEngine.UserInterface
         {
             base.OnFocusGained();
             if (ItemIndex < 0 && Items.Count > 0)
+            {
                 ItemIndex = 0;
+            }
         } // OnFocusGained
 
         protected override void OnFocusLost()
         {
             base.OnFocusLost();
             if (ChildMenu == null || !ChildMenu.Visible)
+            {
                 ItemIndex = -1;
+            }
         } // OnFocusLost
 
 

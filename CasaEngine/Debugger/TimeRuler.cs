@@ -5,16 +5,18 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using System.Diagnostics;
+using System.Text;
+using CasaEngine.Core_Systems.Game;
 using Microsoft.Xna.Framework;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
-using CasaEngine.CoreSystems.Game;
+using CasaEngineCommon.Extension;
+using Microsoft.Xna.Framework.Graphics;
+
 #if EDITOR
 //using CasaEngine.Editor.GameComponent;
 #endif
-
 
 namespace CasaEngine.Debugger
 {
@@ -38,8 +40,6 @@ namespace CasaEngine.Debugger
 
         const int AutoAdjustDelay = 30;
 
-
-
         public bool CanSetVisible => false;
 
         public bool CanSetEnable => true;
@@ -55,8 +55,6 @@ namespace CasaEngine.Debugger
         }
 
         public int Width { get; set; }
-
-
 
 #if TRACE
 
@@ -87,7 +85,7 @@ namespace CasaEngine.Debugger
             {
                 // Initialize markers.
                 Bars = new MarkerCollection[MaxBars];
-                for (int i = 0; i < MaxBars; ++i)
+                for (var i = 0; i < MaxBars; ++i)
                     Bars[i] = new MarkerCollection();
             }
         }
@@ -170,8 +168,6 @@ namespace CasaEngine.Debugger
 
         Color _backgroundColor = new(0, 0, 0, 128);
 
-
-
         public TimeRuler(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
@@ -189,10 +185,12 @@ namespace CasaEngine.Debugger
                 Game.Services.GetService(typeof(DebugManager)) as DebugManager;
 
             if (debugManager == null)
+            {
                 throw new InvalidOperationException("DebugManager is not registered.");
+            }
 
             // Add "tr" command if DebugCommandHost is registered.
-            IDebugCommandHost host =
+            var host =
                                 Game.Services.GetService(typeof(IDebugCommandHost))
                                                                     as IDebugCommandHost;
             if (host != null)
@@ -203,7 +201,7 @@ namespace CasaEngine.Debugger
 
             // Initialize Parameters.
             logs = new FrameLog[2];
-            for (int i = 0; i < logs.Length; ++i)
+            for (var i = 0; i < logs.Length; ++i)
                 logs[i] = new FrameLog();
 
             sampleFrames = TargetSampleFrames = 1;
@@ -233,16 +231,18 @@ namespace CasaEngine.Debugger
         void CommandExecute(IDebugCommandHost host, string command,
                                                                 IList<string> arguments)
         {
-            bool previousVisible = Visible;
+            var previousVisible = Visible;
 
             if (arguments.Count == 0)
-                Visible = !Visible;
-
-            char[] subArgSeparator = new[] { ':' };
-            foreach (string orgArg in arguments)
             {
-                string arg = orgArg.ToLower();
-                string[] subargs = arg.Split(subArgSeparator);
+                Visible = !Visible;
+            }
+
+            var subArgSeparator = new[] { ':' };
+            foreach (var orgArg in arguments)
+            {
+                var arg = orgArg.ToLower();
+                var subargs = arg.Split(subArgSeparator);
                 switch (subargs[0])
                 {
                     case "on":
@@ -258,9 +258,14 @@ namespace CasaEngine.Debugger
                         if (subargs.Length > 1)
                         {
                             if (String.Compare(subargs[1], "on") == 0)
+                            {
                                 ShowLog = true;
+                            }
+
                             if (String.Compare(subargs[1], "off") == 0)
+                            {
                                 ShowLog = false;
+                            }
                         }
                         else
                         {
@@ -268,7 +273,7 @@ namespace CasaEngine.Debugger
                         }
                         break;
                     case "frame":
-                        int a = Int32.Parse(subargs[1]);
+                        var a = Int32.Parse(subargs[1]);
                         a = System.Math.Max(a, 1);
                         a = System.Math.Min(a, MaxSampleFrames);
                         TargetSampleFrames = a;
@@ -301,12 +306,10 @@ namespace CasaEngine.Debugger
         {
             Width = (int)(GraphicsDevice.Viewport.Width * 0.8f);
 
-            Layout layout = new Layout(GraphicsDevice.Viewport);
+            var layout = new Layout(GraphicsDevice.Viewport);
             _position = layout.Place(new Vector2(Width, BarHeight),
                                                     0, 0.01f, Alignment.BottomCenter);
         }
-
-
 
         [Conditional("TRACE")]
         public void StartFrame()
@@ -315,26 +318,28 @@ namespace CasaEngine.Debugger
             lock (this)
             {
                 // We skip reset frame when this method gets called multiple times.
-                int count = Interlocked.Increment(ref updateCount);
+                var count = Interlocked.Increment(ref updateCount);
                 if (Visible && (1 < count && count < MaxSampleFrames))
+                {
                     return;
+                }
 
                 // Update current frame log.
                 prevLog = logs[frameCount++ & 0x1];
                 curLog = logs[frameCount & 0x1];
 
-                float endFrameTime = (float)stopwatch.Elapsed.TotalMilliseconds;
+                var endFrameTime = (float)stopwatch.Elapsed.TotalMilliseconds;
 
                 // Update marker and create a log.
-                for (int barIdx = 0; barIdx < prevLog.Bars.Length; ++barIdx)
+                for (var barIdx = 0; barIdx < prevLog.Bars.Length; ++barIdx)
                 {
-                    MarkerCollection prevBar = prevLog.Bars[barIdx];
-                    MarkerCollection nextBar = curLog.Bars[barIdx];
+                    var prevBar = prevLog.Bars[barIdx];
+                    var nextBar = curLog.Bars[barIdx];
 
                     // Re-open marker that didn't get called EndMark in previous frame.
-                    for (int nest = 0; nest < prevBar.NestCount; ++nest)
+                    for (var nest = 0; nest < prevBar.NestCount; ++nest)
                     {
-                        int markerIdx = prevBar.MarkerNests[nest];
+                        var markerIdx = prevBar.MarkerNests[nest];
 
                         prevBar.Markers[markerIdx].EndTime = endFrameTime;
 
@@ -347,13 +352,13 @@ namespace CasaEngine.Debugger
                     }
 
                     // Update marker log.
-                    for (int markerIdx = 0; markerIdx < prevBar.MarkCount; ++markerIdx)
+                    for (var markerIdx = 0; markerIdx < prevBar.MarkCount; ++markerIdx)
                     {
-                        float duration = prevBar.Markers[markerIdx].EndTime -
-                                            prevBar.Markers[markerIdx].BeginTime;
+                        var duration = prevBar.Markers[markerIdx].EndTime -
+                                       prevBar.Markers[markerIdx].BeginTime;
 
-                        int markerId = prevBar.Markers[markerIdx].MarkerId;
-                        MarkerInfo m = markers[markerId];
+                        var markerId = prevBar.Markers[markerIdx].MarkerId;
+                        var m = markers[markerId];
 
                         m.Logs[barIdx].Color = prevBar.Markers[markerIdx].Color;
 
@@ -410,9 +415,11 @@ namespace CasaEngine.Debugger
             lock (this)
             {
                 if (barIndex < 0 || barIndex >= MaxBars)
+                {
                     throw new ArgumentOutOfRangeException("barIndex");
+                }
 
-                MarkerCollection bar = curLog.Bars[barIndex];
+                var bar = curLog.Bars[barIndex];
 
                 if (bar.MarkCount >= MaxSamples)
                 {
@@ -471,9 +478,11 @@ namespace CasaEngine.Debugger
             lock (this)
             {
                 if (barIndex < 0 || barIndex >= MaxBars)
+                {
                     throw new ArgumentOutOfRangeException("barIndex");
+                }
 
-                MarkerCollection bar = curLog.Bars[barIndex];
+                var bar = curLog.Bars[barIndex];
 
                 if (bar.NestCount <= 0)
                 {
@@ -491,7 +500,7 @@ namespace CasaEngine.Debugger
                             markerName));
                 }
 
-                int markerIdx = bar.MarkerNests[--bar.NestCount];
+                var markerIdx = bar.MarkerNests[--bar.NestCount];
                 if (bar.Markers[markerIdx].MarkerId != markerId)
                 {
                     throw new InvalidOperationException(
@@ -511,12 +520,16 @@ namespace CasaEngine.Debugger
         {
 #if TRACE
             if (barIndex < 0 || barIndex >= MaxBars)
+            {
                 throw new ArgumentOutOfRangeException("barIndex");
+            }
 
             float result = 0;
             int markerId;
             if (markerNameToIdMap.TryGetValue(markerName, out markerId))
+            {
                 result = markers[markerId].Logs[barIndex].Avg;
+            }
 
             return result;
 #else
@@ -530,9 +543,9 @@ namespace CasaEngine.Debugger
 #if TRACE
             lock (this)
             {
-                foreach (MarkerInfo markerInfo in markers)
+                foreach (var markerInfo in markers)
                 {
-                    for (int i = 0; i < markerInfo.Logs.Length; ++i)
+                    for (var i = 0; i < markerInfo.Logs.Length; ++i)
                     {
                         markerInfo.Logs[i].Initialized = false;
                         markerInfo.Logs[i].SnapMin = 0;
@@ -550,8 +563,6 @@ namespace CasaEngine.Debugger
 #endif
         }
 
-
-
         public override void Draw(GameTime gameTime)
         {
             Draw(_position, Width);
@@ -565,14 +576,14 @@ namespace CasaEngine.Debugger
             // Reset update count.
             Interlocked.Exchange(ref updateCount, 0);
 
-			SpriteFont font = Engine.Instance.DefaultSpriteFont;//debugManager.DebugFont;
-            Texture2D texture = debugManager.WhiteTexture;
-            float depth_ = 0.0f;
+            var font = Engine.Instance.DefaultSpriteFont;//debugManager.DebugFont;
+            var texture = debugManager.WhiteTexture;
+            var depth_ = 0.0f;
 
             // Adjust size and position based of number of bars we should draw.
-            int height = 0;
+            var height = 0;
             float maxTime = 0;
-            foreach (MarkerCollection bar in prevLog.Bars)
+            foreach (var bar in prevLog.Bars)
             {
                 if (bar.MarkCount > 0)
                 {
@@ -586,12 +597,16 @@ namespace CasaEngine.Debugger
             // For example, if the entire process of frame doesn't finish in less than 16.6ms
             // thin it will adjust display frame duration as 33.3ms.
             const float frameSpan = 1.0f / 60.0f * 1000f;
-            float sampleSpan = (float)sampleFrames * frameSpan;
+            var sampleSpan = (float)sampleFrames * frameSpan;
 
             if (maxTime > sampleSpan)
+            {
                 frameAdjust = System.Math.Max(0, frameAdjust) + 1;
+            }
             else
+            {
                 frameAdjust = System.Math.Min(0, frameAdjust) - 1;
+            }
 
             if (System.Math.Abs(frameAdjust) > AutoAdjustDelay)
             {
@@ -603,35 +618,35 @@ namespace CasaEngine.Debugger
             }
 
             // Compute factor that converts from ms to pixel.
-            float msToPs = (float)width / sampleSpan;
+            var msToPs = (float)width / sampleSpan;
 
             // Draw start position.
-            int startY = (int)position.Y - (height - BarHeight);
+            var startY = (int)position.Y - (height - BarHeight);
 
             // Current y position.
-            int y = startY;
+            var y = startY;
 
             // Draw transparency background.
-            Rectangle rc = new Rectangle((int)position.X, y, width, height);
-            _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, _BackgroundColor, depth_ + 0.09f, SpriteEffects.None);
+            var rc = new Rectangle((int)position.X, y, width, height);
+            _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, _backgroundColor, depth_ + 0.09f, SpriteEffects.None);
 
             // Draw markers for each bars.
             rc.Height = BarHeight;
-            foreach (MarkerCollection bar in prevLog.Bars)
+            foreach (var bar in prevLog.Bars)
             {
                 rc.Y = y + BarPadding;
                 if (bar.MarkCount > 0)
                 {
-                    for (int j = 0; j < bar.MarkCount; ++j)
+                    for (var j = 0; j < bar.MarkCount; ++j)
                     {
-                        float bt = bar.Markers[j].BeginTime;
-                        float et = bar.Markers[j].EndTime;
-                        int sx = (int)(position.X + bt * msToPs);
-                        int ex = (int)(position.X + et * msToPs);
+                        var bt = bar.Markers[j].BeginTime;
+                        var et = bar.Markers[j].EndTime;
+                        var sx = (int)(position.X + bt * msToPs);
+                        var ex = (int)(position.X + et * msToPs);
                         rc.X = sx;
                         rc.Width = System.Math.Max(ex - sx, 1);
 
-                        _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, bar.Markers[j].Color, depth_ + 0.08f, SpriteEffects.None);
+                        _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, bar.Markers[j].Color, depth_ + 0.08f, SpriteEffects.None);
                     }
                 }
 
@@ -641,17 +656,17 @@ namespace CasaEngine.Debugger
             // Draw grid lines.
             // Each grid represents ms.
             rc = new Rectangle((int)position.X, (int)startY, 1, height);
-            for (float t = 1.0f; t < sampleSpan; t += 1.0f)
+            for (var t = 1.0f; t < sampleSpan; t += 1.0f)
             {
                 rc.X = (int)(position.X + t * msToPs);
-                _Renderer2DComponent.AddSprite2D(texture, rc,  Point.Zero, Vector2.Zero, 0.0f, Vector2.One,Color.Gray, depth_ + 0.07f, SpriteEffects.None);
+                _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.Gray, depth_ + 0.07f, SpriteEffects.None);
             }
 
             // Draw frame grid.
-            for (int i = 0; i <= sampleFrames; ++i)
+            for (var i = 0; i <= sampleFrames; ++i)
             {
                 rc.X = (int)(position.X + frameSpan * (float)i * msToPs);
-                _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_ + 0.6f, SpriteEffects.None);
+                _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_ + 0.6f, SpriteEffects.None);
             }
 
             // Draw log.
@@ -660,14 +675,16 @@ namespace CasaEngine.Debugger
                 // Generate log string.
                 y = startY - font.LineSpacing;
                 logString.Length = 0;
-                foreach (MarkerInfo markerInfo in markers)
+                foreach (var markerInfo in markers)
                 {
-                    for (int i = 0; i < MaxBars; ++i)
+                    for (var i = 0; i < MaxBars; ++i)
                     {
                         if (markerInfo.Logs[i].Initialized)
                         {
                             if (logString.Length > 0)
+                            {
                                 logString.Append("\n");
+                            }
 
                             logString.Append(" Bar ");
                             logString.AppendNumber(i);
@@ -684,29 +701,29 @@ namespace CasaEngine.Debugger
                 }
 
                 // Compute background size and draw it.
-                Vector2 size = font.MeasureString(logString);
+                var size = font.MeasureString(logString);
                 rc = new Rectangle((int)position.X, (int)y, (int)size.X + 12, (int)size.Y);
-                _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, _BackgroundColor, depth_ + 0.5f, SpriteEffects.None);
+                _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, _backgroundColor, depth_ + 0.5f, SpriteEffects.None);
 
                 // Draw log string.
-				_Renderer2DComponent.AddText2D(font, logString.ToString(),
-										new Vector2(position.X + 12, y), 0.0f,
+                _renderer2DComponent.AddText2D(font, logString.ToString(),
+                                        new Vector2(position.X + 12, y), 0.0f,
                                         Vector2.One, Color.White, depth_);
 
                 // Draw log color boxes.
                 y += (int)((float)font.LineSpacing * 0.3f);
                 rc = new Rectangle((int)position.X + 4, y, 10, 10);
-                Rectangle rc2 = new Rectangle((int)position.X + 5, y + 1, 8, 8);
-                foreach (MarkerInfo markerInfo in markers)
+                var rc2 = new Rectangle((int)position.X + 5, y + 1, 8, 8);
+                foreach (var markerInfo in markers)
                 {
-                    for (int i = 0; i < MaxBars; ++i)
+                    for (var i = 0; i < MaxBars; ++i)
                     {
                         if (markerInfo.Logs[i].Initialized)
                         {
                             rc.Y = y;
                             rc2.Y = y + 1;
-                            _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_, SpriteEffects.None);
-                            _Renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, markerInfo.Logs[i].Color, depth_, SpriteEffects.None);
+                            _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, Color.White, depth_, SpriteEffects.None);
+                            _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, markerInfo.Logs[i].Color, depth_, SpriteEffects.None);
 
                             y += font.LineSpacing;
                         }

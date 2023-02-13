@@ -12,13 +12,14 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 
 using System.Xml.Linq;
-using XNAFinalEngine.Assets;
+using CasaEngine.Assets.Documents;
 using CasaEngine.Game;
 using Microsoft.Xna.Framework.Graphics;
-using Cursor = CasaEngine.Asset.Cursors.Cursor;
+using Cursor = CasaEngine.Assets.Cursors.Cursor;
+using Texture = CasaEngine.Assets.Textures.Texture;
 
 
-namespace XNAFinalEngine.UserInterface
+namespace CasaEngine.UserInterface
 {
 
 
@@ -64,9 +65,9 @@ namespace XNAFinalEngine.UserInterface
         {
             get
             {
-                for (int i = 0; i < Count; i++)
+                for (var i = 0; i < Count; i++)
                 {
-                    SkinBase s = (SkinBase)(object)this[i];
+                    var s = (SkinBase)(object)this[i];
                     //if (s.Name.ToLower() == index.ToLower()) // Not need to produce so much garbage unnecessary.
                     if (s.Name == index)
                     {
@@ -77,9 +78,9 @@ namespace XNAFinalEngine.UserInterface
             }
             set
             {
-                for (int i = 0; i < Count; i++)
+                for (var i = 0; i < Count; i++)
                 {
-                    SkinBase s = (SkinBase)(object)this[i];
+                    var s = (SkinBase)(object)this[i];
                     //if (s.Name.ToLower() == index.ToLower())
                     if (s.Name == index)
                     {
@@ -95,12 +96,12 @@ namespace XNAFinalEngine.UserInterface
 
         public SkinList(SkinList<T> source)
         {
-            foreach (T t1 in source)
+            foreach (var t1 in source)
             {
-                Type[] t = new Type[1];
+                var t = new Type[1];
                 t[0] = typeof(T);
 
-                object[] p = new object[1];
+                var p = new object[1];
                 p[0] = t1;
 
                 Add((T)t[0].GetConstructor(t).Invoke(p));
@@ -220,7 +221,7 @@ namespace XNAFinalEngine.UserInterface
 
         public SkinLayer()
         {
-            SkinStates<LayerStates> states = new SkinStates<LayerStates>();
+            var states = new SkinStates<LayerStates>();
 
             states.Enabled.Color = Color.White;
             states.Pressed.Color = Color.White;
@@ -229,7 +230,7 @@ namespace XNAFinalEngine.UserInterface
             states.Disabled.Color = Color.White;
             States = states;
 
-            SkinStates<LayerOverlays> overlays = new SkinStates<LayerOverlays>();
+            var overlays = new SkinStates<LayerOverlays>();
             overlays.Enabled.Color = Color.White;
             overlays.Pressed.Color = Color.White;
             overlays.Focused.Color = Color.White;
@@ -311,7 +312,7 @@ namespace XNAFinalEngine.UserInterface
 
         public SkinText()
         {
-            SkinStates<Color> colors = new SkinStates<Color>();
+            var colors = new SkinStates<Color>();
             colors.Enabled = Color.White;
             colors.Pressed = Color.White;
             colors.Focused = Color.White;
@@ -385,7 +386,7 @@ namespace XNAFinalEngine.UserInterface
     {
 
 
-        public CasaEngine.Asset.Texture Texture;
+        public Texture Texture;
 
         public string Filename
         {
@@ -572,7 +573,7 @@ namespace XNAFinalEngine.UserInterface
 
 
 
-            string fullPath = "Skin" + Path.DirectorySeparatorChar + skinName;
+            var fullPath = "Skin" + Path.DirectorySeparatorChar + skinName;
             _skinDescription = new Document(fullPath + Path.DirectorySeparatorChar + "Description");
 
             // Read XML data.
@@ -601,28 +602,29 @@ namespace XNAFinalEngine.UserInterface
 
             try
             {
-                foreach (SkinFont skinFont in Fonts)
+                foreach (var skinFont in Fonts)
                 {
                     skinFont.Font = (Font)Engine.Instance.ObjectManager.GetObjectByPath(skinFont.Filename);
                     skinFont.Font.LoadTexture("", graphicsDevice);
-                    //skinFont.Font = new CasaEngine.Asset.Fonts.Font(graphicsDevice_, fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename);
+                    //skinFont.Font = new Font();
+                    //skinFont.Font.LoadTexture(fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename, graphicsDevice);
                 }
 #if (WINDOWS)
-                foreach (SkinCursor skinCursor in Cursors)
+                foreach (var skinCursor in Cursors)
                 {
                     skinCursor.Cursor = new Cursor(graphicsDevice,
                         Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
                         fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur");
                 }
 #endif
-                foreach (SkinImage skinImage in Images)
+                foreach (var skinImage in Images)
                 {
-                    skinImage.Texture = new CasaEngine.Asset.Texture(graphicsDevice,
+                    skinImage.Texture = new Texture(graphicsDevice,
                         fullPath + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar + skinImage.Filename + ".png");
                 }
-                foreach (SkinControlInformation skinControl in Controls)
+                foreach (var skinControl in Controls)
                 {
-                    foreach (SkinLayer skinLayer in skinControl.Layers)
+                    foreach (var skinLayer in skinControl.Layers)
                     {
                         if (skinLayer.Image.Name != null)
                         {
@@ -649,28 +651,32 @@ namespace XNAFinalEngine.UserInterface
         private void LoadControlsDescription()
         {
             if (_skinDescription.Resource.Element("Skin").Element("Controls") == null)
+            {
                 return;
+            }
 
-            foreach (XElement control in _skinDescription.Resource.Descendants("Control"))
+            foreach (var control in _skinDescription.Resource.Descendants("Control"))
             {
                 SkinControlInformation skinControl;
                 // Create skin control
-                string parent = ReadAttribute(control, "Inherits", null, false);
-                bool inherit = false;
+                var parent = ReadAttribute(control, "Inherits", null, false);
+                var inherit = false;
                 if (parent != null) // If there is a parent then it loads the information from it.
                 {
                     skinControl = new SkinControlInformation(Controls[parent]);
                     inherit = true;
                 }
                 else
+                {
                     skinControl = new SkinControlInformation();
+                }
 
                 // Load general information
-                string name = "";
+                var name = "";
                 ReadAttribute(ref name, inherit, control, "Name", null, true);
                 skinControl.Name = name;
 
-                Size size = new Size();
+                var size = new Size();
                 ReadAttribute(ref size.Width, inherit, control.Element("DefaultSize"), "Width", 0, false);
                 ReadAttribute(ref size.Height, inherit, control.Element("DefaultSize"), "Height", 0, false);
                 skinControl.DefaultSize = size;
@@ -679,7 +685,7 @@ namespace XNAFinalEngine.UserInterface
                 ReadAttribute(ref size.Height, inherit, control.Element("MinimumSize"), "Height", 0, false);
                 skinControl.MinimumSize = size;
 
-                Margins margin = new Margins();
+                var margin = new Margins();
                 ReadAttribute(ref margin.Left, inherit, control.Element("OriginMargins"), "Left", 0, false);
                 ReadAttribute(ref margin.Top, inherit, control.Element("OriginMargins"), "Top", 0, false);
                 ReadAttribute(ref margin.Right, inherit, control.Element("OriginMargins"), "Right", 0, false);
@@ -692,7 +698,7 @@ namespace XNAFinalEngine.UserInterface
                 ReadAttribute(ref margin.Bottom, inherit, control.Element("ClientMargins"), "Bottom", 0, false);
                 skinControl.ClientMargins = margin;
 
-                int resizerSize = 0;
+                var resizerSize = 0;
                 ReadAttribute(ref resizerSize, inherit, control.Element("ResizerSize"), "Value", 0, false);
                 skinControl.ResizerSize = resizerSize;
 
@@ -715,11 +721,11 @@ namespace XNAFinalEngine.UserInterface
 
         private void LoadLayer(SkinControlInformation skinControl, XElement layerNode)
         {
-            string name = ReadAttribute(layerNode, "Name", null, true);
-            bool over = ReadAttribute(layerNode, "Override", false, false);
-            SkinLayer skinLayer = skinControl.Layers[name];
+            var name = ReadAttribute(layerNode, "Name", null, true);
+            var over = ReadAttribute(layerNode, "Override", false, false);
+            var skinLayer = skinControl.Layers[name];
 
-            bool inherent = true;
+            var inherent = true;
             if (skinLayer == null)
             {
                 skinLayer = new SkinLayer();
@@ -732,10 +738,10 @@ namespace XNAFinalEngine.UserInterface
                 skinControl.Layers[name] = skinLayer;
             }
 
-            Color color = new Color();
-            int integer = 0;
-            bool boolean = true;
-            Margins margin = new Margins();
+            var color = new Color();
+            var integer = 0;
+            var boolean = true;
+            var margin = new Margins();
 
             ReadAttribute(ref name, inherent, layerNode, "Name", null, true);
             skinLayer.Name = name;
@@ -746,7 +752,7 @@ namespace XNAFinalEngine.UserInterface
             ReadAttribute(ref integer, inherent, layerNode, "Height", 0, false);
             skinLayer.Height = integer;
 
-            string layerAlignment = skinLayer.Alignment.ToString();
+            var layerAlignment = skinLayer.Alignment.ToString();
             ReadAttribute(ref layerAlignment, inherent, layerNode, "Alignment", "MiddleCenter", false);
             skinLayer.Alignment = (Alignment)Enum.Parse(typeof(Alignment), layerAlignment, true);
 
@@ -770,11 +776,11 @@ namespace XNAFinalEngine.UserInterface
 
             if (layerNode.Element("States") != null)
             {
-                SkinStates<LayerStates> states = new SkinStates<LayerStates>();
+                var states = new SkinStates<LayerStates>();
 
                 ReadAttribute(ref integer, inherent, layerNode.Element("States").Element("Enabled"), "Index", 0, false);
                 states.Enabled.Index = integer;
-                int di = skinLayer.States.Enabled.Index;
+                var di = skinLayer.States.Enabled.Index;
                 ReadAttribute(ref states.Hovered.Index, inherent, layerNode.Element("States").Element("Hovered"), "Index", di, false);
                 states.Hovered.Index = integer;
                 ReadAttribute(ref states.Pressed.Index, inherent, layerNode.Element("States").Element("Pressed"), "Index", di, false);
@@ -786,7 +792,7 @@ namespace XNAFinalEngine.UserInterface
 
                 ReadAttribute(ref color, inherent, layerNode.Element("States").Element("Enabled"), "Color", Color.White, false);
                 states.Enabled.Color = color;
-                Color dc = skinLayer.States.Enabled.Color;
+                var dc = skinLayer.States.Enabled.Color;
                 ReadAttribute(ref color, inherent, layerNode.Element("States").Element("Hovered"), "Color", dc, false);
                 states.Hovered.Color = color;
                 ReadAttribute(ref color, inherent, layerNode.Element("States").Element("Pressed"), "Color", dc, false);
@@ -798,7 +804,7 @@ namespace XNAFinalEngine.UserInterface
 
                 ReadAttribute(ref boolean, inherent, layerNode.Element("States").Element("Enabled"), "Overlay", false, false);
                 states.Enabled.Overlay = boolean;
-                bool dv = skinLayer.States.Enabled.Overlay;
+                var dv = skinLayer.States.Enabled.Overlay;
                 ReadAttribute(ref boolean, inherent, layerNode.Element("States").Element("Hovered"), "Overlay", dv, false);
                 states.Hovered.Overlay = boolean;
                 ReadAttribute(ref boolean, inherent, layerNode.Element("States").Element("Pressed"), "Overlay", dv, false);
@@ -815,11 +821,11 @@ namespace XNAFinalEngine.UserInterface
 
             if (layerNode.Element("Overlays") != null)
             {
-                SkinStates<LayerOverlays> overlay = new SkinStates<LayerOverlays>();
+                var overlay = new SkinStates<LayerOverlays>();
 
                 ReadAttribute(ref integer, inherent, layerNode.Element("Overlays").Element("Enabled"), "Index", 0, false);
                 overlay.Enabled.Index = integer;
-                int di = skinLayer.Overlays.Enabled.Index;
+                var di = skinLayer.Overlays.Enabled.Index;
                 ReadAttribute(ref overlay.Hovered.Index, inherent, layerNode.Element("Overlays").Element("Hovered"), "Index", di, false);
                 overlay.Hovered.Index = integer;
                 ReadAttribute(ref overlay.Pressed.Index, inherent, layerNode.Element("Overlays").Element("Pressed"), "Index", di, false);
@@ -831,7 +837,7 @@ namespace XNAFinalEngine.UserInterface
 
                 ReadAttribute(ref overlay.Enabled.Color, inherent, layerNode.Element("Overlays").Element("Enabled"), "Color", Color.White, false);
                 overlay.Enabled.Color = color;
-                Color dc = skinLayer.Overlays.Enabled.Color;
+                var dc = skinLayer.Overlays.Enabled.Color;
                 ReadAttribute(ref overlay.Hovered.Color, inherent, layerNode.Element("Overlays").Element("Hovered"), "Color", dc, false);
                 overlay.Hovered.Color = color;
                 ReadAttribute(ref overlay.Pressed.Color, inherent, layerNode.Element("Overlays").Element("Pressed"), "Color", dc, false);
@@ -848,7 +854,7 @@ namespace XNAFinalEngine.UserInterface
 
             if (layerNode.Element("Text") != null)
             {
-                SkinText skinText = new SkinText();
+                var skinText = new SkinText();
 
                 ReadAttribute(ref name, inherent, layerNode.Element("Text"), "Font", null, true);
                 skinText.Name = name;
@@ -861,7 +867,7 @@ namespace XNAFinalEngine.UserInterface
                 ReadAttribute(ref layerAlignment, inherent, layerNode.Element("Text"), "Alignment", "MiddleCenter", false);
                 skinLayer.Text.Alignment = (Alignment)Enum.Parse(typeof(Alignment), layerAlignment, true);
 
-                SkinStates<Color> colors = new SkinStates<Color>();
+                var colors = new SkinStates<Color>();
                 LoadColors(inherent, layerNode.Element("Text"), ref colors);
                 skinLayer.Text.Colors = colors;
 
@@ -883,7 +889,9 @@ namespace XNAFinalEngine.UserInterface
 
 
             if (!inherent)
+            {
                 skinControl.Layers.Add(skinLayer);
+            }
         } // LoadLayer
 
 
@@ -903,9 +911,9 @@ namespace XNAFinalEngine.UserInterface
 
         private void LoadLayerAttribute(SkinLayer skinLayer, XElement e)
         {
-            string name = ReadAttribute(e, "Name", null, true);
-            SkinAttribute skinAttribute = skinLayer.Attributes[name];
-            bool inherent = true;
+            var name = ReadAttribute(e, "Name", null, true);
+            var skinAttribute = skinLayer.Attributes[name];
+            var inherent = true;
 
             if (skinAttribute == null)
             {
@@ -918,8 +926,9 @@ namespace XNAFinalEngine.UserInterface
             skinAttribute.Value = name;
 
             if (!inherent)
+            {
                 skinLayer.Attributes.Add(skinAttribute);
-
+            }
         } // LoadLayerAttribute
 
 
@@ -928,11 +937,13 @@ namespace XNAFinalEngine.UserInterface
         private void LoadFontsDescription()
         {
             if (_skinDescription.Resource.Element("Skin").Element("Fonts") == null)
+            {
                 return;
+            }
 
             foreach (var font in _skinDescription.Resource.Element("Skin").Element("Fonts").Elements())
             {
-                SkinFont skinFont = new SkinFont
+                var skinFont = new SkinFont
                 {
                     Name = ReadAttribute(font, "Name", null, true),
                     Filename = ReadAttribute(font, "Asset", null, true)
@@ -947,11 +958,13 @@ namespace XNAFinalEngine.UserInterface
         private void LoadCursorsDescription()
         {
             if (_skinDescription.Resource.Element("Skin").Element("Cursors") == null)
+            {
                 return;
+            }
 
             foreach (var cursor in _skinDescription.Resource.Element("Skin").Element("Cursors").Elements())
             {
-                SkinCursor skinCursor = new SkinCursor
+                var skinCursor = new SkinCursor
                 {
                     Name = ReadAttribute(cursor, "Name", null, true),
                     Filename = ReadAttribute(cursor, "Asset", null, true)
@@ -966,11 +979,13 @@ namespace XNAFinalEngine.UserInterface
         private void LoadImagesDescription()
         {
             if (_skinDescription.Resource.Element("Skin").Element("Images") == null)
+            {
                 return;
+            }
 
             foreach (var image in _skinDescription.Resource.Element("Skin").Element("Images").Elements())
             {
-                SkinImage skinImage = new SkinImage
+                var skinImage = new SkinImage
                 {
                     Name = ReadAttribute(image, "Name", null, true),
                     Filename = ReadAttribute(image, "Asset", null, true)
@@ -1016,7 +1031,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void ReadAttribute(ref int retval, bool inherited, XElement element, string attrib, int defval, bool needed)
         {
-            string tmp = retval.ToString();
+            var tmp = retval.ToString();
             ReadAttribute(ref tmp, inherited, element, attrib, defval.ToString(), needed);
             retval = int.Parse(tmp);
         } // ReadAttributeInt
@@ -1028,7 +1043,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void ReadAttribute(ref bool retval, bool inherited, XElement element, string attrib, bool defval, bool needed)
         {
-            string tmp = retval.ToString();
+            var tmp = retval.ToString();
             ReadAttribute(ref tmp, inherited, element, attrib, defval.ToString(), needed);
             retval = bool.Parse(tmp);
         } // ReadAttributeBool
@@ -1040,7 +1055,7 @@ namespace XNAFinalEngine.UserInterface
 
         private void ReadAttribute(ref Color retval, bool inherited, XElement element, string attrib, Color defval, bool needed)
         {
-            string tmp = ColorToString(retval);
+            var tmp = ColorToString(retval);
             ReadAttribute(ref tmp, inherited, element, attrib, ColorToString(defval), needed);
             retval = Utilities.ParseColor(tmp);
         } // ReadAttributeColor

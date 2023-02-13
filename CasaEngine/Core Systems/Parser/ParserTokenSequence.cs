@@ -1,10 +1,10 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenSequence
         : ParserToken
     {
 
-        static public readonly string Sequence = "`";
+        public static readonly string Sequence = "`";
 
 
 
@@ -20,7 +20,7 @@
 
         public override bool Check(string sentence)
         {
-            if (Token.Equals(sentence) == true)
+            if (Token.Equals(sentence))
             {
                 Parser.AddCalculator(new CalculatorTokenSequence(Parser.Calculator, CalculatorTokenSequence.TokenSequence.Sequence));
                 return true;

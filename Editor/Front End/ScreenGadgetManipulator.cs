@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.FrontEnd.Screen.Gadget;
-using Microsoft.Xna.Framework.Input;
+﻿using Microsoft.Xna.Framework.Input;
 using CasaEngine.Editor.Manipulation;
+using CasaEngine.Front_End.Screen.Gadget;
 using Microsoft.Xna.Framework;
 
 namespace Editor.FrontEnd
@@ -59,7 +55,7 @@ namespace Editor.FrontEnd
 
             m_ScreenGadget = gadget_;
             int l = 7;
-            
+
             //TopLeft
             m_Anchors[0] = new Anchor((int)m_ScreenGadget.Location.X, (int)m_ScreenGadget.Location.Y, l, l);
             m_Anchors[0].LocationChanged += new EventHandler<AnchorLocationChangedEventArgs>(ScreenGadgetManipulator_LocationChanged_TopLeft);
@@ -99,7 +95,7 @@ namespace Editor.FrontEnd
             //main
             m_Anchors[8] = new Anchor((int)m_ScreenGadget.Location.X, (int)m_ScreenGadget.Location.Y, m_ScreenGadget.Width, m_ScreenGadget.Height);
             m_Anchors[8].LocationChanged += new EventHandler<AnchorLocationChangedEventArgs>(ScreenGadgetManipulator_LocationChanged);
-            
+
             for (int i = 0; i < 8; i++)
             {
                 m_Anchors[8].LinkWithAnchor(m_Anchors[i]);

@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Design.Parser
+﻿namespace CasaEngine.Core_Systems.Parser
 {
     class ParserTokenFunction
         : ParserToken
@@ -16,26 +16,26 @@
 
         public override bool Check(string sentence)
         {
-            if (sentence.StartsWith(Token.ToLower()) == true)
+            if (sentence.StartsWith(Token.ToLower()))
             {
-                List<string> args = new List<string>();
-                string str = sentence.Replace(Token + "=", "");
-                string s2 = string.Empty;
+                var args = new List<string>();
+                var str = sentence.Replace(Token + "=", "");
+                var s2 = string.Empty;
 
-                if (str.StartsWith("\"") == true)
+                if (str.StartsWith("\""))
                 {
                     str = str.Substring(1);
 
-                    int index = str.IndexOf("\"");
+                    var index = str.IndexOf("\"");
 
                     if (index != -1)
                     {
-                        string argument = str.Substring(0, index);
-                        string[] a = argument.Split(',');
+                        var argument = str.Substring(0, index);
+                        var a = argument.Split(',');
 
                         s2 = str.Substring(index + 1, str.Length - index - 1);
 
-                        foreach (string s in a)
+                        foreach (var s in a)
                         {
                             args.Add(s);
                         }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CasaEngine.Editor.UndoRedo;
+﻿using CasaEngine.Editor.UndoRedo;
 using Microsoft.Xna.Framework;
 using Editor.Game;
 
@@ -20,24 +16,24 @@ namespace Editor.UndoRedo
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name_"></param>
-		/// <param name="pos_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name_"></param>
+        /// <param name="pos_"></param>
         public UndoRedoAddDeleteSocketCommand(string name_, Vector2 pos_, bool add_)
-		{
+        {
             m_Name = name_;
             m_Position = pos_;
             m_Add = add_;
-		}
+        }
 
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
         public void Execute(object arg1_)
         {
             if (arg1_ is Sprite2DEditorComponent)
@@ -55,12 +51,12 @@ namespace Editor.UndoRedo
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="arg1_"></param>
-		public void Undo(object arg1_)
-		{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="arg1_"></param>
+        public void Undo(object arg1_)
+        {
             if (arg1_ is Sprite2DEditorComponent)
             {
                 Sprite2DEditorComponent c = arg1_ as Sprite2DEditorComponent;
@@ -74,7 +70,7 @@ namespace Editor.UndoRedo
                     c.CurrentSprite2D.AddSocket(m_Name, m_Position);
                 }
             }
-		}
+        }
 
     }
 }

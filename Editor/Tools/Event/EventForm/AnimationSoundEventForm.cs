@@ -1,21 +1,11 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using Editor.Sprite2DEditor.Event;
-using CasaEngine.Gameplay.Actor.Event;
-using CasaEngine.Gameplay;
+﻿using CasaEngine.Gameplay.Actor.Event;
 using CasaEngine.Game;
-using CasaEngine.Gameplay.Actor.Object;
+using CasaEngine.Gameplay.Actor;
 
 namespace Editor.Tools.Event.EventForm
 {
     public partial class AnimationSoundEventForm
-        : Form, IAnimationEventBaseWindow 
+        : Form, IAnimationEventBaseWindow
     {
         public EventActor EventActor
         {

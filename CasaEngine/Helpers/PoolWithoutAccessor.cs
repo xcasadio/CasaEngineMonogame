@@ -26,7 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
     public class PoolWithoutAccessor<T> where T : new()
     {
@@ -62,7 +62,7 @@ namespace XNAFinalEngine.Helpers
             }
 
             Elements = new T[capacity];
-            for (int i = 0; i < capacity; i++)
+            for (var i = 0; i < capacity; i++)
             {
                 // If T is a reference type then the explicit creation is need it.
                 Elements[i] = new T();
@@ -85,10 +85,10 @@ namespace XNAFinalEngine.Helpers
 
         private void ResizePool(int newCapacity)
         {
-            int oldCapacity = Capacity;
-            T[] newElements = new T[newCapacity];
+            var oldCapacity = Capacity;
+            var newElements = new T[newCapacity];
             // If T is a reference type then the explicit creation is need it.
-            for (int i = 0; i < newCapacity; i++)
+            for (var i = 0; i < newCapacity; i++)
             {
                 if (i < oldCapacity)
                 {
@@ -112,7 +112,7 @@ namespace XNAFinalEngine.Helpers
             }
 
             // To accomplish our second objective (memory locality) the last available element will be moved to the place where the released element resided.
-            int i = 0;
+            var i = 0;
             while (i < Count && !Elements[i].Equals(element))
             {
                 i++;
@@ -122,7 +122,7 @@ namespace XNAFinalEngine.Helpers
                 throw new ArgumentNullException("element", "Pool: Element value not found.");
             }
 
-            T temp = Elements[i];
+            var temp = Elements[i];
             Elements[i] = Elements[Count - 1];
             Elements[Count - 1] = temp;
 

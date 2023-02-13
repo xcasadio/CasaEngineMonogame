@@ -1,8 +1,8 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
+using CasaEngineCommon.Extension;
 
-namespace CasaEngine.Math.Shape2D
+namespace CasaEngine.Core_Systems.Math.Shape2D
 {
     public partial class ShapeLine
         : Shape2DObject
@@ -25,7 +25,7 @@ namespace CasaEngine.Math.Shape2D
         {
             if (o is ShapeLine)
             {
-                ShapeLine l = (ShapeLine)o;
+                var l = (ShapeLine)o;
                 return _start == l.Start
                     && _end == l.End
                     && base.CompareTo(o);

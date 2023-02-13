@@ -1,14 +1,6 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CasaEngine.Editor.Tools;
-using CasaEngine.Gameplay.Actor.Object;
+﻿using CasaEngine.Editor.Tools;
 using CasaEngine.Game;
+using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Logger;
 
 namespace Editor.Tools.Font
@@ -66,9 +58,9 @@ namespace Editor.Tools.Font
         /// <param name="obj_"></param>
         public void SetCurrentObject(string path_, BaseObject obj_)
         {
-            if (obj_ is CasaEngine.Asset.Fonts.Font)
+            if (obj_ is CasaEngine.Assets.Fonts.Font)
             {
-                m_FontPreviewEditorComponent.Font = obj_ as CasaEngine.Asset.Fonts.Font;
+                m_FontPreviewEditorComponent.Font = obj_ as CasaEngine.Assets.Fonts.Font;
                 //this.Text = "Font Preview - " + m_Font.;
             }
             else

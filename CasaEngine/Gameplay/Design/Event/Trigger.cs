@@ -1,8 +1,7 @@
 ﻿using System.Xml;
 using CasaEngineCommon.Design;
 
-
-namespace CasaEngine.Design.Event
+namespace CasaEngine.Gameplay.Design.Event
 {
     public abstract
 #if EDITOR
@@ -56,15 +55,15 @@ namespace CasaEngine.Design.Event
 
         public virtual void Load(XmlElement el, SaveOption option)
         {
-            uint loadedVersion = uint.Parse(el.Attributes["version"].Value);
+            var loadedVersion = uint.Parse(el.Attributes["version"].Value);
 
             foreach (XmlNode node in el.SelectSingleNode("EventList").ChildNodes)
             {
-                string assemblyFullName = node.Attributes["assemblyName"].Value;
-                string typeFullName = node.Attributes["fullName"].Value;
+                var assemblyFullName = node.Attributes["assemblyName"].Value;
+                var typeFullName = node.Attributes["fullName"].Value;
 
-                Type t = Type.GetType(typeFullName);
-                ITriggerEvent ev = (ITriggerEvent)Activator.CreateInstance(t
+                var t = Type.GetType(typeFullName);
+                var ev = (ITriggerEvent)Activator.CreateInstance(t
 #if EDITOR
                 , new object[] { el, option }
 #endif
@@ -88,9 +87,9 @@ namespace CasaEngine.Design.Event
 
         public void Update(float totalElapsedTime)
         {
-            if (Activate(totalElapsedTime) == true && (_iteration < _iterationMax || _iterationMax == -1))
+            if (Activate(totalElapsedTime) && (_iteration < _iterationMax || _iterationMax == -1))
             {
-                foreach (ITriggerEvent ev in _events.ToArray())
+                foreach (var ev in _events.ToArray())
                 {
                     ev.Do();
                 }

@@ -1,9 +1,8 @@
-﻿using CasaEngine.Graphics2D;
+﻿using CasaEngine.Core_Systems.Game;
+using CasaEngine.Graphics2D;
 using CasaEngine.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using CasaEngine.CoreSystems.Game;
-using CasaEngine.Gameplay.Actor.Object;
 
 namespace CasaEngine.Gameplay.Actor
 {

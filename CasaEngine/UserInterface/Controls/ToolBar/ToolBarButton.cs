@@ -10,7 +10,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.UserInterface
+using Button = CasaEngine.UserInterface.Controls.Buttons.Button;
+
+namespace CasaEngine.UserInterface.Controls.ToolBar
 {
 
     public class ToolBarButton : Button

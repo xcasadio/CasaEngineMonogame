@@ -11,8 +11,8 @@
 
         public PackageManager(ProjectManager projectManager)
         {
-            projectManager.ProjectLoaded += new EventHandler(OnProjectLoaded);
-            projectManager.ProjectClosed += new EventHandler(OnProjectClosed);
+            projectManager.ProjectLoaded += OnProjectLoaded;
+            projectManager.ProjectClosed += OnProjectClosed;
         }
 
 
@@ -42,17 +42,17 @@
 
         public string FindANewPackageName()
         {
-            string ret = "New_Package";
-            int num = 0;
-            bool isOk = false;
+            var ret = "New_Package";
+            var num = 0;
+            var isOk = false;
 
             while (isOk == false)
             {
                 isOk = true;
 
-                foreach (Package p in _packages)
+                foreach (var p in _packages)
                 {
-                    if (p.Name.Equals(ret) == true)
+                    if (p.Name.Equals(ret))
                     {
                         isOk = false;
                         num++;
@@ -67,7 +67,7 @@
 
         public Package GetOrCreatePackage(string name)
         {
-            Package package = GetPackage(name);
+            var package = GetPackage(name);
 
             if (package == null)
             {
@@ -83,8 +83,8 @@
 
             //Create File ?
             path = path.Replace('\\', '/');
-            string pckName = path;
-            int index = pckName.IndexOf('/');
+            var pckName = path;
+            var index = pckName.IndexOf('/');
             if (index != -1)
             {
                 pckName = pckName.Substring(0, index);
@@ -99,9 +99,9 @@
 
         public Package GetPackage(string name)
         {
-            foreach (Package p in _packages)
+            foreach (var p in _packages)
             {
-                if (p.Name.Equals(name) == true)
+                if (p.Name.Equals(name))
                 {
                     return p;
                 }

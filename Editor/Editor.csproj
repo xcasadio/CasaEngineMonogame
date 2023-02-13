@@ -5,11 +5,15 @@
 		<Nullable>enable</Nullable>
 		<UseWindowsForms>true</UseWindowsForms>
 		<OutputType>WinExe</OutputType>
+		<Configurations>Debug;Release;DebugEditor</Configurations>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-		<DefineConstants>TRACE;DEBUG;WINDOWS;EDITOR</DefineConstants>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' ">
+		<DefineConstants>TRACE;WINDOWS;EDITOR</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|x64'">
+	  <DefineConstants>TRACE;WINDOWS;EDITOR</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' ">
 		<DefineConstants>TRACE;WINDOWS;EDITOR</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>

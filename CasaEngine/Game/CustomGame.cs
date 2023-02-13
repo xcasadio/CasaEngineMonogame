@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
-using CasaEngine.Asset;
+using CasaEngine.Assets;
+using CasaEngine.Assets.Loaders;
 using CasaEngineCommon.Logger;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -10,11 +11,10 @@ namespace CasaEngine.Game
     public class CustomGame
         : IDisposable
     {
-        static private bool _isAssetContentManagerInitialized;
+        private static bool _isAssetContentManagerInitialized;
 
-
-        private IGraphicsDeviceManager _graphicsDeviceManager;
-        private IGraphicsDeviceService _graphicsDeviceService;
+        private IGraphicsDeviceManager? _graphicsDeviceManager;
+        private IGraphicsDeviceService? _graphicsDeviceService;
         private readonly GameServiceContainer _gameServices;
 
         private bool _firstUpdateDone;
@@ -39,22 +39,16 @@ namespace CasaEngine.Game
 
         private readonly List<IGameComponent> _drawableGameComponents;
 
-        private volatile bool _needResize;
+        private bool IsResized { get; set; }
         private DateTime _needResizeLastTime = DateTime.MinValue;
-
 
         public event EventHandler<EventArgs> Activated;
         public event EventHandler<EventArgs> Deactivated;
         public event EventHandler<EventArgs> Disposed;
         public event EventHandler<EventArgs> Exiting;
 
-
-
-        public Form GameWindow
-        {
-            get;
-            private set;
-        }
+        private int NewHeight { get; set; }
+        private int NewWidth { get; set; }
 
         public IntPtr GameWindowHandle
         {
@@ -62,15 +56,9 @@ namespace CasaEngine.Game
             private set;
         }
 
-
-        public CustomGame(Control control, IntPtr handle)
+        public CustomGame(IntPtr handle)
         {
-            Control = control;
-            Control.Resize += OnControlResize;
-            ControlHandle = control.Handle;
-
-            GameWindow = Control.FindForm();
-            GameWindowHandle = handle;//GameWindow.Handle;
+            ControlHandle = handle;
 
             _gameServices = new GameServiceContainer();
 
@@ -86,8 +74,8 @@ namespace CasaEngine.Game
 
             //TODO: implement draw- and update-order handling of GameComponents
             Components = new GameComponentCollection();
-            Components.ComponentAdded += components_ComponentAdded;
-            Components.ComponentRemoved += components_ComponentRemoved;
+            Components.ComponentAdded += ComponentAdded;
+            Components.ComponentRemoved += ComponentRemoved;
             _drawableGameComponents = new List<IGameComponent>();
 
             IsActive = true;
@@ -101,15 +89,17 @@ namespace CasaEngine.Game
             }
         }
 
-        void OnControlResize(object sender, EventArgs e)
+        public void Resize(int width, int height)
         {
-            _needResize = true;
+            NewWidth = width;
+            NewHeight = height;
+            IsResized = true;
         }
 
         ~CustomGame()
         {
-            Components.ComponentAdded -= components_ComponentAdded;
-            Components.ComponentRemoved -= components_ComponentRemoved;
+            Components.ComponentAdded -= ComponentAdded;
+            Components.ComponentRemoved -= ComponentRemoved;
 
             Dispose(false);
         }
@@ -188,7 +178,7 @@ namespace CasaEngine.Game
 
         protected virtual bool BeginDraw()
         {
-            if ((_graphicsDeviceManager != null) && !_graphicsDeviceManager.BeginDraw())
+            if (_graphicsDeviceManager != null && !_graphicsDeviceManager.BeginDraw())
             {
                 return false;
             }
@@ -198,10 +188,7 @@ namespace CasaEngine.Game
 
         protected virtual void EndDraw()
         {
-            if (_graphicsDeviceManager != null)
-            {
-                _graphicsDeviceManager.EndDraw();
-            }
+            _graphicsDeviceManager?.EndDraw();
         }
 
         public void Exit()
@@ -214,10 +201,7 @@ namespace CasaEngine.Game
             try
             {
                 _graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
-                if (_graphicsDeviceManager != null)
-                {
-                    _graphicsDeviceManager.CreateDevice();
-                }
+                _graphicsDeviceManager?.CreateDevice();
 
                 Initialize();
                 LoadContent();
@@ -232,27 +216,25 @@ namespace CasaEngine.Game
 
                 while (_shouldExit == false)
                 {
-                    if (_needResize)
+                    if (IsResized)
                     {
-                        DateTime dateTimeNow = DateTime.Now;
-                        TimeSpan span = dateTimeNow.Subtract(_needResizeLastTime);
+                        var dateTimeNow = DateTime.Now;
+                        var span = dateTimeNow.Subtract(_needResizeLastTime);
 
                         if (span.TotalSeconds >= 1.0)
                         {
-                            if (Control.Width > 0
-                                && Control.Height > 0
-                                && (Control.Width != GraphicsDevice.PresentationParameters.BackBufferWidth
-                                || Control.Height != GraphicsDevice.PresentationParameters.BackBufferHeight))
+                            if (NewWidth != GraphicsDevice.PresentationParameters.BackBufferWidth
+                                || NewHeight != GraphicsDevice.PresentationParameters.BackBufferHeight)
                             {
                                 _needResizeLastTime = dateTimeNow;
-                                PresentationParameters pp = GraphicsDevice.PresentationParameters;
+                                var pp = GraphicsDevice.PresentationParameters;
                                 pp.BackBufferWidth = Control.Width;
                                 pp.BackBufferHeight = Control.Height;
                                 GraphicsDevice.Reset(pp);
                                 //System.Diagnostics.Debug.WriteLine(Environment.TickCount.ToString() + " - GraphicsDevice.Reset()");
                                 LoadContent();
                             }
-                            _needResize = false;
+                            IsResized = false;
                         }
                     }
 
@@ -284,7 +266,7 @@ namespace CasaEngine.Game
 
             _gameTimer.Update();
 
-            bool skipDraw = IsFixedTimeStep ? DoFixedTimeStep(_gameTimer.ElapsedTime) : DoTimeStep(_gameTimer.ElapsedTime);
+            var skipDraw = IsFixedTimeStep ? DoFixedTimeStep(_gameTimer.ElapsedTime) : DoTimeStep(_gameTimer.ElapsedTime);
             _suppressDraw = false;
             if (skipDraw == false)
             {
@@ -294,7 +276,7 @@ namespace CasaEngine.Game
 
         private bool DoFixedTimeStep(TimeSpan time)
         {
-            bool skipDraw = false;
+            var skipDraw = false;
 
             if (System.Math.Abs(time.Ticks - TargetElapsedTime.Ticks) < TargetElapsedTime.Ticks >> 6)
             {
@@ -302,7 +284,7 @@ namespace CasaEngine.Game
             }
 
             _gameTimeAccu += time;
-            long updateCount = _gameTimeAccu.Ticks / TargetElapsedTime.Ticks;
+            var updateCount = _gameTimeAccu.Ticks / TargetElapsedTime.Ticks;
 
             if (updateCount <= 0)
             {
@@ -354,10 +336,7 @@ namespace CasaEngine.Game
         private void RunGame()
         {
             _graphicsDeviceManager = Services.GetService(typeof(IGraphicsDeviceManager)) as IGraphicsDeviceManager;
-            if (_graphicsDeviceManager != null)
-            {
-                _graphicsDeviceManager.CreateDevice();
-            }
+            _graphicsDeviceManager?.CreateDevice();
 
             Initialize();
             //this.inRun = true;
@@ -396,7 +375,7 @@ namespace CasaEngine.Game
         public static bool IsVisible(Control ctl)
         {
             // Returns true if the control would be visible if container is visible
-            MethodInfo mi = ctl.GetType().GetMethod("GetState", BindingFlags.Instance | BindingFlags.NonPublic);
+            var mi = ctl.GetType().GetMethod("GetState", BindingFlags.Instance | BindingFlags.NonPublic);
             if (mi == null)
             {
                 return ctl.Visible;
@@ -420,7 +399,7 @@ namespace CasaEngine.Game
                 //TODO: GraphicsDevice property is heavily used. Maybe it is better to hook an event to the services container and
                 //      cache the reference to the GraphicsDeviceService to prevent accessing the dictionary of the services container
 
-                IGraphicsDeviceService graphicsDeviceService = _graphicsDeviceService;
+                var graphicsDeviceService = _graphicsDeviceService;
                 if (graphicsDeviceService == null)
                 {
                     _graphicsDeviceService = graphicsDeviceService = Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
@@ -480,7 +459,6 @@ namespace CasaEngine.Game
             private set;
         }
 
-
         internal bool IsActiveIgnoringGuide => throw new NotImplementedException();
 
         public void Dispose()
@@ -496,25 +474,16 @@ namespace CasaEngine.Game
                 IDisposable disposable;
                 var array = new IGameComponent[Components.Count];
                 Components.CopyTo(array, 0);
-                for (int i = 0; i < array.Length; i++)
+                for (var i = 0; i < array.Length; i++)
                 {
                     disposable = (IDisposable)array[i];
-                    if (disposable != null)
-                    {
-                        disposable.Dispose();
-                    }
+                    disposable?.Dispose();
                 }
 
                 disposable = (IDisposable)_graphicsDeviceManager;
-                if (disposable != null)
-                {
-                    disposable.Dispose();
-                }
+                disposable?.Dispose();
 
-                if (Disposed != null)
-                {
-                    Disposed(this, EventArgs.Empty);
-                }
+                Disposed?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -540,13 +509,10 @@ namespace CasaEngine.Game
 
         private void RaiseIfNotNull(EventHandler<EventArgs> eventDelegate, object sender, EventArgs args)
         {
-            if (eventDelegate != null)
-            {
-                eventDelegate(sender, args);
-            }
+            eventDelegate?.Invoke(sender, args);
         }
 
-        private void components_ComponentRemoved(object sender, GameComponentCollectionEventArgs e)
+        private void ComponentRemoved(object? sender, GameComponentCollectionEventArgs e)
         {
             if (e.GameComponent is IDrawable)
             {
@@ -554,7 +520,7 @@ namespace CasaEngine.Game
             }
         }
 
-        private void components_ComponentAdded(object sender, GameComponentCollectionEventArgs e)
+        private void ComponentAdded(object? sender, GameComponentCollectionEventArgs e)
         {
             if (e.GameComponent is IDrawable)
             {

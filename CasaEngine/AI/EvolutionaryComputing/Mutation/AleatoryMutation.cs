@@ -13,7 +13,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
         public AleatoryMutation(double probability, Random generator, int floor, int ceil)
             : base(probability, generator)
         {
-            string message = string.Empty;
+            var message = string.Empty;
 
             //Validate params
             if (ValidateLimits(floor, ceil, ref message) == false)
@@ -29,9 +29,9 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
         public override void Mutate(Population<int> population)
         {
-            for (int i = 0; i < population.Genome.Count; i++)
+            for (var i = 0; i < population.Genome.Count; i++)
             {
-                for (int j = 0; j < population[i].Genotype.Count; j++)
+                for (var j = 0; j < population[i].Genotype.Count; j++)
                 {
                     if (Generator.NextDouble() <= Probability)
                     {

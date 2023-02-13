@@ -26,7 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace XNAFinalEngine.Helpers
+namespace CasaEngine.Helpers
 {
 
     public class Chronometer : Disposable
@@ -106,7 +106,7 @@ namespace XNAFinalEngine.Helpers
 
         public static void PauseAllChronometers()
         {
-            foreach (Chronometer chronometer in Chronometers)
+            foreach (var chronometer in Chronometers)
             {
                 chronometer.Pause();
             }
@@ -114,7 +114,7 @@ namespace XNAFinalEngine.Helpers
 
         public static void StartAllChronometers()
         {
-            foreach (Chronometer chronometer in Chronometers)
+            foreach (var chronometer in Chronometers)
             {
                 chronometer.Start();
             }
@@ -122,7 +122,7 @@ namespace XNAFinalEngine.Helpers
 
         internal static void UpdateGameDeltaTimeChronometers()
         {
-            foreach (Chronometer chronometer in Chronometers)
+            foreach (var chronometer in Chronometers)
             {
                 if (chronometer.TimeSpace == TimeSpaceEnum.GameDeltaTime)
                 {
@@ -133,7 +133,7 @@ namespace XNAFinalEngine.Helpers
 
         internal static void UpdateFrameTimeChronometers()
         {
-            foreach (Chronometer chronometer in Chronometers)
+            foreach (var chronometer in Chronometers)
             {
                 if (chronometer.TimeSpace == TimeSpaceEnum.FrameTime)
                 {

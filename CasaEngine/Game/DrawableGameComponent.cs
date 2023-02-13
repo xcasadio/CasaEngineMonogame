@@ -87,7 +87,7 @@ namespace CasaEngine.Game
                     throw new InvalidOperationException("Service not found: IGraphicsDeviceService");
                 }
                 _device.DeviceCreated += OnDeviceCreated;
-                _device.DeviceReset += new EventHandler<EventArgs>(OnDeviceReset);
+                _device.DeviceReset += OnDeviceReset;
                 _device.DeviceDisposing += OnDeviceDisposing;
 
                 if (_device.GraphicsDevice != null)

@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.AI.Fuzzy
+﻿namespace CasaEngine.AI.FuzzyLogic
 {
     public class FuzzySetRightShoulder
         : FuzzySet
@@ -34,7 +34,7 @@
             //find DOM if left of center
             else if ((val <= _dPeakPoint) && (val > (_dPeakPoint - _dLeftOffset)))
             {
-                double grad = 1.0 / _dLeftOffset;
+                var grad = 1.0 / _dLeftOffset;
 
                 return grad * (val - (_dPeakPoint - _dLeftOffset));
             }

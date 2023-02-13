@@ -18,7 +18,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
         public override void Mutate(Population<int> population)
         {
-            for (int i = 0; i < population.Genome.Count; i++)
+            for (var i = 0; i < population.Genome.Count; i++)
             {
                 if (Generator.NextDouble() <= Probability)
                 {
@@ -53,7 +53,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             //Insert the displaced genes in the new chromosome
             if (Invert == false)
             {
-                for (int i = first; i < second; i++)
+                for (var i = first; i < second; i++)
                 {
                     finalChromosome.Genotype.Add(chromosome[i]);
                 }
@@ -61,7 +61,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
             else
             {
-                for (int i = second - 1; i >= first; i--)
+                for (var i = second - 1; i >= first; i--)
                 {
                     finalChromosome.Genotype.Add(chromosome[i]);
                 }
@@ -75,13 +75,13 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
 
             //Insert the genes that were before the displacement position in the original gene
             //at the start of the new chromosome
-            for (int i = 0; i < position; i++)
+            for (var i = 0; i < position; i++)
             {
                 finalChromosome.Genotype.Insert(i, chromosome[i]);
             }
 
             //Append the genes that were after the displacement position in the original gene
-            for (int i = position; i < chromosome.Genotype.Count - 1; i++)
+            for (var i = position; i < chromosome.Genotype.Count - 1; i++)
             {
                 finalChromosome.Genotype.Add(chromosome[i]);
             }
