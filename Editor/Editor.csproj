@@ -33,7 +33,6 @@
 		<Resource Include="Resources\icon_polygone_add_16x16.png" />
 		<Resource Include="Resources\icon_rectangle_add_16x16.png" />
 		<Resource Include="Resources\icon_line_add_16x16.png" />
-		<Resource Include="ReleaseNote.txt" />
 		<Resource Include="Resources\AddKeyImage.png" />
 		<Resource Include="Resources\collapse.gif" />
 		<Resource Include="Resources\collapse_hightlight.gif" />
@@ -78,7 +77,6 @@
 		<Resource Include="Resources\SelectImage.png" />
 		<Resource Include="Resources\shelved-file.png" />
 		<Resource Include="Resources\ZoomImage.png" />
-		<Resource Include="TODO.txt" />
 		<Resource Include="WinForm\TODO.txt" />
 		<Resource Include="Resources\icon_arrowDown_16x16.png" />
 		<Resource Include="Resources\icon_arrowUp_16x16.png" />

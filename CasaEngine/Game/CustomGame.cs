@@ -278,7 +278,7 @@ namespace CasaEngine.Game
         {
             var skipDraw = false;
 
-            if (System.Math.Abs(time.Ticks - TargetElapsedTime.Ticks) < TargetElapsedTime.Ticks >> 6)
+            if (Math.Abs(time.Ticks - TargetElapsedTime.Ticks) < TargetElapsedTime.Ticks >> 6)
             {
                 time = TargetElapsedTime;
             }

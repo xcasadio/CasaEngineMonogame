@@ -49,7 +49,7 @@
 
 
 
-        public double Dom => System.Math.Sqrt(_set.Dom);
+        public double Dom => Math.Sqrt(_set.Dom);
 
 
         private FzFairly(FzFairly inst)
@@ -76,7 +76,7 @@
 
         public void ORwithDom(double val)
         {
-            _set.ORwithDom(System.Math.Sqrt(val));
+            _set.ORwithDom(Math.Sqrt(val));
         }
 
     }

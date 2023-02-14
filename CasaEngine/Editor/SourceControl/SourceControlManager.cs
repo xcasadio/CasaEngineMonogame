@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using CasaEngine.Game;
-using CasaEngineCommon.Config;
 using CasaEngineCommon.Logger;
 
 namespace CasaEngine.Editor.SourceControl
@@ -122,26 +121,26 @@ namespace CasaEngine.Editor.SourceControl
 
             if (File.Exists(filePath))
             {
-                var ini = new IniFile(filePath);
+                /*var ini = new IniFile(filePath);
 
                 var version = int.Parse(ini.GetValue("Config", "Version"));
                 Server = ini.GetValue("Config", "Server");
                 User = ini.GetValue("Config", "User");
                 Workspace = ini.GetValue("Config", "Workspace");
                 Password = ini.GetValue("Config", "Password");
-                Cwd = ini.GetValue("Config", "Directory");
+                Cwd = ini.GetValue("Config", "Directory");*/
             }
         }
 
         public void SaveConfig(string path)
         {
-            var ini = new IniFile();
+            /*var ini = new IniFile();
             ini.AddSection("Config", "Version", Version.ToString());
             ini.AddSection("Config", "Server", Server);
             ini.AddSection("Config", "User", User);
             ini.AddSection("Config", "Workspace", Workspace);
             ini.AddSection("Config", "Directory", Cwd);
-            ini.Save(Path.Combine(path, _file));
+            ini.Save(Path.Combine(path, _file));*/
         }
 
     }

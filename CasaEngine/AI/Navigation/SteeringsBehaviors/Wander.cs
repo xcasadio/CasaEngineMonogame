@@ -30,11 +30,11 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             this.jitter = jitter;
 
             //Create a vector to a target position on the wander circle						
-            alfa = generator.NextDouble() * System.Math.PI * 2;
-            beta = generator.NextDouble() * System.Math.PI * 2;
-            theta = generator.NextDouble() * System.Math.PI * 2;
+            alfa = generator.NextDouble() * Math.PI * 2;
+            beta = generator.NextDouble() * Math.PI * 2;
+            theta = generator.NextDouble() * Math.PI * 2;
 
-            wanderTarget = new Vector3(radius * (float)System.Math.Cos(alfa), radius * (float)System.Math.Cos(beta), radius * (float)System.Math.Cos(theta));
+            wanderTarget = new Vector3(radius * (float)Math.Cos(alfa), radius * (float)Math.Cos(beta), radius * (float)Math.Cos(theta));
         }
 
         public float Distance
@@ -53,11 +53,11 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
                 radius = value;
 
                 //Create a vector to a target position on the wander circle						
-                alfa = generator.NextDouble() * System.Math.PI * 2;
-                beta = generator.NextDouble() * System.Math.PI * 2;
-                theta = generator.NextDouble() * System.Math.PI * 2;
+                alfa = generator.NextDouble() * Math.PI * 2;
+                beta = generator.NextDouble() * Math.PI * 2;
+                theta = generator.NextDouble() * Math.PI * 2;
 
-                wanderTarget = new Vector3(radius * (float)System.Math.Cos(alfa), radius * (float)System.Math.Cos(beta), radius * (float)System.Math.Cos(theta));
+                wanderTarget = new Vector3(radius * (float)Math.Cos(alfa), radius * (float)Math.Cos(beta), radius * (float)Math.Cos(theta));
             }
         }
 

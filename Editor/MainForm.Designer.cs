@@ -71,8 +71,8 @@
             // 
             // dockPanel1
             // 
-            this.dockPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.dockPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dockPanel1.DockBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(238)))), ((int)(((byte)(238)))), ((int)(((byte)(242)))));
             this.dockPanel1.Location = new System.Drawing.Point(0, 57);
@@ -327,22 +327,6 @@
             this.toolStripButtonActionGraph.Size = new System.Drawing.Size(81, 22);
             this.toolStripButtonActionGraph.Text = "Action Graph";
             this.toolStripButtonActionGraph.Click += new System.EventHandler(this.toolStripButtonActionGraph_Click);
-            // 
-            // toolStripSeparator7
-            // 
-            this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(6, 25);
-            // 
-            // toolStripButtonContentBrowser
-            // 
-            this.toolStripButtonContentBrowser.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripButtonContentBrowser.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonContentBrowser.Image")));
-            this.toolStripButtonContentBrowser.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonContentBrowser.Name = "toolStripButtonContentBrowser";
-            this.toolStripButtonContentBrowser.Size = new System.Drawing.Size(99, 22);
-            this.toolStripButtonContentBrowser.Text = "Content Browser";
-            this.toolStripButtonContentBrowser.ToolTipText = "Content Browser";
-            this.toolStripButtonContentBrowser.Click += new System.EventHandler(this.toolStripButtonContentBrowser_Click);
             // 
             // toolStripSeparator8
             // 

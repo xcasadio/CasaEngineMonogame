@@ -87,18 +87,6 @@ namespace CasaEngine.Editor.Tools
             _customEditorsTemplate.Add(objectTypeName, editorType);
         }
 
-        public string[] GetAllCustomObjectNames()
-        {
-            var res = new List<string>();
-
-            foreach (var pair in _customObjects)
-            {
-                res.Add(pair.Key);
-            }
-
-            return res.ToArray();
-        }
-
         /*public string[] GetAllToolNames()
 		{
 			List<string> res = new List<string>();

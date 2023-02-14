@@ -17,15 +17,15 @@ namespace Editor
         /// </summary>
         public void LaunchUnitTest()
         {
-            Engine.Instance.ProjectConfig.AllowUserResizing = true;
-            Engine.Instance.ProjectConfig.DebugHeight = 100;
-            Engine.Instance.ProjectConfig.DebugWidth = 100;
-            Engine.Instance.ProjectConfig.DebugIsFullScreen = true;
-            Engine.Instance.ProjectConfig.FirstScreenName = "FirstScreenNameTest";
-            Engine.Instance.ProjectConfig.IsFixedTimeStep = true;
-            Engine.Instance.ProjectConfig.IsMouseVisible = true;
-            Engine.Instance.ProjectConfig.ProjectName = "ProjectNameTest";
-            Engine.Instance.ProjectConfig.WindowTitle = "WindowTitleTest";
+            Engine.Instance.ProjectSettings.AllowUserResizing = true;
+            Engine.Instance.ProjectSettings.DebugHeight = 100;
+            Engine.Instance.ProjectSettings.DebugWidth = 100;
+            Engine.Instance.ProjectSettings.DebugIsFullScreen = true;
+            Engine.Instance.ProjectSettings.FirstScreenName = "FirstScreenNameTest";
+            Engine.Instance.ProjectSettings.IsFixedTimeStep = true;
+            Engine.Instance.ProjectSettings.IsMouseVisible = true;
+            Engine.Instance.ProjectSettings.ProjectName = "ProjectNameTest";
+            Engine.Instance.ProjectSettings.WindowTitle = "WindowTitleTest";
         }
 
         /// <summary>
@@ -33,15 +33,15 @@ namespace Editor
         /// </summary>
         public void CheckUnitTest()
         {
-            Assert.AreEqual(Engine.Instance.ProjectConfig.AllowUserResizing, true, "AllowUserResizing");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.DebugHeight, 100, "DebugHeight");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.DebugWidth, 100, "DebugWidth");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.DebugIsFullScreen, true, "DebugIsFullScreen");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.FirstScreenName, "FirstScreenNameTest", "FirstScreenName");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.IsFixedTimeStep, true, "IsFixedTimeStep");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.IsMouseVisible, true, "IsMouseVisible");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.ProjectName, "ProjectNameTest", "ProjectName");
-            Assert.AreEqual(Engine.Instance.ProjectConfig.WindowTitle, "WindowTitleTest", "WindowTitle");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.AllowUserResizing, true, "AllowUserResizing");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.DebugHeight, 100, "DebugHeight");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.DebugWidth, 100, "DebugWidth");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.DebugIsFullScreen, true, "DebugIsFullScreen");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.FirstScreenName, "FirstScreenNameTest", "FirstScreenName");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.IsFixedTimeStep, true, "IsFixedTimeStep");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.IsMouseVisible, true, "IsMouseVisible");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.ProjectName, "ProjectNameTest", "ProjectName");
+            Assert.AreEqual(Engine.Instance.ProjectSettings.WindowTitle, "WindowTitleTest", "WindowTitle");
         }
 	}
 }

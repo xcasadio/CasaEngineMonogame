@@ -31,8 +31,7 @@ using Editor.Tools.Event.EventForm;
 
 namespace Editor
 {
-    public partial class MainForm
-        : Form
+    public partial class MainForm : Form
     {
         private MruManager m_MruManager;
         private const string m_RegistryPath = "Software\\Studio_XC\\CasaEngineEditor";
@@ -41,14 +40,10 @@ namespace Editor
         private LogForm m_LogForm = null;
         private WorldEditorForm m_WorldEditorForm = null;
         private WorldObjectForm m_WorldObjectForm = null;
-        private SubMainForm m_SubMainForm = null;
 
         private Sprite2DEditorForm m_Sprite2DEditorForm = null;
         private Animation2DEditorForm m_Animation2DEditorForm = null;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public MainForm()
         {
             InitializeComponent();
@@ -108,11 +103,6 @@ namespace Editor
 #endif
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveDialog = new SaveFileDialog();
@@ -139,11 +129,6 @@ namespace Editor
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog form = new OpenFileDialog();
@@ -170,11 +155,6 @@ namespace Editor
             form.Dispose();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(Engine.Instance.ProjectManager.ProjectFileOpened) == true)
@@ -198,11 +178,6 @@ namespace Editor
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveDialog = new SaveFileDialog();
@@ -224,11 +199,6 @@ namespace Editor
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void toolStripMenuItemCloseProject_Click(object sender, EventArgs e)
         {
             ClearProject();
@@ -271,8 +241,6 @@ namespace Editor
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(UiScreen).FullName, typeof(UIScreenEditorForm));
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(Font).FullName, typeof(FontPreviewForm));
             Engine.Instance.ExternalToolManager.RegisterEditor(typeof(SkinUi).FullName, typeof(SkinUIEditorForm));
-
-            ContentBrowserForm.SetCustomObjectNames(Engine.Instance.ExternalToolManager.GetAllCustomObjectNames());
         }
 
         /// <summary>
@@ -307,7 +275,7 @@ namespace Editor
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
 
-            Text = "Project Editor - " + Engine.Instance.ProjectConfig.ProjectName + " - " + fvi.ProductVersion;
+            Text = "Project Editor - " + Engine.Instance.ProjectSettings.ProjectName + " - " + fvi.ProductVersion;
 
 #if DEBUG
             Text += " - DEBUG";
@@ -395,7 +363,6 @@ namespace Editor
             EnableComponent(false);
 
             DisposeControl(m_ProjectConfigForm);
-            DisposeControl(m_SubMainForm);
             DisposeControl(m_Sprite2DEditorForm);
             DisposeControl(m_Animation2DEditorForm);
         }
@@ -425,7 +392,7 @@ namespace Editor
 #endif
             ClearProject();
             Engine.Instance.ProjectManager.CreateProject(fileName_);
-            Engine.Instance.ProjectConfig.ProjectName = "New Project";
+            Engine.Instance.ProjectSettings.ProjectName = "New Project";
             OnProjectLoaded(fileName_);
 #if !DEBUG
             }
@@ -508,7 +475,7 @@ namespace Editor
             if (Engine.Instance.ProjectManager.Save(fileName_) == true)
             {
                 LogManager.Instance.WriteLine("Project ",
-                    "\"" + Engine.Instance.ProjectConfig.ProjectName + "\"", Color.Blue,
+                    "\"" + Engine.Instance.ProjectSettings.ProjectName + "\"", Color.Blue,
                     " successfully saved.");
             }
             else
@@ -534,7 +501,7 @@ namespace Editor
             m_MruManager.Add(fileName_);
             SetTitle();
             LogManager.Instance.WriteLine("Project ",
-                "\"" + Engine.Instance.ProjectConfig.ProjectName + "\" ", Color.Blue,
+                "\"" + Engine.Instance.ProjectSettings.ProjectName + "\" ", Color.Blue,
                 "(", Engine.Instance.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
         }
 
@@ -606,27 +573,6 @@ namespace Editor
         {
             //ActionGraphForm f = new ActionGraphForm();
             //f.Show(dockPanel1, DockState.Document);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void toolStripButtonContentBrowser_Click(object sender, EventArgs e)
-        {
-            if (m_SubMainForm == null
-                || m_SubMainForm.IsDisposed == true)
-            {
-                m_SubMainForm = new SubMainForm();
-            }
-
-            m_SubMainForm.Show();
-            //sure that the window is topmost
-            m_SubMainForm.TopMost = true;
-            m_SubMainForm.Activate();
-            m_SubMainForm.Focus();
-            m_SubMainForm.TopMost = false;
         }
 
         /// <summary>

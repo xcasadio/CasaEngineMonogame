@@ -273,12 +273,12 @@ namespace CasaEngine.Gameplay
 
 
 
-        public override Actor.BaseObject Clone()
+        public override BaseObject Clone()
         {
             return new CharacterActor2D(this);
         }
 
-        protected override void CopyFrom(Actor.BaseObject ob)
+        protected override void CopyFrom(BaseObject ob)
         {
             if (ob is CharacterActor2D == false)
             {

@@ -19,7 +19,7 @@ namespace CasaEngine.Gameplay
 #endif
         class ObjectContainer
         {
-            Actor.BaseObject _baseObject;
+            BaseObject _baseObject;
             private Type _itemType;
 
 
@@ -57,7 +57,7 @@ namespace CasaEngine.Gameplay
                 set;
             }
 
-            internal Actor.BaseObject Object
+            internal BaseObject Object
             {
                 get
                 {
@@ -94,7 +94,7 @@ namespace CasaEngine.Gameplay
                             }
                             //else (Binary)
 
-                            _baseObject = (Actor.BaseObject)Activator.CreateInstance(ItemType, args);
+                            _baseObject = (BaseObject)Activator.CreateInstance(ItemType, args);
                             ClassName = _baseObject.GetType().FullName;
                         }
                         catch (Exception ex)
@@ -208,7 +208,7 @@ namespace CasaEngine.Gameplay
 
 
 
-        public Actor.BaseObject GetObjectByPath(string fullpath)
+        public BaseObject GetObjectByPath(string fullpath)
         {
             if (_objects.ContainsKey(fullpath) == false)
             {
@@ -223,7 +223,7 @@ namespace CasaEngine.Gameplay
             return res;
         }
 
-        public Actor.BaseObject GetObjectById(int id)
+        public BaseObject GetObjectById(int id)
         {
             //_Objects[fullpath_].Object return a copy!
             ObjectContainer obj = null;

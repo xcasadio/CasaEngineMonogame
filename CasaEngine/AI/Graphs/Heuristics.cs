@@ -19,7 +19,7 @@ namespace CasaEngine.AI.Graphs
             Vector3 aux;
 
             aux = graph.GetNode(node1).Position - graph.GetNode(node2).Position;
-            return System.Math.Abs(aux.X) + System.Math.Abs(aux.Y) + System.Math.Abs(aux.Z);
+            return Math.Abs(aux.X) + Math.Abs(aux.Y) + Math.Abs(aux.Z);
         }
 
         public static double DjisktraDistance(Graph<T, TK> graph, int node1, int node2)

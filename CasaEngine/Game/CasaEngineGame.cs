@@ -79,18 +79,18 @@ namespace CasaEngine.Game
             Engine.Instance.ProjectManager.Load(ProjectFile);
 
 #if !FINAL
-            _graphics.PreferredBackBufferWidth = Engine.Instance.ProjectConfig.DebugWidth;
-            _graphics.PreferredBackBufferHeight = Engine.Instance.ProjectConfig.DebugHeight;
+            _graphics.PreferredBackBufferWidth = Engine.Instance.ProjectSettings.DebugWidth;
+            _graphics.PreferredBackBufferHeight = Engine.Instance.ProjectSettings.DebugHeight;
 #else
             //recuperer la resolution des options
             graphics.PreferredBackBufferWidth = 1024;
             graphics.PreferredBackBufferHeight = 768;
 #endif
 
-            Window.Title = Engine.Instance.ProjectConfig.WindowTitle;
-            Window.AllowUserResizing = Engine.Instance.ProjectConfig.AllowUserResizing;
-            IsFixedTimeStep = Engine.Instance.ProjectConfig.IsFixedTimeStep;
-            IsMouseVisible = Engine.Instance.ProjectConfig.IsMouseVisible;
+            Window.Title = Engine.Instance.ProjectSettings.WindowTitle;
+            Window.AllowUserResizing = Engine.Instance.ProjectSettings.AllowUserResizing;
+            IsFixedTimeStep = Engine.Instance.ProjectSettings.IsFixedTimeStep;
+            IsMouseVisible = Engine.Instance.ProjectSettings.IsMouseVisible;
 
             _graphics.ApplyChanges();
 

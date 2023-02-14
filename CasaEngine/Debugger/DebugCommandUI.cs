@@ -150,7 +150,7 @@ namespace CasaEngine.Debugger
                 {
                     var maxLen = 0;
                     foreach (var cmd in _commandTable.Values)
-                        maxLen = System.Math.Max(maxLen, cmd.Command.Length);
+                        maxLen = Math.Max(maxLen, cmd.Command.Length);
 
                     var fmt = string.Format("{{0,-{0}}}    {{1}}", maxLen);
 
@@ -555,7 +555,7 @@ namespace CasaEngine.Debugger
                             if (_commandHistory.Count > 0)
                             {
                                 _commandHistoryIndex =
-                                    System.Math.Max(0, _commandHistoryIndex - 1);
+                                    Math.Max(0, _commandHistoryIndex - 1);
 
                                 _commandLine = _commandHistory[_commandHistoryIndex];
                                 _cursorIndex = _commandLine.Length;
@@ -565,7 +565,7 @@ namespace CasaEngine.Debugger
                             // Show command history.
                             if (_commandHistory.Count > 0)
                             {
-                                _commandHistoryIndex = System.Math.Min(_commandHistory.Count - 1,
+                                _commandHistoryIndex = Math.Min(_commandHistory.Count - 1,
                                                                 _commandHistoryIndex + 1);
                                 _commandLine = _commandHistory[_commandHistoryIndex];
                                 _cursorIndex = _commandLine.Length;

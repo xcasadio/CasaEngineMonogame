@@ -456,7 +456,7 @@ namespace Editor
             if (Engine.Instance.ProjectManager.Save(fileName_) == true)
             {
                 LogManager.Instance.WriteLine("Project ",
-                    "\"" + Engine.Instance.ProjectConfig.ProjectName + "\"", Color.Blue,
+                    "\"" + Engine.Instance.ProjectSettings.ProjectName + "\"", Color.Blue,
                     " successfully saved.");
             }
             else
@@ -497,7 +497,7 @@ namespace Editor
             m_MruManager.Add(fileName_);
             SetTitle();
             LogManager.Instance.WriteLine("Project ",
-                "\"" + Engine.Instance.ProjectConfig.ProjectName + "\" ", Color.Blue,
+                "\"" + Engine.Instance.ProjectSettings.ProjectName + "\" ", Color.Blue,
                 "(", Engine.Instance.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
         }
 
@@ -788,7 +788,7 @@ namespace Editor
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
 
-            Text = "Project Editor - " + Engine.Instance.ProjectConfig.ProjectName + " - " + fvi.ProductVersion;
+            Text = "Project Editor - " + Engine.Instance.ProjectSettings.ProjectName + " - " + fvi.ProductVersion;
 
 #if DEBUG
             Text += " - DEBUG";
@@ -839,7 +839,7 @@ namespace Editor
             if (m_GameDocForm == null
                 || m_GameDocForm.IsDisposed == true)
             {
-                m_GameDocForm = new InputRtfForm(Engine.Instance.ProjectConfig.ProjectName + " Documentation", FindGameDocumentationFile());
+                m_GameDocForm = new InputRtfForm(Engine.Instance.ProjectSettings.ProjectName + " Documentation", FindGameDocumentationFile());
             }
             else
             {

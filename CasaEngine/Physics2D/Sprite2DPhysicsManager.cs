@@ -5,13 +5,10 @@ namespace CasaEngine.Physics2D
 {
     public sealed class Sprite2DPhysicsManager
     {
-
         private static Sprite2DPhysicsManager _instance;
+
         private HashSet<Sprite2D> _physicToAddInWorld = new();
-
         private Vector2 _vector2Tmp = new();
-
-
 
         public static Sprite2DPhysicsManager Instance
         {
@@ -25,11 +22,6 @@ namespace CasaEngine.Physics2D
                 return _instance;
             }
         }
-
-
-
-
-
 
         /*public Pool<Fixture>.Accessor CreateFixtureFromShape2DObject(Shape2DObject g_, Body body_)
         {
@@ -68,12 +60,10 @@ namespace CasaEngine.Physics2D
             return itemAccesor;
         }*/
 
-
         // Pool for this type of components.
         /*private static readonly Pool<Fixture> componentPool = new Pool<Fixture>(20);
 
         internal static Pool<Fixture> ComponentPool { get { return componentPool; } }*/
-
 
         /*public void AddSprite2DPhysicsToWorldByID(uint id_)
         {

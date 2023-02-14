@@ -1,6 +1,6 @@
 ﻿namespace CasaEngine.Physics2D
 {
-    /*public class PhysicsSettings
+    public class PhysicsSettings
     {
         public PhysicsSettings()
         {
@@ -26,5 +26,5 @@
         public uint DrawStats;
         public uint EnableWarmStarting;
         public uint EnableContinuous;
-    }*/
+    }
 }

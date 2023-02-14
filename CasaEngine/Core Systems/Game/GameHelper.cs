@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Game;
+using GameComponent = Microsoft.Xna.Framework.GameComponent;
 
 namespace CasaEngine.Core_Systems.Game
 {
@@ -17,26 +18,26 @@ namespace CasaEngine.Core_Systems.Game
             }
         }
 
-        public static T GetGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
+        public static T? GetGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
         {
-            foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
+            foreach (var gameComponent in game.Components)
             {
-                if (gc is T)
+                if (gameComponent is T gc)
                 {
-                    return gc as T;
+                    return gc;
                 }
             }
 
             return null;
         }
 
-        public static T GetDrawableGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
+        public static T? GetDrawableGameComponent<T>(Microsoft.Xna.Framework.Game game) where T : class
         {
-            foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
+            foreach (var gameComponent in game.Components)
             {
-                if (gc is T && gc is Microsoft.Xna.Framework.DrawableGameComponent)
+                if (gameComponent is T component and Microsoft.Xna.Framework.DrawableGameComponent)
                 {
-                    return gc as T;
+                    return component;
                 }
             }
 
@@ -44,7 +45,7 @@ namespace CasaEngine.Core_Systems.Game
         }
 
         public static void RemoveGameComponent<T>(Microsoft.Xna.Framework.Game game)
-            where T : Microsoft.Xna.Framework.GameComponent
+            where T : GameComponent
         {
             var c = GetGameComponent<T>(game);
 
@@ -56,7 +57,7 @@ namespace CasaEngine.Core_Systems.Game
 
         public static void EnableAllGameComponent(Microsoft.Xna.Framework.Game game, bool state)
         {
-            foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
+            foreach (GameComponent gc in game.Components)
             {
                 gc.Enabled = state;
             }
@@ -64,7 +65,7 @@ namespace CasaEngine.Core_Systems.Game
 
         public static bool EnableGameComponent<T>(Microsoft.Xna.Framework.Game game, bool state) where T : class
         {
-            var gc = GetGameComponent<T>(game) as Microsoft.Xna.Framework.GameComponent;
+            var gc = GetGameComponent<T>(game) as GameComponent;
 
             if (gc != null)
             {
@@ -77,7 +78,7 @@ namespace CasaEngine.Core_Systems.Game
 
         public static void VisibleAllDrawableGameComponent(Microsoft.Xna.Framework.Game game, bool state)
         {
-            foreach (Microsoft.Xna.Framework.GameComponent gc in game.Components)
+            foreach (GameComponent gc in game.Components)
             {
                 if (gc is Microsoft.Xna.Framework.DrawableGameComponent)
                 {
@@ -101,7 +102,7 @@ namespace CasaEngine.Core_Systems.Game
 
         public static void ScreenResize(Microsoft.Xna.Framework.Game game)
         {
-            foreach (Microsoft.Xna.Framework.GameComponent c in game.Components)
+            foreach (GameComponent c in game.Components)
             {
                 if (c is IGameComponentResizable)
                 {

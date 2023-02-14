@@ -284,7 +284,7 @@
                     }
                     else
                     {
-                        _neuronValues[j] = 1.0f / (1 + System.Math.Exp(-x));
+                        _neuronValues[j] = 1.0f / (1 + Math.Exp(-x));
                     }
                 }
             }

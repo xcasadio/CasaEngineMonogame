@@ -997,7 +997,7 @@ namespace CasaEngine.Input
             _lastMouseXMovement += _mouseState.X - _mouseStateLastFrame.X;
             _lastMouseYMovement += _mouseState.Y - _mouseStateLastFrame.Y;
 
-            if (System.Math.Abs(_lastMouseXMovement) < 1.0f)
+            if (Math.Abs(_lastMouseXMovement) < 1.0f)
             {
                 _lastMouseXMovement = 0.0f;
                 _mouseXMovement = 0.0f;
@@ -1008,7 +1008,7 @@ namespace CasaEngine.Input
                 _lastMouseXMovement -= _lastMouseXMovement / 2.0f;
             }
 
-            if (System.Math.Abs(_lastMouseYMovement) < 1.0f)
+            if (Math.Abs(_lastMouseYMovement) < 1.0f)
             {
                 _lastMouseYMovement = 0.0f;
                 _mouseYMovement = 0.0f;

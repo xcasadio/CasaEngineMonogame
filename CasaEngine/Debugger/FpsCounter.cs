@@ -16,12 +16,6 @@ using CasaEngineCommon.Extension;
 using CasaEngine.Graphics2D;
 using CasaEngine.Game;
 
-
-#if EDITOR
-//using CasaEngine.Editor.GameComponent;
-#endif
-
-
 namespace CasaEngine.Debugger
 {
     public class FpsCounter

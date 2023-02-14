@@ -126,7 +126,7 @@ namespace CasaEngine.Gameplay
             return res;
         }
 
-        public override bool CompareTo(Actor.BaseObject other)
+        public override bool CompareTo(BaseObject other)
         {
             throw new NotImplementedException();
         }

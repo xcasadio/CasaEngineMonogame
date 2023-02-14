@@ -149,7 +149,7 @@ namespace CasaEngine.Gameplay
             return !_objects.ContainsKey(path);
         }
 
-        public void Add(string path, Actor.BaseObject @object)
+        public void Add(string path, BaseObject @object)
         {
             try
             {
@@ -188,7 +188,7 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public void Replace(string path, Actor.BaseObject @object)
+        public void Replace(string path, BaseObject @object)
         {
             try
             {

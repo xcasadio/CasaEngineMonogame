@@ -37,7 +37,7 @@ namespace CasaEngine.AI.Messaging
         public int Compare(Message x, Message y)
         {
             //Note to myself: it´s really a good idea to compare the extra info field? Maybe will let pass nearly similar messages...
-            if ((x.SenderID == y.SenderID) && (x.RecieverID == y.RecieverID) && (x.Type == y.Type) && (x.ExtraInfo == y.ExtraInfo) && (System.Math.Abs(x.DispatchTime - y.DispatchTime) < Precision))
+            if ((x.SenderID == y.SenderID) && (x.RecieverID == y.RecieverID) && (x.Type == y.Type) && (x.ExtraInfo == y.ExtraInfo) && (Math.Abs(x.DispatchTime - y.DispatchTime) < Precision))
             {
                 return 0;
             }

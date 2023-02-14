@@ -23,8 +23,8 @@ namespace CasaEngine.Physics2D
             if (p1.IsABox)
             {
                 PolygonShape1.SetAsBox(
-                    System.Math.Abs((p1.Points[0].X - p1.Points[1].X) / 2.0f),
-                    System.Math.Abs((p1.Points[0].Y - p1.Points[1].Y) / 2.0f));
+                    Math.Abs((p1.Points[0].X - p1.Points[1].X) / 2.0f),
+                    Math.Abs((p1.Points[0].Y - p1.Points[1].Y) / 2.0f));
             }
             else
             {
@@ -34,8 +34,8 @@ namespace CasaEngine.Physics2D
             if (p1.IsABox)
             {
                 PolygonShape2.SetAsBox(
-                    System.Math.Abs((p2.Points[0].X - p2.Points[1].X) / 2.0f),
-                    System.Math.Abs((p2.Points[0].Y - p2.Points[1].Y) / 2.0f));
+                    Math.Abs((p2.Points[0].X - p2.Points[1].X) / 2.0f),
+                    Math.Abs((p2.Points[0].Y - p2.Points[1].Y) / 2.0f));
             }
             else
             {
@@ -45,7 +45,7 @@ namespace CasaEngine.Physics2D
             _transformA.Set(pos1, 0.0f);
             _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
+            Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {
@@ -66,7 +66,7 @@ namespace CasaEngine.Physics2D
             PolygonShape2.SetAsBox(r2.Width / 2, r2.Height / 2);
             _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
+            Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {
@@ -84,7 +84,7 @@ namespace CasaEngine.Physics2D
             _transformA.Set(pos1, 0.0f);
             _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
+            Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {
@@ -114,7 +114,7 @@ namespace CasaEngine.Physics2D
             _transformA.Set(pos1, 0.0f);
             _transformB.Set(pos2, 0.0f);
 
-            FarseerPhysics.Collision.Collision.CollideCircles(ref _manifold, CircleShape1, ref _transformA, CircleShape2, ref _transformB);
+            Collision.CollideCircles(ref _manifold, CircleShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {

@@ -128,7 +128,7 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
 
             for (i = 0; i < _outputLayer.NumberOfNodes; i++)
             {
-                error += System.Math.Pow(_outputLayer.NeuronValues[i] - _outputLayer.DesiredValues[i], 2);
+                error += Math.Pow(_outputLayer.NeuronValues[i] - _outputLayer.DesiredValues[i], 2);
             }
 
             error = error / _outputLayer.NumberOfNodes;

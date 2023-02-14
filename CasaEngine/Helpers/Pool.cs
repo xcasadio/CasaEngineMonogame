@@ -31,7 +31,6 @@ namespace CasaEngine.Helpers
     public class Pool<T> where T : new()
     {
 
-
         public class Accessor
         {
             public int Index { get; internal set; }
@@ -39,13 +38,9 @@ namespace CasaEngine.Helpers
             internal Accessor() { }
         } // Accessor
 
-
-
         private Accessor[] _accessors;
 
         public T[] Elements;
-
-
 
         public int Count { get; private set; }
 
@@ -64,7 +59,6 @@ namespace CasaEngine.Helpers
         } // Capacity
 
         public T this[Accessor accessor] => Elements[accessor.Index];
-
 
         public Pool(int capacity)
         {
@@ -87,8 +81,6 @@ namespace CasaEngine.Helpers
             }
         } // Pool
 
-
-
         public Accessor Fetch()
         {
             if (Count >= Capacity)
@@ -98,8 +90,6 @@ namespace CasaEngine.Helpers
             Count++;
             return _accessors[Count - 1];
         } // Fetch
-
-
 
         private void ResizePool(int newCapacity)
         {
@@ -133,8 +123,6 @@ namespace CasaEngine.Helpers
             _accessors = newAccessors;
         } // ResizePool
 
-
-
         public void Release(Accessor accessor)
         {
             if (accessor == null)
@@ -159,23 +147,15 @@ namespace CasaEngine.Helpers
             Count--;
         } // Release
 
-
-
         public void Swap(int i, int j)
         {
-            var temp = Elements[i];
-            Elements[i] = Elements[j];
-            Elements[j] = temp;
+            (Elements[i], Elements[j]) = (Elements[j], Elements[i]);
             // The indices have the wrong value.The last has to index its new place and vice versa.
             var accesorOldIndex = _accessors[i].Index;
             _accessors[i].Index = j;
             _accessors[j].Index = accesorOldIndex;
             // Also the accessor array has to be sorted. If not the fetch method will give a used accessor element.
-            var lastActiveAccessor = _accessors[i]; // Accessor is a reference type.
-            _accessors[i] = _accessors[j];
-            _accessors[j] = lastActiveAccessor;
+            (_accessors[i], _accessors[j]) = (_accessors[j], _accessors[i]);
         } // Swap
-
-
     } // Pool
 } // XNAFinalEngine.Helpers

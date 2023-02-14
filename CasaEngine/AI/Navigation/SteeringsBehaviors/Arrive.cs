@@ -43,7 +43,7 @@ namespace CasaEngine.AI.Navigation.SteeringsBehaviors
             distance = toTarget.Length();
 
             rampedSpeed = owner.MaxSpeed * (distance / slowingDistance);
-            maximumSpeed = System.Math.Min(rampedSpeed, owner.MaxSpeed);
+            maximumSpeed = Math.Min(rampedSpeed, owner.MaxSpeed);
 
             desiredVelocity = (maximumSpeed / distance) * toTarget;
             force = desiredVelocity - owner.velocity;

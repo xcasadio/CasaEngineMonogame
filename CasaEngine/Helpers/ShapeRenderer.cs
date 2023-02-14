@@ -668,15 +668,15 @@ namespace CasaEngine.Helpers
             {
                 throw new InvalidOperationException("BeginCustomDraw must be called before drawing anything.");
             }
-            const double increment = System.Math.PI * 2.0 / CircleSegments;
+            const double increment = Math.PI * 2.0 / CircleSegments;
             var theta = 0.0;
 
             for (var i = 0; i < CircleSegments; i++)
             {
-                var v1 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
+                var v1 = center + radius * new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta));
                 var v2 = center +
                          radius *
-                         new Vector2((float)System.Math.Cos(theta + increment), (float)System.Math.Sin(theta + increment));
+                         new Vector2((float)Math.Cos(theta + increment), (float)Math.Sin(theta + increment));
 
                 _primitiveBatch.AddVertex(v1, color, PrimitiveType.LineList);
                 _primitiveBatch.AddVertex(v2, color, PrimitiveType.LineList);
@@ -697,20 +697,20 @@ namespace CasaEngine.Helpers
             {
                 throw new InvalidOperationException("BeginCustomDraw must be called before drawing anything.");
             }
-            const double increment = System.Math.PI * 2.0 / CircleSegments;
+            const double increment = Math.PI * 2.0 / CircleSegments;
             var theta = 0.0;
 
             var colorFill = color * 0.5f;
 
-            var v0 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
+            var v0 = center + radius * new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta));
             theta += increment;
 
             for (var i = 1; i < CircleSegments - 1; i++)
             {
-                var v1 = center + radius * new Vector2((float)System.Math.Cos(theta), (float)System.Math.Sin(theta));
+                var v1 = center + radius * new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta));
                 var v2 = center +
                          radius *
-                         new Vector2((float)System.Math.Cos(theta + increment), (float)System.Math.Sin(theta + increment));
+                         new Vector2((float)Math.Cos(theta + increment), (float)Math.Sin(theta + increment));
 
                 _primitiveBatch.AddVertex(v0, colorFill, PrimitiveType.TriangleList);
                 _primitiveBatch.AddVertex(v1, colorFill, PrimitiveType.TriangleList);
@@ -781,7 +781,7 @@ namespace CasaEngine.Helpers
             rotation.Normalize();
 
             // Calculate angle of directional vector
-            var angle = (float)System.Math.Atan2(rotation.X, -rotation.Y);
+            var angle = (float)Math.Atan2(rotation.X, -rotation.Y);
             // Create matrix for rotation
             var rotMatrix = Matrix.CreateRotationZ(angle);
             // Create translation matrix for end-point

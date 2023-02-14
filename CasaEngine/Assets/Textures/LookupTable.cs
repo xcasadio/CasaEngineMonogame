@@ -61,9 +61,9 @@ namespace CasaEngine.Assets.Textures
         {
             var lookupTableTexture2D = new Texture(graphicsDevice, filename);
             // SideSize is inaccurate because Math.Pow is a bad way to calculate cube roots.
-            var sideSize = (int)System.Math.Pow(lookupTableTexture2D.Width * lookupTableTexture2D.Height, 1 / 3.0);
+            var sideSize = (int)Math.Pow(lookupTableTexture2D.Width * lookupTableTexture2D.Height, 1 / 3.0);
             // hence this second step to snap to nearest power of 2.
-            Size = (int)System.Math.Pow(2, System.Math.Round(System.Math.Log(sideSize, 2)));
+            Size = (int)Math.Pow(2, Math.Round(Math.Log(sideSize, 2)));
             //Create the cube lut and dump the 2d lut into it
             var colors = new Color[Size * Size * Size];
             Resource = new Texture3D(graphicsDevice, Size, Size, Size, false, SurfaceFormat.Color);
