@@ -1,3 +1,5 @@
 ﻿
-using var game = new CasaEngineLauncher.Game1();
+using CasaEngine.Game;
+
+using var game = new CasaEngineGame();
 game.Run();

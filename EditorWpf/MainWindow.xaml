@@ -30,9 +30,9 @@
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                         <xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorable x:Name="test" Title="Test">
+                            <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
                                 <Grid>
-                                    <xctk:PropertyGrid />
+                                    <controls:SettingsControl/>
                                 </Grid>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>

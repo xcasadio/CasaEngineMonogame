@@ -1,3 +1,4 @@
+using System.Reflection;
 using CasaEngine.Assets;
 using CasaEngine.Assets.Loaders;
 using Microsoft.Xna.Framework;
@@ -11,7 +12,7 @@ using CasaEngineCommon.Helper;
 
 namespace CasaEngine.Game
 {
-    public abstract class CasaEngineGame : Microsoft.Xna.Framework.Game
+    public class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
         private readonly Microsoft.Xna.Framework.GraphicsDeviceManager _graphicsDeviceManager;
         private readonly Renderer2DComponent _renderer2DComponent;
@@ -90,6 +91,8 @@ namespace CasaEngine.Game
 
             _graphicsDeviceManager.ApplyChanges();
 
+            Engine.Instance.PluginManager.Load(Engine.Instance.ProjectSettings.GameplayDllName);
+
             base.Initialize();
         }
 
@@ -116,6 +119,8 @@ namespace CasaEngine.Game
             GameInfo.Instance.CurrentWorld = new World.World();
             GameInfo.Instance.CurrentWorld.Load(Engine.Instance.ProjectSettings.FirstWorldLoaded);
             GameInfo.Instance.CurrentWorld.Initialize();
+
+            _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.PhysicWorld);
         }
 
         protected override void BeginRun()
@@ -150,6 +155,8 @@ namespace CasaEngine.Game
             DebugSystem.Instance.TimeRuler.StartFrame();
             DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
+
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
             GameInfo.Instance.CurrentWorld.Draw(elapsedTime);

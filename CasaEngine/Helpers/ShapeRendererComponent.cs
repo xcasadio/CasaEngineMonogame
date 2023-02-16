@@ -27,7 +27,6 @@ namespace CasaEngine.Helpers
 
         public ShapeRenderer ShapeRenderer => _shapeRenderer;
 
-
         public ShapeRendererComponent(Microsoft.Xna.Framework.Game game)
             : base(game)
         {
@@ -44,8 +43,6 @@ namespace CasaEngine.Helpers
             UpdateOrder = (int)ComponentUpdateOrder.DebugPhysics;
             DrawOrder = (int)ComponentDrawOrder.DebugPhysics;
         }
-
-
 
         protected override void LoadContent()
         {
@@ -165,7 +162,6 @@ namespace CasaEngine.Helpers
                     throw new InvalidOperationException("ShapeRendererComponent.Draw() : Shape2DType '" + Enum.GetName(typeof(Shape2DType), data.Shape2DObject.Shape2DType) + "' not supported.");
             }
         }
-
 
         public void Resize(int w, int h)
         {

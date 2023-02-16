@@ -13,10 +13,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Helpers
 {
-    public class ShapeRenderer
-        : DebugView, IDisposable
+    public class ShapeRenderer : DebugView, IDisposable
     {
-
         //Drawing
         private PrimitiveBatch _primitiveBatch;
         private readonly Vector2[] _tempVertices = new Vector2[Settings.MaxPolygonVertices];
@@ -43,11 +41,8 @@ namespace CasaEngine.Helpers
         private readonly ContactPoint[] _points = new ContactPoint[MaxContactPoints];
 
         //Debug panel
-#if XBOX
-        public Vector2 DebugPanelPosition = new Vector2(55, 100);
-#else
         public Vector2 DebugPanelPosition = new(40, 100);
-#endif
+
         private int _max;
         private int _avg;
         private int _min;
@@ -58,27 +53,12 @@ namespace CasaEngine.Helpers
         public int MinimumValue;
         public int MaximumValue = 1000;
         private readonly List<float> _graphValues = new();
-
-#if XBOX
-        public Rectangle PerformancePanelBounds = new Rectangle(265, 100, 200, 100);
-#else
         public Rectangle PerformancePanelBounds = new(250, 100, 200, 100);
-#endif
         private readonly Vector2[] _background = new Vector2[4];
         public bool Enabled = true;
-
-#if XBOX || WINDOWS_PHONE
-        public const int CircleSegments = 16;
-#else
         public const int CircleSegments = 32;
-#endif
 
-
-
-
-
-        public ShapeRenderer(FarseerPhysics.Dynamics.World world)
-            : base(world)
+        public ShapeRenderer(FarseerPhysics.Dynamics.World world) : base(world)
         {
             if (world != null)
             {
@@ -103,8 +83,6 @@ namespace CasaEngine.Helpers
             Settings.EnableDiagnostics = true;
         }
 
-
-
         private void EnableOrDisableFlag(DebugViewFlags flag)
         {
             if ((Flags & flag) == flag)
@@ -127,12 +105,10 @@ namespace CasaEngine.Helpers
             _primitiveBatch.End();
         }
 
-
         public void Dispose()
         {
             World.ContactManager.PreSolve -= PreSolve;
         }
-
 
         private void PreSolve(Contact contact, ref Manifold oldManifold)
         {
@@ -147,12 +123,9 @@ namespace CasaEngine.Helpers
 
                 var fixtureA = contact.FixtureA;
 
-                FixedArray2<PointState> state1, state2;
-                Collision.GetPointStates(out state1, out state2, ref oldManifold, ref manifold);
+                Collision.GetPointStates(out var state1, out var state2, ref oldManifold, ref manifold);
 
-                FixedArray2<Vector2> points;
-                Vector2 normal;
-                contact.GetWorldManifold(out normal, out points);
+                contact.GetWorldManifold(out var normal, out var points);
 
                 for (var i = 0; i < manifold.PointCount && _pointCount < MaxContactPoints; ++i)
                 {
@@ -176,8 +149,7 @@ namespace CasaEngine.Helpers
             {
                 foreach (var b in World.BodyList)
                 {
-                    Transform xf;
-                    b.GetTransform(out xf);
+                    b.GetTransform(out var xf);
                     foreach (var f in b.FixtureList)
                     {
                         if (b.Enabled == false)
@@ -237,15 +209,13 @@ namespace CasaEngine.Helpers
                 {
                     foreach (var f in body.FixtureList)
                     {
-                        var polygon = f.Shape as PolygonShape;
-                        if (polygon != null)
+                        if (f.Shape is PolygonShape polygon)
                         {
-                            Transform xf;
-                            body.GetTransform(out xf);
+                            body.GetTransform(out var xf);
 
-                            for (var i = 0; i < polygon.Vertices.Count; i++)
+                            foreach (var vertex in polygon.Vertices)
                             {
-                                var tmp = MathUtils.Multiply(ref xf, polygon.Vertices[i]);
+                                var tmp = MathUtils.Multiply(ref xf, vertex);
                                 DrawPoint(tmp, 0.1f, Color.Red);
                             }
                         }
@@ -262,16 +232,13 @@ namespace CasaEngine.Helpers
             if ((Flags & DebugViewFlags.Pair) == DebugViewFlags.Pair)
             {
                 var color = new Color(0.3f, 0.9f, 0.9f);
-                for (var i = 0; i < World.ContactManager.ContactList.Count; i++)
+                foreach (var c in World.ContactManager.ContactList)
                 {
-                    var c = World.ContactManager.ContactList[i];
                     var fixtureA = c.FixtureA;
                     var fixtureB = c.FixtureB;
 
-                    AABB aabbA;
-                    fixtureA.GetAABB(out aabbA, 0);
-                    AABB aabbB;
-                    fixtureB.GetAABB(out aabbB, 0);
+                    fixtureA.GetAABB(out var aabbA, 0);
+                    fixtureB.GetAABB(out var aabbB, 0);
 
                     var cA = aabbA.Center;
                     var cB = aabbB.Center;
@@ -296,8 +263,7 @@ namespace CasaEngine.Helpers
                         for (var t = 0; t < f.ProxyCount; ++t)
                         {
                             var proxy = f.Proxies[t];
-                            AABB aabb;
-                            bp.GetFatAABB(proxy.ProxyId, out aabb);
+                            bp.GetFatAABB(proxy.ProxyId, out var aabb);
 
                             DrawAabb(ref aabb, color);
                         }
@@ -308,8 +274,7 @@ namespace CasaEngine.Helpers
             {
                 foreach (var b in World.BodyList)
                 {
-                    Transform xf;
-                    b.GetTransform(out xf);
+                    b.GetTransform(out var xf);
                     xf.Position = b.WorldCenter;
                     DrawTransform(ref xf);
                 }
@@ -320,8 +285,7 @@ namespace CasaEngine.Helpers
                 {
                     var controller = World.ControllerList[i];
 
-                    var buoyancy = controller as BuoyancyController;
-                    if (buoyancy != null)
+                    if (controller is BuoyancyController buoyancy)
                     {
                         var container = buoyancy.Container;
                         DrawAabb(ref container, Color.LightBlue);
@@ -403,9 +367,9 @@ namespace CasaEngine.Helpers
         private void DrawDebugPanel()
         {
             var fixtures = 0;
-            for (var i = 0; i < World.BodyList.Count; i++)
+            foreach (var body in World.BodyList)
             {
-                fixtures += World.BodyList[i].FixtureList.Count;
+                fixtures += body.FixtureList.Count;
             }
 
             var x = (int)DebugPanelPosition.X;
@@ -448,15 +412,14 @@ namespace CasaEngine.Helpers
 
             var b1 = joint.BodyA;
             var b2 = joint.BodyB;
-            Transform xf1, xf2;
-            b1.GetTransform(out xf1);
+            b1.GetTransform(out var xf1);
 
             var x2 = Vector2.Zero;
 
             // WIP David
             if (!joint.IsFixedType())
             {
-                b2.GetTransform(out xf2);
+                b2.GetTransform(out var xf2);
                 x2 = xf2.Position;
             }
 
@@ -551,7 +514,6 @@ namespace CasaEngine.Helpers
                         DrawSolidPolygon(_tempVertices, vertexCount, color);
                     }
                     break;
-
 
                 case ShapeType.Edge:
                     {
@@ -889,16 +851,12 @@ namespace CasaEngine.Helpers
             _localView = Matrix.Identity;
         }
 
-
-
         private struct ContactPoint
         {
             public Vector2 Normal;
             public Vector2 Position;
             public PointState State;
         }
-
-
 
         private struct StringData
         {
@@ -917,6 +875,5 @@ namespace CasaEngine.Helpers
                 Color = color;
             }
         }
-
     }
 }

@@ -9,6 +9,7 @@ using CasaEngine.Gameplay;
 using CasaEngine.Physics2D;
 using CasaEngine.Project;
 using CasaEngine.UserInterface;
+using CasaEngine.Plugin;
 
 #if EDITOR
 using CasaEngine.Editor.Tools;
@@ -49,6 +50,7 @@ namespace CasaEngine.Game
         public AssetManager AssetManager { get; }
 
         public ExternalToolManager ExternalToolManager { get; }
+        public PluginManager PluginManager { get; } = new();
 
 #endif
 

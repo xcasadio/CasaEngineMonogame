@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CasaEngineLauncher": {
+      "commandName": "Project",
+      "commandLineArgs": "ProjectSettings.json"
+    }
+  }
+}
