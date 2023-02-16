@@ -144,7 +144,7 @@ namespace CasaEngine.Gameplay.Actor
 
         public virtual void Initialize()
         {
-            _renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = Engine.Instance.Game.GetDrawableGameComponent<Renderer2DComponent>();
         }
 
     }

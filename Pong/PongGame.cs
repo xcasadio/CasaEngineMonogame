@@ -38,11 +38,6 @@ namespace Pong
             _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.PhysicWorld);
         }
 
-        protected override void Update(GameTime gameTime)
-        {
-            base.Update(gameTime);
-        }
-
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);

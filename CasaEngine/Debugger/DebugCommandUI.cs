@@ -279,8 +279,7 @@ namespace CasaEngine.Debugger
 
         public override void Initialize()
         {
-            _debugManager =
-                Game.Services.GetService(typeof(DebugManager)) as DebugManager;
+            _debugManager = Game.Services.GetService<DebugManager>();
 
             if (_debugManager == null)
             {
@@ -292,7 +291,7 @@ namespace CasaEngine.Debugger
 
         protected override void LoadContent()
         {
-            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
+            _renderer2DComponent = Game.GetGameComponent<Renderer2DComponent>();
 
             if (_renderer2DComponent == null)
             {

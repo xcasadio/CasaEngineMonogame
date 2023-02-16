@@ -22,7 +22,7 @@ namespace CasaEngine.Game
         public static Engine Instance { get; } = new();
 
         public string[] Arguments { get; set; }
-        public GraphicsDeviceManager GraphicsDeviceManager => (GraphicsDeviceManager)GameHelper.GetService<IGraphicsDeviceManager>(Game);
+        public GraphicsDeviceManager GraphicsDeviceManager => (GraphicsDeviceManager)Game.GetService<IGraphicsDeviceManager>();
         public AssetContentManager AssetContentManager { get; internal set; } = new();
         public Asset2DManager Asset2DManager { get; } = new();
         public ProjectManager ProjectManager { get; } = new();

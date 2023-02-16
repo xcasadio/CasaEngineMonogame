@@ -117,7 +117,7 @@ namespace CasaEngine.Graphics2D
                 lock (this)
                 {
                     // IsRemoved self from the service container.
-                    GameHelper.RemoveGameComponent<Renderer2DComponent>(Game);
+                    Game.RemoveGameComponent<Renderer2DComponent>();
                 }
             }
 

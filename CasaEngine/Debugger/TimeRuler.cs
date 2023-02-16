@@ -215,7 +215,7 @@ namespace CasaEngine.Debugger
 
         protected override void LoadContent()
         {
-            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Game);
+            _renderer2DComponent = Game.GetGameComponent<Renderer2DComponent>();
 
             if (_renderer2DComponent == null)
             {

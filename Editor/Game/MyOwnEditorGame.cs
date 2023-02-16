@@ -190,7 +190,7 @@ namespace Editor.Game
         {
             base.LoadContent();
 
-            Renderer2DComponent r = GameHelper.GetGameComponent<Renderer2DComponent>(this);
+            Renderer2DComponent r = this.GetGameComponent<Renderer2DComponent>();
             r.SpriteBatch = new SpriteBatch(GraphicsDevice);
         }
 

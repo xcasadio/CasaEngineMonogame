@@ -39,7 +39,7 @@ namespace CasaEngine.Graphics2D
                 lock (this)
                 {
                     // IsRemoved self from the service container.
-                    GameHelper.RemoveGameComponent<ScreenLogComponent>(Game);
+                    Game.RemoveGameComponent<ScreenLogComponent>();
                 }
             }
 
@@ -73,7 +73,7 @@ namespace CasaEngine.Graphics2D
 
         protected override void LoadContent()
         {
-            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = Engine.Instance.Game.GetGameComponent<Renderer2DComponent>();
             base.LoadContent();
         }
 

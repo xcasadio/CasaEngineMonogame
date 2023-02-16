@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Text.Json;
+using CasaEngine.Core.Game;
 using CasaEngine.Core.Math.Shape2D;
 using CasaEngine.Entities;
 using CasaEngine.Entities.Components;

@@ -23,7 +23,7 @@ namespace CasaEngine.FrontEnd.Screen
 
         public InputState()
         {
-            _inputComponent = GameHelper.GetGameComponent<InputComponent>(Engine.Instance.Game);
+            _inputComponent = Engine.Instance.Game.GetGameComponent<InputComponent>();
 
             if (_inputComponent == null)
             {

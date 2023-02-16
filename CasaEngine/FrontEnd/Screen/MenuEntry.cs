@@ -54,7 +54,7 @@ namespace CasaEngine.FrontEnd.Screen
         {
             _text = text;
 
-            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = Engine.Instance.Game.GetGameComponent<Renderer2DComponent>();
         }
 
 

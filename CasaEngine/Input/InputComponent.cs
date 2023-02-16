@@ -975,7 +975,7 @@ namespace CasaEngine.Input
                 lock (this)
                 {
                     // IsRemoved self from the service container.
-                    GameHelper.RemoveGameComponent<InputComponent>(Game);
+                    Game.RemoveGameComponent<InputComponent>();
                 }
             }
 

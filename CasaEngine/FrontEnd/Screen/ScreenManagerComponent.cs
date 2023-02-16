@@ -66,7 +66,7 @@ namespace CasaEngine.FrontEnd.Screen
 
         public override void Initialize()
         {
-            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = Engine.Instance.Game.GetGameComponent<Renderer2DComponent>();
 
             if (_renderer2DComponent == null)
             {

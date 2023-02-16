@@ -27,7 +27,7 @@ namespace CasaEngine.FrontEnd.Screen
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-            _renderer2DComponent = GameHelper.GetGameComponent<Renderer2DComponent>(Engine.Instance.Game);
+            _renderer2DComponent = Engine.Instance.Game.GetGameComponent<Renderer2DComponent>();
         }
 
 

@@ -147,7 +147,7 @@ namespace CasaEngine.FrontEnd.Screen.Gadget
 
         public virtual void Initialize(Microsoft.Xna.Framework.Game game)
         {
-            _renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(game);
+            _renderer2DComponent = game.GetDrawableGameComponent<Renderer2DComponent>();
 
             //TODO : faire autrement
             _whiteTexture = new Texture2D(game.GraphicsDevice, 1, 1);

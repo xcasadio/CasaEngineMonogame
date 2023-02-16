@@ -371,7 +371,7 @@ namespace CasaEngine.Gameplay
 
             Collision2DManager.Instance.RegisterObject(this);
 
-            _shapeRendererComponent = GameHelper.GetDrawableGameComponent<ShapeRendererComponent>(Engine.Instance.Game);
+            _shapeRendererComponent = Engine.Instance.Game.GetDrawableGameComponent<ShapeRendererComponent>();
 
             Hp = HpMax;
             Mp = MpMax;
