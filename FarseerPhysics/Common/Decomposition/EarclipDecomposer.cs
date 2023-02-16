@@ -19,7 +19,6 @@
  */
 
 
-using System.Collections.Generic;
 using FarseerPhysics.Common.PolygonManipulation;
 using Microsoft.Xna.Framework;
 

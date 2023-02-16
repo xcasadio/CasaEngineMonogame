@@ -8,18 +8,11 @@ namespace CasaEngine.Input.InputSequence
     {
         readonly Dictionary<int, ButtonMapper> _buttonsConfig = new();
 
-
-
-        public PlayerIndex PlayerIndex
-        {
-            get;
-            set;
-        }
+        public PlayerIndex PlayerIndex { get; set; }
 
         public int ButtonCount => _buttonsConfig.Count;
 
         public Dictionary<int, ButtonMapper>.Enumerator Buttons => _buttonsConfig.GetEnumerator();
-
 
         public ButtonMapper GetButton(int code)
         {

@@ -98,7 +98,7 @@ namespace CasaEngine.UserInterface.Controls.Windows
             // If an event does not deny the closing...
             if (!ex.Cancel)
             {
-                // Remove the event link to prevent garbage.
+                // IsRemoved the event link to prevent garbage.
                 UserInterfaceManager.InputSystem.KeyDown -= InputKeyDown;
                 // Restore previous modal window.
                 UserInterfaceManager.ModalWindow = _lastModal;

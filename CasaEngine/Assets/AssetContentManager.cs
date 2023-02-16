@@ -111,7 +111,7 @@ namespace CasaEngine.Assets
             _assets.Add(asset);
         }
 
-        internal void OnDeviceReset(object sender, EventArgs e)
+        internal void OnDeviceReset(object? sender, EventArgs e)
         {
             var device = sender as GraphicsDevice;
 

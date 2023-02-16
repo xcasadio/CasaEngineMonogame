@@ -31,7 +31,6 @@
 
 
 using System.Collections;
-using System.Collections.Generic;
 
 namespace Poly2Tri.Triangulation.Util
 {

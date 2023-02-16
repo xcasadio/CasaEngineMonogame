@@ -1,5 +1,5 @@
 ﻿using System.Xml;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 using CasaEngineCommon.Extension;
 using CasaEngine.Gameplay.Actor.Event;
 using CasaEngineCommon.Design;
@@ -158,7 +158,7 @@ namespace CasaEngine.Assets.Graphics2D
             }
         }
 
-        public override bool CompareTo(BaseObject other)
+        public bool CompareTo(BaseObject other)
         {
             if (other is Animation2D)
             {

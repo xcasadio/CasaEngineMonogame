@@ -1,6 +1,6 @@
-﻿using CasaEngine.Gameplay.Actor.Event;
+﻿using CasaEngine.Entities;
+using CasaEngine.Gameplay.Actor.Event;
 using CasaEngine.Game;
-using CasaEngine.Gameplay.Actor;
 
 namespace Editor.Tools.Event.EventForm
 {

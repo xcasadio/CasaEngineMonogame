@@ -16,47 +16,47 @@ You should have received a copy of the IBM Common Public
 License along with this library
 */
 
-using System;
-using System.Collections.Generic;
+namespace CasaEngineCommon.Packing
+{
 
-namespace CasaEngineCommon.Packing {
-
-  /// <summary>Insufficient space left in packing area to contain a given object</summary>
-  /// <remarks>
-  ///   An exception being sent to you from deep space. Erm, no, wait, it's an exception
-  ///   that occurs when a packing algorithm runs out of space and is unable to fit
-  ///   the object you tried to pack into the remaining packing area.
-  /// </remarks>
+    /// <summary>Insufficient space left in packing area to contain a given object</summary>
+    /// <remarks>
+    ///   An exception being sent to you from deep space. Erm, no, wait, it's an exception
+    ///   that occurs when a packing algorithm runs out of space and is unable to fit
+    ///   the object you tried to pack into the remaining packing area.
+    /// </remarks>
 #if !NO_SERIALIZATION
-  [Serializable]
+    [Serializable]
 #endif
-  public class OutOfSpaceException : Exception {
+    public class OutOfSpaceException : Exception
+    {
 
-    /// <summary>Initializes the exception</summary>
-    public OutOfSpaceException() { }
+        /// <summary>Initializes the exception</summary>
+        public OutOfSpaceException() { }
 
-    /// <summary>Initializes the exception with an error message</summary>
-    /// <param name="message">Error message describing the cause of the exception</param>
-    public OutOfSpaceException(string message) : base(message) { }
+        /// <summary>Initializes the exception with an error message</summary>
+        /// <param name="message">Error message describing the cause of the exception</param>
+        public OutOfSpaceException(string message) : base(message) { }
 
-    /// <summary>Initializes the exception as a followup exception</summary>
-    /// <param name="message">Error message describing the cause of the exception</param>
-    /// <param name="inner">Preceding exception that has caused this exception</param>
-    public OutOfSpaceException(string message, Exception inner) : base(message, inner) { }
+        /// <summary>Initializes the exception as a followup exception</summary>
+        /// <param name="message">Error message describing the cause of the exception</param>
+        /// <param name="inner">Preceding exception that has caused this exception</param>
+        public OutOfSpaceException(string message, Exception inner) : base(message, inner) { }
 
 #if !NO_SERIALIZATION
 
-    /// <summary>Initializes the exception from its serialized state</summary>
-    /// <param name="info">Contains the serialized fields of the exception</param>
-    /// <param name="context">Additional environmental informations</param>
-    protected OutOfSpaceException(
-      System.Runtime.Serialization.SerializationInfo info,
-      System.Runtime.Serialization.StreamingContext context
-    ) :
-      base(info, context) { }
+        /// <summary>Initializes the exception from its serialized state</summary>
+        /// <param name="info">Contains the serialized fields of the exception</param>
+        /// <param name="context">Additional environmental informations</param>
+        protected OutOfSpaceException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context
+        ) :
+          base(info, context)
+        { }
 
 #endif
 
-  }
+    }
 
 } // namespace CasaEngineCommon.Packing

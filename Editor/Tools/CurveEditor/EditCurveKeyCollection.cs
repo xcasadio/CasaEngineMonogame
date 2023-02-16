@@ -59,7 +59,7 @@ namespace Editor.Tools.CurveEditor
         }
 
         /// <summary>
-        /// Remove a CurveKey from at the specfied index.
+        /// IsRemoved a CurveKey from at the specfied index.
         /// </summary>
         /// <param name="index">The Zero-based index of the item to remove.</param>
         public void RemoveAt(int index)

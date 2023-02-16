@@ -1,4 +1,4 @@
-﻿using CasaEngine.Gameplay.Actor;
+﻿using CasaEngine.Entities;
 using Microsoft.Xna.Framework.Audio;
 
 namespace CasaEngine.Audio
@@ -35,20 +35,5 @@ namespace CasaEngine.Audio
         {
             _soundEffectInstance = _soundEffect.CreateInstance();
         }
-
-#if EDITOR
-
-        public override bool CompareTo(BaseObject other)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-#endif
-
-        public override BaseObject Clone()
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
     }
 }

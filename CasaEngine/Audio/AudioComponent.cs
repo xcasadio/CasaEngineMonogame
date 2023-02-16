@@ -94,7 +94,7 @@ namespace CasaEngine.Audio
                     // If the sound has stopped playing, dispose it.
                     activeSound.Instance.Dispose();
 
-                    // Remove it from the active list.
+                    // Removed it from the active list.
                     _activeSounds.RemoveAt(index);
                 }
                 else

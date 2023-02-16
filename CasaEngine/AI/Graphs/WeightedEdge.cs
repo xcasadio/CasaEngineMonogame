@@ -3,7 +3,7 @@ namespace CasaEngine.AI.Graphs
     [Serializable]
     public class WeightedEdge : Edge
     {
-        protected internal float cost = 0.0f;
+        protected internal float cost;
 
         public WeightedEdge()
         { }

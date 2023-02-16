@@ -11,9 +11,9 @@ namespace CasaEngine.Gameplay.Design.Event
     {
 
         private readonly List<ITriggerEvent> _events = new();
-        private bool _activated = false;
+        private bool _activated;
         private int _iterationMax = 1;
-        private int _iteration = 0;
+        private int _iteration;
 
 
 

@@ -1,6 +1,6 @@
 ﻿using System.Xml;
+using CasaEngine.Entities;
 using CasaEngine.Game;
-using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay.Actor.Event;
 using CasaEngineCommon.Design;
 
@@ -24,12 +24,12 @@ namespace CasaEngine.Assets.Graphics2D
         private Frame2D[] _Frames;
 #endif
 
-        private float _totalTime = 0;
+        private float _totalTime;
         private Animation2DType _animation2DType = Animation2DType.Loop;
 
-        private float _currentTime = 0;
-        private int _currentFrame = 0;
-        private bool _endAnimReached = false;
+        private float _currentTime;
+        private int _currentFrame;
+        private bool _endAnimReached;
 
         public event EventHandler<Animation2DFrameChangedEventArgs> OnFrameChanged;
         public event EventHandler OnEndAnimationReached;
@@ -258,7 +258,7 @@ namespace CasaEngine.Assets.Graphics2D
             throw new NotImplementedException();
         }
 
-        public override BaseObject Clone()
+        public BaseObject Clone()
         {
             var anim2D = new Animation2D();
             anim2D._animation2DType = _animation2DType;

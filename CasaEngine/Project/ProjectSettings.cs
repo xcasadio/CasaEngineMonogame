@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Xml;
-using CasaEngineCommon.Extension;
-using CasaEngineCommon.Design;
+using System.Text.Json;
+using CasaEngine.Helpers;
 
 namespace CasaEngine.Project
 {
@@ -12,14 +11,16 @@ namespace CasaEngine.Project
         private string _dataSrcCtrlUser = string.Empty;
         private string _dataSrcCtrlPassword = string.Empty;
         private string _dataSrcCtrlWorkspace = string.Empty;
-        private static readonly uint Version = 2;
+
+        [Category("Project")]
+        public int Version => 1;
 #endif
 
         [Category("Project")]
         public string WindowTitle { get; set; } = "Game name undefined";
 
         [Category("Project")]
-        public string ProjectName { get; set; } = "No Project Opened";
+        public string ProjectName { get; set; } = "Project name undefined";
 
         [Category("Start")]
         public string FirstScreenName { get; set; } = string.Empty;
@@ -33,10 +34,16 @@ namespace CasaEngine.Project
         [Category("Project")]
         public bool IsMouseVisible { get; set; }
 
+        [Category("Game")]
+        public string FirstWorldLoaded { get; set; } = string.Empty;
+
+        [Category("Gameplay")]
+        public string GameplayDllName { get; set; } = string.Empty;
+
 #if !FINAL
 
         [Category("Debug")]
-        public bool DebugIsFullScreen { get; set; } = false;
+        public bool DebugIsFullScreen { get; set; }
 
         [Category("Debug")]
         public int DebugWidth { get; set; } = 800;
@@ -46,68 +53,30 @@ namespace CasaEngine.Project
 
 #endif
 
-        public void Load(XmlElement el, SaveOption option)
+        public void Load(string fileName)
         {
-            var version = uint.Parse(el.Attributes["version"].Value);
+            var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
 
-            WindowTitle = el.Attributes["windowTitle"].Value;
-            ProjectName = el.Attributes["name"].Value;
-            FirstScreenName = el.Attributes["firstScreenName"].Value;
+            var rootElement = jsonDocument.RootElement;
+            var version = rootElement.GetJsonPropertyByName("Version").Value.GetInt32();
 
-            if (version > 1)
-            {
-                AllowUserResizing = bool.Parse(el.Attributes["AllowUserResizing"].Value);
-                IsFixedTimeStep = bool.Parse(el.Attributes["IsFixedTimeStep"].Value);
-                IsMouseVisible = bool.Parse(el.Attributes["IsMouseVisible"].Value);
-            }
+            WindowTitle = rootElement.GetJsonPropertyByName("WindowTitle").Value.GetString();
+            ProjectName = rootElement.GetJsonPropertyByName("ProjectName").Value.GetString();
+            FirstScreenName = rootElement.GetJsonPropertyByName("FirstScreenName").Value.GetString();
+            DebugIsFullScreen = rootElement.GetJsonPropertyByName("DebugIsFullScreen").Value.GetBoolean();
+            DebugHeight = rootElement.GetJsonPropertyByName("DebugHeight").Value.GetInt32();
+            DebugWidth = rootElement.GetJsonPropertyByName("DebugWidth").Value.GetInt32();
 
-#if !FINAL
-            var xmlElt = (XmlElement)el.SelectSingleNode("Debug");
-
-            DebugIsFullScreen = bool.Parse(xmlElt.Attributes["debugIsFullScreen"].Value);
-            DebugHeight = int.Parse(xmlElt.Attributes["debugHeight"].Value);
-            DebugWidth = int.Parse(xmlElt.Attributes["debugWidth"].Value);
-#endif
+            FirstWorldLoaded = rootElement.GetJsonPropertyByName("FirstWorldLoaded").Value.GetString();
+            GameplayDllName = rootElement.GetJsonPropertyByName("GameplayDllName").Value.GetString();
         }
 
 #if EDITOR
-
-        public void Save(XmlElement el, SaveOption option)
+        public void Save(string fileName)
         {
-            el.OwnerDocument.AddAttribute(el, "name", ProjectName);
-            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
-
-            el.OwnerDocument.AddAttribute(el, "windowTitle", WindowTitle);
-            el.OwnerDocument.AddAttribute(el, "firstScreenName", FirstScreenName);
-
-            el.OwnerDocument.AddAttribute(el, "AllowUserResizing", AllowUserResizing.ToString());
-            el.OwnerDocument.AddAttribute(el, "IsFixedTimeStep", IsFixedTimeStep.ToString());
-            el.OwnerDocument.AddAttribute(el, "IsMouseVisible", IsMouseVisible.ToString());
-
-            //Debug
-            var xmlElt = el.OwnerDocument.CreateElement("Debug");
-            el.AppendChild(xmlElt);
-            el.OwnerDocument.AddAttribute(xmlElt, "debugIsFullScreen", DebugIsFullScreen.ToString());
-            el.OwnerDocument.AddAttribute(xmlElt, "debugHeight", DebugHeight.ToString());
-            el.OwnerDocument.AddAttribute(xmlElt, "debugWidth", DebugWidth.ToString());
+            string jsonString = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(fileName, jsonString);
         }
-
-        public void Save(BinaryWriter bw, SaveOption option)
-        {
-            bw.Write(Version);
-            bw.Write(ProjectName);
-            bw.Write(WindowTitle);
-            bw.Write(FirstScreenName);
-            bw.Write(AllowUserResizing);
-            bw.Write(IsFixedTimeStep);
-            bw.Write(IsMouseVisible);
-
-            //Debug
-            bw.Write(DebugIsFullScreen);
-            bw.Write(DebugHeight);
-            bw.Write(DebugWidth);
-        }
-
 #endif
     }
 }

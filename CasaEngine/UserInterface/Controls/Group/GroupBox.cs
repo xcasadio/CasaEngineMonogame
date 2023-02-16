@@ -11,7 +11,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 using CasaEngine.UserInterface.Controls.Auxiliary;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.UserInterface.Controls.Group
 {

@@ -15,8 +15,8 @@
         double[] _biasValues;
         double _learningRate;
 
-        bool _linearOutput = false;
-        bool _useMomentum = false;
+        bool _linearOutput;
+        bool _useMomentum;
         double _momentumFactor = 0.9;
 
         NeuralNetworkLayer _parentLayer;

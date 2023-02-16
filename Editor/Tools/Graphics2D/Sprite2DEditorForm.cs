@@ -8,8 +8,8 @@ using CasaEngine.Editor.UndoRedo;
 using Editor.UndoRedo;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Core_Systems.Math.Shape2D;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Core.Math.Shape2D;
+using CasaEngine.Entities;
 
 namespace Editor.Tools.Graphics2D
 {

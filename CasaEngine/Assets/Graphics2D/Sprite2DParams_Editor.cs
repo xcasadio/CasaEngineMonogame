@@ -1,5 +1,5 @@
 ﻿using System.Xml;
-using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Core.Math.Shape2D;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Assets.Graphics2D

@@ -8,7 +8,7 @@ using CasaEngine.Editor.UndoRedo;
 using Editor.UndoRedo;
 using CasaEngine.Editor.Manipulation;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Core.Math.Shape2D;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;

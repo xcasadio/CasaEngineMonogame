@@ -1,31 +1,21 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Xml;
+using CasaEngine.Entities;
 using CasaEngineCommon.Design;
 
 namespace CasaEngine.Gameplay.Actor
 {
-    public abstract class Actor2D
-         : BaseObject, CasaEngineCommon.Design.IUpdateable
+    public abstract class Actor2D : BaseObject
     {
 
         //protected Body _Body;
-        private Vector2 _position = new Vector2();
-
-
+        private Vector2 _position;
 
         public Vector2 Position
         {
             get => _position;
             set => _position = value;
         }
-
-        public bool Delete
-        {
-            get;
-            set;
-        }
-
-
 
         protected Actor2D()
             : base()
@@ -39,10 +29,7 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-
-
-
-        public override BaseObject Clone()
+        public BaseObject Clone()
         {
             throw new NotImplementedException();
         }

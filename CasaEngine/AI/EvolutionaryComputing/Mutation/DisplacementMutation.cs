@@ -67,7 +67,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
                 }
             }
 
-            //Remove those genes from the original chromosome
+            //IsRemoved those genes from the original chromosome
             chromosome.Genotype.RemoveRange(first, second - first);
 
             //Select a displacement position

@@ -11,15 +11,15 @@ namespace CasaEngine.Editor.Manipulation
 
         private Vector2 _position;
         private Vector2 _mouseStart;
-        private bool _mousePressed = false;
+        private bool _mousePressed;
         private readonly List<Anchor> _anchors = new();
 
         public event EventHandler<AnchorLocationChangedEventArgs> LocationChanged;
         public event EventHandler StartManipulating, FinishManipulating;
 
         public event EventHandler CursorChanged;
-        private bool _isOver = false;
-        private bool _shiftPressed = false, _controlPressed = false;
+        private bool _isOver;
+        private bool _shiftPressed, _controlPressed;
 
 
 

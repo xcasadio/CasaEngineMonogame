@@ -2,7 +2,7 @@
 using CasaEngine.Game;
 using CasaEngineCommon.Logger;
 using CasaEngine.Assets.UI;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 
 namespace Editor.Tools.SkinUIEditor
 {

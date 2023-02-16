@@ -3,8 +3,8 @@ using Microsoft.Xna.Framework;
 using CasaEngineCommon.Extension;
 using System.ComponentModel;
 using System.Xml;
-using CasaEngine.Core_Systems.Math.Shape2D;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Core.Math.Shape2D;
+using CasaEngine.Entities;
 using CasaEngineCommon.Design;
 
 
@@ -93,7 +93,7 @@ namespace CasaEngine.Assets.Graphics2D
         }
 
 
-        public override bool CompareTo(BaseObject other)
+        public bool CompareTo(BaseObject other)
         {
             if (other is Sprite2D)
             {

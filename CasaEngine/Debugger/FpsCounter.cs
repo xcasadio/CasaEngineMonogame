@@ -8,7 +8,7 @@
 
 using System.Diagnostics;
 using System.Text;
-using CasaEngine.Core_Systems.Game;
+using CasaEngine.Core.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngineCommon.Extension;
@@ -50,15 +50,15 @@ namespace CasaEngine.Debugger
         // stringBuilder for FPS counter draw.
         private readonly StringBuilder _stringBuilder = new(16);
 
-        private Renderer2DComponent _renderer2DComponent = null;
+        private Renderer2DComponent _renderer2DComponent;
 
         private readonly Color _colorBackground = new(0, 0, 0, 128);
 
         private readonly List<CasaEngineCommon.Design.IObserver<FpsCounter>> _listObserver = new();
 
-        private float _fpsAverage = 0.0f;
+        private float _fpsAverage;
 
-        private int _numberOfFpsCount = 0;
+        private int _numberOfFpsCount;
 
         private bool _firstCompute = true;
 

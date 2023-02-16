@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using CasaEngine.AI.Messaging;
-using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Core.Math.Shape2D;
 using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay;
 
@@ -10,18 +10,18 @@ namespace CasaEngine.Physics2D
     public class Collision2DManager
     {
 
-        private static Collision2DManager _instance = null;
+        private static Collision2DManager _instance;
 
         private readonly List<IAttackable> _objects = new();
         private readonly Message _message1 = new(0, 0, (int)MessageType.Hit, 0, null);
         private readonly Message _message2 = new(0, 0, (int)MessageType.Hit, 0, null);
-        private HitInfo _hitInfo = new();
+        private HitInfo _hitInfo;
 
         //to avoid GC
         private Vector2
-            _v1 = new(),
-            _v2 = new(),
-            _contactPoint = new();
+            _v1,
+            _v2,
+            _contactPoint;
 
 
 

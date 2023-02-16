@@ -30,7 +30,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Mutation
             //Choose the position to move it
             position = Generator.Next(0, chromosome.Genotype.Count - 1);
 
-            //Remove the selected gene
+            //IsRemoved the selected gene
             gene = chromosome.Genotype[selectedGene];
             chromosome.Genotype.RemoveAt(selectedGene);
 

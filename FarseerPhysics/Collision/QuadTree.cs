@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FarseerPhysics.Collision;
+﻿using FarseerPhysics.Collision;
 using Microsoft.Xna.Framework;
 
 public class Element<T>

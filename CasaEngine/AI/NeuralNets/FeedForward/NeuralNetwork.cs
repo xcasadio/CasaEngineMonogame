@@ -1,4 +1,4 @@
-﻿using CasaEngine.Gameplay.Actor;
+﻿using CasaEngine.Entities;
 
 namespace CasaEngine.AI.NeuralNets.FeedForward
 {
@@ -20,11 +20,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
         public void Update(float elapsedTime)
         {
             FeedForward();
-        }
-
-        protected override void Destroy()
-        {
-            base.Destroy();
         }
 
         public override string ToString()
@@ -164,20 +159,6 @@ namespace CasaEngine.AI.NeuralNets.FeedForward
         public void DumpData(string filename)
         {
 
-        }
-
-#if EDITOR
-
-        public override bool CompareTo(BaseObject other)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-#endif
-
-        public override BaseObject Clone()
-        {
-            throw new Exception("The method or operation is not implemented.");
         }
     }
 }

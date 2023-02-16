@@ -1,11 +1,9 @@
-﻿using CasaEngine.World;
-
-namespace CasaEngine.Game
+﻿namespace CasaEngine.Game
 {
     public class GameInfo
     {
         public static GameInfo Instance { get; } = new();
 
-        public WorldInfo WorldInfo { get; } = new();
+        public World.World CurrentWorld { get; set; }
     }
 }

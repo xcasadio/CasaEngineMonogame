@@ -142,7 +142,7 @@
             this.buttonRemoveSelected.Name = "buttonRemoveSelected";
             this.buttonRemoveSelected.Size = new System.Drawing.Size(107, 23);
             this.buttonRemoveSelected.TabIndex = 9;
-            this.buttonRemoveSelected.Text = "Remove selected";
+            this.buttonRemoveSelected.Text = "IsRemoved selected";
             this.buttonRemoveSelected.UseVisualStyleBackColor = true;
             this.buttonRemoveSelected.Click += new System.EventHandler(this.buttonRemoveSelected_Click);
             // 
@@ -153,7 +153,7 @@
             this.buttonRemoveAll.Name = "buttonRemoveAll";
             this.buttonRemoveAll.Size = new System.Drawing.Size(75, 23);
             this.buttonRemoveAll.TabIndex = 10;
-            this.buttonRemoveAll.Text = "Remove all";
+            this.buttonRemoveAll.Text = "IsRemoved all";
             this.buttonRemoveAll.UseVisualStyleBackColor = true;
             this.buttonRemoveAll.Click += new System.EventHandler(this.buttonRemoveAll_Click);
             // 

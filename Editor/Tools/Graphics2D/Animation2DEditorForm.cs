@@ -9,7 +9,7 @@ using CasaEngine.Editor.Tools;
 using CasaEngineCommon.Logger;
 using Editor.Sprite2DEditor.Event;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 
 namespace Editor.Tools.Graphics2D
 {

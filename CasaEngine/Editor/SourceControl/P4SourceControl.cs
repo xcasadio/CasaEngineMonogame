@@ -8,7 +8,7 @@ namespace CasaEngine.Editor.SourceControl
         : ISourceControl
     {
 
-        private readonly P4Connection _p4Connection = null;
+        private readonly P4Connection _p4Connection;
 
         private string[] _commandFstatKeys = {
             "headModTime",
@@ -39,7 +39,7 @@ namespace CasaEngine.Editor.SourceControl
 
         private readonly Dictionary<string, SourceControlKeyWord> _keyWordMapping = new();
 
-        private bool _validWorkspaceDirectory = false;
+        private bool _validWorkspaceDirectory;
 
 
 

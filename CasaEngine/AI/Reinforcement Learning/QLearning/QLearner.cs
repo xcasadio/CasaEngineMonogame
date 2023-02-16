@@ -1,4 +1,4 @@
-﻿using CasaEngine.Gameplay.Actor;
+﻿using CasaEngine.Entities;
 
 namespace CasaEngine.AI.Reinforcement_Learning.QLearning
 {
@@ -23,20 +23,6 @@ namespace CasaEngine.AI.Reinforcement_Learning.QLearning
         public void Update(IQAgent agent, string currentState)
         {
             _ql.Learn(agent, currentState);
-        }
-
-#if EDITOR
-
-        public override bool CompareTo(BaseObject other)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-#endif
-
-        public override BaseObject Clone()
-        {
-            throw new Exception("The method or operation is not implemented.");
         }
     }
 }

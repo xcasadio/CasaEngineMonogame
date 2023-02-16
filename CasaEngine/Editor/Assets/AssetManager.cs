@@ -14,8 +14,8 @@ namespace CasaEngine.Editor.Assets
 
         private static readonly uint Version = 1;
 
-        private readonly ContentBuilder.ContentBuilder _contentBuilder = null;
-        private ContentBuilder.ContentBuilder _contentBuilderTempFiles = null;
+        private readonly ContentBuilder.ContentBuilder _contentBuilder;
+        private ContentBuilder.ContentBuilder _contentBuilderTempFiles;
 
         private readonly List<AssetInfo> _assets = new();
         private readonly List<AssetBuildInfo> _assetBuildInfo = new();

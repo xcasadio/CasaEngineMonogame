@@ -78,7 +78,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void buttonRemoveSelected_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Do you want to remove selected files ?", "Remove all", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show("Do you want to remove selected files ?", "IsRemoved all", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 foreach (int index in listBoxFiles.SelectedIndices)
                 {
@@ -94,7 +94,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void buttonRemoveAll_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Do you want to remove all files ?", "Remove all", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show("Do you want to remove all files ?", "IsRemoved all", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 listBoxFiles.Items.Clear();
             }

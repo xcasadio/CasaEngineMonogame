@@ -435,7 +435,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                     }
                 }
 				
-                mapFileTxtBox.Text = imageSaveFileDialog.FileName.Remove(imageSaveFileDialog.FileName.Length - 3) + currentMapExporter.MapExtension.ToLower();
+                mapFileTxtBox.Text = imageSaveFileDialog.FileName.IsRemoved(imageSaveFileDialog.FileName.Length - 3) + currentMapExporter.MapExtension.ToLower();
             }
         }*/
 

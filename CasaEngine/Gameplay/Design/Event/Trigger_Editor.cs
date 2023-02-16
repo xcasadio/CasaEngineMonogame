@@ -30,21 +30,6 @@ namespace CasaEngine.Gameplay.Design.Event
             }
         }
 
-        public virtual void Save(BinaryWriter bw, SaveOption option)
-        {
-            bw.Write(Version);
-            bw.Write(_events.Count);
-
-            foreach (var ev in _events)
-            {
-                var t = ev.GetType();
-                bw.Write(t.Assembly.FullName);
-                bw.Write(t.FullName);
-
-                ev.Save(bw, option);
-            }
-        }
-
         public void RemoveEvent(ITriggerEvent @event)
         {
             _events.Remove(@event);

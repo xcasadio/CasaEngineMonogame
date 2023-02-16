@@ -2,10 +2,10 @@
 {
     public class NeuralNetworkTraining
     {
-        readonly NeuralNetwork _neuralNetwork = null;
-        int _numberOfData = 0;
+        readonly NeuralNetwork _neuralNetwork;
+        int _numberOfData;
 
-        double[,] _trainingSet = null;
+        double[,] _trainingSet;
 
 
 

@@ -3,8 +3,8 @@
     public class FuzzyVariable
     {
         readonly Dictionary<string, FuzzySet> _memberSets = new();
-        double _dMinRange = 0.0;
-        double _dMaxRange = 0.0;
+        double _dMinRange;
+        double _dMaxRange;
 
 
 

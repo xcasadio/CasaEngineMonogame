@@ -1,111 +1,82 @@
-﻿using CasaEngine.Front_End;
+﻿using CasaEngine.Entities;
 using CasaEngine.Game;
-using CasaEngine.Gameplay;
-using CasaEngine.Gameplay.Actor;
-using CasaEngine.Physics2D;
-using CasaEngineCommon.Design;
+using System.Text.Json;
+using CasaEngine.Helpers;
 
 namespace CasaEngine.World
 {
     public class World
     {
+        private readonly List<BaseObject> _baseObjects = new();
+        private readonly List<BaseObject> _baseObjectsToAdd = new();
 
-        private readonly List<Actor2D> _actors = new(30);
-        private readonly List<Actor2D> _actorsToAdd = new();
+        public event EventHandler? Initializing;
+        public event EventHandler? LoadingContent;
+        public event EventHandler? Starting;
 
-        private readonly FarseerPhysics.Dynamics.World _physicWorld;
-        private HudBase _hud = null;
+        public string Name { get; set; }
+        public BaseObject[] BaseObjects => _baseObjects.ToArray();
 
-        public event EventHandler Initializing;
-        public event EventHandler LoadingContent;
-        public event EventHandler Starting;
-
-        public Actor2D[] Actors => _actors.ToArray();
-
-        public FarseerPhysics.Dynamics.World PhysicWorld => _physicWorld;
-
-        public HudBase Hud
-        {
-            get => _hud;
-            set => _hud = value;
-        }
+        public FarseerPhysics.Dynamics.World? PhysicWorld;
 
         public World(bool usePhysics = true)
         {
             if (usePhysics)
             {
-                _physicWorld = new FarseerPhysics.Dynamics.World(GameInfo.Instance.WorldInfo.WorldGravity);
+                PhysicWorld = new FarseerPhysics.Dynamics.World(Engine.Instance.PhysicsSettings.Gravity);
             }
         }
 
-        public void AddObject(Actor2D actor2D)
+        public void AddObjectImmediately(BaseObject baseObject)
         {
-            _actors.Add(actor2D);
+            _baseObjects.Add(baseObject);
         }
 
-        public void PushObject(Actor2D actor2D)
+        public void AddObject(BaseObject baseObject)
         {
-            _actorsToAdd.Add(actor2D);
+            _baseObjectsToAdd.Add(baseObject);
+        }
+
+        public void Clear()
+        {
+            _baseObjects.Clear();
+            _baseObjectsToAdd.Clear();
         }
 
         public void Initialize()
         {
-
-            if (Initializing != null)
+            foreach (var baseObject in _baseObjects)
             {
-                Initializing.Invoke(this, EventArgs.Empty);
+                baseObject.Initialize();
             }
+
+            Initializing?.Invoke(this, EventArgs.Empty);
         }
 
         public void LoadContent()
         {
-            if (_hud != null)
-            {
-                //_HUD.LoadContent(GraphicsDevice);
-            }
-
-            if (LoadingContent != null)
-            {
-                LoadingContent.Invoke(this, EventArgs.Empty);
-            }
+            LoadingContent?.Invoke(this, EventArgs.Empty);
         }
 
         public void Start()
         {
-            if (_hud != null)
-            {
-                _hud.Start();
-            }
-
-            if (Starting != null)
-            {
-                Starting.Invoke(this, EventArgs.Empty);
-            }
+            Starting?.Invoke(this, EventArgs.Empty);
         }
 
         public virtual void Update(float elapsedTime)
         {
-            var toRemove = new List<Actor2D>();
+            PhysicWorld?.Step(elapsedTime);
 
-            foreach (var a in _actorsToAdd)
-            {
-                _actors.Add(a);
-            }
+            var toRemove = new List<BaseObject>();
 
-            _actorsToAdd.Clear();
+            _baseObjects.AddRange(_baseObjectsToAdd);
+            _baseObjectsToAdd.Clear();
 
-            GameInfo.Instance.WorldInfo.Update(elapsedTime);
-
-            if (_physicWorld != null)
-            {
-                _physicWorld.Step(elapsedTime);
-            }
-
-            foreach (var a in _actors)
+            foreach (var a in _baseObjects)
             {
                 a.Update(elapsedTime);
 
-                if (a.Remove)
+                if (a.ToBeRemoved)
                 {
                     toRemove.Add(a);
                 }
@@ -113,32 +84,30 @@ namespace CasaEngine.World
 
             foreach (var a in toRemove)
             {
-                _actors.Remove(a);
+                _baseObjects.Remove(a);
             }
-
-            if (_hud != null)
-            {
-                _hud.Update(elapsedTime);
-            }
-
-            Collision2DManager.Instance.Update();
         }
 
         public virtual void Draw(float elapsedTime)
         {
-            foreach (var a in _actors)
+            foreach (var baseObject in _baseObjects)
             {
-                if (a is IRenderable)
-                {
-                    ((IRenderable)a).Draw(elapsedTime);
-                }
-            }
-
-            if (_hud != null)
-            {
-                _hud.Draw(elapsedTime);
+                baseObject.Draw();
             }
         }
 
+        public void Load(string fileName)
+        {
+            Clear();
+
+            var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+
+            var rootElement = jsonDocument.RootElement;
+            var version = rootElement.GetJsonPropertyByName("Version").Value.GetInt32();
+
+            Name = rootElement.GetJsonPropertyByName("Name").Value.GetString();
+
+            _baseObjects.AddRange(EntityLoader.LoadFromArray(rootElement.GetJsonPropertyByName("Entities").Value));
+        }
     }
 }

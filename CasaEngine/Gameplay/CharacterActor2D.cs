@@ -13,8 +13,9 @@ using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Gameplay.Design;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Core_Systems.Game;
-using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Core.Game;
+using CasaEngine.Core.Math.Shape2D;
+using CasaEngine.Entities;
 using CasaEngine.Helpers;
 
 namespace CasaEngine.Gameplay
@@ -32,7 +33,7 @@ namespace CasaEngine.Gameplay
         private TeamInfo _teamInfo;
 
         private CharacterActor2DOrientation _orientation = CharacterActor2DOrientation.Right;
-        private Vector2 _velocity = new();
+        private Vector2 _velocity;
 
         private Vector2 _initialPosition;
         private Vector2 _position; //utilisé si pas physique
@@ -45,14 +46,14 @@ namespace CasaEngine.Gameplay
         private Dictionary<int, Animation2D> _animations = new();
         private Animation2DPlayer _animation2DPlayer;
         private int _numberOfDirection = 8;
-        private int _animationDirectioMask = 0;
+        private int _animationDirectioMask;
         private readonly Dictionary<int, int> _animationDirectionOffset = new();
         private Renderer2DComponent _renderer2DComponent;
 
         private Body _body;
 
         //use to avoid GC
-        private Point _pointTmp = new();
+        private Point _pointTmp;
         private readonly Message _message = new(-1, -1, (int)MessageType.AnimationChanged, 0.0, null);
         private Vector2 _vector2 = new();
 
@@ -273,12 +274,12 @@ namespace CasaEngine.Gameplay
 
 
 
-        public override BaseObject Clone()
+        public BaseObject Clone()
         {
             return new CharacterActor2D(this);
         }
 
-        protected override void CopyFrom(BaseObject ob)
+        protected void CopyFrom(BaseObject ob)
         {
             if (ob is CharacterActor2D == false)
             {
@@ -611,7 +612,7 @@ namespace CasaEngine.Gameplay
             if (Hp <= 0)
             {
                 a.KillSomeone(info);
-                Delete = true;
+                ToBeRemoved = true;
 
                 //to delete : debug
                 //respawn
@@ -630,7 +631,7 @@ namespace CasaEngine.Gameplay
         {
             if (IsPLayer)
             {
-                GameInfo.Instance.WorldInfo.BotKilled++;
+                //GameInfo.Instance.WorldInfo.BotKilled++;
             }
         }
 

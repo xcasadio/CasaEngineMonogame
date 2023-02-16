@@ -10,8 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using CasaEngine.Assets.Textures;
-
 namespace CasaEngine.UserInterface.Controls.Auxiliary
 {
 

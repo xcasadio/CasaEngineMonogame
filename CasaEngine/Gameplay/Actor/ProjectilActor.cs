@@ -1,7 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using FarseerPhysics.Dynamics;
 using CasaEngine.AI.Messaging;
-using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Core.Math.Shape2D;
+using CasaEngine.Entities;
 using CasaEngine.Helpers;
 using CasaEngineCommon.Helper;
 
@@ -61,12 +62,12 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        public override BaseObject Clone()
+        public BaseObject Clone()
         {
             return new ProjectilActor(this);
         }
 
-        protected override void CopyFrom(BaseObject ob)
+        protected void CopyFrom(BaseObject ob)
         {
             base.CopyFrom(ob);
 
@@ -113,12 +114,12 @@ namespace CasaEngine.Gameplay.Actor
             {
                 case (int)MessageType.Hit:
                     //Hit((HitInfo)message.ExtraInfo);
-                    Remove = true;
+                    ToBeRemoved = true;
                     break;
 
                 case (int)MessageType.HitSomeone:
                     var hitInfo = (HitInfo)message.ExtraInfo;
-                    Remove = true;
+                    ToBeRemoved = true;
                     break;
             }
 

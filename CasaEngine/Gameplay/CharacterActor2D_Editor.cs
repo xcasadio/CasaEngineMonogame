@@ -3,7 +3,6 @@ using CasaEngine.Game;
 using CasaEngineCommon.Extension;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Gameplay.Actor;
 
 namespace CasaEngine.Gameplay
 {
@@ -124,11 +123,6 @@ namespace CasaEngine.Gameplay
             }
 
             return res;
-        }
-
-        public override bool CompareTo(BaseObject other)
-        {
-            throw new NotImplementedException();
         }
 
     }

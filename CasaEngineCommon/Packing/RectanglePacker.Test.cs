@@ -16,9 +16,6 @@ You should have received a copy of the IBM Common Public
 License along with this library
 */
 
-using System;
-using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 
 namespace CasaEngineCommon.Packing

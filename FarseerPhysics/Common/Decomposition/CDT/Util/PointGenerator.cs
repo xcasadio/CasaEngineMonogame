@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Poly2Tri.Triangulation.Util
+﻿namespace Poly2Tri.Triangulation.Util
 {
     public class PointGenerator
     {

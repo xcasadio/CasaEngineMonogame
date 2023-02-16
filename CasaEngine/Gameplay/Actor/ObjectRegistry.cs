@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using CasaEngine.Game;
 using CasaEngineCommon.Extension;
-using System.Reflection;
+using CasaEngine.Entities;
 using CasaEngineCommon.Design;
 using CasaEngine.Project;
 
@@ -235,7 +235,7 @@ namespace CasaEngine.Gameplay.Actor
 			public long FileLength;
 #endif
             public string ClassName = string.Empty;
-            private bool _isLoaded = false;
+            private bool _isLoaded;
 
             public string Name = string.Empty;
             public int Id = -1;

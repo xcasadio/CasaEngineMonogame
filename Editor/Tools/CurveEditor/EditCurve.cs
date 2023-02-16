@@ -496,7 +496,7 @@ namespace Editor.Tools.CurveEditor
         }
 
         /// <summary>
-        /// Remove selected keys.
+        /// IsRemoved selected keys.
         /// </summary>
         public void RemoveKeys()
         {
@@ -507,7 +507,7 @@ namespace Editor.Tools.CurveEditor
 
             if (selectedKeys.Count != 0)
             {
-                // Generate Remove keys command and execute it.
+                // Generate IsRemoved keys command and execute it.
                 EditCurveKeyAddRemoveCommand command =
                     new EditCurveKeyAddRemoveCommand(this, selectedKeys.Values);
 

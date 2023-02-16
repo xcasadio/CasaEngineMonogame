@@ -17,8 +17,6 @@ License along with this library
 */
 
 
-using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 
 namespace CasaEngineCommon.Packing

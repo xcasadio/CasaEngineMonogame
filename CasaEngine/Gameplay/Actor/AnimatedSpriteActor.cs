@@ -6,7 +6,8 @@ using System.Xml;
 using CasaEngineCommon.Logger;
 using CasaEngineCommon.Design;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Core_Systems.Game;
+using CasaEngine.Core.Game;
+using CasaEngine.Entities;
 
 namespace CasaEngine.Gameplay.Actor
 {
@@ -14,7 +15,7 @@ namespace CasaEngine.Gameplay.Actor
     {
 
 #if EDITOR
-        public override bool CompareTo(BaseObject other)
+        public bool CompareTo(BaseObject other)
         {
             if (other is AnimatedSpriteActor)
             {
@@ -67,12 +68,12 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        public override BaseObject Clone()
+        public BaseObject Clone()
         {
             throw new NotImplementedException();
         }
 
-        protected override void CopyFrom(BaseObject ob)
+        protected void CopyFrom(BaseObject ob)
         {
             base.CopyFrom(ob);
 

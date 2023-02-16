@@ -10,7 +10,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.UserInterface.Controls.Auxiliary

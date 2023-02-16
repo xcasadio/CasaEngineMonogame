@@ -3,10 +3,10 @@ using Microsoft.Xna.Framework;
 using CasaEngineCommon.Extension;
 using Microsoft.Xna.Framework.Content;
 using System.Xml;
-using CasaEngine.Core_Systems.Math.Shape2D;
+using CasaEngine.Core.Math.Shape2D;
+using CasaEngine.Entities;
 using CasaEngineCommon.Design;
 using CasaEngine.Game;
-using CasaEngine.Gameplay.Actor;
 
 
 #if EDITOR
@@ -29,8 +29,8 @@ namespace CasaEngine.Assets.Graphics2D
     {
 
         //constant
-        private Texture2D _texture2D = null;
-        private Rectangle _positionInTexture = new();
+        private Texture2D _texture2D;
+        private Rectangle _positionInTexture;
         private Point _origin = Point.Zero;
 
 #if EDITOR
@@ -133,7 +133,7 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        public override BaseObject Clone()
+        public BaseObject Clone()
         {
             return new Sprite2D(this);
         }

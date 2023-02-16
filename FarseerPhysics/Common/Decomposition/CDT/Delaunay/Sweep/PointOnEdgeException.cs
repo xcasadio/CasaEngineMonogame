@@ -29,8 +29,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-
 namespace Poly2Tri.Triangulation.Delaunay.Sweep
 {
     public class PointOnEdgeException : NotImplementedException

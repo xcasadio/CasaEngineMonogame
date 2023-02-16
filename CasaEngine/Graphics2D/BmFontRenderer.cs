@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using CasaEngine.Assets.Fonts;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

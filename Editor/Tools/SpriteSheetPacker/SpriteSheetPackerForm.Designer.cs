@@ -101,7 +101,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             this.removeImageBtn.Name = "removeImageBtn";
             this.removeImageBtn.Size = new System.Drawing.Size(84, 41);
             this.removeImageBtn.TabIndex = 6;
-            this.removeImageBtn.Text = "Remove Selected";
+            this.removeImageBtn.Text = "IsRemoved Selected";
             this.removeImageBtn.UseVisualStyleBackColor = true;
             this.removeImageBtn.Click += new System.EventHandler(this.removeImageBtn_Click);
             // 
@@ -144,7 +144,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
             this.clearBtn.Name = "clearBtn";
             this.clearBtn.Size = new System.Drawing.Size(84, 41);
             this.clearBtn.TabIndex = 7;
-            this.clearBtn.Text = "Remove All";
+            this.clearBtn.Text = "IsRemoved All";
             this.clearBtn.UseVisualStyleBackColor = true;
             this.clearBtn.Click += new System.EventHandler(this.clearBtn_Click);
             // 

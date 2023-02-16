@@ -6,10 +6,6 @@
 //-----------------------------------------------------------------------------
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CasaEngineCommon.Helper
 {
@@ -39,14 +35,14 @@ namespace CasaEngineCommon.Helper
         }
 
 
-		/// <summary>
-		/// Get random int
-		/// </summary>
-		/// <returns>Int</returns>
-		public static int GetRandomInt()
-		{
-			return globalRandomGenerator.Next();
-		}
+        /// <summary>
+        /// Get random int
+        /// </summary>
+        /// <returns>Int</returns>
+        public static int GetRandomInt()
+        {
+            return globalRandomGenerator.Next();
+        }
 
         /// <summary>
         /// Get random int
@@ -58,16 +54,16 @@ namespace CasaEngineCommon.Helper
             return globalRandomGenerator.Next(max);
         }
 
-		/// <summary>
-		/// Get random int
-		/// </summary>
-		/// <param name="min">Minimum</param>
-		/// <param name="max">Maximum</param>
-		/// <returns>Int</returns>
-		public static int GetRandomInt(int min, int max)
-		{
-			return globalRandomGenerator.Next(min, max);
-		}
+        /// <summary>
+        /// Get random int
+        /// </summary>
+        /// <param name="min">Minimum</param>
+        /// <param name="max">Maximum</param>
+        /// <returns>Int</returns>
+        public static int GetRandomInt(int min, int max)
+        {
+            return globalRandomGenerator.Next(min, max);
+        }
 
         /// <summary>
         /// Get random float between min and max
@@ -80,13 +76,13 @@ namespace CasaEngineCommon.Helper
             return (float)globalRandomGenerator.NextDouble() * (max - min) + min;
         }
 
-		/// <summary>
-		/// Returns a random boolean value.
-		/// </summary>
-		static public bool NextBool()
-		{
-			return GetRandomInt(2) == 1;
-		}
+        /// <summary>
+        /// Returns a random boolean value.
+        /// </summary>
+        static public bool NextBool()
+        {
+            return GetRandomInt(2) == 1;
+        }
 
         /// <summary>
         /// Get random byte between min and max
@@ -158,48 +154,48 @@ namespace CasaEngineCommon.Helper
             }
         }
 
-		/// <summary>
-		/// Returns a random variation of the specified value.
-		/// </summary>
-		/// <param name="value">The value.</param>
-		/// <param name="variation">The variation multiple of the value.</param>
-		/// <example>a value of 10 with a variation of 0.5 will result in a random number between 5.0 and 15.</example>
-		static public float Variation(float value, float variation)
-		{
-			float min = (value - variation),
-				  max = (value + variation);
+        /// <summary>
+        /// Returns a random variation of the specified value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="variation">The variation multiple of the value.</param>
+        /// <example>a value of 10 with a variation of 0.5 will result in a random number between 5.0 and 15.</example>
+        static public float Variation(float value, float variation)
+        {
+            float min = (value - variation),
+                  max = (value + variation);
 
-			return GetRandomFloat(min, max);
-		}
+            return GetRandomFloat(min, max);
+        }
 
-		/// <summary>
-		/// Chooses a random item from the specified parameters and returns it.
-		/// </summary>
-		static public int Choose(params int[] values)
-		{
-			int index = GetRandomInt(values.Length);
+        /// <summary>
+        /// Chooses a random item from the specified parameters and returns it.
+        /// </summary>
+        static public int Choose(params int[] values)
+        {
+            int index = GetRandomInt(values.Length);
 
-			return values[index];
-		}
+            return values[index];
+        }
 
-		/// <summary>
-		/// Chooses a random item from the specified parameters and returns it.
-		/// </summary>
-		static public float Choose(params float[] values)
-		{
-			int index = GetRandomInt(values.Length);
+        /// <summary>
+        /// Chooses a random item from the specified parameters and returns it.
+        /// </summary>
+        static public float Choose(params float[] values)
+        {
+            int index = GetRandomInt(values.Length);
 
-			return values[index];
-		}
+            return values[index];
+        }
 
-		/// <summary>
-		/// Chooses a random item from the specified parameters and returns it.
-		/// </summary>
-		static public T Choose<T>(params T[] values)
-		{
-			int index = GetRandomInt(values.Length);
+        /// <summary>
+        /// Chooses a random item from the specified parameters and returns it.
+        /// </summary>
+        static public T Choose<T>(params T[] values)
+        {
+            int index = GetRandomInt(values.Length);
 
-			return values[index];
-		}
-	}
+            return values[index];
+        }
+    }
 }

@@ -38,9 +38,6 @@
 //   We have a lot of Add/Clear methods -- we may prefer to just expose the container
 //   Some self-explanitory methods may deserve commenting anyways
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Poly2Tri.Triangulation.Delaunay;
 
 namespace Poly2Tri.Triangulation.Polygon

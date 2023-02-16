@@ -1,4 +1,4 @@
-﻿using CasaEngine.Gameplay.Actor;
+﻿using CasaEngine.Entities;
 
 namespace CasaEngine.Gameplay.Design
 {

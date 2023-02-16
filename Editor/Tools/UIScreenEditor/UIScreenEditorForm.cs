@@ -2,7 +2,7 @@
 using CasaEngine.Editor.UndoRedo;
 using CasaEngine.Game;
 using System.Globalization;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 using CasaEngine.UserInterface.Controls;
 using CasaEngine.UserInterface.Controls.Buttons;
 using CasaEngine.UserInterface.Controls.Group;

@@ -21,7 +21,7 @@ namespace CasaEngine.AI.EvolutionaryComputing.Replacement
             //Sort the survivors
             survivors.Genome.Sort(new ChromosomeComparer<T>(Objective));
 
-            // Remove the less fit chromosomes
+            // IsRemoved the less fit chromosomes
             survivors.Genome.RemoveRange(NewPopulationSize, survivors.Genome.Count - NewPopulationSize);
 
             return survivors;

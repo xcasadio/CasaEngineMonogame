@@ -1,6 +1,5 @@
 using CasaEngine.AI.Messaging;
-using CasaEngine.Gameplay;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 
 namespace CasaEngine.AI.Goals
 {

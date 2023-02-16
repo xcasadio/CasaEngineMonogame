@@ -116,7 +116,7 @@ namespace Editor.Tools.CurveEditor
                 // Remember key index.
                 int idx = curve.Keys.IndexOf(key);
 
-                // Remove key from keys.
+                // IsRemoved key from keys.
                 curve.Keys.Remove(key);
 
                 // Removing key requires re-compute neighbor keys tangents.

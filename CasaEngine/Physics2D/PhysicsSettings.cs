@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Physics2D
+﻿using Microsoft.Xna.Framework;
+
+namespace CasaEngine.Physics2D
 {
     public class PhysicsSettings
     {
@@ -6,11 +8,14 @@
         {
             VelocityIterations = 8;// 10;
             PositionIterations = 3;// 8;
-            DrawShapes = 1;
-            DrawJoints = 1;
             EnableWarmStarting = 1;
             EnableContinuous = 1;
+            //debugging
+            DrawShapes = 1;
+            DrawJoints = 1;
         }
+
+        public Vector2 Gravity { get; set; }
 
         public int VelocityIterations;
         public int PositionIterations;

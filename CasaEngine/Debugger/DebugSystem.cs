@@ -36,9 +36,9 @@ namespace CasaEngine.Debugger
 {
     public sealed class DebugSystem
     {
-        private static DebugSystem _singletonInstance;
+        private static DebugSystem? _singletonInstance;
 
-        public static DebugSystem Instance => _singletonInstance;
+        public static DebugSystem? Instance => _singletonInstance;
 
         public DebugManager DebugManager { get; private set; }
 
@@ -48,7 +48,7 @@ namespace CasaEngine.Debugger
 
         public TimeRuler TimeRuler { get; private set; }
 
-        public static DebugSystem Initialize(Microsoft.Xna.Framework.Game game)
+        public static DebugSystem? Initialize(Microsoft.Xna.Framework.Game game)
         {
             // if the singleton exists, return that; we don't want two systems being created for a game
             if (_singletonInstance != null)
@@ -74,8 +74,5 @@ namespace CasaEngine.Debugger
 
             return _singletonInstance;
         }
-
-        // Private constructor; games should use Initialize
-        private DebugSystem() { }
     }
 }

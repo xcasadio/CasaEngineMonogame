@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
 
 
 namespace CasaEngineCommon.Extension
@@ -12,7 +7,7 @@ namespace CasaEngineCommon.Extension
     /// Fonction utile pour l'ecriture/lecture binaire
     /// Only read for game project
     /// </summary>
-    static public class BinaryIOExtension
+    public static class BinaryIOExtension
     {
 
         /// <summary>
@@ -20,7 +15,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binW_"></param>
         /// <param name="vec_"></param>
-        static public void Write(this BinaryWriter binW_, Vector4 vec_)
+        public static void Write(this BinaryWriter binW_, Vector4 vec_)
         {
             binW_.Write(vec_.X);
             binW_.Write(vec_.Y);
@@ -33,7 +28,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binW_"></param>
         /// <param name="vec_"></param>
-        static public void Write(this BinaryWriter binW_, Vector3 vec_)
+        public static void Write(this BinaryWriter binW_, Vector3 vec_)
         {
             binW_.Write(vec_.X);
             binW_.Write(vec_.Y);
@@ -45,7 +40,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binW_"></param>
         /// <param name="vec_"></param>
-        static public void Write(this BinaryWriter binW_, Vector2 vec_)
+        public static void Write(this BinaryWriter binW_, Vector2 vec_)
         {
             binW_.Write(vec_.X);
             binW_.Write(vec_.Y);
@@ -56,7 +51,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binW_"></param>
         /// <param name="q_"></param>
-        static public void Write(this BinaryWriter binW_, Quaternion q_)
+        public static void Write(this BinaryWriter binW_, Quaternion q_)
         {
             binW_.Write(q_.W);
             binW_.Write(q_.X);
@@ -69,7 +64,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binW_"></param>
         /// <param name="mat_"></param>
-        static public void Write(this BinaryWriter binW_, Matrix mat_)
+        public static void Write(this BinaryWriter binW_, Matrix mat_)
         {
             binW_.Write(mat_.M11);
             binW_.Write(mat_.M12);
@@ -94,7 +89,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binWriter_"></param>
         /// <param name="b_"></param>
-        static public void Write(this BinaryWriter binWriter_, BoundingBox b_)
+        public static void Write(this BinaryWriter binWriter_, BoundingBox b_)
         {
             binWriter_.Write(b_.Max);
             binWriter_.Write(b_.Min);
@@ -105,7 +100,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binWriter_"></param>
         /// <param name="c_"></param>
-        static public void Write(this BinaryWriter binWriter_, Color c_)
+        public static void Write(this BinaryWriter binWriter_, Color c_)
         {
             binWriter_.Write(c_.ToVector4());
         }
@@ -115,7 +110,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binWriter_"></param>
         /// <param name="r_"></param>
-        static public void Write(this BinaryWriter binWriter_, Rectangle r_)
+        public static void Write(this BinaryWriter binWriter_, Rectangle r_)
         {
             binWriter_.Write(r_.X);
             binWriter_.Write(r_.Y);
@@ -128,7 +123,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binWriter_"></param>
         /// <param name="p_"></param>
-        static public void Write(this BinaryWriter binWriter_, Point p_)
+        public static void Write(this BinaryWriter binWriter_, Point p_)
         {
             binWriter_.Write(p_.X);
             binWriter_.Write(p_.Y);
@@ -141,7 +136,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binR_"></param>
         /// <returns></returns>
-        static public Vector4 ReadVector4(this BinaryReader binR_)
+        public static Vector4 ReadVector4(this BinaryReader binR_)
         {
             Vector4 vec_ = new Vector4();
 
@@ -158,7 +153,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binR_"></param>
         /// <returns></returns>
-        static public Vector3 ReadVector3(this BinaryReader binR_)
+        public static Vector3 ReadVector3(this BinaryReader binR_)
         {
             Vector3 vec_ = new Vector3();
 
@@ -174,7 +169,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binR_"></param>
         /// <returns></returns>
-        static public Vector2 ReadVector2(this BinaryReader binR_)
+        public static Vector2 ReadVector2(this BinaryReader binR_)
         {
             Vector2 vec_ = new Vector2();
 
@@ -189,7 +184,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binR_"></param>
         /// <returns></returns>
-        static public Quaternion ReadQuaternion(this BinaryReader binR_)
+        public static Quaternion ReadQuaternion(this BinaryReader binR_)
         {
             Quaternion q_ = new Quaternion();
 
@@ -206,7 +201,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binR_"></param>
         /// <returns></returns>
-        static public Matrix ReadMatrix(this BinaryReader binR_)
+        public static Matrix ReadMatrix(this BinaryReader binR_)
         {
             Matrix mat_ = new Matrix();
             mat_.M11 = binR_.ReadSingle();
@@ -234,7 +229,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binReader_"></param>
         /// <returns></returns>
-        static public BoundingBox ReadBoundingBox(this BinaryReader binReader_)
+        public static BoundingBox ReadBoundingBox(this BinaryReader binReader_)
         {
             BoundingBox b = new BoundingBox();
 
@@ -249,7 +244,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binReader_"></param>
         /// <returns></returns>
-        static public Color ReadColor(this BinaryReader binReader_)
+        public static Color ReadColor(this BinaryReader binReader_)
         {
             return new Color(binReader_.ReadVector4());
         }
@@ -259,7 +254,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binReader_"></param>
         /// <returns></returns>
-        static public Rectangle ReadRectangle(this BinaryReader binReader_)
+        public static Rectangle ReadRectangle(this BinaryReader binReader_)
         {
             return new Rectangle(binReader_.ReadInt32(), binReader_.ReadInt32(), binReader_.ReadInt32(), binReader_.ReadInt32());
         }
@@ -269,7 +264,7 @@ namespace CasaEngineCommon.Extension
         /// </summary>
         /// <param name="binR_"></param>
         /// <returns></returns>
-        static public Point ReadPoint(this BinaryReader binR_)
+        public static Point ReadPoint(this BinaryReader binR_)
         {
             Point p = new Point();
 

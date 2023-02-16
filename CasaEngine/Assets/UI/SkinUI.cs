@@ -1,5 +1,5 @@
 ﻿using System.Xml;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 using CasaEngine.UserInterface;
 using CasaEngineCommon.Design;
 using Size = CasaEngine.UserInterface.Size;
@@ -10,12 +10,7 @@ using System.ComponentModel;
 
 namespace CasaEngine.Assets.UI
 {
-    public
-#if EDITOR
-    partial
-#endif
-    class SkinUi
-        : BaseObject
+    public class SkinUi : BaseObject
     {
         readonly SkinList<SkinControlInformation> _controls = new();
         readonly SkinList<SkinImage> _images = new();
@@ -65,7 +60,7 @@ namespace CasaEngine.Assets.UI
 
 
 
-        public override BaseObject Clone()
+        public BaseObject Clone()
         {
             throw new NotImplementedException();
         }
@@ -459,7 +454,7 @@ namespace CasaEngine.Assets.UI
             throw new Exception("The method or operation is not implemented.");
         }
 
-        protected override void CopyFrom(BaseObject ob)
+        protected void CopyFrom(BaseObject ob)
         {
             throw new Exception("The method or operation is not implemented.");
         }

@@ -4,7 +4,7 @@ namespace CasaEngine.Editor.Assets
 {
     public struct AssetInfo
     {
-        private static int _freeId = 0;
+        private static int _freeId;
 
         public int Id;
         public string Name;

@@ -26,7 +26,6 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-
 using CasaEngine.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Size = CasaEngine.Helpers.Size;
@@ -36,12 +35,10 @@ namespace CasaEngine.Assets.Textures
     public sealed class RenderTarget : Texture
     {
 
-
         public struct RenderTargetBinding
         {
             internal Microsoft.Xna.Framework.Graphics.RenderTargetBinding[] InternalBinding;
             public RenderTarget[] RenderTargets;
-
 
             public static bool operator ==(RenderTargetBinding x, RenderTargetBinding y)
             {
@@ -63,10 +60,7 @@ namespace CasaEngine.Assets.Textures
                 return InternalBinding.GetHashCode() ^ InternalBinding.GetHashCode();
             } // GetHashCode
 
-
         } // RenderTargetBinding
-
-
 
         public enum AntialiasingType
         {
@@ -77,8 +71,6 @@ namespace CasaEngine.Assets.Textures
             EightSamples,
             SixtySamples
         } // AntialiasingType
-
-
 
         // XNA Render target.
         // Why don't use the derived xnaTexture? Good question. I don't remember why I do it.
@@ -94,8 +86,6 @@ namespace CasaEngine.Assets.Textures
         private static readonly RenderTarget[] currentRenderTarget = new RenderTarget[4];
 
         private RenderTargetBinding? _renderTargetBinding;
-
-
 
         public override Texture2D Resource
         {
@@ -119,7 +109,6 @@ namespace CasaEngine.Assets.Textures
         public bool MipMap { get; private set; }
 
         public static RenderTarget[] CurrentRenderTarget => currentRenderTarget;
-
 
         public RenderTarget(GraphicsDevice graphicsDevice, Size size,
             SurfaceFormat surfaceFormat, DepthFormat depthFormat,
@@ -159,8 +148,6 @@ namespace CasaEngine.Assets.Textures
             GraphicsDevice.DeviceReset += OnScreenSizeChanged;
         } // RenderTarget
 
-
-
         private void Create()
         {
             try
@@ -180,16 +167,12 @@ namespace CasaEngine.Assets.Textures
             }
         } // Create
 
-
-
         protected override void DisposeManagedResources()
         {
             base.DisposeManagedResources();
             GraphicsDevice.DeviceReset -= OnScreenSizeChanged;
             _renderTarget.Dispose();
         } // DisposeManagedResources
-
-
 
         private void OnScreenSizeChanged(object sender, EventArgs e)
         {
@@ -202,8 +185,6 @@ namespace CasaEngine.Assets.Textures
                 OnDeviceReset(GraphicsDevice);
             }
         } // OnScreenSizeChanged
-
-
 
         internal override void OnDeviceReset(GraphicsDevice device)
         {
@@ -219,8 +200,6 @@ namespace CasaEngine.Assets.Textures
             }
         } // RecreateResource
 
-
-
         internal static int CalculateMultiSampleQuality(AntialiasingType antialiasingTypeType)
         {
             switch (antialiasingTypeType)
@@ -228,7 +207,7 @@ namespace CasaEngine.Assets.Textures
                 case AntialiasingType.NoAntialiasing:
                     return 0;
                 case AntialiasingType.System:
-                    return Engine.Instance.MultiSampleQuality;
+                    return Engine.Instance.GraphicsSettings.MultiSampleQuality;
                 case AntialiasingType.TwoSamples:
                     return 2;
                 case AntialiasingType.FourSamples:
@@ -241,8 +220,6 @@ namespace CasaEngine.Assets.Textures
                     throw new ArgumentException("Render Target error. Antialiasing type doesn't exist (probably a bug).");
             }
         } // CalculateMultiSampleQuality
-
-
 
         public void EnableRenderTarget()
         {
@@ -278,8 +255,6 @@ namespace CasaEngine.Assets.Textures
             }
         } // EnableRenderTargets
 
-
-
         public void Clear(Color clearColor)
         {
             if (currentRenderTarget[0] != this)
@@ -311,8 +286,6 @@ namespace CasaEngine.Assets.Textures
             currentRenderTarget[0].Clear(clearColor);
         } // Clear
 
-
-
         public void DisableRenderTarget()
         {
             // Make sure this render target is currently set!
@@ -343,8 +316,6 @@ namespace CasaEngine.Assets.Textures
             }
             graphicsDevice.SetRenderTarget(null);
         } // DisableCurrentRenderTargets
-
-
 
         public static RenderTargetBinding BindRenderTargets(RenderTarget renderTarget1, RenderTarget renderTarget2)
         {
@@ -400,8 +371,6 @@ namespace CasaEngine.Assets.Textures
             return renderTargetsBinding;
         } // BindRenderTargets
 
-
-
         // A pool of all render targets.
         private static readonly List<RenderTarget> RenderTargets = new(0);
 
@@ -453,8 +422,6 @@ namespace CasaEngine.Assets.Textures
 
             RenderTargets.Clear();
         } // ClearRenderTargetPool
-
-
 
         // A pool of all multiple render targets.
         private static readonly List<RenderTargetBinding> MultipleRenderTargets = new(0);
@@ -542,7 +509,6 @@ namespace CasaEngine.Assets.Textures
             }
             MultipleRenderTargets.Clear();
         } // ClearMultpleRenderTargetPool
-
 
     } // RenderTarget
 } // CasaEngine.Asset

@@ -27,7 +27,7 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using Screen = CasaEngine.Core_Systems.Screen;
+using Screen = CasaEngine.Core.Screen;
 
 
 namespace CasaEngine.Helpers

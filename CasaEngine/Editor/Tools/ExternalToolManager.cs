@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
+using CasaEngine.Entities;
 using CasaEngine.Game;
-using CasaEngine.Gameplay.Actor;
 using CasaEngine.Project;
 using CasaEngineCommon.Logger;
 

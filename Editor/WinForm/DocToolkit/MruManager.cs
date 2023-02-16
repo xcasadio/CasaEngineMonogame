@@ -203,7 +203,7 @@ namespace Editor.WinForm.DocToolkit
         }
 
         /// <summary>
-        /// Remove file name from MRU list.
+        /// IsRemoved file name from MRU list.
         /// Call this function when File - Open operation failed.
         /// </summary>
         /// <param name="file">File Name</param>
@@ -509,11 +509,11 @@ Using:
      - CurrentDir is used to show file names in the menu. If file is in
        this directory, only file name is shown.
 
-4) Call MruManager Add and Remove functions when necessary:
+4) Call MruManager Add and IsRemoved functions when necessary:
 
        mruManager.Add(fileName);          // when file is successfully opened
 
-       mruManager.Remove(fileName);       // when Open File operation failed
+       mruManager.IsRemoved(fileName);       // when Open File operation failed
 
 *******************************************************************************/
 

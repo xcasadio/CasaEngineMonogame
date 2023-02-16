@@ -604,8 +604,9 @@ namespace CasaEngine.UserInterface
             {
                 foreach (var skinFont in Fonts)
                 {
-                    skinFont.Font = (Font)Engine.Instance.ObjectManager.GetObjectByPath(skinFont.Filename);
-                    skinFont.Font.LoadTexture("", graphicsDevice);
+                    throw new NotImplementedException();
+                    //skinFont.Font = (Font)Engine.Instance.ObjectManager.GetObjectByPath(skinFont.Filename);
+                    //skinFont.Font.LoadTexture("", graphicsDevice);
                     //skinFont.Font = new Font();
                     //skinFont.Font.LoadTexture(fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename, graphicsDevice);
                 }

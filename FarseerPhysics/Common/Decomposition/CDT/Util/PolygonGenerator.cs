@@ -29,7 +29,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using Poly2Tri.Triangulation.Polygon;
 
 namespace Poly2Tri.Triangulation.Util

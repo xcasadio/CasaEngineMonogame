@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Xml;
-using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Design;
 using CasaEngineCommon.Extension;
 
@@ -14,11 +13,6 @@ namespace CasaEngine.Assets.Fonts
             : this()
         {
             ImportFromFile(fileName);
-        }
-
-        public override bool CompareTo(BaseObject other)
-        {
-            throw new Exception("The method or operation is not implemented.");
         }
 
         private void ImportFromFile(string fileName)
@@ -50,9 +44,8 @@ namespace CasaEngine.Assets.Fonts
             }
         }
 
-        public override void Save(XmlElement el, SaveOption opt)
+        public void Save(XmlElement el, SaveOption opt)
         {
-            base.Save(el, opt);
 
             XmlNode fontNode = el.OwnerDocument.CreateElement("Font");
             el.AppendChild(fontNode);
@@ -86,7 +79,7 @@ namespace CasaEngine.Assets.Fonts
             }
         }
 
-        public override void Save(BinaryWriter bw, SaveOption option)
+        public void Save(BinaryWriter bw, SaveOption option)
         {
             throw new Exception("The method or operation is not implemented.");
         }

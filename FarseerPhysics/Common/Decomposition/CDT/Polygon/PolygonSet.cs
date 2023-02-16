@@ -35,8 +35,6 @@
 //   Replace Add(Polygon) with exposed container?
 //   Replace entire class with HashSet<Polygon> ?
 
-using System.Collections.Generic;
-
 namespace Poly2Tri.Triangulation.Polygon
 {
     public class PolygonSet

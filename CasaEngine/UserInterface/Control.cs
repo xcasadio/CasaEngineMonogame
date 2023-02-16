@@ -969,7 +969,7 @@ namespace CasaEngine.UserInterface
             get => _parent;
             set
             {
-                // Remove it from old parent
+                // IsRemoved it from old parent
                 if (_parent == null)
                 {
                     UserInterfaceManager.Remove(_parent);
@@ -1128,7 +1128,7 @@ namespace CasaEngine.UserInterface
 
         protected override void DisposeManagedResources()
         {
-            // Remove events.
+            // IsRemoved events.
             UserInterfaceManager.DeviceReset -= OnDeviceReset;
             UserInterfaceManager.SkinChanging -= OnSkinChanging;
             UserInterfaceManager.SkinChanged -= OnSkinChanged;
@@ -1200,7 +1200,7 @@ namespace CasaEngine.UserInterface
 
             // Removing this control from the global stack.
             controlList.Remove(this);
-            // Remove object from queue to avoid a memory leak.
+            // IsRemoved object from queue to avoid a memory leak.
             if (NewControls.Contains(this))
             {
                 while (true)
@@ -1691,7 +1691,7 @@ namespace CasaEngine.UserInterface
                     OnParentChanged(new EventArgs());
                 }
             }
-        } // Remove
+        } // IsRemoved
 
         public virtual bool Contains(Control control, bool recursively = true)
         {

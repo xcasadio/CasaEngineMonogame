@@ -1,11 +1,12 @@
 ﻿using CasaEngine.Assets;
-using CasaEngine.Core_Systems.Game;
-using CasaEngine.Front_End.Screen;
+using CasaEngine.Core.Game;
+using CasaEngine.FrontEnd.Screen;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Graphics2D;
 using CasaEngine.Gameplay.Actor;
 using CasaEngine.Gameplay;
+using CasaEngine.Physics2D;
 using CasaEngine.Project;
 using CasaEngine.UserInterface;
 
@@ -18,37 +19,22 @@ namespace CasaEngine.Game
 {
     public class Engine
     {
-        private Microsoft.Xna.Framework.Game _game;
-
         public static Engine Instance { get; } = new();
 
-        internal bool ResetDevice { get; set; }
-        public GraphicsDeviceManager GraphicsDeviceManager => (GraphicsDeviceManager)GameHelper.GetService<IGraphicsDeviceManager>(_game);
-        public GraphicsProfile GraphicsProfile => _game.GraphicsDevice.GraphicsProfile;
-        public AssetContentManager AssetContentManager { get; internal set; }
-        public Asset2DManager Asset2DManager { get; }
-        public ProjectSettings ProjectSettings { get; }
-        public ProjectManager ProjectManager { get; }
-        public ObjectManager ObjectManager { get; }
-        public ScreenManager ScreenManager { get; }
-        public UserInterfaceManager UiManager { get; }
-        public int MultiSampleQuality { get; set; }
-        public SpriteBatch SpriteBatch { get; set; }
-        public ObjectRegistry ObjectRegistry { get; }
         public string[] Arguments { get; set; }
-        public Microsoft.Xna.Framework.Game Game
-        {
-            get => _game;
-            set
-            {
-                if (_game != null)
-                {
-                    throw new InvalidOperationException("GameInfo.Instance.Game : Game is already set!");
-                }
-
-                _game = value;
-            }
-        }
+        public GraphicsDeviceManager GraphicsDeviceManager => (GraphicsDeviceManager)GameHelper.GetService<IGraphicsDeviceManager>(Game);
+        public AssetContentManager AssetContentManager { get; internal set; } = new();
+        public Asset2DManager Asset2DManager { get; } = new();
+        public ProjectManager ProjectManager { get; } = new();
+        public ObjectManager ObjectManager { get; } = new();
+        public ScreenManager ScreenManager { get; } = new();
+        public UserInterfaceManager UiManager { get; } = new();
+        public SpriteBatch SpriteBatch { get; set; }
+        public ObjectRegistry ObjectRegistry { get; } = new();
+        public Microsoft.Xna.Framework.Game Game { get; set; }
+        public ProjectSettings ProjectSettings { get; } = new();
+        public PhysicsSettings PhysicsSettings { get; } = new();
+        public GraphicsSettings GraphicsSettings { get; } = new();
 
 #if !FINAL
 
@@ -68,17 +54,9 @@ namespace CasaEngine.Game
 
         private Engine()
         {
-            _game = null;
+            Game = null;
             DefaultSpriteFont = null;
             SpriteBatch = null;
-            Asset2DManager = new Asset2DManager();
-            ProjectSettings = new ProjectSettings();
-            ObjectRegistry = new ObjectRegistry();
-            ProjectManager = new ProjectManager();
-            ObjectManager = new ObjectManager();
-            ScreenManager = new ScreenManager();
-
-            UiManager = new UserInterfaceManager();
 
 #if EDITOR
             ExternalToolManager = new ExternalToolManager();

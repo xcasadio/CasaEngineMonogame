@@ -1,10 +1,10 @@
-﻿using CasaEngine.Graphics2D;
+﻿using CasaEngine.Core.Math.Shape2D;
+using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Editor.Manipulation;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Editor.UndoRedo;
-using CasaEngine.Core_Systems.Math.Shape2D;
 using Editor.UndoRedo;
 using Editor.Game;
 using Color = Microsoft.Xna.Framework.Color;

@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core_Systems.Math.Shape2D;
+﻿using CasaEngine.Core.Math.Shape2D;
 using CasaEngine.Game;
 using Microsoft.Xna.Framework;
 
@@ -23,7 +23,7 @@ namespace CasaEngine.Helpers
 
         //to avoid GC
         private readonly Stack<Shape2dData> _freeDisplayCollisionData = new();
-        private Vector2 _vector2D1 = new();
+        private Vector2 _vector2D1;
 
         public ShapeRenderer ShapeRenderer => _shapeRenderer;
 
@@ -53,9 +53,9 @@ namespace CasaEngine.Helpers
             base.LoadContent();
         }
 
-        public void SetCurrentPhysicsWorld(FarseerPhysics.Dynamics.World world)
+        public void SetCurrentPhysicsWorld(FarseerPhysics.Dynamics.World? world)
         {
-            _world = world;
+            _world = world ?? throw new ArgumentNullException(nameof(world));
 
             //if (_World != null)
             {

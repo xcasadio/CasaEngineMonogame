@@ -1,6 +1,5 @@
 ﻿using System.Xml;
 using CasaEngineCommon.Design;
-using Control = CasaEngine.UserInterface.Control;
 
 namespace CasaEngine.UserInterface
 {

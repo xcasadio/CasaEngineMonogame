@@ -18,7 +18,7 @@ using Editor.Tools.Font;
 using Editor.Tools.SkinUIEditor;
 using CasaEngine.Assets.UI;
 using CasaEngine.Editor.SourceControl;
-using CasaEngine.Front_End.Screen;
+using CasaEngine.FrontEnd.Screen;
 using Font = CasaEngine.Assets.Fonts.Font;
 
 #if !DEBUG

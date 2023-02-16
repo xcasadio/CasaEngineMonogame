@@ -1,5 +1,4 @@
-﻿using CasaEngine.Gameplay;
-using CasaEngine.Gameplay.Actor;
+﻿using CasaEngine.Entities;
 
 namespace CasaEngine.AI.BehaviourTree
 {
@@ -7,8 +6,8 @@ namespace CasaEngine.AI.BehaviourTree
     {
         protected internal T Owner;
 
-        BehaviourTreeNode<T> _root = null;
-        BehaviourTreeNode<T> _currentNode = null;
+        BehaviourTreeNode<T> _root;
+        BehaviourTreeNode<T> _currentNode;
 
         public void Update()
         {

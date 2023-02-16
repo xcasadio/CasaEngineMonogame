@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
 namespace FarseerPhysics.Common.Decomposition
 {
@@ -107,7 +106,7 @@ namespace FarseerPhysics.Common.Decomposition
 
             List<Vertices> result = new List<Vertices>();
 
-            for (int v = nv - 1; nv > 2; )
+            for (int v = nv - 1; nv > 2;)
             {
                 // If we loop, it is probably a non-simple polygon 
                 if (0 >= (count--))

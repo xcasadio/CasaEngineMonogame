@@ -23,8 +23,6 @@
 * 3. This notice may not be removed or altered from any source distribution. 
 */
 
-using System;
-
 namespace FarseerPhysics
 {
     public static class Settings
@@ -42,7 +40,7 @@ namespace FarseerPhysics
         /// NOTE: If you are using a debug view that shows performance counters,
         /// you might want to enable this.
         /// </summary>
-        public static bool EnableDiagnostics = 
+        public static bool EnableDiagnostics =
 #if !FINAL
         true;
 #else
@@ -227,7 +225,7 @@ namespace FarseerPhysics
         /// <returns></returns>
         public static float MixFriction(float friction1, float friction2)
         {
-            return (float) Math.Sqrt(friction1 * friction2);
+            return (float)Math.Sqrt(friction1 * friction2);
         }
 
         /// <summary>

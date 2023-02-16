@@ -2,7 +2,7 @@
   "profiles": {
     "Pong": {
       "commandName": "Project",
-      "commandLineArgs": "PongGame.xml"
+      "commandLineArgs": "ProjectSettings.json"
     }
   }
 }

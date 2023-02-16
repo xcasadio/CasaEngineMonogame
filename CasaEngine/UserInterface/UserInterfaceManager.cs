@@ -17,7 +17,7 @@ using CasaEngine.UserInterface.Controls.Windows;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Cursor = CasaEngine.Assets.Cursors.Cursor;
-using Screen = CasaEngine.Core_Systems.Screen;
+using Screen = CasaEngine.Core.Screen;
 
 namespace CasaEngine.UserInterface
 {
@@ -504,10 +504,10 @@ namespace CasaEngine.UserInterface
                 }
 
                 RootControls.Remove(control);
-                // Remove event
+                // IsRemoved event
                 WindowResize -= control.OnParentResize;
             }
-        } // Remove
+        } // IsRemoved
 
         public void PreRenderControls()
         {

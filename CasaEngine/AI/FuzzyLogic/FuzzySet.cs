@@ -3,7 +3,7 @@
     public abstract class FuzzySet
     {
 
-        protected double DDom = 0.0;
+        protected double DDom;
 
         protected double DRepresentativeValue;
 

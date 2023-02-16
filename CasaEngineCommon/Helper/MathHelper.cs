@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CasaEngineCommon.Helper
+﻿namespace CasaEngineCommon.Helper
 {
     using MathXna = Microsoft.Xna.Framework.MathHelper;
     using Microsoft.Xna.Framework;

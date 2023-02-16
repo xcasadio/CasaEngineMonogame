@@ -47,7 +47,7 @@ namespace CasaEngine.UserInterface
             {
                 ItemRemoved.Invoke(this, new EventArgs());
             }
-        } // Remove
+        } // IsRemoved
 
         public new void Clear()
         {

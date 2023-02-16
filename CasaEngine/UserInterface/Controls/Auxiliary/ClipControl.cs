@@ -113,7 +113,7 @@ namespace CasaEngine.UserInterface.Controls.Auxiliary
         {
             base.Remove(control);
             ClientArea.Remove(control);
-        } // Remove
+        } // IsRemoved
 
 
 

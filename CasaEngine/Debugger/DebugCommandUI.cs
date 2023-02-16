@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 
 
-using CasaEngine.Core_Systems.Game;
+using CasaEngine.Core.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
@@ -97,7 +97,7 @@ namespace CasaEngine.Debugger
 
         // Current command line string and cursor position.
         private string _commandLine = string.Empty;
-        private int _cursorIndex = 0;
+        private int _cursorIndex;
 
         private readonly Queue<string> _lines = new();
 
@@ -107,7 +107,7 @@ namespace CasaEngine.Debugger
         // Selecting command history index.
         private int _commandHistoryIndex;
 
-        private Renderer2DComponent _renderer2DComponent = null;
+        private Renderer2DComponent _renderer2DComponent;
 
         private readonly Color _backgroundColor = new(0, 0, 0, 200);
 

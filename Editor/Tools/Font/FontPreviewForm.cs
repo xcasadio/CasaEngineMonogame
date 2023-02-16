@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Editor.Tools;
+using CasaEngine.Entities;
 using CasaEngine.Game;
-using CasaEngine.Gameplay.Actor;
 using CasaEngineCommon.Logger;
 
 namespace Editor.Tools.Font
@@ -60,7 +60,7 @@ namespace Editor.Tools.Font
         {
             if (obj_ is CasaEngine.Assets.Fonts.Font)
             {
-                m_FontPreviewEditorComponent.Font = obj_ as CasaEngine.Assets.Fonts.Font;
+                //m_FontPreviewEditorComponent.Font = obj_ as CasaEngine.Assets.Fonts.Font;
                 //this.Text = "Font Preview - " + m_Font.;
             }
             else

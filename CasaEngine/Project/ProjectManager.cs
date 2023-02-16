@@ -1,7 +1,4 @@
-﻿using System.Xml;
-using CasaEngineCommon.Design;
-using CasaEngine.Game;
-using CasaEngineCommon.Extension;
+﻿using CasaEngine.Game;
 
 namespace CasaEngine.Project
 {
@@ -74,13 +71,13 @@ namespace CasaEngine.Project
             ProjectFileOpened = fileName;
 #endif
 
-            var xmlDoc = new XmlDocument();
-            xmlDoc.Load(fileName);
-
-            var projectNode = (XmlElement)xmlDoc.SelectSingleNode(NodeRootName);
-
-            var configNode = (XmlElement)projectNode.SelectSingleNode(NodeConfigName);
-            Engine.Instance.ProjectSettings.Load(configNode, SaveOption.Editor);
+            //var xmlDoc = new XmlDocument();
+            //xmlDoc.Load(fileName);
+            //
+            //var projectNode = (XmlElement)xmlDoc.SelectSingleNode(NodeRootName);
+            //
+            //var configNode = (XmlElement)projectNode.SelectSingleNode(NodeConfigName);
+            //Engine.Instance.ProjectSettings.Load(configNode, SaveOption.Editor);
 
             /*XmlElement asset2DNode = (XmlElement)projectNode.SelectSingleNode(NodeAsset2DName);
             GameInfo.Instance.Asset2DManager.Load(asset2DNode, SaveOption.Editor);
@@ -93,17 +90,12 @@ namespace CasaEngine.Project
             XmlElement objectRegistryNode = (XmlElement)projectNode.SelectSingleNode(NodeObjectRegistryName);
             Engine.Instance.ObjectManager.Load(objectRegistryNode, SaveOption.Editor);*/
 
-            Engine.Instance.ObjectManager.Load(projectNode, SaveOption.Editor);
+            //Engine.Instance.ObjectManager.Load(projectNode, SaveOption.Editor);
 
 #if EDITOR
             Engine.Instance.ExternalToolManager.Initialize();
 
-            LastXmlDocument = xmlDoc;
-
-            if (ProjectLoaded != null)
-            {
-                ProjectLoaded(this, EventArgs.Empty);
-            }
+            ProjectLoaded?.Invoke(this, EventArgs.Empty);
 #endif
         }
 
@@ -111,19 +103,10 @@ namespace CasaEngine.Project
 #if EDITOR
         private static readonly uint Version = 1;
 
-        public event EventHandler ProjectLoaded;
-        public event EventHandler ProjectClosed;
+        public event EventHandler? ProjectLoaded;
+        public event EventHandler? ProjectClosed;
 
-        public XmlDocument LastXmlDocument
-        {
-            get;
-            set;
-        }
-        public string ProjectFileOpened
-        {
-            get;
-            set;
-        }
+        public string ProjectFileOpened { get; set; }
 
         public void Clear()
         {
@@ -132,10 +115,7 @@ namespace CasaEngine.Project
             Engine.Instance.ExternalToolManager.Clear();
             ProjectFileOpened = null;
 
-            if (ProjectClosed != null)
-            {
-                ProjectClosed(this, EventArgs.Empty);
-            }
+            ProjectClosed?.Invoke(this, EventArgs.Empty);
         }
 
         public void CreateProject(string fileName)
@@ -174,46 +154,16 @@ namespace CasaEngine.Project
 
         public bool Save(string fileName)
         {
-            //Si on sauvegarde et qu'il y a deja une sauvegarde
-            //On est obligé de mixer le nouveau fichier avec le nouveau
-            //Car on ne sauvegarde a chaque fois que le monde courant
-            //(on ne peut pas sauvegarder les autres mondes sinon il faudrait les charger)
-            //XmlDocument xmlDocLastFile = null;
-
-            //si le fichier existe deja on le charge
-            if (string.IsNullOrEmpty(ProjectFileOpened) == false)
-            {
-                if (File.Exists(fileName))
-                {
-                    //ProjectFileOpened = fileName_;
-                    //TODO
-                }
-            }
-
             ProjectFileOpened = fileName;
 
-            /*if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
-            {
-                if (SourceControlManager.Instance.SourceControl.CheckOut(ProjectFileOpened) == false)
-                {
-                    //return false;
-                }
-            }*/
-
-            /*if (string.IsNullOrEmpty(_LastProjectFileName) == false )
-            {
-                xmlDocLastFile = new XmlDocument();
-                xmlDocLastFile.Load(_LastProjectFileName);
-            }*/
-
             //nouveau fichier
-            var xmlDoc = new XmlDocument();
-            var projectNode = xmlDoc.AddRootNode(NodeRootName);
-            xmlDoc.AddAttribute(projectNode, "version", Version.ToString());
-
-            var configNode = xmlDoc.CreateElement(NodeConfigName);
-            projectNode.AppendChild(configNode);
-            Engine.Instance.ProjectSettings.Save(configNode, SaveOption.Editor);
+            //var xmlDoc = new XmlDocument();
+            //var projectNode = xmlDoc.AddRootNode(NodeRootName);
+            //xmlDoc.AddAttribute(projectNode, "version", Version.ToString());
+            //
+            //var configNode = xmlDoc.CreateElement(NodeConfigName);
+            //projectNode.AppendChild(configNode);
+            //Engine.Instance.ProjectSettings.Save(configNode, SaveOption.Editor);
 
             //liste des mondes
             /*XmlElement worldListNode = xmlDoc.CreateElement("WorldList");
@@ -253,11 +203,11 @@ namespace CasaEngine.Project
 
             //XmlElement objectManagerNode = xmlDoc.CreateElement(NodeObjectListName);
             //projectNode.AppendChild(objectManagerNode);
-            Engine.Instance.ObjectManager.Save(projectNode, SaveOption.Editor);
+            //Engine.Instance.ObjectManager.Save(projectNode, SaveOption.Editor);
 
-            xmlDoc.Save(fileName);
+            //xmlDoc.Save(fileName);
 
-            LastXmlDocument = xmlDoc;
+            //LastXmlDocument = xmlDoc;
 
             //Monde
             //on ne peut sauvegarder que le monde courant

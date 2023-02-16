@@ -1,4 +1,3 @@
-using System;
 using FarseerPhysics.Dynamics;
 
 namespace FarseerPhysics.Common.PhysicsLogic

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using CasaEngine.Game;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Core_Systems.Game;
+using CasaEngine.Core.Game;
 
 
 namespace CasaEngine.Graphics2D
@@ -116,7 +116,7 @@ namespace CasaEngine.Graphics2D
             {
                 lock (this)
                 {
-                    // Remove self from the service container.
+                    // IsRemoved self from the service container.
                     GameHelper.RemoveGameComponent<Renderer2DComponent>(Game);
                 }
             }

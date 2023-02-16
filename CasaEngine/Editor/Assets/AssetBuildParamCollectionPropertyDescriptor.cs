@@ -5,7 +5,7 @@ namespace CasaEngine.Editor.Assets
     public class AssetBuildParamCollectionPropertyDescriptor
         : PropertyDescriptor
     {
-        private readonly AssetBuildParamCollection _collection = null;
+        private readonly AssetBuildParamCollection _collection;
         private readonly int _index = -1;
 
         public AssetBuildParamCollectionPropertyDescriptor(AssetBuildParamCollection coll, int idx) :

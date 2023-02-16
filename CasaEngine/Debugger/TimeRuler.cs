@@ -7,7 +7,7 @@
 
 using System.Diagnostics;
 using System.Text;
-using CasaEngine.Core_Systems.Game;
+using CasaEngine.Core.Game;
 using Microsoft.Xna.Framework;
 using CasaEngine.Game;
 using CasaEngine.Graphics2D;
@@ -164,7 +164,7 @@ namespace CasaEngine.Debugger
         // TimerRuler draw position.
         Vector2 _position;
 
-        Renderer2DComponent _renderer2DComponent = null;
+        Renderer2DComponent _renderer2DComponent;
 
         Color _backgroundColor = new(0, 0, 0, 128);
 

@@ -1,20 +1,16 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngineCommon.Helper
 {
-	public static class BoundingBoxHelper
-	{
-		/// <summary>
-		/// Calculates the bounding box that contains the sum of the bounding boxes
-		/// of the model node's mesh parts (Editor only)
-		/// </summary>
-		public static BoundingBox CalculateBoundingBoxFromModel(Model model_)
-		{
+    public static class BoundingBoxHelper
+    {
+        /// <summary>
+        /// Calculates the bounding box that contains the sum of the bounding boxes
+        /// of the model node's mesh parts (Editor only)
+        /// </summary>
+        public static BoundingBox CalculateBoundingBoxFromModel(Model model_)
+        {
             throw new NotImplementedException();
             /*
 			Model model = model_;
@@ -92,6 +88,6 @@ namespace CasaEngineCommon.Helper
 			}
 
 			return new BoundingBox(min, max);*/
-		}
-	}
+        }
+    }
 }

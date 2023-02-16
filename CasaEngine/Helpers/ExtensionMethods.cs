@@ -88,7 +88,7 @@ namespace CasaEngine.Helpers
 #if XBOX
                 if (stringBuilder.Length > 0)
                     stringBuilder.Length = 0;
-                    //Text.Remove(0, Text.Length - 1); // Clear is not supported in XBOX.
+                    //Text.IsRemoved(0, Text.Length - 1); // Clear is not supported in XBOX.
 #else
             stringBuilder.Clear();
 #endif

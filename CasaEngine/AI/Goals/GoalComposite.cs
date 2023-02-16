@@ -1,5 +1,4 @@
-using CasaEngine.Gameplay;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 
 namespace CasaEngine.AI.Goals
 {
@@ -39,7 +38,7 @@ namespace CasaEngine.AI.Goals
         {
             GoalProcessingState subGoalStatus;
 
-            //Remove the Completed or Failed goals from the goals list
+            //IsRemoved the Completed or Failed goals from the goals list
             while (SubGoals.Count != 0 && (SubGoals[0].Status == GoalProcessingState.Completed || SubGoals[0].Status == GoalProcessingState.Failed))
             {
                 SubGoals[0].Terminate();

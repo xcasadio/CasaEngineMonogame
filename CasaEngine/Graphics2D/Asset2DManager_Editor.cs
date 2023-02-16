@@ -42,7 +42,7 @@ namespace CasaEngine.Graphics2D
 			{
 				if (pair.Value.Name.Equals(name_) == true)
 				{
-					_Sprite2DList.Remove(pair.Key);
+					_Sprite2DList.IsRemoved(pair.Key);
 					break;
 				}
 			}

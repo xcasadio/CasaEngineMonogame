@@ -32,7 +32,7 @@ namespace CasaEngine.Helpers
     public abstract class Disposable : IDisposable
     {
 
-        private bool _disposed = false;
+        private bool _disposed;
 
         public bool IsDisposed => _disposed;
 

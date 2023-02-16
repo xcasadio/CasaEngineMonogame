@@ -1,15 +1,13 @@
-﻿using System;
-
-namespace CasaEngineCommon.Design
+﻿namespace CasaEngineCommon.Design
 {
-	/// <summary>
+    /// <summary>
     /// Class notified when T changed (Observer pattern)
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public interface IObserver<T>
-	{
-		void OnNotify(T arg_);
-		void OnError(Exception ex_);
-		void OnUnregister(T object_);
-	}
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IObserver<T>
+    {
+        void OnNotify(T arg_);
+        void OnError(Exception ex_);
+        void OnUnregister(T object_);
+    }
 }

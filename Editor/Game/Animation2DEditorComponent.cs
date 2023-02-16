@@ -5,7 +5,7 @@ using CasaEngine.Graphics2D;
 using CasaEngineCommon.Helper;
 using CasaEngine.Game;
 using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;

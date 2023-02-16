@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FarseerPhysics.Dynamics;
+﻿using FarseerPhysics.Dynamics;
 
 namespace FarseerPhysics.Controllers
 {

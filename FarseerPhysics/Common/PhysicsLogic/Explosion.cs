@@ -1,6 +1,3 @@
-
-using System.Collections.Generic;
-using System.Linq;
 using FarseerPhysics.Collision;
 using FarseerPhysics.Collision.Shapes;
 using FarseerPhysics.Dynamics;

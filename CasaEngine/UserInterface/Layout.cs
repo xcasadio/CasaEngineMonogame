@@ -11,7 +11,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using System.Reflection;
 using System.Xml.Linq;
 using CasaEngine.Assets.Documents;
 using CasaEngine.UserInterface.Controls.Auxiliary;

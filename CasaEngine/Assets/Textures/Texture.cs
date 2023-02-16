@@ -31,7 +31,7 @@ using System.Xml;
 using CasaEngine.Game;
 using CasaEngineCommon.Design;
 using Microsoft.Xna.Framework.Graphics;
-using Screen = CasaEngine.Core_Systems.Screen;
+using Screen = CasaEngine.Core.Screen;
 using Size = CasaEngine.Helpers.Size;
 
 namespace CasaEngine.Assets.Textures

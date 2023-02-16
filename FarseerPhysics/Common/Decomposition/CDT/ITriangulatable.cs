@@ -29,7 +29,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
 using Poly2Tri.Triangulation.Delaunay;
 
 namespace Poly2Tri.Triangulation

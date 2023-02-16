@@ -3,7 +3,7 @@ using CasaEngine.Assets.Loaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Debugger;
-using CasaEngine.Front_End.Screen;
+using CasaEngine.FrontEnd.Screen;
 using CasaEngine.Graphics2D;
 using CasaEngine.Helpers;
 using CasaEngine.Input;
@@ -13,7 +13,7 @@ namespace CasaEngine.Game
 {
     public abstract class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
-        private readonly Microsoft.Xna.Framework.GraphicsDeviceManager _graphics;
+        private readonly Microsoft.Xna.Framework.GraphicsDeviceManager _graphicsDeviceManager;
         private readonly Renderer2DComponent _renderer2DComponent;
         private ScreenManagerComponent _screenManagerComponent;
         private InputComponent _inputComponent;
@@ -23,16 +23,14 @@ namespace CasaEngine.Game
         protected string ContentPath = string.Empty;
 #endif
 
-        public Microsoft.Xna.Framework.GraphicsDeviceManager GraphicsDeviceManager => _graphics;
-
-        public string ProjectFile { get; } = string.Empty;
+        private string ProjectFile { get; } = string.Empty;
 
         public CasaEngineGame()
         {
             Engine.Instance.Game = this;
 
-            _graphics = new Microsoft.Xna.Framework.GraphicsDeviceManager(this);
-            _graphics.PreparingDeviceSettings += PreparingDeviceSettings;
+            _graphicsDeviceManager = new Microsoft.Xna.Framework.GraphicsDeviceManager(this);
+            _graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
 
             Engine.Instance.AssetContentManager = new AssetContentManager();
             Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
@@ -59,6 +57,8 @@ namespace CasaEngine.Game
             {
                 ContentPath = args[2];
             }
+#else
+            ContentPath = "Content";
 #endif
         }
 
@@ -70,29 +70,25 @@ namespace CasaEngine.Game
 
         protected override void Initialize()
         {
-#if FINAL
-            Content.RootDirectory = "Content";
-#else
             Content.RootDirectory = ContentPath;
-#endif
-
-            Engine.Instance.ProjectManager.Load(ProjectFile);
-
-#if !FINAL
-            _graphics.PreferredBackBufferWidth = Engine.Instance.ProjectSettings.DebugWidth;
-            _graphics.PreferredBackBufferHeight = Engine.Instance.ProjectSettings.DebugHeight;
-#else
-            //recuperer la resolution des options
-            graphics.PreferredBackBufferWidth = 1024;
-            graphics.PreferredBackBufferHeight = 768;
-#endif
+            //Engine.Instance.ProjectManager.Load(ProjectFile);
+            Engine.Instance.ProjectSettings.Load(ProjectFile); //TODO : create hierarchy of the project
 
             Window.Title = Engine.Instance.ProjectSettings.WindowTitle;
             Window.AllowUserResizing = Engine.Instance.ProjectSettings.AllowUserResizing;
             IsFixedTimeStep = Engine.Instance.ProjectSettings.IsFixedTimeStep;
             IsMouseVisible = Engine.Instance.ProjectSettings.IsMouseVisible;
 
-            _graphics.ApplyChanges();
+#if !FINAL
+            _graphicsDeviceManager.PreferredBackBufferWidth = Engine.Instance.ProjectSettings.DebugWidth;
+            _graphicsDeviceManager.PreferredBackBufferHeight = Engine.Instance.ProjectSettings.DebugHeight;
+#else
+            //recuperer la resolution des options
+            graphics.PreferredBackBufferWidth = 1024;
+            graphics.PreferredBackBufferHeight = 768;
+#endif
+
+            _graphicsDeviceManager.ApplyChanges();
 
             base.Initialize();
         }
@@ -109,64 +105,62 @@ namespace CasaEngine.Game
             //GameInfo.Instance.DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
 
             _renderer2DComponent.SpriteBatch = Engine.Instance.SpriteBatch;
+
+            base.LoadContent();
+
+            if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.FirstWorldLoaded))
+            {
+                throw new InvalidOperationException("FirstWorldLoaded is undefined");
+            }
+
+            GameInfo.Instance.CurrentWorld = new World.World();
+            GameInfo.Instance.CurrentWorld.Load(Engine.Instance.ProjectSettings.FirstWorldLoaded);
+            GameInfo.Instance.CurrentWorld.Initialize();
         }
 
         protected override void BeginRun()
         {
-            //test
-            //GameInfo.Instance.WorldInfo.World = new World();
             //_ScreenManagerComponent.AddScreen(new WorldScreen(GameInfo.Instance.WorldInfo.World, "world test"), PlayerIndex.One);
             base.BeginRun();
         }
 
-        protected abstract void Update(float elapsedTime);
-
         protected override void Update(GameTime gameTime)
         {
-            if (Engine.Instance.ResetDevice)
-            {
-                GraphicsDeviceManager.ApplyChanges();
-                Engine.Instance.ResetDevice = false;
-            }
-
 #if !FINAL
             DebugSystem.Instance.TimeRuler.StartFrame();
             DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
-#endif // !FINAL
+#endif
 
             //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
             //    DebugSystem.Instance.DebugCommandUI.Show(); 
 
-            var time = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            GameInfo.Instance.CurrentWorld?.Update(elapsedTime);
             //Engine.Instance.UiManager.Update(time);
             base.Update(gameTime);
-            Update(time);
 
 #if !FINAL
             DebugSystem.Instance.TimeRuler.EndMark("Update");
-#endif // !FINAL
+#endif
         }
-
-        protected abstract void Draw(float elapsedTime);
 
         protected override void Draw(GameTime gameTime)
         {
 #if !FINAL
             DebugSystem.Instance.TimeRuler.StartFrame();
             DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
-#endif // !FINAL
+#endif
 
-            var time = GameTimeHelper.GameTimeToMilliseconds(gameTime);
-
+            var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+            GameInfo.Instance.CurrentWorld.Draw(elapsedTime);
             //Engine.Instance.UiManager.PreRenderControls();
 
-            Draw(time);
             base.Draw(gameTime);
 
             //Engine.Instance.UiManager.RenderUserInterfaceToScreen();
 #if !FINAL
             DebugSystem.Instance.TimeRuler.EndMark("Draw");
-#endif // !FINAL
+#endif
         }
     }
 }

@@ -1,5 +1,4 @@
-using CasaEngine.Gameplay;
-using CasaEngine.Gameplay.Actor;
+using CasaEngine.Entities;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.AI.Navigation
@@ -88,15 +87,5 @@ namespace CasaEngine.AI.Navigation
             }
             return !PhysicEngine.Physic.WorldRayCast(ref start, ref end, look);
         }
-
-        protected override void Destroy()
-        {
-            if (meshObject is BaseObject)
-            {
-                throw new NotImplementedException();
-                //EntityManager.Instance.RemoveEntity(meshObject as BaseObject);
-            }
-        }
-
     }
 }

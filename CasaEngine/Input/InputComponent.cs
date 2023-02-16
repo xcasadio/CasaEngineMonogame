@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core_Systems.Game;
+﻿using CasaEngine.Core.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -20,7 +20,7 @@ namespace CasaEngine.Input
         private MouseState _mouseState, _mouseStateLastFrame;
 #endif
 
-        private bool _mouseDetected = false;
+        private bool _mouseDetected;
 
         private KeyboardState _keyboardPreviousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
         private KeyboardState _keyboardState;
@@ -35,11 +35,11 @@ namespace CasaEngine.Input
         //private PlayerIndex playerIndex = PlayerIndex.One;
 
 #if !XBOX360
-        private int _mouseWheelDelta = 0;
+        private int _mouseWheelDelta;
 #endif
 
 #if EDITOR
-        public static int MsMouseWheel = 0;
+        public static int MsMouseWheel;
 #endif
 
         private Point _startDraggingPos;
@@ -403,7 +403,7 @@ namespace CasaEngine.Input
                     else if (pressedKey == Keys.Back &&
                         inputText.Length > 0)
                     {
-                        // Remove 1 character at end
+                        // IsRemoved 1 character at end
                         inputText = inputText.Substring(0, inputText.Length - 1);
                     }
                 }
@@ -974,7 +974,7 @@ namespace CasaEngine.Input
             {
                 lock (this)
                 {
-                    // Remove self from the service container.
+                    // IsRemoved self from the service container.
                     GameHelper.RemoveGameComponent<InputComponent>(Game);
                 }
             }

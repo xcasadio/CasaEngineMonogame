@@ -113,7 +113,7 @@ namespace CasaEngine.UserInterface.Controls.Panel
             {
                 AdjustHeightFromChildren();
             }
-        } // Remove
+        } // IsRemoved
 
 
 

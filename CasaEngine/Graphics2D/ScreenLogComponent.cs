@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core_Systems.Game;
+﻿using CasaEngine.Core.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Game;
@@ -10,7 +10,7 @@ namespace CasaEngine.Graphics2D
         : Microsoft.Xna.Framework.DrawableGameComponent
     {
         readonly List<LogText> _logText = new();
-        Renderer2DComponent _renderer2DComponent = null;
+        Renderer2DComponent _renderer2DComponent;
 
 
 
@@ -38,7 +38,7 @@ namespace CasaEngine.Graphics2D
             {
                 lock (this)
                 {
-                    // Remove self from the service container.
+                    // IsRemoved self from the service container.
                     GameHelper.RemoveGameComponent<ScreenLogComponent>(Game);
                 }
             }
@@ -125,8 +125,8 @@ namespace CasaEngine.Graphics2D
     class LogText
     {
         public string Text = string.Empty;
-        public SpriteFont SpriteFont = null;
+        public SpriteFont SpriteFont;
         public Color Color = Color.White;
-        public float Time = 0f;
+        public float Time;
     }
 }

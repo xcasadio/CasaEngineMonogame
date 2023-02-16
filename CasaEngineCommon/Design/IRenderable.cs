@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace CasaEngineCommon.Design
+﻿namespace CasaEngineCommon.Design
 {
     /// <summary>
     /// 
@@ -20,7 +15,7 @@ namespace CasaEngineCommon.Design
         /// Gets
         /// </summary>
         int Depth { get; }
-        
+
         /// <summary>
         /// Sets
         /// </summary>

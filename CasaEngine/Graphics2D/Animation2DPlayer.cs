@@ -10,10 +10,10 @@ namespace CasaEngine.Graphics2D
 #endif
 
         private readonly Dictionary<int, Animation2D> _animations;
-        private Animation2D _currentAnimation = null;
+        private Animation2D _currentAnimation;
 
-        public event EventHandler OnEndAnimationReached;
-        public event EventHandler<Animation2DFrameChangedEventArgs> OnFrameChanged;
+        public event EventHandler? OnEndAnimationReached;
+        public event EventHandler<Animation2DFrameChangedEventArgs>? OnFrameChanged;
 
         private int _currentAnimationIndex = -1;
 

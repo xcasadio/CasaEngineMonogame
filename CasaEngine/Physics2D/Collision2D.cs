@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core_Systems.Math.Shape2D;
+﻿using CasaEngine.Core.Math.Shape2D;
 using FarseerPhysics.Collision;
 using FarseerPhysics.Collision.Shapes;
 using FarseerPhysics.Common;
@@ -10,8 +10,8 @@ namespace CasaEngine.Physics2D
     {
 
         //to avoid GC
-        static Manifold _manifold = new();
-        static Transform _transformA = new(), _transformB = new();
+        static Manifold _manifold;
+        static Transform _transformA, _transformB;
         static readonly CircleShape CircleShape1 = new(1.0f, 1.0f);
         static readonly CircleShape CircleShape2 = new(1.0f, 1.0f);
         static readonly PolygonShape PolygonShape1 = new(1.0f);

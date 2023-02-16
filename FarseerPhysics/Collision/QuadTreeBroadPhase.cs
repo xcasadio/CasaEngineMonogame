@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FarseerPhysics;
+﻿using FarseerPhysics;
 using FarseerPhysics.Collision;
 using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
