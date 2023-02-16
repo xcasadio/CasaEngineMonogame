@@ -54,7 +54,7 @@ namespace Editor.Tools.SkinUIEditor
         /// </summary>
         /// <param name="path_"></param>
         /// <param name="obj_"></param>
-        public void SetCurrentObject(string path_, BaseObject obj_)
+        public void SetCurrentObject(string path_, Entity obj_)
         {
             if (obj_ is SkinUi)
             {
@@ -64,7 +64,7 @@ namespace Editor.Tools.SkinUIEditor
             }
             else
             {
-                LogManager.Instance.WriteLineError("FontPreviewForm.SetCurrentObject() : BaseObject is not Font");
+                LogManager.Instance.WriteLineError("FontPreviewForm.SetCurrentObject() : Entity is not Font");
             }
         }
 

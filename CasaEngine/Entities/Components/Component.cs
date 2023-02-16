@@ -4,10 +4,10 @@ namespace CasaEngine.Entities.Components;
 
 public abstract class Component
 {
-    public BaseObject Owner { get; }
+    public Entity Owner { get; }
     public int Type { get; }
 
-    protected Component(BaseObject entity, int type)
+    protected Component(Entity entity, int type)
     {
         Owner = entity;
         Type = type;

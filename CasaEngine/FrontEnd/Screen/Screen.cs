@@ -26,7 +26,7 @@ namespace CasaEngine.FrontEnd.Screen
 #if EDITOR
     partial
 #endif
-    class Screen : BaseObject
+    class Screen : Entity
     {
 
         bool _isPopup;
@@ -254,7 +254,7 @@ namespace CasaEngine.FrontEnd.Screen
 
 #if EDITOR
 
-        public bool CompareTo(BaseObject other)
+        public bool CompareTo(Entity other)
         {
             if (other is Screen == false)
             {

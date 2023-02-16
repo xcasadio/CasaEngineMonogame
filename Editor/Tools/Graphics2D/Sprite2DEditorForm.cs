@@ -888,7 +888,7 @@ namespace Editor.Tools.Graphics2D
         /// </summary>
         /// <param name="path_"></param>
         /// <param name="obj_"></param>
-        public void SetCurrentObject(string path_, BaseObject obj_)
+        public void SetCurrentObject(string path_, Entity obj_)
         {
             if (obj_ is Sprite2D)
             {
@@ -905,7 +905,7 @@ namespace Editor.Tools.Graphics2D
             }
             else
             {
-                LogManager.Instance.WriteLineError("Sprite2DEditorForm.SetCurrentObject() : BaseObject is not a Sprite2D");
+                LogManager.Instance.WriteLineError("Sprite2DEditorForm.SetCurrentObject() : Entity is not a Sprite2D");
             }
         }
 

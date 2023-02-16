@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.AI.Navigation
 {
     [Serializable]
-    public abstract class MovingObject : BaseObject
+    public abstract class MovingObject : Entity
     {
         protected internal Vector3 position;
         protected internal Vector3 velocity;

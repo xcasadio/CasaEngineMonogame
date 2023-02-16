@@ -96,7 +96,7 @@ namespace CasaEngine.FrontEnd.Screen
 
 #if EDITOR
 
-        public bool CompareTo(BaseObject other)
+        public bool CompareTo(Entity other)
         {
             if (base.CompareTo(other) == false)
             {

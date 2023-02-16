@@ -19,7 +19,7 @@ public class PlayerComponent : Component
     private readonly int _height;
     private ShapeRendererComponent _shapeRendererComponent;
 
-    public PlayerComponent(BaseObject owner) : base(owner, ComponentId)
+    public PlayerComponent(Entity owner) : base(owner, ComponentId)
     {
         _width = 20;
         _height = 80;

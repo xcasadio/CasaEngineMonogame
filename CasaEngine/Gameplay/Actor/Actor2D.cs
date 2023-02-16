@@ -5,7 +5,7 @@ using CasaEngineCommon.Design;
 
 namespace CasaEngine.Gameplay.Actor
 {
-    public abstract class Actor2D : BaseObject
+    public abstract class Actor2D : Entity
     {
 
         //protected Body _Body;
@@ -29,7 +29,7 @@ namespace CasaEngine.Gameplay.Actor
 
         }
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             throw new NotImplementedException();
         }

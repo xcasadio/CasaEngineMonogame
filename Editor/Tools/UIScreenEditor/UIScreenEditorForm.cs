@@ -233,7 +233,7 @@ namespace Editor.Tools.UIScreenEditor
         /// </summary>
         /// <param name="path_"></param>
         /// <param name="obj_"></param>
-        public void SetCurrentObject(string path_, BaseObject obj_)
+        public void SetCurrentObject(string path_, Entity obj_)
         {
             //throw new Exception("The method or operation is not implemented.");
         }

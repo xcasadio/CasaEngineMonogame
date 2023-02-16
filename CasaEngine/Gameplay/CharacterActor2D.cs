@@ -274,12 +274,12 @@ namespace CasaEngine.Gameplay
 
 
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             return new CharacterActor2D(this);
         }
 
-        protected void CopyFrom(BaseObject ob)
+        protected void CopyFrom(Entity ob)
         {
             if (ob is CharacterActor2D == false)
             {

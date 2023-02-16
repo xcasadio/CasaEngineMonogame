@@ -14,7 +14,7 @@ namespace CasaEngine.Gameplay
     {
         class ObjectContainer
         {
-            BaseObject _baseObject;
+            Entity _entity;
             private Type _itemType;
 
             public int Id
@@ -23,7 +23,7 @@ namespace CasaEngine.Gameplay
                 private set;
             }
 
-            public bool IsLoaded => _baseObject != null;
+            public bool IsLoaded => _entity != null;
 
             public string ClassName
             {
@@ -51,11 +51,11 @@ namespace CasaEngine.Gameplay
                 set;
             }
 
-            internal BaseObject Object
+            internal Entity Object
             {
                 get
                 {
-                    if (_baseObject == null)
+                    if (_entity == null)
                     {
                         try
                         {
@@ -87,8 +87,8 @@ namespace CasaEngine.Gameplay
                             }
                             //else (Binary)
 
-                            _baseObject = (BaseObject)Activator.CreateInstance(ItemType, args);
-                            ClassName = _baseObject.GetType().FullName;
+                            _entity = (Entity)Activator.CreateInstance(ItemType, args);
+                            ClassName = _entity.GetType().FullName;
                         }
                         catch (Exception ex)
                         {
@@ -96,12 +96,12 @@ namespace CasaEngine.Gameplay
                         }
                     }
 
-                    return _baseObject;
+                    return _entity;
                 }
                 set
                 {
-                    _baseObject = value;
-                    ClassName = _baseObject.GetType().FullName;
+                    _entity = value;
+                    ClassName = _entity.GetType().FullName;
                 }
             }
 
@@ -238,7 +238,7 @@ namespace CasaEngine.Gameplay
 
         }
 
-        public BaseObject GetObjectByPath(string fullpath)
+        public Entity GetObjectByPath(string fullpath)
         {
             if (_objects.ContainsKey(fullpath) == false)
             {
@@ -253,7 +253,7 @@ namespace CasaEngine.Gameplay
             return res;
         }
 
-        public BaseObject GetObjectById(int id)
+        public Entity GetObjectById(int id)
         {
             //_Objects[fullpath_].Object return a copy!
             ObjectContainer obj = null;
@@ -302,7 +302,7 @@ namespace CasaEngine.Gameplay
                 _objects.Add(oc.Path, oc);
 
                 //to build missing asset
-                /*BaseObject obj = oc.Object;
+                /*Entity obj = oc.Object;
 
                 if (obj is CasaEngine.Editor.Assets.IAssetable)
                 {
@@ -392,7 +392,7 @@ namespace CasaEngine.Gameplay
             return !_objects.ContainsKey(path);
         }
 
-        public void Add(string path, BaseObject @object)
+        public void Add(string path, Entity @object)
         {
             try
             {
@@ -431,7 +431,7 @@ namespace CasaEngine.Gameplay
             }
         }
 
-        public void Replace(string path, BaseObject @object)
+        public void Replace(string path, Entity @object)
         {
             try
             {

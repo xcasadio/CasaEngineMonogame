@@ -3,7 +3,7 @@
 namespace CasaEngine.AI.Reinforcement_Learning.QLearning
 {
     public class QLearner
-        : BaseObject
+        : Entity
     {
         readonly QLearning _ql = new();
 

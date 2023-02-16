@@ -2,11 +2,11 @@
 
 public class ComponentManager
 {
-    public BaseObject Owner { get; }
+    public Entity Owner { get; }
 
     public List<Component> Components { get; } = new();
 
-    public ComponentManager(BaseObject entity)
+    public ComponentManager(Entity entity)
     {
         Owner = entity;
     }

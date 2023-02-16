@@ -31,7 +31,7 @@ namespace Editor.Tools.Event.EventForm
         /// <param name="e"></param>
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            BaseObject obj = Engine.Instance.ObjectManager.GetObjectByPath(textBox1.Text);
+            Entity obj = Engine.Instance.ObjectManager.GetObjectByPath(textBox1.Text);
 
             if (obj == null)
             {

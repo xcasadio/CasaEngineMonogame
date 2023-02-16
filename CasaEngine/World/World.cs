@@ -7,15 +7,15 @@ namespace CasaEngine.World
 {
     public class World
     {
-        private readonly List<BaseObject> _baseObjects = new();
-        private readonly List<BaseObject> _baseObjectsToAdd = new();
+        private readonly List<Entity> _baseObjects = new();
+        private readonly List<Entity> _baseObjectsToAdd = new();
 
         public event EventHandler? Initializing;
         public event EventHandler? LoadingContent;
         public event EventHandler? Starting;
 
         public string Name { get; set; }
-        public BaseObject[] BaseObjects => _baseObjects.ToArray();
+        public Entity[] BaseObjects => _baseObjects.ToArray();
 
         public FarseerPhysics.Dynamics.World? PhysicWorld;
 
@@ -27,14 +27,14 @@ namespace CasaEngine.World
             }
         }
 
-        public void AddObjectImmediately(BaseObject baseObject)
+        public void AddObjectImmediately(Entity entity)
         {
-            _baseObjects.Add(baseObject);
+            _baseObjects.Add(entity);
         }
 
-        public void AddObject(BaseObject baseObject)
+        public void AddObject(Entity entity)
         {
-            _baseObjectsToAdd.Add(baseObject);
+            _baseObjectsToAdd.Add(entity);
         }
 
         public void Clear()
@@ -67,7 +67,7 @@ namespace CasaEngine.World
         {
             PhysicWorld?.Step(elapsedTime);
 
-            var toRemove = new List<BaseObject>();
+            var toRemove = new List<Entity>();
 
             _baseObjects.AddRange(_baseObjectsToAdd);
             _baseObjectsToAdd.Clear();

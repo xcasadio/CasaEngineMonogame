@@ -3,7 +3,7 @@ using CasaEngine.Entities;
 namespace CasaEngine.AI.Goals
 {
     [Serializable]
-    public abstract class GoalComposite<T> : Goal<T> where T : BaseObject
+    public abstract class GoalComposite<T> : Goal<T> where T : Entity
     {
 
         protected internal List<Goal<T>> SubGoals;

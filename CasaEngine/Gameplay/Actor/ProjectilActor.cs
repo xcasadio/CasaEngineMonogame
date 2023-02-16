@@ -62,12 +62,12 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             return new ProjectilActor(this);
         }
 
-        protected void CopyFrom(BaseObject ob)
+        protected void CopyFrom(Entity ob)
         {
             base.CopyFrom(ob);
 

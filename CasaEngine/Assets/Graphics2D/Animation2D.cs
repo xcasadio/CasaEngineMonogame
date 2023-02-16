@@ -14,7 +14,7 @@ namespace CasaEngine.Assets.Graphics2D
     partial
 #endif
     class Animation2D
-        : BaseObject, ISaveLoad
+        : Entity, ISaveLoad
     {
 
         private string _name = string.Empty;
@@ -258,7 +258,7 @@ namespace CasaEngine.Assets.Graphics2D
             throw new NotImplementedException();
         }
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             var anim2D = new Animation2D();
             anim2D._animation2DType = _animation2DType;

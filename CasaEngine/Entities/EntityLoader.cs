@@ -4,16 +4,16 @@ namespace CasaEngine.Entities
 {
     public static class EntityLoader
     {
-        public static BaseObject Load(JsonElement element)
+        public static Entity Load(JsonElement element)
         {
-            var baseObject = new BaseObject();
+            var baseObject = new Entity();
             baseObject.Load(element);
             return baseObject;
         }
 
-        public static List<BaseObject> LoadFromArray(JsonElement element)
+        public static List<Entity> LoadFromArray(JsonElement element)
         {
-            var baseObjects = new List<BaseObject>();
+            var baseObjects = new List<Entity>();
 
             foreach (var item in element.EnumerateArray())
             {

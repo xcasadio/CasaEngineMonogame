@@ -4,7 +4,7 @@ using CasaEngine.Entities;
 namespace CasaEngine.AI.Goals
 {
     [Serializable]
-    public abstract class Goal<T> : IMessageable where T : BaseObject
+    public abstract class Goal<T> : IMessageable where T : Entity
     {
         protected internal T Owner;
         protected internal GoalProcessingState status;

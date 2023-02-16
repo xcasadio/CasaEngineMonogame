@@ -15,7 +15,7 @@ namespace CasaEngine.Gameplay.Actor
     {
 
 #if EDITOR
-        public bool CompareTo(BaseObject other)
+        public bool CompareTo(Entity other)
         {
             if (other is AnimatedSpriteActor)
             {
@@ -68,12 +68,12 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             throw new NotImplementedException();
         }
 
-        protected void CopyFrom(BaseObject ob)
+        protected void CopyFrom(Entity ob)
         {
             base.CopyFrom(ob);
 

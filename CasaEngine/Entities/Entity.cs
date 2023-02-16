@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Entities
 {
-    public class BaseObject : ISaveLoad, IActorCloneable
+    public class Entity : ISaveLoad, IActorCloneable
     {
         public const int EntityNotRegistered = -1;
 
@@ -22,7 +22,7 @@ namespace CasaEngine.Entities
         public string Name { get; set; } = string.Empty;
 
         [Browsable(false)]
-        public BaseObject? Parent { get; set; }
+        public Entity? Parent { get; set; }
 
         [Browsable(false)]
         public ComponentManager ComponentManager { get; }
@@ -42,12 +42,12 @@ namespace CasaEngine.Entities
         [Category("Object"), ReadOnly(true)]
         public bool Temporary { get; internal set; }
 
-        public BaseObject()
+        public Entity()
         {
             ComponentManager = new ComponentManager(this);
         }
 
-        protected BaseObject(XmlElement el, SaveOption option)
+        protected Entity(XmlElement el, SaveOption option)
         {
             throw new InvalidOperationException("To be removed");
             Load(el, option);
@@ -78,14 +78,14 @@ namespace CasaEngine.Entities
             ComponentManager.Draw();
         }
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             throw new NotImplementedException();
         }
 
         public void Destroy() { }
 
-        public void CopyFrom(BaseObject ob)
+        public void CopyFrom(Entity ob)
         {
             Temporary = ob.Temporary;
         }
@@ -127,7 +127,7 @@ namespace CasaEngine.Entities
 
         public virtual void Load(XmlElement el, SaveOption option)
         {
-            var rootNode = el.SelectSingleNode("BaseObject");
+            var rootNode = el.SelectSingleNode("Entity");
             var loadedVersion = int.Parse(rootNode.Attributes["version"].Value);
         }
 
@@ -143,7 +143,7 @@ namespace CasaEngine.Entities
 
         public virtual void Save(XmlElement el, SaveOption option)
         {
-            var rootNode = el.OwnerDocument.CreateElement("BaseObject");
+            var rootNode = el.OwnerDocument.CreateElement("Entity");
             el.AppendChild(rootNode);
             el.OwnerDocument.AddAttribute(rootNode, "version", Version.ToString());
         }

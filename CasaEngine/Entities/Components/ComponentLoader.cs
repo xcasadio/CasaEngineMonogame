@@ -5,9 +5,9 @@ namespace CasaEngine.Entities.Components;
 
 public static class ComponentLoader
 {
-    private static readonly Dictionary<int, Func<BaseObject, JsonElement, Component>> FactoryByIds = new();
+    private static readonly Dictionary<int, Func<Entity, JsonElement, Component>> FactoryByIds = new();
 
-    public static void Register<T>(int id, Func<BaseObject, Component> factoryFunc) where T : Component
+    public static void Register<T>(int id, Func<Entity, Component> factoryFunc) where T : Component
     {
         if (FactoryByIds.ContainsKey(id))
         {
@@ -22,7 +22,7 @@ public static class ComponentLoader
         };
     }
 
-    public static void Register(int id, Func<BaseObject, JsonElement, Component> factoryFunc)
+    public static void Register(int id, Func<Entity, JsonElement, Component> factoryFunc)
     {
         if (FactoryByIds.ContainsKey(id))
         {
@@ -32,7 +32,7 @@ public static class ComponentLoader
         FactoryByIds[id] = factoryFunc;
     }
 
-    public static Component Load(BaseObject owner, JsonElement element)
+    public static Component Load(Entity owner, JsonElement element)
     {
         var id = element.GetJsonPropertyByName("Type").Value.GetInt32();
         return FactoryByIds[id].Invoke(owner, element);

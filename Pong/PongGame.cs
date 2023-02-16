@@ -18,7 +18,7 @@ namespace Pong
         protected override void Initialize()
         {
             //GameInfo.Instance.CurrentWorld = new World();
-            //var baseObject = new BaseObject();
+            //var baseObject = new Entity();
             //baseObject.ComponentManager.Components.Add(new PlayerComponent(baseObject));
             //GameInfo.Instance.CurrentWorld.AddObjectImmediately(baseObject);
             //

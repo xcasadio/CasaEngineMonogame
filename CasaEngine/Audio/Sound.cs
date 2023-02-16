@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Audio;
 namespace CasaEngine.Audio
 {
     public class Sound
-        : BaseObject
+        : Entity
     {
         readonly SoundEffect _soundEffect;
         SoundEffectInstance _soundEffectInstance;

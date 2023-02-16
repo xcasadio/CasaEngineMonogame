@@ -12,11 +12,11 @@ namespace CasaEngine.Gameplay.Actor
 #if EDITOR
         private static readonly uint Version = 1;
 
-        private ObjectRegistryStatus CreateObjectRegistryStatus(BaseObject ob, bool add)
+        private ObjectRegistryStatus CreateObjectRegistryStatus(Entity ob, bool add)
         {
             var objectRegistryStatus = new ObjectRegistryStatus();
             objectRegistryStatus.ClassName = ob.GetType().FullName;
-            objectRegistryStatus.BaseObject = ob;
+            objectRegistryStatus.Entity = ob;
             //objectRegistryStatus.Name = ob_.Name;
 
             if (add)
@@ -32,14 +32,14 @@ namespace CasaEngine.Gameplay.Actor
             return objectRegistryStatus;
         }
 
-        public void AddObject(BaseObject obj, string name)
+        public void AddObject(Entity obj, string name)
         {
             //obj_.Name = name_;
             var o = CreateObjectRegistryStatus(obj, true);
             _objectRegistry.Add(o);
         }
 
-        public void AddObject(BaseObject obj)
+        public void AddObject(Entity obj)
         {
             //AddObject(obj_, obj_.Name);
         }
@@ -80,7 +80,7 @@ namespace CasaEngine.Gameplay.Actor
                     {
                         Load(o);
                     }
-                    //o.BaseObject.Name = newName_;
+                    //o.Entity.Name = newName_;
                     //Save(o);
                     if (loaded == false)
                     {
@@ -159,7 +159,7 @@ namespace CasaEngine.Gameplay.Actor
 
                 if (o.IsLoaded)
                 {
-                    o.BaseObject.Save(objectNode, SaveOption.Editor);
+                    o.Entity.Save(objectNode, SaveOption.Editor);
                 }
 
                 //Si on sauvegarde et qu'il y a deja une sauvegarde
@@ -215,12 +215,12 @@ namespace CasaEngine.Gameplay.Actor
             return objectNode;
         }
 
-        public XmlElement CreateObjectNode(XmlElement el, BaseObject ob)
+        public XmlElement CreateObjectNode(XmlElement el, Entity ob)
         {
             return CreateObjectNode(el, CreateObjectRegistryStatus(ob, false));
         }
 
-        private void Save(XmlElement el, BaseObject o)
+        private void Save(XmlElement el, Entity o)
         {
             o.Save(el, 0);
         }
@@ -240,19 +240,19 @@ namespace CasaEngine.Gameplay.Actor
             public string Name = string.Empty;
             public int Id = -1;
 
-            private BaseObject _baseObject;
+            private Entity _entity;
 
 
 
             public bool IsLoaded => _isLoaded;
 
-            public BaseObject BaseObject
+            public Entity Entity
             {
-                get => _baseObject;
+                get => _entity;
                 set
                 {
-                    _baseObject = value;
-                    _isLoaded = _baseObject != null ? true : false;
+                    _entity = value;
+                    _isLoaded = _entity != null ? true : false;
                 }
             }
 
@@ -270,14 +270,14 @@ namespace CasaEngine.Gameplay.Actor
                 _isLoaded = o._isLoaded;
                 Name = o.Name;
                 Id = o.Id;
-                _baseObject = o._baseObject;
+                _entity = o._entity;
             }
 
 
 
             public void Close()
             {
-                _baseObject = null;
+                _entity = null;
                 _isLoaded = false;
             }
 
@@ -295,7 +295,7 @@ namespace CasaEngine.Gameplay.Actor
 
 
 
-        public BaseObject GetObjectById(uint id)
+        public Entity GetObjectById(uint id)
         {
             foreach (var o in _objectRegistry)
             {
@@ -306,19 +306,19 @@ namespace CasaEngine.Gameplay.Actor
                         Load(o);
                     }
 
-                    if (o.BaseObject == null)
+                    if (o.Entity == null)
                     {
-                        throw new InvalidOperationException("BaseObject.GetObjectByID() : BaseObject is null");
+                        throw new InvalidOperationException("Entity.GetObjectByID() : Entity is null");
                     }
 
-                    return o.BaseObject;
+                    return o.Entity;
                 }
             }
 
             return null;
         }
 
-        public BaseObject GetObjectByName(string name)
+        public Entity GetObjectByName(string name)
         {
             foreach (var o in _objectRegistry)
             {
@@ -329,16 +329,16 @@ namespace CasaEngine.Gameplay.Actor
                         Load(o);
                     }
 
-                    return o.BaseObject;
+                    return o.Entity;
                 }
             }
 
             return null;
         }
 
-        public BaseObject[] GetObjectByType(string className)
+        public Entity[] GetObjectByType(string className)
         {
-            var res = new List<BaseObject>();
+            var res = new List<Entity>();
 
             foreach (var o in _objectRegistry)
             {
@@ -349,7 +349,7 @@ namespace CasaEngine.Gameplay.Actor
                         Load(o);
                     }
 
-                    res.Add(o.BaseObject);
+                    res.Add(o.Entity);
                 }
             }
 
@@ -408,7 +408,7 @@ namespace CasaEngine.Gameplay.Actor
             }
         }
 
-        private BaseObject CreateFromClassName(string className)
+        private Entity CreateFromClassName(string className)
         {
             Type t = null;// = Type.GetType(className_);
 
@@ -426,7 +426,7 @@ namespace CasaEngine.Gameplay.Actor
 
             if (t != null)
             {
-                return (BaseObject)Activator.CreateInstance(t, new object[] { });
+                return (Entity)Activator.CreateInstance(t, new object[] { });
             }
             else
             {
@@ -467,8 +467,8 @@ namespace CasaEngine.Gameplay.Actor
                     throw new Exception("Can't find the node '" + xmlPath + "' in the xml file " + xmlFile);
                 }
 
-                objectRegistryStatus.BaseObject = CreateFromClassName(objectRegistryStatus.ClassName);
-                objectRegistryStatus.BaseObject.Load(el, SaveOption.Editor);
+                objectRegistryStatus.Entity = CreateFromClassName(objectRegistryStatus.ClassName);
+                objectRegistryStatus.Entity.Load(el, SaveOption.Editor);
 
             }
 
@@ -479,11 +479,11 @@ namespace CasaEngine.Gameplay.Actor
 			}
 #endif
 
-            //In BaseObject Name and ID are temporary fields
+            //In Entity Name and ID are temporary fields
 #if EDITOR
-            //objectRegistryStatus_.BaseObject.Name = objectRegistryStatus_.Name;
+            //objectRegistryStatus_.Entity.Name = objectRegistryStatus_.Name;
 #endif
-            objectRegistryStatus.BaseObject.Id = objectRegistryStatus.Id;
+            objectRegistryStatus.Entity.Id = objectRegistryStatus.Id;
         }
 
         public void CloseAllObjects()

@@ -3,7 +3,7 @@
 namespace CasaEngine.AI.NeuralNets.FeedForward
 {
     [Serializable]
-    public class NeuralNetwork : BaseObject
+    public class NeuralNetwork : Entity
     {
 
         NeuralNetworkLayer _inputLayer = null;

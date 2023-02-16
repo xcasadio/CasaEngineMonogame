@@ -253,7 +253,7 @@ namespace Editor.Game
 
             foreach (Frame2D f in m_CurrentAnimation2D.GetFrames())
             {
-                BaseObject b = Engine.Instance.ObjectManager.GetObjectById(f.SpriteId);
+                Entity b = Engine.Instance.ObjectManager.GetObjectById(f.SpriteId);
 
                 if (b == null)
                 {

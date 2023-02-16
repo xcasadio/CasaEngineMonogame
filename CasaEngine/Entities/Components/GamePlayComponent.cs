@@ -8,7 +8,7 @@ public class GamePlayComponent : Component
 
     public IExternalComponent? ExternalComponent { get; set; }
 
-    public GamePlayComponent(BaseObject entity) : base(entity, ComponentId)
+    public GamePlayComponent(Entity entity) : base(entity, ComponentId)
     {
     }
 

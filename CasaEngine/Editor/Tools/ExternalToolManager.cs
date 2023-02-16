@@ -99,9 +99,9 @@ namespace CasaEngine.Editor.Tools
 			return res.ToArray();
 		}*/
 
-        public BaseObject CreateCustomObjectByName(string name)
+        public Entity CreateCustomObjectByName(string name)
         {
-            return (BaseObject)_customObjects[name].Assembly.CreateInstance(_customObjects[name].FullName);
+            return (Entity)_customObjects[name].Assembly.CreateInstance(_customObjects[name].FullName);
         }
 
         /*public void RunTool(System.Windows.Forms.Form parent, string name_)
@@ -129,11 +129,11 @@ namespace CasaEngine.Editor.Tools
             _customObjectAssembly.Clear();
         }
 
-        public void RunSubEditor(string path, BaseObject obj)
+        public void RunSubEditor(string path, Entity obj)
         {
             if (obj == null)
             {
-                throw new ArgumentNullException("ExternalToolManager.RunSubEditor() : BaseObject is null");
+                throw new ArgumentNullException("ExternalToolManager.RunSubEditor() : Entity is null");
             }
 
             if (string.IsNullOrWhiteSpace(path))

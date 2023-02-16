@@ -792,7 +792,7 @@ namespace Editor
         /// 
         /// </summary>
         /// <param name="obj_"></param>
-        /*private void LaunchSprite2DEditor(string objectPath_, BaseObject obj_)
+        /*private void LaunchSprite2DEditor(string objectPath_, Entity obj_)
         {
             if (obj_ is Sprite2D == false)
             {
@@ -836,7 +836,7 @@ namespace Editor
         /// 
         /// </summary>
         /// <param name="package_"></param>
-        private void LaunchAnimation2DEditor(string objectPath_, BaseObject obj_)
+        private void LaunchAnimation2DEditor(string objectPath_, Entity obj_)
         {
             if (obj_ is Animation2D == false)
             {

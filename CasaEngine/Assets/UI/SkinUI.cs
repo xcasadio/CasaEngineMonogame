@@ -10,7 +10,7 @@ using System.ComponentModel;
 
 namespace CasaEngine.Assets.UI
 {
-    public class SkinUi : BaseObject
+    public class SkinUi : Entity
     {
         readonly SkinList<SkinControlInformation> _controls = new();
         readonly SkinList<SkinImage> _images = new();
@@ -60,7 +60,7 @@ namespace CasaEngine.Assets.UI
 
 
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             throw new NotImplementedException();
         }
@@ -454,7 +454,7 @@ namespace CasaEngine.Assets.UI
             throw new Exception("The method or operation is not implemented.");
         }
 
-        protected void CopyFrom(BaseObject ob)
+        protected void CopyFrom(Entity ob)
         {
             throw new Exception("The method or operation is not implemented.");
         }

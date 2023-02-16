@@ -56,7 +56,7 @@ namespace Editor.Tools.Font
         /// </summary>
         /// <param name="path_"></param>
         /// <param name="obj_"></param>
-        public void SetCurrentObject(string path_, BaseObject obj_)
+        public void SetCurrentObject(string path_, Entity obj_)
         {
             if (obj_ is CasaEngine.Assets.Fonts.Font)
             {
@@ -65,7 +65,7 @@ namespace Editor.Tools.Font
             }
             else
             {
-                LogManager.Instance.WriteLineError("FontPreviewForm.SetCurrentObject() : BaseObject is not Font");
+                LogManager.Instance.WriteLineError("FontPreviewForm.SetCurrentObject() : Entity is not Font");
             }
         }
 

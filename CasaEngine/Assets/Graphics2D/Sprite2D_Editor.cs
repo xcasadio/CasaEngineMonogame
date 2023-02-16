@@ -93,7 +93,7 @@ namespace CasaEngine.Assets.Graphics2D
         }
 
 
-        public bool CompareTo(BaseObject other)
+        public bool CompareTo(Entity other)
         {
             if (other is Sprite2D)
             {

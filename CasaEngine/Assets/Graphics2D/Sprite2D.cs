@@ -22,7 +22,7 @@ namespace CasaEngine.Assets.Graphics2D
     partial
 #endif
     class Sprite2D
-        : BaseObject
+        : Entity
 #if EDITOR
          , INotifyPropertyChanged, IAssetable
 #endif
@@ -133,7 +133,7 @@ namespace CasaEngine.Assets.Graphics2D
 
 
 
-        public BaseObject Clone()
+        public Entity Clone()
         {
             return new Sprite2D(this);
         }

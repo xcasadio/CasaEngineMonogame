@@ -4,6 +4,6 @@ namespace CasaEngine.Gameplay.Design
 {
     public interface IActorCloneable
     {
-        BaseObject Clone();
+        Entity Clone();
     }
 }

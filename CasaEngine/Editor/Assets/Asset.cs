@@ -7,9 +7,9 @@ namespace CasaEngine.Editor.Assets
         private bool _isLoaded = false;
         private bool _isBuild = false;
 
-        private BaseObject _item;
+        private Entity _item;
 
-        public BaseObject LoadItem()
+        public Entity LoadItem()
         {
             if (_item == null)
             {
