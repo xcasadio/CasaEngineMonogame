@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Game
 {
-    public class GraphicsDeviceManager : IGraphicsDeviceManager, IDisposable, IGraphicsDeviceService
+    /*public class GraphicsDeviceManager : IGraphicsDeviceManager, IDisposable, IGraphicsDeviceService
     {
         public static readonly int DefaultBackBufferWidth = 800;
         public static readonly int DefaultBackBufferHeight = 480;
@@ -255,61 +255,39 @@ namespace CasaEngine.Game
             throw new NotImplementedException();
         }
 
-        /*private void Window_OrientationChanged(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
 
-        private void Window_ScreenDeviceNameChanged(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }*/
+    protected virtual void OnDeviceCreated(object sender, EventArgs args)
+    {
+        RaiseEventIfNotNull(DeviceCreated, sender, args);
+    }
 
-        /*private void Window_ClientSizeChanged(object sender, EventArgs e)
-        {
-            needReset = true;
-            // TODO: validate
-            if (graphicsDevice != null)
-            {
+    protected virtual void OnDeviceDisposing(object sender, EventArgs args)
+    {
+        RaiseEventIfNotNull(DeviceDisposing, sender, args);
+    }
 
-                PresentationParameters parameters = graphicsDevice.PresentationParameters;
-                parameters.BackBufferWidth = game.Control.Width; //Bounds.Width;
-                parameters.BackBufferHeight = game.Control.Height; //Bounds.Height;
-                graphicsDevice.Reset(parameters);
-            }          
-        }*/
+    protected virtual void OnDeviceReset(object sender, EventArgs args)
+    {
+        RaiseEventIfNotNull(DeviceReset, sender, args);
+    }
 
-        protected virtual void OnDeviceCreated(object sender, EventArgs args)
-        {
-            RaiseEventIfNotNull(DeviceCreated, sender, args);
-        }
+    protected virtual void OnDeviceResetting(object sender, EventArgs args)
+    {
+        RaiseEventIfNotNull(DeviceResetting, sender, args);
+    }
 
-        protected virtual void OnDeviceDisposing(object sender, EventArgs args)
-        {
-            RaiseEventIfNotNull(DeviceDisposing, sender, args);
-        }
+    protected virtual void OnPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs args)
+    {
+        RaiseEventIfNotNull(PreparingDeviceSettings, sender, args);
+    }
 
-        protected virtual void OnDeviceReset(object sender, EventArgs args)
+    private void RaiseEventIfNotNull<T>(EventHandler<T> handler, object sender, T args) where T : EventArgs
+    {
+        if (handler != null)
         {
-            RaiseEventIfNotNull(DeviceReset, sender, args);
-        }
-
-        protected virtual void OnDeviceResetting(object sender, EventArgs args)
-        {
-            RaiseEventIfNotNull(DeviceResetting, sender, args);
-        }
-
-        protected virtual void OnPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs args)
-        {
-            RaiseEventIfNotNull(PreparingDeviceSettings, sender, args);
-        }
-
-        private void RaiseEventIfNotNull<T>(EventHandler<T> handler, object sender, T args) where T : EventArgs
-        {
-            if (handler != null)
-            {
-                handler(sender, args);
-            }
+            handler(sender, args);
         }
     }
+}
+*/
 }

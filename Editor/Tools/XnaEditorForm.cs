@@ -1,5 +1,6 @@
 ﻿using CasaEngineCommon.Logger;
 using Editor.Game;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace Editor.Tools
@@ -7,7 +8,7 @@ namespace Editor.Tools
     class XnaEditorForm
     {
         Thread m_ThreadGame;
-        CustomGameEditor m_Game;
+        Microsoft.Xna.Framework.Game m_Game;
         IEditorForm m_Form;
         EventWaitHandle m_EventWaitHandle;
 
@@ -20,7 +21,7 @@ namespace Editor.Tools
             get { return m_ThreadGame; }
         }
 
-        public CustomGameEditor Game
+        public Microsoft.Xna.Framework.Game Game
         {
             get { return m_Game; }
         }
@@ -45,7 +46,7 @@ namespace Editor.Tools
             win.Activated += OnActivated;
             win.Deactivate += OnDeactivate;
             win.Resize += OnResize;
-            m_Game = new CustomGameEditor(m_Form.XnaPanel.Handle, win.Width, win.Height);
+            m_Game = new Microsoft.Xna.Framework.Game(); //m_Form.XnaPanel.Handle, win.Width, win.Height);
 
             m_EventWaitHandle = new AutoResetEvent(true);
 
@@ -54,7 +55,13 @@ namespace Editor.Tools
 
         private void OnResize(object? sender, EventArgs e)
         {
-            m_Game.Resize(m_Form.XnaPanel.Width, m_Form.XnaPanel.Height);
+            if (m_Game.Services.GetService(typeof(IGraphicsDeviceService)) != null)
+            {
+                m_Game.GraphicsDevice.PresentationParameters.BackBufferWidth = m_Form.XnaPanel.Width;
+                m_Game.GraphicsDevice.PresentationParameters.BackBufferHeight = m_Form.XnaPanel.Height;
+                m_Game.GraphicsDevice.Reset();
+                //m_Game.Resize(m_Form.XnaPanel.Width, m_Form.XnaPanel.Height);
+            }
         }
 
         void OnDeactivate(object sender, EventArgs e)
@@ -74,7 +81,7 @@ namespace Editor.Tools
             {
                 try
                 {
-                    ((CustomGameEditor)g).Run();
+                    ((Microsoft.Xna.Framework.Game)g).Run();
                 }
                 catch (Exception ex)
                 {

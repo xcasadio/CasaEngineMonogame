@@ -5,11 +5,7 @@ using CasaEngine.Game;
 
 namespace Editor.Game
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public class Grid2DComponent
-        : CasaEngine.Game.DrawableGameComponent
+    public class Grid2DComponent : DrawableGameComponent
     {
 
         private Line2DRenderer m_Line2DRenderer;
@@ -33,8 +29,7 @@ namespace Editor.Game
         /// 
         /// </summary>
         /// <param name="game_"></param>
-        public Grid2DComponent(CustomGame game_)
-            : base(game_)
+        public Grid2DComponent(Microsoft.Xna.Framework.Game game_) : base(game_)
         {
             game_.Components.Add(this);
         }

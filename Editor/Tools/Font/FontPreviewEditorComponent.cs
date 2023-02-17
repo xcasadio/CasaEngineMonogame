@@ -13,7 +13,7 @@ namespace Editor.Tools.Font
     /// 
     /// </summary>
     class FontPreviewEditorComponent
-        : CasaEngine.Game.DrawableGameComponent
+        : DrawableGameComponent
     {
         CasaEngine.Assets.Fonts.Font m_Font, m_NewFont;
         bool m_NeedChangeFont = false;
@@ -48,7 +48,7 @@ namespace Editor.Tools.Font
         /// 
         /// </summary>
         /// <param name="game_"></param>
-        internal FontPreviewEditorComponent(CustomGameEditor game_)
+        internal FontPreviewEditorComponent(Microsoft.Xna.Framework.Game game_)
             : base(game_)
         {
             game_.Components.Add(this);
@@ -63,12 +63,12 @@ namespace Editor.Tools.Font
 
             base.LoadContent();
 
-            foreach (CasaEngine.Game.GameComponent component in Game.Components)
+            foreach (var component in Game.Components)
             {
-                if (component is Grid2DComponent)
+                if (component is Grid2DComponent grid2DComponent)
                 {
-                    component.Enabled = false;
-                    (component as CasaEngine.Game.DrawableGameComponent).Visible = false;
+                    grid2DComponent.Enabled = false;
+                    grid2DComponent.Visible = false;
                 }
             }
         }

@@ -2,10 +2,8 @@
 
 namespace CasaEngine.Game
 {
-    public class GameComponent
-        : IGameComponent,
-        IUpdateable,
-        IDisposable
+    /*
+    public class GameComponent : IGameComponent, IUpdateable, IDisposable
     {
         private bool _enabled = true;
         private int _updateOrder;
@@ -45,6 +43,10 @@ namespace CasaEngine.Game
 
         public GameComponent(CustomGame game)
         {
+            if (game == null)
+            {
+                throw new ArgumentNullException(nameof(game));
+            }
             _game = game;
         }
 
@@ -97,5 +99,5 @@ namespace CasaEngine.Game
                 }
             }
         }
-    }
+    }*/
 }

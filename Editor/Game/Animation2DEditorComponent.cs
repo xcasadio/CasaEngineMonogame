@@ -12,8 +12,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Editor.Game
 {
-    class Animation2DEditorComponent
-        : CasaEngine.Game.DrawableGameComponent
+    class Animation2DEditorComponent : DrawableGameComponent
     {
 
         Animation2D m_CurrentAnimation2D;
@@ -87,8 +86,7 @@ namespace Editor.Game
         /// 
         /// </summary>
         /// <param name="game_"></param>
-        internal Animation2DEditorComponent(CustomGameEditor game_)
-            : base(game_)
+        internal Animation2DEditorComponent(Microsoft.Xna.Framework.Game game_) : base(game_)
         {
             DisplayPreviousFrame = false;
 

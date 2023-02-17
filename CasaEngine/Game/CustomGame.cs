@@ -8,8 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Game
 {
-    public class CustomGame
-        : IDisposable
+    /*public class CustomGame : IDisposable
     {
         private static bool _isAssetContentManagerInitialized;
 
@@ -533,5 +532,5 @@ namespace CasaEngine.Game
             }
         }
 
-    }
+    }*/
 }

@@ -180,7 +180,7 @@ namespace Editor.Tools.UIScreenEditor
                 }
             }
 
-            m_XnaEditorForm.Game.UIManager.AutoUnfocus = false;
+            //m_XnaEditorForm.Game.UIManager.AutoUnfocus = false;
         }
 
         /// <summary>
@@ -420,7 +420,7 @@ namespace Editor.Tools.UIScreenEditor
                     Control control =
                     (Control)m_ToolControlType.Assembly.CreateInstance(
                         m_ToolControlType.FullName, false,
-                        System.Reflection.BindingFlags.Default, null, new Object[] { m_XnaEditorForm.Game.UIManager },
+                        System.Reflection.BindingFlags.Default, null, new Object[] { /*m_XnaEditorForm.Game.UIManager*/ },
                     CultureInfo.InvariantCulture, null);
                     control.Left = e.X;
                     control.Top = e.Y;

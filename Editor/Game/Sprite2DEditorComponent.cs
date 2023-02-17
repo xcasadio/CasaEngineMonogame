@@ -16,7 +16,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 namespace Editor.Game
 {
     public class Sprite2DEditorComponent
-        : CasaEngine.Game.DrawableGameComponent
+        : DrawableGameComponent
     {
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace Editor.Game
         /// 
         /// </summary>
         /// <param name="game_"></param>
-        internal Sprite2DEditorComponent(CustomGameEditor game_)
+        internal Sprite2DEditorComponent(Microsoft.Xna.Framework.Game game_)
             : base(game_)
         {
             game_.Components.Add(this);
@@ -557,7 +557,7 @@ namespace Editor.Game
             if (sender is Cursor)
             {
                 Cursor c = sender as Cursor;
-                Game.Control.Invoke(new SetCursorDelegate(SetCursor), c);
+                //Game.Control.Invoke(new SetCursorDelegate(SetCursor), c);
             }
         }
 
@@ -567,7 +567,7 @@ namespace Editor.Game
         /// <param name="c_"></param>
         private void SetCursor(Cursor c_)
         {
-            Game.Control.Cursor = c_;
+            //Game.Control.Cursor = c_;
         }
 
 

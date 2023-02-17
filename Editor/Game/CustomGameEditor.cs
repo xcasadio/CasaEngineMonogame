@@ -6,8 +6,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Editor.Game
 {
-    internal class CustomGameEditor
-        : CustomGame
+    /*internal class CustomGameEditor : CustomGame
     {
         readonly CasaEngine.Game.GraphicsDeviceManager m_GraphicsDeviceManager;
         //SpriteBatch m_SpriteBatch;
@@ -68,5 +67,5 @@ namespace Editor.Game
             base.Draw(gameTime);
             UIManager.RenderUserInterfaceToScreen();
         }
-    }
+    }*/
 }

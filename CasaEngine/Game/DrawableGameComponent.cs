@@ -3,8 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Game
 {
-    public class DrawableGameComponent
-        : GameComponent, IDrawable
+    /*public class DrawableGameComponent : GameComponent, IDrawable
     {
         private bool _isInitialized;
         private IGraphicsDeviceService _device;
@@ -16,8 +15,7 @@ namespace CasaEngine.Game
         public event EventHandler<EventArgs> VisibleChanged;
 
 
-        public DrawableGameComponent(CustomGame game)
-            : base(game)
+        public DrawableGameComponent(CustomGame game) : base(game)
         {
 
         }
@@ -140,5 +138,5 @@ namespace CasaEngine.Game
         {
             UnloadContent();
         }
-    }
+    }*/
 }

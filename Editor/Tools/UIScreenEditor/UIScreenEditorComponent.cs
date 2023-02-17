@@ -11,7 +11,7 @@ namespace Editor.Tools.UIScreenEditor
     /// 
     /// </summary>
     internal class UIScreenEditorComponent
-        : CasaEngine.Game.DrawableGameComponent
+        : DrawableGameComponent
     {
 
         UIScreenDesigner m_Screen;
@@ -29,13 +29,13 @@ namespace Editor.Tools.UIScreenEditor
         /// 
         /// </summary>
         /// <param name="game_"></param>
-        public UIScreenEditorComponent(CustomGameEditor game_)
+        public UIScreenEditorComponent(Microsoft.Xna.Framework.Game game_)
             : base(game_)
         {
             game_.Components.Add(this);
-            m_Control = game_.Control;
-            m_Screen = new UIScreenDesigner(game_.UIManager);
-            m_UIManager = game_.UIManager;
+            //m_Control = game_.Control;
+            //m_Screen = new UIScreenDesigner(game_.UIManager);
+            //m_UIManager = game_.UIManager;
         }
 
 
@@ -56,7 +56,7 @@ namespace Editor.Tools.UIScreenEditor
         {
             base.LoadContent();
 
-            m_Screen = new UIScreenDesigner(((CustomGameEditor)Game).UIManager);
+            //m_Screen = new UIScreenDesigner(((CustomGameEditor)Game).UIManager);
             //m_Screen.ControllingPlayer = new PlayerIndex?(PlayerIndex.One);
             //m_Screen.ScreenState = ScreenState.Active;
             m_Screen.TransitionOffTime = TimeSpan.Zero;
