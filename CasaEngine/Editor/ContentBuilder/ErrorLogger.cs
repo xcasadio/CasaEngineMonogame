@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Editor.ContentBuilder
 {
-    class ErrorLogger : ILogger
+    public class ErrorLogger : ILogger
     {
         public void Initialize(IEventSource eventSource)
         {

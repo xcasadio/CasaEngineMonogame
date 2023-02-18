@@ -51,7 +51,7 @@ public class PlayerComponent : Component
 
     public override void Draw()
     {
-        _shapeRendererComponent.AddShape2DObject(_shapeRectangle, Color.Blue);
+        //_shapeRendererComponent.AddShape2DObject(_shapeRectangle, Color.Blue);
     }
 
     public override void Load(JsonElement element)

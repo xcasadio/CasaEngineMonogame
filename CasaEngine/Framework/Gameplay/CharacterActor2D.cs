@@ -13,7 +13,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Gameplay.Actor;
 using CasaEngine.Framework.Gameplay.Design;
 using CasaEngine.Framework.Graphics2D;
-using FarseerPhysics.Dynamics;
+using Genbox.VelcroPhysics.Dynamics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -327,7 +327,7 @@ namespace CasaEngine.Framework.Gameplay
 #endif
         }
 
-        public virtual void Initialize(FarseerPhysics.Dynamics.World physicWorld)
+        public virtual void Initialize(Genbox.VelcroPhysics.Dynamics.World physicWorld)
         {
             foreach (var pair in _animationListToLoad)
             {
@@ -403,22 +403,22 @@ namespace CasaEngine.Framework.Gameplay
             
         }*/
 
-        private void InitializePhysics(FarseerPhysics.Dynamics.World physicWorld)
+        private void InitializePhysics(Genbox.VelcroPhysics.Dynamics.World physicWorld)
         {
             if (physicWorld != null)
             {
-                _body = FarseerPhysics.Factories.BodyFactory.CreateCircle(
+                _body = Genbox.VelcroPhysics.Factories.BodyFactory.CreateCircle(
                 physicWorld,
                 30.0f,
                 0.00001f,
-                _initialPosition,
-                this);
+                _initialPosition);
 
                 _body.BodyType = BodyType.Dynamic;
                 _body.SleepingAllowed = true;
                 _body.FixedRotation = true;
                 _body.Friction = 0.0f;
                 _body.Restitution = 0.0f;
+                _body.UserData = this;
             }
             else
             {
@@ -445,17 +445,17 @@ namespace CasaEngine.Framework.Gameplay
                 1 - Position.Y / Framework.Game.Engine.Instance.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects);
 
-            if (ShapeRendererComponent.DisplayCollisions)
-            {
-                var geometry2DObjectList = Shape2DObjectList;
-                if (geometry2DObjectList != null)
-                {
-                    foreach (var g in geometry2DObjectList)
-                    {
-                        _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
-                    }
-                }
-            }
+            //if (ShapeRendererComponent.DisplayCollisions)
+            //{
+            //    var geometry2DObjectList = Shape2DObjectList;
+            //    if (geometry2DObjectList != null)
+            //    {
+            //        foreach (var g in geometry2DObjectList)
+            //        {
+            //            _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
+            //        }
+            //    }
+            //}
 
             if (DisplayDebugInformation)
             {

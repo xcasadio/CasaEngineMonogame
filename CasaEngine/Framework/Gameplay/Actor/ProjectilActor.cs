@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
-using FarseerPhysics.Dynamics;
+using Genbox.VelcroPhysics.Dynamics;
 using CasaEngine.Core.Maths.Shape2D;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Helper;
+using Genbox.VelcroPhysics.Definitions;
+using Genbox.VelcroPhysics.Factories;
 
 namespace CasaEngine.Framework.Gameplay.Actor
 {
@@ -82,18 +84,16 @@ namespace CasaEngine.Framework.Gameplay.Actor
             Velocity = src.Velocity;
         }
 
-        public virtual void Initialize(FarseerPhysics.Dynamics.World world)
+        public virtual void Initialize(Genbox.VelcroPhysics.Dynamics.World world)
         {
             base.Initialize();
 
-            _body = new Body(world);
+            _body = BodyFactory.CreateBody(world, bodyType: BodyType.Dynamic);
             _body.IsBullet = true;
-
             _body.Restitution = 0.0f;
             _body.SleepingAllowed = false;
-            _body.IgnoreGravity = true;
+            _body.GravityScale = 0.0f;
             _body.Friction = 0.0f;
-            _body.IsStatic = false;
             _body.FixedRotation = true;
             _body.UserData = world;
         }
@@ -137,17 +137,17 @@ namespace CasaEngine.Framework.Gameplay.Actor
         {
             base.Draw(elapsedTime);
 
-            if (ShapeRendererComponent.DisplayCollisions)
-            {
-                var geometry2DObjectList = Shape2DObjectList;
-                if (geometry2DObjectList != null)
-                {
-                    foreach (var g in geometry2DObjectList)
-                    {
-                        _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
-                    }
-                }
-            }
+            //if (ShapeRendererComponent.DisplayPhysics)
+            //{
+            //    var geometry2DObjectList = Shape2DObjectList;
+            //    if (geometry2DObjectList != null)
+            //    {
+            //        foreach (var g in geometry2DObjectList)
+            //        {
+            //            _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
+            //        }
+            //    }
+            //}
         }
 
         public void SetTransform(Vector2 position, Vector2 direction)

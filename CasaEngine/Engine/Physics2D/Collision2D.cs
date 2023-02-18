@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Core.Maths.Shape2D;
-using FarseerPhysics.Collision;
-using FarseerPhysics.Collision.Shapes;
-using FarseerPhysics.Common;
+using Genbox.VelcroPhysics.Collision.Narrowphase;
+using Genbox.VelcroPhysics.Collision.Shapes;
+using Genbox.VelcroPhysics.Shared;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Physics2D
@@ -28,7 +28,7 @@ namespace CasaEngine.Engine.Physics2D
             }
             else
             {
-                PolygonShape1.Set(new Vertices(p1.Points));
+                //PolygonShape1.Set(new Vertices(p1.Points));
             }
 
             if (p1.IsABox)
@@ -39,13 +39,13 @@ namespace CasaEngine.Engine.Physics2D
             }
             else
             {
-                PolygonShape2.Set(new Vertices(p2.Points));
+                //PolygonShape2.Set(new Vertices(p2.Points));
             }
 
             _transformA.Set(pos1, 0.0f);
             _transformB.Set(pos2, 0.0f);
 
-            Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
+            //Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {
@@ -60,13 +60,13 @@ namespace CasaEngine.Engine.Physics2D
         {
             var v = new Vertices(p1.Points);
             //v.Translate(ref pos1);
-            PolygonShape1.Set(v);
+            //PolygonShape1.Set(v);
             _transformA.Set(pos1, 0.0f);
 
             PolygonShape2.SetAsBox(r2.Width / 2, r2.Height / 2);
             _transformB.Set(pos2, 0.0f);
 
-            Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
+            //Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {
@@ -79,12 +79,12 @@ namespace CasaEngine.Engine.Physics2D
 
         public static bool CollidePolygonAndCircle(ref Vector2 contactPoint, ShapePolygone p1, ref Vector2 pos1, ShapeCircle c2, ref Vector2 pos2)
         {
-            PolygonShape1.Set(new Vertices(p1.Points));
+            //PolygonShape1.Set(new Vertices(p1.Points));
             CircleShape2.Radius = c2.Radius;
             _transformA.Set(pos1, 0.0f);
             _transformB.Set(pos2, 0.0f);
 
-            Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
+            //Collision.CollidePolygonAndCircle(ref _manifold, PolygonShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {
@@ -114,7 +114,7 @@ namespace CasaEngine.Engine.Physics2D
             _transformA.Set(pos1, 0.0f);
             _transformB.Set(pos2, 0.0f);
 
-            Collision.CollideCircles(ref _manifold, CircleShape1, ref _transformA, CircleShape2, ref _transformB);
+            //Collision.CollideCircles(ref _manifold, CircleShape1, ref _transformA, CircleShape2, ref _transformB);
 
             if (_manifold.PointCount > 0)
             {

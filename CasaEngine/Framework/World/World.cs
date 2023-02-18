@@ -16,13 +16,13 @@ namespace CasaEngine.Framework.World
         public string Name { get; set; }
         public Entity[] BaseObjects => _baseObjects.ToArray();
 
-        public FarseerPhysics.Dynamics.World? PhysicWorld;
+        public Genbox.VelcroPhysics.Dynamics.World? PhysicWorld;
 
         public World(bool usePhysics = true)
         {
             if (usePhysics)
             {
-                PhysicWorld = new FarseerPhysics.Dynamics.World(Game.Engine.Instance.PhysicsSettings.Gravity);
+                PhysicWorld = new Genbox.VelcroPhysics.Dynamics.World(Game.Engine.Instance.PhysicsSettings.Gravity);
             }
         }
 

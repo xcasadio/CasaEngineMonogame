@@ -10,8 +10,7 @@ namespace CasaEngine.Core.Maths.Shape2D
 #if EDITOR
  partial
 #endif    
-    class ShapePolygone
-        : Shape2DObject
+    class ShapePolygone : Shape2DObject
     {
 
 #if EDITOR

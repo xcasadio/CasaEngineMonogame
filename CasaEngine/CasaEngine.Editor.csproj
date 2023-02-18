@@ -35,13 +35,10 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Build" Version="17.4.0" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\FarseerPhysics\Farseer Physics XNA.csproj" />
-	</ItemGroup>
-	<ItemGroup>
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
+		<ProjectReference Include="..\VelcroPhysics\VelcroPhysics.MonoGame.DebugView\VelcroPhysics.MonoGame.DebugView.csproj" />
+		<ProjectReference Include="..\VelcroPhysics\VelcroPhysics\VelcroPhysics.MonoGame.csproj" />
 		<Reference Include="P4API">
 			<HintPath>..\ThirdParties\P4.Net\P4API.dll</HintPath>
 		</Reference>

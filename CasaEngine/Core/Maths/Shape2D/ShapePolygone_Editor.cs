@@ -2,8 +2,8 @@
 using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
-using FarseerPhysics.Common;
-using FarseerPhysics.Common.PolygonManipulation;
+using Genbox.VelcroPhysics.Shared;
+using Genbox.VelcroPhysics.Tools.PolygonManipulation;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Core.Maths.Shape2D

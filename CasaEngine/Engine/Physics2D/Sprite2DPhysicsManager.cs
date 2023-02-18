@@ -70,7 +70,7 @@ namespace CasaEngine.Engine.Physics2D
             _PhysicToAddInWorld.Add(GameInfo.Instance.Asset2DManager.GetSprite2DByID(id_));
         }
 
-        public void AddPhysicsToWorld(FarseerPhysics.Dynamics.World world_)
+        public void AddPhysicsToWorld(Genbox.VelcroPhysics.Dynamics.World world_)
         {
             foreach (Sprite2D sprite2D in _PhysicToAddInWorld)
             {
@@ -80,7 +80,7 @@ namespace CasaEngine.Engine.Physics2D
             _PhysicToAddInWorld.Clear();
         }
 
-        private void AddSprite2DPhysicsToWorld(FarseerPhysics.Dynamics.World world_, Sprite2D sprite2D_)
+        private void AddSprite2DPhysicsToWorld(Genbox.VelcroPhysics.Dynamics.World world_, Sprite2D sprite2D_)
         {
             foreach (Shape2DObject ob in sprite2D_.Collisions)
             {

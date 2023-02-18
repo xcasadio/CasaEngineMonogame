@@ -1,6 +1,4 @@
 ﻿using System.Xml;
-using Size = CasaEngine.Framework.UserInterface.Size;
-using CasaEngine.Framework.UserInterface;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Design;
 

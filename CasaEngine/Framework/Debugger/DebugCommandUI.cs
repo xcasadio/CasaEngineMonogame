@@ -173,7 +173,7 @@ namespace CasaEngine.Framework.Debugger
                 });
 
             // DisplayCollisions command
-            RegisterCommand("displayCollisions", "Display Collisions of each sprite. Argument 'on'/'off'",
+            RegisterCommand("displayPhysics", "Display Physics. Argument 'on'/'off'",
                 delegate (IDebugCommandHost host, string command, IList<string> args)
                 {
                     var error = false;
@@ -205,7 +205,7 @@ namespace CasaEngine.Framework.Debugger
                     }
                     else
                     {
-                        ShapeRendererComponent.DisplayCollisions = state;
+                        ShapeRendererComponent.DisplayPhysics = state;
                     }
 
                 });
