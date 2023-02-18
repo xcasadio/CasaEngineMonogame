@@ -187,7 +187,7 @@ namespace FarseerPhysics.Dynamics.Joints
 
             float impulse = -_mass * Cdot;
             float oldImpulse = _impulse;
-            _impulse = Math.Min(0.0f, _impulse + impulse);
+            _impulse = System.Math.Min(0.0f, _impulse + impulse);
             impulse = _impulse - oldImpulse;
 
             Vector2 P = impulse * _u;

@@ -57,7 +57,7 @@ namespace FarseerPhysics.Dynamics
 
                     for (int i = 0; i < count; ++i)
                     {
-                        maxImpulse = Math.Max(maxImpulse, impulse.Points[i].NormalImpulse);
+                        maxImpulse = System.Math.Max(maxImpulse, impulse.Points[i].NormalImpulse);
                     }
 
                     if (maxImpulse > Strength)

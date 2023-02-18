@@ -1,5 +1,5 @@
 ﻿using Editor.Game;
-using CasaEngine.Graphics2D;
+using CasaEngine.Framework.Graphics2D;
 
 namespace Editor.Map
 {

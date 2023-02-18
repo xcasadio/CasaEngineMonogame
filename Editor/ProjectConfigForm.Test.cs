@@ -17,15 +17,15 @@ namespace Editor
         /// </summary>
         public void LaunchUnitTest()
         {
-            Engine.Instance.ProjectSettings.AllowUserResizing = true;
-            Engine.Instance.ProjectSettings.DebugHeight = 100;
-            Engine.Instance.ProjectSettings.DebugWidth = 100;
-            Engine.Instance.ProjectSettings.DebugIsFullScreen = true;
-            Engine.Instance.ProjectSettings.FirstScreenName = "FirstScreenNameTest";
-            Engine.Instance.ProjectSettings.IsFixedTimeStep = true;
-            Engine.Instance.ProjectSettings.IsMouseVisible = true;
-            Engine.Instance.ProjectSettings.ProjectName = "ProjectNameTest";
-            Engine.Instance.ProjectSettings.WindowTitle = "WindowTitleTest";
+            CasaEngine.Game.Engine.Instance.ProjectSettings.AllowUserResizing = true;
+            CasaEngine.Game.Engine.Instance.ProjectSettings.DebugHeight = 100;
+            CasaEngine.Game.Engine.Instance.ProjectSettings.DebugWidth = 100;
+            CasaEngine.Game.Engine.Instance.ProjectSettings.DebugIsFullScreen = true;
+            CasaEngine.Game.Engine.Instance.ProjectSettings.FirstScreenName = "FirstScreenNameTest";
+            CasaEngine.Game.Engine.Instance.ProjectSettings.IsFixedTimeStep = true;
+            CasaEngine.Game.Engine.Instance.ProjectSettings.IsMouseVisible = true;
+            CasaEngine.Game.Engine.Instance.ProjectSettings.ProjectName = "ProjectNameTest";
+            CasaEngine.Game.Engine.Instance.ProjectSettings.WindowTitle = "WindowTitleTest";
         }
 
         /// <summary>
@@ -33,15 +33,15 @@ namespace Editor
         /// </summary>
         public void CheckUnitTest()
         {
-            Assert.AreEqual(Engine.Instance.ProjectSettings.AllowUserResizing, true, "AllowUserResizing");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.DebugHeight, 100, "DebugHeight");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.DebugWidth, 100, "DebugWidth");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.DebugIsFullScreen, true, "DebugIsFullScreen");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.FirstScreenName, "FirstScreenNameTest", "FirstScreenName");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.IsFixedTimeStep, true, "IsFixedTimeStep");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.IsMouseVisible, true, "IsMouseVisible");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.ProjectName, "ProjectNameTest", "ProjectName");
-            Assert.AreEqual(Engine.Instance.ProjectSettings.WindowTitle, "WindowTitleTest", "WindowTitle");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.AllowUserResizing, true, "AllowUserResizing");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.DebugHeight, 100, "DebugHeight");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.DebugWidth, 100, "DebugWidth");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.DebugIsFullScreen, true, "DebugIsFullScreen");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.FirstScreenName, "FirstScreenNameTest", "FirstScreenName");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.IsFixedTimeStep, true, "IsFixedTimeStep");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.IsMouseVisible, true, "IsMouseVisible");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.ProjectName, "ProjectNameTest", "ProjectName");
+            Assert.AreEqual(CasaEngine.Game.Engine.Instance.ProjectSettings.WindowTitle, "WindowTitleTest", "WindowTitle");
         }
 	}
 }

@@ -80,8 +80,8 @@ namespace FarseerPhysics.Dynamics.Joints
         internal override void SolveVelocityConstraints(ref TimeStep step)
         {
             float p = (_bias - BodyB.AngularVelocity + BodyA.AngularVelocity) * _massFactor;
-            BodyA.AngularVelocity -= BodyA.InvI * Math.Sign(p) * Math.Min(Math.Abs(p), MaxImpulse);
-            BodyB.AngularVelocity += BodyB.InvI * Math.Sign(p) * Math.Min(Math.Abs(p), MaxImpulse);
+            BodyA.AngularVelocity -= BodyA.InvI * Math.Sign(p) * System.Math.Min(Math.Abs(p), MaxImpulse);
+            BodyB.AngularVelocity += BodyB.InvI * Math.Sign(p) * System.Math.Min(Math.Abs(p), MaxImpulse);
         }
 
         internal override bool SolvePositionConstraints()

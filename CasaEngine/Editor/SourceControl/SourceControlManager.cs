@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
-using CasaEngine.Game;
-using CasaEngineCommon.Logger;
+using CasaEngine.Core.Logger;
 
 namespace CasaEngine.Editor.SourceControl
 {
@@ -99,9 +98,9 @@ namespace CasaEngine.Editor.SourceControl
         {
             _filesStatus.Clear();
 
-            if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectManager.ProjectPath) == false)
+            if (string.IsNullOrWhiteSpace(Framework.Game.Engine.Instance.ProjectManager.ProjectPath) == false)
             {
-                var projectPath = Engine.Instance.ProjectManager.ProjectPath;
+                var projectPath = Framework.Game.Engine.Instance.ProjectManager.ProjectPath;
 
                 try
                 {

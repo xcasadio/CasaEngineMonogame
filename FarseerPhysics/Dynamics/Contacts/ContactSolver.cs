@@ -320,7 +320,7 @@ namespace FarseerPhysics.Dynamics.Contacts
 
                     // MathUtils.Clamp the accumulated force
                     float maxFriction = friction * ccp.NormalImpulse;
-                    float newImpulse = Math.Max(-maxFriction, Math.Min(ccp.TangentImpulse + lambda, maxFriction));
+                    float newImpulse = System.Math.Max(-maxFriction, System.Math.Min(ccp.TangentImpulse + lambda, maxFriction));
                     lambda = newImpulse - ccp.TangentImpulse;
 
                     // Apply contact impulse
@@ -353,7 +353,7 @@ namespace FarseerPhysics.Dynamics.Contacts
                                      (wA * ccp.rA.X)) * c.Normal.Y - ccp.VelocityBias);
 
                     // Clamp the accumulated impulse
-                    float newImpulse = Math.Max(ccp.NormalImpulse + lambda, 0.0f);
+                    float newImpulse = System.Math.Max(ccp.NormalImpulse + lambda, 0.0f);
                     lambda = newImpulse - ccp.NormalImpulse;
 
                     // Apply contact impulse
@@ -690,11 +690,11 @@ namespace FarseerPhysics.Dynamics.Contacts
                     float rby = point.Y - bodyB.Sweep.C.Y;
 
                     // Track max constraint error.
-                    minSeparation = Math.Min(minSeparation, separation);
+                    minSeparation = System.Math.Min(minSeparation, separation);
 
                     // Prevent large corrections and allow slop.
-                    float C = Math.Max(-Settings.MaxLinearCorrection,
-                                       Math.Min(baumgarte * (separation + Settings.LinearSlop), 0.0f));
+                    float C = System.Math.Max(-Settings.MaxLinearCorrection,
+                                       System.Math.Min(baumgarte * (separation + Settings.LinearSlop), 0.0f));
 
                     // Compute the effective mass.
                     float rnA = rax * normal.Y - ray * normal.X;

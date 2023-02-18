@@ -9,13 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Editor", "Editor\Editor.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Farseer Physics XNA", "FarseerPhysics\Farseer Physics XNA.csproj", "{0A850700-1ABB-4288-A391-6726B90EBEB9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngineCommon.Editor", "CasaEngineCommon\CasaEngineCommon.Editor.csproj", "{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EditorWpf", "EditorWpf\EditorWpf.csproj", "{F2707E78-7C71-43AC-A27A-0E2FB32BB684}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pong", "Pong\Pong.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CasaEngineLauncher", "CasaEngineLauncher\CasaEngineLauncher.csproj", "{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngineLauncher", "CasaEngineLauncher\CasaEngineLauncher.csproj", "{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,18 +61,6 @@ Global
 		{0A850700-1ABB-4288-A391-6726B90EBEB9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0A850700-1ABB-4288-A391-6726B90EBEB9}.Release|x64.ActiveCfg = Release|Any CPU
 		{0A850700-1ABB-4288-A391-6726B90EBEB9}.Release|x64.Build.0 = Release|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Debug|x64.Build.0 = Debug|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.DebugEditor|Any CPU.ActiveCfg = DebugEditor|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.DebugEditor|Any CPU.Build.0 = DebugEditor|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.DebugEditor|x64.ActiveCfg = DebugEditor|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.DebugEditor|x64.Build.0 = DebugEditor|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Release|x64.ActiveCfg = Release|Any CPU
-		{D3DFF320-CB3E-4FDB-AD6F-906DBD6245CE}.Release|x64.Build.0 = Release|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|x64.ActiveCfg = Debug|Any CPU

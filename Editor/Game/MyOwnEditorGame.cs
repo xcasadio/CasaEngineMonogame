@@ -1,7 +1,7 @@
-﻿using CasaEngine.Core.Game;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Graphics2D;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics2D;
 
 namespace Editor.Game
 {

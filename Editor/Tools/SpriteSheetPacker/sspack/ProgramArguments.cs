@@ -619,7 +619,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
         /// <returns>The index of the last occurence of value in text or -1 if it is not found. </returns>
         public static int LastIndexOf(StringBuilder text, char value, int startIndex)
         {
-            for (int index = Math.Min(startIndex, text.Length - 1); index >= 0; index--)
+            for (int index = System.Math.Min(startIndex, text.Length - 1); index >= 0; index--)
             {
                 if (text[index] == value)
                 {
@@ -828,7 +828,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
             int maxParamLen = 0;
             foreach (ArgumentHelpStrings helpString in strings)
             {
-                maxParamLen = Math.Max(maxParamLen, helpString.syntax.Length);
+                maxParamLen = System.Math.Max(maxParamLen, helpString.syntax.Length);
             }
 
             const int minimumNumberOfCharsForHelpText = 10;
@@ -837,7 +837,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 
             int helpTextColumn;
             int idealMinimumHelpTextColumn = maxParamLen + spaceBeforeParam;
-            screenWidth = Math.Max(screenWidth, minimumScreenWidth);
+            screenWidth = System.Math.Max(screenWidth, minimumScreenWidth);
             if (screenWidth < (idealMinimumHelpTextColumn + minimumNumberOfCharsForHelpText))
             {
                 helpTextColumn = minimumHelpTextColumn;
@@ -881,7 +881,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
                     }
                     else
                     {
-                        endIndex = helpStrings.help.LastIndexOf(' ', endIndex - 1, Math.Min(endIndex - index, charsPerLine));
+                        endIndex = helpStrings.help.LastIndexOf(' ', endIndex - 1, System.Math.Min(endIndex - index, charsPerLine));
                         if (endIndex <= index)
                         {
                             // no spaces on this line, append full set of chars

@@ -1,5 +1,4 @@
-﻿using CasaEngine.Game;
-using CasaEngineCommon.Logger;
+﻿using CasaEngine.Core.Logger;
 using P4API;
 
 namespace CasaEngine.Editor.SourceControl
@@ -158,7 +157,7 @@ namespace CasaEngine.Editor.SourceControl
                             }
                         }
 
-                        LogManager.Instance.WriteLineError("[Perforce] The directory '" + Engine.Instance.ProjectManager.ProjectPath + "' is not in the client view ('" + SourceControlManager.Instance.Workspace + "').");
+                        LogManager.Instance.WriteLineError("[Perforce] The directory '" + Framework.Game.Engine.Instance.ProjectManager.ProjectPath + "' is not in the client view ('" + SourceControlManager.Instance.Workspace + "').");
                     }
                     else
                     {

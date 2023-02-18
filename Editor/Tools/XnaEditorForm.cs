@@ -1,4 +1,4 @@
-﻿using CasaEngineCommon.Logger;
+﻿using CasaEngine.Core.Logger;
 using Editor.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

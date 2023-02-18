@@ -1,8 +1,8 @@
 ﻿using CasaEngine.Editor.Tools;
-using CasaEngine.Game;
-using CasaEngineCommon.Logger;
-using CasaEngine.Assets.UI;
-using CasaEngine.Entities;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.UserInterface.UI;
 
 namespace Editor.Tools.SkinUIEditor
 {

@@ -1,5 +1,5 @@
-﻿using Editor.Debugger;
-using CasaEngine.Game;
+﻿using CasaEngine.Framework.Game;
+using Editor.Debugger;
 
 namespace Editor
 {

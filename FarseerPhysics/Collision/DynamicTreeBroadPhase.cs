@@ -310,8 +310,8 @@ namespace FarseerPhysics.Collision
                 Array.Copy(oldBuffer, _pairBuffer, _pairCount);
             }
 
-            _pairBuffer[_pairCount].ProxyIdA = Math.Min(proxyId, _queryProxyId);
-            _pairBuffer[_pairCount].ProxyIdB = Math.Max(proxyId, _queryProxyId);
+            _pairBuffer[_pairCount].ProxyIdA = System.Math.Min(proxyId, _queryProxyId);
+            _pairBuffer[_pairCount].ProxyIdB = System.Math.Max(proxyId, _queryProxyId);
             ++_pairCount;
 
             return true;

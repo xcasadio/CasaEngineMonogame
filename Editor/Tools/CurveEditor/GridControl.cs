@@ -176,8 +176,8 @@ namespace Editor.Tools.CurveEditor
 
             float margin_ps = 50.0f;
             double[] newGridScale = {
-                (double)newRange.X / (double)Math.Max(viewSize.X - margin_ps, 10.0f ),
-                (double)newRange.Y / (double)Math.Max(viewSize.Y - margin_ps, 10.0f)};
+                (double)newRange.X / (double)System.Math.Max(viewSize.X - margin_ps, 10.0f ),
+                (double)newRange.Y / (double)System.Math.Max(viewSize.Y - margin_ps, 10.0f)};
 
             double threshold = 1e-4;
             if (Math.Abs(newGridScale[0] - gridScale[0]) > threshold ||
@@ -351,14 +351,14 @@ namespace Editor.Tools.CurveEditor
 
         private void SetOffset(double x, double y)
         {
-            gridOffsets[0] = Math.Min(Math.Max(x, MinOffset), MaxOffset);
-            gridOffsets[1] = Math.Min(Math.Max(y, MinOffset), MaxOffset);
+            gridOffsets[0] = System.Math.Min(System.Math.Max(x, MinOffset), MaxOffset);
+            gridOffsets[1] = System.Math.Min(System.Math.Max(y, MinOffset), MaxOffset);
         }
 
         private void SetScale(double x, double y)
         {
-            gridScale[0] = Math.Min(Math.Max(x, MinGridScale), MaxGridScale);
-            gridScale[1] = Math.Min(Math.Max(y, MinGridScale), MaxGridScale);
+            gridScale[0] = System.Math.Min(System.Math.Max(x, MinGridScale), MaxGridScale);
+            gridScale[1] = System.Math.Min(System.Math.Max(y, MinGridScale), MaxGridScale);
             invGridScale[0] = 1.0 / gridScale[0];
             invGridScale[1] = 1.0 / gridScale[1];
         }

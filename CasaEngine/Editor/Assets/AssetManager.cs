@@ -1,11 +1,10 @@
 ﻿using System.Xml;
 using CasaEngine.Editor.SourceControl;
-using CasaEngineCommon.Extension;
-using CasaEngine.Game;
-using CasaEngineCommon.Logger;
 using Microsoft.Build.Evaluation;
-using CasaEngineCommon.Design;
-using CasaEngine.Project;
+using CasaEngine.Core.Extension;
+using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Project;
+using CasaEngine.Core.Design;
 
 namespace CasaEngine.Editor.Assets
 {
@@ -147,7 +146,7 @@ namespace CasaEngine.Editor.Assets
                 File.Copy(
                     file,
                     /*GameInfo.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.XNBDirPath + Path.DirectorySeparatorChar + Path.GetFileName(file)*/
-                    Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file),
+                    Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file),
                     true);
             }
 
@@ -232,7 +231,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetAssetFullPath(AssetInfo info)
         {
-            var fullpath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+            var fullpath = Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
             fullpath += ProjectManager.AssetDirPath + Path.DirectorySeparatorChar;
 
@@ -274,7 +273,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetAssetXnbFullPath(AssetInfo info)
         {
-            return Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info.Name + ".xnb";
+            return Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info.Name + ".xnb";
         }
 
         /*private string GetPrefix(AssetType type_)
@@ -413,7 +412,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetPathFromType(AssetType type)
         {
-            var assetFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+            var assetFile = Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
             assetFile += ProjectManager.AssetDirPath;
 
@@ -655,7 +654,7 @@ namespace CasaEngine.Editor.Assets
 
         private void LoadAssetBuildInfo()
         {
-            var buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
+            var buildFile = Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
 
             if (File.Exists(buildFile) == false)
             {
@@ -690,7 +689,7 @@ namespace CasaEngine.Editor.Assets
             try
             {
 #endif
-            var buildFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
+            var buildFile = Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "AssetBuildInfo.xml";
 
             if (Directory.Exists(Path.GetDirectoryName(buildFile)) == false)
             {

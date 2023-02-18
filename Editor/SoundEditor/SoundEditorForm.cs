@@ -1,6 +1,6 @@
-﻿using CasaEngine.Game;
-using CasaEngineCommon.Logger;
-using CasaEngine.Editor.Assets;
+﻿using CasaEngine.Editor.Assets;
+using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Game;
 
 namespace Editor.SoundEditor
 {

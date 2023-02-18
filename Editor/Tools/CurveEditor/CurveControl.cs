@@ -868,7 +868,7 @@ namespace Editor.Tools.CurveEditor
                 double nextT = t1 + step;
                 if (nextKey != null)
                 {
-                    nextT = Math.Min(t1, nextKey.Position);
+                    nextT = System.Math.Min(t1, nextKey.Position);
                 }
 
                 // Draw current key and next key section.
@@ -939,7 +939,7 @@ namespace Editor.Tools.CurveEditor
                     double kt1 = curve.Keys[curve.Keys.Count - 1].Position;
 
                     double t0 = dt0;
-                    double t1 = Math.Min(dt1, kt0);
+                    double t1 = System.Math.Min(dt1, kt0);
 
                     // draw pre-section
                     if (t0 < t1 && showInfinitCurve)
@@ -962,15 +962,15 @@ namespace Editor.Tools.CurveEditor
                     }
 
                     // draw fact section
-                    t0 = Math.Max(dt0, kt0);
-                    t1 = Math.Min(dt1, kt1);
+                    t0 = System.Math.Max(dt0, kt0);
+                    t1 = System.Math.Min(dt1, kt1);
                     if (t0 < t1)
                     {
                         DrawCurve(g, pen0, curve, t0, t1, step);
                     }
 
                     // draw post-section
-                    t0 = Math.Min(dt1, kt1);
+                    t0 = System.Math.Min(dt1, kt1);
                     t1 = dt1;
                     if (t0 < t1 && showInfinitCurve)
                     {

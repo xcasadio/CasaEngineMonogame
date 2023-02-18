@@ -163,12 +163,12 @@ namespace FarseerPhysics.Common
 
         public static int Clamp(int a, int low, int high)
         {
-            return Math.Max(low, Math.Min(a, high));
+            return System.Math.Max(low, System.Math.Min(a, high));
         }
 
         public static float Clamp(float a, float low, float high)
         {
-            return Math.Max(low, Math.Min(a, high));
+            return System.Math.Max(low, System.Math.Min(a, high));
         }
 
         public static Vector2 Clamp(Vector2 a, Vector2 low, Vector2 high)

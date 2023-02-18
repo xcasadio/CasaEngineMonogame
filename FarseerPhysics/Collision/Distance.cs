@@ -739,7 +739,7 @@ namespace FarseerPhysics.Collision
                 ++simplex.Count;
             }
 
-            GJKMaxIters = Math.Max(GJKMaxIters, iter);
+            GJKMaxIters = System.Math.Max(GJKMaxIters, iter);
 
             // Prepare output.
             simplex.GetWitnessPoints(out output.PointA, out output.PointB);

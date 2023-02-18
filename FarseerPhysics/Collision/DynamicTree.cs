@@ -647,7 +647,7 @@ namespace FarseerPhysics.Collision
             DynamicTreeNode<T> node = _nodes[nodeId];
             int height1 = ComputeHeight(node.Child1);
             int height2 = ComputeHeight(node.Child2);
-            return 1 + Math.Max(height1, height2);
+            return 1 + System.Math.Max(height1, height2);
         }
     }
 }

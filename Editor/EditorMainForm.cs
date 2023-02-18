@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel;
-using CasaEngine.Game;
-using CasaEngineCommon.Logger;
 using Editor.WinForm.DocToolkit;
 using System.Diagnostics;
 using Editor.WinForm;
@@ -11,8 +9,10 @@ using CasaEngine.Editor.Assets;
 using CasaEngine.Editor.SourceControl;
 using Editor.Map;
 using Editor.Sprite2DEditor.SpriteSheetPacker;
-using CasaEngine.Project;
 using Editor.Tools.UIScreenEditor;
+using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Project;
 
 namespace Editor
 {

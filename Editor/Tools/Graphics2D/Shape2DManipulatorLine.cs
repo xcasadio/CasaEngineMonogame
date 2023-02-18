@@ -1,10 +1,10 @@
-﻿using CasaEngine.Core.Math.Shape2D;
+﻿using CasaEngine.Core.Maths.Shape2D;
 using Microsoft.Xna.Framework;
 using CasaEngine.Editor.Manipulation;
-using CasaEngine.Graphics2D;
 using Microsoft.Xna.Framework.Graphics;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
+using CasaEngine.Framework.Graphics2D;
 
 namespace Editor.Tools.Graphics2D
 {

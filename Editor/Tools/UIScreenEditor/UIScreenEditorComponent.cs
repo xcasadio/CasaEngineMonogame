@@ -1,9 +1,9 @@
-﻿using CasaEngine.FrontEnd.Screen;
-using Microsoft.Xna.Framework;
-using CasaEngine.UserInterface;
-using CasaEngineCommon.Helper;
+﻿using Microsoft.Xna.Framework;
 using Editor.Game;
-using Control = CasaEngine.UserInterface.Control;
+using Control = CasaEngine.Framework.UserInterface.Control;
+using CasaEngine.Framework.UserInterface;
+using CasaEngine.Core.Helper;
+using CasaEngine.Framework.FrontEnd.Screen;
 
 namespace Editor.Tools.UIScreenEditor
 {

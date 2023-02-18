@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Input;
 using CasaEngine.Editor.Manipulation;
-using CasaEngine.FrontEnd.Screen.Gadget;
+using CasaEngine.Framework.FrontEnd.Screen.Gadget;
 using Microsoft.Xna.Framework;
 
 namespace Editor.FrontEnd

@@ -1,4 +1,4 @@
-﻿using CasaEngine.Entities;
+﻿using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Editor.Tools
 {

@@ -1,0 +1,28 @@
+/*
+
+ Based in the project Neoforce Controls (http://neoforce.codeplex.com/)
+ GNU Library General Public License (LGPL)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+*/
+
+namespace CasaEngine.Framework.UserInterface.Controls.Auxiliary
+{
+
+    public class ClipBox : Control
+    {
+
+        public ClipBox(UserInterfaceManager userInterfaceManager)
+            : base(userInterfaceManager)
+        {
+            Color = Color.Transparent;
+            BackgroundColor = Color.Transparent;
+            CanFocus = false;
+            Passive = true;
+        } // ClipBox
+
+    } // ClipBox
+} // XNAFinalEngine.UserInterface

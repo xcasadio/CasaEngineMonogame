@@ -1,4 +1,4 @@
-﻿using CasaEngineCommon.Logger;
+﻿using CasaEngine.Core.Logger;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace Editor.Log

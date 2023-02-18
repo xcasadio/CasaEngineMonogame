@@ -502,7 +502,7 @@ namespace FarseerPhysics.Collision
                     }
 
                     // Pull the max down
-                    tmax = Math.Min(tmax, t2);
+                    tmax = System.Math.Min(tmax, t2);
 
                     if (tmin > tmax)
                     {
@@ -1623,7 +1623,7 @@ namespace FarseerPhysics.Collision
 
                 float s1 = Vector2.Dot(n, _proxyB.Vertices[i] - _edgeA.V1);
                 float s2 = Vector2.Dot(n, _proxyB.Vertices[i] - _edgeA.V2);
-                float s = Math.Min(s1, s2);
+                float s = System.Math.Min(s1, s2);
 
                 if (s > _radius)
                 {

@@ -2,9 +2,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using CasaEngine.Editor.Assets;
-using CasaEngine.Game;
-using CasaEngine.Project;
-using CasaEngineCommon.Logger;
 using Editor.Log;
 using Editor.SourceControl;
 using Editor.Sprite2DEditor.SpriteSheetPacker;
@@ -12,14 +9,17 @@ using Editor.WinForm.DocToolkit;
 using WeifenLuo.WinFormsUI.Docking;
 using Editor.World;
 using Editor.Tools.Graphics2D;
-using CasaEngine.Assets.Graphics2D;
 using Editor.Tools.UIScreenEditor;
 using Editor.Tools.Font;
 using Editor.Tools.SkinUIEditor;
-using CasaEngine.Assets.UI;
 using CasaEngine.Editor.SourceControl;
-using CasaEngine.FrontEnd.Screen;
-using Font = CasaEngine.Assets.Fonts.Font;
+using Font = CasaEngine.Framework.Assets.Fonts.Font;
+using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Assets.Graphics2D;
+using CasaEngine.Framework.FrontEnd.Screen;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.UserInterface.UI;
+using CasaEngine.Framework.Project;
 
 #if !DEBUG
 using Editor.Debugger;
@@ -426,7 +426,7 @@ namespace Editor
             SourceControlManager.Instance.LoadConfig(Path.GetDirectoryName(fileName_) + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath);
 
             Engine.Instance.AssetContentManager.RootDirectory = Engine.Instance.ProjectManager.ProjectPath +
-                Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
+                                                                Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
 
 #if !UNITTEST
             //SourceControlManager.Instance.SourceControl.Connect();

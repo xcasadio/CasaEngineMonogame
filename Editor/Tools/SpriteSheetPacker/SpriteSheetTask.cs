@@ -1,5 +1,5 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Extension;
+using CasaEngine.Core.Extension;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {

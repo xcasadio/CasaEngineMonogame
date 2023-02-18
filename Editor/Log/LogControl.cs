@@ -1,4 +1,4 @@
-﻿using CasaEngineCommon.Logger;
+﻿using CasaEngine.Core.Logger;
 using Editor.Log;
 
 namespace Editor.WinForm.Controls

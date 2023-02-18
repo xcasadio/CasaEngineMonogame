@@ -1,6 +1,6 @@
-﻿using CasaEngine.Entities;
-using CasaEngine.Gameplay.Actor.Event;
-using CasaEngine.Game;
+﻿using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Gameplay.Actor.Event;
 
 namespace Editor.Tools.Event.EventForm
 {

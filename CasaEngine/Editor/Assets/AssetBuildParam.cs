@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Xml;
-using CasaEngineCommon.Extension;
+using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Editor.Assets
 {

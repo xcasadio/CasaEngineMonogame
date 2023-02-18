@@ -22,7 +22,7 @@
  */
 
 
-using CasaEngineCommon.Logger;
+using CasaEngine.Core.Logger;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 {

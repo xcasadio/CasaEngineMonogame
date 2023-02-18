@@ -1,5 +1,5 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Design;
+using CasaEngine.Core.Design;
 
 namespace CasaEngine.Core.Parser
 {

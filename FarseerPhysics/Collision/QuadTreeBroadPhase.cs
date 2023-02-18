@@ -206,8 +206,8 @@ public class QuadTreeBroadPhase : IBroadPhase
             return true;
 
         Pair p = new Pair();
-        p.ProxyIdA = Math.Min(proxyID, baseID);
-        p.ProxyIdB = Math.Max(proxyID, baseID);
+        p.ProxyIdA = System.Math.Min(proxyID, baseID);
+        p.ProxyIdB = System.Math.Max(proxyID, baseID);
         _pairBuffer.Add(p);
 
         return true;

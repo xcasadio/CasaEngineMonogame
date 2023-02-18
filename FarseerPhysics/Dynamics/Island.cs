@@ -335,7 +335,7 @@ namespace FarseerPhysics.Dynamics
                     else
                     {
                         b.SleepTime += step.dt;
-                        minSleepTime = Math.Min(minSleepTime, b.SleepTime);
+                        minSleepTime = System.Math.Min(minSleepTime, b.SleepTime);
                     }
                 }
 

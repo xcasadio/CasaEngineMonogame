@@ -65,10 +65,10 @@ namespace FarseerPhysics.Common
             float y4 = b1.Y;
 
             //AABB early exit
-            if (Math.Max(x1, x2) < Math.Min(x3, x4) || Math.Max(x3, x4) < Math.Min(x1, x2))
+            if (System.Math.Max(x1, x2) < System.Math.Min(x3, x4) || System.Math.Max(x3, x4) < System.Math.Min(x1, x2))
                 return false;
 
-            if (Math.Max(y1, y2) < Math.Min(y3, y4) || Math.Max(y3, y4) < Math.Min(y1, y2))
+            if (System.Math.Max(y1, y2) < System.Math.Min(y3, y4) || System.Math.Max(y3, y4) < System.Math.Min(y1, y2))
                 return false;
 
             float ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3));

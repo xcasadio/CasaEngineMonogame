@@ -23,8 +23,8 @@
 
 
 using System.Diagnostics;
-using CasaEngineCommon.Logger;
-using CasaEngine.Game;
+using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Game;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {

@@ -1,4 +1,4 @@
-﻿using CasaEngine.Gameplay.Actor.Event;
+﻿using CasaEngine.Framework.Gameplay.Actor.Event;
 
 namespace Editor.Sprite2DEditor.Event
 {

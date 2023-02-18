@@ -62,8 +62,8 @@ namespace EditorWpf.Controls.MonoGame
         {
             _parameters = new PresentationParameters
             {
-                BackBufferWidth = Math.Max(width, 1),
-                BackBufferHeight = Math.Max(height, 1),
+                BackBufferWidth = System.Math.Max(width, 1),
+                BackBufferHeight = System.Math.Max(height, 1),
                 BackBufferFormat = SurfaceFormat.Color,
                 DepthStencilFormat = DepthFormat.Depth24,
                 DeviceWindowHandle = windowHandle,
@@ -81,8 +81,8 @@ namespace EditorWpf.Controls.MonoGame
         /// </summary>
         public void ResetDevice(int width, int height)
         {
-            var newWidth = Math.Max(_parameters.BackBufferWidth, width);
-            var newHeight = Math.Max(_parameters.BackBufferHeight, height);
+            var newWidth = System.Math.Max(_parameters.BackBufferWidth, width);
+            var newHeight = System.Math.Max(_parameters.BackBufferHeight, height);
 
             if (newWidth != _parameters.BackBufferWidth || newHeight != _parameters.BackBufferHeight)
             {

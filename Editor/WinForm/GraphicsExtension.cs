@@ -32,7 +32,7 @@ namespace Editor.WinForm
             }
             else
             {
-                if (radius >= (Math.Min(rectangle.Width, rectangle.Height)) / 2.0)
+                if (radius >= (System.Math.Min(rectangle.Width, rectangle.Height)) / 2.0)
                 {
                     return graphics.GenerateCapsule(rectangle);
                 }

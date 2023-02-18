@@ -329,7 +329,7 @@ namespace FarseerPhysics.Common.Decomposition
                         cross31 = Math.Abs(cross31);
 
                         //Find the maximum minimum angle
-                        float minCross = Math.Min(cross12, Math.Min(cross23, cross31));
+                        float minCross = System.Math.Min(cross12, System.Math.Min(cross23, cross31));
                         if (minCross > earMaxMinCross)
                         {
                             earIndex = i;

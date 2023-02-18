@@ -23,12 +23,12 @@
 
 
 using System.Drawing.Imaging;
-using CasaEngineCommon.Logger;
 using System.Xml;
-using CasaEngine.Game;
-using CasaEngineCommon.Extension;
-using CasaEngineCommon.Packing;
-using CasaEngine.Project;
+using CasaEngine.Core.Extension;
+using CasaEngine.Core.Logger;
+using CasaEngine.Core.Packing;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Project;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 {
@@ -567,8 +567,8 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
             int smallestHeight = int.MaxValue;
             foreach (var size in imageSizes)
             {
-                smallestWidth = Math.Min(smallestWidth, size.Value.Width);
-                smallestHeight = Math.Min(smallestHeight, size.Value.Height);
+                smallestWidth = System.Math.Min(smallestWidth, size.Value.Width);
+                smallestHeight = System.Math.Min(smallestHeight, size.Value.Height);
             }
 
             // we need a couple values for testing
@@ -617,8 +617,8 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
                 testWidth = testHeight = 0;
                 foreach (var pair in imagePlacement)
                 {
-                    testWidth = Math.Max(testWidth, pair.Value.Right);
-                    testHeight = Math.Max(testHeight, pair.Value.Bottom);
+                    testWidth = System.Math.Max(testWidth, pair.Value.Right);
+                    testHeight = System.Math.Max(testHeight, pair.Value.Bottom);
                 }
 
                 // subtract the extra padding on the right and bottom
@@ -639,7 +639,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
                 // if we require a square texture, set the width and height to the larger of the two
                 if (requireSquare)
                 {
-                    int max = Math.Max(testWidth, testHeight);
+                    int max = System.Math.Max(testWidth, testHeight);
                     testWidth = testHeight = max;
                 }
 

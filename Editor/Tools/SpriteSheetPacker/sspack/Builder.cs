@@ -1,5 +1,5 @@
-﻿using CasaEngineCommon.Logger;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using CasaEngine.Core.Logger;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
 {

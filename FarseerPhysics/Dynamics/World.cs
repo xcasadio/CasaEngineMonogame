@@ -863,7 +863,7 @@ namespace FarseerPhysics.Dynamics
             // Build and simulate all awake islands.
             int stackSize = BodyList.Count;
             if (stackSize > _stack.Length)
-                _stack = new Body[Math.Max(_stack.Length * 2, stackSize)];
+                _stack = new Body[System.Math.Max(_stack.Length * 2, stackSize)];
 
             for (int index = BodyList.Count - 1; index >= 0; index--)
             {
@@ -1148,7 +1148,7 @@ namespace FarseerPhysics.Dynamics
                         float beta = output.T;
                         if (output.State == TOIOutputState.Touching)
                         {
-                            alpha = Math.Min(alpha0 + (1.0f - alpha0) * beta, 1.0f);
+                            alpha = System.Math.Min(alpha0 + (1.0f - alpha0) * beta, 1.0f);
                         }
                         else
                         {

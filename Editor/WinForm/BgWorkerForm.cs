@@ -71,7 +71,7 @@ namespace Editor.WinForm
         /// <param name="e"></param>
         void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            progressBar1.Value = Math.Min(progressBar1.Maximum, Math.Max(progressBar1.Minimum, e.ProgressPercentage));
+            progressBar1.Value = System.Math.Min(progressBar1.Maximum, System.Math.Max(progressBar1.Minimum, e.ProgressPercentage));
 
             if (e.UserState is string)
             {

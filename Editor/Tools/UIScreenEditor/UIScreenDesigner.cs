@@ -1,5 +1,5 @@
-﻿using CasaEngine.UserInterface;
-using Control = CasaEngine.UserInterface.Control;
+﻿using CasaEngine.Framework.UserInterface;
+using Control = CasaEngine.Framework.UserInterface.Control;
 
 namespace Editor.Tools.UIScreenEditor
 {

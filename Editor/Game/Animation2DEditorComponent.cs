@@ -1,14 +1,14 @@
 ﻿using CasaEngine.Editor.UndoRedo;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Graphics2D;
-using CasaEngineCommon.Helper;
-using CasaEngine.Game;
-using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Entities;
 using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Assets.Graphics2D;
+using CasaEngine.Framework.Game;
+using CasaEngine.Core.Helper;
+using CasaEngine.Framework.Graphics2D;
 
 namespace Editor.Game
 {

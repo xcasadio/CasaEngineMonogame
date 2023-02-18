@@ -21,7 +21,6 @@
 		<PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\CasaEngineCommon\CasaEngineCommon.Editor.csproj" />
 		<ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
 	</ItemGroup>
 	<ItemGroup>

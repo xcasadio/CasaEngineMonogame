@@ -32,8 +32,8 @@ namespace Editor.Game.Control
         {
             parameters = new PresentationParameters();
 
-            parameters.BackBufferWidth = Math.Max(width, 1);
-            parameters.BackBufferHeight = Math.Max(height, 1);
+            parameters.BackBufferWidth = System.Math.Max(width, 1);
+            parameters.BackBufferHeight = System.Math.Max(height, 1);
             parameters.BackBufferFormat = SurfaceFormat.Color;
             parameters.DepthStencilFormat = DepthFormat.Depth24;
             parameters.DeviceWindowHandle = windowHandle;
@@ -102,8 +102,8 @@ namespace Editor.Game.Control
                 DeviceResetting(this, EventArgs.Empty);
             }
 
-            parameters.BackBufferWidth = Math.Max(parameters.BackBufferWidth, width);
-            parameters.BackBufferHeight = Math.Max(parameters.BackBufferHeight, height);
+            parameters.BackBufferWidth = System.Math.Max(parameters.BackBufferWidth, width);
+            parameters.BackBufferHeight = System.Math.Max(parameters.BackBufferHeight, height);
 
             graphicsDevice.Reset(parameters);
 

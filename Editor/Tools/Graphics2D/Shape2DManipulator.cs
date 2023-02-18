@@ -1,5 +1,4 @@
-﻿using CasaEngine.Core.Math.Shape2D;
-using CasaEngine.Graphics2D;
+﻿using CasaEngine.Core.Maths.Shape2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Editor.Manipulation;
@@ -8,6 +7,7 @@ using CasaEngine.Editor.UndoRedo;
 using Editor.UndoRedo;
 using Editor.Game;
 using Color = Microsoft.Xna.Framework.Color;
+using CasaEngine.Framework.Graphics2D;
 
 namespace Editor.Tools.Graphics2D
 {

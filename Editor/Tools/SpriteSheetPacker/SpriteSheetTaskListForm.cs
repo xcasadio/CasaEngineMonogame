@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using Editor.WinForm;
-using CasaEngineCommon.Logger;
 using Editor.Sprite2DEditor.SpriteSheetPacker.sspack;
 using Editor.WinForm.DocToolkit;
+using CasaEngine.Core.Logger;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {

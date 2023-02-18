@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core.Math.Shape2D;
+﻿using CasaEngine.Core.Maths.Shape2D;
 using CasaEngine.Editor.UndoRedo;
 using Editor.Game;
 

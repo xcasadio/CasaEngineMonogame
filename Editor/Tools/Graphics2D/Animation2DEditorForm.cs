@@ -1,15 +1,15 @@
-﻿using CasaEngine.Game;
-using CasaEngine.Editor.UndoRedo;
+﻿using CasaEngine.Editor.UndoRedo;
 using Editor.Game;
-using CasaEngine.Gameplay.Actor.Event;
 using Editor.Tools.CurveEditor;
 using Microsoft.Xna.Framework;
 using Editor.Sprite2DEditor;
 using CasaEngine.Editor.Tools;
-using CasaEngineCommon.Logger;
 using Editor.Sprite2DEditor.Event;
-using CasaEngine.Assets.Graphics2D;
-using CasaEngine.Entities;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Assets.Graphics2D;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Gameplay.Actor.Event;
 
 namespace Editor.Tools.Graphics2D
 {

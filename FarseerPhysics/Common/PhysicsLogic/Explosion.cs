@@ -382,7 +382,7 @@ namespace FarseerPhysics.Common.PhysicsLogic
                         // the force that is to be applied for this particular ray.
                         // offset is angular coverage. lambda*length of segment is distance.
                         float impulse = (arclen / (MinRays + insertedRays)) * maxForce * 180.0f / MathHelper.Pi *
-                                        (1.0f - Math.Min(1.0f, minlambda));
+                                        (1.0f - System.Math.Min(1.0f, minlambda));
 
                         // We Apply the impulse!!!
                         Vector2 vectImp = Vector2.Dot(impulse * new Vector2((float)Math.Cos(j),

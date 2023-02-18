@@ -1,6 +1,6 @@
 ﻿using System.Xml;
-using CasaEngineCommon.Logger;
-using CasaEngineCommon.Extension;
+using CasaEngine.Core.Extension;
+using CasaEngine.Core.Logger;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker
 {

@@ -476,11 +476,11 @@ namespace FarseerPhysics.Dynamics.Joints
 
                 if (_limitState == LimitState.AtLower)
                 {
-                    _impulse.Z = Math.Max(_impulse.Z, 0.0f);
+                    _impulse.Z = System.Math.Max(_impulse.Z, 0.0f);
                 }
                 else if (_limitState == LimitState.AtUpper)
                 {
-                    _impulse.Z = Math.Min(_impulse.Z, 0.0f);
+                    _impulse.Z = System.Math.Min(_impulse.Z, 0.0f);
                 }
 
                 // f2(1:2) = invK(1:2,1:2) * (-Cdot(1:2) - K(1:2,3) * (f2(3) - f1(3))) + f1(1:2)
@@ -579,7 +579,7 @@ namespace FarseerPhysics.Dynamics.Joints
             Vector3 impulse;
             Vector2 C1 = new Vector2(Vector2.Dot(_perp, d), a2 - a1 - _refAngle);
 
-            linearError = Math.Max(linearError, Math.Abs(C1.X));
+            linearError = System.Math.Max(linearError, Math.Abs(C1.X));
             float angularError = Math.Abs(C1.Y);
 
             if (active)

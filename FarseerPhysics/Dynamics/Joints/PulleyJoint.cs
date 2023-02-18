@@ -122,8 +122,8 @@ namespace FarseerPhysics.Dynamics.Joints
 
             _ant = _lengthA + Ratio * _lengthB;
 
-            MaxLengthA = Math.Min(MaxLengthA, _ant - Ratio * MinPulleyLength);
-            MaxLengthB = Math.Min(MaxLengthB, (_ant - MinPulleyLength) / Ratio);
+            MaxLengthA = System.Math.Min(MaxLengthA, _ant - Ratio * MinPulleyLength);
+            MaxLengthB = System.Math.Min(MaxLengthB, (_ant - MinPulleyLength) / Ratio);
 
             _impulse = 0.0f;
             _limitImpulse1 = 0.0f;
@@ -329,7 +329,7 @@ namespace FarseerPhysics.Dynamics.Joints
                 float Cdot = -Vector2.Dot(_u1, v1) - Ratio * Vector2.Dot(_u2, v2);
                 float impulse = _pulleyMass * (-Cdot);
                 float oldImpulse = _impulse;
-                _impulse = Math.Max(0.0f, _impulse + impulse);
+                _impulse = System.Math.Max(0.0f, _impulse + impulse);
                 impulse = _impulse - oldImpulse;
 
                 Vector2 P1 = -impulse * _u1;
@@ -347,7 +347,7 @@ namespace FarseerPhysics.Dynamics.Joints
                 float Cdot = -Vector2.Dot(_u1, v1);
                 float impulse = -_limitMass1 * Cdot;
                 float oldImpulse = _limitImpulse1;
-                _limitImpulse1 = Math.Max(0.0f, _limitImpulse1 + impulse);
+                _limitImpulse1 = System.Math.Max(0.0f, _limitImpulse1 + impulse);
                 impulse = _limitImpulse1 - oldImpulse;
 
                 Vector2 P1 = -impulse * _u1;
@@ -362,7 +362,7 @@ namespace FarseerPhysics.Dynamics.Joints
                 float Cdot = -Vector2.Dot(_u2, v2);
                 float impulse = -_limitMass2 * Cdot;
                 float oldImpulse = _limitImpulse2;
-                _limitImpulse2 = Math.Max(0.0f, _limitImpulse2 + impulse);
+                _limitImpulse2 = System.Math.Max(0.0f, _limitImpulse2 + impulse);
                 impulse = _limitImpulse2 - oldImpulse;
 
                 Vector2 P2 = -impulse * _u2;
@@ -419,7 +419,7 @@ namespace FarseerPhysics.Dynamics.Joints
                 }
 
                 float C = _ant - length1 - Ratio * length2;
-                linearError = Math.Max(linearError, -C);
+                linearError = System.Math.Max(linearError, -C);
 
                 C = MathUtils.Clamp(C + Settings.LinearSlop, -Settings.MaxLinearCorrection, 0.0f);
                 float impulse = -_pulleyMass * C;
@@ -457,7 +457,7 @@ namespace FarseerPhysics.Dynamics.Joints
                 }
 
                 float C = MaxLengthA - length1;
-                linearError = Math.Max(linearError, -C);
+                linearError = System.Math.Max(linearError, -C);
                 C = MathUtils.Clamp(C + Settings.LinearSlop, -Settings.MaxLinearCorrection, 0.0f);
                 float impulse = -_limitMass1 * C;
 
@@ -489,7 +489,7 @@ namespace FarseerPhysics.Dynamics.Joints
                 }
 
                 float C = MaxLengthB - length2;
-                linearError = Math.Max(linearError, -C);
+                linearError = System.Math.Max(linearError, -C);
                 C = MathUtils.Clamp(C + Settings.LinearSlop, -Settings.MaxLinearCorrection, 0.0f);
                 float impulse = -_limitMass2 * C;
 

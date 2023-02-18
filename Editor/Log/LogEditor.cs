@@ -1,5 +1,4 @@
-﻿using CasaEngineCommon.Logger;
-
+﻿using CasaEngine.Core.Logger;
 
 namespace Editor.Log
 {

@@ -311,8 +311,8 @@ namespace EditorWpf.Controls.MonoGame
             // largest of these controls. But what if we are currently drawing
             // a smaller control? To avoid unwanted stretching, we set the
             // viewport to only use the top left portion of the full backbuffer.
-            var width = Math.Max(1, (int)ActualWidth);
-            var height = Math.Max(1, (int)ActualHeight);
+            var width = System.Math.Max(1, (int)ActualWidth);
+            var height = System.Math.Max(1, (int)ActualHeight);
             GraphicsDevice.Viewport = new Viewport(0, 0, width, height);
         }
 

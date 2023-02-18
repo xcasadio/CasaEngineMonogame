@@ -16,7 +16,6 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CasaEngineCommon\CasaEngineCommon.Editor.csproj" />
     <ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
     <ProjectReference Include="..\FarseerPhysics\Farseer Physics XNA.csproj" />
   </ItemGroup>

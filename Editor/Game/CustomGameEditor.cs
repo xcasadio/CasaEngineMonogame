@@ -1,7 +1,4 @@
-﻿using CasaEngine.Game;
-using CasaEngine.UserInterface;
-using Microsoft.Xna.Framework;
-using CasaEngineCommon.Helper;
+﻿using Microsoft.Xna.Framework;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Editor.Game
