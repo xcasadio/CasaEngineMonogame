@@ -39,14 +39,18 @@ namespace CasaEngine.Core.Helper
                     for (int i = 0; i < elem.Length; ++i)
                     {
                         if (elem[i].VertexElementUsage != VertexElementUsage.Position)
+                        {
                             continue;
+                        }
 
                         posAt = elem[i].Offset;
                         break;
                     }
 
                     if (posAt == -1)
+                    {
                         throw new Exception("No position data?!?!");
+                    }
 
                     for (int i = 0; i < data.Length; i += stride)
                     {
@@ -61,12 +65,35 @@ namespace CasaEngine.Core.Helper
                         Matrix transform = boneTransforms[mesh.ParentBone.Index];
                         vec3 = Vector3.Transform(vec3, transform);
 
-                        if (vec3.X < min.X) min.X = vec3.X;
-                        if (vec3.X > max.X) max.X = vec3.X;
-                        if (vec3.Y < min.Y) min.Y = vec3.Y;
-                        if (vec3.Y > max.Y) max.Y = vec3.Y;
-                        if (vec3.Z < min.Z) min.Z = vec3.Z;
-                        if (vec3.Z > max.Z) max.Z = vec3.Z;
+                        if (vec3.X < min.X)
+                        {
+                            min.X = vec3.X;
+                        }
+
+                        if (vec3.X > max.X)
+                        {
+                            max.X = vec3.X;
+                        }
+
+                        if (vec3.Y < min.Y)
+                        {
+                            min.Y = vec3.Y;
+                        }
+
+                        if (vec3.Y > max.Y)
+                        {
+                            max.Y = vec3.Y;
+                        }
+
+                        if (vec3.Z < min.Z)
+                        {
+                            min.Z = vec3.Z;
+                        }
+
+                        if (vec3.Z > max.Z)
+                        {
+                            max.Z = vec3.Z;
+                        }
                     }
                 }
             }

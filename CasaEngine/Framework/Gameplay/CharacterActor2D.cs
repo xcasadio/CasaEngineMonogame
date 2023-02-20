@@ -1,6 +1,5 @@
 using System.Xml;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Core.Maths.Shape2D;
 using CasaEngine.Engine.Physics2D;
@@ -10,6 +9,7 @@ using CasaEngine.Framework.Assets.Graphics2D;
 using CasaEngine.Framework.Debugger;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Gameplay.Actor;
 using CasaEngine.Framework.Gameplay.Design;
 using CasaEngine.Framework.Graphics2D;

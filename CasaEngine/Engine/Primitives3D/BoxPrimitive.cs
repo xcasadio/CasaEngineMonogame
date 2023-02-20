@@ -5,6 +5,7 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
+using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -13,12 +14,12 @@ namespace CasaEngine.Engine.Primitives3D
     /// <summary>
     /// Geometric primitive class for drawing cubes.
     /// </summary>
-    public
-#if EDITOR
-    partial
-#endif
-    class BoxPrimitive : Geometric3DPrimitive
+    public class BoxPrimitive : GeometricPrimitive
     {
+#if EDITOR
+        float m_Width, m_Height, m_Length;
+#endif
+
         /// <summary>
         /// Constructs a new cube primitive, using default settings.
         /// </summary>
@@ -36,7 +37,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <param name="height_">Y</param>
         /// <param name="length_">Z</param>
         public BoxPrimitive(GraphicsDevice graphicsDevice, float width_, float height_, float length_)
-            : base(Geometric3DPrimitiveType.Cube)
+            : base(GeometricPrimitiveType.Cube)
         {
 #if EDITOR
             m_Width = width_;
@@ -126,9 +127,9 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// 
         /// </summary>
-        void AddVertex(bool dir_)
+        void AddVertex(bool dir)
         {
-            if (dir_)
+            if (dir)
             {
                 AddIndex(CurrentVertex + 0);
                 AddIndex(CurrentVertex + 1);
@@ -182,6 +183,5 @@ namespace CasaEngine.Engine.Primitives3D
 		}
 
 #endif
-
     }
 }

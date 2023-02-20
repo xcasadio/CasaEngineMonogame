@@ -1,10 +1,10 @@
 using CasaEngine.Core.Helper;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
 using CasaEngine.Framework.FrontEnd.Screen;
+using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,15 +13,15 @@ namespace CasaEngine.Framework.Game
 {
     public class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
+#if !FINAL
+        protected string ContentPath = string.Empty;
+#endif
         private readonly GraphicsDeviceManager _graphicsDeviceManager;
         private readonly Renderer2DComponent _renderer2DComponent;
         private ScreenManagerComponent _screenManagerComponent;
         private InputComponent _inputComponent;
         private ShapeRendererComponent _shapeRendererComponent;
-
-#if !FINAL
-        protected string ContentPath = string.Empty;
-#endif
+        private MeshRendererComponent _meshRendererComponent;
 
         private string ProjectFile { get; } = string.Empty;
 
@@ -42,6 +42,11 @@ namespace CasaEngine.Framework.Game
             _inputComponent = new InputComponent(this);
             _screenManagerComponent = new ScreenManagerComponent(this);
             _shapeRendererComponent = new ShapeRendererComponent(this);
+            _meshRendererComponent = new MeshRendererComponent(this);
+
+#if EDITOR
+            new GridComponent(this);
+#endif
 
 #if !FINAL
             var args = Environment.CommandLine.Split(' ');
@@ -51,12 +56,7 @@ namespace CasaEngine.Framework.Game
                 ProjectFile = args[1];
             }
 
-            ContentPath = Directory.GetCurrentDirectory();
-
-            if (args.Length > 2)
-            {
-                ContentPath = args[2];
-            }
+            ContentPath = args.Length > 2 ? args[2] : Path.Combine(Directory.GetCurrentDirectory(), "Content");
 #else
             ContentPath = "Content";
 #endif
@@ -72,7 +72,11 @@ namespace CasaEngine.Framework.Game
         {
             Content.RootDirectory = ContentPath;
             //CasaEngine.Game.Engine.Instance.ProjectManager.Load(ProjectFile);
-            Engine.Instance.ProjectSettings.Load(ProjectFile); //TODO : create hierarchy of the project
+            //TODO : create hierarchy of the project
+            if (!string.IsNullOrWhiteSpace(ProjectFile))
+            {
+                Engine.Instance.ProjectSettings.Load(ProjectFile);
+            }
 
             Window.Title = Engine.Instance.ProjectSettings.WindowTitle;
             Window.AllowUserResizing = Engine.Instance.ProjectSettings.AllowUserResizing;
@@ -90,7 +94,10 @@ namespace CasaEngine.Framework.Game
 
             _graphicsDeviceManager.ApplyChanges();
 
-            Engine.Instance.PluginManager.Load(Engine.Instance.ProjectSettings.GameplayDllName);
+            if (!string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.GameplayDllName))
+            {
+                Engine.Instance.PluginManager.Load(Engine.Instance.ProjectSettings.GameplayDllName);
+            }
 
             base.Initialize();
         }
@@ -110,13 +117,17 @@ namespace CasaEngine.Framework.Game
 
             base.LoadContent();
 
-            if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.FirstWorldLoaded))
+            if (GameInfo.Instance.CurrentWorld == null)
             {
-                throw new InvalidOperationException("FirstWorldLoaded is undefined");
+                if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.FirstWorldLoaded))
+                {
+                    throw new InvalidOperationException("FirstWorldLoaded is undefined");
+                }
+
+                GameInfo.Instance.CurrentWorld = new World.World();
+                GameInfo.Instance.CurrentWorld.Load(Engine.Instance.ProjectSettings.FirstWorldLoaded);
             }
 
-            GameInfo.Instance.CurrentWorld = new World.World();
-            GameInfo.Instance.CurrentWorld.Load(Engine.Instance.ProjectSettings.FirstWorldLoaded);
             GameInfo.Instance.CurrentWorld.Initialize();
 
             _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.PhysicWorld);

@@ -273,7 +273,7 @@ namespace CasaEngine.Core.Packing
                 // Try to double the height of the packing area
                 return selectAnchorRecursive(
                   rectangleWidth, rectangleHeight,
-                  testedPackingAreaWidth, System.Math.Min(testedPackingAreaHeight * 2, PackingAreaHeight)
+                  testedPackingAreaWidth, Math.Min(testedPackingAreaHeight * 2, PackingAreaHeight)
                 );
 
             }
@@ -283,7 +283,7 @@ namespace CasaEngine.Core.Packing
                 // Try to double the width of the packing area
                 return selectAnchorRecursive(
                   rectangleWidth, rectangleHeight,
-                  System.Math.Min(testedPackingAreaWidth * 2, PackingAreaWidth), testedPackingAreaHeight
+                  Math.Min(testedPackingAreaWidth * 2, PackingAreaWidth), testedPackingAreaHeight
                 );
 
             }

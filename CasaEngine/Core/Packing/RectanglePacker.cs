@@ -69,16 +69,10 @@ namespace CasaEngine.Core.Packing
         );
 
         /// <summary>Maximum width the packing area is allowed to have</summary>
-        protected int PackingAreaWidth
-        {
-            get { return packingAreaWidth; }
-        }
+        protected int PackingAreaWidth => packingAreaWidth;
 
         /// <summary>Maximum height the packing area is allowed to have</summary>
-        protected int PackingAreaHeight
-        {
-            get { return packingAreaHeight; }
-        }
+        protected int PackingAreaHeight => packingAreaHeight;
 
         /// <summary>Maximum allowed width of the packing area</summary>
         private int packingAreaWidth;

@@ -11,8 +11,6 @@ namespace CasaEngine.Editor.Assets
         public string FileName;
         public AssetType Type;
 
-        [TypeConverter(typeof(AssetBuildParamCollectionConverter))]
-        public AssetBuildParamCollection Params;
 
         public AssetInfo(int id, string name, AssetType type, string fileName)
         {
@@ -20,7 +18,6 @@ namespace CasaEngine.Editor.Assets
             Name = name;
             Type = type;
             FileName = fileName;
-            Params = new AssetBuildParamCollection();
         }
 
         public override bool Equals(object obj)

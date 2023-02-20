@@ -1,7 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
-
-namespace Editor.Game
+﻿namespace Editor.Game
 {
     /*internal class CustomGameEditor : CustomGame
     {

@@ -44,7 +44,6 @@
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.buildAssetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripMenuItemSourceControlOption = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.debugVerbosityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -178,7 +177,6 @@
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.buildAssetToolStripMenuItem,
             this.toolStripSeparator5,
-            this.toolStripMenuItemSourceControlOption,
             this.toolStripSeparator4,
             this.debugVerbosityToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
@@ -196,13 +194,6 @@
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
             this.toolStripSeparator5.Size = new System.Drawing.Size(190, 6);
-            // 
-            // toolStripMenuItemSourceControlOption
-            // 
-            this.toolStripMenuItemSourceControlOption.Name = "toolStripMenuItemSourceControlOption";
-            this.toolStripMenuItemSourceControlOption.Size = new System.Drawing.Size(193, 22);
-            this.toolStripMenuItemSourceControlOption.Text = "Source Control Option";
-            this.toolStripMenuItemSourceControlOption.Click += new System.EventHandler(this.toolStripMenuItemSourceControlOption_Click);
             // 
             // toolStripSeparator4
             // 
@@ -381,7 +372,6 @@
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem buildAssetToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemSourceControlOption;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem debugVerbosityToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem debugToolStripMenuItem;

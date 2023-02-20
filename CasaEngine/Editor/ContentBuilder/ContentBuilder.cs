@@ -32,7 +32,7 @@ namespace CasaEngine.Editor.ContentBuilder
             // file path, eg. "c:/MyProject/bin/MyPipelineExtension.dll".
         };
         // MSBuild objects used to dynamically build content.
-        Microsoft.Build.Evaluation.Project _buildProject;
+        Project _buildProject;
         ProjectRootElement _projectRootElement;
         BuildParameters _buildParameters;
         readonly List<ProjectItem> _projectItems = new();

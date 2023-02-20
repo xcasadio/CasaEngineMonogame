@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Editor.Game;
 using Control = CasaEngine.Framework.UserInterface.Control;
 using CasaEngine.Framework.UserInterface;
 using CasaEngine.Core.Helper;

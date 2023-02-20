@@ -69,7 +69,6 @@
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.buildAssetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripMenuItemSourceControlOption = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.debugVerbosityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -250,8 +249,8 @@
             // 
             // groupBox2
             // 
-            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Location = new System.Drawing.Point(4, 247);
             this.groupBox2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -264,7 +263,7 @@
             // 
             // buttonLaunchGame
             // 
-            this.buttonLaunchGame.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.buttonLaunchGame.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonLaunchGame.Location = new System.Drawing.Point(48, 560);
             this.buttonLaunchGame.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -326,7 +325,7 @@
             // 
             // label2
             // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.Location = new System.Drawing.Point(4, 3);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
@@ -338,8 +337,8 @@
             // 
             // treeViewFiles
             // 
-            this.treeViewFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.treeViewFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.treeViewFiles.ImageIndex = 0;
             this.treeViewFiles.ImageList = this.imageListWorkspace;
@@ -390,7 +389,7 @@
             // 
             // label3
             // 
-            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.Location = new System.Drawing.Point(4, 3);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
@@ -402,8 +401,8 @@
             // 
             // treeViewChangeList
             // 
-            this.treeViewChangeList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.treeViewChangeList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.treeViewChangeList.ImageIndex = 28;
             this.treeViewChangeList.ImageList = this.imageListWorkspace;
@@ -516,7 +515,6 @@
             this.toolStripSeparator6,
             this.buildAssetToolStripMenuItem,
             this.toolStripSeparator5,
-            this.toolStripMenuItemSourceControlOption,
             this.toolStripSeparator4,
             this.debugVerbosityToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
@@ -545,13 +543,6 @@
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
             this.toolStripSeparator5.Size = new System.Drawing.Size(190, 6);
-            // 
-            // toolStripMenuItemSourceControlOption
-            // 
-            this.toolStripMenuItemSourceControlOption.Name = "toolStripMenuItemSourceControlOption";
-            this.toolStripMenuItemSourceControlOption.Size = new System.Drawing.Size(193, 22);
-            this.toolStripMenuItemSourceControlOption.Text = "Source Control Option";
-            this.toolStripMenuItemSourceControlOption.Click += new System.EventHandler(this.toolStripMenuItemSourceControlOption_Click);
             // 
             // toolStripSeparator4
             // 
@@ -691,7 +682,6 @@
         private System.Windows.Forms.ImageList imageListWorkspace;
         private System.Windows.Forms.Button buttonRefresh;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemSourceControlOption;
         private System.Windows.Forms.TabControl tabControlSourceControl;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;

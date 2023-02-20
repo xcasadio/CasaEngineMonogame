@@ -273,8 +273,8 @@ namespace CasaEngine.Framework.Debugger
                         break;
                     case "frame":
                         var a = int.Parse(subargs[1]);
-                        a = System.Math.Max(a, 1);
-                        a = System.Math.Min(a, MaxSampleFrames);
+                        a = Math.Max(a, 1);
+                        a = Math.Min(a, MaxSampleFrames);
                         TargetSampleFrames = a;
                         break;
                     case "/?":
@@ -373,8 +373,8 @@ namespace CasaEngine.Framework.Debugger
                         else
                         {
                             // Process after first frame.
-                            m.Logs[barIdx].Min = System.Math.Min(m.Logs[barIdx].Min, duration);
-                            m.Logs[barIdx].Max = System.Math.Min(m.Logs[barIdx].Max, duration);
+                            m.Logs[barIdx].Min = Math.Min(m.Logs[barIdx].Min, duration);
+                            m.Logs[barIdx].Max = Math.Min(m.Logs[barIdx].Max, duration);
                             m.Logs[barIdx].Avg += duration;
                             m.Logs[barIdx].Avg *= 0.5f;
 
@@ -587,7 +587,7 @@ namespace CasaEngine.Framework.Debugger
                 if (bar.MarkCount > 0)
                 {
                     height += BarHeight + BarPadding * 2;
-                    maxTime = System.Math.Max(maxTime,
+                    maxTime = Math.Max(maxTime,
                                             bar.Markers[bar.MarkCount - 1].EndTime);
                 }
             }
@@ -600,18 +600,18 @@ namespace CasaEngine.Framework.Debugger
 
             if (maxTime > sampleSpan)
             {
-                frameAdjust = System.Math.Max(0, frameAdjust) + 1;
+                frameAdjust = Math.Max(0, frameAdjust) + 1;
             }
             else
             {
-                frameAdjust = System.Math.Min(0, frameAdjust) - 1;
+                frameAdjust = Math.Min(0, frameAdjust) - 1;
             }
 
             if (Math.Abs(frameAdjust) > AutoAdjustDelay)
             {
-                sampleFrames = System.Math.Min(MaxSampleFrames, sampleFrames);
+                sampleFrames = Math.Min(MaxSampleFrames, sampleFrames);
                 sampleFrames =
-                    System.Math.Max(TargetSampleFrames, (int)(maxTime / frameSpan) + 1);
+                    Math.Max(TargetSampleFrames, (int)(maxTime / frameSpan) + 1);
 
                 frameAdjust = 0;
             }
@@ -643,7 +643,7 @@ namespace CasaEngine.Framework.Debugger
                         var sx = (int)(position.X + bt * msToPs);
                         var ex = (int)(position.X + et * msToPs);
                         rc.X = sx;
-                        rc.Width = System.Math.Max(ex - sx, 1);
+                        rc.Width = Math.Max(ex - sx, 1);
 
                         _renderer2DComponent.AddSprite2D(texture, rc, Point.Zero, Vector2.Zero, 0.0f, Vector2.One, bar.Markers[j].Color, depth_ + 0.08f, SpriteEffects.None);
                     }

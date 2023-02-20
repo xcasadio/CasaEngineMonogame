@@ -66,36 +66,18 @@ namespace CasaEngine.Core.Collection
                 this.value = value;
             }
 
-            public T Value
-            {
-                get
-                {
-                    return value;
-                }
-            }
+            public T Value => value;
 
             public Node Previous
             {
-                get
-                {
-                    return previous;
-                }
-                set
-                {
-                    previous = value;
-                }
+                get => previous;
+                set => previous = value;
             }
 
             public Node Next
             {
-                get
-                {
-                    return next;
-                }
-                set
-                {
-                    next = value;
-                }
+                get => next;
+                set => next = value;
             }
         }
 
@@ -261,7 +243,7 @@ namespace CasaEngine.Core.Collection
 
             if (collection == null)
             {
-                throw new ArgumentNullException("collection");
+                throw new ArgumentNullException(nameof(collection));
             }
 
 
@@ -545,24 +527,12 @@ namespace CasaEngine.Core.Collection
         /// Gets a value indicating whether access to the Deque is synchronized 
         /// (thread-safe).
         /// </summary>
-        public virtual bool IsSynchronized
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool IsSynchronized => false;
 
         /// <summary>
         /// Gets the number of elements contained in the Deque.
         /// </summary>
-        public virtual int Count
-        {
-            get
-            {
-                return count;
-            }
-        }
+        public virtual int Count => count;
 
         /// <summary>
         /// Copies the Deque elements to an existing one-dimensional Array, 
@@ -580,11 +550,11 @@ namespace CasaEngine.Core.Collection
 
             if (array == null)
             {
-                throw new ArgumentNullException("array");
+                throw new ArgumentNullException(nameof(array));
             }
             else if (index < 0)
             {
-                throw new ArgumentOutOfRangeException("index", index,
+                throw new ArgumentOutOfRangeException(nameof(index), index,
                     "Index is less than zero.");
             }
             else if (array.Rank > 1)
@@ -617,14 +587,7 @@ namespace CasaEngine.Core.Collection
         /// <summary>
         /// Gets an object that can be used to synchronize access to the Deque.
         /// </summary>
-        public virtual object SyncRoot
-        {
-            get
-            {
-                return this;
-            }
-        }
-
+        public virtual object SyncRoot => this;
 
 
         /// <summary>

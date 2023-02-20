@@ -61,7 +61,7 @@ namespace CasaEngine.Framework.Gameplay
 
         public void AddOrSetAnimation(int index, string name)
         {
-            var anim = Framework.Game.Engine.Instance.ObjectManager.GetObjectByPath(name) as Animation2D;
+            var anim = Game.Engine.Instance.ObjectManager.GetObjectByPath(name) as Animation2D;
 
             if (anim != null)
             {
@@ -87,7 +87,7 @@ namespace CasaEngine.Framework.Gameplay
                 index++;
             }
 
-            var anim = Framework.Game.Engine.Instance.Asset2DManager.GetAnimation2DByName(name);
+            var anim = Game.Engine.Instance.Asset2DManager.GetAnimation2DByName(name);
 
             if (anim != null)
             {

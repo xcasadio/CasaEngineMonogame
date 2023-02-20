@@ -276,7 +276,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             string assetFile;
 
 #if EDITOR
-            assetFile = Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
+            assetFile = Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                 ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + _assetFileNames[0];
 #else
             assetFile = CasaEngine.Game.Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileNames[0];

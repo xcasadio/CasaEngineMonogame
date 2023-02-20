@@ -124,16 +124,11 @@ namespace CasaEngine.Core.Helper
         /// Get random color
         /// </summary>
         /// <returns>Color</returns>
-        public static Color RandomColor
-        {
-            get
-            {
-                return new Color(new Vector3(
-                    GetRandomFloat(0f, 1.0f),
-                    GetRandomFloat(0f, 1.0f),
-                    GetRandomFloat(0f, 1.0f)));
-            }
-        }
+        public static Color RandomColor =>
+            new Color(new Vector3(
+                GetRandomFloat(0f, 1.0f),
+                GetRandomFloat(0f, 1.0f),
+                GetRandomFloat(0f, 1.0f)));
 
         /// <summary>
         /// Get random normal Vector3

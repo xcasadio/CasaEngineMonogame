@@ -5,7 +5,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -14,27 +13,26 @@ namespace CasaEngine.Engine.Primitives3D
     /// <summary>
     /// Geometric primitive class for drawing toruses.
     /// </summary>
-    public class TorusPrimitive : Geometric3DPrimitive
+    public class TorusPrimitive : GeometricPrimitive
     {
         /// <summary>
         /// Constructs a new torus primitive, using default settings.
         /// </summary>
-        public TorusPrimitive(GraphicsDevice graphicsDevice)
-            : this(graphicsDevice, 1, 0.333f, 32)
+        public TorusPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 0.333f, 32)
         {
         }
-
 
         /// <summary>
         /// Constructs a new torus primitive,
         /// with the specified size and tessellation level.
         /// </summary>
-        public TorusPrimitive(GraphicsDevice graphicsDevice,
-                              float diameter, float thickness, int tessellation)
-            : base(Geometric3DPrimitiveType.Torus)
+        public TorusPrimitive(GraphicsDevice graphicsDevice, float diameter, float thickness, int tessellation)
+            : base(GeometricPrimitiveType.Torus)
         {
             if (tessellation < 3)
-                throw new ArgumentOutOfRangeException("tessellation");
+            {
+                throw new ArgumentOutOfRangeException(nameof(tessellation));
+            }
 
             Vector2 uv = Vector2.Zero;
 

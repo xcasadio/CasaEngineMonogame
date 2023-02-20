@@ -4,8 +4,9 @@ namespace CasaEngine.Framework.Game
     public enum ComponentUpdateOrder
     {
         GameManager = 500,
-        DebugPhysics = 501,
-        Renderer2DComponent = 502,
+        DebugPhysics,
+        Renderer2DComponent,
+        MeshComponent,
         PickBuffer,
         Input = 510,
         Manipulator,
@@ -35,6 +36,7 @@ namespace CasaEngine.Framework.Game
         ParticleComponent = 554,
         ScreenLogComponent = 556,
         Default = 5100,
+        MeshComponent,
         Renderer2DComponent = 5150,
         DebugPhysics = 5200,
         Manipulator = 51000

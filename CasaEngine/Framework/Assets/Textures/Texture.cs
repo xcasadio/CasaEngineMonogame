@@ -91,7 +91,7 @@ namespace CasaEngine.Framework.Assets.Textures
 
         public Rectangle TextureRectangle => new(0, 0, Width, Height);
 
-        public Core.Helpers.Size Size { get; protected set; }
+        public Size Size { get; protected set; }
 
 
 

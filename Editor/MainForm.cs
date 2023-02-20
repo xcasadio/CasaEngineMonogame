@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Reflection;
 using CasaEngine.Editor.Assets;
 using Editor.Log;
-using Editor.SourceControl;
 using Editor.Sprite2DEditor.SpriteSheetPacker;
 using Editor.WinForm.DocToolkit;
 using WeifenLuo.WinFormsUI.Docking;
@@ -12,7 +11,6 @@ using Editor.Tools.Graphics2D;
 using Editor.Tools.UIScreenEditor;
 using Editor.Tools.Font;
 using Editor.Tools.SkinUIEditor;
-using CasaEngine.Editor.SourceControl;
 using Font = CasaEngine.Framework.Assets.Fonts.Font;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets.Graphics2D;
@@ -299,26 +297,6 @@ namespace Editor
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripMenuItemSourceControlOption_Click(object sender, EventArgs e)
-        {
-            SourceControlConnectionForm form = new SourceControlConnectionForm();
-
-            if (form.ShowDialog(this) == DialogResult.OK)
-            {
-                SourceControlManager.Instance.Server = form.Server;
-                SourceControlManager.Instance.User = form.User;
-                SourceControlManager.Instance.Workspace = form.Workspace;
-                SourceControlManager.Instance.Password = form.Password;
-                SourceControlManager.Instance.SaveConfig(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath);
-                SourceControlManager.Instance.SourceControl.Connect();
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void debugToolStripMenuItem_Click(object sender, EventArgs e)
         {
             debugToolStripMenuItem.Checked = true;
@@ -423,7 +401,6 @@ namespace Editor
             ClearProject();
             Engine.Instance.ProjectManager.Load(fileName_);
             CheckExternalTool();
-            SourceControlManager.Instance.LoadConfig(Path.GetDirectoryName(fileName_) + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath);
 
             Engine.Instance.AssetContentManager.RootDirectory = Engine.Instance.ProjectManager.ProjectPath +
                                                                 Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
@@ -722,16 +699,13 @@ namespace Editor
                     "building " + info.Name + " ... (" + percent + "/" + (Engine.Instance.AssetManager.Assets.Length + 1) + ")");
 
                 fi = new FileInfo(info.FileName);
-                if (File.Exists(xnbPath + info.Name + ".xnb") == false
-                    || Engine.Instance.AssetManager.AssetNeedToBeRebuild(info) == true)
+                if (File.Exists(xnbPath + info.Name + ".xnb") == false)
                 {
                     Engine.Instance.AssetManager.RebuildAsset(info);
                 }
 
                 percent++;
             }
-
-            Engine.Instance.AssetManager.SaveAssetBuildInfo();
 
             //project File
             destFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened);

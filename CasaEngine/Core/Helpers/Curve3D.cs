@@ -212,7 +212,7 @@ namespace CasaEngine.Core.Helpers
                 dv = next.Value - prev.Value;
             }
 
-            if (System.Math.Abs(dv) < float.Epsilon)
+            if (Math.Abs(dv) < float.Epsilon)
             {
                 cur.TangentIn = 0;
                 cur.TangentOut = 0;
@@ -232,8 +232,8 @@ namespace CasaEngine.Core.Helpers
             var circle = new Curve3D();
             for (float i = 0; i < 3.1416f * 2; i = i + 3.1416f / numberOfPoints)
             {
-                var x = (float)System.Math.Sin(i) * radius;
-                var y = (float)System.Math.Cos(i) * radius;
+                var x = (float)Math.Sin(i) * radius;
+                var y = (float)Math.Cos(i) * radius;
                 circle.AddPoint(Vector3.Transform(new Vector3(x, y, 0), worldMatrix), i);
             }
             circle.Close();
@@ -255,7 +255,7 @@ namespace CasaEngine.Core.Helpers
 
             for (var indexer = 0; indexer < sides; indexer++)
             {
-                var coord = new Vector3(sideLenght * (float)System.Math.Cos(indexer * 2 * System.Math.PI / sides), sideLenght * (float)System.Math.Sin(indexer * 2 * System.Math.PI / sides), 0);
+                var coord = new Vector3(sideLenght * (float)Math.Cos(indexer * 2 * Math.PI / sides), sideLenght * (float)Math.Sin(indexer * 2 * Math.PI / sides), 0);
 
                 if (sides % 2 == 0) // even
                 {
@@ -290,8 +290,8 @@ namespace CasaEngine.Core.Helpers
             // Math things
             var sl = sideLength;
             var hs = sl / 2;
-            var ls = (float)System.Math.Sin((double)MathHelper.ToRadians(60)) * sl;
-            var h = (float)System.Math.Sin((double)MathHelper.ToRadians(15)) * hs;
+            var ls = (float)Math.Sin((double)MathHelper.ToRadians(60)) * sl;
+            var h = (float)Math.Sin((double)MathHelper.ToRadians(15)) * hs;
 
             // Coords generation
             var coords = new Vector3[6];

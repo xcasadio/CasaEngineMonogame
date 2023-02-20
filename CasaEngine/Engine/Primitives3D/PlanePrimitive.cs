@@ -3,14 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D
 {
-    public
-#if EDITOR
-    partial
-#endif
-    class PlanePrimitive
-        : Geometric3DPrimitive
+    public class PlanePrimitive : GeometricPrimitive
     {
-
+#if EDITOR
+        Vector2 m_Scale;
+        int m_TessellationHorizontal, m_TessellationVertical;
+#endif
 
         /// <summary>
         /// Constructs a new sphere primitive, using default settings.
@@ -27,13 +25,17 @@ namespace CasaEngine.Engine.Primitives3D
         public PlanePrimitive(GraphicsDevice graphicsDevice,
                                 float sizeH_, float sizeV_,
                                int tessellationHorizontal_, int tessellationVertical_)
-            : base(Geometric3DPrimitiveType.Plane)
+            : base(GeometricPrimitiveType.Plane)
         {
             if (tessellationHorizontal_ < 1)
+            {
                 throw new ArgumentOutOfRangeException("PlanePrimitive() : tessellationHorizontal_");
+            }
 
             if (tessellationVertical_ < 1)
+            {
                 throw new ArgumentOutOfRangeException("PlanePrimitive() : tessellationVertical_");
+            }
 
 #if EDITOR
             m_Scale = new Vector2(sizeH_, sizeV_);

@@ -74,7 +74,7 @@
                 foreach (var pair in _memberSets)
                 {
                     var contribution =
-                        System.Math.Min(pair.Value.CalculateDom(_dMinRange + samp * stepSize), pair.Value.Dom);
+                        Math.Min(pair.Value.CalculateDom(_dMinRange + samp * stepSize), pair.Value.Dom);
 
                     totalArea += contribution;
 

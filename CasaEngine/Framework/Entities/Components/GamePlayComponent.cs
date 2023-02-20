@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Entities.Components;
 
 public class GamePlayComponent : Component
 {
-    public static readonly int ComponentId = 1;
+    public static readonly int ComponentId = (int)ComponentIds.GamePlay;
 
     public IExternalComponent? ExternalComponent { get; set; }
 

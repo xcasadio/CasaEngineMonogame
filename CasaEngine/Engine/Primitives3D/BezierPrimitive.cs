@@ -15,14 +15,14 @@ namespace CasaEngine.Engine.Primitives3D
     /// Base class for primitives that are made out of cubic bezier patches
     /// (a type of curved surface). This is used by the TeapotPrimitive.
     /// </summary>
-    public abstract class BezierPrimitive : Geometric3DPrimitive
+    public abstract class BezierPrimitive : GeometricPrimitive
     {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="type_"></param>
-        protected BezierPrimitive(Geometric3DPrimitiveType type_)
+        protected BezierPrimitive(GeometricPrimitiveType type_)
             : base(type_)
         {
         }
@@ -116,7 +116,9 @@ namespace CasaEngine.Engine.Primitives3D
 
                         // If this patch is mirrored, we must invert the normal.
                         if (isMirrored)
+                        {
                             normal = -normal;
+                        }
                     }
                     else
                     {
@@ -133,9 +135,13 @@ namespace CasaEngine.Engine.Primitives3D
                         // it's good enough to make the teapot work correctly!
 
                         if (position.Y > 0)
+                        {
                             normal = Vector3.Up;
+                        }
                         else
+                        {
                             normal = Vector3.Down;
+                        }
                     }
 
                     // Create the vertex.

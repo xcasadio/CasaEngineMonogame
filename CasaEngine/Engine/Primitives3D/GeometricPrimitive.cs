@@ -1,25 +1,16 @@
 ﻿//-----------------------------------------------------------------------------
-// GeometricPrimitive.cs
+// Geometric3dPrimitive.cs
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
+using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D
 {
-    public enum GeometricPrimitiveType
-    {
-        Cube,
-        Cylinder,
-        Plane,
-        Sphere,
-        Teapot,
-        Torus
-    }
-
     /// <summary>
     /// Base class for simple geometric primitive models. This provides a vertex
     /// buffer, an index buffer, plus methods for drawing the model. Classes for
@@ -27,12 +18,7 @@ namespace CasaEngine.Engine.Primitives3D
     /// derived from this common base, and use the AddVertex and AddIndex methods
     /// to specify their geometry.
     /// </summary>
-    public abstract
-#if EDITOR
-    partial
-#endif
-    class GeometricPrimitive
-        : IDisposable
+    public abstract class GeometricPrimitive : IDisposable
     {
         GeometricPrimitiveType m_Type;
 
@@ -51,10 +37,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Gets VertexDeclaration
         /// </summary>
-        public VertexDeclaration VertexDeclaration
-        {
-            get { return VertexPositionNormalTexture.VertexDeclaration; }
-        }
+        public VertexDeclaration VertexDeclaration => VertexPositionNormalTexture.VertexDeclaration;
 
         /// <summary>
         /// 
@@ -62,6 +45,17 @@ namespace CasaEngine.Engine.Primitives3D
         protected GeometricPrimitive(GeometricPrimitiveType type_)
         {
             m_Type = type_;
+        }
+
+
+
+        public Mesh CreateMesh()
+        {
+            var mesh = new Mesh();
+            mesh.AddVertices(vertices);
+            mesh.AddIndices(indices);
+
+            return mesh;
         }
 
         /// <summary>
@@ -80,7 +74,9 @@ namespace CasaEngine.Engine.Primitives3D
         protected void AddIndex(int index)
         {
             if (index > ushort.MaxValue)
-                throw new ArgumentOutOfRangeException("index");
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
 
             indices.Add((ushort)index);
         }
@@ -89,10 +85,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// Queries the index of the current vertex. This starts at
         /// zero, and increments every time AddVertex is called.
         /// </summary>
-        protected int CurrentVertex
-        {
-            get { return vertices.Count; }
-        }
+        protected int CurrentVertex => vertices.Count;
 
         /// <summary>
         /// Once all the geometry has been specified by calling AddVertex and AddIndex,
@@ -100,20 +93,12 @@ namespace CasaEngine.Engine.Primitives3D
         /// for efficient rendering.
         protected void InitializePrimitive(GraphicsDevice graphicsDevice)
         {
-            // Create a vertex buffer, and copy our vertex data into it.
-            vertexBuffer = new VertexBuffer(graphicsDevice,
-                                            typeof(VertexPositionNormalTexture),
-                                            vertices.Count, BufferUsage.None);
-
+            vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), vertices.Count, BufferUsage.None);
             vertexBuffer.SetData(vertices.ToArray());
 
-            // Create an index buffer, and copy our index data into it.
-            indexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort),
-                                          indices.Count, BufferUsage.None);
-
+            indexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), indices.Count, BufferUsage.None);
             indexBuffer.SetData(indices.ToArray());
 
-            // Create a BasicEffect, which will be used to render the primitive.
             basicEffect = new BasicEffect(graphicsDevice);
 
             basicEffect.EnableDefaultLighting();
@@ -145,13 +130,19 @@ namespace CasaEngine.Engine.Primitives3D
             if (disposing)
             {
                 if (vertexBuffer != null)
+                {
                     vertexBuffer.Dispose();
+                }
 
                 if (indexBuffer != null)
+                {
                     indexBuffer.Dispose();
+                }
 
                 if (basicEffect != null)
+                {
                     basicEffect.Dispose();
+                }
             }
         }
 
@@ -168,7 +159,7 @@ namespace CasaEngine.Engine.Primitives3D
 
             int primitiveCount = indices.Count / 3;
 
-            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, primitiveCount);
+            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, vertices.Count, primitiveCount);
         }
 
         /// <summary>
@@ -180,15 +171,16 @@ namespace CasaEngine.Engine.Primitives3D
         public void Draw(Effect effect)
         {
             GraphicsDevice graphicsDevice = effect.GraphicsDevice;
+
             graphicsDevice.SetVertexBuffer(vertexBuffer);
             graphicsDevice.Indices = indexBuffer;
+
+            //effect.Parameters["WorldViewProj"] = ;
 
             foreach (EffectPass effectPass in effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-
                 int primitiveCount = indices.Count / 3;
-
                 graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, primitiveCount);
             }
         }
@@ -237,29 +229,80 @@ namespace CasaEngine.Engine.Primitives3D
             Draw(basicEffect);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="binR_"></param>
-        /// <param name="linearize"></param>
-        //static public GeometricPrimitive Load(GraphicsDevice graphicDevice_, BinaryReader binR_, bool linearize)
-        //{
-        //    GeometricPrimitiveType type = (GeometricPrimitiveType)binR_.ReadInt32();
-        //
-        //    switch (type)
-        //    {
-        //        case GeometricPrimitiveType.Plane:
-        //            return PlanePrimitive.LoadPlane(graphicDevice_, binR_, linearize);
-        //
-        //        case GeometricPrimitiveType.Sphere:
-        //            return SpherePrimitive.LoadSphere(graphicDevice_, binR_, linearize);
-        //
-        //        case GeometricPrimitiveType.Cube:
-        //            return BoxPrimitive.LoadCube(graphicDevice_, binR_, linearize);
-        //
-        //        default:
-        //            throw new ArgumentException("GeometricPrimitive.Load() : GeometricPrimitiveType is unknown");
-        //    }
-        //}
+#if EDITOR
+        public List<Vector3> Vertex
+        {
+            get
+            {
+                List<Vector3> list = new List<Vector3>();
+
+                foreach (VertexPositionNormalTexture v in vertices)
+                {
+                    list.Add(v.Position);
+                }
+
+                return list;
+            }
+        }
+#endif
+
+#if BINARY_FORMAT
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="binR_"></param>
+		/// <param name="linearize"></param>
+		static public GeometricPrimitive Load(GraphicsDevice graphicDevice_, BinaryReader binR_, bool linearize)
+		{
+			Geometric3DPrimitiveType type = (Geometric3DPrimitiveType)binR_.ReadInt32();
+
+			switch (type)
+			{
+				case Geometric3DPrimitiveType.Plane:
+					return PlanePrimitive.LoadPlane(graphicDevice_, binR_, linearize);
+
+				case Geometric3DPrimitiveType.Sphere:
+					return SpherePrimitive.LoadSphere(graphicDevice_, binR_, linearize);
+
+				case Geometric3DPrimitiveType.Cube:
+					return BoxPrimitive.LoadCube(graphicDevice_, binR_, linearize);
+
+				default:
+					throw new ArgumentException("Geometric3dPrimitive.Load() : Geometric3DPrimitiveType is unknown");
+			}
+		}
+
+#elif XML_FORMAT
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="graphicDevice_"></param>
+		/// <param name="el_"></param>
+		/// <returns></returns>
+		static public GeometricPrimitive Load(GraphicsDevice graphicDevice_, XmlElement el_)
+		{
+			XmlElement meshNode = (XmlElement)el_.SelectSingleNode("Mesh");
+			Geometric3DPrimitiveType type = (Geometric3DPrimitiveType)int.Parse(meshNode.Attributes["type"].Value);
+
+			switch (type)
+			{
+				/*case Geometric3DPrimitiveType.Plane:
+					return PlanePrimitive.LoadPlane(graphicDevice_, el_);*/
+
+				case Geometric3DPrimitiveType.Sphere:
+					return SpherePrimitive.LoadSphere(graphicDevice_, meshNode);
+
+				case Geometric3DPrimitiveType.Cube:
+					return BoxPrimitive.LoadCube(graphicDevice_, meshNode);
+
+				default:
+					throw new ArgumentException("Geometric3dPrimitive.Load() : Geometric3DPrimitiveType is unknown");
+			}
+		}
+
+#endif
+
     }
 }

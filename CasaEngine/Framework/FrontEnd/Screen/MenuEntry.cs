@@ -70,11 +70,11 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
             if (isSelected)
             {
-                _selectionFade = System.Math.Min(_selectionFade + fadeSpeed, 1);
+                _selectionFade = Math.Min(_selectionFade + fadeSpeed, 1);
             }
             else
             {
-                _selectionFade = System.Math.Max(_selectionFade - fadeSpeed, 0);
+                _selectionFade = Math.Max(_selectionFade - fadeSpeed, 0);
             }
         }
 

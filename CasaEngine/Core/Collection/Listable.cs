@@ -65,39 +65,26 @@ namespace CasaEngine.Core.Collection
         /// <summary>
         /// Gets the data of the Listable as a List. Useful for the AddRange method
         /// </summary>
-        public List<T> List
-        {
-            get { return listData; }
-        }
+        public List<T> List => listData;
 
         /// <summary>
         /// Gets a List of elements by its name (the name is the key on the dictionary)
         /// </summary>
         /// <param name="name">The name used as key</param>
         /// <returns>The list of elements that are contained in that key</returns>
-        public List<T> this[string name]
-        {
-            get { return hashData[name]; }
-        }
+        public List<T> this[string name] => hashData[name];
 
         /// <summary>
         /// Gets and element by its index
         /// </summary>
         /// <param name="index">The index of the element to get</param>
         /// <returns>The element at the index</returns>
-        public T this[int index]
-        {
-            get { return listData[index]; }
-        }
+        public T this[int index] => listData[index];
 
         /// <summary>
         /// Gets the number of elements in the Listable
         /// </summary>
-        public int Count
-        {
-            get { return listData.Count; }
-        }
-
+        public int Count => listData.Count;
 
 
         /// <summary>
@@ -305,39 +292,26 @@ namespace CasaEngine.Core.Collection
         /// <summary>
         /// Gets the data of the ListableString as a List. Useful for the AddRange method
         /// </summary>
-        public List<object> List
-        {
-            get { return listData; }
-        }
+        public List<object> List => listData;
 
         /// <summary>
         /// Gets an element by its key
         /// </summary>
         /// <param name="key">The key</param>
         /// <returns>The element that is contained in that key</returns>
-        public object this[string key]
-        {
-            get { return hashData[key]; }
-        }
+        public object this[string key] => hashData[key];
 
         /// <summary>
         /// Gets and element by its index
         /// </summary>
         /// <param name="index">The index of the element to get</param>
         /// <returns>The element at the index</returns>s
-        public object this[int index]
-        {
-            get { return listData[index]; }
-        }
+        public object this[int index] => listData[index];
 
         /// <summary>
         /// Gets the number of elements in the ListableString
         /// </summary>
-        public int Count
-        {
-            get { return listData.Count; }
-        }
-
+        public int Count => listData.Count;
 
 
         /// <summary>
@@ -444,38 +418,25 @@ namespace CasaEngine.Core.Collection
         /// Return the data as a List. Useful for the AddRange method.
         /// </summary>
         /// <value>The list of elements of the collection</value>
-        public List<T> List
-        {
-            get { return listData; }
-        }
+        public List<T> List => listData;
 
         /// <summary>
         /// Name indexer. To use the collection as a Dictionary.
         /// </summary>
         /// <value>The T element which key is "name"</value>
-        public T this[string name]
-        {
-            get { return hashData[name]; }
-        }
+        public T this[string name] => hashData[name];
 
         /// <summary>
         /// Index indexer. To use the container as a List.
         /// </summary>
         /// <value>The T element in the index position</value>
-        public T this[int index]
-        {
-            get { return listData[index]; }
-        }
+        public T this[int index] => listData[index];
 
         /// <summary>
         /// Gets the number of elements in the collection.
         /// </summary>
         /// <value>The count of elements</value>
-        public int Count
-        {
-            get { return listData.Count; }
-        }
-
+        public int Count => listData.Count;
 
 
         /// <summary>

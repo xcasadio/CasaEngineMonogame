@@ -38,16 +38,24 @@ namespace CasaEngine.Engine.Primitives2D
             if (disposing)
             {
                 if (vertexDeclaration != null)
+                {
                     vertexDeclaration.Dispose();
+                }
 
                 if (vertexBuffer != null)
+                {
                     vertexBuffer.Dispose();
+                }
 
                 if (indexBuffer != null)
+                {
                     indexBuffer.Dispose();
+                }
 
                 if (basicEffect != null)
+                {
                     basicEffect.Dispose();
+                }
             }
         }
 
@@ -67,7 +75,9 @@ namespace CasaEngine.Engine.Primitives2D
         protected void AddIndex(int index)
         {
             if (index > ushort.MaxValue)
-                throw new ArgumentOutOfRangeException("index");
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
 
             indices.Add((ushort)index);
         }
@@ -76,10 +86,7 @@ namespace CasaEngine.Engine.Primitives2D
         /// Queries the index of the current vertex. This starts at
         /// zero, and increments every time AddVertex is called.
         /// </summary>
-        protected int CurrentVertex
-        {
-            get { return vertices.Count; }
-        }
+        protected int CurrentVertex => vertices.Count;
 
         /// <summary>
         /// Once all the geometry has been specified by calling AddVertex and AddIndex,

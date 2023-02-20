@@ -5,12 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets
 {
-    public abstract
-#if EDITOR
-    partial
-#endif
-    class Asset
-        : Disposable, ISaveLoad
+    public abstract class Asset : Disposable
     {
 
         public event EventHandler Disposed;
@@ -53,7 +48,7 @@ namespace CasaEngine.Framework.Assets
             Id = _uniqueIdCounter;
             _uniqueIdCounter++;
 
-            Framework.Game.Engine.Instance.AssetContentManager.AddAsset(this);
+            Game.Engine.Instance.AssetContentManager.AddAsset(this);
         }
 
 

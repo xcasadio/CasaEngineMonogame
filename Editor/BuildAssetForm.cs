@@ -60,7 +60,7 @@ namespace Editor
             }
             else
             {
-                propertyGrid1.SelectedObject = ((AssetInfo)listView1.SelectedItems[0].Tag).Params;
+                propertyGrid1.SelectedObject = listView1.SelectedItems[0];
             }
         }
     }

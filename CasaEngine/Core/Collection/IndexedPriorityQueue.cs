@@ -79,7 +79,7 @@ namespace CasaEngine.Core.Collection
         /// </summary>
         public List<T> IndexedElements
         {
-            get { return indexedElements; }
+            get => indexedElements;
             set
             {
                 indexedElements = value;

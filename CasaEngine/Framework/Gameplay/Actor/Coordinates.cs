@@ -20,7 +20,7 @@ public class Coordinates
     [Category("Coordinates")]
     public Matrix LocalMatrix
     {
-        get { return _localMatrix; }
+        get => _localMatrix;
         set
         {
             _localMatrix = value;

@@ -42,10 +42,12 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         public TeapotPrimitive(GraphicsDevice graphicsDevice,
                                float size, int tessellation)
-            : base(Geometric3DPrimitiveType.Teapot)
+            : base(GeometricPrimitiveType.Teapot)
         {
             if (tessellation < 1)
-                throw new ArgumentOutOfRangeException("tessellation");
+            {
+                throw new ArgumentOutOfRangeException(nameof(tessellation));
+            }
 
             foreach (TeapotPatch patch in TeapotPatches)
             {
@@ -108,8 +110,8 @@ namespace CasaEngine.Engine.Primitives3D
             {
                 Debug.Assert(indices.Length == 16);
 
-                this.Indices = indices;
-                this.MirrorZ = mirrorZ;
+                Indices = indices;
+                MirrorZ = mirrorZ;
             }
         }
 

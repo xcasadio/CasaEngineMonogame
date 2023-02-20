@@ -268,17 +268,17 @@ namespace CasaEngine.Core.Helpers
             }
             if (x > 0)
             {
-                return (float)System.Math.Atan(y / x);
+                return (float)Math.Atan(y / x);
             }
 
             if (x < 0)
             {
                 if (y > 0)
                 {
-                    return (float)System.Math.Atan(y / x) + MathHelper.Pi;
+                    return (float)Math.Atan(y / x) + MathHelper.Pi;
                 }
 
-                return (float)System.Math.Atan(y / x) - MathHelper.Pi;
+                return (float)Math.Atan(y / x) - MathHelper.Pi;
             }
             return 0;
         } // ArcTanAngle
@@ -287,7 +287,7 @@ namespace CasaEngine.Core.Helpers
         {
             var angle = new Vector3();
             var v3 = Vector3.Normalize(location - from);
-            angle.X = (float)System.Math.Asin(v3.Y);
+            angle.X = (float)Math.Asin(v3.Y);
             angle.Y = ArcTanAngle(-v3.Z, -v3.X);
             return angle;
         } // AngleTo
@@ -317,21 +317,21 @@ namespace CasaEngine.Core.Helpers
             }
 
             // Special cases.
-            if (rotationaxes.Y <= (float)-System.Math.PI)
+            if (rotationaxes.Y <= (float)-Math.PI)
             {
-                rotationaxes.Y = (float)System.Math.PI;
+                rotationaxes.Y = (float)Math.PI;
             }
 
-            if (rotationaxes.Z <= (float)-System.Math.PI)
+            if (rotationaxes.Z <= (float)-Math.PI)
             {
-                rotationaxes.Z = (float)System.Math.PI;
+                rotationaxes.Z = (float)Math.PI;
             }
 
-            if (rotationaxes.Y >= System.Math.PI && rotationaxes.Z >= System.Math.PI)
+            if (rotationaxes.Y >= Math.PI && rotationaxes.Z >= Math.PI)
             {
                 rotationaxes.Y = 0;
                 rotationaxes.Z = 0;
-                rotationaxes.X = (float)System.Math.PI - rotationaxes.X;
+                rotationaxes.X = (float)Math.PI - rotationaxes.X;
             }
 
             return new Vector3(rotationaxes.Y, rotationaxes.X, rotationaxes.Z);

@@ -50,8 +50,8 @@ namespace CasaEngine.Core.Logger
         /// </summary>
         public LogVerbosity Verbosity
         {
-            get { return m_Verbosity; }
-            set { m_Verbosity = value; }
+            get => m_Verbosity;
+            set => m_Verbosity = value;
         }
 
 

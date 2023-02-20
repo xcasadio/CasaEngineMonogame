@@ -278,24 +278,12 @@ namespace CasaEngine.Core.Collection
         /// <summary>
         /// Number of elements in the heap
         /// </summary>
-        public int Count
-        {
-            get
-            {
-                return heapElements.Count;
-            }
-        }
+        public int Count => heapElements.Count;
 
         /// <summary>
         /// Indicates if the collection is readonly. Always returns false
         /// </summary>
-        public bool IsReadOnly
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsReadOnly => false;
 
         /// <summary>
         /// Indicates if the PQ contais an element
@@ -382,10 +370,7 @@ namespace CasaEngine.Core.Collection
         /// <returns>The element on the index</returns>
         public T this[int index]
         {
-            get
-            {
-                return heapElements[index];
-            }
+            get => heapElements[index];
 
             set
             {

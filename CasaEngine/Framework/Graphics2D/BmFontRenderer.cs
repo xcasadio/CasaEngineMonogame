@@ -6,32 +6,32 @@ namespace CasaEngine.Framework.Graphics2D
 {
     public static class BmFontRenderer
     {
-        public static void DrawString(SpriteBatch spriteBatch, Assets.Fonts.Font spriteFont, string text, Vector2 position, Color color)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color)
         {
             DrawString(spriteBatch, spriteFont, text, position, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.00001f);
         }
 
-        public static void DrawString(SpriteBatch spriteBatch, Assets.Fonts.Font spriteFont, StringBuilder text, Vector2 position, Color color)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color)
         {
             DrawString(spriteBatch, spriteFont, text.ToString(), position, color);
         }
 
-        public static void DrawString(SpriteBatch spriteBatch, Assets.Fonts.Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
             DrawString(spriteBatch, spriteFont, text, position, color, rotation, origin, new Vector2(scale), effects, layerDepth);
         }
 
-        public static void DrawString(SpriteBatch spriteBatch, Assets.Fonts.Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
             DrawString(spriteBatch, spriteFont, text.ToString(), position, color, rotation, origin, new Vector2(scale), effects, layerDepth);
         }
 
-        public static void DrawString(SpriteBatch spriteBatch, Assets.Fonts.Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
             DrawString(spriteBatch, spriteFont, text.ToString(), position, color, rotation, origin, scale, effects, layerDepth);
         }
 
-        public static void DrawString(SpriteBatch spriteBatch, Assets.Fonts.Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+        public static void DrawString(SpriteBatch spriteBatch, Font spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
             var array = text.ToCharArray();
 

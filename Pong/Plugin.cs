@@ -1,5 +1,5 @@
 ﻿using CasaEngine.Engine.Plugin;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Entities;
 
 namespace Pong;
 

@@ -4,9 +4,7 @@ using System.Diagnostics;
 using Editor.WinForm;
 using System.Reflection;
 using Editor.SoundEditor;
-using Editor.SourceControl;
 using CasaEngine.Editor.Assets;
-using CasaEngine.Editor.SourceControl;
 using Editor.Map;
 using Editor.Sprite2DEditor.SpriteSheetPacker;
 using Editor.Tools.UIScreenEditor;
@@ -404,10 +402,8 @@ namespace Editor
             {
 #endif
             ClearProject();
-            SourceControlManager.Instance.Initialize(new P4SourceControl());
             Engine.Instance.ProjectManager.Load(fileName_);
             CheckExternalTool();
-            SourceControlManager.Instance.LoadConfig(Path.GetDirectoryName(fileName_) + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath);
 
 #if !UNITTEST
             /*SourceControlManager.Instance.SourceControl.Connect();
@@ -674,16 +670,13 @@ namespace Editor
                     "building " + info.Name + " ... (" + percent + "/" + (Engine.Instance.AssetManager.Assets.Length + 1) + ")");
 
                 fi = new FileInfo(info.FileName);
-                if (File.Exists(xnbPath + info.Name + ".xnb") == false
-                    || Engine.Instance.AssetManager.AssetNeedToBeRebuild(info) == true)
+                if (File.Exists(xnbPath + info.Name + ".xnb") == false)
                 {
                     Engine.Instance.AssetManager.RebuildAsset(info);
                 }
 
                 percent++;
             }
-
-            Engine.Instance.AssetManager.SaveAssetBuildInfo();
 
             //project File
             destFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened);
@@ -896,9 +889,6 @@ namespace Editor
         /// <param name="e"></param>
         private void buttonRefresh_Click(object sender, EventArgs e)
         {
-            SourceControlManager.Instance.CheckProjectFiles();
-            Dictionary<string, Dictionary<SourceControlKeyWord, string>> dic = SourceControlManager.Instance.FilesStatus;
-
             TreeNode root = new TreeNode(Engine.Instance.ProjectManager.ProjectPath);
             TreeNode node = root;
             node.ImageIndex = 27;
@@ -921,87 +911,7 @@ namespace Editor
 
                 foreach (string pathBits in filePath.Split('/'))
                 {
-                    node.ImageIndex = (int)SourceControlIcon.FolderWorkspace;
-                    node.SelectedImageIndex = (int)SourceControlIcon.FolderWorkspace;
                     node = AddNode(node, pathBits);
-                }
-
-                node.ImageIndex = (int)SourceControlIcon.FileInWSButNotInDepot;
-
-                foreach (KeyValuePair<string, Dictionary<SourceControlKeyWord, string>> pair in dic)
-                {
-                    if (pair.Key.Contains(file) == true)
-                    {
-                        try
-                        {
-                            if (pair.Value.ContainsKey(SourceControlKeyWord.HaveRev) == false)
-                            {
-                                if (pair.Value.ContainsKey(SourceControlKeyWord.HeadAction) == true)
-                                {
-                                    if (pair.Value[SourceControlKeyWord.HeadAction].Equals("delete") == true)
-                                    {
-                                        node.ImageIndex = (int)SourceControlIcon.FileDeleted;
-                                        node.SelectedImageIndex = (int)SourceControlIcon.FileDeleted;
-                                    }
-                                    else if (pair.Value[SourceControlKeyWord.HeadAction].Equals("move/delete") == true)
-                                    {
-                                        node.ImageIndex = (int)SourceControlIcon.FileMoved;
-                                        node.SelectedImageIndex = (int)SourceControlIcon.FileMoved;
-                                    }
-                                }
-                                else if (pair.Value.ContainsKey(SourceControlKeyWord.Action) == true)
-                                {
-                                    if (pair.Value[SourceControlKeyWord.Action].Equals("add") == true)
-                                    {
-                                        node.ImageIndex = (int)SourceControlIcon.FileAdd;
-                                        node.SelectedImageIndex = (int)SourceControlIcon.FileAdd;
-                                    }
-                                }
-                            }
-                            else if (pair.Value[SourceControlKeyWord.HaveRev].Equals(pair.Value[SourceControlKeyWord.HeadRev]) == true)
-                            {
-                                if (pair.Value.ContainsKey(SourceControlKeyWord.Action) == true)
-                                {
-                                    if ("edit".Equals(pair.Value[SourceControlKeyWord.Action]) == true)
-                                    {
-                                        if (SourceControlManager.Instance.User.Equals(pair.Value[SourceControlKeyWord.ActionOwner]) == true)
-                                        {
-                                            node.ImageIndex = (int)SourceControlIcon.FileEditHead;
-                                            node.SelectedImageIndex = (int)SourceControlIcon.FileEditHead;
-                                        }
-                                        else
-                                        {
-                                            node.ImageIndex = (int)SourceControlIcon.FileEditOther;
-                                            node.SelectedImageIndex = (int)SourceControlIcon.FileEditOther;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    node.ImageIndex = (int)SourceControlIcon.FileSync;
-                                    node.SelectedImageIndex = (int)SourceControlIcon.FileSync;
-                                }
-
-                                node.Text += " #" + pair.Value[SourceControlKeyWord.HaveRev] + "/" + pair.Value[SourceControlKeyWord.HeadRev];
-                                node.ToolTipText = "test";
-                            }
-                            else
-                            {
-                                node.ImageIndex = (int)SourceControlIcon.FileNotSync;
-                                node.SelectedImageIndex = (int)SourceControlIcon.FileNotSync;
-
-                                node.Text += " #" + pair.Value[SourceControlKeyWord.HaveRev] + "/" + pair.Value[SourceControlKeyWord.HeadRev];
-                                node.ToolTipText = "test";
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            node.ImageIndex = (int)SourceControlIcon.FileNotSync;
-                            node.SelectedImageIndex = (int)SourceControlIcon.FileNotSync;
-                        }
-
-                        break;
-                    }
                 }
             }
 
@@ -1023,26 +933,6 @@ namespace Editor
             else
             {
                 return node.Nodes.Add(key, key);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void toolStripMenuItemSourceControlOption_Click(object sender, EventArgs e)
-        {
-            SourceControlConnectionForm form = new SourceControlConnectionForm();
-
-            if (form.ShowDialog(this) == DialogResult.OK)
-            {
-                SourceControlManager.Instance.Server = form.Server;
-                SourceControlManager.Instance.User = form.User;
-                SourceControlManager.Instance.Workspace = form.Workspace;
-                SourceControlManager.Instance.Password = form.Password;
-                SourceControlManager.Instance.SaveConfig(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath);
-                SourceControlManager.Instance.SourceControl.Connect();
             }
         }
 

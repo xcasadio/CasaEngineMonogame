@@ -14,7 +14,7 @@ namespace CasaEngine.Engine.Primitives3D
     /// <summary>
     /// Geometric primitive class for drawing cylinders.
     /// </summary>
-    public class CylinderPrimitive : Geometric3DPrimitive
+    public class CylinderPrimitive : GeometricPrimitive
     {
         /// <summary>
         /// Constructs a new cylinder primitive, using default settings.
@@ -31,10 +31,12 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         public CylinderPrimitive(GraphicsDevice graphicsDevice,
                                  float height, float diameter, int tessellation)
-            : base(Geometric3DPrimitiveType.Cylinder)
+            : base(GeometricPrimitiveType.Cylinder)
         {
             if (tessellation < 3)
-                throw new ArgumentOutOfRangeException("tessellation");
+            {
+                throw new ArgumentOutOfRangeException(nameof(tessellation));
+            }
 
             height /= 2;
 

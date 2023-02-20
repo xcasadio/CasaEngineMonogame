@@ -3,10 +3,9 @@ using Genbox.VelcroPhysics.Dynamics;
 using CasaEngine.Core.Maths.Shape2D;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Helper;
-using Genbox.VelcroPhysics.Definitions;
 using Genbox.VelcroPhysics.Factories;
+using CasaEngine.Framework.Game.Components;
 
 namespace CasaEngine.Framework.Gameplay.Actor
 {

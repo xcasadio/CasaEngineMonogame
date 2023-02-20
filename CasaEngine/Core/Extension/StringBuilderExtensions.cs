@@ -152,7 +152,7 @@ namespace CasaEngine.Core.Extension
             bool showPositiveSign = (options & AppendNumberOptions.PositiveSign) != 0;
 
             bool isNegative = number < 0;
-            number = System.Math.Abs(number);
+            number = Math.Abs(number);
 
             // Converting from smallest digit.
             do

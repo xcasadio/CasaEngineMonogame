@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Genbox.VelcroPhysics.Dynamics.Solver;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
@@ -40,11 +41,17 @@ public class GridComponent : DrawableGameComponent
         for (int x = m_Size; x > 0; x--)
         {
             if (x % 10 == 0)
+            {
                 color = Color.DarkBlue;
+            }
             else if (x % 5 == 0)
+            {
                 color = Color.DarkGray;
+            }
             else
+            {
                 color = Color.DimGray;
+            }
 
             LinesVertices[i++] = new VertexPositionColor(new Vector3(x, 0.0f, m_Size), color);
             LinesVertices[i++] = new VertexPositionColor(new Vector3(x, 0.0f, -m_Size), color);
@@ -69,27 +76,20 @@ public class GridComponent : DrawableGameComponent
 
     public override void Draw(GameTime gameTime)
     {
-        //if (GameInfo.ActiveCamera == null)
-        //{
-        //    return;
-        //}
-        //
-        //GridEffect.World = Matrix.Identity;
-        //GridEffect.View = m_Viewpoint.ActiveCamera.ViewMatrix;
-        //GridEffect.Projection = m_Viewpoint.ActiveCamera.ProjectionMatrix;
-        //
-        //GraphicsDevice.VertexDeclaration = basicEffectVertexDeclaration;
-        //
-        //GridEffect.Begin(SaveStateMode.SaveState);
-        //foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
-        //{
-        //    pass.Begin();
-        //
-        //    GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, LinesVertices, 0, LinesVertices.Length / 2);
-        //
-        //    pass.End();
-        //}
-        //GridEffect.End();
+        if (GameInfo.Instance.ActiveCamera == null)
+        {
+            return;
+        }
+
+        GridEffect.World = Matrix.Identity;
+        GridEffect.View = GameInfo.Instance.ActiveCamera.ViewMatrix;
+        GridEffect.Projection = GameInfo.Instance.ActiveCamera.ProjectionMatrix;
+
+        foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, LinesVertices, 0, LinesVertices.Length / 2);
+        }
 
         base.Draw(gameTime);
     }

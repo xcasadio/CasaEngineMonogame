@@ -14,12 +14,13 @@ namespace CasaEngine.Engine.Primitives3D
     /// <summary>
     /// Geometric primitive class for drawing spheres.
     /// </summary>
-    public
-#if EDITOR
-    partial
-#endif
-    class SpherePrimitive : Geometric3DPrimitive
+    public class SpherePrimitive : GeometricPrimitive
     {
+#if EDITOR
+        float m_Diameter;
+        int m_Tessellation;
+#endif
+
         /// <summary>
         /// Constructs a new sphere primitive, using default settings.
         /// </summary>
@@ -34,10 +35,12 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         public SpherePrimitive(GraphicsDevice graphicsDevice,
                                float diameter, int tessellation)
-            : base(Geometric3DPrimitiveType.Sphere)
+            : base(GeometricPrimitiveType.Sphere)
         {
             if (tessellation < 3)
-                throw new ArgumentOutOfRangeException("tessellation");
+            {
+                throw new ArgumentOutOfRangeException(nameof(tessellation));
+            }
 
             int verticalSegments = tessellation;
             int horizontalSegments = tessellation * 2;

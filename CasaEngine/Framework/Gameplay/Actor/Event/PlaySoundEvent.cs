@@ -46,7 +46,7 @@ namespace CasaEngine.Framework.Gameplay.Actor.Event
 
         public override void Initialize()
         {
-            _sound = new Sound(Framework.Game.Engine.Instance.Game.Content.Load<SoundEffect>("Content/" + _assetName));
+            _sound = new Sound(Game.Engine.Instance.Game.Content.Load<SoundEffect>("Content/" + _assetName));
             _sound.Initialize();
         }
 
