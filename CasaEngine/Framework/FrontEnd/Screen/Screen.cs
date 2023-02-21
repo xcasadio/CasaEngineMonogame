@@ -28,16 +28,15 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 #endif
     class Screen : Entity
     {
-
-        bool _isPopup;
-        TimeSpan _transitionOnTime = TimeSpan.Zero;
-        TimeSpan _transitionOffTime = TimeSpan.Zero;
-        float _transitionPosition = 1;
-        ScreenState _screenState = ScreenState.TransitionOn;
-        bool _isExiting;
-        bool _otherScreenHasFocus;
-        ScreenManagerComponent _screenManager;
-        PlayerIndex? _controllingPlayer;
+        private bool _isPopup;
+        private TimeSpan _transitionOnTime = TimeSpan.Zero;
+        private TimeSpan _transitionOffTime = TimeSpan.Zero;
+        private float _transitionPosition = 1;
+        private ScreenState _screenState = ScreenState.TransitionOn;
+        private bool _isExiting;
+        private bool _otherScreenHasFocus;
+        private ScreenManagerComponent _screenManager;
+        private PlayerIndex? _controllingPlayer;
 
 
 
@@ -177,7 +176,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
             }
         }
 
-        bool UpdateTransition(float elapsedTime, TimeSpan time, int direction)
+        private bool UpdateTransition(float elapsedTime, TimeSpan time, int direction)
         {
             // How much should we move by?
             float transitionDelta;

@@ -11,9 +11,9 @@ namespace CasaEngine.Editor.ContentBuilder
 
 
         // What importers or processors should we load?
-        const string XnaVersion = ", Version=4.0.0.0, PublicKeyToken=842cf8be1de50553";
+        private const string XnaVersion = ", Version=4.0.0.0, PublicKeyToken=842cf8be1de50553";
 
-        static string[] _pipelineAssemblies =
+        private static string[] _pipelineAssemblies =
         {
             "Microsoft.Xna.Framework.Content.Pipeline.FBXImporter" + XnaVersion,
             "Microsoft.Xna.Framework.Content.Pipeline.XImporter" + XnaVersion,
@@ -32,24 +32,24 @@ namespace CasaEngine.Editor.ContentBuilder
             // file path, eg. "c:/MyProject/bin/MyPipelineExtension.dll".
         };
         // MSBuild objects used to dynamically build content.
-        Project _buildProject;
-        ProjectRootElement _projectRootElement;
-        BuildParameters _buildParameters;
-        readonly List<ProjectItem> _projectItems = new();
-        ErrorLogger _errorLogger;
+        private Project _buildProject;
+        private ProjectRootElement _projectRootElement;
+        private BuildParameters _buildParameters;
+        private readonly List<ProjectItem> _projectItems = new();
+        private ErrorLogger _errorLogger;
 
 
         // Temporary directories used by the content build.
-        string _buildDirectory;
-        string _processDirectory;
-        string _baseDirectory;
+        private string _buildDirectory;
+        private string _processDirectory;
+        private string _baseDirectory;
 
 
         // Generate unique directory names if there is more than one ContentBuilder.
-        static int _directorySalt;
+        private static int _directorySalt;
 
         // Have we been disposed?
-        bool _isDisposed;
+        private bool _isDisposed;
 
         //private ComboItemCollection Importers;
 
@@ -104,8 +104,7 @@ namespace CasaEngine.Editor.ContentBuilder
         }
 
 
-
-        void CreateBuildProject()
+        private void CreateBuildProject()
         {
             //string projectPath = Path.Combine(buildDirectory, "content.contentproj");
             //string outputPath = Path.Combine(buildDirectory, "bin");
@@ -205,10 +204,7 @@ namespace CasaEngine.Editor.ContentBuilder
         }
 
 
-
-
-
-        void CreateTempDirectory()
+        private void CreateTempDirectory()
         {
             // Start with a standard base name:
             //
@@ -241,7 +237,7 @@ namespace CasaEngine.Editor.ContentBuilder
         }
 
 
-        void DeleteTempDirectory()
+        private void DeleteTempDirectory()
         {
             Directory.Delete(_buildDirectory, true);
 
@@ -261,7 +257,7 @@ namespace CasaEngine.Editor.ContentBuilder
         }
 
 
-        void PurgeStaleTempDirectories()
+        private void PurgeStaleTempDirectories()
         {
             // Check all subdirectories of our base location.
             foreach (var directory in Directory.GetDirectories(_baseDirectory))

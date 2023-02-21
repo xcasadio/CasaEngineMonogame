@@ -22,22 +22,21 @@ namespace CasaEngine.Framework.Debugger
     public class TimeRuler
         : DrawableGameComponent, IGameComponentResizable
     {
+        private const int MaxBars = 8;
 
-        const int MaxBars = 8;
+        private const int MaxSamples = 256;
 
-        const int MaxSamples = 256;
+        private const int MaxNestCall = 32;
 
-        const int MaxNestCall = 32;
+        private const int MaxSampleFrames = 4;
 
-        const int MaxSampleFrames = 4;
+        private const int LogSnapDuration = 120;
 
-        const int LogSnapDuration = 120;
+        private const int BarHeight = 8;
 
-        const int BarHeight = 8;
+        private const int BarPadding = 2;
 
-        const int BarPadding = 2;
-
-        const int AutoAdjustDelay = 30;
+        private const int AutoAdjustDelay = 30;
 
         public bool CanSetVisible => false;
 
@@ -121,51 +120,51 @@ namespace CasaEngine.Framework.Debugger
         }
 
         // Reference of debug manager.
-        DebugManager debugManager;
+        private DebugManager debugManager;
 
         // Logs for each frames.
-        FrameLog[] logs;
+        private FrameLog[] logs;
 
         // Previous frame log.
-        FrameLog prevLog;
+        private FrameLog prevLog;
 
         // Current log.
-        FrameLog curLog;
+        private FrameLog curLog;
 
         // Current frame count.
-        int frameCount;
+        private int frameCount;
 
         // Stopwatch for measure the time.
-        Stopwatch stopwatch = new Stopwatch();
+        private Stopwatch stopwatch = new Stopwatch();
 
         // Marker information array.
-        List<MarkerInfo> markers = new List<MarkerInfo>();
+        private List<MarkerInfo> markers = new List<MarkerInfo>();
 
         // Dictionary that maps from marker name to marker id.
-        Dictionary<string, int> markerNameToIdMap = new Dictionary<string, int>();
+        private Dictionary<string, int> markerNameToIdMap = new Dictionary<string, int>();
 
         // Display frame adjust counter.
-        int frameAdjust;
+        private int frameAdjust;
 
         // Current display frame count.
-        int sampleFrames;
+        private int sampleFrames;
 
         // Marker log string.
-        StringBuilder logString = new StringBuilder(512);
+        private StringBuilder logString = new StringBuilder(512);
 
         // You want to call StartFrame at beginning of Game.Update method.
         // But Game.Update gets calls multiple time when game runs slow in fixed time step mode.
         // In this case, we should ignore StartFrame call.
         // To do this, we just keep tracking of number of StartFrame calls until Draw gets called.
-        int updateCount;
+        private int updateCount;
 
 #endif
         // TimerRuler draw position.
-        Vector2 _position;
+        private Vector2 _position;
 
-        Renderer2DComponent _renderer2DComponent;
+        private Renderer2DComponent _renderer2DComponent;
 
-        Color _backgroundColor = new(0, 0, 0, 128);
+        private Color _backgroundColor = new(0, 0, 0, 128);
 
         public TimeRuler(Microsoft.Xna.Framework.Game game)
             : base(game)
@@ -227,7 +226,7 @@ namespace CasaEngine.Framework.Debugger
         }
 
 #if TRACE
-        void CommandExecute(IDebugCommandHost host, string command,
+        private void CommandExecute(IDebugCommandHost host, string command,
                                                                 IList<string> arguments)
         {
             var previousVisible = Visible;

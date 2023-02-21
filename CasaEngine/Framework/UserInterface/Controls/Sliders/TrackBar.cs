@@ -333,7 +333,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Sliders
             ValueCanBeOutOfRange = temp;
         } // ButtonSlider_Move
 
-        void ButtonSlider_KeyPress(object sender, KeyEventArgs e)
+        private void ButtonSlider_KeyPress(object sender, KeyEventArgs e)
         {
             if (e.Key == Keys.Left || e.Key == Keys.Down)
             {

@@ -37,9 +37,11 @@ namespace SandBoxGame
             world.AddObjectImmediately(entity);
 
             entity = new Entity();
+            entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
             var meshComponent = new MeshComponent(entity);
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
+            meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
             world.AddObjectImmediately(entity);
 
             base.LoadContent();

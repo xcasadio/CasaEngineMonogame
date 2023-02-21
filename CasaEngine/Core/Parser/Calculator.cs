@@ -3,11 +3,10 @@ using CasaEngine.Core.Design;
 
 namespace CasaEngine.Core.Parser
 {
-    class Calculator
+    internal class Calculator
     {
-
-        CalculatorToken _root;
-        readonly Parser _parser;
+        private CalculatorToken _root;
+        private readonly Parser _parser;
 
 
 

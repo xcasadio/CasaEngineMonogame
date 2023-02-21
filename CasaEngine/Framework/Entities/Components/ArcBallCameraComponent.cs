@@ -10,11 +10,11 @@ public class ArcBallCameraComponent : Camera3dComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.ArcBallCamera;
 
-    Vector3 _target;
-    float _distance;
-    Quaternion _orientation;
-    float _inputTurnRate;
-    float _yaw, _pitch;
+    private Vector3 _target;
+    private float _distance;
+    private Quaternion _orientation;
+    private float _inputTurnRate;
+    private float _yaw, _pitch;
     private InputComponent _inputComponent;
 
     public float Pitch
@@ -220,7 +220,7 @@ public class ArcBallCameraComponent : Camera3dComponent
      * <param name="rollAxis_"> value between -1.0 and 1.0 </param>
      * <param name="zoom"> zoom value </param>
     */
-    void HandleControls(float elapsedTime, float rightAxis_, float upAxis_, float forwardAxis_, float horizontalOrbit_, float verticalOrbit_,
+    private void HandleControls(float elapsedTime, float rightAxis_, float upAxis_, float forwardAxis_, float horizontalOrbit_, float verticalOrbit_,
         float rollOrbit_, float zoom_)
     {
         var r = rightAxis_ * elapsedTime * InputDisplacementRate;

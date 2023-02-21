@@ -4,10 +4,10 @@ namespace CasaEngine.Framework.AI.BehaviourTree
 {
     public abstract class BehaviourTreeNode<T> : Entity
     {
-        readonly string _name;
-        readonly BehaviourTreeNode<T> _parent = null;
+        private readonly string _name;
+        private readonly BehaviourTreeNode<T> _parent = null;
 
-        readonly List<BehaviourTreeNode<T>> _children = new();
+        private readonly List<BehaviourTreeNode<T>> _children = new();
         //condition script
 
         public string Name => _name;

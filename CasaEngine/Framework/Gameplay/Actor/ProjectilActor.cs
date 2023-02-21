@@ -23,7 +23,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
 
         //life?
         //distance Max
-        Vector3 _start;
+        private Vector3 _start;
 
 
 

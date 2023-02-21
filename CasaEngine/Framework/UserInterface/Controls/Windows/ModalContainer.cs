@@ -148,8 +148,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Windows
         } // OnClosed
 
 
-
-        void InputKeyDown(object sender, KeyEventArgs e)
+        private void InputKeyDown(object sender, KeyEventArgs e)
         {
             if (Visible && UserInterfaceManager.FocusedControl == this && e.Key == Keys.Escape)
             {

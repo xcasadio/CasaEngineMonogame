@@ -73,7 +73,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Tessellates the specified bezier patch.
         /// </summary>
-        void TessellatePatch(TeapotPatch patch, int tessellation, Vector3 scale)
+        private void TessellatePatch(TeapotPatch patch, int tessellation, Vector3 scale)
         {
             // Look up the 16 control points for this patch.
             Vector3[] controlPoints = new Vector3[16];
@@ -100,7 +100,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// only some parts are symmetrical from front to back). The control points
         /// are stored as integer indices into the TeapotControlPoints array.
         /// </summary>
-        class TeapotPatch
+        private class TeapotPatch
         {
             public readonly int[] Indices;
             public readonly bool MirrorZ;
@@ -119,7 +119,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Static data array defines the bezier patches that make up the teapot.
         /// </summary>
-        static TeapotPatch[] TeapotPatches =
+        private static TeapotPatch[] TeapotPatches =
         {
             // Rim.
             new TeapotPatch(true, new int[]
@@ -183,7 +183,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Static array defines the control point positions that make up the teapot.
         /// </summary>
-        static Vector3[] TeapotControlPoints =
+        private static Vector3[] TeapotControlPoints =
         {
             new Vector3(0f, 0.345f, -0.05f),
             new Vector3(-0.028f, 0.345f, -0.05f),

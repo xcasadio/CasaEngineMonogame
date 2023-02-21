@@ -3,7 +3,7 @@
     public class FzVery
         : IFuzzyTerm
     {
-        readonly FuzzySet _set;
+        private readonly FuzzySet _set;
 
         //prevent copying and assignment by clients
         //FzVery& operator=(const FzVery&);
@@ -45,7 +45,7 @@
     public class FzFairly
         : IFuzzyTerm
     {
-        readonly FuzzySet _set;
+        private readonly FuzzySet _set;
 
 
 

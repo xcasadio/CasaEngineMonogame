@@ -5,28 +5,19 @@ namespace CasaEngine.Framework.Gameplay.Actor;
 
 public class Coordinates
 {
-    Matrix _localMatrix;
-    Matrix _worldMatrix;
+    private Matrix _worldMatrix;
 
-    Vector3 _localCenterOfRotation;
-    Vector3 _localPosition;
-    Quaternion _localRotation;
-    Vector3 _localScale;
+    private Vector3 _localCenterOfRotation;
+    private Vector3 _localPosition;
+    private Quaternion _localRotation;
+    private Vector3 _localScale;
     private bool _localMatrixChanged = true;
 
     [Browsable(false)]
     public Coordinates? Parent { private get; set; }
 
     [Category("Coordinates")]
-    public Matrix LocalMatrix
-    {
-        get => _localMatrix;
-        set
-        {
-            _localMatrix = value;
-            _localMatrixChanged = true;
-        }
-    }
+    public Matrix LocalMatrix { get; private set; }
 
     [Category("Coordinates")]
     public Matrix WorldMatrix
@@ -96,11 +87,11 @@ public class Coordinates
     {
         LocalScale = Vector3.One;
         LocalRotation = Quaternion.Identity;
-        _localMatrix = Matrix.Identity;
+        LocalMatrix = Matrix.Identity;
         _worldMatrix = Matrix.Identity;
     }
 
-    void UpdateLocalMatrix()
+    private void UpdateLocalMatrix()
     {
         if (_localMatrixChanged)
         {
@@ -114,7 +105,7 @@ public class Coordinates
         }
     }
 
-    void UpdateWorldMatrix()
+    private void UpdateWorldMatrix()
     {
         UpdateLocalMatrix();
 

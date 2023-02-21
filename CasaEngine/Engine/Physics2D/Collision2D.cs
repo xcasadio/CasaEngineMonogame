@@ -10,12 +10,12 @@ namespace CasaEngine.Engine.Physics2D
     {
 
         //to avoid GC
-        static Manifold _manifold;
-        static Transform _transformA, _transformB;
-        static readonly CircleShape CircleShape1 = new(1.0f, 1.0f);
-        static readonly CircleShape CircleShape2 = new(1.0f, 1.0f);
-        static readonly PolygonShape PolygonShape1 = new(1.0f);
-        static readonly PolygonShape PolygonShape2 = new(1.0f);
+        private static Manifold _manifold;
+        private static Transform _transformA, _transformB;
+        private static readonly CircleShape CircleShape1 = new(1.0f, 1.0f);
+        private static readonly CircleShape CircleShape2 = new(1.0f, 1.0f);
+        private static readonly PolygonShape PolygonShape1 = new(1.0f);
+        private static readonly PolygonShape PolygonShape2 = new(1.0f);
 
 
         public static bool CollidePolygons(ShapePolygone p1, ref Vector2 pos1, ShapePolygone p2, ref Vector2 pos2)

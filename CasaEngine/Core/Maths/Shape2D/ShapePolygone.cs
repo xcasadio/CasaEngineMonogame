@@ -14,12 +14,12 @@ namespace CasaEngine.Core.Maths.Shape2D
     {
 
 #if EDITOR
-        readonly List<Vector2> _points = new();
+        private readonly List<Vector2> _points = new();
 #else
         Vector2[] _Points;
 #endif
 
-        bool _isABox;
+        private bool _isABox;
 
 
 

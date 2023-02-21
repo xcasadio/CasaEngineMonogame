@@ -53,12 +53,12 @@ namespace CasaEngine.Framework.Debugger
             EnabledChanged += DebugManager_EnabledChanged;
         }
 
-        void DebugManager_EnabledChanged(object sender, EventArgs e)
+        private void DebugManager_EnabledChanged(object sender, EventArgs e)
         {
             Enabled = false;
         }
 
-        void DebugManager_VisibleChanged(object sender, EventArgs e)
+        private void DebugManager_VisibleChanged(object sender, EventArgs e)
         {
             Visible = false;
         }

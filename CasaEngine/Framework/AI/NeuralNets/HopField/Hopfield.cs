@@ -1,17 +1,16 @@
 ﻿namespace CasaEngine.Framework.AI.NeuralNets.HopField
 {
-    class Hopfield
+    internal class Hopfield
     {
+        private int _numUnits;
 
-        int _numUnits;
+        private readonly List<int[]> _pattern = new();
 
-        readonly List<int[]> _pattern = new();
+        private int[] _output;
 
-        int[] _output;
+        private int[] _threshold;
 
-        int[] _threshold;
-
-        int[,] _weights;
+        private int[,] _weights;
 
 
 

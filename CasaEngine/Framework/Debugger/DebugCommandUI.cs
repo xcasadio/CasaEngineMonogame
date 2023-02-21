@@ -26,12 +26,11 @@ namespace CasaEngine.Framework.Debugger
         IDebugCommandHost,
         IGameComponentResizable
     {
+        private const int MaxLineCount = 20;
 
-        const int MaxLineCount = 20;
+        private const int MaxCommandHistory = 32;
 
-        const int MaxCommandHistory = 32;
-
-        const string Cursor = "_";
+        private const string Cursor = "_";
 
         public const string DefaultPrompt = "CMD>";
 
@@ -47,7 +46,7 @@ namespace CasaEngine.Framework.Debugger
 
 
         // Command window states.
-        enum State
+        private enum State
         {
             Closed,
             Opening,
@@ -55,7 +54,7 @@ namespace CasaEngine.Framework.Debugger
             Closing
         }
 
-        class CommandInfo
+        private class CommandInfo
         {
             public CommandInfo(
                 string command, string description, DebugCommandExecute callback)
@@ -577,7 +576,7 @@ namespace CasaEngine.Framework.Debugger
 
         }
 
-        bool IsKeyPressed(Keys key, float dt)
+        private bool IsKeyPressed(Keys key, float dt)
         {
             // Treat it as pressed if given key has not pressed in previous frame.
             if (_prevKeyState.IsKeyUp(key))

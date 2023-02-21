@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Editor.Assets
 {
-    class Asset
+    internal class Asset
     {
         private bool _isLoaded = false;
         private bool _isBuild = false;

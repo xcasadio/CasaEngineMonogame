@@ -6,8 +6,8 @@ namespace CasaEngine.Engine.Primitives3D
     public class PlanePrimitive : GeometricPrimitive
     {
 #if EDITOR
-        Vector2 m_Scale;
-        int m_TessellationHorizontal, m_TessellationVertical;
+        private Vector2 m_Scale;
+        private int m_TessellationHorizontal, m_TessellationVertical;
 #endif
 
         /// <summary>

@@ -20,8 +20,8 @@ namespace CasaEngine.Framework.Assets.Fonts
         INotifyPropertyChanged, IAssetable
 #endif
     {
-        readonly Dictionary<char, FontChar> _charsDic;
-        readonly List<string> _texturesFileNames;
+        private readonly Dictionary<char, FontChar> _charsDic;
+        private readonly List<string> _texturesFileNames;
 
         public GraphicsDevice GraphicsDevice { get; private set; }
 

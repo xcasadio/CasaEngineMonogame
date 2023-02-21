@@ -3,7 +3,7 @@ using CasaEngine.Core.Design;
 
 namespace CasaEngine.Framework.UserInterface
 {
-    static class FactoryUiControl
+    internal static class FactoryUiControl
     {
         public static Control LoadControl(XmlElement node, SaveOption opt)
         {

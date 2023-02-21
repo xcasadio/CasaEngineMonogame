@@ -18,20 +18,20 @@ namespace CasaEngine.Framework.FrontEnd.Screen
     public class ScreenManagerComponent
         : DrawableGameComponent
     {
-        readonly List<Screen> _screens = new();
-        readonly List<Screen> _screensToUpdate = new();
+        private readonly List<Screen> _screens = new();
+        private readonly List<Screen> _screensToUpdate = new();
 
-        readonly InputState _input = new();
+        private readonly InputState _input = new();
 
         //SpriteBatch spriteBatch;
         //SpriteFont font;
-        Texture2D _blankTexture;
+        private Texture2D _blankTexture;
 
-        bool _isInitialized;
+        private bool _isInitialized;
 
-        bool _traceEnabled;
+        private bool _traceEnabled;
 
-        Renderer2DComponent _renderer2DComponent;
+        private Renderer2DComponent _renderer2DComponent;
 
 
 
@@ -166,7 +166,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
             }
         }
 
-        void TraceScreens()
+        private void TraceScreens()
         {
             var screenNames = new List<string>();
 

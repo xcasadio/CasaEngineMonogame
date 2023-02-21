@@ -10,10 +10,10 @@ namespace CasaEngine.Framework.UserInterface.UI
 {
     public class SkinUi : Entity
     {
-        readonly SkinList<SkinControlInformation> _controls = new();
-        readonly SkinList<SkinImage> _images = new();
-        readonly SkinList<SkinFont> _fonts = new();
-        readonly SkinList<SkinCursor> _cursors = new();
+        private readonly SkinList<SkinControlInformation> _controls = new();
+        private readonly SkinList<SkinImage> _images = new();
+        private readonly SkinList<SkinFont> _fonts = new();
+        private readonly SkinList<SkinCursor> _cursors = new();
 
 
 

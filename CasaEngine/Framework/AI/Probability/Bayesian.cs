@@ -1,9 +1,9 @@
 ﻿namespace CasaEngine.Framework.AI.Probability
 {
-    class Pattern
+    internal class Pattern
         : IEquatable<Pattern>
     {
-        readonly int[] _pattern;
+        private readonly int[] _pattern;
 
 
 
@@ -33,10 +33,10 @@
 
     public class Bayesian
     {
-        readonly int _nbActions;
-        readonly int _nbPossibilities;
-        readonly Dictionary<Pattern, int[]> _probabilities = new();
-        readonly List<Pattern> _listPattern = new();
+        private readonly int _nbActions;
+        private readonly int _nbPossibilities;
+        private readonly Dictionary<Pattern, int[]> _probabilities = new();
+        private readonly List<Pattern> _listPattern = new();
 
 
 
@@ -150,7 +150,7 @@
             _probabilities[pattern][action]++;
         }
 
-        Pattern GetPattern(int[] currentPattern)
+        private Pattern GetPattern(int[] currentPattern)
         {
             var pattern = new Pattern(currentPattern);
 

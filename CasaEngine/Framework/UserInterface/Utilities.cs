@@ -11,7 +11,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 namespace CasaEngine.Framework.UserInterface
 {
-    static class Utilities
+    internal static class Utilities
     {
 
         public static string ControlTypeName(Control control)

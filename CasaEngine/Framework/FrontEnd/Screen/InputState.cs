@@ -15,7 +15,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 {
     public class InputState
     {
-        readonly InputComponent _inputComponent;
+        private readonly InputComponent _inputComponent;
 
 
 

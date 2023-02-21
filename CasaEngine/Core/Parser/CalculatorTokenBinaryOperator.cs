@@ -4,7 +4,7 @@ using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Parser
 {
-    class CalculatorTokenBinaryOperator
+    internal class CalculatorTokenBinaryOperator
         : CalculatorToken
     {
         public enum BinaryOperator
@@ -25,9 +25,9 @@ namespace CasaEngine.Core.Parser
         }
 
 
-        BinaryOperator _operator;
-        CalculatorToken _left;
-        CalculatorToken _right;
+        private BinaryOperator _operator;
+        private CalculatorToken _left;
+        private CalculatorToken _right;
 
 
 

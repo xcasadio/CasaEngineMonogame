@@ -44,7 +44,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Windows
 
 
         // Square color lenght.
-        const int SquareColorlenght = 132;
+        private const int SquareColorlenght = 132;
 
         // For the square color palette.
         // This is part of the implementation to capture the mouse movement outside the control's border.

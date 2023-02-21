@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Loaders
 {
-    class CursorLoader : IAssetLoader
+    internal class CursorLoader : IAssetLoader
     {
         [DllImport("User32.dll", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
         private static extern IntPtr LoadCursorFromFile(string str);

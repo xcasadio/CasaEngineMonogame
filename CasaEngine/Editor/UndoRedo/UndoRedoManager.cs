@@ -2,15 +2,15 @@
 {
     public class UndoRedoManager
     {
-        struct UndoRedoParam
+        private struct UndoRedoParam
         {
             public object Arg;
             public ICommand Command;
         }
 
 
-        readonly Stack<UndoRedoParam> _undo = new();
-        readonly Stack<UndoRedoParam> _redo = new();
+        private readonly Stack<UndoRedoParam> _undo = new();
+        private readonly Stack<UndoRedoParam> _redo = new();
 
         public event EventHandler UndoRedoCommandAdded;
         public event EventHandler EventCommandDone;

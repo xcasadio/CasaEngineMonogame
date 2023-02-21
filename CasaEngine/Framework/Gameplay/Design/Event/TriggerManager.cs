@@ -2,7 +2,7 @@
 {
     public class TriggerManager
     {
-        readonly List<Trigger> _triggers = new();
+        private readonly List<Trigger> _triggers = new();
 
 
 

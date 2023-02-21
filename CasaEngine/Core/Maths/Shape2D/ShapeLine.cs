@@ -11,8 +11,7 @@ namespace CasaEngine.Core.Maths.Shape2D
     class ShapeLine
         : Shape2DObject
     {
-
-        Point _start, _end;
+        private Point _start, _end;
 
 
 

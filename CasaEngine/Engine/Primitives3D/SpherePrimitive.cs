@@ -17,8 +17,8 @@ namespace CasaEngine.Engine.Primitives3D
     public class SpherePrimitive : GeometricPrimitive
     {
 #if EDITOR
-        float m_Diameter;
-        int m_Tessellation;
+        private float m_Diameter;
+        private int m_Tessellation;
 #endif
 
         /// <summary>

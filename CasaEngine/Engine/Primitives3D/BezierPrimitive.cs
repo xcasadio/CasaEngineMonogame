@@ -158,7 +158,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// Performs a cubic bezier interpolation between four scalar control
         /// points, returning the value at the specified time (t ranges 0 to 1).
         /// </summary>
-        static float Bezier(float p1, float p2, float p3, float p4, float t)
+        private static float Bezier(float p1, float p2, float p3, float p4, float t)
         {
             return p1 * (1 - t) * (1 - t) * (1 - t) +
                    p2 * 3 * t * (1 - t) * (1 - t) +
@@ -171,7 +171,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// Performs a cubic bezier interpolation between four Vector3 control
         /// points, returning the value at the specified time (t ranges 0 to 1).
         /// </summary>
-        static Vector3 Bezier(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, float t)
+        private static Vector3 Bezier(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, float t)
         {
             Vector3 result = new Vector3();
 
@@ -187,7 +187,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// Computes the tangent of a cubic bezier curve at the specified time,
         /// when given four scalar control points.
         /// </summary>
-        static float BezierTangent(float p1, float p2, float p3, float p4, float t)
+        private static float BezierTangent(float p1, float p2, float p3, float p4, float t)
         {
             return p1 * (-1 + 2 * t - t * t) +
                    p2 * (1 - 4 * t + 3 * t * t) +
@@ -201,7 +201,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// when given four Vector3 control points. This is used for calculating
         /// normals (by crossing the horizontal and vertical tangent vectors).
         /// </summary>
-        static Vector3 BezierTangent(Vector3 p1, Vector3 p2,
+        private static Vector3 BezierTangent(Vector3 p1, Vector3 p2,
                                      Vector3 p3, Vector3 p4, float t)
         {
             Vector3 result = new Vector3();

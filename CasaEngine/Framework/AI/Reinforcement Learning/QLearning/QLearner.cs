@@ -5,7 +5,7 @@ namespace CasaEngine.Framework.AI.Reinforcement_Learning.QLearning
     public class QLearner
         : Entity
     {
-        readonly QLearning _ql = new();
+        private readonly QLearning _ql = new();
 
 
 

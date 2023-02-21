@@ -5,9 +5,9 @@
     {
 
         //the values that define the shape of this FLV
-        readonly double _dMidPoint;
-        readonly double _dLeftOffset;
-        readonly double _dRightOffset;
+        private readonly double _dMidPoint;
+        private readonly double _dLeftOffset;
+        private readonly double _dRightOffset;
 
 
 

@@ -4,11 +4,10 @@ using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Parser
 {
-    class CalculatorTokenKeyword
+    internal class CalculatorTokenKeyword
         : CalculatorToken
     {
-
-        string _keyword;
+        private string _keyword;
 
 
 

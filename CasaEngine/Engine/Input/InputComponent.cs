@@ -34,10 +34,10 @@ namespace CasaEngine.Engine.Input
         public readonly float Deadzone = 0.2f;
 
         //InputConfigurations _InputConfigurations = new InputConfigurations();
-        ButtonConfiguration _buttonConfiguration;
-        InputSequence.InputManager.KeyState[] _keysState;
+        private ButtonConfiguration _buttonConfiguration;
+        private InputSequence.InputManager.KeyState[] _keysState;
 
-        readonly InputSequence.InputManager[] _inputManager;
+        private readonly InputSequence.InputManager[] _inputManager;
 
         public InputSequence.InputManager.KeyState[] KeysState => _keysState;
 

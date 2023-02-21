@@ -11,7 +11,7 @@ namespace CasaEngine.Core.Maths.Shape2D
     class ShapeRectangle
         : Shape2DObject
     {
-        int _width, _height;
+        private int _width, _height;
 
 #if EDITOR
         [Category("Shape Rectangle")]

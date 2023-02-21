@@ -274,7 +274,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Auxiliary
             AdjustMargins();
         } // Bars_Resize
 
-        void ScrollBarValueChanged(object sender, EventArgs e)
+        private void ScrollBarValueChanged(object sender, EventArgs e)
         {
             CalculateScrolling();
         } // ScrollBarValueChanged

@@ -389,7 +389,7 @@ namespace CasaEngine.Core.Collection
         /// Couter value to be able to add repeated elements (when a value its repeated the counter is added
         /// to it to make a new unique name)
         /// </summary>
-        static int idForRepeatedElements;
+        private static int idForRepeatedElements;
 
         /// <summary>
         /// Field where we´ll save the data to access it as a Dictionary

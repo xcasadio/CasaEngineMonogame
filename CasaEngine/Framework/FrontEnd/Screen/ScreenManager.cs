@@ -9,7 +9,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 #endif
     class ScreenManager
     {
-        readonly List<UiScreen> _screens = new();
+        private readonly List<UiScreen> _screens = new();
 
 
 

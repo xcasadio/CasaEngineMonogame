@@ -6,9 +6,9 @@ namespace CasaEngine.Framework.Game.Components;
 
 public class GridComponent : DrawableGameComponent
 {
-    VertexPositionColor[] LinesVertices;
-    int m_Size = 50;
-    BasicEffect GridEffect;
+    private VertexPositionColor[] LinesVertices;
+    private int m_Size = 50;
+    private BasicEffect GridEffect;
 
     public GridComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {

@@ -2,25 +2,24 @@
 {
     public class NeuralNetworkLayer
     {
+        private int _numberOfNodes;
+        private int _numberOfChildNodes;
+        private int _numberOfParentNodes;
+        private double[,] _weights;
+        private double[,] _weightChanges;
+        private double[] _neuronValues;
+        private double[] _desiredValues;
+        private double[] _errors;
+        private double[] _biasWeights;
+        private double[] _biasValues;
+        private double _learningRate;
 
-        int _numberOfNodes;
-        int _numberOfChildNodes;
-        int _numberOfParentNodes;
-        double[,] _weights;
-        double[,] _weightChanges;
-        double[] _neuronValues;
-        double[] _desiredValues;
-        double[] _errors;
-        double[] _biasWeights;
-        double[] _biasValues;
-        double _learningRate;
+        private bool _linearOutput;
+        private bool _useMomentum;
+        private double _momentumFactor = 0.9;
 
-        bool _linearOutput;
-        bool _useMomentum;
-        double _momentumFactor = 0.9;
-
-        NeuralNetworkLayer _parentLayer;
-        NeuralNetworkLayer _childLayer;
+        private NeuralNetworkLayer _parentLayer;
+        private NeuralNetworkLayer _childLayer;
 
 
 

@@ -1,10 +1,10 @@
 ﻿namespace CasaEngine.Core.Parser
 {
-    abstract class ParserToken
+    internal abstract class ParserToken
     {
 
         protected string Token = string.Empty;
-        readonly Parser _parser;
+        private readonly Parser _parser;
 
 
 

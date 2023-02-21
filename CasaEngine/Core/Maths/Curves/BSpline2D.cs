@@ -104,7 +104,7 @@ namespace CasaEngine.Core.Maths.Curves
             }
         }
 
-        Vector2 Cox_de_Boor(int r, float t, List<Vector2> ptControl)
+        private Vector2 Cox_de_Boor(int r, float t, List<Vector2> ptControl)
         {
             var pt = new List<Vector2>(_degree * (r + 1));
             float x, y;
@@ -133,7 +133,7 @@ namespace CasaEngine.Core.Maths.Curves
             return pt[_degree * _degree + r];
         }
 
-        void ModalVectorParametrization(List<Vector2> ptControl)
+        private void ModalVectorParametrization(List<Vector2> ptControl)
         {
             var nbVectorModal = ptControl.Count;
             var offset = 0;

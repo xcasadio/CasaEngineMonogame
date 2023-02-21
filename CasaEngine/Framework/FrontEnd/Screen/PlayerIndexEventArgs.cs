@@ -20,6 +20,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
         public PlayerIndex PlayerIndex => _playerIndex;
 
-        readonly PlayerIndex _playerIndex;
+        private readonly PlayerIndex _playerIndex;
     }
 }

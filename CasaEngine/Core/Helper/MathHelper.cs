@@ -48,7 +48,7 @@ namespace CasaEngine.Core.Helper
         /// Returns the distance along the ray to the point of intersection, or null
         /// if there is no intersection.
         /// </summary>
-        static float? RayIntersectsModel(Ray ray, Model model, Matrix modelTransform,
+        private static float? RayIntersectsModel(Ray ray, Model model, Matrix modelTransform,
                                          out bool insideBoundingSphere,
                                          out Vector3 vertex1, out Vector3 vertex2,
                                          out Vector3 vertex3)
@@ -158,7 +158,7 @@ namespace CasaEngine.Core.Helper
         /// however, so in this particular case the performance benefits from passing
         /// everything by reference outweigh the loss of readability.
         /// </summary>
-        static void RayIntersectsTriangle(ref Ray ray,
+        private static void RayIntersectsTriangle(ref Ray ray,
                                           ref Vector3 vertex1,
                                           ref Vector3 vertex2,
                                           ref Vector3 vertex3, out float? result)

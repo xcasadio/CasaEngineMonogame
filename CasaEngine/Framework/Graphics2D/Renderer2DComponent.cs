@@ -47,22 +47,22 @@ namespace CasaEngine.Framework.Graphics2D
 
         public static bool DrawDebug = false;
 
-        readonly List<SpriteDisplayData> _listSprite2D = new(50);
+        private readonly List<SpriteDisplayData> _listSprite2D = new(50);
         //used to create a resource pool
-        readonly Stack<SpriteDisplayData> _listFreeSpriteDisplayData = new(50);
+        private readonly Stack<SpriteDisplayData> _listFreeSpriteDisplayData = new(50);
 
-        readonly List<Text2DDisplayData> _listText2D = new(50);
+        private readonly List<Text2DDisplayData> _listText2D = new(50);
         //used to create a resource pool
-        readonly Stack<Text2DDisplayData> _listFreeTextDisplayData = new(50);
+        private readonly Stack<Text2DDisplayData> _listFreeTextDisplayData = new(50);
 
-        readonly List<Line2DDisplayData> _listLine2D = new(50);
+        private readonly List<Line2DDisplayData> _listLine2D = new(50);
         //used to create a resource pool
-        readonly Stack<Line2DDisplayData> _listFreeLine2DDisplayData = new(50);
+        private readonly Stack<Line2DDisplayData> _listFreeLine2DDisplayData = new(50);
 
         //List<RoundLine> _RoundLines = new List<RoundLine>();		
         //RoundLineManager _RoundLineManager = null;
 
-        readonly Line2DRenderer _line2DRenderer = new();
+        private readonly Line2DRenderer _line2DRenderer = new();
 
 
 

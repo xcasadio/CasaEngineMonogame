@@ -5,8 +5,8 @@ namespace CasaEngine.Framework.Audio
 {
     public class Sound : Entity
     {
-        readonly SoundEffect _soundEffect;
-        SoundEffectInstance _soundEffectInstance;
+        private readonly SoundEffect _soundEffect;
+        private SoundEffectInstance _soundEffectInstance;
 
         public SoundEffectInstance SoundEffectInstance
         {

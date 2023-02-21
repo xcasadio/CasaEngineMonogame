@@ -11,8 +11,7 @@ namespace CasaEngine.Core.Maths.Shape2D
     class ShapeCircle
         : Shape2DObject
     {
-
-        int _radius;
+        private int _radius;
 
 
 

@@ -3,7 +3,7 @@ using CasaEngine.Core.Logger;
 
 namespace CasaEngine.Framework.Game
 {
-    class WindowsGameTimer
+    internal class WindowsGameTimer
     {
         private readonly Stopwatch _stopwatch;
         private TimeSpan _lastElapsed;

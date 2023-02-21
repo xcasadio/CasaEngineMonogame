@@ -55,13 +55,13 @@ namespace CasaEngine.Core.Extension
         /// <summary>
         /// Cache for NumberGroupSizes of NumberFormat class.
         /// </summary>
-        static int[] numberGroupSizes =
+        private static int[] numberGroupSizes =
             CultureInfo.CurrentCulture.NumberFormat.NumberGroupSizes;
 
         /// <summary>
         /// string conversion buffer.
         /// </summary>
-        static char[] numberString = new char[32];
+        private static char[] numberString = new char[32];
 
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace CasaEngine.Core.Extension
         }
 
 
-        static void AppendNumbernternal(StringBuilder builder, int number,
+        private static void AppendNumbernternal(StringBuilder builder, int number,
                                         int decimalCount, AppendNumberOptions options)
         {
             // Initialize variables for conversion.

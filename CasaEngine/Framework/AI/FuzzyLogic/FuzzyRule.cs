@@ -2,9 +2,9 @@
 {
     public class FuzzyRule
     {
-        readonly IFuzzyTerm _pAntecedent;
+        private readonly IFuzzyTerm _pAntecedent;
 
-        readonly IFuzzyTerm _pConsequence;
+        private readonly IFuzzyTerm _pConsequence;
 
         //it doesn't make sense to allow clients to copy rules
         //FuzzyRule(FuzzyRule);

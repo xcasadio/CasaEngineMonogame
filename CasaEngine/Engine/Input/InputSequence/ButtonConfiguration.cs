@@ -6,7 +6,7 @@ namespace CasaEngine.Engine.Input.InputSequence
 {
     public class ButtonConfiguration
     {
-        readonly Dictionary<int, ButtonMapper> _buttonsConfig = new();
+        private readonly Dictionary<int, ButtonMapper> _buttonsConfig = new();
 
         public PlayerIndex PlayerIndex { get; set; }
 

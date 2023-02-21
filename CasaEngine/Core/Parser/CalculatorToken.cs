@@ -3,7 +3,7 @@ using CasaEngine.Core.Design;
 
 namespace CasaEngine.Core.Parser
 {
-    enum CalculatorTokenType
+    internal enum CalculatorTokenType
     {
         BinaryOperator,
         UnaryOperator,
@@ -12,10 +12,10 @@ namespace CasaEngine.Core.Parser
         Function
     }
 
-    abstract class CalculatorToken
+    internal abstract class CalculatorToken
         : ISaveLoad
     {
-        readonly Calculator _calculator;
+        private readonly Calculator _calculator;
 
 
 

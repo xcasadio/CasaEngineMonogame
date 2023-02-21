@@ -3,9 +3,9 @@
     public class FuzzySetLeftShoulder
         : FuzzySet
     {
-        readonly double _dPeakPoint;
-        readonly double _dRightOffset;
-        readonly double _dLeftOffset;
+        private readonly double _dPeakPoint;
+        private readonly double _dRightOffset;
+        private readonly double _dLeftOffset;
 
 
 

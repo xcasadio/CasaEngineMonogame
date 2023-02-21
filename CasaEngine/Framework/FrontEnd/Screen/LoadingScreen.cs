@@ -7,12 +7,12 @@ namespace CasaEngine.Framework.FrontEnd.Screen
     public class LoadingScreen
         : Screen
     {
-        readonly bool _loadingIsSlow;
-        bool _otherScreensAreGone;
+        private readonly bool _loadingIsSlow;
+        private bool _otherScreensAreGone;
 
-        readonly Screen[] _screensToLoad;
+        private readonly Screen[] _screensToLoad;
 
-        readonly Renderer2DComponent _renderer2DComponent;
+        private readonly Renderer2DComponent _renderer2DComponent;
 
 
 

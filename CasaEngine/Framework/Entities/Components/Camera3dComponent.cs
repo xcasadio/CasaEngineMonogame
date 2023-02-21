@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Entities.Components;
 
 public abstract class Camera3dComponent : CameraComponent
 {
-    float _fieldOfView;
+    private float _fieldOfView;
 
     protected Camera3dComponent(Entity entity, int type) : base(entity, type)
     {

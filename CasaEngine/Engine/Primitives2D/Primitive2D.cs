@@ -5,13 +5,13 @@ namespace CasaEngine.Engine.Primitives2D
 {
     public abstract class Primitive2D : IDisposable
     {
-        List<VertexPositionColor> vertices = new List<VertexPositionColor>();
-        List<ushort> indices = new List<ushort>();
+        private List<VertexPositionColor> vertices = new List<VertexPositionColor>();
+        private List<ushort> indices = new List<ushort>();
 
-        VertexDeclaration vertexDeclaration;
-        VertexBuffer vertexBuffer;
-        IndexBuffer indexBuffer;
-        BasicEffect basicEffect;
+        private VertexDeclaration vertexDeclaration;
+        private VertexBuffer vertexBuffer;
+        private IndexBuffer indexBuffer;
+        private BasicEffect basicEffect;
 
         /// <summary>
         /// Finalizer.

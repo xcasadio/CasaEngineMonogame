@@ -6,8 +6,7 @@
     public class FileLogger
         : ILog
     {
-
-        StreamWriter m_Stream = null;
+        private StreamWriter m_Stream = null;
         private readonly string m_Debug = "[DEBUG] : ";
         private readonly string m_Warning = "Warning : ";
         private readonly string m_Error = "Error : ";

@@ -38,8 +38,7 @@ namespace CasaEngine.Editor.Assets
         }
 
 
-
-        void _FileWatcher_Created(object sender, FileSystemEventArgs e)
+        private void _FileWatcher_Created(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType == WatcherChangeTypes.Created)
             {

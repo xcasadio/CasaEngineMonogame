@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 {
     public class WorldScreen : Screen
     {
-        readonly World.World _world;
+        private readonly World.World _world;
 
         public WorldScreen(World.World world, string worldName)
             : base(worldName)

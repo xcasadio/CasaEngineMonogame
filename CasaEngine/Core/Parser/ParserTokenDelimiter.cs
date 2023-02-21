@@ -1,9 +1,9 @@
 ﻿namespace CasaEngine.Core.Parser
 {
-    class ParserTokenDelimiter
+    internal class ParserTokenDelimiter
         : ParserToken
     {
-        readonly string _close;
+        private readonly string _close;
 
 
 

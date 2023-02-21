@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Framework.Assets.Loaders
 {
-    class Texture2DLoader : IAssetLoader
+    internal class Texture2DLoader : IAssetLoader
     {
         public object LoadAsset(string fileName, GraphicsDevice device)
         {

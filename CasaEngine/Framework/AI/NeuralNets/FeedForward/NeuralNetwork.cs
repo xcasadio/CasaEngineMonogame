@@ -5,10 +5,9 @@ namespace CasaEngine.Framework.AI.NeuralNets.FeedForward
     [Serializable]
     public class NeuralNetwork : Entity
     {
-
-        NeuralNetworkLayer _inputLayer = null;
-        NeuralNetworkLayer _hiddenLayer = null;
-        NeuralNetworkLayer _outputLayer = null;
+        private NeuralNetworkLayer _inputLayer = null;
+        private NeuralNetworkLayer _hiddenLayer = null;
+        private NeuralNetworkLayer _outputLayer = null;
 
 
 

@@ -36,8 +36,10 @@ public class MeshRendererComponent : DrawableGameComponent
         {
             graphicsDevice.SetVertexBuffer(meshInfo.Mesh.VertexBuffer);
             graphicsDevice.Indices = meshInfo.Mesh.IndexBuffer;
+            //graphicsDevice.Textures[0] = meshInfo.Mesh.Texture;
 
-            _effect.Parameters["matWorldViewProj"].SetValue(meshInfo.WorldViewProj);
+            _effect.Parameters["Texture"].SetValue(meshInfo.Mesh.Texture);
+            _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
 
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
             {
@@ -50,7 +52,7 @@ public class MeshRendererComponent : DrawableGameComponent
         _meshInfos.Clear();
     }
 
-    class MeshInfo
+    private class MeshInfo
     {
         public Mesh Mesh;
         public Matrix WorldViewProj;

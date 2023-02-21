@@ -64,7 +64,7 @@ namespace CasaEngine.Framework.Gameplay
         private readonly List<ICollide2Dable> _alreadyAttacked = new();
 
         //for debugging : to delete
-        Texture2D _whiteTexture;
+        private Texture2D _whiteTexture;
 
 
 
@@ -387,7 +387,7 @@ namespace CasaEngine.Framework.Gameplay
             //}
         }
 
-        void OnEndAnimationReached(object sender, EventArgs e)
+        private void OnEndAnimationReached(object sender, EventArgs e)
         {
             _message.SenderID = Id;
             _message.RecieverID = Id; //_Animation2DPlayer.CurrentAnimation.Id ??

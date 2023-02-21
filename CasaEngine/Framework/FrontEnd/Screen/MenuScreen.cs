@@ -6,11 +6,11 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 {
     public class MenuScreen : Screen
     {
-        readonly List<MenuEntry> _menuEntries = new();
-        int _selectedEntry;
-        readonly string _menuTitle;
+        private readonly List<MenuEntry> _menuEntries = new();
+        private int _selectedEntry;
+        private readonly string _menuTitle;
 
-        readonly Renderer2DComponent _renderer2DComponent;
+        private readonly Renderer2DComponent _renderer2DComponent;
 
 
 

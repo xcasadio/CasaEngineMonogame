@@ -127,7 +127,7 @@ namespace CasaEngine.Framework.Graphics2D.Tile
             OnGraphicsComponentDeviceReset(this, new EventArgs());
         }
 
-        void OnGraphicsComponentDeviceReset(object sender, EventArgs e)
+        private void OnGraphicsComponentDeviceReset(object sender, EventArgs e)
         {
             _displaySize.X =
                 _graphics.GraphicsDevice.PresentationParameters.BackBufferWidth;

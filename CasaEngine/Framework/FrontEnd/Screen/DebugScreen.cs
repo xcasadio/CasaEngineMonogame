@@ -5,10 +5,10 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 {
     public class DebugScreen : Screen
     {
-        int _selectedEntry = 0;
-        string _menuTitle;
+        private int _selectedEntry = 0;
+        private string _menuTitle;
 
-        Renderer2DComponent _renderer2DComponent;
+        private Renderer2DComponent _renderer2DComponent;
 
         public DebugScreen(string menuTitle, string menuName)
             : base(menuName)

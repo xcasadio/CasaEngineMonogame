@@ -1337,8 +1337,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Text
         } // SplitLines
 
 
-
-        void ScrollBarValueChanged(object sender, EventArgs e)
+        private void ScrollBarValueChanged(object sender, EventArgs e)
         {
             ClientArea.Invalidate();
         } // scrollBarValueChanged

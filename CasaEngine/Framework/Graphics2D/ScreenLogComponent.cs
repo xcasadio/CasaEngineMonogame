@@ -8,8 +8,8 @@ namespace CasaEngine.Framework.Graphics2D
     public class ScreenLogComponent
         : DrawableGameComponent
     {
-        readonly List<LogText> _logText = new();
-        Renderer2DComponent _renderer2DComponent;
+        private readonly List<LogText> _logText = new();
+        private Renderer2DComponent _renderer2DComponent;
 
 
 
@@ -121,7 +121,7 @@ namespace CasaEngine.Framework.Graphics2D
 
     }
 
-    class LogText
+    internal class LogText
     {
         public string Text = string.Empty;
         public SpriteFont SpriteFont;

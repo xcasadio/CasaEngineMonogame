@@ -6,13 +6,14 @@ namespace CasaEngine.Framework.Assets;
 public class Mesh
 {
 #if EDITOR
-    readonly List<VertexPositionNormalTexture> _vertices = new();
-    readonly List<ushort> _indices = new();
+    private readonly List<VertexPositionNormalTexture> _vertices = new();
+    private readonly List<ushort> _indices = new();
 #endif
 
     public VertexBuffer VertexBuffer { get; private set; }
     public IndexBuffer IndexBuffer { get; private set; }
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
+    public Texture2D Texture { get; set; }
 
 
     public void Initialize(GraphicsDevice graphicsDevice)
@@ -25,9 +26,9 @@ public class Mesh
     }
 
 #if EDITOR
-    public void AddVertex(Vector3 position, Vector3 normal, Vector2 UV_)
+    public void AddVertex(Vector3 position, Vector3 normal, Vector2 uv)
     {
-        _vertices.Add(new VertexPositionNormalTexture(position, normal, UV_));
+        _vertices.Add(new VertexPositionNormalTexture(position, normal, uv));
     }
 
     public void AddVertex(VertexPositionNormalTexture vertex)

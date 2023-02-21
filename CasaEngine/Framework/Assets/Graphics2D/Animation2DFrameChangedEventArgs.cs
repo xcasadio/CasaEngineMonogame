@@ -3,8 +3,8 @@
     public class Animation2DFrameChangedEventArgs
         : EventArgs
     {
-        Animation2D _animation2D;
-        int _oldFrame, _newFrame;
+        private Animation2D _animation2D;
+        private int _oldFrame, _newFrame;
 
         public Animation2D Animation2D
         {

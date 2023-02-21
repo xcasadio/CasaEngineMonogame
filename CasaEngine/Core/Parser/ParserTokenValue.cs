@@ -1,10 +1,9 @@
 ﻿namespace CasaEngine.Core.Parser
 {
-    class ParserTokenValue
+    internal class ParserTokenValue
         : ParserToken
     {
-
-        float _value;
+        private float _value;
 
 
 

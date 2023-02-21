@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Graphics2D
 {
     public struct Line2D
     {
-        Vector2 _start, _end;
-        Color _color;
+        private Vector2 _start, _end;
+        private Color _color;
     }
 }

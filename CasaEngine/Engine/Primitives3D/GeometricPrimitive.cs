@@ -20,19 +20,19 @@ namespace CasaEngine.Engine.Primitives3D
     /// </summary>
     public abstract class GeometricPrimitive : IDisposable
     {
-        GeometricPrimitiveType m_Type;
+        private GeometricPrimitiveType m_Type;
 
         // During the process of constructing a primitive model, vertex
         // and index data is stored on the CPU in these managed lists.
-        List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
-        List<ushort> indices = new List<ushort>();
+        private List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
+        private List<ushort> indices = new List<ushort>();
 
         // Once all the geometry has been specified, the InitializePrimitive
         // method copies the vertex and index data into these buffers, which
         // store it on the GPU ready for efficient rendering.
-        VertexBuffer vertexBuffer;
-        IndexBuffer indexBuffer;
-        BasicEffect basicEffect;
+        private VertexBuffer vertexBuffer;
+        private IndexBuffer indexBuffer;
+        private BasicEffect basicEffect;
 
         /// <summary>
         /// Gets VertexDeclaration

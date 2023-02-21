@@ -6,8 +6,8 @@ namespace CasaEngine.Framework.Game
         : ContentManager
     {
         // Cache of all the loaded content
-        readonly Dictionary<string, object> _loaded = new();
-        readonly List<IDisposable> _disposableAssets = new();
+        private readonly Dictionary<string, object> _loaded = new();
+        private readonly List<IDisposable> _disposableAssets = new();
 
         public CustomContentManager(IServiceProvider services)
             : base(services)
@@ -43,7 +43,7 @@ namespace CasaEngine.Framework.Game
             return ReadAsset<T>(assetName, null);
         }
 
-        void RecordDisposableAsset(IDisposable disposable)
+        private void RecordDisposableAsset(IDisposable disposable)
         {
             _disposableAssets.Add(disposable);
         }

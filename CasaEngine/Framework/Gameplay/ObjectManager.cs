@@ -11,9 +11,9 @@ namespace CasaEngine.Framework.Gameplay
 {
     public sealed class ObjectManager : ISaveLoad
     {
-        class ObjectContainer
+        private class ObjectContainer
         {
-            Entity _entity;
+            private Entity _entity;
             private Type _itemType;
 
             public int Id
@@ -230,7 +230,7 @@ namespace CasaEngine.Framework.Gameplay
         }
 
         //full path, object container
-        readonly Dictionary<string, ObjectContainer> _objects = new(100);
+        private readonly Dictionary<string, ObjectContainer> _objects = new(100);
 
         public ObjectManager()
         {

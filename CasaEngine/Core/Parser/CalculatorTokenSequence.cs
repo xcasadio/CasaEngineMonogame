@@ -3,7 +3,7 @@ using CasaEngine.Core.Design;
 
 namespace CasaEngine.Core.Parser
 {
-    class CalculatorTokenSequence
+    internal class CalculatorTokenSequence
         : CalculatorToken
     {
         public enum TokenSequence
@@ -14,7 +14,7 @@ namespace CasaEngine.Core.Parser
         }
 
 
-        readonly TokenSequence _sequence;
+        private readonly TokenSequence _sequence;
 
 
 

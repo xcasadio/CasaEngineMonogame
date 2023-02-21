@@ -6,8 +6,8 @@ namespace CasaEngine.Framework.AI.BehaviourTree
     {
         protected internal T Owner;
 
-        BehaviourTreeNode<T> _root;
-        BehaviourTreeNode<T> _currentNode;
+        private BehaviourTreeNode<T> _root;
+        private BehaviourTreeNode<T> _currentNode;
 
         public void Update()
         {
@@ -42,7 +42,7 @@ namespace CasaEngine.Framework.AI.BehaviourTree
             }
         }
 
-        BehaviourTreeNode<T> Update(List<BehaviourTreeNode<T>> nodes)
+        private BehaviourTreeNode<T> Update(List<BehaviourTreeNode<T>> nodes)
         {
             foreach (var node in nodes)
             {
@@ -75,7 +75,7 @@ namespace CasaEngine.Framework.AI.BehaviourTree
             return SearchNodeByName(name, _root.Children);
         }
 
-        BehaviourTreeNode<T> SearchNodeByName(string name, List<BehaviourTreeNode<T>> nodes)
+        private BehaviourTreeNode<T> SearchNodeByName(string name, List<BehaviourTreeNode<T>> nodes)
         {
             foreach (var node in nodes)
             {

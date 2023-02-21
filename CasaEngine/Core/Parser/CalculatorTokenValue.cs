@@ -4,13 +4,12 @@ using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Parser
 {
-    class CalculatorTokenValue
+    internal class CalculatorTokenValue
         : CalculatorToken
     {
-
-        int _type;
-        float _value;
-        string _string;
+        private int _type;
+        private float _value;
+        private string _string;
 
 
 

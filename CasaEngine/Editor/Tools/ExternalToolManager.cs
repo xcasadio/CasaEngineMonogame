@@ -7,10 +7,10 @@ namespace CasaEngine.Editor.Tools
 {
     public class ExternalToolManager
     {
-        readonly Dictionary<string, Type> _customObjects = new();
-        readonly Dictionary<string, Type> _customEditorsTemplate = new();
-        readonly Dictionary<Type, IExternalTool> _customEditors = new();
-        readonly Dictionary<string, Assembly> _customObjectAssembly = new();
+        private readonly Dictionary<string, Type> _customObjects = new();
+        private readonly Dictionary<string, Type> _customEditorsTemplate = new();
+        private readonly Dictionary<Type, IExternalTool> _customEditors = new();
+        private readonly Dictionary<string, Assembly> _customObjectAssembly = new();
 
         public event EventHandler EventExternalToolChanged;
 

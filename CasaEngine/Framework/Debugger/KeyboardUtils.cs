@@ -9,8 +9,7 @@ namespace CasaEngine.Framework.Debugger
 {
     public static class KeyboardUtils
     {
-
-        class CharPair
+        private class CharPair
         {
             public CharPair(char normalChar, char? shiftChar)
             {
@@ -63,7 +62,7 @@ namespace CasaEngine.Framework.Debugger
             InitializeKeyMap();
         }
 
-        static void InitializeKeyMap()
+        private static void InitializeKeyMap()
         {
             // First row of US keyboard.
             AddKeyMap(Keys.OemTilde, "`~");
@@ -110,7 +109,7 @@ namespace CasaEngine.Framework.Debugger
             AddKeyMap(Keys.Decimal, ".");
         }
 
-        static void AddKeyMap(Keys key, string charPair)
+        private static void AddKeyMap(Keys key, string charPair)
         {
             var char1 = charPair[0];
             char? char2 = null;

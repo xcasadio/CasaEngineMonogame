@@ -15,12 +15,11 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 {
     public class MenuEntry
     {
+        private string _text;
 
-        string _text;
+        private float _selectionFade;
 
-        float _selectionFade;
-
-        readonly Renderer2DComponent _renderer2DComponent;
+        private readonly Renderer2DComponent _renderer2DComponent;
 
 
 

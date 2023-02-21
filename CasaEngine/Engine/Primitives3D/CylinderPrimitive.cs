@@ -72,7 +72,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Helper method creates a triangle fan to close the ends of the cylinder.
         /// </summary>
-        void CreateCap(int tessellation, float height, float radius, Vector3 normal)
+        private void CreateCap(int tessellation, float height, float radius, Vector3 normal)
         {
             Vector2 uv;
 
@@ -107,7 +107,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Helper method computes a point on a circle.
         /// </summary>
-        static Vector3 GetCircleVector(int i, int tessellation, out Vector2 uv_)
+        private static Vector3 GetCircleVector(int i, int tessellation, out Vector2 uv_)
         {
             float angle = i * MathHelper.TwoPi / tessellation;
 

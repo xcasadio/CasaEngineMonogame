@@ -17,7 +17,7 @@ namespace CasaEngine.Engine.Primitives3D
     public class BoxPrimitive : GeometricPrimitive
     {
 #if EDITOR
-        float m_Width, m_Height, m_Length;
+        private float m_Width, m_Height, m_Length;
 #endif
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// 
         /// </summary>
-        void AddVertex(bool dir)
+        private void AddVertex(bool dir)
         {
             if (dir)
             {

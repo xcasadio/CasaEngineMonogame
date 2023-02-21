@@ -1,6 +1,6 @@
 ﻿namespace CasaEngine.Core.Parser
 {
-    class ParserTokenFunction
+    internal class ParserTokenFunction
         : ParserToken
     {
 

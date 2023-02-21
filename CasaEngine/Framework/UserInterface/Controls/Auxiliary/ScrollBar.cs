@@ -260,8 +260,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Auxiliary
         } // DrawControl
 
 
-
-        void ArrowPress(object sender, MouseEventArgs e)
+        private void ArrowPress(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButton.Left)
             {

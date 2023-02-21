@@ -16,7 +16,7 @@ namespace CasaEngine.Editor.ContentBuilder
         }
 
 
-        void ErrorRaised(object sender, BuildErrorEventArgs e)
+        private void ErrorRaised(object sender, BuildErrorEventArgs e)
         {
             _errors.Add(e.Message);
         }
@@ -24,7 +24,7 @@ namespace CasaEngine.Editor.ContentBuilder
 
         public List<string> Errors => _errors;
 
-        readonly List<string> _errors = new();
+        private readonly List<string> _errors = new();
 
 
 
@@ -35,7 +35,7 @@ namespace CasaEngine.Editor.ContentBuilder
             set => _parameters = value;
         }
 
-        string _parameters;
+        private string _parameters;
 
 
         LoggerVerbosity ILogger.Verbosity
@@ -44,7 +44,7 @@ namespace CasaEngine.Editor.ContentBuilder
             set => _verbosity = value;
         }
 
-        LoggerVerbosity _verbosity = LoggerVerbosity.Normal;
+        private LoggerVerbosity _verbosity = LoggerVerbosity.Normal;
 
 
     }

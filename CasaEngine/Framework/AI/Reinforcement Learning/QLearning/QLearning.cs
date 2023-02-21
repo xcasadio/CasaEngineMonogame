@@ -15,10 +15,10 @@
 		protected Actions _PrevAction;                 //< previous action taken
 		protected Actions _newAction;           //< new action*/
 
-        readonly QPolicy _policy = new();
+        private readonly QPolicy _policy = new();
 
-        List<KeyValuePair<string, string>> _pastActions = new();
-        readonly float[] _pastReward = new float[50];
+        private List<KeyValuePair<string, string>> _pastActions = new();
+        private readonly float[] _pastReward = new float[50];
 
         public float Epsilon
         {
@@ -91,17 +91,17 @@
             Action = maxAction;
         }
 
-        float ValueState(string state, string action)
+        private float ValueState(string state, string action)
         {
             return _policy.GetQValues(state, action);
         }
 
-        float ValueState(string state, int numAction)
+        private float ValueState(string state, int numAction)
         {
             return _policy.GetQValues(state, numAction);
         }
 
-        float MaxValueState(IQAgent agent, string state)
+        private float MaxValueState(IQAgent agent, string state)
         {
             var res = 0.0f;
             float r;

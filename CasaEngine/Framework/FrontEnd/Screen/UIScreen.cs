@@ -14,7 +14,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
     class UiScreen
         : Screen
     {
-        readonly List<Control> _controls = new();
+        private readonly List<Control> _controls = new();
 
         public Control[] Gagdets => _controls.ToArray();
 
