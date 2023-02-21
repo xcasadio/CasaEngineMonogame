@@ -19,9 +19,9 @@ namespace SandBoxGame
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
             base.Initialize();
+
+            IsMouseVisible = true;
         }
 
         protected override void LoadContent()

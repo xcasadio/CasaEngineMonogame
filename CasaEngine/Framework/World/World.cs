@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.World
 {
     public class World
     {
-        private readonly List<Entity> _baseObjects = new();
+        private readonly List<Entity> _entities = new();
         private readonly List<Entity> _baseObjectsToAdd = new();
 
         public event EventHandler? Initializing;
@@ -14,7 +14,7 @@ namespace CasaEngine.Framework.World
         public event EventHandler? Starting;
 
         public string Name { get; set; }
-        public Entity[] BaseObjects => _baseObjects.ToArray();
+        public IEnumerable<Entity> Entities => _entities;
 
         public Genbox.VelcroPhysics.Dynamics.World? PhysicWorld;
 
@@ -28,7 +28,7 @@ namespace CasaEngine.Framework.World
 
         public void AddObjectImmediately(Entity entity)
         {
-            _baseObjects.Add(entity);
+            _entities.Add(entity);
         }
 
         public void AddObject(Entity entity)
@@ -38,13 +38,13 @@ namespace CasaEngine.Framework.World
 
         public void Clear()
         {
-            _baseObjects.Clear();
+            _entities.Clear();
             _baseObjectsToAdd.Clear();
         }
 
         public void Initialize()
         {
-            foreach (var baseObject in _baseObjects)
+            foreach (var baseObject in _entities)
             {
                 baseObject.Initialize();
             }
@@ -68,10 +68,10 @@ namespace CasaEngine.Framework.World
 
             var toRemove = new List<Entity>();
 
-            _baseObjects.AddRange(_baseObjectsToAdd);
+            _entities.AddRange(_baseObjectsToAdd);
             _baseObjectsToAdd.Clear();
 
-            foreach (var a in _baseObjects)
+            foreach (var a in _entities)
             {
                 a.Update(elapsedTime);
 
@@ -83,13 +83,13 @@ namespace CasaEngine.Framework.World
 
             foreach (var a in toRemove)
             {
-                _baseObjects.Remove(a);
+                _entities.Remove(a);
             }
         }
 
         public virtual void Draw(float elapsedTime)
         {
-            foreach (var baseObject in _baseObjects)
+            foreach (var baseObject in _entities)
             {
                 baseObject.Draw();
             }
@@ -106,7 +106,7 @@ namespace CasaEngine.Framework.World
 
             Name = rootElement.GetJsonPropertyByName("Name").Value.GetString();
 
-            _baseObjects.AddRange(EntityLoader.LoadFromArray(rootElement.GetJsonPropertyByName("Entities").Value));
+            _entities.AddRange(EntityLoader.LoadFromArray(rootElement.GetJsonPropertyByName("Entities").Value));
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Framework.Gameplay.Design
 {
-    public interface IActorCloneable
+    public interface ICloneable
     {
         Entity Clone();
     }

@@ -5,12 +5,13 @@ using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Gameplay.Actor;
-using CasaEngine.Framework.Gameplay.Design;
 using Microsoft.Xna.Framework;
+using XNAGizmo;
+using ICloneable = CasaEngine.Framework.Gameplay.Design.ICloneable;
 
 namespace CasaEngine.Framework.Entities
 {
-    public class Entity : ISaveLoad, IActorCloneable
+    public class Entity : ISaveLoad, ICloneable, ITransformable
     {
         public const int EntityNotRegistered = -1;
 
@@ -185,5 +186,33 @@ namespace CasaEngine.Framework.Entities
             File.WriteAllText(fileName, jsonString);
         }
 #endif
+
+        public Vector3 Position
+        {
+            get => Coordinates.LocalPosition;
+            set => Coordinates.LocalPosition = value;
+        }
+        public Vector3 Scale
+        {
+            get => Coordinates.LocalScale;
+            set => Coordinates.LocalScale = value;
+        }
+        public Quaternion Orientation
+        {
+            get => Coordinates.LocalRotation;
+            set => Coordinates.LocalRotation = value;
+        }
+
+        public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
+        public Vector3 Up => Vector3.Transform(Vector3.Up, Orientation);
+
+        //TODO : compute real BoundingBox
+        const float LENGTH = 5f;
+        public BoundingBox BoundingBox => new(Position - (Vector3.One * LENGTH) * Scale, Position + (Vector3.One * LENGTH) * Scale);
+
+        public float? Select(Ray selectionRay)
+        {
+            return selectionRay.Intersects(BoundingBox);
+        }
     }
 }

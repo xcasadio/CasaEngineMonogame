@@ -36,7 +36,6 @@ public class MeshRendererComponent : DrawableGameComponent
         {
             graphicsDevice.SetVertexBuffer(meshInfo.Mesh.VertexBuffer);
             graphicsDevice.Indices = meshInfo.Mesh.IndexBuffer;
-            //graphicsDevice.Textures[0] = meshInfo.Mesh.Texture;
 
             _effect.Parameters["Texture"].SetValue(meshInfo.Mesh.Texture);
             _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
@@ -58,4 +57,3 @@ public class MeshRendererComponent : DrawableGameComponent
         public Matrix WorldViewProj;
     }
 }
-

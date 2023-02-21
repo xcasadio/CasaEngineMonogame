@@ -11,6 +11,7 @@ using Editor.Tools.UIScreenEditor;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
+using Editor.Debugger;
 
 namespace Editor
 {
@@ -89,7 +90,7 @@ namespace Editor
                 try
                 {
 #endif
-                m_ProjectConfigForm = new ProjectConfigForm();
+                    m_ProjectConfigForm = new ProjectConfigForm();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -160,7 +161,7 @@ namespace Editor
                 try
                 {
 #endif
-                m_SoundEditorForm = new SoundEditorForm();
+                    m_SoundEditorForm = new SoundEditorForm();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -200,8 +201,8 @@ namespace Editor
                 try
                 {
 #endif
-                CreateProject(saveDialog.FileName);
-                LogManager.Instance.WriteLine("New project successfully created");
+                    CreateProject(saveDialog.FileName);
+                    LogManager.Instance.WriteLine("New project successfully created");
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -372,14 +373,14 @@ namespace Editor
             try
             {
 #endif
-            ClearProject();
-            Engine.Instance.ProjectManager.CreateProject(fileName_);
-            OnProjectLoaded(fileName_);
+                ClearProject();
+                Engine.Instance.ProjectManager.CreateProject(fileName_);
+                OnProjectLoaded(fileName_);
 #if !DEBUG
             }
             catch (System.Exception e)
             {
-                
+
             }
 #endif
         }
@@ -401,35 +402,35 @@ namespace Editor
             try
             {
 #endif
-            ClearProject();
-            Engine.Instance.ProjectManager.Load(fileName_);
-            CheckExternalTool();
+                ClearProject();
+                Engine.Instance.ProjectManager.Load(fileName_);
+                CheckExternalTool();
 
 #if !UNITTEST
-            /*SourceControlManager.Instance.SourceControl.Connect();
+                /*SourceControlManager.Instance.SourceControl.Connect();
 
-            if (SourceControlManager.Instance.SourceControl.IsValidConnection() == false)
-            {
-                //Ask connection information
-                SourceControlConnectionForm form = new SourceControlConnectionForm();
-
-                if (form.ShowDialog(this) == DialogResult.OK)
+                if (SourceControlManager.Instance.SourceControl.IsValidConnection() == false)
                 {
-                    SourceControlManager.Instance.Server = form.Server;
-                    SourceControlManager.Instance.User = form.User;
-                    SourceControlManager.Instance.Workspace = form.Workspace;
-                    SourceControlManager.Instance.Password = form.Password;
-                    SourceControlManager.Instance.SourceControl.Connect();
+                    //Ask connection information
+                    SourceControlConnectionForm form = new SourceControlConnectionForm();
 
-                    if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
+                    if (form.ShowDialog(this) == DialogResult.OK)
                     {
-                        SourceControlManager.Instance.CheckProjectFiles();
+                        SourceControlManager.Instance.Server = form.Server;
+                        SourceControlManager.Instance.User = form.User;
+                        SourceControlManager.Instance.Workspace = form.Workspace;
+                        SourceControlManager.Instance.Password = form.Password;
+                        SourceControlManager.Instance.SourceControl.Connect();
+
+                        if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
+                        {
+                            SourceControlManager.Instance.CheckProjectFiles();
+                        }
                     }
-                }
-            }*/
+                }*/
 #endif
 
-            OnProjectLoaded(fileName_);
+                OnProjectLoaded(fileName_);
 #if !DEBUG
             }
             catch (System.Exception ex)
@@ -449,16 +450,16 @@ namespace Editor
             try
             {
 #endif
-            if (Engine.Instance.ProjectManager.Save(fileName_) == true)
-            {
-                LogManager.Instance.WriteLine("Project ",
-                    "\"" + Engine.Instance.ProjectSettings.ProjectName + "\"", Color.Blue,
-                    " successfully saved.");
-            }
-            else
-            {
-                LogManager.Instance.WriteLineError("Can't save the project.");
-            }
+                if (Engine.Instance.ProjectManager.Save(fileName_) == true)
+                {
+                    LogManager.Instance.WriteLine("Project ",
+                        "\"" + Engine.Instance.ProjectSettings.ProjectName + "\"", Color.Blue,
+                        " successfully saved.");
+                }
+                else
+                {
+                    LogManager.Instance.WriteLineError("Can't save the project.");
+                }
 
 #if !DEBUG
             }
@@ -516,54 +517,54 @@ namespace Editor
         {
 #if !DEBUG
             try
-            { 
-#endif
-            saveToolStripMenuItem_Click(this, EventArgs.Empty);
-
-            BgWorkerForm form = new BgWorkerForm(BuildAssetFileInContentFolder);
-            //BgWorkerForm form = new BgWorkerForm(CopyAssetFileInContentFolder);
-            form.Text = "Copying ressource files";
-            form.ShowDialog(this);
-
-            bool res = form.Result == null ? false :
-                form.Result.Error != null ? false :
-                form.Result.Result is bool ? (bool)form.Result.Result : false;
-
-            if (res == false)
             {
-                if (form.Result != null) //else : user cancel the operation : no message
+#endif
+                saveToolStripMenuItem_Click(this, EventArgs.Empty);
+
+                BgWorkerForm form = new BgWorkerForm(BuildAssetFileInContentFolder);
+                //BgWorkerForm form = new BgWorkerForm(CopyAssetFileInContentFolder);
+                form.Text = "Copying ressource files";
+                form.ShowDialog(this);
+
+                bool res = form.Result == null ? false :
+                    form.Result.Error != null ? false :
+                    form.Result.Result is bool ? (bool)form.Result.Result : false;
+
+                if (res == false)
                 {
-                    if (form.Result.Error != null)
+                    if (form.Result != null) //else : user cancel the operation : no message
                     {
-                        LogManager.Instance.WriteException(form.Result.Error);
-                        MessageBox.Show(this, form.Result.Error.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (form.Result.Error != null)
+                        {
+                            LogManager.Instance.WriteException(form.Result.Error);
+                            MessageBox.Show(this, form.Result.Error.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        else
+                        {
+                            LogManager.Instance.WriteLineError("Can't copy ressource files : unknown error!");
+                            MessageBox.Show(this, "Can't copy ressource files : unknown error!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
-                    else
-                    {
-                        LogManager.Instance.WriteLineError("Can't copy ressource files : unknown error!");
-                        MessageBox.Show(this, "Can't copy ressource files : unknown error!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+
+                    return;
                 }
 
-                return;
-            }
+                form.Dispose();
 
-            form.Dispose();
+                ProcessStartInfo myInfo = new ProcessStartInfo();
+                myInfo.FileName = FindGameExe();
 
-            ProcessStartInfo myInfo = new ProcessStartInfo();
-            myInfo.FileName = FindGameExe();
-
-            if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
-            {
-                myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
-                myInfo.Arguments = Path.GetFileName(Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened));
-                Process.Start(myInfo);
-            }
-            else
-            {
-                LogManager.Instance.WriteLineError("Game exe not found!");
-                MessageBox.Show(this, "Game exe not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
+                {
+                    myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
+                    myInfo.Arguments = Path.GetFileName(Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened));
+                    Process.Start(myInfo);
+                }
+                else
+                {
+                    LogManager.Instance.WriteLineError("Game exe not found!");
+                    MessageBox.Show(this, "Game exe not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
 #if !DEBUG
             }
             catch (Exception ex)
@@ -762,8 +763,8 @@ namespace Editor
             try
             {
 #endif
-            //Button button = (Button)sender;
-            //GameInfo.Instance.ExternalToolManager.RunTool(this, button.Name);
+                //Button button = (Button)sender;
+                //GameInfo.Instance.ExternalToolManager.RunTool(this, button.Name);
 #if !DEBUG
             }
             catch (Exception ex)
@@ -961,7 +962,7 @@ namespace Editor
                 {
 #endif
 
-                m_MapEditorForm = new MapEditorForm();
+                    m_MapEditorForm = new MapEditorForm();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -996,7 +997,7 @@ namespace Editor
                 try
                 {
 #endif
-                m_ScreenEditorForm = new UIScreenEditorForm();
+                    m_ScreenEditorForm = new UIScreenEditorForm();
 #if !DEBUG
                 }
                 catch (Exception ex)

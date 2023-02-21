@@ -43,6 +43,8 @@ namespace CasaEngine.Framework.Game
             _screenManagerComponent = new ScreenManagerComponent(this);
             _shapeRendererComponent = new ShapeRendererComponent(this);
             _meshRendererComponent = new MeshRendererComponent(this);
+            var gizmoComponent = new GizmoComponent(this);
+
 
 #if EDITOR
             new GridComponent(this);

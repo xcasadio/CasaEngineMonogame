@@ -105,10 +105,10 @@ public class ArcBallCameraComponent : Camera3dComponent
         }
     }
 
-    public Vector3 Position
+    public override Vector3 Position
     {
         get => _target - Direction * _distance;
-        set => SetCamera(value, _target, Up);
+        //set => SetCamera(value, _target, Up);
     }
 
     public Vector3 Target
@@ -171,20 +171,20 @@ public class ArcBallCameraComponent : Camera3dComponent
         //Keyboard
         if (Keyboard.GetState().IsKeyDown(Keys.Right))
         {
-            rightAxis = step;
+            rightAxis = -step;
         }
         else if (Keyboard.GetState().IsKeyDown(Keys.Left))
         {
-            rightAxis = -step;
+            rightAxis = step;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.Up))
         {
-            forwardAxis = step;
+            forwardAxis = -step;
         }
         else if (Keyboard.GetState().IsKeyDown(Keys.Down))
         {
-            forwardAxis = -step;
+            forwardAxis = step;
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.PageUp))
@@ -200,7 +200,7 @@ public class ArcBallCameraComponent : Camera3dComponent
         {
 
             horizontalOrbit = -_inputComponent.MouseXMovement;
-            verticalOrbit = -_inputComponent.MouseYMovement;
+            verticalOrbit = _inputComponent.MouseYMovement;
         }
 
         //Touch
@@ -277,8 +277,6 @@ public class ArcBallCameraComponent : Camera3dComponent
     {
         _needToComputeViewMatrix = true;
 
-        Quaternion q1, q2;
-
         //update the yaw
         _pitch -= angle;
 
@@ -300,21 +298,12 @@ public class ArcBallCameraComponent : Camera3dComponent
     /// </summary>
     public void OrbitRight(float angle)
     {
-        _needToComputeViewMatrix = true;
-
-        Quaternion q1, q2;
-
-        //update the yaw
         _yaw -= angle;
 
         //float mod yaw to avoid eventual precision errors
         //as we move away from 0
-        _yaw = _yaw % MathHelper.TwoPi;
-
-        //create a new aspect based on pitch and yaw
-        _orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) *
-                                Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
-        //normalize to reduce errors
+        _yaw %= MathHelper.TwoPi;
+        _orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) * Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
         _orientation.Normalize();
 
         _needToComputeViewMatrix = true;
@@ -363,36 +352,33 @@ public class ArcBallCameraComponent : Camera3dComponent
 
     public void SetCamera(Vector3 position, Vector3 target, Vector3 up)
     {
-        var temp = Matrix.CreateLookAt(position, target, up);
-        temp = Matrix.Invert(temp);
-        _orientation = Quaternion.CreateFromRotationMatrix(temp);
+        up.Normalize();
+        Vector3 dir = position - target;
+        Vector3 zAxis = dir;
+        zAxis.Normalize();
+        Vector3 xAxis = (Vector3.Cross(zAxis, up));
+        xAxis.Normalize();
+        Vector3 yAxis = (Vector3.Cross(xAxis, zAxis));
+        yAxis.Normalize();
+        xAxis = (Vector3.Cross(zAxis, yAxis));
+        xAxis.Normalize();
 
-        Target = target;
-        Distance = (target - position).Length();
-
-        //When setting a new eye-view direction 
-        //in one of the gamble-locked modes, the yaw and
-        //pitch gimble must be calculated.
-
-        //first, get the direction projected on the x/z plane
-        var dir = (target - position);//Direction;
-        dir.Y = 0.0f;
-        if (dir.Length() == 0.0f)
-        {
-            dir = Vector3.Forward;
-        }
-        dir.Normalize();
+        Target = -target;
+        Distance = -dir.Length();
+        Matrix m = Matrix.Identity;
+        m.Right = xAxis;
+        m.Forward = zAxis;
+        m.Up = yAxis;
+        m = Matrix.Transpose(m);
 
         //find the yaw of the direction on the x/z plane
         //and use the sign of the x-component since we have 360 degrees
         //of freedom
-        //_yaw = ;
-        Yaw = (float)(Math.Acos(-dir.Z) * Math.Sign(dir.X));
+        Yaw = (float)(Math.Acos(-zAxis.Z) * Math.Sign(zAxis.X));
 
         //Get the pitch from the angle formed by the Up vector and the 
         //the forward direction, then subtracting PI / 2, since 
         //we pitch is zero at Forward, not Up.
-        //_pitch = ;
-        Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, dir)) - MathHelper.PiOver2);
+        Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, zAxis)) - MathHelper.PiOver2);
     }
 }

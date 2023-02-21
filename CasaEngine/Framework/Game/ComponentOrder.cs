@@ -7,7 +7,6 @@ namespace CasaEngine.Framework.Game
         DebugPhysics,
         Renderer2DComponent,
         MeshComponent,
-        PickBuffer,
         Input = 510,
         Manipulator,
         DebugManager = 20,

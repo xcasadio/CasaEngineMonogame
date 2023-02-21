@@ -13,6 +13,8 @@ public abstract class CameraComponent : Component
     protected bool _needToComputeProjectionMatrix;
     protected bool _needToComputeViewMatrix;
 
+    public abstract Vector3 Position { get; }
+
     public Matrix ViewMatrix
     {
         get

@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VelcroPhysics.MonoGame", "V
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VelcroPhysics.MonoGame.DebugView", "VelcroPhysics\VelcroPhysics.MonoGame.DebugView\VelcroPhysics.MonoGame.DebugView.csproj", "{60F6D253-871D-441D-8975-C80303363C03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandBoxGame", "SandBoxGame\SandBoxGame.csproj", "{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandBoxGame", "SandBoxGame\SandBoxGame.csproj", "{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GizmoTools", "GizmoTool\GizmoTools.csproj", "{84B4E8B0-D285-4545-95A1-41EF0724FC42}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,6 +129,18 @@ Global
 		{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}.Release|Any CPU.Build.0 = Release|Any CPU
 		{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}.Release|x64.ActiveCfg = Release|Any CPU
 		{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}.Release|x64.Build.0 = Release|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Debug|x64.Build.0 = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.DebugEditor|x64.Build.0 = Debug|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Release|x64.ActiveCfg = Release|Any CPU
+		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

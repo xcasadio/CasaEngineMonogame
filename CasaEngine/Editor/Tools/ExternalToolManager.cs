@@ -157,16 +157,16 @@ namespace CasaEngine.Editor.Tools
                     try
                     {
 #endif
-                    tool = (IExternalTool)t.Assembly.CreateInstance(t.FullName);
-                    tool.ExternalTool.Window.Show();
+                        tool = (IExternalTool)t.Assembly.CreateInstance(t.FullName);
+                        tool.ExternalTool.Window.Show();
 
-                    _customEditors.Remove(t);
-                    _customEditors.Add(t, tool);
+                        _customEditors.Remove(t);
+                        _customEditors.Add(t, tool);
 #if !DEBUG
                     }
                     catch (Exception ex)
                     {
-                        DebugHelper.ShowException(ex);
+                        //DebugHelper.ShowException(ex);
                     }
 #endif                    
                 }
