@@ -56,8 +56,8 @@ public abstract class CameraComponent : Component
         //    WindowResizeEvent::GetEventName(),
         //    Event::Subscriber(&OnWindowResized, this));
 
-        _viewport.Width = Game.Engine.Instance.GraphicsDeviceManager.PreferredBackBufferWidth;
-        _viewport.Height = Game.Engine.Instance.GraphicsDeviceManager.PreferredBackBufferHeight;
+        _viewport.Width = Game.Engine.Instance.Game.Window.ClientBounds.Width;
+        _viewport.Height = Game.Engine.Instance.Game.Window.ClientBounds.Height;
         _viewport.MinDepth = 0.1f;
         _viewport.MaxDepth = 100000.0f;
     }

@@ -45,10 +45,13 @@ public class GizmoComponent : DrawableGameComponent
             return;
         }
 
-        _gizmo.UpdateCameraProperties(
-            GameInfo.Instance.ActiveCamera.ViewMatrix,
-            GameInfo.Instance.ActiveCamera.ProjectionMatrix,
-            GameInfo.Instance.ActiveCamera.Position);
+        if (GameInfo.Instance.ActiveCamera != null)
+        {
+            _gizmo.UpdateCameraProperties(
+                GameInfo.Instance.ActiveCamera.ViewMatrix,
+                GameInfo.Instance.ActiveCamera.ProjectionMatrix,
+                GameInfo.Instance.ActiveCamera.Position);
+        }
 
         _currentMouse = Mouse.GetState();
         _currentKeys = Keyboard.GetState();

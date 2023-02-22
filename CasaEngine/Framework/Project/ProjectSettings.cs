@@ -46,10 +46,10 @@ namespace CasaEngine.Framework.Project
         public bool DebugIsFullScreen { get; set; }
 
         [Category("Debug")]
-        public int DebugWidth { get; set; } = 800;
+        public int DebugWidth { get; set; } = 1024;
 
         [Category("Debug")]
-        public int DebugHeight { get; set; } = 600;
+        public int DebugHeight { get; set; } = 768;
 
 #endif
 

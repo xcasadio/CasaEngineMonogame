@@ -193,15 +193,15 @@ namespace CasaEngine.Framework.UserInterface
 
         //internal AssetContentManager UserInterfaceContentManager { get; private set; }
 
-        internal event EventHandler DeviceReset;
+        internal event EventHandler? DeviceReset;
 
-        public event SkinEventHandler SkinChanging;
+        public event SkinEventHandler? SkinChanging;
 
-        public event SkinEventHandler SkinChanged;
+        public event SkinEventHandler? SkinChanged;
 
-        public event WindowClosingEventHandler WindowClosing;
+        public event WindowClosingEventHandler? WindowClosing;
 
-        public event ResizeEventHandler WindowResize;
+        public event ResizeEventHandler? WindowResize;
 
         public void Initialize(GraphicsDevice graphicsDevice, IntPtr formHandle, Rectangle gameWindowClientBounds)
         {
@@ -298,8 +298,7 @@ namespace CasaEngine.Framework.UserInterface
         private void OnScreenSizeChanged(object? sender, System.EventArgs e)
         {
             WindowResize?.Invoke(null, new ResizeEventArgs(GraphicsDevice.PresentationParameters.BackBufferWidth,
-                GraphicsDevice.PresentationParameters.BackBufferHeight,
-                _oldScreenWidth, _oldScreenHeight));
+                GraphicsDevice.PresentationParameters.BackBufferHeight, _oldScreenWidth, _oldScreenHeight));
             _oldScreenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
             _oldScreenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
         }

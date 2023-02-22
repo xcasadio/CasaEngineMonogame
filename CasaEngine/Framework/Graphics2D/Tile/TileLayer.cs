@@ -25,8 +25,6 @@ namespace CasaEngine.Framework.Graphics2D.Tile
         private Vector2 _displaySize;
         private Color _layerColor = Color.White;
 
-
-
         /*public Renderer2DComponent Renderer2DComponent
 		{
 #if EDITOR
@@ -89,8 +87,6 @@ namespace CasaEngine.Framework.Graphics2D.Tile
             get => _worldOffset;
         }
 
-
-
         public TileLayer(Vector2 offset, GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
         {
 #if !EDITOR
@@ -117,28 +113,18 @@ namespace CasaEngine.Framework.Graphics2D.Tile
             CameraPosition = Vector2.Zero;
         }
 
-
-
         private void InitializeGraphics()
         {
-            _graphics.DeviceReset +=
-                OnGraphicsComponentDeviceReset;
-
-            OnGraphicsComponentDeviceReset(this, new EventArgs());
+            _graphics.DeviceReset += OnGraphicsComponentDeviceReset;
+            OnGraphicsComponentDeviceReset(this, EventArgs.Empty);
         }
 
-        private void OnGraphicsComponentDeviceReset(object sender, EventArgs e)
+        private void OnGraphicsComponentDeviceReset(object? sender, EventArgs e)
         {
-            _displaySize.X =
-                _graphics.GraphicsDevice.PresentationParameters.BackBufferWidth;
-
-            _displaySize.Y =
-                _graphics.GraphicsDevice.PresentationParameters.BackBufferHeight;
-
+            _displaySize.X = Game.Engine.Instance.Game.Window.ClientBounds.Width;
+            _displaySize.Y = Game.Engine.Instance.Game.Window.ClientBounds.Height;
             VisibilityChanged = true;
         }
-
-
 
         protected virtual void DetermineVisibility()
         {
@@ -159,8 +145,6 @@ namespace CasaEngine.Framework.Graphics2D.Tile
         {
             DrawTiles(batch);
         }
-
-
 
     }
 }
