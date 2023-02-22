@@ -32,13 +32,6 @@ public class MeshComponent : Component
         _meshRendererComponent.AddMesh(Mesh, worldViewProj);
     }
 
-    public override void Draw()
-    {
-        //var worldViewProj = this.Owner.Coordinates.WorldMatrix * GameInfo.Instance.ActiveCamera.ViewMatrix * GameInfo.Instance.ActiveCamera.ProjectionMatrix;
-        //_effect.Parameters["WorldViewProj"].SetValue(worldViewProj);
-        //Mesh.Draw(_effect);
-    }
-
     public override void Load(JsonElement element)
     {
         throw new NotImplementedException();

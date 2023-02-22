@@ -135,12 +135,6 @@ namespace CasaEngine.Framework.Game
             _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.PhysicWorld);
         }
 
-        protected override void BeginRun()
-        {
-            //_ScreenManagerComponent.AddScreen(new WorldScreen(GameInfo.Instance.WorldInfo.World, "world test"), PlayerIndex.One);
-            base.BeginRun();
-        }
-
         protected override void Update(GameTime gameTime)
         {
 #if !FINAL
@@ -168,7 +162,8 @@ namespace CasaEngine.Framework.Game
             DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            //GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
             GameInfo.Instance.CurrentWorld.Draw(elapsedTime);

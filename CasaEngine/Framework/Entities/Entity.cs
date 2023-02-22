@@ -4,6 +4,7 @@ using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Gameplay.Actor;
 using Microsoft.Xna.Framework;
@@ -207,8 +208,38 @@ namespace CasaEngine.Framework.Entities
         public Vector3 Up => Vector3.Transform(Vector3.Up, Orientation);
 
         //TODO : compute real BoundingBox
-        const float LENGTH = 1f;
-        public BoundingBox BoundingBox => new(Position - (Vector3.One * LENGTH) * Scale, Position + (Vector3.One * LENGTH) * Scale);
+
+        public BoundingBox BoundingBox => ComputeBoundingBox();
+
+        private BoundingBox ComputeBoundingBox()
+        {
+            Vector3 min = Vector3.One * int.MaxValue, max = Vector3.One * int.MinValue;
+
+            var meshComponent = ComponentManager.GetComponent<MeshComponent>();
+
+            if (meshComponent != null)
+            {
+                var vertices = meshComponent.Mesh.GetVertices();
+
+                foreach (var vertex in vertices)
+                {
+                    var positionTransformed = Vector3.Transform(vertex.Position, Coordinates.WorldMatrix);
+                    //var positionTransformed = Position - Vector3.Transform(vertex.Position, Orientation) * Scale;
+                    min = Vector3.Min(min, positionTransformed);
+                    max = Vector3.Max(max, positionTransformed);
+                }
+            }
+            else
+            {
+                const float length = 0.5f;
+                //var min = Position - Vector3.Transform(Vector3.One * length, Orientation) * Scale;
+                //var max = Position + Vector3.Transform(Vector3.One * length, Orientation) * Scale;
+                min = Vector3.Transform(-(Vector3.One * length), Coordinates.WorldMatrix);
+                max = Vector3.Transform((Vector3.One * length), Coordinates.WorldMatrix);
+            }
+
+            return new BoundingBox(min, max);
+        }
 
         public float? Select(Ray selectionRay)
         {

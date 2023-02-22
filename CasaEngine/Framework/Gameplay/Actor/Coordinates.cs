@@ -95,12 +95,11 @@ public class Coordinates
     {
         if (_localMatrixChanged)
         {
-            Matrix transCenter = Matrix.CreateTranslation(LocalPosition);
-            Matrix trans = Matrix.CreateTranslation(LocalCenterOfRotation);
-            Matrix matS = Matrix.CreateScale(LocalScale.X, LocalScale.Y, LocalScale.Z);
-            Matrix matRot = Matrix.CreateFromQuaternion(LocalRotation);
-
-            LocalMatrix = transCenter * matS * matRot * trans;
+            Matrix translation = Matrix.CreateTranslation(LocalPosition);
+            Matrix translationRotation = Matrix.CreateTranslation(LocalCenterOfRotation);
+            Matrix scale = Matrix.CreateScale(LocalScale);
+            Matrix rotation = Matrix.CreateFromQuaternion(LocalRotation);
+            LocalMatrix = translation * scale * rotation * translationRotation;
             _localMatrixChanged = false;
         }
     }

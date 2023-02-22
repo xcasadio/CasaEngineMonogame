@@ -45,6 +45,9 @@ public class Mesh
     {
         _indices.AddRange(indices);
     }
-
+    public IReadOnlyCollection<VertexPositionNormalTexture> GetVertices()
+    {
+        return _vertices;
+    }
 #endif
 }
