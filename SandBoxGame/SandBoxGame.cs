@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using CasaEngine.Engine.Primitives3D;
+﻿using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -37,7 +36,7 @@ namespace SandBoxGame
             world.AddObjectImmediately(entity);
 
             entity = new Entity();
-            entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
+            //entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
             var meshComponent = new MeshComponent(entity);
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();

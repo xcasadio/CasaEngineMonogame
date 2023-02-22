@@ -21,10 +21,6 @@ using CasaEngine.Framework.Project;
 
 #if !DEBUG
 using Editor.Debugger;
-using CasaEngine.Editor.Tools;
-using Editor.Sprite2DEditor;
-using Editor.Sprite2DEditor.Event;
-using Editor.Tools.Event.EventForm;
 #endif
 
 namespace Editor
@@ -115,8 +111,8 @@ namespace Editor
                 try
                 {
 #endif
-                CreateProject(saveDialog.FileName);
-                LogManager.Instance.WriteLine("New project successfully created");
+                    CreateProject(saveDialog.FileName);
+                    LogManager.Instance.WriteLine("New project successfully created");
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -368,15 +364,15 @@ namespace Editor
             try
             {
 #endif
-            ClearProject();
-            Engine.Instance.ProjectManager.CreateProject(fileName_);
-            Engine.Instance.ProjectSettings.ProjectName = "New Project";
-            OnProjectLoaded(fileName_);
+                ClearProject();
+                Engine.Instance.ProjectManager.CreateProject(fileName_);
+                Engine.Instance.ProjectSettings.ProjectName = "New Project";
+                OnProjectLoaded(fileName_);
 #if !DEBUG
             }
             catch (System.Exception e)
             {
-                
+
             }
 #endif
         }
@@ -398,38 +394,38 @@ namespace Editor
             try
             {
 #endif
-            ClearProject();
-            Engine.Instance.ProjectManager.Load(fileName_);
-            CheckExternalTool();
+                ClearProject();
+                Engine.Instance.ProjectManager.Load(fileName_);
+                CheckExternalTool();
 
-            Engine.Instance.AssetContentManager.RootDirectory = Engine.Instance.ProjectManager.ProjectPath +
-                                                                Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
+                Engine.Instance.AssetContentManager.RootDirectory = Engine.Instance.ProjectManager.ProjectPath +
+                                                                    Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
 
 #if !UNITTEST
-            //SourceControlManager.Instance.SourceControl.Connect();
+                //SourceControlManager.Instance.SourceControl.Connect();
 
-            //if (SourceControlManager.Instance.SourceControl.IsValidConnection() == false)
-            {
-                //Ask connection information
-                /*SourceControlConnectionForm form = new SourceControlConnectionForm();
-
-                if (form.ShowDialog(this) == DialogResult.OK)
+                //if (SourceControlManager.Instance.SourceControl.IsValidConnection() == false)
                 {
-                    SourceControlManager.Instance.Server = form.Server;
-                    SourceControlManager.Instance.User = form.User;
-                    SourceControlManager.Instance.Workspace = form.Workspace;
-                    SourceControlManager.Instance.Password = form.Password;
-                    SourceControlManager.Instance.SourceControl.Connect();
+                    //Ask connection information
+                    /*SourceControlConnectionForm form = new SourceControlConnectionForm();
 
-                    if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
+                    if (form.ShowDialog(this) == DialogResult.OK)
                     {
-                        SourceControlManager.Instance.CheckProjectFiles();
-                    }
-                }*/
-            }
+                        SourceControlManager.Instance.Server = form.Server;
+                        SourceControlManager.Instance.User = form.User;
+                        SourceControlManager.Instance.Workspace = form.Workspace;
+                        SourceControlManager.Instance.Password = form.Password;
+                        SourceControlManager.Instance.SourceControl.Connect();
+
+                        if (SourceControlManager.Instance.SourceControl.IsValidConnection() == true)
+                        {
+                            SourceControlManager.Instance.CheckProjectFiles();
+                        }
+                    }*/
+                }
 #endif
 
-            OnProjectLoaded(fileName_);
+                OnProjectLoaded(fileName_);
 #if !DEBUG
             }
             catch (System.Exception ex)
@@ -449,16 +445,16 @@ namespace Editor
             try
             {
 #endif
-            if (Engine.Instance.ProjectManager.Save(fileName_) == true)
-            {
-                LogManager.Instance.WriteLine("Project ",
-                    "\"" + Engine.Instance.ProjectSettings.ProjectName + "\"", Color.Blue,
-                    " successfully saved.");
-            }
-            else
-            {
-                LogManager.Instance.WriteLineError("Can't save the project.");
-            }
+                if (Engine.Instance.ProjectManager.Save(fileName_) == true)
+                {
+                    LogManager.Instance.WriteLine("Project ",
+                        "\"" + Engine.Instance.ProjectSettings.ProjectName + "\"", Color.Blue,
+                        " successfully saved.");
+                }
+                else
+                {
+                    LogManager.Instance.WriteLineError("Can't save the project.");
+                }
 
 #if !DEBUG
             }
@@ -510,7 +506,7 @@ namespace Editor
                 try
                 {
 #endif
-                m_ProjectConfigForm = new ProjectConfigForm();
+                    m_ProjectConfigForm = new ProjectConfigForm();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -569,30 +565,30 @@ namespace Editor
         {
 #if !DEBUG
             try
-            { 
+            {
 #endif
-            string projectFileOpened = Engine.Instance.ProjectManager.ProjectFileOpened;
+                string projectFileOpened = Engine.Instance.ProjectManager.ProjectFileOpened;
 
-            string file = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
-            file += ProjectManager.GameDirPath + Path.DirectorySeparatorChar + Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened);
+                string file = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+                file += ProjectManager.GameDirPath + Path.DirectorySeparatorChar + Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened);
 
-            SaveProject(file); // temporary project file
-            Engine.Instance.ProjectManager.ProjectFileOpened = projectFileOpened; // ProjectFileOpened will be change in SaveProject function
+                SaveProject(file); // temporary project file
+                Engine.Instance.ProjectManager.ProjectFileOpened = projectFileOpened; // ProjectFileOpened will be change in SaveProject function
 
-            ProcessStartInfo myInfo = new ProcessStartInfo();
-            myInfo.FileName = FindGameExe(Path.GetDirectoryName(file));
+                ProcessStartInfo myInfo = new ProcessStartInfo();
+                myInfo.FileName = FindGameExe(Path.GetDirectoryName(file));
 
-            if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
-            {
-                myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
-                myInfo.Arguments = file + " " + Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
-                Process.Start(myInfo);
-            }
-            else
-            {
-                LogManager.Instance.WriteLineError("Game exe not found!");
-                MessageBox.Show(this, "Game exe not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
+                {
+                    myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
+                    myInfo.Arguments = file + " " + Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
+                    Process.Start(myInfo);
+                }
+                else
+                {
+                    LogManager.Instance.WriteLineError("Game exe not found!");
+                    MessageBox.Show(this, "Game exe not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
 #if !DEBUG
             }
             catch (Exception ex)

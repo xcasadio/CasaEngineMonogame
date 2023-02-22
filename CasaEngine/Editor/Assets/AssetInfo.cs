@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace CasaEngine.Editor.Assets
+﻿namespace CasaEngine.Editor.Assets
 {
     public struct AssetInfo
     {

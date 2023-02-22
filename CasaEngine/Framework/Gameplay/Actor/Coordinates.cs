@@ -17,7 +17,7 @@ public class Coordinates
     public Coordinates? Parent { private get; set; }
 
     [Category("Coordinates")]
-    public Matrix LocalMatrix { get; private set; }
+    private Matrix LocalMatrix { get; set; }
 
     [Category("Coordinates")]
     public Matrix WorldMatrix
@@ -36,8 +36,8 @@ public class Coordinates
         get => _localCenterOfRotation;
         set
         {
-            _localMatrixChanged = true;
             _localCenterOfRotation = value;
+            _localMatrixChanged = true;
         }
     }
 
@@ -47,8 +47,8 @@ public class Coordinates
         get => _localPosition;
         set
         {
-            _localMatrixChanged = true;
             _localPosition = value;
+            _localMatrixChanged = true;
         }
     }
 
@@ -58,8 +58,8 @@ public class Coordinates
         get => _localRotation;
         set
         {
-            _localMatrixChanged = true;
             _localRotation = value;
+            _localMatrixChanged = true;
         }
     }
 
@@ -69,8 +69,8 @@ public class Coordinates
         get => _localScale;
         set
         {
-            _localMatrixChanged = true;
             _localScale = value;
+            _localMatrixChanged = true;
         }
     }
 

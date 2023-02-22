@@ -2,7 +2,6 @@
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -23,7 +22,7 @@ public class MeshComponent : Component
         //load shader in byte
         //_effect = new Effect(Game.Engine.Instance.Game.GraphicsDevice, );
         Mesh.Initialize(Game.Engine.Instance.Game.GraphicsDevice);
-        _meshRendererComponent = CasaEngine.Framework.Game.Engine.Instance.Game.GetGameComponent<MeshRendererComponent>();
+        _meshRendererComponent = Game.Engine.Instance.Game.GetGameComponent<MeshRendererComponent>();
     }
 
     public override void Update(float elapsedTime)

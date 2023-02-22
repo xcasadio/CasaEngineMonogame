@@ -1,5 +1,4 @@
-﻿using Genbox.VelcroPhysics.Dynamics.Solver;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;

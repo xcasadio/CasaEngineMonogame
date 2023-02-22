@@ -4,6 +4,7 @@ using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Gameplay.Actor;
 using Microsoft.Xna.Framework;
 using XNAGizmo;
@@ -185,7 +186,6 @@ namespace CasaEngine.Framework.Entities
                 , new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(fileName, jsonString);
         }
-#endif
 
         public Vector3 Position
         {
@@ -207,12 +207,18 @@ namespace CasaEngine.Framework.Entities
         public Vector3 Up => Vector3.Transform(Vector3.Up, Orientation);
 
         //TODO : compute real BoundingBox
-        const float LENGTH = 5f;
+        const float LENGTH = 1f;
         public BoundingBox BoundingBox => new(Position - (Vector3.One * LENGTH) * Scale, Position + (Vector3.One * LENGTH) * Scale);
 
         public float? Select(Ray selectionRay)
         {
+            if (GameInfo.Instance.ActiveCamera.Owner == this)
+            {
+                return null;
+            }
+
             return selectionRay.Intersects(BoundingBox);
         }
+#endif
     }
 }
