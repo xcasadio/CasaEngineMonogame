@@ -10,6 +10,11 @@ namespace EditorWpf.Controls.MonoGame
     {
         private DateTime _needResizeLastTime;
 
+        public IGraphicsDeviceService GraphicsDeviceService { get; set; }
+        protected GraphicsDevice? GraphicsDevice => GraphicsDeviceService.GraphicsDevice;
+        protected MonoGameServiceProvider Services { get; private set; }
+        protected ContentManager Content { get; set; }
+
         protected MonoGameViewModel()
         {
         }
@@ -18,11 +23,6 @@ namespace EditorWpf.Controls.MonoGame
         {
             Content?.Dispose();
         }
-
-        public IGraphicsDeviceService GraphicsDeviceService { get; set; }
-        protected GraphicsDevice? GraphicsDevice => GraphicsDeviceService.GraphicsDevice;
-        protected MonoGameServiceProvider Services { get; private set; }
-        protected ContentManager Content { get; set; }
 
         public virtual void Initialize()
         {

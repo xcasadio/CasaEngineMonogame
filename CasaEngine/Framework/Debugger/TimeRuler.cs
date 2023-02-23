@@ -179,8 +179,7 @@ namespace CasaEngine.Framework.Debugger
         public override void Initialize()
         {
 #if TRACE
-            debugManager =
-                Game.Services.GetService(typeof(DebugManager)) as DebugManager;
+            debugManager = DebugSystem.Instance.DebugManager;
 
             if (debugManager == null)
             {
@@ -188,9 +187,7 @@ namespace CasaEngine.Framework.Debugger
             }
 
             // Add "tr" command if DebugCommandHost is registered.
-            var host =
-                                Game.Services.GetService(typeof(IDebugCommandHost))
-                                                                    as IDebugCommandHost;
+            var host = Game.Services.GetService(typeof(IDebugCommandHost)) as IDebugCommandHost;
             if (host != null)
             {
                 host.RegisterCommand("tr", "TimeRuler", CommandExecute);

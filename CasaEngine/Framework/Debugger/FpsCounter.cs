@@ -74,8 +74,7 @@ namespace CasaEngine.Framework.Debugger
         public override void Initialize()
         {
             // Get debug manager from game service.
-            _debugManager =
-                Game.Services.GetService(typeof(DebugManager)) as DebugManager;
+            _debugManager = DebugSystem.Instance.DebugManager;
 
             if (_debugManager == null)
             {
@@ -83,9 +82,7 @@ namespace CasaEngine.Framework.Debugger
             }
 
             // Register 'fps' command if debug command is registered as a service.
-            var host =
-                                Game.Services.GetService(typeof(IDebugCommandHost))
-                                                                as IDebugCommandHost;
+            var host = Game.Services.GetService(typeof(IDebugCommandHost)) as IDebugCommandHost;
 
             if (host != null)
             {

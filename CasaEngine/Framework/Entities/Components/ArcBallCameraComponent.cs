@@ -1,8 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Game;
-using Keyboard = Microsoft.Xna.Framework.Input.Keyboard;
-using Mouse = Microsoft.Xna.Framework.Input.Mouse;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -169,34 +167,34 @@ public class ArcBallCameraComponent : Camera3dComponent
         const float step = 1.0f;
 
         //Keyboard
-        if (Keyboard.GetState().IsKeyDown(Keys.Right))
+        if (_inputComponent.IsKeyPressed(Keys.Right))
         {
             rightAxis = -step;
         }
-        else if (Keyboard.GetState().IsKeyDown(Keys.Left))
+        else if (_inputComponent.IsKeyPressed(Keys.Left))
         {
             rightAxis = step;
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Up))
+        if (_inputComponent.IsKeyPressed(Keys.Up))
         {
             forwardAxis = -step;
         }
-        else if (Keyboard.GetState().IsKeyDown(Keys.Down))
+        else if (_inputComponent.IsKeyPressed(Keys.Down))
         {
             forwardAxis = step;
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.PageUp))
+        if (_inputComponent.IsKeyPressed(Keys.PageUp))
         {
             upAxis = step;
         }
-        else if (Keyboard.GetState().IsKeyDown(Keys.PageDown))
+        else if (_inputComponent.IsKeyPressed(Keys.PageDown))
         {
             upAxis = -step;
         }
 
-        if (Mouse.GetState().RightButton == ButtonState.Pressed)
+        if (_inputComponent.MouseRightButtonPressed)
         {
 
             horizontalOrbit = -_inputComponent.MouseXMovement;

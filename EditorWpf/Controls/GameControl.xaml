@@ -14,6 +14,6 @@
         <ToolBar Grid.Row="0">
             <Button>3D</Button>
         </ToolBar>
-        <monoGame:MonoGameContentControl Grid.Row="1" x:Name="GameScreen" />
+        <monoGame:MonoGameContentControl Grid.Row="1" x:Name="GameScreen" Focusable="True"/>
     </Grid>
 </UserControl>

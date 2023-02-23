@@ -276,7 +276,7 @@ namespace CasaEngine.Framework.Debugger
 
         public override void Initialize()
         {
-            _debugManager = Game.Services.GetService<DebugManager>();
+            _debugManager = DebugSystem.Instance.DebugManager;
 
             if (_debugManager == null)
             {

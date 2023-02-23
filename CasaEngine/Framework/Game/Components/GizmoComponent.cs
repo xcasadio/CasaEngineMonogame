@@ -1,6 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Engine.Input;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using XNAGizmo;
 
 namespace CasaEngine.Framework.Game.Components;
@@ -9,10 +9,7 @@ public class GizmoComponent : DrawableGameComponent
 {
     private Gizmo _gizmo;
 
-    private KeyboardState _previousKeys;
-    private MouseState _previousMouse;
-    private MouseState _currentMouse;
-    private KeyboardState _currentKeys;
+    private InputComponent? _inputComponent;
 
     public GizmoComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -32,6 +29,8 @@ public class GizmoComponent : DrawableGameComponent
         _gizmo.TranslateEvent += GizmoTranslateEvent;
         _gizmo.RotateEvent += GizmoRotateEvent;
         _gizmo.ScaleEvent += GizmoScaleEvent;
+
+        _inputComponent = Game.GetGameComponent<InputComponent>();
     }
 
     public override void Update(GameTime gameTime)
@@ -53,37 +52,34 @@ public class GizmoComponent : DrawableGameComponent
                 GameInfo.Instance.ActiveCamera.Position);
         }
 
-        _currentMouse = Mouse.GetState();
-        _currentKeys = Keyboard.GetState();
-
-        if (_currentMouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released)
+        if (_inputComponent.MouseLeftButtonJustPressed)
         {
-            _gizmo.SelectEntities(new Vector2(_currentMouse.X, _currentMouse.Y),
-                _currentKeys.IsKeyDown(Keys.LeftControl) || _currentKeys.IsKeyDown(Keys.RightControl),
-                _currentKeys.IsKeyDown(Keys.LeftAlt) || _currentKeys.IsKeyDown(Keys.RightAlt));
+            _gizmo.SelectEntities(new Vector2(_inputComponent.MousePos.X, _inputComponent.MousePos.Y),
+                _inputComponent.IsKeyPressed(Keys.LeftControl) || _inputComponent.IsKeyPressed(Keys.RightControl),
+                _inputComponent.IsKeyPressed(Keys.LeftAlt) || _inputComponent.IsKeyPressed(Keys.RightAlt));
         }
 
-        if (IsNewButtonPress(Keys.D1))
+        if (_inputComponent.IsKeyJustPressed(Keys.D1))
         {
             _gizmo.ActiveMode = GizmoMode.Translate;
         }
 
-        if (IsNewButtonPress(Keys.D2))
+        if (_inputComponent.IsKeyJustPressed(Keys.D2))
         {
             _gizmo.ActiveMode = GizmoMode.Rotate;
         }
 
-        if (IsNewButtonPress(Keys.D3))
+        if (_inputComponent.IsKeyJustPressed(Keys.D3))
         {
             _gizmo.ActiveMode = GizmoMode.NonUniformScale;
         }
 
-        if (IsNewButtonPress(Keys.D4))
+        if (_inputComponent.IsKeyJustPressed(Keys.D4))
         {
             _gizmo.ActiveMode = GizmoMode.UniformScale;
         }
 
-        if (_currentKeys.IsKeyDown(Keys.LeftShift) || _currentKeys.IsKeyDown(Keys.RightShift))
+        if (_inputComponent.IsKeyPressed(Keys.LeftControl) || _inputComponent.IsKeyPressed(Keys.RightControl))
         {
             _gizmo.PrecisionModeEnabled = true;
         }
@@ -92,37 +88,29 @@ public class GizmoComponent : DrawableGameComponent
             _gizmo.PrecisionModeEnabled = false;
         }
 
-        if (IsNewButtonPress(Keys.O))
+        if (_inputComponent.IsKeyJustPressed(Keys.O))
         {
             _gizmo.ToggleActiveSpace();
         }
 
-        if (IsNewButtonPress(Keys.I))
+        if (_inputComponent.IsKeyJustPressed(Keys.I))
         {
             _gizmo.SnapEnabled = !_gizmo.SnapEnabled;
         }
 
-        if (IsNewButtonPress(Keys.P))
+        if (_inputComponent.IsKeyJustPressed(Keys.P))
         {
             _gizmo.NextPivotType();
         }
 
-        if (IsNewButtonPress(Keys.Escape))
+        if (_inputComponent.IsKeyJustPressed(Keys.Escape))
         {
             _gizmo.Clear();
         }
 
         _gizmo.Update(gameTime);
 
-        _previousKeys = _currentKeys;
-        _previousMouse = _currentMouse;
-
         base.Update(gameTime);
-    }
-
-    private bool IsNewButtonPress(Keys key)
-    {
-        return _currentKeys.IsKeyDown(key) && _previousKeys.IsKeyUp(key);
     }
 
     public override void Draw(GameTime gameTime)

@@ -139,6 +139,13 @@ namespace CasaEngine.Framework.Entities
             //int id = br_.ReadInt32();
             //TODO id
         }
+        public void ScreenResized(int width, int height)
+        {
+            foreach (var component in ComponentManager.Components)
+            {
+                component.ScreenResized(width, height);
+            }
+        }
 
 #if EDITOR
         private static readonly int Version = 1;

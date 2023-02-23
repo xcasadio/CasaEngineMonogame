@@ -15,29 +15,71 @@ namespace CasaEngine.Framework.Game;
 
 public class GameManager
 {
-#if !FINAL
-    protected string ContentPath = string.Empty;
-#endif
-    private readonly GraphicsDeviceManager _graphicsDeviceManager;
-    private readonly Renderer2DComponent _renderer2DComponent;
+    private readonly IGraphicsDeviceService _graphicsDeviceService;
+    private GraphicsDeviceManager _graphicsDeviceManager;
+    private Renderer2DComponent _renderer2DComponent;
     private ScreenManagerComponent _screenManagerComponent;
     private InputComponent _inputComponent;
     private ShapeRendererComponent _shapeRendererComponent;
     private MeshRendererComponent _meshRendererComponent;
 
-    private string ProjectFile { get; } = string.Empty;
+    private string ProjectFile { get; set; } = string.Empty;
+
+#if !FINAL
+    protected string ContentPath = string.Empty;
+#endif
 
     public GameManager(Microsoft.Xna.Framework.Game game)
     {
         Engine.Instance.Game = game;
 
-        _graphicsDeviceManager = new GraphicsDeviceManager(game);
-        _graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
+        if (game != null)
+        {
+            _graphicsDeviceManager = new GraphicsDeviceManager(game);
+            _graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
+            _graphicsDeviceManager.DeviceReset += OnDeviceReset;
+        }
+    }
 
+    private void OnDeviceReset(object? sender, EventArgs e)
+    {
+        if (GameInfo.Instance.CurrentWorld != null)
+        {
+            var graphicsDevice = (GraphicsDevice)sender;
+            foreach (var entity in GameInfo.Instance.CurrentWorld.Entities)
+            {
+                entity.ScreenResized(graphicsDevice.PresentationParameters.BackBufferWidth,
+                    graphicsDevice.PresentationParameters.BackBufferHeight);
+            }
+        }
+    }
+
+    public GameManager(Microsoft.Xna.Framework.Game game, IGraphicsDeviceService graphicsDeviceService)
+    {
+        Engine.Instance.Game = game;
+        _graphicsDeviceService = graphicsDeviceService;
+        graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
+        game.Services.RemoveService(typeof(IGraphicsDeviceService));
+        game.Services.AddService(typeof(IGraphicsDeviceService), (object)_graphicsDeviceService);
+    }
+
+    private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
+    {
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = Engine.Instance.ProjectSettings.DebugWidth;
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = Engine.Instance.ProjectSettings.DebugHeight;
+        //e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle = IntPtr.Zero;
+
+        e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
+            .Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
+    }
+
+    public void Initialize()
+    {
         Engine.Instance.AssetContentManager = new AssetContentManager();
         Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
         Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
 
+        var game = Engine.Instance.Game;
         DebugSystem.Initialize(game);
 
         _renderer2DComponent = new Renderer2DComponent(game);
@@ -76,21 +118,6 @@ public class GameManager
         Engine.Instance.Game.Window.AllowUserResizing = Engine.Instance.ProjectSettings.AllowUserResizing;
         Engine.Instance.Game.IsFixedTimeStep = Engine.Instance.ProjectSettings.IsFixedTimeStep;
         Engine.Instance.Game.IsMouseVisible = Engine.Instance.ProjectSettings.IsMouseVisible;
-    }
-
-    private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
-    {
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = Engine.Instance.ProjectSettings.DebugWidth;
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = Engine.Instance.ProjectSettings.DebugHeight;
-        //e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle = IntPtr.Zero;
-
-        e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
-            .Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
-    }
-
-    public void Initialize()
-    {
-        _graphicsDeviceManager.ApplyChanges();
 
         if (!string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.GameplayDllName))
         {

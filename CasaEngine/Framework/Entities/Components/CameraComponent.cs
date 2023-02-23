@@ -52,19 +52,10 @@ public abstract class CameraComponent : Component
         _needToComputeProjectionMatrix = true;
         _needToComputeViewMatrix = true;
 
-        //m_WindowResizedConnection = Game::Instance().GetGlobalEventSet().subscribeEvent(
-        //    WindowResizeEvent::GetEventName(),
-        //    Event::Subscriber(&OnWindowResized, this));
-
-        _viewport.Width = Game.Engine.Instance.Game.Window.ClientBounds.Width;
-        _viewport.Height = Game.Engine.Instance.Game.Window.ClientBounds.Height;
+        _viewport.Width = Game.Engine.Instance.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        _viewport.Height = Game.Engine.Instance.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
         _viewport.MinDepth = 0.1f;
         _viewport.MaxDepth = 100000.0f;
-    }
-
-    ~CameraComponent()
-    {
-        //m_WindowResizedConnection->disconnect();
     }
 
     public override void Load(JsonElement element)
@@ -75,19 +66,10 @@ public abstract class CameraComponent : Component
     protected abstract void ComputeProjectionMatrix();
     protected abstract void ComputeViewMatrix();
 
-    private bool OnWindowResized()
+    public override void ScreenResized(int width, int height)
     {
-        //m_needToComputeProjectionMatrix = true;
-        //
-        //const float d_yfov_tan = 0.267949192431123f;
-        //
-        //const float w = m_Viewport.Width() * Game::Instance().GetWindowSize().x;
-        //const float h = m_Viewport.Height() * Game::Instance().GetWindowSize().y;
-        //const float aspect = w / h;
-        //const float midx = w * 0.5f;
-        ////const float midy = h * 0.5f;
-        //m_ViewDistance = midx / (aspect* d_yfov_tan);
-        //
-        return false;
+        _viewport.Width = width;
+        _viewport.Height = height;
+        _needToComputeProjectionMatrix = true;
     }
 }

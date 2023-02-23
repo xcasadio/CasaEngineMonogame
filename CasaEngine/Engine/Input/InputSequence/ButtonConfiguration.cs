@@ -1,6 +1,4 @@
-﻿using System.Xml;
-using CasaEngine.Core.Design;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Input.InputSequence
 {
@@ -33,26 +31,5 @@ namespace CasaEngine.Engine.Input.InputSequence
         {
             _buttonsConfig.Remove(code);
         }
-
-        public void Save(XmlElement el, SaveOption option)
-        {
-
-        }
-
-        public void Load(XmlElement el, SaveOption option)
-        {
-
-        }
-
-        public void Save(BinaryWriter bw, SaveOption option)
-        {
-
-        }
-
-        public void Load(BinaryReader br, SaveOption option)
-        {
-
-        }
-
     }
 }

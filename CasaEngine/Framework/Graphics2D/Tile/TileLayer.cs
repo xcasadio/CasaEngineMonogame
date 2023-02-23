@@ -121,8 +121,8 @@ namespace CasaEngine.Framework.Graphics2D.Tile
 
         private void OnGraphicsComponentDeviceReset(object? sender, EventArgs e)
         {
-            _displaySize.X = Game.Engine.Instance.Game.Window.ClientBounds.Width;
-            _displaySize.Y = Game.Engine.Instance.Game.Window.ClientBounds.Height;
+            _displaySize.X = Game.Engine.Instance.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
+            _displaySize.Y = Game.Engine.Instance.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
             VisibilityChanged = true;
         }
 

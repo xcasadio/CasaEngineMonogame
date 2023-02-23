@@ -30,4 +30,9 @@ public abstract class Component
     }
 
     public abstract void Load(JsonElement element);
+
+    public virtual void ScreenResized(int width, int height)
+    {
+
+    }
 }

@@ -39,7 +39,7 @@ namespace CasaEngine.Framework.Debugger
             : base(game)
         {
             // Added as a Service.
-            Game.Services.AddService(typeof(DebugManager), this);
+            //Game.Services.AddService(typeof(DebugManager), this);
             //Game.Components.Add(this);
 
             // This component doesn't need be call neither update nor draw.

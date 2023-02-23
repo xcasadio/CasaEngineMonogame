@@ -8,13 +8,8 @@ namespace CasaEngine.Engine.Input
 {
     public class InputComponent : GameComponent
     {
-
-#if WINDOWS
         private MouseState _mouseState, _mouseStateLastFrame;
         private int _mouseWheelDelta;
-        public static int MsMouseWheel;
-#endif
-
         private bool _mouseDetected;
 
         private KeyboardState _keyboardPreviousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
@@ -43,169 +38,50 @@ namespace CasaEngine.Engine.Input
 
         public bool MouseDetected => _mouseDetected;
 
-        public Point MousePos
-        {
-            get
-            {
-#if !XBOX360
-                return new Point(_mouseState.X, _mouseState.Y);
-#else
-                return Point.Zero;
-#endif
-            }
-        }
+        public Point MousePos => new(_mouseState.X, _mouseState.Y);
 
-#if !XBOX360
         private float _mouseXMovement, _mouseYMovement;
         private float _lastMouseXMovement, _lastMouseYMovement;
-#endif
 
-        public float MouseXMovement
-        {
-            get
-            {
-#if !XBOX360
-                return _mouseXMovement;
-#else
-                return 0;
-#endif
-            }
-        }
+        public float MouseXMovement => _mouseXMovement;
 
-        public float MouseYMovement
-        {
-            get
-            {
-#if !XBOX360
-                return _mouseYMovement;
-#else
-                    return 0;
-#endif
-            }
-        }
+        public float MouseYMovement => _mouseYMovement;
 
         public bool HasMouseMoved
         {
             get
             {
-#if !XBOX360
                 //TODO: Introduce a mouse movement threshold constant
                 if (MouseXMovement > 1 || MouseYMovement > 1)
                 {
                     return true;
                 }
-#endif
+
                 return false;
             }
         }
 
-        public bool MouseLeftButtonPressed
-        {
-            get
-            {
-#if !XBOX360
-                return _mouseState.LeftButton == ButtonState.Pressed;
-#else
-                return false;
-#endif
-            }
-        }
-
-        public bool MouseRightButtonPressed
-        {
-            get
-            {
-#if !XBOX360
-                return _mouseState.RightButton == ButtonState.Pressed;
-#else
-                return false;
-#endif
-            }
-        }
-
-        public bool MouseMiddleButtonPressed
-        {
-            get
-            {
-#if !XBOX360
-                return _mouseState.MiddleButton == ButtonState.Pressed;
-#else
-                return false;
-#endif
-            }
-        }
-
-        public bool MouseLeftButtonJustPressed
-        {
-            get
-            {
-#if !XBOX360
-                return _mouseState.LeftButton == ButtonState.Pressed &&
-                       _mouseStateLastFrame.LeftButton == ButtonState.Released;
-#else
-                return false;
-#endif
-            }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(
-            "Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode",
-            Justification = "Makes this class reuseable.")]
-        public bool MouseRightButtonJustPressed
-        {
-            get
-            {
-#if !XBOX360
-                return _mouseState.RightButton == ButtonState.Pressed &&
-                       _mouseStateLastFrame.RightButton == ButtonState.Released;
-#else
-                return false;
-#endif
-            }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(
-            "Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode",
-            Justification = "Makes this class reuseable.")]
-        public Point MouseDraggingAmount =>
-            new(
-                _startDraggingPos.X - MousePos.X,
-                _startDraggingPos.Y - MousePos.Y);
+        public bool MouseLeftButtonPressed => _mouseState.LeftButton == ButtonState.Pressed;
+        public bool MouseRightButtonPressed => _mouseState.RightButton == ButtonState.Pressed;
+        public bool MouseMiddleButtonPressed => _mouseState.MiddleButton == ButtonState.Pressed;
+        public bool MouseLeftButtonJustPressed => _mouseState.LeftButton == ButtonState.Pressed && _mouseStateLastFrame.LeftButton == ButtonState.Released;
+        public bool MouseRightButtonJustPressed => _mouseState.RightButton == ButtonState.Pressed && _mouseStateLastFrame.RightButton == ButtonState.Released;
+        public Point MouseDraggingAmount => new(_startDraggingPos.X - MousePos.X, _startDraggingPos.Y - MousePos.Y);
 
         public void ResetMouseDraggingAmount()
         {
             _startDraggingPos = MousePos;
         }
 
-        public int MouseWheelDelta
-        {
-            get
-            {
-                return
-#if EDITOR 
-                    MsMouseWheel;
-#else
-                    mouseWheelDelta;
-#endif
-            }
-        }
+        public int MouseWheelDelta => _mouseWheelDelta;
 
         public bool MouseInBox(Rectangle rect)
         {
-#if !XBOX360
-            var ret = _mouseState.X >= rect.X &&
-                      _mouseState.Y >= rect.Y &&
-                      _mouseState.X < rect.Right &&
-                      _mouseState.Y < rect.Bottom;
-            var lastRet = _mouseStateLastFrame.X >= rect.X &&
-                          _mouseStateLastFrame.Y >= rect.Y &&
-                          _mouseStateLastFrame.X < rect.Right &&
-                          _mouseStateLastFrame.Y < rect.Bottom;
+            var ret = _mouseState.X >= rect.X && _mouseState.Y >= rect.Y && _mouseState.X < rect.Right && _mouseState.Y < rect.Bottom;
+            var lastRet = _mouseStateLastFrame.X >= rect.X && _mouseStateLastFrame.Y >= rect.Y
+                                                           && _mouseStateLastFrame.X < rect.Right && _mouseStateLastFrame.Y < rect.Bottom;
 
             return ret;
-#else
-            return false;
-#endif
         }
 
         public bool MouseInBoxRelative(Rectangle rect)
@@ -249,7 +125,6 @@ namespace CasaEngine.Engine.Input
                 return false;
             }
 
-            // Else is is a special key
             return true;
         }
 
@@ -359,7 +234,6 @@ namespace CasaEngine.Engine.Input
                 ret = shiftPressed ? '+' : '=';
             }
 
-            // Return result
             return ret;
         }
 
@@ -490,7 +364,7 @@ namespace CasaEngine.Engine.Input
                         _gamePadStateLastFrame[(int)index].Triggers.Right == 0.0f;
             }
 
-            throw new Exception("Buttons non géré : " + button);
+            throw new Exception("Unknown button : " + button);
         }
 
         public bool GamePadLeftJustPressed(PlayerIndex index)
@@ -557,83 +431,6 @@ namespace CasaEngine.Engine.Input
         public bool IsButtonPressed(PlayerIndex index, Buttons button)
         {
             return _gamePadState[(int)index].IsButtonDown(button);
-
-            /*switch (button_)
-            {
-                case Buttons.A:
-                    return gamePadState[(int)index_].Buttons.A == ButtonState.Pressed;
-
-                case Buttons.B:
-                    return gamePadState[(int)index_].Buttons.B == ButtonState.Pressed;
-
-                case Buttons.X:
-                    return gamePadState[(int)index_].Buttons.X == ButtonState.Pressed;
-
-                case Buttons.Y:
-                    return gamePadState[(int)index_].Buttons.Y == ButtonState.Pressed;
-
-                case Buttons.Back:
-                    return gamePadState[(int)index_].Buttons.Back == ButtonState.Pressed;
-
-                case Buttons.Start:
-                    return gamePadState[(int)index_].Buttons.Start == ButtonState.Pressed;
-
-                case Buttons.LeftShoulder:
-                    return gamePadState[(int)index_].Buttons.LeftShoulder == ButtonState.Pressed;
-
-                case Buttons.RightShoulder:
-                    return gamePadState[(int)index_].Buttons.RightShoulder == ButtonState.Pressed;
-
-                case Buttons.LeftStick:
-                    return gamePadState[(int)index_].Buttons.LeftStick == ButtonState.Pressed;
-
-                case Buttons.RightStick:
-                    return gamePadState[(int)index_].Buttons.RightStick == ButtonState.Pressed;
-
-                case Buttons.LeftTrigger:
-                    return gamePadState[(int)index_].Triggers.Left > 0.75f;
-
-                case Buttons.RightTrigger:
-                    return gamePadState[(int)index_].Triggers.Right > 0.75f;
-
-                case Buttons.LeftThumbstickDown:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.LeftThumbstickDown);
-
-                case Buttons.LeftThumbstickUp:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.LeftThumbstickUp);
-
-                case Buttons.LeftThumbstickRight:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.LeftThumbstickRight);
-
-                case Buttons.LeftThumbstickLeft:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.LeftThumbstickLeft);
-
-                case Buttons.RightThumbstickDown:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.RightThumbstickDown);
-
-                case Buttons.RightThumbstickUp:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.RightThumbstickUp);
-
-                case Buttons.RightThumbstickRight:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.RightThumbstickRight);
-
-                case Buttons.RightThumbstickLeft:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.RightThumbstickLeft);
-
-                case Buttons.DPadDown:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.DPadDown);
-
-                case Buttons.DPadLeft:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.DPadLeft);
-
-                case Buttons.DPadRight:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.DPadRight);
-
-                case Buttons.DPadUp:
-                    return gamePadState[(int)index_].IsButtonDown(Buttons.DPadUp);
-            }*/
-
-            throw new Exception("Buttons not supported : " + button);
         }
 
         public bool GamePadLeftPressed(PlayerIndex index)
@@ -932,18 +729,12 @@ namespace CasaEngine.Engine.Input
             SetCurrentConfiguration(_buttonConfiguration);
         }
 
-        public override void Initialize()
-        {
-            base.Initialize();
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 lock (this)
                 {
-                    // IsRemoved self from the service container.
                     Game.RemoveGameComponent<InputComponent>();
                 }
             }
@@ -953,10 +744,7 @@ namespace CasaEngine.Engine.Input
 
         public override void Update(GameTime gameTime)
         {
-#if XBOX360
-            // No mouse support on the XBox360 yet :(
-            mouseDetected = false;
-#else
+#if !EDITOR
             // Handle mouse input variables
             _mouseStateLastFrame = _mouseState;
             _mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
@@ -991,13 +779,8 @@ namespace CasaEngine.Engine.Input
             {
                 _startDraggingPos = MousePos;
             }
-#if EDITOR
-            _mouseWheelDelta = MsMouseWheel / 120;
-            MsMouseWheel = 0;
-#else
-			//mouseWheelDelta = mouseState.ScrollWheelValue - mouseWheelValue;
-			//mouseWheelValue = mouseState.ScrollWheelValue;
-#endif
+
+            _mouseWheelDelta = _mouseState.ScrollWheelValue; // 120
 
             // If we are in the game and don't show the mouse cursor anyway,
             // reset it to the center to allow moving it around.
@@ -1023,7 +806,6 @@ namespace CasaEngine.Engine.Input
                                  _mouseState.Y != _mouseStateLastFrame.Y ||
                                  _mouseState.LeftButton != _mouseStateLastFrame.LeftButton;
             }
-#endif
 
             // Handle keyboard input
             //keysPressedLastFrame = new List<Keys>(keyboardState.GetPressedKeys());
@@ -1063,10 +845,55 @@ namespace CasaEngine.Engine.Input
 
             foreach (var input in _inputManager)
             {
-                input.Update(_keysState,
-                    GameTimeHelper.TotalGameTimeToMilliseconds(gameTime));
+                input.Update(_keysState, GameTimeHelper.TotalGameTimeToMilliseconds(gameTime));
             }
 
+#else
+            _keyboardPreviousState = _keyboardState;
+
+            var pressedKeys = new HashSet<Keys>();
+            bool capsLock = false, numLock = false;
+            foreach (var keyboardState in _keyboardStates)
+            {
+                capsLock = capsLock || keyboardState.CapsLock;
+                numLock = numLock || keyboardState.NumLock;
+
+                foreach (var pressedKey in keyboardState.GetPressedKeys())
+                {
+                    pressedKeys.Add(pressedKey);
+                }
+            }
+
+            _keyboardState = new KeyboardState(pressedKeys.ToArray(), capsLock, numLock);
+            _keyboardStates.Clear();
+            /////
+            _mouseStateLastFrame = _mouseState;
+
+            int mouseX = 0;
+            int mouseY = 0;
+            int mouseDelta = 0;
+            bool[] mouseButtons = new bool[5];
+
+            foreach (var mouseState in _mouseStates)
+            {
+                mouseX = mouseState.X;
+                mouseY = mouseState.Y;
+                mouseDelta += mouseState.ScrollWheelValue;
+                mouseButtons[0] = mouseButtons[0] || mouseState.LeftButton == ButtonState.Pressed;
+                mouseButtons[1] = mouseButtons[1] || mouseState.MiddleButton == ButtonState.Pressed;
+                mouseButtons[2] = mouseButtons[2] || mouseState.RightButton == ButtonState.Pressed;
+                mouseButtons[3] = mouseButtons[3] || mouseState.XButton1 == ButtonState.Pressed;
+                mouseButtons[4] = mouseButtons[4] || mouseState.XButton2 == ButtonState.Pressed;
+            }
+
+            _mouseState = new MouseState(mouseX, mouseY, mouseDelta,
+                mouseButtons[0] ? ButtonState.Pressed : ButtonState.Released,
+                mouseButtons[1] ? ButtonState.Pressed : ButtonState.Released,
+                mouseButtons[2] ? ButtonState.Pressed : ButtonState.Released,
+                mouseButtons[3] ? ButtonState.Pressed : ButtonState.Released,
+                mouseButtons[4] ? ButtonState.Pressed : ButtonState.Released);
+            _mouseStates.Clear();
+#endif
             base.Update(gameTime);
         }
 
@@ -1075,5 +902,15 @@ namespace CasaEngine.Engine.Input
             return _inputManager[(int)index];
         }
 
+#if EDITOR
+        private readonly List<KeyboardState> _keyboardStates = new();
+        private readonly List<MouseState> _mouseStates = new();
+
+        public void SetStates(KeyboardState keyboardState, MouseState mouseState)
+        {
+            _keyboardStates.Add(keyboardState);
+            _mouseStates.Add(mouseState);
+        }
+#endif
     }
 }
