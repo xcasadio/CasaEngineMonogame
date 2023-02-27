@@ -9,9 +9,7 @@
         xmlns:controls="clr-namespace:EditorWpf.Controls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" Height="450" Width="800">
-    <Window.DataContext>
-        <local:MainWindowViewModel />
-    </Window.DataContext>
+
 
     <Grid>
         <xcad:DockingManager Name="dockingManager1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -25,7 +23,7 @@
                         <xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorable x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanAutoHide="False" CanHide="False" CanClose="False">
                                 <Grid>
-                                    <controls:GameControl Grid.Row="0" />
+                                    <local:GameEditor />
                                 </Grid>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>

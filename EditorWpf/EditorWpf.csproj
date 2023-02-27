@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
+    <ProjectReference Include="..\MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj" />
   </ItemGroup>
 
 </Project>

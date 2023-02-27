@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandBoxGame", "SandBoxGame\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GizmoTools", "GizmoTool\GizmoTools.csproj", "{84B4E8B0-D285-4545-95A1-41EF0724FC42}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Framework.Wpf.Core", "MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj", "{F4427058-1115-4E5D-BC90-DCD97AD99622}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +143,18 @@ Global
 		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Release|Any CPU.Build.0 = Release|Any CPU
 		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Release|x64.ActiveCfg = Release|Any CPU
 		{84B4E8B0-D285-4545-95A1-41EF0724FC42}.Release|x64.Build.0 = Release|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Debug|x64.Build.0 = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.DebugEditor|x64.Build.0 = Debug|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|x64.ActiveCfg = Release|Any CPU
+		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,7 +9,6 @@ using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SharpDX.Direct3D9;
-using System.Drawing;
 
 namespace CasaEngine.Framework.Game;
 
@@ -41,26 +40,16 @@ public class GameManager
         }
     }
 
-    private void OnDeviceReset(object? sender, EventArgs e)
-    {
-        if (GameInfo.Instance.CurrentWorld != null)
-        {
-            var graphicsDevice = (GraphicsDevice)sender;
-            foreach (var entity in GameInfo.Instance.CurrentWorld.Entities)
-            {
-                entity.ScreenResized(graphicsDevice.PresentationParameters.BackBufferWidth,
-                    graphicsDevice.PresentationParameters.BackBufferHeight);
-            }
-        }
-    }
-
     public GameManager(Microsoft.Xna.Framework.Game game, IGraphicsDeviceService graphicsDeviceService)
     {
         Engine.Instance.Game = game;
         _graphicsDeviceService = graphicsDeviceService;
         graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
-        game.Services.RemoveService(typeof(IGraphicsDeviceService));
-        game.Services.AddService(typeof(IGraphicsDeviceService), (object)_graphicsDeviceService);
+        if (game.Services.GetService<IGraphicsDeviceService>() != null)
+        {
+            game.Services.RemoveService(typeof(IGraphicsDeviceService));
+            game.Services.AddService(typeof(IGraphicsDeviceService), (object)_graphicsDeviceService);
+        }
     }
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
@@ -71,6 +60,23 @@ public class GameManager
 
         e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
             .Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
+    }
+
+    public void OnScreenResized(int width, int height)
+    {
+        if (GameInfo.Instance.CurrentWorld != null)
+        {
+            foreach (var entity in GameInfo.Instance.CurrentWorld.Entities)
+            {
+                entity.ScreenResized(width, height);
+            }
+        }
+    }
+
+    private void OnDeviceReset(object? sender, EventArgs e)
+    {
+        var graphicsDevice = (GraphicsDevice)sender;
+        OnScreenResized(graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
     }
 
     public void Initialize()
