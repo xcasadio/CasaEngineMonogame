@@ -8,7 +8,6 @@ using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SharpDX.Direct3D9;
 
 namespace CasaEngine.Framework.Game;
 
@@ -211,4 +210,11 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.EndMark("Draw");
 #endif
     }
+
+#if EDITOR
+    public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
+    {
+        _inputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
+    }
+#endif
 }

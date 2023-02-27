@@ -372,10 +372,10 @@ namespace XNAGizmo
             _intersectPosition = Vector3.Zero;
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, KeyboardState keyboardState, MouseState mouseState)
         {
-            _currentMouseState = Mouse.GetState();
-            _currentKeys = Keyboard.GetState();
+            _currentMouseState = mouseState;
+            _currentKeys = keyboardState;
 
             var mousePosition = new Vector2(_currentMouseState.X, _currentMouseState.Y);
 

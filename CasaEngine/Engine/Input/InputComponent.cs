@@ -10,7 +10,6 @@ namespace CasaEngine.Engine.Input
     {
         private MouseState _mouseState, _mouseStateLastFrame;
         private int _mouseWheelDelta;
-        private bool _mouseDetected;
 
         private KeyboardState _keyboardPreviousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
         private KeyboardState _keyboardState;
@@ -35,8 +34,6 @@ namespace CasaEngine.Engine.Input
         private readonly InputSequence.InputManager[] _inputManager;
 
         public InputSequence.InputManager.KeyState[] KeysState => _keysState;
-
-        public bool MouseDetected => _mouseDetected;
 
         public Point MousePos => new(_mouseState.X, _mouseState.Y);
 
@@ -97,6 +94,7 @@ namespace CasaEngine.Engine.Input
         }
 
         public KeyboardState Keyboard => _keyboardState;
+        public MouseState MouseState => _mouseState;
 
         public void ResetKeyboard()
         {
@@ -749,6 +747,18 @@ namespace CasaEngine.Engine.Input
             _mouseStateLastFrame = _mouseState;
             _mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
+            //keysPressedLastFrame = new List<Keys>(keyboardState.GetPressedKeys());
+            _keyboardPreviousState = _keyboardState;
+            _keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+
+#else
+            _keyboardPreviousState = _keyboardState;
+            _keyboardState = _keyboardStateProvider.GetState();
+            /////
+            _mouseStateLastFrame = _mouseState;
+            _mouseState = _mouseStateProvider.GetState();
+#endif
+
             // Update mouseXMovement and mouseYMovement
             _lastMouseXMovement += _mouseState.X - _mouseStateLastFrame.X;
             _lastMouseYMovement += _mouseState.Y - _mouseStateLastFrame.Y;
@@ -796,22 +806,6 @@ namespace CasaEngine.Engine.Input
                 mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
             }*/
 
-            // Check if mouse was moved this frame if it is not detected yet.
-            // This allows us to ignore the mouse even when it is captured
-            // on a windows machine if just the gamepad or keyboard is used.
-            if (_mouseDetected == false)// &&
-                                        //always returns false: Microsoft.Xna.Framework.Input.Mouse.IsCaptured)
-            {
-                _mouseDetected = _mouseState.X != _mouseStateLastFrame.X ||
-                                 _mouseState.Y != _mouseStateLastFrame.Y ||
-                                 _mouseState.LeftButton != _mouseStateLastFrame.LeftButton;
-            }
-
-            // Handle keyboard input
-            //keysPressedLastFrame = new List<Keys>(keyboardState.GetPressedKeys());
-            _keyboardPreviousState = _keyboardState;
-            _keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-
             // And finally catch the XBox Controller input
             for (var i = 0; i < 4; i++)
             {
@@ -848,52 +842,6 @@ namespace CasaEngine.Engine.Input
                 input.Update(_keysState, GameTimeHelper.TotalGameTimeToMilliseconds(gameTime));
             }
 
-#else
-            _keyboardPreviousState = _keyboardState;
-
-            var pressedKeys = new HashSet<Keys>();
-            bool capsLock = false, numLock = false;
-            foreach (var keyboardState in _keyboardStates)
-            {
-                capsLock = capsLock || keyboardState.CapsLock;
-                numLock = numLock || keyboardState.NumLock;
-
-                foreach (var pressedKey in keyboardState.GetPressedKeys())
-                {
-                    pressedKeys.Add(pressedKey);
-                }
-            }
-
-            _keyboardState = new KeyboardState(pressedKeys.ToArray(), capsLock, numLock);
-            _keyboardStates.Clear();
-            /////
-            _mouseStateLastFrame = _mouseState;
-
-            int mouseX = 0;
-            int mouseY = 0;
-            int mouseDelta = 0;
-            bool[] mouseButtons = new bool[5];
-
-            foreach (var mouseState in _mouseStates)
-            {
-                mouseX = mouseState.X;
-                mouseY = mouseState.Y;
-                mouseDelta += mouseState.ScrollWheelValue;
-                mouseButtons[0] = mouseButtons[0] || mouseState.LeftButton == ButtonState.Pressed;
-                mouseButtons[1] = mouseButtons[1] || mouseState.MiddleButton == ButtonState.Pressed;
-                mouseButtons[2] = mouseButtons[2] || mouseState.RightButton == ButtonState.Pressed;
-                mouseButtons[3] = mouseButtons[3] || mouseState.XButton1 == ButtonState.Pressed;
-                mouseButtons[4] = mouseButtons[4] || mouseState.XButton2 == ButtonState.Pressed;
-            }
-
-            _mouseState = new MouseState(mouseX, mouseY, mouseDelta,
-                mouseButtons[0] ? ButtonState.Pressed : ButtonState.Released,
-                mouseButtons[1] ? ButtonState.Pressed : ButtonState.Released,
-                mouseButtons[2] ? ButtonState.Pressed : ButtonState.Released,
-                mouseButtons[3] ? ButtonState.Pressed : ButtonState.Released,
-                mouseButtons[4] ? ButtonState.Pressed : ButtonState.Released);
-            _mouseStates.Clear();
-#endif
             base.Update(gameTime);
         }
 
@@ -903,13 +851,13 @@ namespace CasaEngine.Engine.Input
         }
 
 #if EDITOR
-        private readonly List<KeyboardState> _keyboardStates = new();
-        private readonly List<MouseState> _mouseStates = new();
+        private IKeyboardStateProvider _keyboardStateProvider;
+        private IMouseStateProvider _mouseStateProvider;
 
-        public void SetStates(KeyboardState keyboardState, MouseState mouseState)
+        public void SetProviders(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
         {
-            _keyboardStates.Add(keyboardState);
-            _mouseStates.Add(mouseState);
+            _keyboardStateProvider = keyboardStateProvider;
+            _mouseStateProvider = mouseStateProvider;
         }
 #endif
     }

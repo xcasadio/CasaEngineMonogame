@@ -22,16 +22,12 @@
                     <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" >
                         <xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorable x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanAutoHide="False" CanHide="False" CanClose="False">
-                                <Grid>
-                                    <local:GameEditor />
-                                </Grid>
+                                <controls:GameEditor />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                         <xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
-                                <Grid>
-                                    <controls:SettingsControl/>
-                                </Grid>
+                                <controls:SettingsControl/>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutAnchorablePaneGroup>

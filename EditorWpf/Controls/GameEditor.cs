@@ -3,10 +3,12 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
+using EditorWpf.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
-namespace EditorWpf;
+namespace EditorWpf.Controls;
 
 public class GameEditor : WpfGame
 {
@@ -24,6 +26,9 @@ public class GameEditor : WpfGame
         _game = new CasaEngineGame();
         _gameManager = new GameManager(_game, graphicsDeviceService);
         _gameManager.Initialize();
+
+        _gameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)),
+            new MouseStateProvider(new WpfMouse(this)));
 
         base.Initialize();
     }

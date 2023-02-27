@@ -108,7 +108,7 @@ public class GizmoComponent : DrawableGameComponent
             _gizmo.Clear();
         }
 
-        _gizmo.Update(gameTime);
+        _gizmo.Update(gameTime, _inputComponent.Keyboard, _inputComponent.MouseState);
 
         base.Update(gameTime);
     }
