@@ -1,10 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 
 namespace CasaEngine.Framework.Entities.Components;
 
+[DisplayName("Mesh")]
 public class MeshComponent : Component
 {
     public static readonly int ComponentId = (int)ComponentIds.Mesh;

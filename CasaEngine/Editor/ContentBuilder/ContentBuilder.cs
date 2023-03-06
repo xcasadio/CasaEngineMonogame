@@ -1,49 +1,13 @@
 ﻿using System.Diagnostics;
-using Microsoft.Build.Construction;
-using Microsoft.Build.Evaluation;
-using Microsoft.Build.Execution;
 
 namespace CasaEngine.Editor.ContentBuilder
 {
-    public class ContentBuilder
-        : IDisposable
+    public class ContentBuilder : IDisposable
     {
-
-
-        // What importers or processors should we load?
-        private const string XnaVersion = ", Version=4.0.0.0, PublicKeyToken=842cf8be1de50553";
-
-        private static string[] _pipelineAssemblies =
-        {
-            "Microsoft.Xna.Framework.Content.Pipeline.FBXImporter" + XnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.XImporter" + XnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.TextureImporter" + XnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.EffectImporter" + XnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.AudioImporters" + XnaVersion,
-            "Microsoft.Xna.Framework.Content.Pipeline.VideoImporters" + XnaVersion,
-
-            // If you want to use custom importers or processors from
-            // a Content Pipeline Extension Library, add them here.
-            //
-            // If your extension DLL is installed in the GAC, you should refer to it by assembly
-            // name, eg. "MyPipelineExtension, Version=1.0.0.0, PublicKeyToken=1234567812345678".
-            //
-            // If the extension DLL is not in the GAC, you should refer to it by
-            // file path, eg. "c:/MyProject/bin/MyPipelineExtension.dll".
-        };
-        // MSBuild objects used to dynamically build content.
-        private Project _buildProject;
-        private ProjectRootElement _projectRootElement;
-        private BuildParameters _buildParameters;
-        private readonly List<ProjectItem> _projectItems = new();
-        private ErrorLogger _errorLogger;
-
-
         // Temporary directories used by the content build.
         private string _buildDirectory;
         private string _processDirectory;
         private string _baseDirectory;
-
 
         // Generate unique directory names if there is more than one ContentBuilder.
         private static int _directorySalt;
@@ -53,37 +17,18 @@ namespace CasaEngine.Editor.ContentBuilder
 
         //private ComboItemCollection Importers;
 
-
         public string OutputDirectory => Path.Combine(_buildDirectory, "bin/Content");
-
 
         public ContentBuilder()
         {
             CreateTempDirectory();
             CreateBuildProject();
-
-            //Importers = new ComboItemCollection();
-            //Seguindo a Ordem: Extensão, Importer, Processor
-
-            /*Importers.Add(new ComboItem(".mp3", "Mp3Importer", "SongProcessor"));
-            Importers.Add(new ComboItem(".wav", "WavImporter", "SoundEffectProcessor"));
-            Importers.Add(new ComboItem(".wma", "WmaImporter", "SongProcessor"));
-
-            Importers.Add(new ComboItem(".bmp", "TextureImporter", "TextureProcessor"));
-            Importers.Add(new ComboItem(".jpg", "TextureImporter", "TextureProcessor"));
-            Importers.Add(new ComboItem(".png", "TextureImporter", "TextureProcessor"));
-            Importers.Add(new ComboItem(".tga", "TextureImporter", "TextureProcessor"));
-            Importers.Add(new ComboItem(".dds", "TextureImporter", "TextureProcessor"));
-
-            Importers.Add(new ComboItem(".spritefont", "FontDescriptionImporter", "FontDescriptionProcessor"));*/
         }
-
 
         ~ContentBuilder()
         {
             Dispose(false);
         }
-
 
         public void Dispose()
         {
@@ -91,7 +36,6 @@ namespace CasaEngine.Editor.ContentBuilder
 
             GC.SuppressFinalize(this);
         }
-
 
         protected virtual void Dispose(bool disposing)
         {
@@ -102,7 +46,6 @@ namespace CasaEngine.Editor.ContentBuilder
                 DeleteTempDirectory();
             }
         }
-
 
         private void CreateBuildProject()
         {
@@ -139,71 +82,6 @@ namespace CasaEngine.Editor.ContentBuilder
             this.Add(item.Value, System.IO.Path.GetFileNameWithoutExtension(item.Name), importer.Value, importer.Other);
         }*/
 
-        public ProjectItem Add(string filename, string name)
-        {
-            return Add(filename, name, null, null);
-        }
-        public ProjectItem Add(string filename, string name, string importer, string processor)
-        {
-            var item = _buildProject.AddItem("Compile", filename)[0];
-
-            item.SetMetadataValue("Link", Path.GetFileName(filename));
-            item.SetMetadataValue("Name", name);
-
-            if (!string.IsNullOrEmpty(importer))
-            {
-                item.SetMetadataValue("Importer", importer);
-            }
-
-            if (!string.IsNullOrEmpty(processor))
-            {
-                item.SetMetadataValue("Processor", processor);
-            }
-
-            _projectItems.Add(item);
-
-            return item;
-        }
-
-
-        public void Clear()
-        {
-            _buildProject.RemoveItems(_projectItems);
-            _projectItems.Clear();
-        }
-
-
-        public string Build()
-        {
-            // Clear any previous errors.
-            _errorLogger.Errors.Clear();
-
-            //BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
-            var request = new BuildRequestData(_buildProject.CreateProjectInstance(), new string[0]);
-            //BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(request);
-            //BuildResult br = submission.Execute();
-            //BuildManager.DefaultBuildManager.EndBuild();
-
-            var br = BuildManager.DefaultBuildManager.Build(_buildParameters, request);
-            if (br.OverallResult == BuildResultCode.Failure)
-            {
-                return string.Join("\n", _errorLogger.Errors.ToArray());
-            }
-
-            // If the build failed, return an error string.
-            /*if (submission.BuildResult.OverallResult == BuildResultCode.Failure)
-            {
-                return string.Join("\n", errorLogger.Errors.ToArray());
-            }*/
-
-            return null;
-        }
-
-        private void BuildSubmissionCompleteCallback(BuildSubmission submission)
-        {
-        }
-
-
         private void CreateTempDirectory()
         {
             // Start with a standard base name:
@@ -236,7 +114,6 @@ namespace CasaEngine.Editor.ContentBuilder
             PurgeStaleTempDirectories();
         }
 
-
         private void DeleteTempDirectory()
         {
             Directory.Delete(_buildDirectory, true);
@@ -255,7 +132,6 @@ namespace CasaEngine.Editor.ContentBuilder
                 }
             }
         }
-
 
         private void PurgeStaleTempDirectories()
         {
@@ -280,7 +156,6 @@ namespace CasaEngine.Editor.ContentBuilder
                 }
             }
         }
-
 
     }
 }

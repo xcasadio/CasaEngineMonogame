@@ -1,5 +1,4 @@
 ﻿using System.Xml;
-using Microsoft.Build.Evaluation;
 using CasaEngine.Core.Extension;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Project;
@@ -49,52 +48,52 @@ namespace CasaEngine.Editor.Assets
 
         public void AddAssetToBuild(string fileName, string assetName, AssetType assetType)
         {
-            ProjectItem item;
-
-            // Build this new model data.
-            switch (assetType)
-            {
-                case AssetType.Audio:
-                    item = _contentBuilder.Add(fileName, assetName, "WavImporter", "SoundEffectProcessor");
-                    break;
-
-                case AssetType.Texture:
-                    item = _contentBuilder.Add(fileName, assetName, "TextureImporter", "TextureProcessor");
-                    break;
-
-                case AssetType.None:
-                    item = _contentBuilder.Add(fileName, assetName);
-                    break;
-
-                case AssetType.All:
-                    item = _contentBuilder.Add(fileName, assetName);
-                    break;
-            }
+            //ProjectItem item;
+            //
+            //// Build this new model data.
+            //switch (assetType)
+            //{
+            //    case AssetType.Audio:
+            //        item = _contentBuilder.Add(fileName, assetName, "WavImporter", "SoundEffectProcessor");
+            //        break;
+            //
+            //    case AssetType.Texture:
+            //        item = _contentBuilder.Add(fileName, assetName, "TextureImporter", "TextureProcessor");
+            //        break;
+            //
+            //    case AssetType.None:
+            //        item = _contentBuilder.Add(fileName, assetName);
+            //        break;
+            //
+            //    case AssetType.All:
+            //        item = _contentBuilder.Add(fileName, assetName);
+            //        break;
+            //}
         }
 
         public void BuildAll(string destPath)
         {
-            var buildError = _contentBuilder.Build();
-
-            if (string.IsNullOrEmpty(buildError) == false)
-            {
-                LogManager.Instance.WriteLineError(buildError);
-                return;
-            }
-
-            var contentDir = _contentBuilder.OutputDirectory.Replace("/", "\\");
-
-            foreach (var file in _assetToCopy)
-            {
-                var fileDest = file.Replace(contentDir, file);
-                File.Copy(
-                    file,
-                    fileDest,
-                    true);
-            }
-
-            _assetToCopy.Clear();
-            _contentBuilder.Clear();
+            //var buildError = _contentBuilder.Build();
+            //
+            //if (string.IsNullOrEmpty(buildError) == false)
+            //{
+            //    LogManager.Instance.WriteLineError(buildError);
+            //    return;
+            //}
+            //
+            //var contentDir = _contentBuilder.OutputDirectory.Replace("/", "\\");
+            //
+            //foreach (var file in _assetToCopy)
+            //{
+            //    var fileDest = file.Replace(contentDir, file);
+            //    File.Copy(
+            //        file,
+            //        fileDest,
+            //        true);
+            //}
+            //
+            //_assetToCopy.Clear();
+            //_contentBuilder.Clear();
         }
 
 
@@ -102,41 +101,31 @@ namespace CasaEngine.Editor.Assets
 
         public bool BuildAsset(string fileName, AssetInfo info, bool copy = true)
         {
-            ProjectItem item;
+            //ProjectItem item;
+            //
+            //_contentBuilder.Clear();
+            //
+            //// Build this new model data.
+            //switch (info.Type)
+            //{
+            //    case AssetType.Audio:
+            //        item = _contentBuilder.Add(fileName, info.Name, "WavImporter", "SoundEffectProcessor");
+            //        break;
+            //
+            //    case AssetType.Texture:
+            //        item = _contentBuilder.Add(fileName, info.Name, "TextureImporter", "TextureProcessor");
+            //        break;
+            //
+            //    case AssetType.None:
+            //        item = _contentBuilder.Add(fileName, info.Name);
+            //        break;
+            //
+            //    case AssetType.All:
+            //        item = _contentBuilder.Add(fileName, info.Name);
+            //        break;
+            //}
 
-            _contentBuilder.Clear();
-
-            // Build this new model data.
-            switch (info.Type)
-            {
-                case AssetType.Audio:
-                    item = _contentBuilder.Add(fileName, info.Name, "WavImporter", "SoundEffectProcessor");
-                    break;
-
-                case AssetType.Texture:
-                    item = _contentBuilder.Add(fileName, info.Name, "TextureImporter", "TextureProcessor");
-                    break;
-
-                case AssetType.None:
-                    item = _contentBuilder.Add(fileName, info.Name);
-                    break;
-
-                case AssetType.All:
-                    item = _contentBuilder.Add(fileName, info.Name);
-                    break;
-            }
-
-            var buildError = _contentBuilder.Build();
-
-            if (string.IsNullOrEmpty(buildError) == false)
-            {
-#if DEBUG
-                throw new Exception(buildError);
-#else
-                LogManager.Instance.WriteLineError(buildError);
-                return false;
-#endif
-            }
+            //var buildError = _contentBuilder.Build();
 
             foreach (var file in _assetToCopy)
             {
@@ -148,7 +137,6 @@ namespace CasaEngine.Editor.Assets
             }
 
             _assetToCopy.Clear();
-            _contentBuilder.Clear();
 
             LogManager.Instance.WriteLine("Build asset '" + info.Name + "' successfull");
 

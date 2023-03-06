@@ -83,6 +83,7 @@ public class GridComponent : DrawableGameComponent
         GridEffect.World = Matrix.Identity;
         GridEffect.View = GameInfo.Instance.ActiveCamera.ViewMatrix;
         GridEffect.Projection = GameInfo.Instance.ActiveCamera.ProjectionMatrix;
+        GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
         foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
         {

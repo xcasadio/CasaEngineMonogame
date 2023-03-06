@@ -7,6 +7,8 @@ internal static class ModuleInitializerComponents
     [ModuleInitializer]
     public static void Initialize()
     {
+        ComponentLoader.Register<ArcBallCameraComponent>(ArcBallCameraComponent.ComponentId, owner => new ArcBallCameraComponent(owner));
         ComponentLoader.Register<GamePlayComponent>(GamePlayComponent.ComponentId, owner => new GamePlayComponent(owner));
+        ComponentLoader.Register<MeshComponent>(MeshComponent.ComponentId, owner => new MeshComponent(owner));
     }
 }

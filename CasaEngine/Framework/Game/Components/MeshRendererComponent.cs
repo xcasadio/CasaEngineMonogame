@@ -31,6 +31,7 @@ public class MeshRendererComponent : DrawableGameComponent
     public override void Draw(GameTime gameTime)
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
+        graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
         foreach (var meshInfo in _meshInfos)
         {

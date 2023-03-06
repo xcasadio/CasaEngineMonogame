@@ -2,8 +2,7 @@
 
 namespace CasaEngine.Editor.Tools
 {
-    public interface IExternalTool
-        : IContainerControl // System.Windows.Form 
+    public interface IExternalTool : IContainerControl
     {
         ExternalTool ExternalTool { get; }
 

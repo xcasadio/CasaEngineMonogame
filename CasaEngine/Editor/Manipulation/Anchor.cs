@@ -8,7 +8,6 @@ namespace CasaEngine.Editor.Manipulation
 {
     public class Anchor
     {
-
         private Vector2 _position;
         private Vector2 _mouseStart;
         private bool _mousePressed;
@@ -20,8 +19,6 @@ namespace CasaEngine.Editor.Manipulation
         public event EventHandler CursorChanged;
         private bool _isOver;
         private bool _shiftPressed, _controlPressed;
-
-
 
         public int Height
         {
@@ -118,8 +115,6 @@ namespace CasaEngine.Editor.Manipulation
             set;
         }
 
-
-
         public Anchor(int x, int y, int width, int height)
         {
             _position = new Vector2(x - width / 2, y - height / 2);
@@ -132,8 +127,6 @@ namespace CasaEngine.Editor.Manipulation
 
             Offset = Vector2.Zero;
         }
-
-
 
         public void LinkWithAnchor(Anchor a)
         {

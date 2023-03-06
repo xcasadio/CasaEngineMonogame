@@ -1,41 +1,47 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game
 {
     public class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
-        private readonly GameManager _gameManager;
+        public GameManager GameManager { get; }
 
         public CasaEngineGame()
         {
-            _gameManager = new GameManager(this);
+            GameManager = new GameManager(this);
+        }
+
+        public CasaEngineGame(IGraphicsDeviceService graphicsDeviceService)
+        {
+            GameManager = new GameManager(this, graphicsDeviceService);
         }
 
         protected override void Initialize()
         {
-            _gameManager.Initialize();
+            GameManager.Initialize();
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            _gameManager.BeginLoadContent();
+            GameManager.BeginLoadContent();
             base.LoadContent();
-            _gameManager.EndLoadContent();
+            GameManager.EndLoadContent();
         }
 
         protected override void Update(GameTime gameTime)
         {
-            _gameManager.BeginUpdate(gameTime);
+            GameManager.BeginUpdate(gameTime);
             base.Update(gameTime);
-            _gameManager.EndUpdate(gameTime);
+            GameManager.EndUpdate(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            _gameManager.BeginDraw(gameTime);
+            GameManager.BeginDraw(gameTime);
             base.Draw(gameTime);
-            _gameManager.EndDraw(gameTime);
+            GameManager.EndDraw(gameTime);
         }
     }
 }

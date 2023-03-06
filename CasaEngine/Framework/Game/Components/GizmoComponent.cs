@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Game.Components;
 
 public class GizmoComponent : DrawableGameComponent
 {
-    private Gizmo _gizmo;
+    public Gizmo Gizmo { get; private set; }
 
     private InputComponent? _inputComponent;
 
@@ -24,29 +24,29 @@ public class GizmoComponent : DrawableGameComponent
         var spriteBatch = new SpriteBatch(GraphicsDevice);
 
         var font = Game.Content.Load<SpriteFont>("GizmoFont");
-        _gizmo = new Gizmo(Game.GraphicsDevice, spriteBatch, font);
+        Gizmo = new Gizmo(Game.GraphicsDevice, spriteBatch, font);
 
-        _gizmo.TranslateEvent += GizmoTranslateEvent;
-        _gizmo.RotateEvent += GizmoRotateEvent;
-        _gizmo.ScaleEvent += GizmoScaleEvent;
+        Gizmo.TranslateEvent += GizmoTranslateEvent;
+        Gizmo.RotateEvent += GizmoRotateEvent;
+        Gizmo.ScaleEvent += GizmoScaleEvent;
 
         _inputComponent = Game.GetGameComponent<InputComponent>();
     }
 
     public override void Update(GameTime gameTime)
     {
-        if (_gizmo.GetSelectionPool() == null && GameInfo.Instance.CurrentWorld != null)
+        if (Gizmo.GetSelectionPool() == null && GameInfo.Instance.CurrentWorld != null)
         {
-            _gizmo.SetSelectionPool(GameInfo.Instance.CurrentWorld.Entities);
+            Gizmo.SetSelectionPool(GameInfo.Instance.CurrentWorld.Entities);
         }
-        else if (_gizmo.GetSelectionPool() == null)
+        else if (Gizmo.GetSelectionPool() == null)
         {
             return;
         }
 
         if (GameInfo.Instance.ActiveCamera != null)
         {
-            _gizmo.UpdateCameraProperties(
+            Gizmo.UpdateCameraProperties(
                 GameInfo.Instance.ActiveCamera.ViewMatrix,
                 GameInfo.Instance.ActiveCamera.ProjectionMatrix,
                 GameInfo.Instance.ActiveCamera.Position);
@@ -54,68 +54,68 @@ public class GizmoComponent : DrawableGameComponent
 
         if (_inputComponent.MouseLeftButtonJustPressed)
         {
-            _gizmo.SelectEntities(new Vector2(_inputComponent.MousePos.X, _inputComponent.MousePos.Y),
+            Gizmo.SelectEntities(new Vector2(_inputComponent.MousePos.X, _inputComponent.MousePos.Y),
                 _inputComponent.IsKeyPressed(Keys.LeftControl) || _inputComponent.IsKeyPressed(Keys.RightControl),
                 _inputComponent.IsKeyPressed(Keys.LeftAlt) || _inputComponent.IsKeyPressed(Keys.RightAlt));
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.D1))
         {
-            _gizmo.ActiveMode = GizmoMode.Translate;
+            Gizmo.ActiveMode = GizmoMode.Translate;
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.D2))
         {
-            _gizmo.ActiveMode = GizmoMode.Rotate;
+            Gizmo.ActiveMode = GizmoMode.Rotate;
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.D3))
         {
-            _gizmo.ActiveMode = GizmoMode.NonUniformScale;
+            Gizmo.ActiveMode = GizmoMode.NonUniformScale;
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.D4))
         {
-            _gizmo.ActiveMode = GizmoMode.UniformScale;
+            Gizmo.ActiveMode = GizmoMode.UniformScale;
         }
 
         if (_inputComponent.IsKeyPressed(Keys.LeftControl) || _inputComponent.IsKeyPressed(Keys.RightControl))
         {
-            _gizmo.PrecisionModeEnabled = true;
+            Gizmo.PrecisionModeEnabled = true;
         }
         else
         {
-            _gizmo.PrecisionModeEnabled = false;
+            Gizmo.PrecisionModeEnabled = false;
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.O))
         {
-            _gizmo.ToggleActiveSpace();
+            Gizmo.ToggleActiveSpace();
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.I))
         {
-            _gizmo.SnapEnabled = !_gizmo.SnapEnabled;
+            Gizmo.SnapEnabled = !Gizmo.SnapEnabled;
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.P))
         {
-            _gizmo.NextPivotType();
+            Gizmo.NextPivotType();
         }
 
         if (_inputComponent.IsKeyJustPressed(Keys.Escape))
         {
-            _gizmo.Clear();
+            Gizmo.Clear();
         }
 
-        _gizmo.Update(gameTime, _inputComponent.Keyboard, _inputComponent.MouseState);
+        Gizmo.Update(gameTime, _inputComponent.Keyboard, _inputComponent.MouseState);
 
         base.Update(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
     {
-        _gizmo.Draw();
+        Gizmo.Draw();
         base.Draw(gameTime);
     }
 
@@ -126,13 +126,13 @@ public class GizmoComponent : DrawableGameComponent
 
     private void GizmoRotateEvent(ITransformable transformable, TransformationEventArgs e)
     {
-        _gizmo.RotationHelper(transformable, e);
+        Gizmo.RotationHelper(transformable, e);
     }
 
     private void GizmoScaleEvent(ITransformable transformable, TransformationEventArgs e)
     {
         var delta = (Vector3)e.Value;
-        if (_gizmo.ActiveMode == GizmoMode.UniformScale)
+        if (Gizmo.ActiveMode == GizmoMode.UniformScale)
         {
             transformable.Scale *= 1 + ((delta.X + delta.Y + delta.Z) / 3);
         }

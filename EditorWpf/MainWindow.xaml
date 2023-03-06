@@ -9,8 +9,6 @@
         xmlns:controls="clr-namespace:EditorWpf.Controls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" Height="450" Width="800">
-
-
     <Grid>
         <xcad:DockingManager Name="dockingManager1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <xcad:DockingManager.Theme>
@@ -28,6 +26,12 @@
                         <xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
                                 <controls:SettingsControl/>
+                            </xcad:LayoutAnchorable>
+                            <xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities">
+                                <controls:EntitiesControl x:Name="EntitiesControl"/>
+                            </xcad:LayoutAnchorable>
+                            <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
+                                <controls:EntityControl DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutAnchorablePaneGroup>

@@ -1,9 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Game;
+using System.ComponentModel;
 
 namespace CasaEngine.Framework.Entities.Components;
 
+[DisplayName("ArcBall Camera")]
 public class ArcBallCameraComponent : Camera3dComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.ArcBallCamera;

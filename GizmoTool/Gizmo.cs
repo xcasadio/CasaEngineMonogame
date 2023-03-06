@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -188,6 +189,8 @@ namespace XNAGizmo
         private KeyboardState _currentKeys;
         private MouseState _lastMouseState, _currentMouseState;
 
+        public event EventHandler<List<ITransformable>> SelectionChanged;
+
         public Gizmo(GraphicsDevice graphics, SpriteBatch spriteBatch, SpriteFont font)
             : this(graphics, spriteBatch, font, Matrix.Identity) { }
 
@@ -342,16 +345,24 @@ namespace XNAGizmo
 
         public void SelectEntities(Vector2 mouseloc, bool addToSelection, bool removeFromSelection)
         {
+            bool selectionChanged = false;
+
             if (ActiveAxis == GizmoAxis.None)
             {
                 if (!addToSelection && !removeFromSelection)
                 {
                     Selection.Clear();
+                    selectionChanged = true;
                 }
 
-                PickObject(mouseloc, removeFromSelection);
+                selectionChanged |= PickObject(mouseloc, removeFromSelection);
             }
             ResetDeltas();
+
+            if (selectionChanged)
+            {
+                SelectionChanged?.Invoke(this, Selection.ToList());
+            }
         }
 
         /// <summary>
@@ -933,13 +944,14 @@ namespace XNAGizmo
         /// <summary>
         /// Select objects inside the scene.
         /// </summary>
-        protected void PickObject(Vector2 mousePosition, bool removeFromSelection)
+        protected bool PickObject(Vector2 mousePosition, bool removeFromSelection)
         {
             if (_selectionPool == null)
             {
                 throw new Exception("SelectionPool is null, please set the pool by calling .SetSelectionPool()");
             }
 
+            var selectionChanged = false;
             var ray = ConvertMouseToRay(mousePosition);
             var closest = float.MaxValue;
             ITransformable obj = null;
@@ -956,13 +968,17 @@ namespace XNAGizmo
                     if (removeFromSelection)
                     {
                         Selection.Remove(entity);
+                        selectionChanged = true;
                     }
                 }
             }
             if (obj != null)
             {
                 Selection.Add(obj);
+                selectionChanged = true;
             }
+
+            return selectionChanged;
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace CasaEngine.Framework.Game
         public UserInterfaceManager UiManager { get; } = new();
         public SpriteBatch SpriteBatch { get; set; }
         public ObjectRegistry ObjectRegistry { get; } = new();
-        public Microsoft.Xna.Framework.Game Game { get; set; }
+        public CasaEngineGame Game { get; set; }
         public ProjectSettings ProjectSettings { get; } = new();
         public PhysicsSettings PhysicsSettings { get; } = new();
         public GraphicsSettings GraphicsSettings { get; } = new();

@@ -1,34 +1,37 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 
-namespace CasaEngine.Framework.Entities.Components;
-
-public class GamePlayComponent : Component
+namespace CasaEngine.Framework.Entities.Components
 {
-    public static readonly int ComponentId = (int)ComponentIds.GamePlay;
-
-    public IExternalComponent? ExternalComponent { get; set; }
-
-    public GamePlayComponent(Entity entity) : base(entity, ComponentId)
+    [DisplayName("GamePlay")]
+    public class GamePlayComponent : Component
     {
-    }
+        public static readonly int ComponentId = (int)ComponentIds.GamePlay;
 
-    public override void Initialize()
-    {
-        ExternalComponent?.Initialize();
-    }
+        public IExternalComponent? ExternalComponent { get; set; }
 
-    public override void Update(float elapsedTime)
-    {
-        ExternalComponent?.Update(elapsedTime);
-    }
+        public GamePlayComponent(Entity entity) : base(entity, ComponentId)
+        {
+        }
 
-    public override void Draw()
-    {
-        ExternalComponent?.Draw();
-    }
+        public override void Initialize()
+        {
+            ExternalComponent?.Initialize();
+        }
 
-    public override void Load(JsonElement element)
-    {
-        throw new NotImplementedException();
+        public override void Update(float elapsedTime)
+        {
+            ExternalComponent?.Update(elapsedTime);
+        }
+
+        public override void Draw()
+        {
+            ExternalComponent?.Draw();
+        }
+
+        public override void Load(JsonElement element)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

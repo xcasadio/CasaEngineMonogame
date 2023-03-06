@@ -1,7 +1,6 @@
 ﻿namespace CasaEngine.Editor.Tools
 {
-    public class CustomEditor
-        : Attribute
+    public class CustomEditor : Attribute
     {
         private readonly Type _type;
 

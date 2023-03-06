@@ -12,7 +12,6 @@ namespace EditorWpf.Controls;
 
 public class GameEditor : WpfGame
 {
-    private GameManager _gameManager;
     private CasaEngineGame _game;
 
     public GameEditor()
@@ -23,11 +22,10 @@ public class GameEditor : WpfGame
     protected override void Initialize()
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
-        _game = new CasaEngineGame();
-        _gameManager = new GameManager(_game, graphicsDeviceService);
-        _gameManager.Initialize();
+        _game = new CasaEngineGame(graphicsDeviceService);
+        _game.GameManager.Initialize();
 
-        _gameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)),
+        _game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)),
             new MouseStateProvider(new WpfMouse(this)));
 
         base.Initialize();
@@ -39,6 +37,7 @@ public class GameEditor : WpfGame
         GameInfo.Instance.CurrentWorld = world;
 
         var entity = new Entity();
+        entity.Name = "Entity camera";
         var camera = new ArcBallCameraComponent(entity);
         entity.ComponentManager.Components.Add(camera);
         GameInfo.Instance.ActiveCamera = camera;
@@ -46,6 +45,7 @@ public class GameEditor : WpfGame
         world.AddObjectImmediately(entity);
 
         entity = new Entity();
+        entity.Name = "Entity box";
         //entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
         var meshComponent = new MeshComponent(entity);
         entity.ComponentManager.Components.Add(meshComponent);
@@ -53,27 +53,29 @@ public class GameEditor : WpfGame
         meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
         world.AddObjectImmediately(entity);
 
-        _gameManager.BeginLoadContent();
+        _game.GameManager.BeginLoadContent();
         base.LoadContent();
-        _gameManager.EndLoadContent();
+        _game.GameManager.EndLoadContent();
 
         foreach (var component in _game.Components)
         {
             component.Initialize();
         }
+
+        GameInfo.Instance.InvokeReadyToStart(_game);
     }
 
     private void OnSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
     {
         if (_game != null)
         {
-            _gameManager.OnScreenResized((int)e.NewSize.Width, (int)e.NewSize.Height);
+            _game.GameManager.OnScreenResized((int)e.NewSize.Width, (int)e.NewSize.Height);
         }
     }
 
     protected override void Update(GameTime gameTime)
     {
-        _gameManager.BeginUpdate(gameTime);
+        _game.GameManager.BeginUpdate(gameTime);
 
         foreach (var component in _game.Components)
         {
@@ -84,12 +86,12 @@ public class GameEditor : WpfGame
         }
 
         base.Update(gameTime);
-        _gameManager.EndUpdate(gameTime);
+        _game.GameManager.EndUpdate(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        _gameManager.BeginDraw(gameTime);
+        _game.GameManager.BeginDraw(gameTime);
 
         foreach (var component in _game.Components)
         {
@@ -100,6 +102,6 @@ public class GameEditor : WpfGame
         }
 
         base.Draw(gameTime);
-        _gameManager.EndDraw(gameTime);
+        _game.GameManager.EndDraw(gameTime);
     }
 }

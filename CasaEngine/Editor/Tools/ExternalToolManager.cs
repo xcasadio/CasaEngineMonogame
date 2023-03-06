@@ -41,11 +41,11 @@ namespace CasaEngine.Editor.Tools
                     {
                         foreach (var intf in t.GetInterfaces())
                         {
-                            if (intf.Equals(typeof(IContentObject)))
-                            {
-                                _customObjects.Add(t.ToString(), t);
-                                break;
-                            }
+                            //if (intf.Equals(typeof(IContentObject)))
+                            //{
+                            //    _customObjects.Add(t.ToString(), t);
+                            //    break;
+                            //}
                         }
 
                         foreach (var attribute in t.GetCustomAttributes(true))

@@ -27,19 +27,16 @@ public class GameManager
     protected string ContentPath = string.Empty;
 #endif
 
-    public GameManager(Microsoft.Xna.Framework.Game game)
+    public GameManager(CasaEngineGame game)
     {
         Engine.Instance.Game = game;
+        _graphicsDeviceManager = new GraphicsDeviceManager(game);
+        _graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
+        _graphicsDeviceManager.DeviceReset += OnDeviceReset;
 
-        if (game != null)
-        {
-            _graphicsDeviceManager = new GraphicsDeviceManager(game);
-            _graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
-            _graphicsDeviceManager.DeviceReset += OnDeviceReset;
-        }
     }
 
-    public GameManager(Microsoft.Xna.Framework.Game game, IGraphicsDeviceService graphicsDeviceService)
+    public GameManager(CasaEngineGame game, IGraphicsDeviceService graphicsDeviceService)
     {
         Engine.Instance.Game = game;
         _graphicsDeviceService = graphicsDeviceService;
@@ -47,8 +44,8 @@ public class GameManager
         if (game.Services.GetService<IGraphicsDeviceService>() != null)
         {
             game.Services.RemoveService(typeof(IGraphicsDeviceService));
-            game.Services.AddService(typeof(IGraphicsDeviceService), (object)_graphicsDeviceService);
         }
+        game.Services.AddService(typeof(IGraphicsDeviceService), (object)_graphicsDeviceService);
     }
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
@@ -165,6 +162,8 @@ public class GameManager
         GameInfo.Instance.CurrentWorld.Initialize();
 
         _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.PhysicWorld);
+
+        //GameInfo.Instance.
     }
 
     public void BeginUpdate(GameTime gameTime)
