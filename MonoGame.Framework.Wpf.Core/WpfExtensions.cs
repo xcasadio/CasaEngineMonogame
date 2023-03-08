@@ -32,7 +32,19 @@ namespace Microsoft.Xna.Framework
 
         public static Func<IInputElement, Window> FindWindow = null;
 
-        public static bool IsControlOnActiveWindow(this IInputElement element) => Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive) == GetWindowFrom(element);
+        public static bool IsControlOnActiveWindow(this IInputElement element)
+        {
+            try
+            {
+                return Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive) == GetWindowFrom(element);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return false;
+        }
 
         static Window GetWindowFrom(IInputElement focusElement)
         {

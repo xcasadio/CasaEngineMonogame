@@ -53,6 +53,15 @@ public class GameEditor : WpfGame
         meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
         world.AddObjectImmediately(entity);
 
+        entity = new Entity();
+        entity.Name = "Entity box 2";
+        entity.Coordinates.LocalPosition += Vector3.UnitX * 2.0f;
+        meshComponent = new MeshComponent(entity);
+        entity.ComponentManager.Components.Add(meshComponent);
+        meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
+        meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
+        world.AddObjectImmediately(entity);
+
         _game.GameManager.BeginLoadContent();
         base.LoadContent();
         _game.GameManager.EndLoadContent();

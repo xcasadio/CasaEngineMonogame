@@ -29,8 +29,8 @@ public class MeshComponent : Component
 
     public override void Update(float elapsedTime)
     {
-        var worldViewProj = Owner.Coordinates.WorldMatrix * GameInfo.Instance.ActiveCamera.ViewMatrix *
-                            GameInfo.Instance.ActiveCamera.ProjectionMatrix;
+        var camera = GameInfo.Instance.ActiveCamera;
+        var worldViewProj = Owner.Coordinates.WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
         _meshRendererComponent.AddMesh(Mesh, worldViewProj);
     }
 
