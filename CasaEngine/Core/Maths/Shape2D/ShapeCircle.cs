@@ -1,19 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Xml;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Maths.Shape2D
 {
-    public
-#if EDITOR
-    partial
-#endif
-    class ShapeCircle
-        : Shape2DObject
+    public class ShapeCircle : Shape2DObject
     {
         private int _radius;
-
-
 
 #if EDITOR
         [Category("Shape Circle")]
@@ -30,15 +24,11 @@ namespace CasaEngine.Core.Maths.Shape2D
             }
         }
 
-
-
         public ShapeCircle() { }
 
         public ShapeCircle(ShapeCircle o)
             : base(o)
         { }
-
-
 
         public override void Load(XmlElement el, SaveOption option)
         {
@@ -62,12 +52,47 @@ namespace CasaEngine.Core.Maths.Shape2D
             _radius = ((ShapeCircle)ob)._radius;
         }
 
-
-
         // Pool for this type of components.
         /*private static readonly Pool<ShapeCircle> componentPool = new Pool<ShapeCircle>(20);
 
         internal static Pool<ShapeCircle> ComponentPool { get { return componentPool; } }*/
 
+#if EDITOR
+        public ShapeCircle(Point center, int radius)
+            : base(Shape2DType.Circle)
+        {
+            Location = center;
+            _radius = radius;
+        }
+
+        public override bool CompareTo(Shape2DObject o)
+        {
+            if (o is ShapeCircle)
+            {
+                var c = (ShapeCircle)o;
+                return _radius == c.Radius && base.CompareTo(o);
+            }
+
+            return false;
+        }
+
+        public override void Save(XmlElement el, SaveOption option)
+        {
+            base.Save(el, option);
+            el.OwnerDocument.AddAttribute(el, "radius", _radius.ToString());
+        }
+
+        public override void Save(BinaryWriter bw, SaveOption option)
+        {
+            base.Save(bw, option);
+
+            bw.Write(_radius);
+        }
+
+        public override string ToString()
+        {
+            return "Circle - " + Location.ToString() + " - " + _radius;
+        }
+#endif
     }
 }

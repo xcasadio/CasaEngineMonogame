@@ -12,17 +12,11 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Graphics2D
 {
-    public
-#if EDITOR
-    partial
-#endif
-    class Sprite2D
-        : Entity
+    public class Sprite2D : Entity
 #if EDITOR
          , INotifyPropertyChanged, IAssetable
 #endif
     {
-
         //constant
         private Texture2D _texture2D;
         private Rectangle _positionInTexture;
@@ -37,8 +31,6 @@ namespace CasaEngine.Framework.Assets.Graphics2D
         private readonly Dictionary<string, Vector2> _sockets = new();
 
         private readonly List<string> _assetFileNames = new();
-
-
 
 #if EDITOR
         [Browsable(false)]
@@ -107,8 +99,6 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             }
         }
 
-
-
         internal Sprite2D() { }
 
         public Sprite2D(Texture2D tex)
@@ -126,8 +116,6 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             CopyFrom(sprite);
         }
 
-
-
         public Entity Clone()
         {
             return new Sprite2D(this);
@@ -136,7 +124,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 #if EDITOR
         public
 #else
-		internal
+        internal
 #endif
         void CopyFrom(Sprite2D sprite)
         {
@@ -153,9 +141,9 @@ namespace CasaEngine.Framework.Assets.Graphics2D
                 _collisions.Add(o.Clone());
             }
 #else
-            if (sprite_._Collisions != null)
+            if (sprite._Collisions != null)
             {
-                this._Collisions = sprite_._Collisions;
+                this._Collisions = sprite._Collisions;
                 //this._Collisions = (Shape2DObject[])sprite_._Collisions.Clone();
             }
             else
@@ -170,7 +158,6 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 
             base.CopyFrom(sprite);
         }
-
 
         public override void Load(XmlElement element, SaveOption option)
         {
@@ -212,7 +199,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 
                 foreach (XmlNode node in collisionNode.ChildNodes)
                 {
-                    _Collisions[i++] = (Shape2DObject.CreateShape2DObject((XmlElement)node, option_));
+                    _Collisions[i++] = (Shape2DObject.CreateShape2DObject((XmlElement)node, option));
                 }
             }
             else
@@ -241,16 +228,15 @@ namespace CasaEngine.Framework.Assets.Graphics2D
         public void UnloadTexture()
         {
 #if !EDITOR
-			if (_Texture2D == null)
-			{
-				throw new InvalidOperationException("Sprite2D.LoadTexture() : texture is null !");
-			}
+            if (_texture2D == null)
+            {
+                throw new InvalidOperationException("Sprite2D.LoadTexture() : texture is null !");
+            }
 #endif
 
             //_Texture2D.Dispose();
             _texture2D = null;
         }
-
 
         public Vector2 GetSocketByName(string name)
         {
@@ -259,8 +245,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 
         public void LoadTexture(ContentManager content)
         {
-            if (_texture2D != null
-                && _texture2D.IsDisposed == false)
+            if (_texture2D != null && _texture2D.IsDisposed == false)
             {
                 return;
             }
@@ -279,7 +264,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             assetFile = Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                 ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + _assetFileNames[0];
 #else
-            assetFile = CasaEngine.Game.Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileNames[0];
+            assetFile = Game.Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
 #endif
 
             if (_texture2D != null
@@ -292,5 +277,214 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             _texture2D = Texture2D.FromStream(device, File.OpenRead(assetFile));
         }
 
+#if EDITOR
+        private static readonly uint Version = 2;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [Category("Sprite"),
+        ReadOnly(true)]
+        public List<string> AssetFileNames => _assetFileNames;
+
+        public Sprite2D(Texture2D tex, string assetFileName)
+            : this(tex)
+        {
+            _assetFileNames.Add(assetFileName);
+        }
+
+        public List<KeyValuePair<string, Vector2>> GetSockets()
+        {
+            return _sockets.ToList();
+        }
+
+        public Vector2 GetSocketByIndex(int index)
+        {
+            return _sockets.ElementAt(index).Value;
+        }
+
+        public bool IsValidSocketName(string name)
+        {
+            return !_sockets.ContainsKey(name);
+        }
+
+        public void AddSocket(string name, Vector2 position)
+        {
+            _sockets.Add(name, position);
+        }
+
+        public void ModifySocket(string name, Vector2 position)
+        {
+            _sockets[name] = position;
+        }
+
+        public void ModifySocket(int index, Vector2 position)
+        {
+            _sockets[_sockets.ElementAt(index).Key] = position;
+        }
+
+        public void RemoveSocket(string name)
+        {
+            _sockets.Remove(name);
+        }
+
+        public void AddCollision(Shape2DObject coll)
+        {
+            _collisions.Add(coll);
+        }
+
+        public void SetCollisionAt(int index, Shape2DObject coll)
+        {
+            _collisions[index] = coll;
+        }
+
+        public void RemoveCollision(Shape2DObject coll)
+        {
+            if (_collisions.Remove(coll) == false)
+            {
+                throw new InvalidOperationException("Sprite2D.RemoveCollision() : can't remove the collision");
+            }
+        }
+
+        public void RemoveCollisionAt(int index)
+        {
+            _collisions.RemoveAt(index);
+        }
+
+        public bool CompareTo(Entity other)
+        {
+            if (other is Sprite2D)
+            {
+                var s = (Sprite2D)other;
+
+                if (_positionInTexture != s._positionInTexture
+                    || _origin != s._origin
+                    || _assetFileNames.Count != s._assetFileNames.Count
+                    || _collisions.Count != s._collisions.Count
+                    || _sockets.Count != s._sockets.Count)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < _assetFileNames.Count; i++)
+                {
+                    if (_assetFileNames[i].Equals(s._assetFileNames[i]) == false)
+                    {
+                        return false;
+                    }
+                }
+
+                for (var i = 0; i < _collisions.Count; i++)
+                {
+                    if (_collisions[i].CompareTo(s._collisions[i]) == false)
+                    {
+                        return false;
+                    }
+                }
+
+                foreach (var pair in _sockets)
+                {
+                    if (s._sockets.ContainsKey(pair.Key))
+                    {
+                        if (s._sockets[pair.Key].Equals(pair.Value) == false)
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private void NotifyPropertyChanged(string info)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(info));
+            }
+        }
+
+        public override void Save(XmlElement el, SaveOption option)
+        {
+            XmlElement node;
+
+            base.Save(el, option);
+
+            var rootNode = el.OwnerDocument.CreateElement("Sprite2D");
+            el.AppendChild(rootNode);
+            el.OwnerDocument.AddAttribute(rootNode, "version", Version.ToString());
+
+            var assetNode = el.OwnerDocument.CreateElement("AssetFiles");
+            rootNode.AppendChild(assetNode);
+
+            foreach (var file in _assetFileNames)
+            {
+                assetNode.AppendChild(el.OwnerDocument.CreateElementWithText("AssetFileName", file));
+            }
+
+            rootNode.AppendChild(el.OwnerDocument.CreateElement("HotSpot", _origin));
+            rootNode.AppendChild(el.OwnerDocument.CreateElement("PositionInTexture", _positionInTexture));
+
+            //Collisions
+            var collNode = el.OwnerDocument.CreateElement("CollisionList");
+            rootNode.AppendChild(collNode);
+
+            foreach (var col in _collisions)
+            {
+                node = el.OwnerDocument.CreateElement("Shape");
+                col.Save(node, option);
+                collNode.AppendChild(node);
+            }
+
+            //Sockets
+            var socketNode = el.OwnerDocument.CreateElement("SocketList");
+            rootNode.AppendChild(socketNode);
+
+            foreach (var pair in _sockets)
+            {
+                node = el.OwnerDocument.CreateElement("Socket");
+                node.AppendChild(el.OwnerDocument.CreateElementWithText("Name", pair.Key));
+                node.AppendChild(el.OwnerDocument.CreateElement("position", pair.Value));
+                socketNode.AppendChild(node);
+            }
+        }
+
+        public override void Save(BinaryWriter bw, SaveOption option)
+        {
+            base.Save(bw, option);
+
+            bw.Write(Version);
+
+            bw.Write(_assetFileNames.Count);
+            bw.Write(_assetFileNames.Count);
+            foreach (var assetFile in _assetFileNames)
+            {
+                bw.Write(assetFile);
+            }
+
+            bw.Write(_origin);
+            bw.Write(_positionInTexture);
+
+            //Collisions
+            bw.Write(_collisions.Count);
+            foreach (var col in _collisions)
+            {
+                col.Save(bw, option);
+            }
+
+            //Sockets
+            bw.Write(_sockets.Count);
+            foreach (var pair in _sockets)
+            {
+                bw.Write(pair.Key);
+                bw.Write(pair.Value);
+            }
+        }
+#endif
     }
 }

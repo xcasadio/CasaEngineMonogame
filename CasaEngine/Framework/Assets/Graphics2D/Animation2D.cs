@@ -1,5 +1,6 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Extension;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Gameplay.Actor.Event;
 #if EDITOR
@@ -19,7 +20,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 #if EDITOR
         private readonly List<Frame2D> _frames = new();
 #else
-        private Frame2D[] _Frames;
+        private Frame2D[] _frames;
 #endif
 
         private float _totalTime;
@@ -33,8 +34,6 @@ namespace CasaEngine.Framework.Assets.Graphics2D
         public event EventHandler OnEndAnimationReached;
 
         private readonly Animation2DFrameChangedEventArgs _animation2DFrameChangedEventArgs = new(null, 0, 0);
-
-
 
         public string Name
         {
@@ -58,7 +57,6 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 
         public float TotalTime => _totalTime;
 
-
         public Animation2D(XmlElement xmlNode, SaveOption option)
         {
             Load(xmlNode, option);
@@ -67,7 +65,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 #if EDITOR
         public
 #else
-		private
+        private
 #endif
         Animation2D()
         {
@@ -77,14 +75,12 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 #endif
         }
 
-
-
         public Frame2D[] GetFrames()
         {
 #if EDITOR
             return _frames.ToArray();
 #else
-            return _Frames;
+            return _frames;
 #endif
         }
 
@@ -170,7 +166,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
                 //@todo : check if skip frame
                 //and active event from the skipped frame
 #if !EDITOR
-                foreach (EventActor e in _Frames[_CurrentFrame].Events)
+                foreach (EventActor e in _frames[_currentFrame].Events)
                 {
                     e.Do();
                 }
@@ -217,7 +213,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             var list = new List<EventActor>();
 
 #if !EDITOR
-            _Frames = new Frame2D[animNode.SelectSingleNode("FrameList").ChildNodes.Count];
+            _frames = new Frame2D[animNode.SelectSingleNode("FrameList").ChildNodes.Count];
             int i = 0;
 #endif
 
@@ -241,8 +237,8 @@ namespace CasaEngine.Framework.Assets.Graphics2D
                 AddFrame(spriteId, delay, list.ToArray());
                 ComputeTotalTime();
 #else
-                _Frames[i] = new Frame2D(spriteID, delay);
-                _Frames[i].Events = list.ToArray();
+                _frames[i] = new Frame2D(spriteId, delay);
+                _frames[i].Events = list.ToArray();
                 i++;
 #endif
             }
@@ -266,7 +262,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             anim2D._frames.AddRange(_frames);
 #else
             //anim2D._Frames = _Frames;
-            anim2D._Frames = (Frame2D[]) _Frames.Clone();
+            anim2D._frames = (Frame2D[])_frames.Clone();
 #endif
             anim2D._name = _name;
             anim2D._totalTime = _totalTime;
@@ -282,7 +278,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 #if EDITOR
                 _frames.Count;
 #else
-                _Frames.Length;
+                _frames.Length;
 #endif
 
             for (var i = 0; i < count; i++)
@@ -294,5 +290,178 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             }
         }
 
+#if EDITOR
+        private static readonly uint Version = 1;
+        //static private uint _UnusedID = 0;
+
+        public int FrameCount => _frames.Count;
+
+        public void AddFrame(int spriteId, float delay, EventActor[] events)
+        {
+            var frame = new Frame2D(spriteId, delay);
+#if EDITOR
+            if (events != null)
+            {
+                frame.Events.AddRange(events);
+            }
+#else
+            frame.Events = events_;
+#endif
+            _frames.Add(frame);
+            ComputeTotalTime();
+        }
+
+        public float GetFrameTime(int frameIndex)
+        {
+            return _frames[frameIndex].Time;
+        }
+
+        public void SetTime(float totalElapsedTime)
+        {
+            _currentTime = totalElapsedTime;
+            ComputeCurrentFrame();
+        }
+
+        public void DeleteFrame(int index)
+        {
+            _frames.RemoveAt(index);
+            ComputeTotalTime();
+        }
+
+        public void SetFrameDelay(int frameIndex, float delay)
+        {
+            var frame = _frames[frameIndex];
+            frame.Time = delay;
+            _frames[frameIndex] = frame;
+            ComputeTotalTime();
+        }
+
+        public void SetFrameEvents(int frameIndex, List<EventActor> eventList)
+        {
+            var frame = _frames[frameIndex];
+            frame.Events = eventList;
+            _frames[frameIndex] = frame;
+        }
+
+        public void SetCurrentFrame(int frameIndex)
+        {
+            _currentTime = _frames[frameIndex].Time;
+            _currentFrame = frameIndex;
+        }
+
+        public int GetCurrentFrameIndex()
+        {
+            return _currentFrame;
+        }
+
+        public void SetFrameSprite2D(int sprite2Did, int frameIndex)
+        {
+            var frame = _frames[frameIndex];
+            frame.SpriteId = sprite2Did;
+            _frames[frameIndex] = frame;
+        }
+
+        public override void Save(XmlElement el, SaveOption option)
+        {
+            base.Save(el, option);
+
+            var animNode = el.OwnerDocument.CreateElement("Animation2D");
+            el.AppendChild(animNode);
+
+            el.OwnerDocument.AddAttribute(animNode, "version", Version.ToString());
+            el.OwnerDocument.AddAttribute(animNode, "name", _name);
+            el.OwnerDocument.AddAttribute(animNode, "type", Enum.GetName(typeof(Animation2DType), _animation2DType));
+
+            var frameListNode = el.OwnerDocument.CreateElement("FrameList");
+            animNode.AppendChild(frameListNode);
+
+            for (var i = 0; i < _frames.Count; i++)
+            {
+                var frameNode = el.OwnerDocument.CreateElement("Frame");
+                el.OwnerDocument.AddAttribute(frameNode, "spriteID", _frames[i].SpriteId.ToString());
+                el.OwnerDocument.AddAttribute(frameNode, "time", GetFrameTime(i).ToString());
+
+                //events
+                var eventListNode = el.OwnerDocument.CreateElement("EventNodeList");
+                frameNode.AppendChild(eventListNode);
+                foreach (var e in _frames[i].Events)
+                {
+                    var eventNode = el.OwnerDocument.CreateElement("EventNode");
+                    eventListNode.AppendChild(eventNode);
+                    e.Save(eventNode, option);
+                }
+
+                frameListNode.AppendChild(frameNode);
+            }
+        }
+
+        public override void Save(BinaryWriter bw, SaveOption option)
+        {
+            base.Save(bw, option);
+
+            bw.Write(Version);
+            bw.Write(_name);
+            bw.Write((int)_animation2DType);
+            bw.Write(_frames.Count);
+
+            for (var i = 0; i < _frames.Count; i++)
+            {
+                bw.Write(_frames[i].SpriteId);
+                bw.Write(GetFrameTime(i));
+                bw.Write(_frames[i].Events.Count);
+
+                foreach (var e in _frames[i].Events)
+                {
+                    e.Save(bw, option);
+                }
+            }
+        }
+
+        public void MoveFrameForward(int index)
+        {
+            if (index < _frames.Count - 1)
+            {
+                var frameTmp = _frames[index + 1];
+                _frames[index + 1] = _frames[index];
+                _frames[index] = frameTmp;
+            }
+        }
+
+        public void MoveFrameBackward(int index)
+        {
+            if (index > 0)
+            {
+                var frameTmp = _frames[index - 1];
+                _frames[index - 1] = _frames[index];
+                _frames[index] = frameTmp;
+            }
+        }
+
+        public bool CompareTo(Entity other)
+        {
+            if (other is Animation2D)
+            {
+                var o = other as Animation2D;
+
+                if (_animation2DType != o._animation2DType
+                    || _frames.Count != o._frames.Count)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < _frames.Count; i++)
+                {
+                    if (_frames[i].CompareTo(o._frames[i]) == false)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+#endif
     }
 }

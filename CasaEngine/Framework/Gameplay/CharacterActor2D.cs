@@ -1,5 +1,6 @@
 using System.Xml;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Extension;
 using CasaEngine.Core.Logger;
 using CasaEngine.Core.Maths.Shape2D;
 using CasaEngine.Engine.Physics2D;
@@ -19,15 +20,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Gameplay
 {
-    public
-#if EDITOR
-    partial
-#endif
-    class CharacterActor2D
-        : Actor2D, IFsmCapable<CharacterActor2D>, IRenderable, IAttackable
+    public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRenderable, IAttackable
     {
         public static bool DisplayDebugInformation = true;
-
 
         private TeamInfo _teamInfo;
 
@@ -65,8 +60,6 @@ namespace CasaEngine.Framework.Gameplay
 
         //for debugging : to delete
         private Texture2D _whiteTexture;
-
-
 
         public SpriteEffects SpriteEffects
         {
@@ -252,8 +245,6 @@ namespace CasaEngine.Framework.Gameplay
             remove => _animation2DPlayer.OnEndAnimationReached -= value;
         }
 
-
-
         protected CharacterActor2D(XmlElement el, SaveOption opt)
             : base(el, opt)
         {
@@ -270,8 +261,6 @@ namespace CasaEngine.Framework.Gameplay
             Speed = 1.0f;
             Initialize();
         }
-
-
 
         public Entity Clone()
         {
@@ -323,7 +312,7 @@ namespace CasaEngine.Framework.Gameplay
             _fsm = new FiniteStateMachine<CharacterActor2D>(this);
 
 #if !EDITOR
-            _Renderer2DComponent = GameHelper.GetDrawableGameComponent<Renderer2DComponent>(CasaEngine.Game.Engine.Instance.Game);
+            _renderer2DComponent = Game.Engine.Instance.Game.GetDrawableGameComponent<Renderer2DComponent>();
 #endif
         }
 
@@ -331,9 +320,7 @@ namespace CasaEngine.Framework.Gameplay
         {
             foreach (var pair in _animationListToLoad)
             {
-                var anim2d = Framework.Game.Engine.Instance.ObjectManager.GetObjectByPath(pair.Value) as Animation2D;
-
-                if (anim2d != null)
+                if (Framework.Game.Engine.Instance.ObjectManager.GetObjectByPath(pair.Value) is Animation2D anim2d)
                 {
                     _animations.Add(pair.Key, anim2d);
                     anim2d.InitializeEvent();
@@ -526,7 +513,6 @@ namespace CasaEngine.Framework.Gameplay
             }
         }
 
-
         public void SetPosition(Vector2 pos)
         {
             if (_body == null)
@@ -566,8 +552,6 @@ namespace CasaEngine.Framework.Gameplay
                 _body.LinearVelocity = _velocity;
             }
         }
-
-
 
         public void SetAnimationParameters(int numberOfDirectionAnimation, int animationDirectionMask)
         {
@@ -633,9 +617,6 @@ namespace CasaEngine.Framework.Gameplay
                 //GameInfo.Instance.WorldInfo.BotKilled++;
             }
         }
-
-
-
 
         public Shape2DObject[] Shape2DObjectList
         {
@@ -708,8 +689,6 @@ namespace CasaEngine.Framework.Gameplay
             _alreadyAttacked.Clear();
         }
 
-
-
         public bool HandleMessage(Message message)
         {
             switch (message.Type)
@@ -733,8 +712,6 @@ namespace CasaEngine.Framework.Gameplay
 
             return true;
         }
-
-
 
         public static CharacterActor2DOrientation GetCharacterDirectionFromVector2(Vector2 v)
         {
@@ -762,5 +739,116 @@ namespace CasaEngine.Framework.Gameplay
             return dir;
         }
 
+#if EDITOR
+        public override void Save(XmlElement el, SaveOption opt)
+        {
+            base.Save(el, opt);
+
+            var statusNode = el.OwnerDocument.CreateElement("Status");
+            el.AppendChild(statusNode);
+            el.OwnerDocument.AddAttribute(statusNode, "speed", Speed.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "strength", Strength.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "defense", Defense.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "HPMax", HpMax.ToString());
+            el.OwnerDocument.AddAttribute(statusNode, "MPMax", MpMax.ToString());
+
+            XmlElement animNode;
+            var animListNode = el.OwnerDocument.CreateElement("AnimationList");
+            el.AppendChild(animListNode);
+
+            //foreach (KeyValuePair<int, Animation2D> pair in _Animations)
+            foreach (var pair in _animationListToLoad)
+            {
+                animNode = el.OwnerDocument.CreateElement("Animation");
+                animListNode.AppendChild(animNode);
+                el.OwnerDocument.AddAttribute(animNode, "index", pair.Key.ToString());
+                el.OwnerDocument.AddAttribute(animNode, "name", pair.Value);
+            }
+        }
+
+        public override void Save(BinaryWriter bw, SaveOption opt)
+        {
+            base.Save(bw, opt);
+
+            bw.Write(Speed);
+            bw.Write(Strength);
+            bw.Write(Defense);
+            bw.Write(HpMax);
+            bw.Write(MpMax);
+
+            bw.Write(_animations.Count);
+
+            foreach (var pair in _animations)
+            {
+                bw.Write(pair.Key);
+                bw.Write(pair.Value.Name);
+            }
+        }
+
+        public void AddOrSetAnimation(int index, string name)
+        {
+            var anim = Game.Engine.Instance.ObjectManager.GetObjectByPath(name) as Animation2D;
+
+            if (anim != null)
+            {
+                if (_animationListToLoad.ContainsKey(index))
+                {
+                    _animations[index] = anim;
+                    _animationListToLoad[index] = anim.Name;
+                }
+                else
+                {
+                    _animations.Add(index, anim);
+                    _animationListToLoad.Add(index, anim.Name);
+                }
+            }
+        }
+
+        public int AddAnimation(string name)
+        {
+            var index = 0;
+
+            while (_animationListToLoad.ContainsKey(index))
+            {
+                index++;
+            }
+
+            var anim = Game.Engine.Instance.Asset2DManager.GetAnimation2DByName(name);
+
+            if (anim != null)
+            {
+                _animations.Add(index, anim);
+                _animationListToLoad.Add(index, anim.Name);
+                return index;
+            }
+
+            return -1;
+        }
+
+        public string GetAnimationName(int index)
+        {
+            //if (_Animations.ContainsKey(index_))
+            if (_animationListToLoad.ContainsKey(index))
+            {
+                //return _Animations[index_].Name;
+                return _animationListToLoad[index];
+            }
+
+            return null;
+        }
+
+        public List<string> GetAllAnimationName()
+        {
+            var res = new List<string>();
+
+            //foreach (KeyValuePair<int, Animation2D> pair in _Animations)
+            foreach (var pair in _animationListToLoad)
+            {
+                res.Add(pair.Value); //pair.Value.Name
+            }
+
+            return res;
+        }
+#endif
     }
 }

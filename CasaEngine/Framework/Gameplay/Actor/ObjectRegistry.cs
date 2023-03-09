@@ -3,6 +3,7 @@ using CasaEngine.Core.Extension;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Project;
 using CasaEngine.Core.Design;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Gameplay.Actor
 {
@@ -230,8 +231,8 @@ namespace CasaEngine.Framework.Gameplay.Actor
         {
 
 #if !EDITOR
-			public long PositionInFile;
-			public long FileLength;
+            public long PositionInFile;
+            public long FileLength;
 #endif
             public string ClassName = string.Empty;
             private bool _isLoaded;
@@ -262,8 +263,8 @@ namespace CasaEngine.Framework.Gameplay.Actor
             public ObjectRegistryStatus(ObjectRegistryStatus o)
             {
 #if !EDITOR
-				this.FileLength = o_.FileLength;
-				this.PositionInFile = o_.PositionInFile;
+                this.FileLength = o.FileLength;
+                this.PositionInFile = o.PositionInFile;
 #endif
                 ClassName = o.ClassName;
                 _isLoaded = o._isLoaded;
@@ -454,9 +455,9 @@ namespace CasaEngine.Framework.Gameplay.Actor
                 xmlFile = Game.Engine.Instance.ProjectManager.ProjectFileOpened;
                 xmlDoc.Load(xmlFile);
 #else
-                CasaEngineGame game = (CasaEngineGame)CasaEngine.Game.Engine.Instance.Game;
-                xmlFile = "Content\\" + game.ProjectFile;
-                xmlDoc.Load(xmlFile);
+                //CasaEngineGame game = (CasaEngineGame)CasaEngine.Game.Engine.Instance.Game;
+                //xmlFile = "Content\\" + game.ProjectFile;
+                //xmlDoc.Load(xmlFile);
 #endif
                 var xmlPath = ProjectManager.NodeRootName + "/" + ProjectManager.NodeObjectRegistryName + "/" + ProjectManager.NodeObjectName + "[@id='" + objectRegistryStatus.Id + "']";
                 var el = (XmlElement)xmlDoc.SelectSingleNode(xmlPath);

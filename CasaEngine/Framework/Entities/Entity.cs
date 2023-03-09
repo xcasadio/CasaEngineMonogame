@@ -13,7 +13,10 @@ using ICloneable = CasaEngine.Framework.Gameplay.Design.ICloneable;
 
 namespace CasaEngine.Framework.Entities
 {
-    public class Entity : ISaveLoad, ICloneable, ITransformable
+    public class Entity : ISaveLoad, ICloneable
+#if EDITOR
+        , ITransformable
+#endif
     {
         public const int EntityNotRegistered = -1;
 

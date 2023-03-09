@@ -3,13 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Graphics2D.Tile
 {
-    public abstract
-#if EDITOR
-    partial
-#endif
-    class TileLayer
+    public abstract class TileLayer
     {
-
         private GraphicsDeviceManager _graphics;
         /*private Renderer2DComponent _Renderer2DComponent = null;*/
 
@@ -92,7 +87,7 @@ namespace CasaEngine.Framework.Graphics2D.Tile
 #if !EDITOR
             if (graphicsComponent == null)
             {
-				throw new ArgumentNullException("TileLayer() : GraphicsDeviceManager is null");
+                throw new ArgumentNullException("TileLayer() : GraphicsDeviceManager is null");
             }
 #endif
 
@@ -146,5 +141,12 @@ namespace CasaEngine.Framework.Graphics2D.Tile
             DrawTiles(batch);
         }
 
+#if EDITOR
+        public GraphicsDeviceManager Graphics
+        {
+            get => _graphics;
+            set => _graphics = value;
+        }
+#endif
     }
 }

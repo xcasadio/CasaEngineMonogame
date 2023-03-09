@@ -5,7 +5,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
@@ -22,11 +21,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
         Hidden,
     }
 
-    public abstract
-#if EDITOR
-    partial
-#endif
-    class Screen : Entity
+    public abstract class Screen : Entity
     {
         private bool _isPopup;
         private TimeSpan _transitionOnTime = TimeSpan.Zero;
@@ -37,8 +32,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen
         private bool _otherScreenHasFocus;
         private ScreenManagerComponent _screenManager;
         private PlayerIndex? _controllingPlayer;
-
-
 
         public string Name
         {
@@ -107,8 +100,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen
             private set;
         }
 
-
-
         protected Screen(string name)
         {
             Name = name;
@@ -119,16 +110,12 @@ namespace CasaEngine.Framework.FrontEnd.Screen
             Load(el, opt);
         }
 
-
-
         public virtual void LoadContent(Renderer2DComponent r)
         {
             Renderer2DComponent = r;
         }
 
         public virtual void UnloadContent() { }
-
-
 
         public virtual void Update(float elapsedTime, bool otherScreenHasFocus,
                                                       bool coveredByOtherScreen)
@@ -210,8 +197,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
         public virtual void Draw(float elapsedTime) { }
 
-
-
         public override void Load(XmlElement el, SaveOption opt)
         {
             base.Load(el, opt);
@@ -269,6 +254,16 @@ namespace CasaEngine.Framework.FrontEnd.Screen
                 && _screenState == screen._screenState
                 && _isExiting == screen._isExiting
                 && _otherScreenHasFocus == screen._otherScreenHasFocus;
+        }
+        
+        public override void Save(XmlElement el, SaveOption opt)
+        {
+
+        }
+
+        public override void Save(BinaryWriter bw, SaveOption opt)
+        {
+
         }
 
 #endif

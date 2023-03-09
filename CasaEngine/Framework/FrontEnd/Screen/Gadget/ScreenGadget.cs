@@ -9,14 +9,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
 {
-    public abstract
-#if EDITOR
-    partial
-#endif
-    class ScreenGadget
+    public abstract class ScreenGadget
         : ISaveLoad
     {
-
         private Texture2D _whiteTexture;
 
         public event EventHandler Click;
@@ -32,8 +27,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
 
         private bool _mouseLeftPressed;
         private bool _mouseOver = false;
-
-
 
         public Rectangle Bounds
         {
@@ -135,14 +128,10 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
             set;
         }
 
-
-
         protected ScreenGadget(XmlElement el, SaveOption opt)
         {
             Load(el, opt);
         }
-
-
 
         public virtual void Initialize(Microsoft.Xna.Framework.Game game)
         {
@@ -219,7 +208,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
 #endif
         abstract void DrawGadget(float elapsedTime);
 
-
         public virtual void Load(XmlElement el, SaveOption opt)
         {
             var c = Color.White;
@@ -249,7 +237,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
             throw new NotImplementedException();
         }
 
-
         private void UpdateBounds()
         {
             Bounds = new Rectangle((int)Location.X, (int)Location.Y, _width, _height);
@@ -271,8 +258,6 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
                 && Scale == g.Scale;
         }
 
-
-
         public static ScreenGadget LoadScreenGadget(XmlElement el, SaveOption opt)
         {
             var typeName = el.Attributes["typeName"].Value;
@@ -290,5 +275,64 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
             }
         }
 
+#if EDITOR
+        private static readonly int Version = 1;
+
+        protected ScreenGadget(string name)
+        {
+            Scale = Vector2.One;
+            Name = name;
+            Text = Name;
+            Font = Game.Engine.Instance.DefaultSpriteFont;
+        }
+
+        public virtual void Save(XmlElement el, SaveOption opt)
+        {
+            XmlElement node;
+
+            el.OwnerDocument.AddAttribute(el, "type", GetType().Name);
+            el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
+
+            node = el.OwnerDocument.CreateElementWithText("AutoSize", AutoSize.ToString());
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("BackgroundColor", BackgroundColor);
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("FontName", FontName);
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("FontColor", FontColor);
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("Width", Width.ToString());
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("Height", Height.ToString());
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("TabIndex", TabIndex.ToString());
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("Location", Location);
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("Scale", Scale);
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("Name", Name);
+            el.AppendChild(node);
+            node = el.OwnerDocument.CreateElement("Text", Text);
+            el.AppendChild(node);
+        }
+
+        public virtual void Save(BinaryWriter bw, SaveOption opt)
+        {
+            bw.Write(GetType().Name);
+            bw.Write(Version);
+            bw.Write(AutoSize);
+            bw.Write(BackgroundColor);
+            bw.Write(FontName);
+            bw.Write(FontColor);
+            bw.Write(Width);
+            bw.Write(Height);
+            bw.Write(TabIndex);
+            bw.Write(Location);
+            bw.Write(Scale);
+            bw.Write(Name);
+            bw.Write(Text);
+        }
+#endif
     }
 }

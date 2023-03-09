@@ -68,7 +68,8 @@ namespace CasaEngine.Framework.Gameplay
                             projectFile = Game.Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
                             projectFile += System.IO.Path.DirectorySeparatorChar + Path + ".xml";
 #else
-                            projectFile = CasaEngine.Game.Engine.Instance.AssetContentManager.RootDirectory + System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
+                            //projectFile = CasaEngine.Framework.Game.Engine.Instance.Game.AssetContentManager.RootDirectory + System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
+                            projectFile = "TODO";
 #endif
 
                             var xmlDoc = new XmlDocument();

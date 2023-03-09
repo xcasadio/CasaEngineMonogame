@@ -7,12 +7,7 @@ using Control = CasaEngine.Framework.UserInterface.Control;
 
 namespace CasaEngine.Framework.FrontEnd.Screen
 {
-    public
-#if EDITOR
-    partial
-#endif
-    class UiScreen
-        : Screen
+    public class UiScreen : Screen
     {
         private readonly List<Control> _controls = new();
 
@@ -94,6 +89,18 @@ namespace CasaEngine.Framework.FrontEnd.Screen
             }
         }
 
+        public override void Load(XmlElement el, SaveOption opt)
+        {
+            base.Load(el, opt);
+
+            var nodeList = el.SelectSingleNode("GadgetList");
+
+            foreach (XmlNode node in nodeList.ChildNodes)
+            {
+                _controls.Add(FactoryUiControl.LoadControl((XmlElement)node, opt));
+            }
+        }
+
 #if EDITOR
 
         public bool CompareTo(Entity other)
@@ -128,19 +135,16 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
             return res;
         }
-
-#endif
-
-        public override void Load(XmlElement el, SaveOption opt)
+                
+        public override void Save(XmlElement el, SaveOption opt)
         {
-            base.Load(el, opt);
-
-            var nodeList = el.SelectSingleNode("GadgetList");
-
-            foreach (XmlNode node in nodeList.ChildNodes)
-            {
-                _controls.Add(FactoryUiControl.LoadControl((XmlElement)node, opt));
-            }
+            base.Save(el, opt);
         }
+
+        public override void Save(BinaryWriter bw, SaveOption opt)
+        {
+            base.Save(bw, opt);
+        }
+#endif
     }
 }

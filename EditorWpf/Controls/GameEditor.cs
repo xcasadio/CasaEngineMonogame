@@ -33,34 +33,34 @@ public class GameEditor : WpfGame
 
     protected override void LoadContent()
     {
-        var world = new World();
-        GameInfo.Instance.CurrentWorld = world;
-
-        var entity = new Entity();
-        entity.Name = "Entity camera";
-        var camera = new ArcBallCameraComponent(entity);
-        entity.ComponentManager.Components.Add(camera);
-        GameInfo.Instance.ActiveCamera = camera;
-        camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        world.AddObjectImmediately(entity);
-
-        entity = new Entity();
-        entity.Name = "Entity box";
-        //entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
-        var meshComponent = new MeshComponent(entity);
-        entity.ComponentManager.Components.Add(meshComponent);
-        meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
-        meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
-        world.AddObjectImmediately(entity);
-
-        entity = new Entity();
-        entity.Name = "Entity box 2";
-        entity.Coordinates.LocalPosition += Vector3.UnitX * 2.0f;
-        meshComponent = new MeshComponent(entity);
-        entity.ComponentManager.Components.Add(meshComponent);
-        meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
-        meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
-        world.AddObjectImmediately(entity);
+        //var world = new World();
+        //GameInfo.Instance.CurrentWorld = world;
+        //
+        //var entity = new Entity();
+        //entity.Name = "Entity camera";
+        //var camera = new ArcBallCameraComponent(entity);
+        //entity.ComponentManager.Components.Add(camera);
+        //GameInfo.Instance.ActiveCamera = camera;
+        //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+        //world.AddObjectImmediately(entity);
+        //
+        //entity = new Entity();
+        //entity.Name = "Entity box";
+        ////entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
+        //var meshComponent = new MeshComponent(entity);
+        //entity.ComponentManager.Components.Add(meshComponent);
+        //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
+        //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
+        //world.AddObjectImmediately(entity);
+        //
+        //entity = new Entity();
+        //entity.Name = "Entity box 2";
+        //entity.Coordinates.LocalPosition += Vector3.UnitX * 2.0f;
+        //meshComponent = new MeshComponent(entity);
+        //entity.ComponentManager.Components.Add(meshComponent);
+        //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
+        //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
+        //world.AddObjectImmediately(entity);
 
         _game.GameManager.BeginLoadContent();
         base.LoadContent();

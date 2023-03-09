@@ -47,8 +47,6 @@ namespace CasaEngine.Engine.Primitives3D
             m_Type = type_;
         }
 
-
-
         public Mesh CreateMesh()
         {
             var mesh = new Mesh();

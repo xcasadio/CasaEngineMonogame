@@ -5,25 +5,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
 {
-    public
-#if EDITOR
-    partial
-#endif
-    class ScreenGadgetLabel
+    public class ScreenGadgetLabel
         : ScreenGadget
     {
-
-
-
-
-
         public ScreenGadgetLabel(XmlElement el, SaveOption opt)
             : base(el, opt)
         {
 
         }
-
-
 
 #if EDITOR
         public
@@ -51,5 +40,15 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
                 0.0f);
         }
 
+#if EDITOR
+        public static int Num;
+
+        public ScreenGadgetLabel()
+            : base("Label" + (Num++))
+        {
+            Width = 100;
+            Height = 80;
+        }
+#endif
     }
 }

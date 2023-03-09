@@ -3,6 +3,8 @@ using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.FrontEnd.Screen;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
@@ -125,8 +127,6 @@ public class GameManager
         {
             Engine.Instance.PluginManager.Load(Engine.Instance.ProjectSettings.GameplayDllName);
         }
-
-        //GraphicsDevice.DiscardColor = Color.Black;
     }
 
     public void BeginLoadContent()
@@ -148,6 +148,7 @@ public class GameManager
 
     public void EndLoadContent()
     {
+#if !EDITOR
         if (GameInfo.Instance.CurrentWorld == null)
         {
             if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.FirstWorldLoaded))
@@ -158,12 +159,21 @@ public class GameManager
             GameInfo.Instance.CurrentWorld = new World.World();
             GameInfo.Instance.CurrentWorld.Load(Engine.Instance.ProjectSettings.FirstWorldLoaded);
         }
+#else
+        GameInfo.Instance.CurrentWorld = new World.World();
+
+        var entity = new Entity();
+        entity.Name = "Camera";
+        var camera = new ArcBallCameraComponent(entity);
+        entity.ComponentManager.Components.Add(camera);
+        GameInfo.Instance.ActiveCamera = camera;
+        camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+        GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
+#endif
 
         GameInfo.Instance.CurrentWorld.Initialize();
 
         _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.PhysicWorld);
-
-        //GameInfo.Instance.
     }
 
     public void BeginUpdate(GameTime gameTime)
@@ -199,7 +209,7 @@ public class GameManager
         Engine.Instance.Game.GraphicsDevice.Clear(Color.Black);
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
-        GameInfo.Instance.CurrentWorld.Draw(elapsedTime);
+        GameInfo.Instance.CurrentWorld?.Draw(elapsedTime);
         //CasaEngine.Game.Engine.Instance.UiManager.PreRenderControls();
     }
 

@@ -1,23 +1,15 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Extension;
 using CasaEngine.Framework.Gameplay.Design.Event;
 
 namespace CasaEngine.Framework.Gameplay.Actor.Event
 {
-    public abstract
-#if EDITOR
-    partial
-#endif
-    class EventActor
-        : IEvent, ISaveLoad
+    public abstract class EventActor : IEvent, ISaveLoad
     {
-
         private EventActorType _eventActorType;
 
-
-
         public EventActorType EventActorType => _eventActorType;
-
 
         protected EventActor(EventActorType type)
         {
@@ -28,8 +20,6 @@ namespace CasaEngine.Framework.Gameplay.Actor.Event
         {
             Load(el, option);
         }
-
-
 
         public abstract void Initialize();
 
@@ -45,5 +35,22 @@ namespace CasaEngine.Framework.Gameplay.Actor.Event
             _eventActorType = (EventActorType)Enum.Parse(typeof(EventActorType), br.ReadString());
         }
 
+#if EDITOR
+
+        public virtual void Save(XmlElement el, SaveOption option)
+        {
+            el.OwnerDocument.AddAttribute(el, "type", Enum.GetName(typeof(EventActorType), _eventActorType));
+        }
+
+        public virtual void Save(BinaryWriter bw, SaveOption option)
+        {
+            bw.Write((int)_eventActorType);
+        }
+
+        public virtual bool CompareTo(EventActor other)
+        {
+            return _eventActorType == other._eventActorType;
+        }
+#endif
     }
 }

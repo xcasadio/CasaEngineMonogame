@@ -19,7 +19,7 @@ namespace CasaEngine.Engine.Input.InputSequence
 #if EDITOR
             _moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
 #else
-            this.moves = moves.OrderByDescending(m => m.Sequence.Length).ToArray();
+            _moves = moves.OrderByDescending(m => m.Sequence.Length).ToArray();
 #endif
         }
 
@@ -46,7 +46,7 @@ namespace CasaEngine.Engine.Input.InputSequence
 #if EDITOR
                 return _moves[0].Sequence.Count;
 #else
-                return moves[0].Sequence.Length;
+                return _moves[0].Sequence.Length;
 #endif
             }
         }
