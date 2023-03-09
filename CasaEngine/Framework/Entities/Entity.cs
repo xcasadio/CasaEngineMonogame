@@ -149,6 +149,9 @@ namespace CasaEngine.Framework.Entities
         }
 
 #if EDITOR
+        public event EventHandler? PositionChanged;
+        public event EventHandler? ScaleChanged;
+
         private static readonly int Version = 1;
 
         public virtual void Save(XmlElement el, SaveOption option)
@@ -199,13 +202,23 @@ namespace CasaEngine.Framework.Entities
         public Vector3 Position
         {
             get => Coordinates.LocalPosition;
-            set => Coordinates.LocalPosition = value;
+            set
+            {
+                Coordinates.LocalPosition = value;
+                PositionChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
+
         public Vector3 Scale
         {
             get => Coordinates.LocalScale;
-            set => Coordinates.LocalScale = value;
+            set
+            {
+                Coordinates.LocalScale = value;
+                ScaleChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
+
         public Quaternion Orientation
         {
             get => Coordinates.LocalRotation;

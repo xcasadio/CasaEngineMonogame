@@ -17,10 +17,10 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0" Text="X:"/>
-        <xctk:IntegerUpDown Grid.Column="1" FormatString="N0" Value="{Binding Value.X, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
+        <xctk:DecimalUpDown Grid.Column="1" Increment="0.1" Value="{Binding X, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
         <TextBlock Grid.Column="2" Text="Y:" Margin="5, 0, 0, 0"/>
-        <xctk:IntegerUpDown Grid.Column="3" FormatString="N0" Value="{Binding Y, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
+        <xctk:DecimalUpDown Grid.Column="3" Increment="0.1" Value="{Binding Y, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
         <TextBlock Grid.Column="4" Text="Z:" Margin="5, 0, 0, 0"/>
-        <xctk:IntegerUpDown Grid.Column="5" FormatString="N0" Value="{Binding Z, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
+        <xctk:DecimalUpDown Grid.Column="5" Increment="0.1" Value="{Binding Z, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
     </Grid>
 </UserControl>

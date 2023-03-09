@@ -4,7 +4,6 @@ using System.Net.Mime;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Framework.Entities;
 using EditorWpf.Controls.Common;
@@ -19,25 +18,48 @@ namespace EditorWpf.Controls
     {
         public EntityControl()
         {
+            DataContextChanged += OnDataContextChanged;
+
             InitializeComponent();
-
-            Vector3ControlPosition.PropertyChanged += OnPositionPropertyChanged;
-            Vector3ControlScale.PropertyChanged += OnScalePropertyChanged;
-
-            //var timer = new Timer(1);
-            //timer.Elapsed += Timer_Elapsed;
-            //timer.Start();
         }
 
-        private void Timer_Elapsed(object? sender, ElapsedEventArgs e)
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            if (e.OldValue is Entity oldEntity)
             {
-                if (DataContext is Entity entity)
-                {
-                    Vector3ControlPosition.Value = entity.Coordinates.LocalPosition;
-                }
-            });
+                oldEntity.PositionChanged -= OnEntityPositionChanged;
+                oldEntity.ScaleChanged -= OnEntityScaleChanged;
+
+                Vector3ControlPosition.PropertyChanged -= OnPositionPropertyChanged;
+                Vector3ControlScale.PropertyChanged -= OnScalePropertyChanged;
+            }
+
+            if (e.NewValue is Entity entity)
+            {
+                entity.PositionChanged += OnEntityPositionChanged;
+                entity.ScaleChanged += OnEntityScaleChanged;
+                OnEntityPositionChanged(entity, EventArgs.Empty);
+                OnEntityScaleChanged(entity, EventArgs.Empty);
+
+                Vector3ControlPosition.PropertyChanged += OnPositionPropertyChanged;
+                Vector3ControlScale.PropertyChanged += OnScalePropertyChanged;
+            }
+        }
+
+        private void OnEntityPositionChanged(object? sender, EventArgs e)
+        {
+            var entity = (sender as Entity);
+            Vector3ControlPosition.X = entity.Position.X;
+            Vector3ControlPosition.Y = entity.Position.Y;
+            Vector3ControlPosition.Z = entity.Position.Z;
+        }
+
+        private void OnEntityScaleChanged(object? sender, EventArgs e)
+        {
+            var entity = (sender as Entity);
+            Vector3ControlScale.X = entity.Scale.X;
+            Vector3ControlScale.Y = entity.Scale.Y;
+            Vector3ControlScale.Z = entity.Scale.Z;
         }
 
         private void OnScalePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -63,14 +85,7 @@ namespace EditorWpf.Controls
         {
             var vector3Control = (sender as Vector3Control);
 
-            if (vector3Control == null)
-            {
-                return;
-            }
-
-            var entity = (vector3Control.DataContext as Entity);
-
-            if (entity == null)
+            if (vector3Control?.DataContext is not Entity entity)
             {
                 return;
             }
@@ -80,13 +95,14 @@ namespace EditorWpf.Controls
 
         private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
         {
-            var inputComboBox = new InputComboBox(Application.Current.MainWindow);
-            inputComboBox.Title = "Add a new component";
-            inputComboBox.Description = "Choose the type of component to add";
-            inputComboBox.Items = ElementRegister.EntityComponentNames.Keys.ToList();
+            var inputComboBox = new InputComboBox(Application.Current.MainWindow)
+            {
+                Title = "Add a new component",
+                Description = "Choose the type of component to add",
+                Items = ElementRegister.EntityComponentNames.Keys.ToList()
+            };
 
-            if (inputComboBox.ShowDialog() == true
-                && inputComboBox.SelectedItem != null)
+            if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
             {
                 var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
                 var entity = DataContext as Entity;
@@ -98,12 +114,9 @@ namespace EditorWpf.Controls
 
         private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement frameworkElement)
+            if (sender is FrameworkElement { DataContext: Component component })
             {
-                if (frameworkElement.DataContext is Component component)
-                {
-                    component.Owner.ComponentManager.Components.Remove(component);
-                }
+                component.Owner.ComponentManager.Components.Remove(component);
             }
         }
     }

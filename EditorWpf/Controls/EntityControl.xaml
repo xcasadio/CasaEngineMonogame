@@ -35,9 +35,9 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0"/>
-                <local:Vector3Control Grid.Row="0" Grid.Column="1" Value="{Binding DataContext.Position, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
+                <local:Vector3Control Grid.Row="0" Grid.Column="1" X="{Binding DataContext.Position, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Target" Margin="0,0,5,0"/>
-                <local:Vector3Control Grid.Row="1" Grid.Column="1" Value="{Binding DataContext.Target, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
+                <local:Vector3Control Grid.Row="1" Grid.Column="1" X="{Binding DataContext.Target, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Distance}" />
             </Grid>
@@ -68,11 +68,9 @@
 
                 <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Name}" />
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Position" Margin="0,0,5,0"/>
-                <local:Vector3Control x:Name="Vector3ControlPosition" Value="{Binding Coordinates.LocalPosition, Mode=TwoWay}" 
-                                      Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"/>
+                <local:Vector3Control x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Scale" Margin="0,0,5,0"/>
-                <local:Vector3Control x:Name="Vector3ControlScale" Value="{Binding Coordinates.LocalScale, Mode=TwoWay}" 
-                                      Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"/>
+                <local:Vector3Control x:Name="Vector3ControlScale" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"/>
             </Grid>
 
             <Label Grid.Row="1" Grid.Column="0" Content="Components" />

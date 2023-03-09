@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls
 {
@@ -10,25 +9,32 @@ namespace EditorWpf.Controls
     /// </summary>
     public partial class Vector3Control : UserControl
     {
-        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(Vector3), typeof(Vector3Control), new PropertyMetadata(Vector3.Zero, OnValueChanged));
+        public static readonly DependencyProperty XProperty = DependencyProperty.Register("X", typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
+        public static readonly DependencyProperty YProperty = DependencyProperty.Register("Y", typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
+        public static readonly DependencyProperty ZProperty = DependencyProperty.Register("Z", typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        [Bindable(true)]
-        public Vector3 Value
+        public float X
         {
-            get => (Vector3)GetValue(ValueProperty);
-            set
-            {
-                SetValue(ValueProperty, value);
-                OnPropertyChanged("X");
-            }
+            get => (float)GetValue(XProperty);
+            set => SetValue(XProperty, value);
+        }
+
+        public float Y
+        {
+            get => (float)GetValue(YProperty);
+            set => SetValue(YProperty, value);
+        }
+
+        public float Z
+        {
+            get => (float)GetValue(ZProperty);
+            set => SetValue(ZProperty, value);
         }
 
         private static void OnValueChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-
-
             if (sender is Vector3Control ctrl)
             {
                 if (ctrl.PropertyChanged == null)
@@ -36,68 +42,13 @@ namespace EditorWpf.Controls
                     return;
                 }
 
-                ctrl.PropertyChanged(sender, new PropertyChangedEventArgs("X"));
-                ctrl.PropertyChanged(sender, new PropertyChangedEventArgs("Y"));
-                ctrl.PropertyChanged(sender, new PropertyChangedEventArgs("Z"));
-            }
-        }
-
-        public float X
-        {
-            get => Value.X;
-            set
-            {
-                var temp = Value;
-                if (value == temp.X)
-                {
-                    return;
-                }
-                Value = new Vector3(value, temp.Y, temp.Z);
-                //OnPropertyChanged("Value");
-                OnPropertyChanged("X");
-            }
-        }
-
-        public float Y
-        {
-            get => Value.Y;
-            set
-            {
-                var temp = Value;
-                if (value == temp.Y)
-                {
-                    return;
-                }
-                Value = new Vector3(temp.X, value, temp.Z);
-                OnPropertyChanged("Y");
-            }
-        }
-
-        public float Z
-        {
-            get => Value.Z;
-            set
-            {
-                var temp = Value;
-                if (value == temp.Z)
-                {
-                    return;
-                }
-
-                Value = new Vector3(temp.X, temp.Y, value);
-                OnPropertyChanged("Z");
+                ctrl.PropertyChanged(sender, new PropertyChangedEventArgs(e.Property.Name));
             }
         }
 
         public Vector3Control()
         {
             InitializeComponent();
-            //(Content as FrameworkElement).DataContext = this;
-        }
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
