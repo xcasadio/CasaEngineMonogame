@@ -370,10 +370,7 @@ namespace XNAGizmo
         /// </summary>
         public void Clear()
         {
-            if (Selection != null)
-            {
-                Selection.Clear();
-            }
+            Selection?.Clear();
         }
 
         protected void ResetDeltas()
@@ -1518,26 +1515,17 @@ namespace XNAGizmo
 
         private void OnTranslateEvent(ITransformable transformable, Vector3 delta)
         {
-            if (TranslateEvent != null)
-            {
-                TranslateEvent(transformable, new TransformationEventArgs(delta));
-            }
+            TranslateEvent?.Invoke(transformable, new TransformationEventArgs(delta));
         }
 
         private void OnRotateEvent(ITransformable transformable, Matrix delta)
         {
-            if (RotateEvent != null)
-            {
-                RotateEvent(transformable, new TransformationEventArgs(delta));
-            }
+            RotateEvent?.Invoke(transformable, new TransformationEventArgs(delta));
         }
 
         private void OnScaleEvent(ITransformable transformable, Vector3 delta)
         {
-            if (ScaleEvent != null)
-            {
-                ScaleEvent(transformable, new TransformationEventArgs(delta));
-            }
+            ScaleEvent?.Invoke(transformable, new TransformationEventArgs(delta));
         }
 
         #endregion
@@ -1635,8 +1623,7 @@ namespace XNAGizmo
             localRot.Right.Normalize();
             localRot.Translation = entity.Position - pos;
 
-            var newRot = (Matrix)e.Value; // = localRot * (Matrix)e.Value;
-            newRot = localRot * (Matrix)e.Value;
+            var newRot = localRot * (Matrix)e.Value;
 
 #if USE_QUATERNION
             entity.Orientation = Quaternion.CreateFromRotationMatrix(newRot);

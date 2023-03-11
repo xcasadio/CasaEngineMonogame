@@ -19,7 +19,7 @@ public static class ElementRegister
 
         EntityComponentNames = executingAssembly
             .GetTypes()
-            .Where(x => !x.IsAbstract && !x.IsInterface && componentType.IsAssignableFrom(x))
+            .Where(x => !x.IsAbstract && !x.IsInterface && componentType.IsAssignableFrom(x) && x.GetCustomAttribute<DisplayNameAttribute>() != null)
             .ToDictionary(x => x.GetCustomAttribute<DisplayNameAttribute>().DisplayName);
     }
 }

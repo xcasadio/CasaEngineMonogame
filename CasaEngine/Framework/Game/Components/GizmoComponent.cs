@@ -132,15 +132,17 @@ public class GizmoComponent : DrawableGameComponent
     private void GizmoScaleEvent(ITransformable transformable, TransformationEventArgs e)
     {
         var delta = (Vector3)e.Value;
+        var scale = transformable.Scale;
+
         if (Gizmo.ActiveMode == GizmoMode.UniformScale)
         {
-            transformable.Scale *= 1 + ((delta.X + delta.Y + delta.Z) / 3);
+            scale *= 1 + ((delta.X + delta.Y + delta.Z) / 3);
         }
         else
         {
-            transformable.Scale += delta;
+            scale += delta;
         }
-
-        transformable.Scale = Vector3.Clamp(transformable.Scale, Vector3.Zero, transformable.Scale);
+        scale = Vector3.Clamp(scale, Vector3.Zero, scale);
+        transformable.Scale = scale;
     }
 }
