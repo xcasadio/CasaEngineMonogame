@@ -15,7 +15,7 @@
                 <TextBlock Text="{Binding ExternalComponent.Id}" />
             </StackPanel>
         </DataTemplate>
-        <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:MeshComponent}">
+        <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Mesh : " />
                 <TextBlock Text="nb vertices = " />

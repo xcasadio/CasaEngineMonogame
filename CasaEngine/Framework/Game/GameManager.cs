@@ -21,7 +21,7 @@ public class GameManager
     private ScreenManagerComponent _screenManagerComponent;
     private InputComponent _inputComponent;
     private ShapeRendererComponent _shapeRendererComponent;
-    private MeshRendererComponent _meshRendererComponent;
+    private StaticMeshRendererComponent _staticMeshRendererComponent;
 
     private string ProjectFile { get; set; } = string.Empty;
 
@@ -90,7 +90,7 @@ public class GameManager
         _inputComponent = new InputComponent(game);
         _screenManagerComponent = new ScreenManagerComponent(game);
         _shapeRendererComponent = new ShapeRendererComponent(game);
-        _meshRendererComponent = new MeshRendererComponent(game);
+        _staticMeshRendererComponent = new StaticMeshRendererComponent(game);
         var gizmoComponent = new GizmoComponent(game);
 
 #if EDITOR

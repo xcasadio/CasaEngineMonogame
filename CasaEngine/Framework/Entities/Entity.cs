@@ -239,9 +239,9 @@ namespace CasaEngine.Framework.Entities
         {
             Vector3 min = Vector3.One * int.MaxValue, max = Vector3.One * int.MinValue;
 
-            var meshComponent = ComponentManager.GetComponent<MeshComponent>();
+            var meshComponent = ComponentManager.GetComponent<StaticMeshComponent>();
 
-            if (meshComponent != null)
+            if (meshComponent?.Mesh != null)
             {
                 var vertices = meshComponent.Mesh.GetVertices();
 
@@ -267,7 +267,7 @@ namespace CasaEngine.Framework.Entities
 
         public float? Select(Ray selectionRay)
         {
-            if (GameInfo.Instance.ActiveCamera.Owner == this)
+            if (GameInfo.Instance.ActiveCamera?.Owner == this)
             {
                 return null;
             }

@@ -3,11 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets;
 
-public class Mesh
+public class StaticMesh
 {
 #if EDITOR
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<ushort> _indices = new();
+    private bool _isInitialized;
 #endif
 
     public VertexBuffer VertexBuffer { get; private set; }
@@ -18,11 +19,17 @@ public class Mesh
 
     public void Initialize(GraphicsDevice graphicsDevice)
     {
+        if (_isInitialized)
+        {
+            return;
+        }
+
         VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
         VertexBuffer.SetData(_vertices.ToArray());
 
         IndexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
+        _isInitialized = true;
     }
 
 #if EDITOR

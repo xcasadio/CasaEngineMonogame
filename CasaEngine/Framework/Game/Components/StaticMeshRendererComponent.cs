@@ -4,21 +4,21 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
-public class MeshRendererComponent : DrawableGameComponent
+public class StaticMeshRendererComponent : DrawableGameComponent
 {
     private List<MeshInfo> _meshInfos = new();
     private Effect _effect;
 
-    public MeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public StaticMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.MeshComponent;
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(Mesh mesh, Matrix worldViewProj)
+    public void AddMesh(StaticMesh staticMesh, Matrix worldViewProj)
     {
-        _meshInfos.Add(new MeshInfo { Mesh = mesh, WorldViewProj = worldViewProj });
+        _meshInfos.Add(new MeshInfo { StaticMesh = staticMesh, WorldViewProj = worldViewProj });
     }
 
     protected override void LoadContent()
@@ -35,17 +35,17 @@ public class MeshRendererComponent : DrawableGameComponent
 
         foreach (var meshInfo in _meshInfos)
         {
-            graphicsDevice.SetVertexBuffer(meshInfo.Mesh.VertexBuffer);
-            graphicsDevice.Indices = meshInfo.Mesh.IndexBuffer;
+            graphicsDevice.SetVertexBuffer(meshInfo.StaticMesh.VertexBuffer);
+            graphicsDevice.Indices = meshInfo.StaticMesh.IndexBuffer;
 
-            _effect.Parameters["Texture"].SetValue(meshInfo.Mesh.Texture);
+            _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture);
             _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
 
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-                int primitiveCount = meshInfo.Mesh.IndexBuffer.IndexCount / 3;
-                graphicsDevice.DrawIndexedPrimitives(meshInfo.Mesh.PrimitiveType, 0, 0, primitiveCount);
+                int primitiveCount = meshInfo.StaticMesh.IndexBuffer.IndexCount / 3;
+                graphicsDevice.DrawIndexedPrimitives(meshInfo.StaticMesh.PrimitiveType, 0, 0, primitiveCount);
             }
         }
 
@@ -54,7 +54,7 @@ public class MeshRendererComponent : DrawableGameComponent
 
     private class MeshInfo
     {
-        public Mesh Mesh;
+        public StaticMesh StaticMesh;
         public Matrix WorldViewProj;
     }
 }

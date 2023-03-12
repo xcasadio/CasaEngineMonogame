@@ -6,16 +6,25 @@ using CasaEngine.Framework.Game.Components;
 
 namespace CasaEngine.Framework.Entities.Components;
 
-[DisplayName("Mesh")]
-public class MeshComponent : Component
+[DisplayName("Static Mesh")]
+public class StaticMeshComponent : Component
 {
     public static readonly int ComponentId = (int)ComponentIds.Mesh;
-    private MeshRendererComponent? _meshRendererComponent;
+    private StaticMeshRendererComponent? _meshRendererComponent;
+    private StaticMesh? _mesh;
 
     //private Effect _effect;
-    public Mesh Mesh { get; set; }
+    public StaticMesh? Mesh
+    {
+        get => _mesh;
+        set
+        {
+            _mesh = value;
+            _mesh?.Initialize(Game.Engine.Instance.Game.GraphicsDevice);
+        }
+    }
 
-    public MeshComponent(Entity entity) : base(entity, ComponentId)
+    public StaticMeshComponent(Entity entity) : base(entity, ComponentId)
     {
     }
 
@@ -23,12 +32,17 @@ public class MeshComponent : Component
     {
         //load shader in byte
         //_effect = new Effect(Game.Engine.Instance.Game.GraphicsDevice, );
-        Mesh.Initialize(Game.Engine.Instance.Game.GraphicsDevice);
-        _meshRendererComponent = Game.Engine.Instance.Game.GetGameComponent<MeshRendererComponent>();
+        Mesh?.Initialize(Game.Engine.Instance.Game.GraphicsDevice);
+        _meshRendererComponent = Game.Engine.Instance.Game.GetGameComponent<StaticMeshRendererComponent>();
     }
 
     public override void Update(float elapsedTime)
     {
+        if (Mesh == null)
+        {
+            return;
+        }
+
         var camera = GameInfo.Instance.ActiveCamera;
         var worldViewProj = Owner.Coordinates.WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
         _meshRendererComponent.AddMesh(Mesh, worldViewProj);
