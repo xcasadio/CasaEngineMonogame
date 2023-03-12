@@ -17,8 +17,8 @@ namespace CasaEngine.Engine.Primitives3D
     public class SpherePrimitive : GeometricPrimitive
     {
 #if EDITOR
-        private float m_Diameter;
-        private int m_Tessellation;
+        private float _diameter;
+        private int _tessellation;
 #endif
 
         /// <summary>
@@ -42,39 +42,39 @@ namespace CasaEngine.Engine.Primitives3D
                 throw new ArgumentOutOfRangeException(nameof(tessellation));
             }
 
-            int verticalSegments = tessellation;
-            int horizontalSegments = tessellation * 2;
+            var verticalSegments = tessellation;
+            var horizontalSegments = tessellation * 2;
 
-            float radius = diameter / 2;
+            var radius = diameter / 2;
 
 #if EDITOR
-            m_Diameter = diameter;
-            m_Tessellation = tessellation;
+            _diameter = diameter;
+            _tessellation = tessellation;
 #endif
 
-            Vector2 uv = Vector2.Zero;
+            var uv = Vector2.Zero;
 
             // Start with a single vertex at the bottom of the sphere.
             AddVertex(Vector3.Down * radius, Vector3.Down, uv);
 
             // Create rings of vertices at progressively higher latitudes.
-            for (int i = 0; i < verticalSegments - 1; i++)
+            for (var i = 0; i < verticalSegments - 1; i++)
             {
-                float latitude = ((i + 1) * MathHelper.Pi /
-                                            verticalSegments) - MathHelper.PiOver2;
+                var latitude = ((i + 1) * MathHelper.Pi /
+                                verticalSegments) - MathHelper.PiOver2;
 
-                float dy = (float)Math.Sin(latitude);
-                float dxz = (float)Math.Cos(latitude);
+                var dy = (float)Math.Sin(latitude);
+                var dxz = (float)Math.Cos(latitude);
 
                 // Create a single ring of vertices at this latitude.
-                for (int j = 0; j < horizontalSegments; j++)
+                for (var j = 0; j < horizontalSegments; j++)
                 {
-                    float longitude = j * MathHelper.TwoPi / horizontalSegments;
+                    var longitude = j * MathHelper.TwoPi / horizontalSegments;
 
-                    float dx = (float)Math.Cos(longitude) * dxz;
-                    float dz = (float)Math.Sin(longitude) * dxz;
+                    var dx = (float)Math.Cos(longitude) * dxz;
+                    var dz = (float)Math.Sin(longitude) * dxz;
 
-                    Vector3 normal = new Vector3(dx, dy, dz);
+                    var normal = new Vector3(dx, dy, dz);
 
                     uv.X = (float)i / (float)(verticalSegments - 2);
                     uv.Y = (float)j / (float)(horizontalSegments - 1);
@@ -88,7 +88,7 @@ namespace CasaEngine.Engine.Primitives3D
             AddVertex(Vector3.Up * radius, Vector3.Up, Vector2.One);
 
             // Create a fan connecting the bottom vertex to the bottom latitude ring.
-            for (int i = 0; i < horizontalSegments; i++)
+            for (var i = 0; i < horizontalSegments; i++)
             {
                 AddIndex(0);
                 AddIndex(1 + (i + 1) % horizontalSegments);
@@ -96,12 +96,12 @@ namespace CasaEngine.Engine.Primitives3D
             }
 
             // Fill the sphere body with triangles joining each pair of latitude rings.
-            for (int i = 0; i < verticalSegments - 2; i++)
+            for (var i = 0; i < verticalSegments - 2; i++)
             {
-                for (int j = 0; j < horizontalSegments; j++)
+                for (var j = 0; j < horizontalSegments; j++)
                 {
-                    int nextI = i + 1;
-                    int nextJ = (j + 1) % horizontalSegments;
+                    var nextI = i + 1;
+                    var nextJ = (j + 1) % horizontalSegments;
 
                     AddIndex(1 + i * horizontalSegments + j);
                     AddIndex(1 + i * horizontalSegments + nextJ);
@@ -114,7 +114,7 @@ namespace CasaEngine.Engine.Primitives3D
             }
 
             // Create a fan connecting the top vertex to the top latitude ring.
-            for (int i = 0; i < horizontalSegments; i++)
+            for (var i = 0; i < horizontalSegments; i++)
             {
                 AddIndex(CurrentVertex - 1);
                 AddIndex(CurrentVertex - 2 - (i + 1) % horizontalSegments);

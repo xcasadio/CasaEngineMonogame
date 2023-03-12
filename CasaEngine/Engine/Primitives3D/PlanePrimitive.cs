@@ -6,8 +6,8 @@ namespace CasaEngine.Engine.Primitives3D
     public class PlanePrimitive : GeometricPrimitive
     {
 #if EDITOR
-        private Vector2 m_Scale;
-        private int m_TessellationHorizontal, m_TessellationVertical;
+        private Vector2 _scale;
+        private int _tessellationHorizontal, _tessellationVertical;
 #endif
 
         /// <summary>
@@ -22,49 +22,47 @@ namespace CasaEngine.Engine.Primitives3D
         /// Constructs a new plane primitive,
         /// with the specified horizontal and vertical tessellation level.
         /// </summary>
-        public PlanePrimitive(GraphicsDevice graphicsDevice,
-                                float sizeH_, float sizeV_,
-                               int tessellationHorizontal_, int tessellationVertical_)
+        public PlanePrimitive(GraphicsDevice graphicsDevice, float sizeH, float sizeV, int tessellationHorizontal, int tessellationVertical)
             : base(GeometricPrimitiveType.Plane)
         {
-            if (tessellationHorizontal_ < 1)
+            if (tessellationHorizontal < 1)
             {
                 throw new ArgumentOutOfRangeException("PlanePrimitive() : tessellationHorizontal_");
             }
 
-            if (tessellationVertical_ < 1)
+            if (tessellationVertical < 1)
             {
                 throw new ArgumentOutOfRangeException("PlanePrimitive() : tessellationVertical_");
             }
 
 #if EDITOR
-            m_Scale = new Vector2(sizeH_, sizeV_);
-            m_TessellationHorizontal = tessellationHorizontal_;
-            m_TessellationVertical = tessellationVertical_;
+            _scale = new Vector2(sizeH, sizeV);
+            _tessellationHorizontal = tessellationHorizontal;
+            _tessellationVertical = tessellationVertical;
 #endif
 
-            Vector2 uv = Vector2.Zero;
+            var uv = Vector2.Zero;
 
-            int verticalSegments = tessellationVertical_ + 1;
-            int horizontalSegments = tessellationHorizontal_ + 1;
+            var verticalSegments = tessellationVertical + 1;
+            var horizontalSegments = tessellationHorizontal + 1;
 
-            float sizeHBy2 = sizeH_ / 2.0f;
-            float sizeVBy2 = sizeV_ / 2.0f;
-            float stepH = sizeH_ / tessellationHorizontal_;
-            float stepV = sizeV_ / tessellationVertical_;
+            var sizeHBy2 = sizeH / 2.0f;
+            var sizeVBy2 = sizeV / 2.0f;
+            var stepH = sizeH / tessellationHorizontal;
+            var stepV = sizeV / tessellationVertical;
 
             //increment to compute uv
             int stepHTotal = 0, stepVTotal;
 
             //Compute Vertex
-            for (float dx = -sizeHBy2; dx <= sizeHBy2; dx += stepH)
+            for (var dx = -sizeHBy2; dx <= sizeHBy2; dx += stepH)
             {
                 stepVTotal = 0;
 
-                for (float dz = -sizeVBy2; dz <= sizeVBy2; dz += stepV)
+                for (var dz = -sizeVBy2; dz <= sizeVBy2; dz += stepV)
                 {
-                    uv.X = (float)stepHTotal / tessellationHorizontal_;
-                    uv.Y = (float)stepVTotal / tessellationVertical_;
+                    uv.X = (float)stepHTotal / tessellationHorizontal;
+                    uv.Y = (float)stepVTotal / tessellationVertical;
                     AddVertex(new Vector3(dx, 0.0f, dz), Vector3.UnitY, uv);
                     stepVTotal++;
                 }
@@ -73,9 +71,9 @@ namespace CasaEngine.Engine.Primitives3D
             }
 
             //Compute Index : compute quad
-            for (int iy = 0; iy < tessellationVertical_; iy++)
+            for (var iy = 0; iy < tessellationVertical; iy++)
             {
-                for (int ix = 0; ix < tessellationHorizontal_; ix++)
+                for (var ix = 0; ix < tessellationHorizontal; ix++)
                 {
                     //first triangle
                     AddIndex(ix);

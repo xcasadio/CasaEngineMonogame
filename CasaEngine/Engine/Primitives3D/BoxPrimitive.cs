@@ -16,7 +16,7 @@ namespace CasaEngine.Engine.Primitives3D
     public class BoxPrimitive : GeometricPrimitive
     {
 #if EDITOR
-        private float m_Width, m_Height, m_Length;
+        private float _width, _height, _length;
 #endif
 
         /// <summary>
@@ -32,16 +32,16 @@ namespace CasaEngine.Engine.Primitives3D
 		/// Constructs a new cube primitive, with the specified size.
         /// </summary>
         /// <param name="graphicsDevice"></param>
-        /// <param name="width_">X</param>
-        /// <param name="height_">Y</param>
-        /// <param name="length_">Z</param>
-        public BoxPrimitive(GraphicsDevice graphicsDevice, float width_, float height_, float length_)
+        /// <param name="width">X</param>
+        /// <param name="height">Y</param>
+        /// <param name="length">Z</param>
+        public BoxPrimitive(GraphicsDevice graphicsDevice, float width, float height, float length)
             : base(GeometricPrimitiveType.Cube)
         {
 #if EDITOR
-            m_Width = width_;
-            m_Height = height_;
-            m_Length = length_;
+            _width = width;
+            _height = height;
+            _length = length;
 #endif
 
             // A box has six faces, each one pointing in a different direction.
@@ -80,45 +80,45 @@ namespace CasaEngine.Engine.Primitives3D
 
             //front
             AddVertex(false);
-            AddVertex((Vector3.UnitZ * length_ - Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, Vector3.UnitZ, Vector2.Zero);
-            AddVertex((Vector3.UnitZ * length_ - Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitZ, Vector2.UnitX);
-            AddVertex((Vector3.UnitZ * length_ + Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, Vector3.UnitZ, Vector2.UnitY);
-            AddVertex((Vector3.UnitZ * length_ + Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitZ, Vector2.One);
+            AddVertex((Vector3.UnitZ * length - Vector3.UnitY * height - Vector3.UnitX * width) / 2, Vector3.UnitZ, Vector2.Zero);
+            AddVertex((Vector3.UnitZ * length - Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitZ, Vector2.UnitX);
+            AddVertex((Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, Vector3.UnitZ, Vector2.UnitY);
+            AddVertex((Vector3.UnitZ * length + Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitZ, Vector2.One);
 
             //back
             AddVertex(true);
-            AddVertex((-Vector3.UnitZ * length_ - Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitZ, Vector2.Zero);
-            AddVertex((-Vector3.UnitZ * length_ - Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, -Vector3.UnitZ, Vector2.UnitX);
-            AddVertex((-Vector3.UnitZ * length_ + Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitZ, Vector2.UnitY);
-            AddVertex((-Vector3.UnitZ * length_ + Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, -Vector3.UnitZ, Vector2.One);
+            AddVertex((-Vector3.UnitZ * length - Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitZ, Vector2.Zero);
+            AddVertex((-Vector3.UnitZ * length - Vector3.UnitY * height + Vector3.UnitX * width) / 2, -Vector3.UnitZ, Vector2.UnitX);
+            AddVertex((-Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitZ, Vector2.UnitY);
+            AddVertex((-Vector3.UnitZ * length + Vector3.UnitY * height + Vector3.UnitX * width) / 2, -Vector3.UnitZ, Vector2.One);
 
             //up
             AddVertex(true);
-            AddVertex((-Vector3.UnitZ * length_ + Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, Vector3.UnitY, Vector2.Zero);
-            AddVertex((-Vector3.UnitZ * length_ + Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitY, Vector2.UnitX);
-            AddVertex((Vector3.UnitZ * length_ + Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, Vector3.UnitY, Vector2.UnitY);
-            AddVertex((Vector3.UnitZ * length_ + Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitY, Vector2.One);
+            AddVertex((-Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, Vector3.UnitY, Vector2.Zero);
+            AddVertex((-Vector3.UnitZ * length + Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitY, Vector2.UnitX);
+            AddVertex((Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, Vector3.UnitY, Vector2.UnitY);
+            AddVertex((Vector3.UnitZ * length + Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitY, Vector2.One);
 
             //bottom
             AddVertex(false);
-            AddVertex((-Vector3.UnitZ * length_ - Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitY, Vector2.Zero);
-            AddVertex((-Vector3.UnitZ * length_ - Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, -Vector3.UnitY, Vector2.UnitX);
-            AddVertex((Vector3.UnitZ * length_ - Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitY, Vector2.UnitY);
-            AddVertex((Vector3.UnitZ * length_ - Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, -Vector3.UnitY, Vector2.One);
+            AddVertex((-Vector3.UnitZ * length - Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitY, Vector2.Zero);
+            AddVertex((-Vector3.UnitZ * length - Vector3.UnitY * height + Vector3.UnitX * width) / 2, -Vector3.UnitY, Vector2.UnitX);
+            AddVertex((Vector3.UnitZ * length - Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitY, Vector2.UnitY);
+            AddVertex((Vector3.UnitZ * length - Vector3.UnitY * height + Vector3.UnitX * width) / 2, -Vector3.UnitY, Vector2.One);
 
             //right
             AddVertex(true);
-            AddVertex((-Vector3.UnitZ * length_ - Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitX, Vector2.Zero);
-            AddVertex((Vector3.UnitZ * length_ - Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitX, Vector2.UnitX);
-            AddVertex((-Vector3.UnitZ * length_ + Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitX, Vector2.UnitY);
-            AddVertex((Vector3.UnitZ * length_ + Vector3.UnitY * height_ + Vector3.UnitX * width_) / 2, Vector3.UnitX, Vector2.One);
+            AddVertex((-Vector3.UnitZ * length - Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitX, Vector2.Zero);
+            AddVertex((Vector3.UnitZ * length - Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitX, Vector2.UnitX);
+            AddVertex((-Vector3.UnitZ * length + Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitX, Vector2.UnitY);
+            AddVertex((Vector3.UnitZ * length + Vector3.UnitY * height + Vector3.UnitX * width) / 2, Vector3.UnitX, Vector2.One);
 
             //left
             AddVertex(false);
-            AddVertex((-Vector3.UnitZ * length_ - Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitX, Vector2.Zero);
-            AddVertex((Vector3.UnitZ * length_ - Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitX, Vector2.UnitX);
-            AddVertex((-Vector3.UnitZ * length_ + Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitX, Vector2.UnitY);
-            AddVertex((Vector3.UnitZ * length_ + Vector3.UnitY * height_ - Vector3.UnitX * width_) / 2, -Vector3.UnitX, Vector2.One);
+            AddVertex((-Vector3.UnitZ * length - Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitX, Vector2.Zero);
+            AddVertex((Vector3.UnitZ * length - Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitX, Vector2.UnitX);
+            AddVertex((-Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitX, Vector2.UnitY);
+            AddVertex((Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitX, Vector2.One);
 
             InitializePrimitive(graphicsDevice);
         }

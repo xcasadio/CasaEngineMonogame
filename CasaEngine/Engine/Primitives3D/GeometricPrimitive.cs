@@ -20,19 +20,19 @@ namespace CasaEngine.Engine.Primitives3D
     /// </summary>
     public abstract class GeometricPrimitive : IDisposable
     {
-        private GeometricPrimitiveType m_Type;
+        private GeometricPrimitiveType _type;
 
         // During the process of constructing a primitive model, vertex
         // and index data is stored on the CPU in these managed lists.
-        private List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
-        private List<ushort> indices = new List<ushort>();
+        private readonly List<VertexPositionNormalTexture> _vertices = new();
+        private readonly List<ushort> _indices = new();
 
         // Once all the geometry has been specified, the InitializePrimitive
         // method copies the vertex and index data into these buffers, which
         // store it on the GPU ready for efficient rendering.
-        private VertexBuffer vertexBuffer;
-        private IndexBuffer indexBuffer;
-        private BasicEffect basicEffect;
+        private VertexBuffer _vertexBuffer;
+        private IndexBuffer _indexBuffer;
+        private BasicEffect _basicEffect;
 
         /// <summary>
         /// Gets VertexDeclaration
@@ -42,16 +42,16 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// 
         /// </summary>
-        protected GeometricPrimitive(GeometricPrimitiveType type_)
+        protected GeometricPrimitive(GeometricPrimitiveType type)
         {
-            m_Type = type_;
+            _type = type;
         }
 
-        public Mesh CreateMesh()
+        public StaticMesh CreateMesh()
         {
-            var mesh = new Mesh();
-            mesh.AddVertices(vertices);
-            mesh.AddIndices(indices);
+            var mesh = new StaticMesh();
+            mesh.AddVertices(_vertices);
+            mesh.AddIndices(_indices);
 
             return mesh;
         }
@@ -60,9 +60,9 @@ namespace CasaEngine.Engine.Primitives3D
         /// Adds a new vertex to the primitive model. This should only be called
         /// during the initialization process, before InitializePrimitive.
         /// </summary>
-        protected void AddVertex(Vector3 position, Vector3 normal, Vector2 UV_)
+        protected void AddVertex(Vector3 position, Vector3 normal, Vector2 uv)
         {
-            vertices.Add(new VertexPositionNormalTexture(position, normal, UV_));
+            _vertices.Add(new VertexPositionNormalTexture(position, normal, uv));
         }
 
         /// <summary>
@@ -76,14 +76,14 @@ namespace CasaEngine.Engine.Primitives3D
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            indices.Add((ushort)index);
+            _indices.Add((ushort)index);
         }
 
         /// <summary>
         /// Queries the index of the current vertex. This starts at
         /// zero, and increments every time AddVertex is called.
         /// </summary>
-        protected int CurrentVertex => vertices.Count;
+        protected int CurrentVertex => _vertices.Count;
 
         /// <summary>
         /// Once all the geometry has been specified by calling AddVertex and AddIndex,
@@ -91,16 +91,16 @@ namespace CasaEngine.Engine.Primitives3D
         /// for efficient rendering.
         protected void InitializePrimitive(GraphicsDevice graphicsDevice)
         {
-            vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), vertices.Count, BufferUsage.None);
-            vertexBuffer.SetData(vertices.ToArray());
+            _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
+            _vertexBuffer.SetData(_vertices.ToArray());
 
-            indexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), indices.Count, BufferUsage.None);
-            indexBuffer.SetData(indices.ToArray());
+            _indexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), _indices.Count, BufferUsage.None);
+            _indexBuffer.SetData(_indices.ToArray());
 
-            basicEffect = new BasicEffect(graphicsDevice);
+            _basicEffect = new BasicEffect(graphicsDevice);
 
-            basicEffect.EnableDefaultLighting();
-            basicEffect.PreferPerPixelLighting = true;
+            _basicEffect.EnableDefaultLighting();
+            _basicEffect.PreferPerPixelLighting = true;
         }
 
         /// <summary>
@@ -125,22 +125,24 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!disposing)
             {
-                if (vertexBuffer != null)
-                {
-                    vertexBuffer.Dispose();
-                }
+                return;
+            }
 
-                if (indexBuffer != null)
-                {
-                    indexBuffer.Dispose();
-                }
+            if (_vertexBuffer != null)
+            {
+                _vertexBuffer.Dispose();
+            }
 
-                if (basicEffect != null)
-                {
-                    basicEffect.Dispose();
-                }
+            if (_indexBuffer != null)
+            {
+                _indexBuffer.Dispose();
+            }
+
+            if (_basicEffect != null)
+            {
+                _basicEffect.Dispose();
             }
         }
 
@@ -150,14 +152,14 @@ namespace CasaEngine.Engine.Primitives3D
         /// <param name="effect"></param>
         public void DrawOnlyVertex()
         {
-            GraphicsDevice graphicsDevice = Framework.Game.Engine.Instance.Game.GraphicsDevice;
+            var graphicsDevice = Framework.Game.Engine.Instance.Game.GraphicsDevice;
 
-            graphicsDevice.SetVertexBuffer(vertexBuffer);
-            graphicsDevice.Indices = indexBuffer;
+            graphicsDevice.SetVertexBuffer(_vertexBuffer);
+            graphicsDevice.Indices = _indexBuffer;
 
-            int primitiveCount = indices.Count / 3;
+            var primitiveCount = _indices.Count / 3;
 
-            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, vertices.Count, primitiveCount);
+            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, _vertices.Count, primitiveCount);
         }
 
         /// <summary>
@@ -168,17 +170,17 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         public void Draw(Effect effect)
         {
-            GraphicsDevice graphicsDevice = effect.GraphicsDevice;
+            var graphicsDevice = effect.GraphicsDevice;
 
-            graphicsDevice.SetVertexBuffer(vertexBuffer);
-            graphicsDevice.Indices = indexBuffer;
+            graphicsDevice.SetVertexBuffer(_vertexBuffer);
+            graphicsDevice.Indices = _indexBuffer;
 
             //effect.Parameters["WorldViewProj"] = ;
 
-            foreach (EffectPass effectPass in effect.CurrentTechnique.Passes)
+            foreach (var effectPass in effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-                int primitiveCount = indices.Count / 3;
+                var primitiveCount = _indices.Count / 3;
                 graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, primitiveCount);
             }
         }
@@ -193,11 +195,11 @@ namespace CasaEngine.Engine.Primitives3D
         public void Draw(Matrix world, Matrix view, Matrix projection, Color color)
         {
             // Set BasicEffect parameters.
-            basicEffect.World = world;
-            basicEffect.View = view;
-            basicEffect.Projection = projection;
-            basicEffect.DiffuseColor = color.ToVector3();
-            basicEffect.Alpha = color.A / 255.0f;
+            _basicEffect.World = world;
+            _basicEffect.View = view;
+            _basicEffect.Projection = projection;
+            _basicEffect.DiffuseColor = color.ToVector3();
+            _basicEffect.Alpha = color.A / 255.0f;
 
             // Set important renderstates.
             /*RenderState renderState = basicEffect.GraphicsDevice.RenderState;
@@ -224,7 +226,7 @@ namespace CasaEngine.Engine.Primitives3D
             }*/
 
             // Draw the model, using BasicEffect.
-            Draw(basicEffect);
+            Draw(_basicEffect);
         }
 
 #if EDITOR
@@ -232,14 +234,7 @@ namespace CasaEngine.Engine.Primitives3D
         {
             get
             {
-                List<Vector3> list = new List<Vector3>();
-
-                foreach (VertexPositionNormalTexture v in vertices)
-                {
-                    list.Add(v.Position);
-                }
-
-                return list;
+                return _vertices.Select(v => v.Position).ToList();
             }
         }
 #endif

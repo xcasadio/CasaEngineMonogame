@@ -19,8 +19,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Constructs a new cylinder primitive, using default settings.
         /// </summary>
-        public CylinderPrimitive(GraphicsDevice graphicsDevice)
-            : this(graphicsDevice, 1, 1, 32)
+        public CylinderPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 1, 32)
         {
         }
 
@@ -29,9 +28,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// Constructs a new cylinder primitive,
         /// with the specified size and tessellation level.
         /// </summary>
-        public CylinderPrimitive(GraphicsDevice graphicsDevice,
-                                 float height, float diameter, int tessellation)
-            : base(GeometricPrimitiveType.Cylinder)
+        public CylinderPrimitive(GraphicsDevice graphicsDevice, float height, float diameter, int tessellation) : base(GeometricPrimitiveType.Cylinder)
         {
             if (tessellation < 3)
             {
@@ -40,14 +37,13 @@ namespace CasaEngine.Engine.Primitives3D
 
             height /= 2;
 
-            float radius = diameter / 2;
-
-            Vector2 uv;
+            var radius = diameter / 2;
 
             // Create a ring of triangles around the outside of the cylinder.
-            for (int i = 0; i < tessellation; i++)
+            for (var i = 0; i < tessellation; i++)
             {
-                Vector3 normal = GetCircleVector(i, tessellation, out uv);
+                Vector2 uv;
+                var normal = GetCircleVector(i, tessellation, out uv);
 
                 AddVertex(normal * radius + Vector3.Up * height, normal, uv);
                 AddVertex(normal * radius + Vector3.Down * height, normal, uv);
@@ -74,10 +70,8 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         private void CreateCap(int tessellation, float height, float radius, Vector3 normal)
         {
-            Vector2 uv;
-
             // Create cap indices.
-            for (int i = 0; i < tessellation - 2; i++)
+            for (var i = 0; i < tessellation - 2; i++)
             {
                 if (normal.Y > 0)
                 {
@@ -94,10 +88,11 @@ namespace CasaEngine.Engine.Primitives3D
             }
 
             // Create cap vertices.
-            for (int i = 0; i < tessellation; i++)
+            for (var i = 0; i < tessellation; i++)
             {
-                Vector3 position = GetCircleVector(i, tessellation, out uv) * radius +
-                                   normal * height;
+                Vector2 uv;
+                var position = GetCircleVector(i, tessellation, out uv) * radius +
+                               normal * height;
 
                 AddVertex(position, normal, uv);
             }
@@ -107,14 +102,14 @@ namespace CasaEngine.Engine.Primitives3D
         /// <summary>
         /// Helper method computes a point on a circle.
         /// </summary>
-        private static Vector3 GetCircleVector(int i, int tessellation, out Vector2 uv_)
+        private static Vector3 GetCircleVector(int i, int tessellation, out Vector2 uv)
         {
-            float angle = i * MathHelper.TwoPi / tessellation;
+            var angle = i * MathHelper.TwoPi / tessellation;
 
-            float dx = (float)Math.Cos(angle);
-            float dz = (float)Math.Sin(angle);
+            var dx = (float)Math.Cos(angle);
+            var dz = (float)Math.Sin(angle);
 
-            uv_ = new Vector2(dx, dz);
+            uv = new Vector2(dx, dz);
             //uv_.Normalize();
 
             return new Vector3(dx, 0, dz);

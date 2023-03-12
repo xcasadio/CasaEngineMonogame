@@ -17,13 +17,12 @@ namespace CasaEngine.Engine.Primitives3D
     /// </summary>
     public abstract class BezierPrimitive : GeometricPrimitive
     {
-
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="type_"></param>
-        protected BezierPrimitive(GeometricPrimitiveType type_)
-            : base(type_)
+        /// <param name="type"></param>
+        protected BezierPrimitive(GeometricPrimitiveType type)
+            : base(type)
         {
         }
 
@@ -33,11 +32,11 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         protected void CreatePatchIndices(int tessellation, bool isMirrored)
         {
-            int stride = tessellation + 1;
+            var stride = tessellation + 1;
 
-            for (int i = 0; i < tessellation; i++)
+            for (var i = 0; i < tessellation; i++)
             {
-                for (int j = 0; j < tessellation; j++)
+                for (var j = 0; j < tessellation; j++)
                 {
                     // Make a list of six index values (two triangles).
                     int[] indices =
@@ -59,7 +58,7 @@ namespace CasaEngine.Engine.Primitives3D
                     }
 
                     // Create the indices.
-                    foreach (int index in indices)
+                    foreach (var index in indices)
                     {
                         AddIndex(CurrentVertex + index);
                     }
@@ -75,40 +74,40 @@ namespace CasaEngine.Engine.Primitives3D
         {
             Debug.Assert(patch.Length == 16);
 
-            Vector2 uv = Vector2.Zero;
+            var uv = Vector2.Zero;
 
-            for (int i = 0; i <= tessellation; i++)
+            for (var i = 0; i <= tessellation; i++)
             {
-                float ti = (float)i / tessellation;
+                var ti = (float)i / tessellation;
 
-                for (int j = 0; j <= tessellation; j++)
+                for (var j = 0; j <= tessellation; j++)
                 {
-                    float tj = (float)j / tessellation;
+                    var tj = (float)j / tessellation;
 
                     // Perform four horizontal bezier interpolations
                     // between the control points of this patch.
-                    Vector3 p1 = Bezier(patch[0], patch[1], patch[2], patch[3], ti);
-                    Vector3 p2 = Bezier(patch[4], patch[5], patch[6], patch[7], ti);
-                    Vector3 p3 = Bezier(patch[8], patch[9], patch[10], patch[11], ti);
-                    Vector3 p4 = Bezier(patch[12], patch[13], patch[14], patch[15], ti);
+                    var p1 = Bezier(patch[0], patch[1], patch[2], patch[3], ti);
+                    var p2 = Bezier(patch[4], patch[5], patch[6], patch[7], ti);
+                    var p3 = Bezier(patch[8], patch[9], patch[10], patch[11], ti);
+                    var p4 = Bezier(patch[12], patch[13], patch[14], patch[15], ti);
 
                     // Perform a vertical interpolation between the results of the
                     // previous horizontal interpolations, to compute the position.
-                    Vector3 position = Bezier(p1, p2, p3, p4, tj);
+                    var position = Bezier(p1, p2, p3, p4, tj);
 
                     // Perform another four bezier interpolations between the control
                     // points, but this time vertically rather than horizontally.
-                    Vector3 q1 = Bezier(patch[0], patch[4], patch[8], patch[12], tj);
-                    Vector3 q2 = Bezier(patch[1], patch[5], patch[9], patch[13], tj);
-                    Vector3 q3 = Bezier(patch[2], patch[6], patch[10], patch[14], tj);
-                    Vector3 q4 = Bezier(patch[3], patch[7], patch[11], patch[15], tj);
+                    var q1 = Bezier(patch[0], patch[4], patch[8], patch[12], tj);
+                    var q2 = Bezier(patch[1], patch[5], patch[9], patch[13], tj);
+                    var q3 = Bezier(patch[2], patch[6], patch[10], patch[14], tj);
+                    var q4 = Bezier(patch[3], patch[7], patch[11], patch[15], tj);
 
                     // Compute vertical and horizontal tangent vectors.
-                    Vector3 tangentA = BezierTangent(p1, p2, p3, p4, tj);
-                    Vector3 tangentB = BezierTangent(q1, q2, q3, q4, ti);
+                    var tangentA = BezierTangent(p1, p2, p3, p4, tj);
+                    var tangentB = BezierTangent(q1, q2, q3, q4, ti);
 
                     // Cross the two tangent vectors to compute the normal.
-                    Vector3 normal = Vector3.Cross(tangentA, tangentB);
+                    var normal = Vector3.Cross(tangentA, tangentB);
 
                     if (normal.Length() > 0.0001f)
                     {
@@ -134,14 +133,7 @@ namespace CasaEngine.Engine.Primitives3D
                         // solution for all possible degenerate bezier patches, but hey,
                         // it's good enough to make the teapot work correctly!
 
-                        if (position.Y > 0)
-                        {
-                            normal = Vector3.Up;
-                        }
-                        else
-                        {
-                            normal = Vector3.Down;
-                        }
+                        normal = position.Y > 0 ? Vector3.Up : Vector3.Down;
                     }
 
                     // Create the vertex.
@@ -173,11 +165,12 @@ namespace CasaEngine.Engine.Primitives3D
         /// </summary>
         private static Vector3 Bezier(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, float t)
         {
-            Vector3 result = new Vector3();
-
-            result.X = Bezier(p1.X, p2.X, p3.X, p4.X, t);
-            result.Y = Bezier(p1.Y, p2.Y, p3.Y, p4.Y, t);
-            result.Z = Bezier(p1.Z, p2.Z, p3.Z, p4.Z, t);
+            var result = new Vector3
+            {
+                X = Bezier(p1.X, p2.X, p3.X, p4.X, t),
+                Y = Bezier(p1.Y, p2.Y, p3.Y, p4.Y, t),
+                Z = Bezier(p1.Z, p2.Z, p3.Z, p4.Z, t)
+            };
 
             return result;
         }
@@ -201,14 +194,14 @@ namespace CasaEngine.Engine.Primitives3D
         /// when given four Vector3 control points. This is used for calculating
         /// normals (by crossing the horizontal and vertical tangent vectors).
         /// </summary>
-        private static Vector3 BezierTangent(Vector3 p1, Vector3 p2,
-                                     Vector3 p3, Vector3 p4, float t)
+        private static Vector3 BezierTangent(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, float t)
         {
-            Vector3 result = new Vector3();
-
-            result.X = BezierTangent(p1.X, p2.X, p3.X, p4.X, t);
-            result.Y = BezierTangent(p1.Y, p2.Y, p3.Y, p4.Y, t);
-            result.Z = BezierTangent(p1.Z, p2.Z, p3.Z, p4.Z, t);
+            var result = new Vector3
+            {
+                X = BezierTangent(p1.X, p2.X, p3.X, p4.X, t),
+                Y = BezierTangent(p1.Y, p2.Y, p3.Y, p4.Y, t),
+                Z = BezierTangent(p1.Z, p2.Z, p3.Z, p4.Z, t)
+            };
 
             result.Normalize();
 

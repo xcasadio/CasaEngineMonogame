@@ -34,29 +34,29 @@ namespace CasaEngine.Engine.Primitives3D
                 throw new ArgumentOutOfRangeException(nameof(tessellation));
             }
 
-            Vector2 uv = Vector2.Zero;
+            var uv = Vector2.Zero;
 
             // First we loop around the main ring of the torus.
-            for (int i = 0; i < tessellation; i++)
+            for (var i = 0; i < tessellation; i++)
             {
-                float outerAngle = i * MathHelper.TwoPi / tessellation;
+                var outerAngle = i * MathHelper.TwoPi / tessellation;
 
                 // Create a transform matrix that will align geometry to
                 // slice perpendicularly though the current ring position.
-                Matrix transform = Matrix.CreateTranslation(diameter / 2, 0, 0) *
-                                   Matrix.CreateRotationY(outerAngle);
+                var transform = Matrix.CreateTranslation(diameter / 2, 0, 0) *
+                                Matrix.CreateRotationY(outerAngle);
 
                 // Now we loop along the other axis, around the side of the tube.
-                for (int j = 0; j < tessellation; j++)
+                for (var j = 0; j < tessellation; j++)
                 {
-                    float innerAngle = j * MathHelper.TwoPi / tessellation;
+                    var innerAngle = j * MathHelper.TwoPi / tessellation;
 
-                    float dx = (float)Math.Cos(innerAngle);
-                    float dy = (float)Math.Sin(innerAngle);
+                    var dx = (float)Math.Cos(innerAngle);
+                    var dy = (float)Math.Sin(innerAngle);
 
                     // Create a vertex.
-                    Vector3 normal = new Vector3(dx, dy, 0);
-                    Vector3 position = normal * thickness / 2;
+                    var normal = new Vector3(dx, dy, 0);
+                    var position = normal * thickness / 2;
 
                     position = Vector3.Transform(position, transform);
                     normal = Vector3.TransformNormal(normal, transform);
@@ -68,8 +68,8 @@ namespace CasaEngine.Engine.Primitives3D
                     AddVertex(position, normal, uv);
 
                     // And create indices for two triangles.
-                    int nextI = (i + 1) % tessellation;
-                    int nextJ = (j + 1) % tessellation;
+                    var nextI = (i + 1) % tessellation;
+                    var nextJ = (j + 1) % tessellation;
 
                     AddIndex(i * tessellation + j);
                     AddIndex(i * tessellation + nextJ);
