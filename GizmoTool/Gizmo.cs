@@ -41,7 +41,7 @@ namespace XNAGizmo
         /// </summary>
         public bool Enabled { get; set; }
 
-        public bool SelectionBoxesIsVisible = true;
+        public readonly bool SelectionBoxesIsVisible = true;
 
         private readonly GraphicsDevice _graphics;
         private readonly SpriteBatch _spriteBatch;
@@ -91,7 +91,7 @@ namespace XNAGizmo
 
         // -- UI Text -- //
         private string[] _axisText;
-        private Vector3 _axisTextOffset = new(0, 0.5f, 0);
+        private readonly Vector3 _axisTextOffset = new(0, 0.5f, 0);
 
         // -- Modes & Selections -- //
         public GizmoAxis ActiveAxis = GizmoAxis.None;
@@ -158,7 +158,7 @@ namespace XNAGizmo
         private const float PRECISION_MODE_SCALE = 0.1f;
 
         // -- Selection -- //
-        public List<ITransformable> Selection = new();
+        public readonly List<ITransformable> Selection = new();
         private IEnumerable<ITransformable> _selectionPool = null;
 
         private Vector3 _translationDelta = Vector3.Zero;
@@ -172,15 +172,15 @@ namespace XNAGizmo
 
         public bool SnapEnabled = false;
         public bool PrecisionModeEnabled;
-        public float TranslationSnapValue = 5;
-        public float RotationSnapValue = 30;
-        public float ScaleSnapValue = 0.5f;
+        public readonly float TranslationSnapValue = 5;
+        public readonly float RotationSnapValue = 30;
+        public readonly float ScaleSnapValue = 0.5f;
 
         private Vector3 _translationScaleSnapDelta;
         private float _rotationSnapDelta;
 
-        private BasicEffect _selectionBoxEffect;
-        private List<VertexPositionColor> _selectionBoxVertices = new();
+        private readonly BasicEffect _selectionBoxEffect;
+        private readonly List<VertexPositionColor> _selectionBoxVertices = new();
         //public BoundingBox SelectionBox;
 
         //private LineRenderer _lineRenderer;
@@ -595,19 +595,28 @@ namespace XNAGizmo
                     if (_translationDelta != Vector3.Zero)
                     {
                         foreach (var entity in Selection)
+                        {
                             OnTranslateEvent(entity, _translationDelta);
+                        }
+
                         _translationDelta = Vector3.Zero;
                     }
                     if (_rotationDelta != Matrix.Identity)
                     {
                         foreach (var entity in Selection)
+                        {
                             OnRotateEvent(entity, _rotationDelta);
+                        }
+
                         _rotationDelta = Matrix.Identity;
                     }
                     if (_scaleDelta != Vector3.Zero)
                     {
                         foreach (var entity in Selection)
+                        {
                             OnScaleEvent(entity, _scaleDelta);
+                        }
+
                         _scaleDelta = Vector3.Zero;
                     }
                 }
@@ -823,32 +832,23 @@ namespace XNAGizmo
 
             #region X,Y,Z Boxes
             var intersection = XAxisBox.Intersects(ray);
-            if (intersection.HasValue)
+            if (intersection < closestintersection)
             {
-                if (intersection.Value < closestintersection)
-                {
-                    ActiveAxis = GizmoAxis.X;
-                    closestintersection = intersection.Value;
-                }
+                ActiveAxis = GizmoAxis.X;
+                closestintersection = intersection.Value;
             }
 
             intersection = YAxisBox.Intersects(ray);
-            if (intersection.HasValue)
+            if (intersection < closestintersection)
             {
-                if (intersection.Value < closestintersection)
-                {
-                    ActiveAxis = GizmoAxis.Y;
-                    closestintersection = intersection.Value;
-                }
+                ActiveAxis = GizmoAxis.Y;
+                closestintersection = intersection.Value;
             }
             intersection = ZAxisBox.Intersects(ray);
-            if (intersection.HasValue)
+            if (intersection < closestintersection)
             {
-                if (intersection.Value < closestintersection)
-                {
-                    ActiveAxis = GizmoAxis.Z;
-                    closestintersection = intersection.Value;
-                }
+                ActiveAxis = GizmoAxis.Z;
+                closestintersection = intersection.Value;
             }
             #endregion
 
@@ -858,33 +858,24 @@ namespace XNAGizmo
                 #region BoundingSpheres
 
                 intersection = XSphere.Intersects(ray);
-                if (intersection.HasValue)
+                if (intersection < closestintersection)
                 {
-                    if (intersection.Value < closestintersection)
-                    {
-                        ActiveAxis = GizmoAxis.X;
-                        closestintersection = intersection.Value;
-                    }
+                    ActiveAxis = GizmoAxis.X;
+                    closestintersection = intersection.Value;
                 }
 
                 intersection = YSphere.Intersects(ray);
-                if (intersection.HasValue)
+                if (intersection < closestintersection)
                 {
-                    if (intersection.Value < closestintersection)
-                    {
-                        ActiveAxis = GizmoAxis.Y;
-                        closestintersection = intersection.Value;
-                    }
+                    ActiveAxis = GizmoAxis.Y;
+                    closestintersection = intersection.Value;
                 }
 
                 intersection = ZSphere.Intersects(ray);
-                if (intersection.HasValue)
+                if (intersection < closestintersection)
                 {
-                    if (intersection.Value < closestintersection)
-                    {
-                        ActiveAxis = GizmoAxis.Z;
-                        closestintersection = intersection.Value;
-                    }
+                    ActiveAxis = GizmoAxis.Z;
+                    closestintersection = intersection.Value;
                 }
 
                 #endregion
@@ -901,33 +892,24 @@ namespace XNAGizmo
 
                 #region BoundingBoxes
                 intersection = XYBox.Intersects(ray);
-                if (intersection.HasValue)
+                if (intersection > closestintersection)
                 {
-                    if (intersection.Value > closestintersection)
-                    {
-                        ActiveAxis = GizmoAxis.XY;
-                        closestintersection = intersection.Value;
-                    }
+                    ActiveAxis = GizmoAxis.XY;
+                    closestintersection = intersection.Value;
                 }
 
                 intersection = XZAxisBox.Intersects(ray);
-                if (intersection.HasValue)
+                if (intersection > closestintersection)
                 {
-                    if (intersection.Value > closestintersection)
-                    {
-                        ActiveAxis = GizmoAxis.ZX;
-                        closestintersection = intersection.Value;
-                    }
+                    ActiveAxis = GizmoAxis.ZX;
+                    closestintersection = intersection.Value;
                 }
 
                 intersection = YZBox.Intersects(ray);
-                if (intersection.HasValue)
+                if (intersection > closestintersection)
                 {
-                    if (intersection.Value > closestintersection)
-                    {
-                        ActiveAxis = GizmoAxis.YZ;
-                        closestintersection = intersection.Value;
-                    }
+                    ActiveAxis = GizmoAxis.YZ;
+                    closestintersection = intersection.Value;
                 }
 
                 #endregion
@@ -955,7 +937,7 @@ namespace XNAGizmo
             foreach (var entity in _selectionPool)
             {
                 var intersection = entity.Select(ray);
-                if (intersection.HasValue && intersection < closest)
+                if (intersection < closest)
                 {
                     if (!Selection.Contains(entity))
                     {
@@ -1015,7 +997,10 @@ namespace XNAGizmo
 
             var center = Vector3.Zero;
             foreach (var selected in Selection)
+            {
                 center += selected.Position;
+            }
+
             return center / Selection.Count;
         }
 
@@ -1535,16 +1520,16 @@ namespace XNAGizmo
         private struct Quad
         {
             public Vector3 Origin;
-            public Vector3 UpperLeft;
-            public Vector3 LowerLeft;
-            public Vector3 UpperRight;
-            public Vector3 LowerRight;
-            public Vector3 Normal;
-            public Vector3 Up;
-            public Vector3 Left;
+            public readonly Vector3 UpperLeft;
+            public readonly Vector3 LowerLeft;
+            public readonly Vector3 UpperRight;
+            public readonly Vector3 LowerRight;
+            public readonly Vector3 Normal;
+            public readonly Vector3 Up;
+            public readonly Vector3 Left;
 
-            public VertexPositionNormalTexture[] Vertices;
-            public short[] Indexes;
+            public readonly VertexPositionNormalTexture[] Vertices;
+            public readonly short[] Indexes;
 
             public Quad(Vector3 origin, Vector3 normal, Vector3 up,
                         float width, float height)
@@ -1651,7 +1636,7 @@ namespace XNAGizmo
 
     public class TransformationEventArgs
     {
-        public ValueType Value;
+        public readonly ValueType Value;
 
         public TransformationEventArgs(ValueType value)
         {

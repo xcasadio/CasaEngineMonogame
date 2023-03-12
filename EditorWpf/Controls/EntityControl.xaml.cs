@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
-using System.Net.Mime;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Editor.Tools;
+using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using EditorWpf.Controls.Common;
+using EditorWpf.Windows;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls
@@ -134,6 +135,18 @@ namespace EditorWpf.Controls
             if (sender is FrameworkElement { DataContext: Component component })
             {
                 component.Owner.ComponentManager.Components.Remove(component);
+            }
+        }
+
+        private void StaticMeshComponent_SelectMesh_OnClick(object sender, RoutedEventArgs e)
+        {
+            var selectStaticMeshWindow = new SelectStaticMeshWindow();
+            if (selectStaticMeshWindow.ShowDialog() == true)
+            {
+                var staticMeshComponent = (sender as FrameworkElement).DataContext as StaticMeshComponent;
+                var graphicsDevice = CasaEngine.Framework.Game.Engine.Instance.Game.GraphicsDevice;
+
+                staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
             }
         }
     }

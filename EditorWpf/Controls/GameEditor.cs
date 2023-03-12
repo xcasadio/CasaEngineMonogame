@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
-using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.World;
 using EditorWpf.Datas;
-using EditorWpf.Input;
+using EditorWpf.Inputs;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace EditorWpf.Controls;

@@ -20,6 +20,7 @@
                 <TextBlock Text="Mesh : " />
                 <TextBlock Text="nb vertices = " />
                 <TextBlock Text="{Binding Mesh.VertexBuffer.VertexCount}" />
+                <Button Content="Select Mesh" Click="StaticMeshComponent_SelectMesh_OnClick"/>
             </StackPanel>
         </DataTemplate>
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
