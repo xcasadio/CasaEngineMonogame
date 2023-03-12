@@ -1,8 +1,13 @@
-﻿using CasaEngine.Engine.Primitives3D;
+﻿using System;
+using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
+using EditorWpf.Datas;
 using EditorWpf.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,11 +17,12 @@ namespace EditorWpf.Controls;
 
 public class GameEditor : WpfGame
 {
-    private CasaEngineGame _game;
+    private CasaEngineGame? _game;
 
     public GameEditor()
     {
         SizeChanged += OnSizeChanged;
+        Drop += OnDrop;
     }
 
     protected override void Initialize()
@@ -74,12 +80,9 @@ public class GameEditor : WpfGame
         GameInfo.Instance.InvokeReadyToStart(_game);
     }
 
-    private void OnSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (_game != null)
-        {
-            _game.GameManager.OnScreenResized((int)e.NewSize.Width, (int)e.NewSize.Height);
-        }
+        _game?.GameManager.OnScreenResized((int)e.NewSize.Width, (int)e.NewSize.Height);
     }
 
     protected override void Update(GameTime gameTime)
@@ -88,7 +91,7 @@ public class GameEditor : WpfGame
 
         foreach (var component in _game.Components)
         {
-            if (component is IUpdateable updateable && updateable.Enabled)
+            if (component is IUpdateable { Enabled: true } updateable)
             {
                 updateable.Update(gameTime);
             }
@@ -104,7 +107,7 @@ public class GameEditor : WpfGame
 
         foreach (var component in _game.Components)
         {
-            if (component is IDrawable drawable && drawable.Visible)
+            if (component is IDrawable { Visible: true } drawable)
             {
                 drawable.Draw(gameTime);
             }
@@ -112,5 +115,41 @@ public class GameEditor : WpfGame
 
         base.Draw(gameTime);
         _game.GameManager.EndDraw(gameTime);
+    }
+
+    private void OnDrop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.StringFormat))
+        {
+            string dataString = (string)e.Data.GetData(DataFormats.StringFormat);
+
+            var dragAndDropInfo = JsonSerializer.Deserialize<DragAndDropInfo>(dataString);
+
+            e.Handled = true;
+            var position = e.GetPosition(this);
+            var camera = GameInfo.Instance.ActiveCamera;
+            var ray = CasaEngine.Core.Helper.MathHelper.CalculateRayFromScreenCoordinate(
+                new Vector2((float)position.X, (float)position.Y),
+                camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
+            //tester si le ray intersect un model sinon ray.Position
+
+            //create element type from dataString
+            //add element at ray.Position => 
+
+            if (dragAndDropInfo.Action == DragAndDropInfoAction.Create)
+            {
+                if (dragAndDropInfo.Type == DragAndDropInfoType.Actor)
+                {
+                    var entity = new Entity
+                    {
+                        Name = "Entity " + new Random().NextInt64()
+                    };
+                    entity.Coordinates.LocalPosition = ray.Position;
+                    entity.Initialize();
+                    GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
+                    //select this entity
+                }
+            }
+        }
     }
 }

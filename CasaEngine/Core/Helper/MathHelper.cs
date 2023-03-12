@@ -15,7 +15,7 @@ namespace CasaEngine.Core.Helper
         // "eye" and pointing in the direction of the cursor. Viewport.Unproject is used
         // to accomplish this. see the accompanying documentation for more explanation
         // of the math behind this function.
-        public static Ray CalculateRayFromScreenCoordinate(Vector2 pos, GraphicsDevice graphics, Matrix projectionMatrix, Matrix viewMatrix)
+        public static Ray CalculateRayFromScreenCoordinate(Vector2 pos, Matrix projectionMatrix, Matrix viewMatrix, Viewport viewport)
         {
             // create 2 positions in screenspace using the cursor position. 0 is as
             // close as possible to the camera, 1 is as far away as possible.
@@ -26,10 +26,10 @@ namespace CasaEngine.Core.Helper
             // would be in world space. we'll need the projection matrix and view
             // matrix, which we have saved as member variables. We also need a world
             // matrix, which can just be identity.
-            Vector3 nearPoint = graphics.Viewport.Unproject(nearSource,
+            Vector3 nearPoint = viewport.Unproject(nearSource,
                 projectionMatrix, viewMatrix, Matrix.Identity);
 
-            Vector3 farPoint = graphics.Viewport.Unproject(farSource,
+            Vector3 farPoint = viewport.Unproject(farSource,
                 projectionMatrix, viewMatrix, Matrix.Identity);
 
             // find the direction vector that goes from the nearPoint to the farPoint

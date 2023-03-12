@@ -20,10 +20,13 @@
                     <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" >
                         <xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorable x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanAutoHide="False" CanHide="False" CanClose="False">
-                                <controls:GameEditor />
+                                <controls:GameEditor MouseRightButtonUp="OnMouseRightButtonUp" AllowDrop="True"/>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                         <xcad:LayoutAnchorablePane>
+                            <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" Title="Place Actors">
+                                <controls:PlaceActorsControl/>
+                            </xcad:LayoutAnchorable>
                             <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
                                 <controls:SettingsControl/>
                             </xcad:LayoutAnchorable>
