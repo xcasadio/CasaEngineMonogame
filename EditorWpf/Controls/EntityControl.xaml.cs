@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
@@ -9,6 +10,7 @@ using CasaEngine.Framework.Entities.Components;
 using EditorWpf.Controls.Common;
 using EditorWpf.Windows;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace EditorWpf.Controls
 {
@@ -127,6 +129,8 @@ namespace EditorWpf.Controls
                 var component = (Component)Activator.CreateInstance(componentType, entity);
                 component.Initialize();
                 entity.ComponentManager.Components.Add(component);
+
+                RefreshComponentsList(entity);
             }
         }
 
@@ -135,7 +139,14 @@ namespace EditorWpf.Controls
             if (sender is FrameworkElement { DataContext: Component component })
             {
                 component.Owner.ComponentManager.Components.Remove(component);
+                RefreshComponentsList(component.Owner);
             }
+        }
+
+        private void RefreshComponentsList(Entity entity)
+        {
+            ListBoxComponents.DataContext = null;
+            ListBoxComponents.DataContext = entity;
         }
 
         private void StaticMeshComponent_SelectMesh_OnClick(object sender, RoutedEventArgs e)
@@ -147,6 +158,7 @@ namespace EditorWpf.Controls
                 var graphicsDevice = CasaEngine.Framework.Game.Engine.Instance.Game.GraphicsDevice;
 
                 staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
+                staticMeshComponent.Mesh.Texture = CasaEngine.Framework.Game.Engine.Instance.Game.Content.Load<Texture2D>("checkboard");
             }
         }
     }

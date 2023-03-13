@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Reflection;
+using System.Text.Json;
 
 namespace CasaEngine.Framework.Entities;
 
@@ -35,4 +37,9 @@ public abstract class Component
     {
 
     }
+
+
+#if EDITOR
+    public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
+#endif
 }

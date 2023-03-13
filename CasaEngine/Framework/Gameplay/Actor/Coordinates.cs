@@ -99,7 +99,7 @@ public class Coordinates
             Matrix translationRotation = Matrix.CreateTranslation(LocalCenterOfRotation);
             Matrix scale = Matrix.CreateScale(LocalScale);
             Matrix rotation = Matrix.CreateFromQuaternion(LocalRotation);
-            LocalMatrix = translation * scale * rotation * translationRotation;
+            LocalMatrix = scale * translation * rotation * translationRotation;
             _localMatrixChanged = false;
         }
     }

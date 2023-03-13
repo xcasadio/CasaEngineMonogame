@@ -3,8 +3,9 @@
 public enum ComponentIds
 {
     GamePlay = 1,
-    Mesh = 2,
-    ArcBallCamera = 3,
+    Mesh,
+    ArcBallCamera,
+    Physics,
 
     Custom = 1000
 }

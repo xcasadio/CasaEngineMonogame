@@ -10,5 +10,6 @@ internal static class ModuleInitializerComponents
         ComponentLoader.Register<ArcBallCameraComponent>(ArcBallCameraComponent.ComponentId, owner => new ArcBallCameraComponent(owner));
         ComponentLoader.Register<GamePlayComponent>(GamePlayComponent.ComponentId, owner => new GamePlayComponent(owner));
         ComponentLoader.Register<StaticMeshComponent>(StaticMeshComponent.ComponentId, owner => new StaticMeshComponent(owner));
+        ComponentLoader.Register<PhysicsComponent>(PhysicsComponent.ComponentId, owner => new PhysicsComponent(owner));
     }
 }
