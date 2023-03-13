@@ -8,7 +8,7 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:controls="clr-namespace:EditorWpf.Controls"
         mc:Ignorable="d"
-        Title="CasaEngine Editor" Height="450" Width="800">
+        Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="800" Width="1200" Height="800" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -40,63 +40,71 @@
 
         <ToolBarTray Grid.Row="1">
             <ToolBar>
-                <Button Command="{Binding ADLayout.SaveWorkspaceLayoutToStringCommand}" SnapsToDevicePixels="True"
-                        ToolTip="Save Workspace Layout" Content="Save Layout">
-                </Button>
-                <Button Command="{Binding ADLayout.LoadWorkspaceLayoutFromStringCommand}" SnapsToDevicePixels="True"
-                        ToolTip="Load Workspace Layout" Content="Load Layout">
-                </Button>
+                <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="Save Layout" Click="ButtonSaveLayout_Click"/>
+                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Load Layout" Click="ButtonLoadLayout_Click"/>
             </ToolBar>
         </ToolBarTray>
 
-        <xcad:DockingManager Grid.Row="2" Name="dockingManager1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                             controls:AvalonDockLayoutSerializer.LoadLayoutCommand="{Binding ADLayout.LoadLayoutCommand}"
-                             controls:AvalonDockLayoutSerializer.SaveLayoutCommand="{Binding ADLayout.SaveLayoutCommand}">
+        <xcad:DockingManager Grid.Row="2" x:Name="dockingManager1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <xcad:DockingManager.Theme>
                 <xcad:GenericTheme/>
             </xcad:DockingManager.Theme>
 
             <xcad:LayoutRoot>
-                <xcad:LayoutPanel Orientation="Vertical">
+                <xcad:LayoutRoot.RootPanel>
+                    <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
+                        <xcad:LayoutDocumentPaneGroup Orientation="Horizontal">
+                            <xcad:LayoutDocumentPane>
+                                <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
+                                    <StackPanel>
+                                        <ToolBarTray>
+                                            <ToolBar>
+                                                <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="T" />
+                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="R" />
+                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="S" />
+                                                <Separator />
+                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="L" />
+                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="W" />
+                                                <Separator />
+                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Snap" />
+                                            </ToolBar>
+                                        </ToolBarTray>
+                                        <controls:GameEditor AllowDrop="True"/>
+                                    </StackPanel>
+                                </xcad:LayoutDocument>
+                                <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
+                                    <controls:SettingsControl/>
+                                </xcad:LayoutAnchorable>
+                            </xcad:LayoutDocumentPane>
+                        </xcad:LayoutDocumentPaneGroup>
 
-                    <xcad:LayoutDocumentPane>
-                        <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
-                            <StackPanel>
-                                <ToolBarTray>
-                                    <ToolBar>
-                                        <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="T" />
-                                        <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="R" />
-                                        <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="S" />
-                                        <Separator />
-                                        <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="L" />
-                                        <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="W" />
-                                        <Separator />
-                                        <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Snap" />
-                                    </ToolBar>
-                                </ToolBarTray>
+                        <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
+                            <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
+                                <xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities">
+                                    <controls:EntitiesControl x:Name="EntitiesControl"/>
+                                </xcad:LayoutAnchorable>
+                            </xcad:LayoutAnchorablePane>
+                            <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                    <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
+                                        <controls:EntityControl DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
+                                    </xcad:LayoutAnchorable>
+                                </xcad:LayoutAnchorablePane>
+                            </xcad:LayoutAnchorablePaneGroup>
+                        </xcad:LayoutAnchorablePaneGroup>
+                    </xcad:LayoutPanel>
+                </xcad:LayoutRoot.RootPanel>
 
-                                <controls:GameEditor AllowDrop="True"/>
-                            </StackPanel>
-                        </xcad:LayoutDocument>
-                    </xcad:LayoutDocumentPane>
-
-                    <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" >
-                        <xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" Title="Place Actors">
+                <xcad:LayoutRoot.LeftSide>
+                    <xcad:LayoutAnchorSide>
+                        <xcad:LayoutAnchorGroup>
+                            <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
                                 <controls:PlaceActorsControl/>
                             </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
-                                <controls:SettingsControl/>
-                            </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities">
-                                <controls:EntitiesControl x:Name="EntitiesControl"/>
-                            </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-                                <controls:EntityControl DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
-                            </xcad:LayoutAnchorable>
-                        </xcad:LayoutAnchorablePane>
-                    </xcad:LayoutAnchorablePaneGroup>
-                </xcad:LayoutPanel>
+                        </xcad:LayoutAnchorGroup>
+                    </xcad:LayoutAnchorSide>
+                </xcad:LayoutRoot.LeftSide>
+
             </xcad:LayoutRoot>
         </xcad:DockingManager>
 

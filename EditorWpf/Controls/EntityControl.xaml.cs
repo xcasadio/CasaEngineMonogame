@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
