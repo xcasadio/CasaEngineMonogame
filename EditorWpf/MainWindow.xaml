@@ -53,6 +53,7 @@
             <xcad:LayoutRoot>
                 <xcad:LayoutRoot.RootPanel>
                     <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
+
                         <xcad:LayoutDocumentPaneGroup Orientation="Horizontal">
                             <xcad:LayoutDocumentPane>
                                 <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
@@ -73,7 +74,7 @@
                                     </StackPanel>
                                 </xcad:LayoutDocument>
                                 <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
-                                    <controls:SettingsControl/>
+                                    <controls:SettingsControl x:Name="SettingsControl"/>
                                 </xcad:LayoutAnchorable>
                             </xcad:LayoutDocumentPane>
                         </xcad:LayoutDocumentPaneGroup>
@@ -87,19 +88,27 @@
                             <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                 <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                     <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-                                        <controls:EntityControl DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
+                                        <controls:EntityControl x:Name="EntityControl" DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
                                     </xcad:LayoutAnchorable>
                                 </xcad:LayoutAnchorablePane>
                             </xcad:LayoutAnchorablePaneGroup>
                         </xcad:LayoutAnchorablePaneGroup>
+                        <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockHeight="0.4099866302389118*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="734" FloatingTop="890">
+                            <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="734" FloatingTop="890">
+                                <xcad:LayoutAnchorable x:Name="LogsLayout" Title="Logs">
+                                    <controls:EntityControl x:Name="LogsControl"/>
+                                </xcad:LayoutAnchorable>
+                            </xcad:LayoutAnchorablePane>
+                        </xcad:LayoutAnchorablePaneGroup>
                     </xcad:LayoutPanel>
+
                 </xcad:LayoutRoot.RootPanel>
 
                 <xcad:LayoutRoot.LeftSide>
                     <xcad:LayoutAnchorSide>
                         <xcad:LayoutAnchorGroup>
                             <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
-                                <controls:PlaceActorsControl/>
+                                <controls:PlaceActorsControl x:Name="PlaceActorsControl"/>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorGroup>
                     </xcad:LayoutAnchorSide>

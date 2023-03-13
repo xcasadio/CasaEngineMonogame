@@ -5,18 +5,13 @@ namespace Editor.Log
     /// <summary>
     /// 
     /// </summary>
-    public class LogEditor
-        : ILog
+    public class LogEditor : ILog
     {
 
         private RichTextBox m_TextBox;
         private readonly string m_Debug = "[Debug] : ";
         private readonly string m_Warning = "Warning : ";
         private readonly string m_Error = "Error : ";
-
-
-
-
 
         /// <summary>
         /// 
@@ -31,8 +26,6 @@ namespace Editor.Log
 
             m_TextBox = textBox_;
         }
-
-
 
         /// <summary>
         /// 

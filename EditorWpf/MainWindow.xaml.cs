@@ -1,6 +1,10 @@
-﻿using System;
+﻿using Genbox.VelcroPhysics.Shared;
+using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
+using Xceed.Wpf.AvalonDock.Layout;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace EditorWpf
@@ -58,6 +62,7 @@ namespace EditorWpf
                 }
 
                 XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManager1);
+                layoutSerializer.LayoutSerializationCallback += LayoutSerializer_LayoutSerializationCallback;
                 using var reader = new StreamReader(fileName);
                 layoutSerializer.Deserialize(reader);
             }
@@ -65,6 +70,20 @@ namespace EditorWpf
             {
                 Console.WriteLine(e);
             }
+        }
+
+        private void LayoutSerializer_LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
+        {
+            e.Content = e.Model.Title switch
+            {
+                "Settings" => SettingsControl,
+                "Entities" => EntitiesControl,
+                "Details" => EntityControl,
+                "Game Screen" => e.Content, // TODO
+                "Place Actors" => PlaceActorsControl,
+                "Logs" => LogsControl,
+                _ => e.Content
+            };
         }
 
         private static string GetLayoutFileName(bool createDirectory = true)
