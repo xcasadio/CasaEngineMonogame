@@ -13,8 +13,12 @@ namespace CasaEngine.Framework.World
         public event EventHandler? LoadingContent;
         public event EventHandler? Starting;
 
+#if EDITOR
+        public event EventHandler? EntitiesChanged;
+#endif
+
         public string Name { get; set; }
-        public IEnumerable<Entity> Entities => _entities;
+        public IList<Entity> Entities => _entities;
 
         public Genbox.VelcroPhysics.Dynamics.World? PhysicWorld;
 
@@ -29,6 +33,9 @@ namespace CasaEngine.Framework.World
         public void AddObjectImmediately(Entity entity)
         {
             _entities.Add(entity);
+#if EDITOR
+            EntitiesChanged?.Invoke(this, EventArgs.Empty);
+#endif
         }
 
         public void AddObject(Entity entity)
@@ -40,6 +47,9 @@ namespace CasaEngine.Framework.World
         {
             _entities.Clear();
             _baseObjectsToAdd.Clear();
+#if EDITOR
+            EntitiesChanged?.Invoke(this, EventArgs.Empty);
+#endif
         }
 
         public void Initialize()

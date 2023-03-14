@@ -29,6 +29,13 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
@@ -41,6 +48,26 @@
                 <local:Vector3Control Grid.Row="1" Grid.Column="1" X="{Binding DataContext.Target, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Distance}" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding FieldOfView}" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="3" Grid.Column="1" Value="{Binding FieldOfView, Mode=TwoWay}" Increment="0.05"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Viewport X" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Viewport.X, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Viewport Y" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Viewport.Y, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Viewport Width" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Viewport.Width, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Viewport Height" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Viewport.Height, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Viewport Min Depth" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Viewport.MinDepth, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="9" Grid.Column="0" Text="Viewport Max Depth" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="9" Grid.Column="1" Value="{Binding Viewport.MaxDepth, Mode=TwoWay}" Increment="10"/>
+
             </Grid>
         </DataTemplate>
     </Control.Resources>

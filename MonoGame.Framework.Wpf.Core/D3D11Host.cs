@@ -42,6 +42,7 @@ namespace Microsoft.Xna.Framework
         {
             // defaulting to fill as that's what's needed in most cases
             Stretch = Stretch.Fill;
+            StretchDirection = StretchDirection.Both;
             Loaded += OnLoaded;
         }
 
@@ -218,7 +219,7 @@ namespace Microsoft.Xna.Framework
             {
                 if (GraphicsDevice == null)
                 {
-                    throw new NotSupportedException("Can only recreate graphicsdevice when one already exists. Initalize one first!");
+                    throw new NotSupportedException("Can only recreate graphics device when one already exists. Initialize one first!");
                 }
 
                 CreateGraphicsDeviceDependentResources(pp);
@@ -290,7 +291,11 @@ namespace Microsoft.Xna.Framework
 
         void OnIsFrontBufferAvailableChanged(object sender, DependencyPropertyChangedEventArgs eventArgs)
         {
-            if (_d3D11Image.IsFrontBufferAvailable) { StartRendering(); _resetBackBuffer = true; }
+            if (_d3D11Image.IsFrontBufferAvailable)
+            {
+                StartRendering();
+                _resetBackBuffer = true;
+            }
             else
             {
                 StopRendering();

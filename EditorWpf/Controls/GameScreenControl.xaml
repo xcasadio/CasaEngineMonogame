@@ -5,9 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EditorWpf.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="200" d:DesignWidth="800">
-    <StackPanel>
-        <ToolBarTray>
+             d:DesignHeight="200" d:DesignWidth="800" VerticalContentAlignment="Stretch">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ToolBarTray Grid.Row="0" x:Name="ToolBarTray">
             <ToolBar>
                 <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="T" />
                 <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="R" />
@@ -19,6 +24,6 @@
                 <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Snap" />
             </ToolBar>
         </ToolBarTray>
-        <local:GameEditor AllowDrop="True"/>
-    </StackPanel>
+        <local:GameEditor  Grid.Row="1" x:Name="GameEditor" AllowDrop="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+    </Grid>
 </UserControl>

@@ -114,6 +114,11 @@ namespace EditorWpf.Controls
 
         private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
         {
+            if (DataContext is not Entity entity)
+            {
+                return;
+            }
+
             var inputComboBox = new InputComboBox(Application.Current.MainWindow)
             {
                 Title = "Add a new component",
@@ -124,7 +129,6 @@ namespace EditorWpf.Controls
             if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
             {
                 var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
-                var entity = DataContext as Entity;
                 var component = (Component)Activator.CreateInstance(componentType, entity);
                 component.Initialize();
                 entity.ComponentManager.Components.Add(component);

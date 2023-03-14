@@ -1,11 +1,17 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.World;
 using EditorWpf.Datas;
 using EditorWpf.Inputs;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace EditorWpf.Controls;
@@ -16,7 +22,6 @@ public class GameEditor : WpfGame
 
     public GameEditor()
     {
-        SizeChanged += OnSizeChanged;
         Drop += OnDrop;
     }
 
@@ -48,7 +53,7 @@ public class GameEditor : WpfGame
         //entity = new Entity();
         //entity.Name = "Entity box";
         ////entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
-        //var meshComponent = new MeshComponent(entity);
+        //var meshComponent = new StaticMeshComponent(entity);
         //entity.ComponentManager.Components.Add(meshComponent);
         //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
         //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
@@ -75,9 +80,10 @@ public class GameEditor : WpfGame
         GameInfo.Instance.InvokeReadyToStart(_game);
     }
 
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
-        _game?.GameManager.OnScreenResized((int)e.NewSize.Width, (int)e.NewSize.Height);
+        _game?.GameManager.OnScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
+        base.OnRenderSizeChanged(sizeInfo);
     }
 
     protected override void Update(GameTime gameTime)
@@ -139,10 +145,14 @@ public class GameEditor : WpfGame
                     {
                         Name = "Entity " + new Random().NextInt64()
                     };
-                    entity.Coordinates.LocalPosition = ray.Position;
+                    entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;//entity.BoundingBox.;
                     entity.Initialize();
                     GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
+
                     //select this entity
+                    var gizmoComponent = Engine.Instance.Game.GetGameComponent<GizmoComponent>();
+                    gizmoComponent.Gizmo.Clear(); // TODO
+                    gizmoComponent.Gizmo.Selection.Add(entity);
                 }
             }
         }

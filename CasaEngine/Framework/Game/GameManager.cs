@@ -160,10 +160,10 @@ public class GameManager
             GameInfo.Instance.CurrentWorld.Load(Engine.Instance.ProjectSettings.FirstWorldLoaded);
         }
 #else
+        //default world
         GameInfo.Instance.CurrentWorld = new World.World();
 
-        var entity = new Entity();
-        entity.Name = "Camera";
+        var entity = new Entity { Name = "Camera" };
         var camera = new ArcBallCameraComponent(entity);
         entity.ComponentManager.Components.Add(camera);
         GameInfo.Instance.ActiveCamera = camera;

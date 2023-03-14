@@ -16,7 +16,7 @@ public abstract class Camera3dComponent : CameraComponent
         get => _fieldOfView;
         set
         {
-            _fieldOfView = value;
+            _fieldOfView = Math.Clamp(value, 0.1f, MathHelper.Pi - 0.1f);
             _needToComputeProjectionMatrix = true;
         }
     }
@@ -32,4 +32,9 @@ public abstract class Camera3dComponent : CameraComponent
         _needToComputeProjectionMatrix = false;
     }
 
+    public override void ScreenResized(int width, int height)
+    {
+        base.ScreenResized(width, height);
+        FieldOfView = MathHelper.PiOver4 * 1.777777777f / Viewport.AspectRatio; //1920 / 1080 = 1.777777777 => MathHelper.PiOver4
+    }
 }

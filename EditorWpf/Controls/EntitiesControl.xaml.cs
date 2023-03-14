@@ -52,6 +52,13 @@ namespace EditorWpf.Controls
 
         private void OnWorldChanged(object? sender, EventArgs e)
         {
+            GameInfo.Instance.CurrentWorld.EntitiesChanged += OnEntitiesChanged;
+            TreeView.ItemsSource = GameInfo.Instance.CurrentWorld.Entities;
+        }
+
+        private void OnEntitiesChanged(object? sender, EventArgs e)
+        {
+            TreeView.ItemsSource = null;
             TreeView.ItemsSource = GameInfo.Instance.CurrentWorld.Entities;
         }
 
