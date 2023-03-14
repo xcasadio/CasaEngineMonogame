@@ -8,7 +8,7 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:controls="clr-namespace:EditorWpf.Controls"
         mc:Ignorable="d"
-        Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="800" Width="1200" Height="800" >
+        Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -54,27 +54,18 @@
                 <xcad:LayoutRoot.RootPanel>
                     <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
 
-                        <xcad:LayoutDocumentPaneGroup Orientation="Horizontal">
+                        <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
                             <xcad:LayoutDocumentPane>
                                 <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
-                                    <StackPanel>
-                                        <ToolBarTray>
-                                            <ToolBar>
-                                                <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="T" />
-                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="R" />
-                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="S" />
-                                                <Separator />
-                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="L" />
-                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="W" />
-                                                <Separator />
-                                                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Snap" />
-                                            </ToolBar>
-                                        </ToolBarTray>
-                                        <controls:GameEditor AllowDrop="True"/>
-                                    </StackPanel>
+                                    <controls:GameScreenControl x:Name="GameScreenControl" AllowDrop="True"/>
                                 </xcad:LayoutDocument>
                                 <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
                                     <controls:SettingsControl x:Name="SettingsControl"/>
+                                </xcad:LayoutAnchorable>
+                            </xcad:LayoutDocumentPane>
+                            <xcad:LayoutDocumentPane DockHeight="0.17883508690344715*">
+                                <xcad:LayoutAnchorable x:Name="LogsLayout" Title="Logs">
+                                    <controls:LogsControl x:Name="LogsControl"/>
                                 </xcad:LayoutAnchorable>
                             </xcad:LayoutDocumentPane>
                         </xcad:LayoutDocumentPaneGroup>
@@ -93,14 +84,8 @@
                                 </xcad:LayoutAnchorablePane>
                             </xcad:LayoutAnchorablePaneGroup>
                         </xcad:LayoutAnchorablePaneGroup>
-                        <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockHeight="0.4099866302389118*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="734" FloatingTop="890">
-                            <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="734" FloatingTop="890">
-                                <xcad:LayoutAnchorable x:Name="LogsLayout" Title="Logs">
-                                    <controls:EntityControl x:Name="LogsControl"/>
-                                </xcad:LayoutAnchorable>
-                            </xcad:LayoutAnchorablePane>
-                        </xcad:LayoutAnchorablePaneGroup>
                     </xcad:LayoutPanel>
+
 
                 </xcad:LayoutRoot.RootPanel>
 

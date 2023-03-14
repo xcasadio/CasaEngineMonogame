@@ -79,7 +79,7 @@ namespace EditorWpf
                 "Settings" => SettingsControl,
                 "Entities" => EntitiesControl,
                 "Details" => EntityControl,
-                "Game Screen" => e.Content, // TODO
+                "Game Screen" => GameScreenControl,
                 "Place Actors" => PlaceActorsControl,
                 "Logs" => LogsControl,
                 _ => e.Content

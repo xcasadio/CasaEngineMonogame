@@ -2,14 +2,8 @@
 
 namespace CasaEngine.Core.Logger
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public sealed class LogManager
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public enum LogVerbosity
         {
             Debug,
@@ -17,102 +11,60 @@ namespace CasaEngine.Core.Logger
             None
         }
 
+        private static LogManager? _instance;
+        private readonly List<ILog> _loggers = new();
+        private LogVerbosity _verbosity = LogVerbosity.Debug;
 
-        private static LogManager m_Instance = null;
-
-        private List<ILog> m_Loggers = new();
-
-#if DEBUG
-        private LogVerbosity m_Verbosity = LogVerbosity.Debug;
-#else
-        private LogVerbosity m_Verbosity = LogVerbosity.Normal;
-#endif
-
-
-
-        /// <summary>
-        /// Gets
-        /// </summary>
         public static LogManager Instance
         {
-            get
-            {
-                if (m_Instance == null)
-                {
-                    m_Instance = new LogManager();
-                }
-                return m_Instance;
-            }
+            get { return _instance ??= new LogManager(); }
         }
 
-        /// <summary>
-        /// Gets/Sets
-        /// </summary>
         public LogVerbosity Verbosity
         {
-            get => m_Verbosity;
-            set => m_Verbosity = value;
+            get => _verbosity;
+            set => _verbosity = value;
         }
 
-
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="log_"></param>
-        public void AddLogger(ILog log_)
+        public void AddLogger(ILog log)
         {
-            if (log_ == null)
+            if (log == null)
             {
-                throw new ArgumentNullException("LogManager.Instance.AddLogger() : ILog is null");
+                throw new ArgumentNullException(nameof(log));
             }
 
-            m_Loggers.Add(log_);
+            _loggers.Add(log);
         }
 
-        /// <summary>
-		/// 
-		/// </summary>
-		/// <param name="log_"></param>
-		public void Close()
+        public void Close()
         {
-            foreach (ILog log in m_Loggers)
+            foreach (var log in _loggers)
             {
                 log.Close();
             }
 
-            m_Loggers.Clear();
+            _loggers.Clear();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="args_"></param>
-        public void Write(params object[] args_)
+        public void Write(params object[] args)
         {
-            foreach (ILog log in m_Loggers)
+            foreach (var log in _loggers)
             {
-                log.Write(args_);
+                log.Write(args);
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="args_"></param>
-        public void WriteLine(params object[] args_)
+        public void WriteLine(params object[] args)
         {
             object[] newArgs;
 
-            if (args_ != null)
+            if (args != null)
             {
-                newArgs = new object[args_.Length + 1];
+                newArgs = new object[args.Length + 1];
 
-                for (int i = 0; i < args_.Length; i++)
+                for (var i = 0; i < args.Length; i++)
                 {
-                    newArgs[i] = args_[i];
+                    newArgs[i] = args[i];
                 }
             }
             else
@@ -120,96 +72,78 @@ namespace CasaEngine.Core.Logger
                 newArgs = new object[1];
             }
 
-            newArgs[newArgs.Length - 1] = "\n";
+            newArgs[^1] = Environment.NewLine;
 
             Write(newArgs);
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="msg_"></param>
-        public void WriteLineDebug(string msg_)
+        public void WriteLineDebug(string msg)
         {
-            if (m_Verbosity != LogVerbosity.Debug)
+            if (_verbosity != LogVerbosity.Debug)
             {
                 return;
             }
 
-            foreach (ILog log in m_Loggers)
+            foreach (var log in _loggers)
             {
-                log.WriteLineDebug(msg_);
+                log.WriteLineDebug(msg);
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="msg_"></param>
-        public void WriteLineWarning(string msg_)
+        public void WriteLineWarning(string msg)
         {
-            if (m_Verbosity == LogVerbosity.None)
+            if (_verbosity == LogVerbosity.None)
             {
                 return;
             }
 
-            foreach (ILog log in m_Loggers)
+            foreach (var log in _loggers)
             {
-                log.WriteLineWarning(msg_);
+                log.WriteLineWarning(msg);
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="msg_"></param>
-        public void WriteLineError(string msg_)
+        public void WriteLineError(string msg)
         {
-            if (m_Verbosity == LogVerbosity.None)
+            if (_verbosity == LogVerbosity.None)
             {
                 return;
             }
 
-            foreach (ILog log in m_Loggers)
+            foreach (var log in _loggers)
             {
-                log.WriteLineError(msg_);
+                log.WriteLineError(msg);
             }
         }
 
-        /// <summary>
-        /// Write exception into log
-        /// </summary>
-        /// <param name="e"></param>
         public void WriteException(Exception e, bool writeStackTrace = true)
         {
-            if (m_Verbosity == LogVerbosity.None)
+            if (_verbosity == LogVerbosity.None)
             {
                 return;
             }
 
-            StringBuilder strBldr = new StringBuilder();
+            var message = new StringBuilder();
 
-            strBldr.AppendLine(e.Message);
+            message.AppendLine(e.Message);
 
-            Exception ex = e;
-            string tab = "\t";
+            var ex = e;
+            var tab = "\t";
 
             while (ex.InnerException != null)
             {
-                strBldr.Append(tab);
-                strBldr.AppendLine(ex.Message);
+                message.Append(tab);
+                message.AppendLine(ex.Message);
                 ex = ex.InnerException;
                 tab += "\t";
             }
 
-            if (writeStackTrace == true)
+            if (writeStackTrace)
             {
-                strBldr.AppendLine(e.StackTrace);
+                message.AppendLine(e.StackTrace);
             }
 
-            WriteLineError(strBldr.ToString());
+            WriteLineError(message.ToString());
         }
-
     }
 }

@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="EditorWpf.Controls.GameScreenControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EditorWpf.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="800">
+    <StackPanel>
+        <ToolBarTray>
+            <ToolBar>
+                <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="T" />
+                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="R" />
+                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="S" />
+                <Separator />
+                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="L" />
+                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="W" />
+                <Separator />
+                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Snap" />
+            </ToolBar>
+        </ToolBarTray>
+        <local:GameEditor AllowDrop="True"/>
+    </StackPanel>
+</UserControl>
