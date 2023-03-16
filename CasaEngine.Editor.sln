@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pong", "Pong\Pong.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngineLauncher", "CasaEngineLauncher\CasaEngineLauncher.csproj", "{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics", "Physics", "{EFF5418E-2F3B-4218-A17A-1000F2599AFA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics2d", "Physics2d", "{EFF5418E-2F3B-4218-A17A-1000F2599AFA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VelcroPhysics.MonoGame", "VelcroPhysics\VelcroPhysics\VelcroPhysics.MonoGame.csproj", "{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}"
 EndProject
