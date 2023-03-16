@@ -86,7 +86,7 @@ namespace Editor.Tools.Font
                 m_Font = m_NewFont;
                 m_NewFont = null;
 
-                m_Font.LoadTexture(Engine.Instance.ProjectManager.ProjectPath, Game.GraphicsDevice);
+                m_Font.LoadTexture(EngineComponents.ProjectManager.ProjectPath, Game.GraphicsDevice);
             }
 
             base.Update(gameTime);

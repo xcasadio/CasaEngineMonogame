@@ -102,7 +102,7 @@ namespace Editor.Tools.UIScreenEditor
             m_XnaEditorForm = new XnaEditorForm(this);
             m_UIScreenEditorComponent = new UIScreenEditorComponent(m_XnaEditorForm.Game);
             //m_UIScreenEditorComponent.UndoRedoManager = m_UndoRedoManager;
-            m_XnaEditorForm.Game.Content.RootDirectory = Engine.Instance.ProjectManager.ProjectPath;
+            m_XnaEditorForm.Game.Content.RootDirectory = EngineComponents.ProjectManager.ProjectPath;
             m_XnaEditorForm.StartGame();
 
             FormClosed += new FormClosedEventHandler(ScreenEditorFormClosed);

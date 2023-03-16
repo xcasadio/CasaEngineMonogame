@@ -15,7 +15,7 @@ namespace Editor
 
             InitializeComponent();
 
-            propertyGrid1.SelectedObject = Engine.Instance.ProjectSettings;
+            propertyGrid1.SelectedObject = EngineComponents.ProjectSettings;
         }
 
         private void buttonOK_Click(object sender, EventArgs e)

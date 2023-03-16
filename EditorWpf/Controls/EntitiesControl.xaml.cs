@@ -30,7 +30,7 @@ namespace EditorWpf.Controls
 
         private void OnGameReadyToStart(object? sender, EventArgs e)
         {
-            var gizmoComponent = Engine.Instance.Game.GetGameComponent<GizmoComponent>();
+            var gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
             gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
             gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
         }
@@ -39,7 +39,7 @@ namespace EditorWpf.Controls
         {
             isSelectionTriggerActive = false;
 
-            var gizmoComponent = Engine.Instance.Game.GetGameComponent<GizmoComponent>();
+            var gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
             Entity? selectedEntity = null;
             if (gizmoComponent.Gizmo.Selection.Count > 0)
             {
@@ -69,7 +69,7 @@ namespace EditorWpf.Controls
                 return;
             }
 
-            var gizmoComponent = Engine.Instance.Game.GetGameComponent<GizmoComponent>();
+            var gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
 
             if (e.NewValue == null)
             {

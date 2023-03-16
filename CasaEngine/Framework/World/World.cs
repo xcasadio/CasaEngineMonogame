@@ -25,7 +25,7 @@ namespace CasaEngine.Framework.World
         {
             if (usePhysics)
             {
-                Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(Game.Engine.Instance.Physics2dSettings.Gravity);
+                Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(Game.EngineComponents.Physics2dSettings.Gravity);
             }
         }
 

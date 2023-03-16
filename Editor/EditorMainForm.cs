@@ -252,7 +252,7 @@ namespace Editor
         /// <param name="e"></param>
         public void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(Engine.Instance.ProjectManager.ProjectFileOpened) == true)
+            if (string.IsNullOrEmpty(EngineComponents.ProjectManager.ProjectFileOpened) == true)
             {
                 saveAsToolStripMenuItem_Click(this, EventArgs.Empty);
             }
@@ -262,7 +262,7 @@ namespace Editor
                 try
 #endif
                 {
-                    SaveProject(Engine.Instance.ProjectManager.ProjectFileOpened);
+                    SaveProject(EngineComponents.ProjectManager.ProjectFileOpened);
                 }
 #if !DEBUG
                 catch (Exception ex)
@@ -317,8 +317,8 @@ namespace Editor
         private void ClearProject()
         {
             SpriteSheetTaskListForm.Clear();
-            Engine.Instance.ExternalToolManager.Clear();
-            Engine.Instance.ProjectManager.Clear();
+            EngineComponents.ExternalToolManager.Clear();
+            EngineComponents.ProjectManager.Clear();
 
             if (m_ProjectConfigForm != null
                 && m_ProjectConfigForm.IsDisposed == false)
@@ -374,7 +374,7 @@ namespace Editor
             {
 #endif
                 ClearProject();
-                Engine.Instance.ProjectManager.CreateProject(fileName_);
+                EngineComponents.ProjectManager.CreateProject(fileName_);
                 OnProjectLoaded(fileName_);
 #if !DEBUG
             }
@@ -403,7 +403,7 @@ namespace Editor
             {
 #endif
                 ClearProject();
-                Engine.Instance.ProjectManager.Load(fileName_);
+                EngineComponents.ProjectManager.Load(fileName_);
                 CheckExternalTool();
 
 #if !UNITTEST
@@ -450,10 +450,10 @@ namespace Editor
             try
             {
 #endif
-                if (Engine.Instance.ProjectManager.Save(fileName_) == true)
+                if (EngineComponents.ProjectManager.Save(fileName_) == true)
                 {
                     LogManager.Instance.WriteLine("Project ",
-                        "\"" + Engine.Instance.ProjectSettings.ProjectName + "\"", Color.Blue,
+                        "\"" + EngineComponents.ProjectSettings.ProjectName + "\"", Color.Blue,
                         " successfully saved.");
                 }
                 else
@@ -494,8 +494,8 @@ namespace Editor
             m_MruManager.Add(fileName_);
             SetTitle();
             LogManager.Instance.WriteLine("Project ",
-                "\"" + Engine.Instance.ProjectSettings.ProjectName + "\" ", Color.Blue,
-                "(", Engine.Instance.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
+                "\"" + EngineComponents.ProjectSettings.ProjectName + "\" ", Color.Blue,
+                "(", EngineComponents.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
         }
 
 
@@ -557,7 +557,7 @@ namespace Editor
                 if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
                 {
                     myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
-                    myInfo.Arguments = Path.GetFileName(Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened));
+                    myInfo.Arguments = Path.GetFileName(Path.GetFileName(EngineComponents.ProjectManager.ProjectFileOpened));
                     Process.Start(myInfo);
                 }
                 else
@@ -658,30 +658,30 @@ namespace Editor
             int percent = 0;
             BackgroundWorker bg = sender as BackgroundWorker;
 
-            string xnbPath = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\";
+            string xnbPath = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\";
 
             /*
              * AssetBuildParam doit implementer IObservable
              * pour modifier BuildParamChanged
              */
-            foreach (AssetInfo info in Engine.Instance.AssetManager.Assets)
+            foreach (AssetInfo info in EngineComponents.AssetManager.Assets)
             {
                 bg.ReportProgress(
-                    (int)(((float)percent / (float)(Engine.Instance.AssetManager.Assets.Length + 1)) * 100.0f),
-                    "building " + info.Name + " ... (" + percent + "/" + (Engine.Instance.AssetManager.Assets.Length + 1) + ")");
+                    (int)(((float)percent / (float)(EngineComponents.AssetManager.Assets.Length + 1)) * 100.0f),
+                    "building " + info.Name + " ... (" + percent + "/" + (EngineComponents.AssetManager.Assets.Length + 1) + ")");
 
                 fi = new FileInfo(info.FileName);
                 if (File.Exists(xnbPath + info.Name + ".xnb") == false)
                 {
-                    Engine.Instance.AssetManager.RebuildAsset(info);
+                    EngineComponents.AssetManager.RebuildAsset(info);
                 }
 
                 percent++;
             }
 
             //project File
-            destFile = Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(Engine.Instance.ProjectManager.ProjectFileOpened);
-            fi = new FileInfo(Engine.Instance.ProjectManager.ProjectFileOpened);
+            destFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(EngineComponents.ProjectManager.ProjectFileOpened);
+            fi = new FileInfo(EngineComponents.ProjectManager.ProjectFileOpened);
             ro = fi.IsReadOnly;
             fi.IsReadOnly = false;
 
@@ -692,7 +692,7 @@ namespace Editor
                 fi2.Delete();
             }
 
-            File.Copy(Engine.Instance.ProjectManager.ProjectFileOpened,
+            File.Copy(EngineComponents.ProjectManager.ProjectFileOpened,
                 destFile,
                 true);
 
@@ -711,7 +711,7 @@ namespace Editor
         /// </summary>
         private string FindGameExe()
         {
-            string[] exes = Directory.GetFiles(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath, "*.exe");
+            string[] exes = Directory.GetFiles(EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath, "*.exe");
 
             if (exes.Length > 0)
             {
@@ -782,7 +782,7 @@ namespace Editor
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
 
-            Text = "Project Editor - " + Engine.Instance.ProjectSettings.ProjectName + " - " + fvi.ProductVersion;
+            Text = "Project Editor - " + EngineComponents.ProjectSettings.ProjectName + " - " + fvi.ProductVersion;
 
 #if DEBUG
             Text += " - DEBUG";
@@ -833,7 +833,7 @@ namespace Editor
             if (m_GameDocForm == null
                 || m_GameDocForm.IsDisposed == true)
             {
-                m_GameDocForm = new InputRtfForm(Engine.Instance.ProjectSettings.ProjectName + " Documentation", FindGameDocumentationFile());
+                m_GameDocForm = new InputRtfForm(EngineComponents.ProjectSettings.ProjectName + " Documentation", FindGameDocumentationFile());
             }
             else
             {
@@ -849,7 +849,7 @@ namespace Editor
         /// </summary>
         private string FindGameDocumentationFile()
         {
-            string[] rtfs = Directory.GetFiles(Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath, "*.rtf");
+            string[] rtfs = Directory.GetFiles(EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath, "*.rtf");
 
             if (rtfs.Length > 0)
             {
@@ -890,12 +890,12 @@ namespace Editor
         /// <param name="e"></param>
         private void buttonRefresh_Click(object sender, EventArgs e)
         {
-            TreeNode root = new TreeNode(Engine.Instance.ProjectManager.ProjectPath);
+            TreeNode root = new TreeNode(EngineComponents.ProjectManager.ProjectPath);
             TreeNode node = root;
             node.ImageIndex = 27;
             treeViewFiles.Nodes.Clear();
 
-            string projectPath = Engine.Instance.ProjectManager.ProjectPath;
+            string projectPath = EngineComponents.ProjectManager.ProjectPath;
 
             foreach (string file in Directory.GetFiles(projectPath, "*.*", SearchOption.AllDirectories))
             {

@@ -114,14 +114,14 @@ namespace CasaEngine.Framework.Assets.Textures
         {
             GraphicsDevice = graphicsDevice;
             Name = filename;
-            Filename = Game.Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
+            Filename = Game.EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
             if (File.Exists(Filename) == false)
             {
                 throw new ArgumentException("Failed to load texture: File " + Filename + " does not exists!", nameof(filename));
             }
             try
             {
-                XnaTexture = Game.Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, GraphicsDevice);
+                XnaTexture = Game.EngineComponents.AssetContentManager.Load<Texture2D>(Filename, GraphicsDevice);
                 Size = new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
                 Resource.Name = filename;
             }
@@ -162,7 +162,7 @@ namespace CasaEngine.Framework.Assets.Textures
             }
             else if (XnaTexture.IsDisposed)
             {
-                XnaTexture = Game.Engine.Instance.AssetContentManager.Load<Texture2D>(Filename, device);
+                XnaTexture = Game.EngineComponents.AssetContentManager.Load<Texture2D>(Filename, device);
             }
 
             GraphicsDevice = device;

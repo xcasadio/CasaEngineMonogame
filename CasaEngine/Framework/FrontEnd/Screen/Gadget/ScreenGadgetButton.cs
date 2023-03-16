@@ -92,8 +92,8 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
 
             if (spriteId != int.MaxValue)
             {
-                Image = Game.Engine.Instance.Asset2DManager.GetSprite2DById(spriteId);
-                Game.Engine.Instance.Asset2DManager.AddSprite2DToLoadingList(Image);
+                Image = Game.EngineComponents.Asset2DManager.GetSprite2DById(spriteId);
+                Game.EngineComponents.Asset2DManager.AddSprite2DToLoadingList(Image);
             }
 
             SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el.SelectSingleNode("SizeImage").InnerText);

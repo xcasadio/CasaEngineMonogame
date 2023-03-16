@@ -341,7 +341,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
         private void buttonAddDirectory_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog form = new FolderBrowserDialog();
-            form.SelectedPath = Engine.Instance.ProjectManager.ProjectPath;
+            form.SelectedPath = EngineComponents.ProjectManager.ProjectPath;
 
             if (form.ShowDialog(this) == DialogResult.OK)
             {

@@ -42,7 +42,7 @@ namespace CasaEngine.Framework.UserInterface.Documents
         public Document(string filename)
         {
             Name = filename;
-            Filename = Game.Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
+            Filename = Game.EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
             //Filename = GameInfo.Instance.ProjectManager.ProjectPath + filename;
             if (File.Exists(Filename + ".skin") == false) //.xnb
             {
@@ -69,7 +69,7 @@ namespace CasaEngine.Framework.UserInterface.Documents
         {
             if (Resource == null)
             {
-                Resource = Game.Engine.Instance.AssetContentManager.Load<XDocument>(Filename, device);
+                Resource = Game.EngineComponents.AssetContentManager.Load<XDocument>(Filename, device);
             }
         } // RecreateResource
 

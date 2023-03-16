@@ -25,7 +25,7 @@ namespace Editor.Tools.SkinUIEditor
 
             m_XnaEditorForm = new XnaEditorForm(this);
             //m_FontPreviewEditorComponent = new FontPreviewEditorComponent(m_XnaEditorForm.Game);
-            m_XnaEditorForm.Game.Content.RootDirectory = Engine.Instance.ProjectManager.ProjectPath;
+            m_XnaEditorForm.Game.Content.RootDirectory = EngineComponents.ProjectManager.ProjectPath;
             m_XnaEditorForm.StartGame();
         }
 

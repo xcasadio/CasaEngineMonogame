@@ -3,6 +3,7 @@ using CasaEngine.Core.Extension;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Project;
 using CasaEngine.Core.Design;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Editor.Assets
 {
@@ -132,7 +133,7 @@ namespace CasaEngine.Editor.Assets
                 File.Copy(
                     file,
                     /*GameInfo.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.XNBDirPath + Path.DirectorySeparatorChar + Path.GetFileName(file)*/
-                    Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file),
+                    EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file),
                     true);
             }
 
@@ -164,7 +165,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetAssetFullPath(AssetInfo info)
         {
-            var fullpath = Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+            var fullpath = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
             fullpath += ProjectManager.AssetDirPath + Path.DirectorySeparatorChar;
 
@@ -206,7 +207,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetAssetXnbFullPath(AssetInfo info)
         {
-            return Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info.Name + ".xnb";
+            return EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info.Name + ".xnb";
         }
 
         /*private string GetPrefix(AssetType type_)
@@ -343,7 +344,7 @@ namespace CasaEngine.Editor.Assets
 
         public string GetPathFromType(AssetType type)
         {
-            var assetFile = Framework.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+            var assetFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
             assetFile += ProjectManager.AssetDirPath;
 

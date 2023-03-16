@@ -52,7 +52,7 @@ namespace Editor.Tools.Graphics2D
             m_UndoRedoManager.UndoRedoCommandAdded += new EventHandler(UndoRedoCommandAdded);
 
             m_XnaEditorForm = new XnaEditorForm(this);
-            m_XnaEditorForm.Game.Content.RootDirectory = Engine.Instance.ProjectManager.ProjectPath;
+            m_XnaEditorForm.Game.Content.RootDirectory = EngineComponents.ProjectManager.ProjectPath;
             m_Animation2DComponent = new Animation2DEditorComponent(m_XnaEditorForm.Game);
             m_Animation2DComponent.UndoRedoManager = m_UndoRedoManager;
             m_Animation2DComponent.CurrentAnimationSetted += new EventHandler(OnCurrentAnimationSetted);
@@ -254,7 +254,7 @@ namespace Editor.Tools.Graphics2D
                     new ListViewItem(new string[]
                         {
                             (i + 1).ToString(),
-                            Engine.Instance.ObjectManager.GetObjectNameById(f.SpriteId),
+                            EngineComponents.ObjectManager.GetObjectNameById(f.SpriteId),
                             f.Time.ToString(),
                             f.EventsToString()
                         }));

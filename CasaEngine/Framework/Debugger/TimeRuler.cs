@@ -571,7 +571,7 @@ namespace CasaEngine.Framework.Debugger
             // Reset update count.
             Interlocked.Exchange(ref updateCount, 0);
 
-            var font = Framework.Game.Engine.Instance.DefaultSpriteFont;//debugManager.DebugFont;
+            var font = EngineComponents.DefaultSpriteFont;//debugManager.DebugFont;
             var texture = debugManager.WhiteTexture;
             var depth_ = 0.0f;
 

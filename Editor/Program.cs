@@ -65,7 +65,7 @@ namespace Editor
             //    }
             //}
 
-            Engine.Instance.Arguments = args_;
+            EngineComponents.Arguments = args_;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

@@ -251,7 +251,7 @@ namespace CasaEngine.Framework.Graphics2D
 
         public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
         {
-            var sprite = (Sprite2D)Framework.Game.Engine.Instance.ObjectManager.GetObjectById(spriteId);
+            var sprite = (Sprite2D)EngineComponents.ObjectManager.GetObjectById(spriteId);
             AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
         }
 

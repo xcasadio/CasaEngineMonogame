@@ -10,7 +10,7 @@ namespace Editor.SoundEditor
         {
             InitializeComponent();
 
-            string[] assets = Engine.Instance.AssetManager.GetAllAssetByType(AssetType.Audio);
+            string[] assets = EngineComponents.AssetManager.GetAllAssetByType(AssetType.Audio);
 
             listBoxSoundAsset.Items.AddRange(assets);
         }
@@ -48,7 +48,7 @@ namespace Editor.SoundEditor
             string assetFileName = string.Empty;
             string assetName = Path.GetFileNameWithoutExtension(fileName_);
 
-            if (Engine.Instance.AssetManager.AddAsset(
+            if (EngineComponents.AssetManager.AddAsset(
                 fileName_,
                 assetName,
                 AssetType.Audio,

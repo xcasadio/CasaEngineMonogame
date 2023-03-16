@@ -312,7 +312,7 @@ namespace CasaEngine.Framework.Gameplay
             _fsm = new FiniteStateMachine<CharacterActor2D>(this);
 
 #if !EDITOR
-            _renderer2DComponent = Game.Engine.Instance.Game.GetDrawableGameComponent<Renderer2DComponent>();
+            _renderer2DComponent = Game.EngineComponents.Game.GetDrawableGameComponent<Renderer2DComponent>();
 #endif
         }
 
@@ -320,16 +320,16 @@ namespace CasaEngine.Framework.Gameplay
         {
             foreach (var pair in _animationListToLoad)
             {
-                if (Framework.Game.Engine.Instance.ObjectManager.GetObjectByPath(pair.Value) is Animation2D anim2d)
+                if (EngineComponents.ObjectManager.GetObjectByPath(pair.Value) is Animation2D anim2d)
                 {
                     _animations.Add(pair.Key, anim2d);
                     anim2d.InitializeEvent();
 
                     foreach (var frame in anim2d.GetFrames())
                     {
-                        var sprite2d = Framework.Game.Engine.Instance.ObjectManager.GetObjectById(frame.SpriteId) as Sprite2D;
-                        //sprite2d.LoadTextureFile(CasaEngine.Game.Engine.Instance.Game.GraphicsDevice);
-                        sprite2d.LoadTexture(Framework.Game.Engine.Instance.Game.Content);
+                        var sprite2d = EngineComponents.ObjectManager.GetObjectById(frame.SpriteId) as Sprite2D;
+                        //sprite2d.LoadTextureFile(CasaEngine.Game.EngineComponents.Game.GraphicsDevice);
+                        sprite2d.LoadTexture(EngineComponents.Game.Content);
                     }
                 }
                 else
@@ -344,10 +344,10 @@ namespace CasaEngine.Framework.Gameplay
                 pair.Value.InitializeEvent();
 
                 //sprite
-                //CasaEngine.Game.Engine.Instance.Asset2DManager.AddSprite2DToLoadingList(pair.Value);
+                //CasaEngine.Game.EngineComponents.Asset2DManager.AddSprite2DToLoadingList(pair.Value);
             }
 
-            //CasaEngine.Game.Engine.Instance.Asset2DManager.LoadLoadingList(CasaEngine.Game.Engine.Instance.Game.Content);
+            //CasaEngine.Game.EngineComponents.Asset2DManager.LoadLoadingList(CasaEngine.Game.EngineComponents.Game.Content);
 
             _animation2DPlayer = new Animation2DPlayer(_animations);
             _animation2DPlayer.OnEndAnimationReached += OnEndAnimationReached;
@@ -357,13 +357,13 @@ namespace CasaEngine.Framework.Gameplay
 
             Collision2DManager.Instance.RegisterObject(this);
 
-            _shapeRendererComponent = Framework.Game.Engine.Instance.Game.GetDrawableGameComponent<ShapeRendererComponent>();
+            _shapeRendererComponent = EngineComponents.Game.GetDrawableGameComponent<ShapeRendererComponent>();
 
             Hp = HpMax;
             Mp = MpMax;
 
             //for debugging
-            _whiteTexture = (Framework.Game.Engine.Instance.Game.Services.GetService(typeof(DebugManager)) as DebugManager).WhiteTexture;
+            _whiteTexture = (EngineComponents.Game.Services.GetService(typeof(DebugManager)) as DebugManager).WhiteTexture;
         }
 
         public void InitializeController()
@@ -429,7 +429,7 @@ namespace CasaEngine.Framework.Gameplay
             _renderer2DComponent.AddSprite2D(
                 _animation2DPlayer.CurrentAnimation.CurrentSpriteId,
                 Position, 0.0f, Vector2.One, Color.White,
-                1 - Position.Y / Framework.Game.Engine.Instance.Game.GraphicsDevice.Viewport.Height,
+                1 - Position.Y / EngineComponents.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects);
 
             //if (ShapeRendererComponent.DisplayCollisions)
@@ -473,7 +473,7 @@ namespace CasaEngine.Framework.Gameplay
                 /*if (_Controller != null)
                 {
                     _Renderer2DComponent.AddText2D(
-                        CasaEngine.Game.Engine.Instance.DefaultSpriteFont,
+                        CasaEngine.Game.EngineComponents.DefaultSpriteFont,
                         "State : " + _Controller.StateMachine.CurrentState.Name,
                         position + new Vector2(-100.0f, -130.0f),
                         0.0f, Vector2.One, Color.Green, 0.0f);
@@ -482,7 +482,7 @@ namespace CasaEngine.Framework.Gameplay
                 if (_Body != null)
                 {
                     _Renderer2DComponent.AddText2D(
-                        CasaEngine.Game.Engine.Instance.DefaultSpriteFont,
+                        CasaEngine.Game.EngineComponents.DefaultSpriteFont,
                         "Speed : " + _Body.LinearVelocity.Length(),
                         position + new Vector2(-70.0f, -100.0f),
                         0.0f, Vector2.One, Color.White, 0.0f);
@@ -622,7 +622,7 @@ namespace CasaEngine.Framework.Gameplay
         {
             get
             {
-                var sprite = (Sprite2D)Framework.Game.Engine.Instance.ObjectManager.GetObjectById(_animation2DPlayer.CurrentAnimation.CurrentSpriteId);
+                var sprite = (Sprite2D)EngineComponents.ObjectManager.GetObjectById(_animation2DPlayer.CurrentAnimation.CurrentSpriteId);
 
                 //return Manager.CreateShape2DFromSprite2D(id, position, SpriteEffects);
 
@@ -787,7 +787,7 @@ namespace CasaEngine.Framework.Gameplay
 
         public void AddOrSetAnimation(int index, string name)
         {
-            var anim = Game.Engine.Instance.ObjectManager.GetObjectByPath(name) as Animation2D;
+            var anim = Game.EngineComponents.ObjectManager.GetObjectByPath(name) as Animation2D;
 
             if (anim != null)
             {
@@ -813,7 +813,7 @@ namespace CasaEngine.Framework.Gameplay
                 index++;
             }
 
-            var anim = Game.Engine.Instance.Asset2DManager.GetAnimation2DByName(name);
+            var anim = Game.EngineComponents.Asset2DManager.GetAnimation2DByName(name);
 
             if (anim != null)
             {

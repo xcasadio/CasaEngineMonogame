@@ -541,7 +541,7 @@ namespace Editor.Game
         {
             if (m_CurrentSprite2D != null)
             {
-                Engine.Instance.ObjectManager.Replace(m_ObjectPath, m_CurrentSprite2D);
+                EngineComponents.ObjectManager.Replace(m_ObjectPath, m_CurrentSprite2D);
             }
         }
 

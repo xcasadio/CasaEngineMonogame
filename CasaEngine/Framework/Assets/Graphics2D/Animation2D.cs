@@ -185,7 +185,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
         public Sprite2D GetCurrentSprite()
         {
             var id = _frames[_currentFrame].SpriteId;
-            return Game.Engine.Instance.Asset2DManager.GetSprite2DById(id);
+            return Game.EngineComponents.Asset2DManager.GetSprite2DById(id);
         }
 
         public void ResetTime()

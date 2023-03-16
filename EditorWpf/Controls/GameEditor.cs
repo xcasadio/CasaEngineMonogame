@@ -151,7 +151,7 @@ public class GameEditor : WpfGame
                     GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
 
                     //select this entity
-                    var gizmoComponent = Engine.Instance.Game.GetGameComponent<GizmoComponent>();
+                    var gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
                     gizmoComponent.Gizmo.Clear(); // TODO
                     gizmoComponent.Gizmo.Selection.Add(entity);
                     gizmoComponent.Gizmo.RaiseSelectionChanged();

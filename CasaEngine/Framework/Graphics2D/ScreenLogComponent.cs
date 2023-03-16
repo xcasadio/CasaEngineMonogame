@@ -47,7 +47,7 @@ namespace CasaEngine.Framework.Graphics2D
 
         public void AddText(string text)
         {
-            AddText(text, Framework.Game.Engine.Instance.DefaultSpriteFont, Color.White);
+            AddText(text, EngineComponents.DefaultSpriteFont, Color.White);
         }
 
         public void AddText(string text, SpriteFont spriteFont)
@@ -57,7 +57,7 @@ namespace CasaEngine.Framework.Graphics2D
 
         public void AddText(string text, Color color)
         {
-            AddText(text, Framework.Game.Engine.Instance.DefaultSpriteFont, color);
+            AddText(text, EngineComponents.DefaultSpriteFont, color);
         }
 
         public void AddText(string text, SpriteFont spriteFont, Color color)
@@ -72,7 +72,7 @@ namespace CasaEngine.Framework.Graphics2D
 
         protected override void LoadContent()
         {
-            _renderer2DComponent = Framework.Game.Engine.Instance.Game.GetGameComponent<Renderer2DComponent>();
+            _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
             base.LoadContent();
         }
 

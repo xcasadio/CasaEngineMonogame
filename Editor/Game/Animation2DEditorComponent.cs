@@ -251,7 +251,7 @@ namespace Editor.Game
 
             foreach (Frame2D f in m_CurrentAnimation2D.GetFrames())
             {
-                Entity b = Engine.Instance.ObjectManager.GetObjectById(f.SpriteId);
+                Entity b = EngineComponents.ObjectManager.GetObjectById(f.SpriteId);
 
                 if (b == null)
                 {
@@ -305,7 +305,7 @@ namespace Editor.Game
         {
             if (m_CurrentAnimation2D != null)
             {
-                Engine.Instance.ObjectManager.Replace(m_ObjectPath, m_CurrentAnimation2D);
+                EngineComponents.ObjectManager.Replace(m_ObjectPath, m_CurrentAnimation2D);
             }
         }
 

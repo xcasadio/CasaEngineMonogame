@@ -110,7 +110,7 @@ namespace CasaEngine.Framework.Assets.Textures
                 // I use RenderTargetUsage.PlatformContents to be little more performance friendly with PC.
                 // But I assume that the system works in DiscardContents mode so that an XBOX 360 implementation works.
                 // What I lose, mostly nothing, because I made my own ZBuffer texture and the stencil buffer is deleted no matter what I do.
-                _renderTarget = new Microsoft.Xna.Framework.Graphics.RenderTargetCube(Game.Engine.Instance.Game.GraphicsDevice, Size, MipMap, SurfaceFormat, DepthFormat, RenderTarget.CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
+                _renderTarget = new Microsoft.Xna.Framework.Graphics.RenderTargetCube(Game.EngineComponents.Game.GraphicsDevice, Size, MipMap, SurfaceFormat, DepthFormat, RenderTarget.CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
                 _alreadyResolved = true;
             }
             catch (Exception e)
@@ -143,7 +143,7 @@ namespace CasaEngine.Framework.Assets.Textures
                 throw new InvalidOperationException("Render Target Cube: unable to set render target. Another render target is still set. If you want to set multiple render targets use the static method called EnableRenderTargets.");
             }
 
-            Game.Engine.Instance.Game.GraphicsDevice.SetRenderTarget(_renderTarget, cubeMapFace);
+            Game.EngineComponents.Game.GraphicsDevice.SetRenderTarget(_renderTarget, cubeMapFace);
             _currentRenderTarget = this;
             _alreadyResolved = false;
         } // EnableRenderTarget
@@ -159,15 +159,15 @@ namespace CasaEngine.Framework.Assets.Textures
 
             if (DepthFormat == DepthFormat.None)
             {
-                Game.Engine.Instance.Game.GraphicsDevice.Clear(clearColor);
+                Game.EngineComponents.Game.GraphicsDevice.Clear(clearColor);
             }
             else if (DepthFormat == DepthFormat.Depth24Stencil8)
             {
-                Game.Engine.Instance.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, clearColor, 1.0f, 0);
+                Game.EngineComponents.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, clearColor, 1.0f, 0);
             }
             else
             {
-                Game.Engine.Instance.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
+                Game.EngineComponents.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
             }
         } // Clear
 
@@ -192,7 +192,7 @@ namespace CasaEngine.Framework.Assets.Textures
             }
             _alreadyResolved = true;
             _currentRenderTarget = null;
-            Game.Engine.Instance.Game.GraphicsDevice.SetRenderTarget(null);
+            Game.EngineComponents.Game.GraphicsDevice.SetRenderTarget(null);
         } // DisableRenderTarget
 
         public static void DisableCurrentRenderTargets()
@@ -203,7 +203,7 @@ namespace CasaEngine.Framework.Assets.Textures
             }
 
             _currentRenderTarget = null;
-            Game.Engine.Instance.Game.GraphicsDevice.SetRenderTarget(null);
+            Game.EngineComponents.Game.GraphicsDevice.SetRenderTarget(null);
         } // DisableCurrentRenderTargets
 
 

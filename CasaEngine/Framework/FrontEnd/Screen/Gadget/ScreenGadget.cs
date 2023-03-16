@@ -142,7 +142,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
             var whitePixels = new Color[] { Color.White };
             _whiteTexture.SetData<Color>(whitePixels);
 
-            Font = Framework.Game.Engine.Instance.DefaultSpriteFont;
+            Font = EngineComponents.DefaultSpriteFont;
             //Font = game_.Content.Load<SpriteFont>(FontName);
         }
 
@@ -283,7 +283,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
             Scale = Vector2.One;
             Name = name;
             Text = Name;
-            Font = Game.Engine.Instance.DefaultSpriteFont;
+            Font = Game.EngineComponents.DefaultSpriteFont;
         }
 
         public virtual void Save(XmlElement el, SaveOption opt)

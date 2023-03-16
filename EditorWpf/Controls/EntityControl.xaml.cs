@@ -6,6 +6,7 @@ using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Common;
 using EditorWpf.Windows;
 using Microsoft.Xna.Framework;
@@ -158,10 +159,10 @@ namespace EditorWpf.Controls
             if (selectStaticMeshWindow.ShowDialog() == true)
             {
                 var staticMeshComponent = (sender as FrameworkElement).DataContext as StaticMeshComponent;
-                var graphicsDevice = CasaEngine.Framework.Game.Engine.Instance.Game.GraphicsDevice;
+                var graphicsDevice = EngineComponents.Game.GraphicsDevice;
 
                 staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
-                staticMeshComponent.Mesh.Texture = CasaEngine.Framework.Game.Engine.Instance.Game.Content.Load<Texture2D>("checkboard");
+                staticMeshComponent.Mesh.Texture = EngineComponents.Game.Content.Load<Texture2D>("checkboard");
             }
         }
     }

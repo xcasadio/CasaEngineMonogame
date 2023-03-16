@@ -568,7 +568,7 @@ namespace CasaEngine.Framework.UserInterface
             {
                 skinContentManager.Unload(skinContentManagerCategory);
             }*/
-            Game.Engine.Instance.AssetContentManager.Unload(SkinContentManagerCategory);
+            Game.EngineComponents.AssetContentManager.Unload(SkinContentManagerCategory);
 
 
 
@@ -604,7 +604,7 @@ namespace CasaEngine.Framework.UserInterface
                 foreach (var skinFont in Fonts)
                 {
                     throw new NotImplementedException();
-                    //skinFont.Font = (Font)CasaEngine.Game.Engine.Instance.ObjectManager.GetObjectByPath(skinFont.Filename);
+                    //skinFont.Font = (Font)CasaEngine.Game.EngineComponents.ObjectManager.GetObjectByPath(skinFont.Filename);
                     //skinFont.Font.LoadTexture("", graphicsDevice);
                     //skinFont.Font = new Font();
                     //skinFont.Font.LoadTexture(fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename, graphicsDevice);
@@ -613,7 +613,7 @@ namespace CasaEngine.Framework.UserInterface
                 foreach (var skinCursor in Cursors)
                 {
                     skinCursor.Cursor = new Cursor(graphicsDevice,
-                        Game.Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
+                        Game.EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
                         fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur");
                 }
 #endif

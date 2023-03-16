@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------------
 
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -152,7 +153,7 @@ namespace CasaEngine.Engine.Primitives3D
         /// <param name="effect"></param>
         public void DrawOnlyVertex()
         {
-            var graphicsDevice = Framework.Game.Engine.Instance.Game.GraphicsDevice;
+            var graphicsDevice = EngineComponents.Game.GraphicsDevice;
 
             graphicsDevice.SetVertexBuffer(_vertexBuffer);
             graphicsDevice.Indices = _indexBuffer;

@@ -80,7 +80,7 @@ namespace Editor.Tools.Graphics2D
             m_XnaEditorForm = new XnaEditorForm(this);
             m_Sprite2DComponent = new Sprite2DEditorComponent(m_XnaEditorForm.Game);
             m_Sprite2DComponent.UndoRedoManager = m_UndoRedoManager;
-            m_XnaEditorForm.Game.Content.RootDirectory = Engine.Instance.ProjectManager.ProjectPath;
+            m_XnaEditorForm.Game.Content.RootDirectory = EngineComponents.ProjectManager.ProjectPath;
             m_XnaEditorForm.StartGame();
 
             FormClosed += new FormClosedEventHandler(Sprite2DEditorFormClosed);

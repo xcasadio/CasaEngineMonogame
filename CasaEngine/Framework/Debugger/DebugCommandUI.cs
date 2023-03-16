@@ -608,7 +608,7 @@ namespace CasaEngine.Framework.Debugger
                 return;
             }
 
-            var font = Framework.Game.Engine.Instance.DefaultSpriteFont;
+            var font = EngineComponents.DefaultSpriteFont;
             var whiteTexture = _debugManager.WhiteTexture;
             var depth = 0.0f;
 

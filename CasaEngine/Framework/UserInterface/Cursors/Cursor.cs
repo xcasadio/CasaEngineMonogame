@@ -25,7 +25,7 @@ namespace CasaEngine.Framework.UserInterface.Cursors
             }
             try
             {
-                Resource = Game.Engine.Instance.AssetContentManager.Load<System.Windows.Forms.Cursor>(Filename, GraphicsDevice);
+                Resource = Game.EngineComponents.AssetContentManager.Load<System.Windows.Forms.Cursor>(Filename, GraphicsDevice);
             }
             catch (ObjectDisposedException)
             {
@@ -41,7 +41,7 @@ namespace CasaEngine.Framework.UserInterface.Cursors
         {
             if (Resource == null)
             {
-                Resource = Game.Engine.Instance.AssetContentManager.Load<System.Windows.Forms.Cursor>(Filename, GraphicsDevice);
+                Resource = Game.EngineComponents.AssetContentManager.Load<System.Windows.Forms.Cursor>(Filename, GraphicsDevice);
             }
         } // RecreateResource
 

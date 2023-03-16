@@ -261,10 +261,10 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             string assetFile;
 
 #if EDITOR
-            assetFile = Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
+            assetFile = Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                 ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + _assetFileNames[0];
 #else
-            assetFile = Game.Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
+            assetFile = Game.EngineComponents.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
 #endif
 
             if (_texture2D != null

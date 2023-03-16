@@ -73,9 +73,9 @@
 
             if (_isAssetContentManagerInitialized == false)
             {
-                CasaEngine.Game.Engine.Instance.AssetContentManager = new AssetContentManager();
-                CasaEngine.Game.Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
-                CasaEngine.Game.Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+                CasaEngine.Game.EngineComponents.AssetContentManager = new AssetContentManager();
+                CasaEngine.Game.EngineComponents.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
+                CasaEngine.Game.EngineComponents.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
                 _isAssetContentManagerInitialized = true;
             }
         }

@@ -136,7 +136,7 @@ namespace CasaEngine.Framework.Assets.Fonts
             foreach (var texFileName in _texturesFileNames)
             {
                 //string fileName = path_ + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + texFileName;
-                //fileName = fileName.Replace(CasaEngine.Game.Engine.Instance.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar, "");
+                //fileName = fileName.Replace(CasaEngine.Game.EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar, "");
                 Textures[i] = new Texture(graphicsDevice, texFileName); //fileName);
                 i++;
             }
@@ -145,10 +145,10 @@ namespace CasaEngine.Framework.Assets.Fonts
             string assetFile;
 
 #if EDITOR
-            assetFile = CasaEngine.Game.Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
+            assetFile = CasaEngine.Game.EngineComponents.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
                 ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
 #else
-            assetFile = CasaEngine.Game.Engine.Instance.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
+            assetFile = CasaEngine.Game.EngineComponents.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
 #endif
 
             if (_Texture2D != null

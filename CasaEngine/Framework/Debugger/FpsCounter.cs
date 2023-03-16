@@ -189,14 +189,14 @@ namespace CasaEngine.Framework.Debugger
 
         public override void Draw(GameTime gameTime)
         {
-            var font = Framework.Game.Engine.Instance.DefaultSpriteFont;
+            var font = EngineComponents.DefaultSpriteFont;
 
             // Compute size of border area.
             var size = font.MeasureString("X");
             var rc =
                 new Rectangle(0, 0, (int)(size.X * 14f), (int)(size.Y * 1.3f));
 
-            var layout = new Layout(Framework.Game.Engine.Instance.SpriteBatch.GraphicsDevice.Viewport);
+            var layout = new Layout(EngineComponents.SpriteBatch.GraphicsDevice.Viewport);
             rc = layout.Place(rc, 0.01f, 0.01f, Alignment.TopLeft);
 
             // Place FPS string in border area.
@@ -206,7 +206,7 @@ namespace CasaEngine.Framework.Debugger
 
             // Draw
             _renderer2DComponent.AddSprite2D(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
-            _renderer2DComponent.AddText2D(Framework.Game.Engine.Instance.DefaultSpriteFont, _stringBuilder.ToString(),
+            _renderer2DComponent.AddText2D(EngineComponents.DefaultSpriteFont, _stringBuilder.ToString(),
                 pos, 0.0f, Vector2.One, Color.White, 0f);
 
             base.Draw(gameTime);

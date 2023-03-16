@@ -48,7 +48,7 @@ namespace CasaEngine.Framework.Assets
             Id = _uniqueIdCounter;
             _uniqueIdCounter++;
 
-            Game.Engine.Instance.AssetContentManager.AddAsset(this);
+            Game.EngineComponents.AssetContentManager.AddAsset(this);
         }
 
 

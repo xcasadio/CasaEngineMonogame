@@ -52,8 +52,8 @@ public abstract class CameraComponent : Component
         _needToComputeProjectionMatrix = true;
         _needToComputeViewMatrix = true;
 
-        _viewport.Width = Game.Engine.Instance.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
-        _viewport.Height = Game.Engine.Instance.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
+        _viewport.Width = Game.EngineComponents.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        _viewport.Height = Game.EngineComponents.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
         _viewport.MinDepth = 0.1f;
         _viewport.MaxDepth = 100000.0f;
     }

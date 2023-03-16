@@ -65,10 +65,10 @@ namespace CasaEngine.Framework.Gameplay
                             string projectFile;
 
 #if EDITOR
-                            projectFile = Game.Engine.Instance.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
+                            projectFile = Game.EngineComponents.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
                             projectFile += System.IO.Path.DirectorySeparatorChar + Path + ".xml";
 #else
-                            //projectFile = CasaEngine.Framework.Game.Engine.Instance.Game.AssetContentManager.RootDirectory + System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
+                            //projectFile = CasaEngine.EngineComponents.Game.AssetContentManager.RootDirectory + System.IO.Path.DirectorySeparatorChar + this.Path + ".xml";
                             projectFile = "TODO";
 #endif
 
@@ -222,7 +222,7 @@ namespace CasaEngine.Framework.Gameplay
                 //}
                 /*else
                 {
-                    XmlNode otherNode = CasaEngine.Game.Engine.Instance.ProjectManager.LastXmlDocument.SelectSingleNode(XPath);
+                    XmlNode otherNode = CasaEngine.Game.EngineComponents.ProjectManager.LastXmlDocument.SelectSingleNode(XPath);
                     XmlNode importNode = el_.OwnerDocument.ImportNode(otherNode, true);
                     el_.AppendChild(importNode);
                 }*/
@@ -280,7 +280,7 @@ namespace CasaEngine.Framework.Gameplay
 
         public void Load(XmlElement el, SaveOption option)
         {
-            /*string assetPath = CasaEngine.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
+            /*string assetPath = CasaEngine.Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
 
             foreach (string file in Directory.GetFiles(assetPath, "*.xml", SearchOption.AllDirectories))
             {
@@ -310,7 +310,7 @@ namespace CasaEngine.Framework.Gameplay
 
                     foreach (string asset in ass.AssetFileNames)
                     {
-                        string assetPath = CasaEngine.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+                        string assetPath = CasaEngine.Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
                         assetPath += ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + asset;
 
                         string assetName = Path.GetDirectoryName(asset) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(asset);
@@ -320,7 +320,7 @@ namespace CasaEngine.Framework.Gameplay
                 }*/
             }
 
-            //assetManager.BuildAll(CasaEngine.Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath);
+            //assetManager.BuildAll(CasaEngine.Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath);
         }
 
         public void Load(BinaryReader br, SaveOption option)
@@ -468,7 +468,7 @@ namespace CasaEngine.Framework.Gameplay
 
                     foreach (var assetFileName in asset.AssetFileNames)
                     {
-                        var assetPath = Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
+                        var assetPath = Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                                         ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + assetFileName;
 
                         if (File.Exists(assetPath))
@@ -562,7 +562,7 @@ namespace CasaEngine.Framework.Gameplay
 
                     foreach (var fileName in asset.AssetFileNames)
                     {
-                        var assetPath = Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+                        var assetPath = Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
                         assetPath += ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + fileName;
                         var destAssetFile = assetPath.Replace(Path.GetDirectoryName(srcPath), destPath);
 
@@ -572,7 +572,7 @@ namespace CasaEngine.Framework.Gameplay
                         }
 
                         File.Move(assetPath, destAssetFile);
-                        newAssets.Add(destAssetFile.Replace(Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
+                        newAssets.Add(destAssetFile.Replace(Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                             ProjectManager.AssetDirPath + Path.DirectorySeparatorChar, ""));
 
                         //TODO : Source Control
@@ -737,7 +737,7 @@ namespace CasaEngine.Framework.Gameplay
         private string GetFileName(ObjectContainer objC)
         {
             var ext = ".xml";
-            return Game.Engine.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar
+            return Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar
                                                                    + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + objC.Path + ext;
         }
 

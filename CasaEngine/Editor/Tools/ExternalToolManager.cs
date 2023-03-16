@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 
 namespace CasaEngine.Editor.Tools
@@ -18,12 +19,12 @@ namespace CasaEngine.Editor.Tools
         {
             Clear();
 
-            if (string.IsNullOrEmpty(Framework.Game.Engine.Instance.ProjectManager.ProjectPath))
+            if (string.IsNullOrEmpty(EngineComponents.ProjectManager.ProjectPath))
             {
                 return;
             }
 
-            var fullPath = Framework.Game.Engine.Instance.ProjectManager.ProjectPath;
+            var fullPath = EngineComponents.ProjectManager.ProjectPath;
             fullPath += Path.DirectorySeparatorChar + ProjectManager.ExternalToolsDirPath;
 
             //AppDomain.CurrentDomain.SetupInformation.PrivateBiAnPath = fullPath;

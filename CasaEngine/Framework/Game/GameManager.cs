@@ -31,7 +31,7 @@ public class GameManager
 
     public GameManager(CasaEngineGame game)
     {
-        Engine.Instance.Game = game;
+        EngineComponents.Game = game;
         _graphicsDeviceManager = new GraphicsDeviceManager(game);
         _graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
         _graphicsDeviceManager.DeviceReset += OnDeviceReset;
@@ -40,7 +40,7 @@ public class GameManager
 
     public GameManager(CasaEngineGame game, IGraphicsDeviceService graphicsDeviceService)
     {
-        Engine.Instance.Game = game;
+        EngineComponents.Game = game;
         _graphicsDeviceService = graphicsDeviceService;
         graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
         if (game.Services.GetService<IGraphicsDeviceService>() != null)
@@ -52,8 +52,8 @@ public class GameManager
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
     {
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = Engine.Instance.ProjectSettings.DebugWidth;
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = Engine.Instance.ProjectSettings.DebugHeight;
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = EngineComponents.ProjectSettings.DebugWidth;
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = EngineComponents.ProjectSettings.DebugHeight;
         //e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle = IntPtr.Zero;
 
         e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
@@ -79,11 +79,11 @@ public class GameManager
 
     public void Initialize()
     {
-        Engine.Instance.AssetContentManager = new AssetContentManager();
-        Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
-        Engine.Instance.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+        EngineComponents.AssetContentManager = new AssetContentManager();
+        EngineComponents.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
+        EngineComponents.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
 
-        var game = Engine.Instance.Game;
+        var game = EngineComponents.Game;
         DebugSystem.Initialize(game);
 
         _renderer2DComponent = new Renderer2DComponent(game);
@@ -110,40 +110,40 @@ public class GameManager
         ContentPath = "Content";
 #endif
 
-        Engine.Instance.Game.Content.RootDirectory = ContentPath;
-        //CasaEngine.Game.Engine.Instance.ProjectManager.Load(ProjectFile);
+        EngineComponents.Game.Content.RootDirectory = ContentPath;
+        //CasaEngine.Game.EngineComponents.ProjectManager.Load(ProjectFile);
         //TODO : create hierarchy of the project
         if (!string.IsNullOrWhiteSpace(ProjectFile))
         {
-            Engine.Instance.ProjectSettings.Load(ProjectFile);
+            EngineComponents.ProjectSettings.Load(ProjectFile);
         }
 
-        Engine.Instance.Game.Window.Title = Engine.Instance.ProjectSettings.WindowTitle;
-        Engine.Instance.Game.Window.AllowUserResizing = Engine.Instance.ProjectSettings.AllowUserResizing;
-        Engine.Instance.Game.IsFixedTimeStep = Engine.Instance.ProjectSettings.IsFixedTimeStep;
-        Engine.Instance.Game.IsMouseVisible = Engine.Instance.ProjectSettings.IsMouseVisible;
+        EngineComponents.Game.Window.Title = EngineComponents.ProjectSettings.WindowTitle;
+        EngineComponents.Game.Window.AllowUserResizing = EngineComponents.ProjectSettings.AllowUserResizing;
+        EngineComponents.Game.IsFixedTimeStep = EngineComponents.ProjectSettings.IsFixedTimeStep;
+        EngineComponents.Game.IsMouseVisible = EngineComponents.ProjectSettings.IsMouseVisible;
 
-        if (!string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.GameplayDllName))
+        if (!string.IsNullOrWhiteSpace(EngineComponents.ProjectSettings.GameplayDllName))
         {
-            Engine.Instance.PluginManager.Load(Engine.Instance.ProjectSettings.GameplayDllName);
+            EngineComponents.PluginManager.Load(EngineComponents.ProjectSettings.GameplayDllName);
         }
     }
 
     public void BeginLoadContent()
     {
-        Engine.Instance.AssetContentManager.Initialize(Engine.Instance.Game.GraphicsDevice);
-        Engine.Instance.AssetContentManager.RootDirectory = ContentPath;
+        EngineComponents.AssetContentManager.Initialize(EngineComponents.Game.GraphicsDevice);
+        EngineComponents.AssetContentManager.RootDirectory = ContentPath;
 
-        //CasaEngine.Game.Engine.Instance.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
+        //CasaEngine.Game.EngineComponents.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
 
-        Engine.Instance.SpriteBatch = new SpriteBatch(Engine.Instance.Game.GraphicsDevice);
+        EngineComponents.SpriteBatch = new SpriteBatch(EngineComponents.Game.GraphicsDevice);
         //TODO : defaultSpriteFont
         //GameInfo.Instance.DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
 
-        //_renderer2DComponent.SpriteBatch = Engine.Instance.SpriteBatch;
-        //var renderTarget = new RenderTarget2D(Engine.Instance.Game.GraphicsDevice, 1024, 768, false,
+        //_renderer2DComponent.SpriteBatch = EngineComponents.SpriteBatch;
+        //var renderTarget = new RenderTarget2D(EngineComponents.Game.GraphicsDevice, 1024, 768, false,
         //    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-        //Engine.Instance.Game.GraphicsDevice.SetRenderTarget(renderTarget);
+        //EngineComponents.Game.GraphicsDevice.SetRenderTarget(renderTarget);
     }
 
     public void EndLoadContent()
@@ -151,13 +151,13 @@ public class GameManager
 #if !EDITOR
         if (GameInfo.Instance.CurrentWorld == null)
         {
-            if (string.IsNullOrWhiteSpace(Engine.Instance.ProjectSettings.FirstWorldLoaded))
+            if (string.IsNullOrWhiteSpace(EngineComponents.ProjectSettings.FirstWorldLoaded))
             {
                 throw new InvalidOperationException("FirstWorldLoaded is undefined");
             }
 
             GameInfo.Instance.CurrentWorld = new World.World();
-            GameInfo.Instance.CurrentWorld.Load(Engine.Instance.ProjectSettings.FirstWorldLoaded);
+            GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
         }
 #else
         //default world
@@ -188,7 +188,7 @@ public class GameManager
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         GameInfo.Instance.CurrentWorld?.Update(elapsedTime);
-        //CasaEngine.Game.Engine.Instance.UiManager.Update(time);
+        //CasaEngine.Game.EngineComponents.UiManager.Update(time);
     }
 
     public void EndUpdate(GameTime gameTime)
@@ -205,12 +205,12 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-        //Engine.Instance.Game.GraphicsDevice.Clear(Color.CornflowerBlue);
-        Engine.Instance.Game.GraphicsDevice.Clear(Color.Black);
+        //EngineComponents.Game.GraphicsDevice.Clear(Color.CornflowerBlue);
+        EngineComponents.Game.GraphicsDevice.Clear(Color.Black);
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         GameInfo.Instance.CurrentWorld?.Draw(elapsedTime);
-        //CasaEngine.Game.Engine.Instance.UiManager.PreRenderControls();
+        //CasaEngine.Game.EngineComponents.UiManager.PreRenderControls();
     }
 
     public void EndDraw(GameTime gameTime)

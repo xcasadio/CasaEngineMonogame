@@ -27,7 +27,7 @@ public class PlayerComponent : Component
 
     public override void Initialize()
     {
-        _shapeRendererComponent = Engine.Instance.Game.Components.First(x => x is ShapeRendererComponent) as ShapeRendererComponent;
+        _shapeRendererComponent = EngineComponents.Game.Components.First(x => x is ShapeRendererComponent) as ShapeRendererComponent;
     }
 
     public override void Update(float elapsedTime)

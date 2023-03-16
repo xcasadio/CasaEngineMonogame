@@ -75,7 +75,7 @@
             //var projectNode = (XmlElement)xmlDoc.SelectSingleNode(NodeRootName);
             //
             //var configNode = (XmlElement)projectNode.SelectSingleNode(NodeConfigName);
-            //CasaEngine.Game.Engine.Instance.ProjectSettings.Load(configNode, SaveOption.Editor);
+            //CasaEngine.Game.EngineComponents.ProjectSettings.Load(configNode, SaveOption.Editor);
 
             /*XmlElement asset2DNode = (XmlElement)projectNode.SelectSingleNode(NodeAsset2DName);
             GameInfo.Instance.Asset2DManager.Load(asset2DNode, SaveOption.Editor);
@@ -86,12 +86,12 @@
 #endif
 
             XmlElement objectRegistryNode = (XmlElement)projectNode.SelectSingleNode(NodeObjectRegistryName);
-            CasaEngine.Game.Engine.Instance.ObjectManager.Load(objectRegistryNode, SaveOption.Editor);*/
+            CasaEngine.Game.EngineComponents.ObjectManager.Load(objectRegistryNode, SaveOption.Editor);*/
 
-            //CasaEngine.Game.Engine.Instance.ObjectManager.Load(projectNode, SaveOption.Editor);
+            //CasaEngine.Game.EngineComponents.ObjectManager.Load(projectNode, SaveOption.Editor);
 
 #if EDITOR
-            Game.Engine.Instance.ExternalToolManager.Initialize();
+            Game.EngineComponents.ExternalToolManager.Initialize();
 
             ProjectLoaded?.Invoke(this, EventArgs.Empty);
 #endif
@@ -108,9 +108,9 @@
 
         public void Clear()
         {
-            Game.Engine.Instance.AssetManager.Clear();
-            Game.Engine.Instance.Asset2DManager.Clear();
-            Game.Engine.Instance.ExternalToolManager.Clear();
+            Game.EngineComponents.AssetManager.Clear();
+            Game.EngineComponents.Asset2DManager.Clear();
+            Game.EngineComponents.ExternalToolManager.Clear();
             ProjectFileOpened = null;
 
             ProjectClosed?.Invoke(this, EventArgs.Empty);
@@ -161,7 +161,7 @@
             //
             //var configNode = xmlDoc.CreateElement(NodeConfigName);
             //projectNode.AppendChild(configNode);
-            //CasaEngine.Game.Engine.Instance.ProjectSettings.Save(configNode, SaveOption.Editor);
+            //CasaEngine.Game.EngineComponents.ProjectSettings.Save(configNode, SaveOption.Editor);
 
             //liste des mondes
             /*XmlElement worldListNode = xmlDoc.CreateElement("WorldList");
@@ -201,7 +201,7 @@
 
             //XmlElement objectManagerNode = xmlDoc.CreateElement(NodeObjectListName);
             //projectNode.AppendChild(objectManagerNode);
-            //CasaEngine.Game.Engine.Instance.ObjectManager.Save(projectNode, SaveOption.Editor);
+            //CasaEngine.Game.EngineComponents.ObjectManager.Save(projectNode, SaveOption.Editor);
 
             //xmlDoc.Save(fileName);
 

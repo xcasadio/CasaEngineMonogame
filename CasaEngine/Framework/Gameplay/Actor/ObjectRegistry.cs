@@ -146,11 +146,11 @@ namespace CasaEngine.Framework.Gameplay.Actor
             el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
             XmlDocument xmlDocLast = null;
-            if (string.IsNullOrEmpty(Game.Engine.Instance.ProjectManager.ProjectFileOpened) == false
-                && File.Exists(Game.Engine.Instance.ProjectManager.ProjectFileOpened))
+            if (string.IsNullOrEmpty(Game.EngineComponents.ProjectManager.ProjectFileOpened) == false
+                && File.Exists(Game.EngineComponents.ProjectManager.ProjectFileOpened))
             {
                 xmlDocLast = new XmlDocument();
-                xmlDocLast.Load(Game.Engine.Instance.ProjectManager.ProjectFileOpened);
+                xmlDocLast.Load(Game.EngineComponents.ProjectManager.ProjectFileOpened);
             }
 
             foreach (var o in _objectRegistry)
@@ -385,7 +385,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
         public void Load(XmlElement el, SaveOption option)
         {
 #if EDITOR
-            Game.Engine.Instance.ObjectRegistry.Clear();
+            Game.EngineComponents.ObjectRegistry.Clear();
 #endif
 
             var version = uint.Parse(el.Attributes["version"].Value);
@@ -452,10 +452,10 @@ namespace CasaEngine.Framework.Gameplay.Actor
                 var xmlFile = string.Empty;
 
 #if EDITOR
-                xmlFile = Game.Engine.Instance.ProjectManager.ProjectFileOpened;
+                xmlFile = Game.EngineComponents.ProjectManager.ProjectFileOpened;
                 xmlDoc.Load(xmlFile);
 #else
-                //CasaEngineGame game = (CasaEngineGame)CasaEngine.Game.Engine.Instance.Game;
+                //CasaEngineGame game = (CasaEngineGame)CasaEngine.Game.EngineComponents.Game;
                 //xmlFile = "Content\\" + game.ProjectFile;
                 //xmlDoc.Load(xmlFile);
 #endif

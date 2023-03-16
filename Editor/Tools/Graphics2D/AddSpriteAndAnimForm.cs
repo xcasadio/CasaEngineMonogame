@@ -110,7 +110,7 @@ namespace Editor.Tools.Graphics2D
             FolderBrowserDialog form = new FolderBrowserDialog();
             form.ShowNewFolderButton = false;
             form.Description = "select a directory";
-            form.SelectedPath = Engine.Instance.ProjectManager.ProjectPath;
+            form.SelectedPath = EngineComponents.ProjectManager.ProjectPath;
 
             if (form.ShowDialog(this) == DialogResult.OK)
             {

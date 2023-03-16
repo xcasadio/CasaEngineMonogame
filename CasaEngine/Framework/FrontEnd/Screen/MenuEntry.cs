@@ -53,7 +53,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
         {
             _text = text;
 
-            _renderer2DComponent = Game.Engine.Instance.Game.GetGameComponent<Renderer2DComponent>();
+            _renderer2DComponent = Game.EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
         }
 
 
@@ -97,8 +97,8 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
             // Draw text, centered on the middle of each line.
             var screenManager = screen.ScreenManagerComponent;
-            var spriteBatch = Game.Engine.Instance.SpriteBatch;
-            var font = Game.Engine.Instance.DefaultSpriteFont;
+            var spriteBatch = Game.EngineComponents.SpriteBatch;
+            var font = Game.EngineComponents.DefaultSpriteFont;
 
             var origin = new Vector2(0, font.LineSpacing / 2);
 
@@ -111,7 +111,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
         public virtual int GetHeight(MenuScreen screen)
         {
-            return Game.Engine.Instance.DefaultSpriteFont.LineSpacing;
+            return Game.EngineComponents.DefaultSpriteFont.LineSpacing;
         }
 
     }

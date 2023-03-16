@@ -12,8 +12,8 @@ namespace EditorWpf.Controls
         {
             InitializeComponent();
 
-            PropertyGridProjectSettings.SelectedObject = Engine.Instance.ProjectSettings;
-            PropertyGridPhysicSettings.SelectedObject = Engine.Instance.Physics2dSettings;
+            PropertyGridProjectSettings.SelectedObject = EngineComponents.ProjectSettings;
+            PropertyGridPhysicSettings.SelectedObject = EngineComponents.Physics2dSettings;
         }
     }
 }

@@ -37,7 +37,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Windows
             IconVisible = true;
             Resizable = false;
             StayOnTop = true;
-            Text = Game.Engine.Instance.Game.Window.Title;
+            Text = Game.EngineComponents.Game.Window.Title;
             CenterWindow();
 
             _imageIcon = new ImageBox(UserInterfaceManager)
