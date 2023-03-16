@@ -1,20 +1,11 @@
 ﻿namespace Editor.Helper
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    static public class ImageHelper
+    public static class ImageHelper
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="file_"></param>
-        /// <returns></returns>
-        static public Image LoadImageFromFileAndRelease(string file_)
+        public static Image LoadImageFromFileAndRelease(string file)
         {
-            Image img;
-            FileStream stream = new FileStream(file_, FileMode.Open, FileAccess.Read);
-            img = Image.FromStream(stream);
+            FileStream stream = new(file, FileMode.Open, FileAccess.Read);
+            var img = Image.FromStream(stream);
             stream.Close();
             return img;
         }

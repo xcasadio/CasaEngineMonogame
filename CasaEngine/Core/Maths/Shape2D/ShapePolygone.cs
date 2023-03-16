@@ -134,8 +134,8 @@ namespace CasaEngine.Core.Maths.Shape2D
         }
 
 #if EDITOR
-        public event EventHandler OnPointAdded;
-        public event EventHandler OnPointDeleted;
+        public event EventHandler? OnPointAdded;
+        public event EventHandler? OnPointDeleted;
 
 #if EDITOR
         [Browsable(false)]
@@ -165,20 +165,14 @@ namespace CasaEngine.Core.Maths.Shape2D
         {
             _points.Add(p);
 
-            if (OnPointAdded != null)
-            {
-                OnPointAdded(this, EventArgs.Empty);
-            }
+            OnPointAdded?.Invoke(this, EventArgs.Empty);
         }
 
         public void AddPoint(int index, Vector2 p)
         {
             _points.Insert(index, p);
 
-            if (OnPointAdded != null)
-            {
-                OnPointAdded(this, EventArgs.Empty);
-            }
+            OnPointAdded?.Invoke(this, EventArgs.Empty);
         }
 
         public void ModifyPoint(int index, Vector2 p)
@@ -195,36 +189,25 @@ namespace CasaEngine.Core.Maths.Shape2D
         {
             _points.Remove(p);
 
-            if (OnPointDeleted != null)
-            {
-                OnPointDeleted(this, EventArgs.Empty);
-            }
+            OnPointDeleted?.Invoke(this, EventArgs.Empty);
         }
 
         public void RemovePointAt(int index)
         {
             _points.RemoveAt(index);
 
-            if (OnPointDeleted != null)
-            {
-                OnPointDeleted(this, EventArgs.Empty);
-            }
+            OnPointDeleted?.Invoke(this, EventArgs.Empty);
         }
 
         public void DeleteAllPoints()
         {
             _points.Clear();
 
-            if (OnPointDeleted != null)
-            {
-                OnPointDeleted(this, EventArgs.Empty);
-            }
+            OnPointDeleted?.Invoke(this, EventArgs.Empty);
         }
 
         private void VerticesCorrection()
         {
-            int i1, i2;
-
             var v = new Vertices(_points);
             v = SimplifyTools.MergeIdenticalPoints(v);
             v = SimplifyTools.CollinearSimplify(v);
@@ -237,8 +220,8 @@ namespace CasaEngine.Core.Maths.Shape2D
             // is to the left of each edge.
             for (var i = 0; i < _points.Count; ++i)
             {
-                i1 = i;
-                i2 = i + 1 < _points.Count ? i + 1 : 0;
+                var i1 = i;
+                var i2 = i + 1 < _points.Count ? i + 1 : 0;
 
                 var edge = _points[i2] - _points[i1];
 
@@ -286,29 +269,27 @@ namespace CasaEngine.Core.Maths.Shape2D
 
         public override bool CompareTo(Shape2DObject o)
         {
-            if (o is ShapePolygone)
+            if (o is ShapePolygone polygone)
             {
-                var p = (ShapePolygone)o;
-
-                if (_isABox != p._isABox)
+                if (_isABox != polygone._isABox)
                 {
                     return false;
                 }
 
-                if (_points.Count != p._points.Count)
+                if (_points.Count != polygone._points.Count)
                 {
                     return false;
                 }
 
                 for (var i = 0; i < _points.Count; i++)
                 {
-                    if (_points[i] != p._points[i])
+                    if (_points[i] != polygone._points[i])
                     {
                         return false;
                     }
                 }
 
-                return base.CompareTo(o);
+                return base.CompareTo(polygone);
             }
 
             return false;

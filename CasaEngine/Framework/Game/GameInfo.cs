@@ -23,9 +23,11 @@ namespace CasaEngine.Framework.Game
         public CameraComponent? ActiveCamera { get; set; }
         public event EventHandler? WorldChanged;
 
+#if EDITOR
         public void InvokeReadyToStart(CasaEngineGame game)
         {
             ReadyToStart?.Invoke(game, EventArgs.Empty);
         }
+#endif
     }
 }

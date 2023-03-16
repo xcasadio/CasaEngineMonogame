@@ -173,7 +173,7 @@ public class GameManager
 
         GameInfo.Instance.CurrentWorld.Initialize();
 
-        _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.PhysicWorld);
+        _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
     }
 
     public void BeginUpdate(GameTime gameTime)

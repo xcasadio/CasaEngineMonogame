@@ -19,14 +19,13 @@ namespace CasaEngine.Framework.World
 
         public string Name { get; set; }
         public IList<Entity> Entities => _entities;
-
-        public Genbox.VelcroPhysics.Dynamics.World? PhysicWorld;
+        public Genbox.VelcroPhysics.Dynamics.World? Physic2dWorld { get; }
 
         public World(bool usePhysics = true)
         {
             if (usePhysics)
             {
-                PhysicWorld = new Genbox.VelcroPhysics.Dynamics.World(Game.Engine.Instance.PhysicsSettings.Gravity);
+                Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(Game.Engine.Instance.Physics2dSettings.Gravity);
             }
         }
 
@@ -74,7 +73,7 @@ namespace CasaEngine.Framework.World
 
         public virtual void Update(float elapsedTime)
         {
-            PhysicWorld?.Step(elapsedTime);
+            Physic2dWorld?.Step(elapsedTime);
 
             var toRemove = new List<Entity>();
 

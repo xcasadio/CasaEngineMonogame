@@ -32,7 +32,7 @@ namespace CasaEngine.Framework.Game
         public ObjectRegistry ObjectRegistry { get; } = new();
         public CasaEngineGame Game { get; set; }
         public ProjectSettings ProjectSettings { get; } = new();
-        public PhysicsSettings PhysicsSettings { get; } = new();
+        public Physics2dSettings Physics2dSettings { get; } = new();
         public GraphicsSettings GraphicsSettings { get; } = new();
 
 #if !FINAL

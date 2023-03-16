@@ -2,9 +2,9 @@
 
 namespace CasaEngine.Engine.Physics2D
 {
-    public class PhysicsSettings
+    public class Physics2dSettings
     {
-        public PhysicsSettings()
+        public Physics2dSettings()
         {
             VelocityIterations = 8;// 10;
             PositionIterations = 3;// 8;
