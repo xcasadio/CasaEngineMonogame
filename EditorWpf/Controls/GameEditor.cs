@@ -10,6 +10,7 @@ using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.World;
 using EditorWpf.Datas;
 using EditorWpf.Inputs;
+using ICSharpCode.AvalonEdit.Editing;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -153,6 +154,7 @@ public class GameEditor : WpfGame
                     var gizmoComponent = Engine.Instance.Game.GetGameComponent<GizmoComponent>();
                     gizmoComponent.Gizmo.Clear(); // TODO
                     gizmoComponent.Gizmo.Selection.Add(entity);
+                    gizmoComponent.Gizmo.RaiseSelectionChanged();
                 }
             }
         }

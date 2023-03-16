@@ -361,7 +361,7 @@ namespace XNAGizmo
 
             if (selectionChanged)
             {
-                SelectionChanged?.Invoke(this, Selection.ToList());
+                RaiseSelectionChanged();
             }
         }
 
@@ -371,6 +371,12 @@ namespace XNAGizmo
         public void Clear()
         {
             Selection?.Clear();
+            RaiseSelectionChanged();
+        }
+
+        public void RaiseSelectionChanged()
+        {
+            SelectionChanged?.Invoke(this, Selection?.ToList());
         }
 
         protected void ResetDeltas()
