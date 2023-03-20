@@ -5,7 +5,7 @@ using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Maths.Shape2D
 {
-    public class ShapeLine : Shape2DObject
+    public class ShapeLine : Shape2dObject
     {
         private Point _start, _end;
 
@@ -53,12 +53,12 @@ namespace CasaEngine.Core.Maths.Shape2D
             _end.Y = int.Parse(el.Attributes["endY"].Value);
         }
 
-        public override Shape2DObject Clone()
+        public override Shape2dObject Clone()
         {
             return new ShapeLine(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob)
+        public override void CopyFrom(Shape2dObject ob)
         {
             if (ob is ShapeLine == false)
             {
@@ -86,13 +86,13 @@ namespace CasaEngine.Core.Maths.Shape2D
 #if EDITOR
 
         public ShapeLine(Point start, Point end)
-            : base(Shape2DType.Line)
+            : base(Shape2dType.Line)
         {
             _start = start;
             _end = end;
         }
 
-        public override bool CompareTo(Shape2DObject o)
+        public override bool CompareTo(Shape2dObject o)
         {
             if (o is ShapeLine)
             {

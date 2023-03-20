@@ -3,14 +3,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Editor.Tools;
-using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Common;
-using EditorWpf.Windows;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace EditorWpf.Controls
 {
@@ -55,7 +50,7 @@ namespace EditorWpf.Controls
         private void OnEntityPositionChanged(object? sender, EventArgs e)
         {
             _doNotUpdateEntityPosition = true;
-            var entity = (sender as Entity);
+            var entity = sender as Entity;
             Vector3ControlPosition.X = entity.Position.X;
             Vector3ControlPosition.Y = entity.Position.Y;
             Vector3ControlPosition.Z = entity.Position.Z;
@@ -65,7 +60,7 @@ namespace EditorWpf.Controls
         private void OnEntityScaleChanged(object? sender, EventArgs e)
         {
             _doNotUpdateEntityScale = true;
-            var entity = (sender as Entity);
+            var entity = sender as Entity;
             Vector3ControlScale.X = entity.Scale.X;
             Vector3ControlScale.Y = entity.Scale.Y;
             Vector3ControlScale.Z = entity.Scale.Z;
@@ -79,14 +74,14 @@ namespace EditorWpf.Controls
                 return;
             }
 
-            var vector3Control = (sender as Vector3Control);
+            var vector3Control = sender as Vector3Control;
 
             if (vector3Control == null)
             {
                 return;
             }
 
-            var entity = (vector3Control.DataContext as Entity);
+            var entity = vector3Control.DataContext as Entity;
 
             if (entity == null)
             {
@@ -103,7 +98,7 @@ namespace EditorWpf.Controls
                 return;
             }
 
-            var vector3Control = (sender as Vector3Control);
+            var vector3Control = sender as Vector3Control;
 
             if (vector3Control?.DataContext is not Entity entity)
             {
@@ -111,59 +106,6 @@ namespace EditorWpf.Controls
             }
 
             entity.Coordinates.LocalPosition = new Vector3(vector3Control.X, vector3Control.Y, vector3Control.Z);
-        }
-
-        private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
-        {
-            if (DataContext is not Entity entity)
-            {
-                return;
-            }
-
-            var inputComboBox = new InputComboBox(Application.Current.MainWindow)
-            {
-                Title = "Add a new component",
-                Description = "Choose the type of component to add",
-                Items = ElementRegister.EntityComponentNames.Keys.ToList()
-            };
-
-            if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
-            {
-                var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
-                var component = (Component)Activator.CreateInstance(componentType, entity);
-                component.Initialize();
-                entity.ComponentManager.Components.Add(component);
-
-                RefreshComponentsList(entity);
-            }
-        }
-
-        private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement { DataContext: Component component })
-            {
-                component.Owner.ComponentManager.Components.Remove(component);
-                RefreshComponentsList(component.Owner);
-            }
-        }
-
-        private void RefreshComponentsList(Entity entity)
-        {
-            ListBoxComponents.DataContext = null;
-            ListBoxComponents.DataContext = entity;
-        }
-
-        private void StaticMeshComponent_SelectMesh_OnClick(object sender, RoutedEventArgs e)
-        {
-            var selectStaticMeshWindow = new SelectStaticMeshWindow();
-            if (selectStaticMeshWindow.ShowDialog() == true)
-            {
-                var staticMeshComponent = (sender as FrameworkElement).DataContext as StaticMeshComponent;
-                var graphicsDevice = EngineComponents.Game.GraphicsDevice;
-
-                staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
-                staticMeshComponent.Mesh.Texture = EngineComponents.Game.Content.Load<Texture2D>("checkboard");
-            }
         }
     }
 }

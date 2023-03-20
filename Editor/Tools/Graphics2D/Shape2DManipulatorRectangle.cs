@@ -17,11 +17,11 @@ namespace Editor.Tools.Graphics2D
         {
             get
             {
-                return (ShapeRectangle)Shape2DObject;
+                return (ShapeRectangle)Shape2dObject;
             }
             internal set
             {
-                Shape2DObject = value;
+                Shape2dObject = value;
             }
         }
 

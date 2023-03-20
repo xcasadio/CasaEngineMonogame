@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:EditorWpf.Controls.Common"
         mc:Ignorable="d"
         Title="InputComboBox" Height="126" Width="359">
     <Grid Margin="10,10,10,10">
@@ -16,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0" x:Name="LabelDescription">Description</Label>
-        <ComboBox Grid.Row="2" x:Name="ComboBoxInput"></ComboBox>
+        <ComboBox Grid.Row="2" x:Name="ComboBoxInput" />
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" >
             <Button Width="70" Click="ButtonOk_Click">Ok</Button>
             <Button Width="70" Margin="5,0,0,0" Click="ButtonCancel_Click">Cancel</Button>

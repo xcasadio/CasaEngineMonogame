@@ -458,7 +458,7 @@ namespace CasaEngine.Framework.Gameplay
                     _whiteTexture,
                     Position + new Vector2(-50.0f, 10.0f),
                     0.0f,
-                    new Vector2((float)Hp / (float)HpMax * 100.0f, 5.0f), // scale
+                    new Vector2(Hp / (float)HpMax * 100.0f, 5.0f), // scale
                     Color.Green, 0.0f, SpriteEffects.None);
 
                 //display direction
@@ -618,7 +618,7 @@ namespace CasaEngine.Framework.Gameplay
             }
         }
 
-        public Shape2DObject[] Shape2DObjectList
+        public Shape2dObject[] Shape2DObjectList
         {
             get
             {
@@ -626,7 +626,7 @@ namespace CasaEngine.Framework.Gameplay
 
                 //return Manager.CreateShape2DFromSprite2D(id, position, SpriteEffects);
 
-                Shape2DObject[] res = null;
+                Shape2dObject[] res = null;
 
                 if (sprite.Collisions != null)
                 {
@@ -641,13 +641,13 @@ namespace CasaEngine.Framework.Gameplay
 
                         if (SpriteEffects == SpriteEffects.FlipHorizontally)
                         {
-                            _pointTmp.X = (int)Position.X - g.Location.X + (int)(sprite.HotSpot.X);
+                            _pointTmp.X = (int)Position.X - g.Location.X + sprite.HotSpot.X;
                             _pointTmp.Y = g.Location.Y + (int)(Position.Y - sprite.HotSpot.Y);
                         }
                         else if (SpriteEffects == SpriteEffects.FlipVertically)
                         {
                             _pointTmp.X = g.Location.X + (int)(Position.X - sprite.HotSpot.X);
-                            _pointTmp.Y = (int)Position.Y - g.Location.Y + (int)(sprite.HotSpot.Y);
+                            _pointTmp.Y = (int)Position.Y - g.Location.Y + sprite.HotSpot.Y;
                         }
                         else
                         {
@@ -787,7 +787,7 @@ namespace CasaEngine.Framework.Gameplay
 
         public void AddOrSetAnimation(int index, string name)
         {
-            var anim = Game.EngineComponents.ObjectManager.GetObjectByPath(name) as Animation2D;
+            var anim = EngineComponents.ObjectManager.GetObjectByPath(name) as Animation2D;
 
             if (anim != null)
             {
@@ -813,7 +813,7 @@ namespace CasaEngine.Framework.Gameplay
                 index++;
             }
 
-            var anim = Game.EngineComponents.Asset2DManager.GetAnimation2DByName(name);
+            var anim = EngineComponents.Asset2DManager.GetAnimation2DByName(name);
 
             if (anim != null)
             {

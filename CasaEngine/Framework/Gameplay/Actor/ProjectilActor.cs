@@ -14,7 +14,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
     {
 
         private Body _body;
-        private List<Shape2DObject> _shape2DObjectList = new();
+        private List<Shape2dObject> _shape2DObjectList = new();
         private TeamInfo _teamInfo;
 
 #if !FINAL
@@ -27,7 +27,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
 
 
 
-        public Shape2DObject[] Shape2DObjectList => _shape2DObjectList.ToArray();
+        public Shape2dObject[] Shape2DObjectList => _shape2DObjectList.ToArray();
 
         public new Vector2 Position => _body.Position;
 

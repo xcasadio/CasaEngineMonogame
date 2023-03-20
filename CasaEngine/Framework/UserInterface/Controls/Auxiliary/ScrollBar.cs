@@ -309,7 +309,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Auxiliary
 
 
                     var px = (Range - PageSize) / (float)(w - _buttonSlider.Width);
-                    var pos = (int)Math.Ceiling(Value / (float)px);
+                    var pos = (int)Math.Ceiling(Value / px);
                     _buttonSlider.SetPosition(size + pos, 0);
                     if (_buttonSlider.Left < size)
                     {
@@ -339,7 +339,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Auxiliary
                     _buttonSlider.Width = Width;
 
                     var px = (Range - PageSize) / (float)(h - _buttonSlider.Height);
-                    var pos = (int)Math.Ceiling(Value / (float)px);
+                    var pos = (int)Math.Ceiling(Value / px);
                     _buttonSlider.SetPosition(0, size + pos);
                     if (_buttonSlider.Top < size)
                     {

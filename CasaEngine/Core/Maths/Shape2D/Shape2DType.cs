@@ -1,6 +1,6 @@
 ﻿namespace CasaEngine.Core.Maths.Shape2D
 {
-    public enum Shape2DType
+    public enum Shape2dType
     {
         Polygone,
         Rectangle,

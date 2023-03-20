@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework;
 
 namespace CasaEngine.Engine.Plugin;
 

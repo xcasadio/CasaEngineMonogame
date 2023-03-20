@@ -6,17 +6,17 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 {
     public class Sprite2DParams : ISaveLoad
     {
-        private readonly Shape2DObject _shape2DObject;
+        private readonly Shape2dObject _shape2dObject;
         private readonly Sprite2DParamsType _type;
 
-        public Shape2DObject Shape2DObject => _shape2DObject;
+        public Shape2dObject Shape2dObject => _shape2dObject;
 
         public Sprite2DParamsType Type => _type;
 
-        public Sprite2DParams(Sprite2DParamsType type, Shape2DObject ob)
+        public Sprite2DParams(Sprite2DParamsType type, Shape2dObject ob)
         {
             _type = type;
-            _shape2DObject = ob;
+            _shape2dObject = ob;
         }
 
         public void Load(XmlElement el, SaveOption option)
@@ -34,7 +34,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 
         public object Tag => _tag;
 
-        public Sprite2DParams(Sprite2DParamsType type, Shape2DObject ob, object tag)
+        public Sprite2DParams(Sprite2DParamsType type, Shape2dObject ob, object tag)
             : this(type, ob)
         {
             _tag = tag;

@@ -13,7 +13,7 @@ namespace CasaEngine.Framework.Game
         ScreenLogComponent = 526,
         ScreenManagerComponent = 530,
         ViewComponent = 540,
-        PhysicEngine = 545,
+        Physics = 545,
         Gameplay = 560,
         ParticleComponent = 570,
         SpacingComponent = 580,

@@ -5,7 +5,7 @@ using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Maths.Shape2D
 {
-    public class ShapeCircle : Shape2DObject
+    public class ShapeCircle : Shape2dObject
     {
         private int _radius;
 
@@ -36,12 +36,12 @@ namespace CasaEngine.Core.Maths.Shape2D
             _radius = int.Parse(el.Attributes["radius"].Value);
         }
 
-        public override Shape2DObject Clone()
+        public override Shape2dObject Clone()
         {
             return new ShapeCircle(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob)
+        public override void CopyFrom(Shape2dObject ob)
         {
             if (ob is ShapeCircle == false)
             {
@@ -59,13 +59,13 @@ namespace CasaEngine.Core.Maths.Shape2D
 
 #if EDITOR
         public ShapeCircle(Point center, int radius)
-            : base(Shape2DType.Circle)
+            : base(Shape2dType.Circle)
         {
             Location = center;
             _radius = radius;
         }
 
-        public override bool CompareTo(Shape2DObject o)
+        public override bool CompareTo(Shape2dObject o)
         {
             if (o is ShapeCircle)
             {

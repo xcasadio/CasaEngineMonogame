@@ -18,11 +18,11 @@ namespace Editor.Tools.Graphics2D
         {
             get
             {
-                return (ShapeLine)Shape2DObject;
+                return (ShapeLine)Shape2dObject;
             }
             internal set
             {
-                Shape2DObject = value;
+                Shape2dObject = value;
             }
         }
 

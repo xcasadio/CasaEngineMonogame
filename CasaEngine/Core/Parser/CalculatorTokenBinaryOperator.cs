@@ -129,16 +129,16 @@ namespace CasaEngine.Core.Parser
 
         public override void Save(XmlElement el, SaveOption option)
         {
-            var node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            var node = el.OwnerDocument.CreateElement("Node");
             el.AppendChild(node);
             el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.BinaryOperator).ToString());
             el.OwnerDocument.AddAttribute(node, "operator", ((int)_operator).ToString());
 
-            var child = (XmlElement)el.OwnerDocument.CreateElement("Left");
+            var child = el.OwnerDocument.CreateElement("Left");
             node.AppendChild(child);
             _left.Save(child, option);
 
-            child = (XmlElement)el.OwnerDocument.CreateElement("Right");
+            child = el.OwnerDocument.CreateElement("Right");
             node.AppendChild(child);
             _right.Save(child, option);
         }

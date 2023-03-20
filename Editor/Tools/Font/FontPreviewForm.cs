@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Core.Logger;
 using CasaEngine.Editor.Tools;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 

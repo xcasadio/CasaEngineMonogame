@@ -23,7 +23,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
         private Point _origin = Point.Zero;
 
 #if EDITOR
-        private readonly List<Shape2DObject> _collisions = new();
+        private readonly List<Shape2dObject> _collisions = new();
 #else
         private Shape2DObject[] _Collisions;
 #endif
@@ -87,7 +87,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 #if EDITOR
         [Browsable(false)]
 #endif
-        public Shape2DObject[] Collisions
+        public Shape2dObject[] Collisions
         {
             get
             {
@@ -189,7 +189,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 
             foreach (XmlNode node in collisionNode.ChildNodes)
             {
-                _collisions.Add(Shape2DObject.CreateShape2DObject((XmlElement)node, option));
+                _collisions.Add(Shape2dObject.CreateShape2DObject((XmlElement)node, option));
             }
 #else
             if (collisionNode.ChildNodes.Count > 0)
@@ -261,7 +261,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             string assetFile;
 
 #if EDITOR
-            assetFile = Game.EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
+            assetFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                 ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + _assetFileNames[0];
 #else
             assetFile = Game.EngineComponents.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
@@ -326,17 +326,17 @@ namespace CasaEngine.Framework.Assets.Graphics2D
             _sockets.Remove(name);
         }
 
-        public void AddCollision(Shape2DObject coll)
+        public void AddCollision(Shape2dObject coll)
         {
             _collisions.Add(coll);
         }
 
-        public void SetCollisionAt(int index, Shape2DObject coll)
+        public void SetCollisionAt(int index, Shape2dObject coll)
         {
             _collisions[index] = coll;
         }
 
-        public void RemoveCollision(Shape2DObject coll)
+        public void RemoveCollision(Shape2dObject coll)
         {
             if (_collisions.Remove(coll) == false)
             {

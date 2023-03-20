@@ -283,7 +283,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
             Scale = Vector2.One;
             Name = name;
             Text = Name;
-            Font = Game.EngineComponents.DefaultSpriteFont;
+            Font = EngineComponents.DefaultSpriteFont;
         }
 
         public virtual void Save(XmlElement el, SaveOption opt)

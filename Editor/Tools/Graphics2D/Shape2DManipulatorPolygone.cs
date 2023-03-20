@@ -23,11 +23,11 @@ namespace Editor.Tools.Graphics2D
         {
             get
             {
-                return (ShapePolygone)Shape2DObject;
+                return (ShapePolygone)Shape2dObject;
             }
             internal set
             {
-                Shape2DObject = value;
+                Shape2dObject = value;
             }
         }
 

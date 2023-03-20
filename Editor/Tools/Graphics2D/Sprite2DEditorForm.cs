@@ -8,6 +8,7 @@ using CasaEngine.Editor.Tools;
 using CasaEngine.Core.Maths.Shape2D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets.Graphics2D;
 using CasaEngine.Framework.Game;
 
@@ -248,7 +249,7 @@ namespace Editor.Tools.Graphics2D
             }
 
             UndoRedoPropertyValueChangedCommand c = new UndoRedoPropertyValueChangedCommand(e.ChangedItem.PropertyDescriptor, e.OldValue);
-            m_UndoRedoManager.Add(c, m_Sprite2DComponent.CurrentShape2DManipulator.Shape2DObject);
+            m_UndoRedoManager.Add(c, m_Sprite2DComponent.CurrentShape2DManipulator.Shape2dObject);
             //refresh xna screen
             m_Sprite2DComponent.CurrentCollisonIndex = m_LastCollisonIndex;
         }
@@ -262,7 +263,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void buttonAddCircle_Click(object sender, EventArgs e)
         {
-            AddCollisionInSprite(Shape2DType.Circle);
+            AddCollisionInSprite(Shape2dType.Circle);
         }
 
         /// <summary>
@@ -272,7 +273,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void buttonAddPoly_Click(object sender, EventArgs e)
         {
-            AddCollisionInSprite(Shape2DType.Polygone);
+            AddCollisionInSprite(Shape2dType.Polygone);
         }
 
         /// <summary>
@@ -282,7 +283,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void buttonAddLine_Click(object sender, EventArgs e)
         {
-            AddCollisionInSprite(Shape2DType.Line);
+            AddCollisionInSprite(Shape2dType.Line);
         }
 
         /// <summary>
@@ -292,7 +293,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void buttonAddRectangle_Click(object sender, EventArgs e)
         {
-            AddCollisionInSprite(Shape2DType.Rectangle);
+            AddCollisionInSprite(Shape2dType.Rectangle);
         }
 
         /// <summary>
@@ -309,11 +310,11 @@ namespace Editor.Tools.Graphics2D
                 return;
             }
 
-            InputComboBox form = new InputComboBox("Select a shape type", "Create a shape", Enum.GetNames(typeof(Shape2DType)));
+            InputComboBox form = new InputComboBox("Select a shape type", "Create a shape", Enum.GetNames(typeof(Shape2dType)));
 
             if (form.ShowDialog(this) == DialogResult.OK)
             {
-                AddCollisionInSprite((Shape2DType)Enum.Parse(typeof(Shape2DType), form.SelectedItem));
+                AddCollisionInSprite((Shape2dType)Enum.Parse(typeof(Shape2dType), form.SelectedItem));
             }
         }
 
@@ -321,7 +322,7 @@ namespace Editor.Tools.Graphics2D
         /// 
         /// </summary>
         /// <param name="type_"></param>
-        private void AddCollisionInSprite(Shape2DType type_)
+        private void AddCollisionInSprite(Shape2dType type_)
         {
             Sprite2D sprite = m_Sprite2DComponent.CurrentSprite2D;
 
@@ -330,11 +331,11 @@ namespace Editor.Tools.Graphics2D
                 return;
             }
 
-            Shape2DObject ob = null;
+            Shape2dObject ob = null;
 
             switch (type_)
             {
-                case Shape2DType.Circle:
+                case Shape2dType.Circle:
                     ob = new ShapeCircle(
                         new Microsoft.Xna.Framework.Point(
                             sprite.PositionInTexture.Width / 2,
@@ -342,20 +343,20 @@ namespace Editor.Tools.Graphics2D
                         30);
                     break;
 
-                case Shape2DType.Line:
+                case Shape2dType.Line:
                     ob = new ShapeLine(
                         Microsoft.Xna.Framework.Point.Zero,
                         new Microsoft.Xna.Framework.Point(sprite.PositionInTexture.Width, sprite.PositionInTexture.Height));
                     break;
 
-                case Shape2DType.Polygone:
+                case Shape2dType.Polygone:
                     ob = new ShapePolygone(
                         new Vector2(0, 0),
                         new Vector2(sprite.PositionInTexture.Width, 0),
                         new Vector2(sprite.PositionInTexture.Width / 2, sprite.PositionInTexture.Height));
                     break;
 
-                case Shape2DType.Rectangle:
+                case Shape2dType.Rectangle:
                     ob = new ShapeRectangle(0, 0, sprite.PositionInTexture.Width, sprite.PositionInTexture.Height);
                     break;
             }
@@ -370,7 +371,7 @@ namespace Editor.Tools.Graphics2D
         /// 
         /// </summary>
         /// <param name="obj_"></param>
-        public void AddCollision(Shape2DObject obj_, Sprite2D sprite_)
+        public void AddCollision(Shape2dObject obj_, Sprite2D sprite_)
         {
             if (listBoxCollision.InvokeRequired == true)
             {
@@ -406,7 +407,7 @@ namespace Editor.Tools.Graphics2D
                 return;
             }
 
-            Shape2DObject ob = sprite.Collisions[index];
+            Shape2dObject ob = sprite.Collisions[index];
 
             UndoRedoAddCollisionCommand command = new UndoRedoAddCollisionCommand(ob, false);
             m_UndoRedoManager.Add(command, this);
@@ -451,7 +452,7 @@ namespace Editor.Tools.Graphics2D
         /// 
         /// </summary>
         /// <param name="obj_"></param>
-        public void RemoveCollision(Shape2DObject obj_, Sprite2D sprite_)
+        public void RemoveCollision(Shape2dObject obj_, Sprite2D sprite_)
         {
             if (listBoxCollision.InvokeRequired == true)
             {
@@ -564,9 +565,9 @@ namespace Editor.Tools.Graphics2D
         {
             if (tabControl1.SelectedIndex == 1
                 && m_Sprite2DComponent.CurrentShape2DManipulator != null
-                && m_Sprite2DComponent.CurrentShape2DManipulator.Shape2DObject != null)
+                && m_Sprite2DComponent.CurrentShape2DManipulator.Shape2dObject != null)
             {
-                Clipboard.SetData(typeof(Shape2DObject).FullName, m_Sprite2DComponent.CurrentShape2DManipulator.Shape2DObject);
+                Clipboard.SetData(typeof(Shape2dObject).FullName, m_Sprite2DComponent.CurrentShape2DManipulator.Shape2dObject);
             }
             else if (tabControl1.SelectedIndex == 2
                 /*&& m_Sprite2DComponent.CurrentShape2DManipulator != null
@@ -583,7 +584,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void pasteToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            if (Clipboard.ContainsData(typeof(Shape2DObject).FullName) == true
+            if (Clipboard.ContainsData(typeof(Shape2dObject).FullName) == true
                 && m_Sprite2DComponent.CurrentSprite2D != null)
             {
                 if (tabControl1.SelectedIndex != 1)
@@ -591,7 +592,7 @@ namespace Editor.Tools.Graphics2D
                     tabControl1.SelectedIndex = 1;
                 }
 
-                Shape2DObject obj = (Shape2DObject)Clipboard.GetData(typeof(Shape2DObject).FullName);
+                Shape2dObject obj = (Shape2dObject)Clipboard.GetData(typeof(Shape2dObject).FullName);
                 if (obj != null)
                 {
                     AddCollision(obj, m_Sprite2DComponent.CurrentSprite2D);

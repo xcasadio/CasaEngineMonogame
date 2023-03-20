@@ -35,6 +35,8 @@
 	  <DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="BepuPhysics" Version="2.4.0" />
+		<PackageReference Include="BepuUtilities" Version="2.4.0" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />

@@ -25,7 +25,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
             TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-            _renderer2DComponent = Game.EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+            _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
         }
 
 
@@ -109,8 +109,8 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
         public override void Draw(float elapsedTime)
         {
-            var spriteBatch = Game.EngineComponents.SpriteBatch;
-            var font = Game.EngineComponents.DefaultSpriteFont;
+            var spriteBatch = EngineComponents.SpriteBatch;
+            var font = EngineComponents.DefaultSpriteFont;
 
             var position = new Vector2(100, 150);
 

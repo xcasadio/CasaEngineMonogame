@@ -290,8 +290,8 @@ namespace CasaEngine.Core.Helpers
             // Math things
             var sl = sideLength;
             var hs = sl / 2;
-            var ls = (float)Math.Sin((double)MathHelper.ToRadians(60)) * sl;
-            var h = (float)Math.Sin((double)MathHelper.ToRadians(15)) * hs;
+            var ls = (float)Math.Sin(MathHelper.ToRadians(60)) * sl;
+            var h = (float)Math.Sin(MathHelper.ToRadians(15)) * hs;
 
             // Coords generation
             var coords = new Vector3[6];

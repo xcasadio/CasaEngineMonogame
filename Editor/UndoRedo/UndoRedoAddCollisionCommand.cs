@@ -8,7 +8,7 @@ namespace Editor.UndoRedo
         : ICommand
     {
 
-        Shape2DObject m_Object;
+        Shape2dObject m_Object;
         bool m_IsAdd;
 
 
@@ -19,7 +19,7 @@ namespace Editor.UndoRedo
         /// 
         /// </summary>
         /// <param name="ob_"></param>
-        public UndoRedoAddCollisionCommand(Shape2DObject ob_, bool add_ = true)
+        public UndoRedoAddCollisionCommand(Shape2dObject ob_, bool add_ = true)
         {
             if (ob_ == null)
             {

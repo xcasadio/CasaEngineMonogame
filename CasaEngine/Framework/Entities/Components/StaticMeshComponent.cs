@@ -20,7 +20,7 @@ public class StaticMeshComponent : Component
         set
         {
             _mesh = value;
-            _mesh?.Initialize(Game.EngineComponents.Game.GraphicsDevice);
+            _mesh?.Initialize(EngineComponents.Game.GraphicsDevice);
         }
     }
 
@@ -32,8 +32,8 @@ public class StaticMeshComponent : Component
     {
         //load shader in byte
         //_effect = new Effect(Game.EngineComponents.Game.GraphicsDevice, );
-        Mesh?.Initialize(Game.EngineComponents.Game.GraphicsDevice);
-        _meshRendererComponent = Game.EngineComponents.Game.GetGameComponent<StaticMeshRendererComponent>();
+        Mesh?.Initialize(EngineComponents.Game.GraphicsDevice);
+        _meshRendererComponent = EngineComponents.Game.GetGameComponent<StaticMeshRendererComponent>();
     }
 
     public override void Update(float elapsedTime)

@@ -5,12 +5,9 @@ using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Maths.Shape2D
 {
-    public abstract class Shape2DObject
-#if EDITOR
-        : INotifyPropertyChanged
-#endif
+    public abstract class Shape2dObject
     {
-        private Shape2DType _type;
+        private Shape2dType _type;
         private Point _location = Point.Zero;
         private float _rotation;
         private int _flag;
@@ -18,7 +15,7 @@ namespace CasaEngine.Core.Maths.Shape2D
 #if EDITOR
         [Category("Shape2D"), ReadOnly(true)]
 #endif
-        public Shape2DType Shape2DType
+        public Shape2dType Shape2dType
         {
             get { return _type; }
         }
@@ -68,39 +65,39 @@ namespace CasaEngine.Core.Maths.Shape2D
             }
         }
 
-        protected Shape2DObject()
+        protected Shape2dObject()
         { }
 
-        protected Shape2DObject(Shape2DObject o)
+        protected Shape2dObject(Shape2dObject o)
         {
             CopyFrom(o);
         }
 
-        public static Shape2DObject CreateShape2DObject(XmlElement el, SaveOption option)
+        public static Shape2dObject CreateShape2DObject(XmlElement el, SaveOption option)
         {
-            var type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el.Attributes["type"].Value);
-            Shape2DObject res = null;
+            var type = (Shape2dType)Enum.Parse(typeof(Shape2dType), el.Attributes["type"].Value);
+            Shape2dObject res = null;
 
             switch (type)
             {
-                case Shape2DType.Circle:
+                case Shape2dType.Circle:
                     res = new ShapeCircle();
                     break;
 
-                case Shape2DType.Line:
+                case Shape2dType.Line:
                     res = new ShapeLine();
                     break;
 
-                case Shape2DType.Polygone:
+                case Shape2dType.Polygone:
                     res = new ShapePolygone();
                     break;
 
-                case Shape2DType.Rectangle:
+                case Shape2dType.Rectangle:
                     res = new ShapeRectangle();
                     break;
 
                 default:
-                    throw new InvalidOperationException("Shape2DObject.CreateShape2DObject() : the type " + Enum.GetName(typeof(Shape2DType), type) + " is not supported");
+                    throw new InvalidOperationException("Shape2DObject.CreateShape2DObject() : the type " + Enum.GetName(typeof(Shape2dType), type) + " is not supported");
             }
 
             res.Load(el, option);
@@ -112,7 +109,7 @@ namespace CasaEngine.Core.Maths.Shape2D
         {
             var version = int.Parse(el.Attributes["version"].Value);
 
-            _type = (Shape2DType)Enum.Parse(typeof(Shape2DType), el.Attributes["type"].Value);
+            _type = (Shape2dType)Enum.Parse(typeof(Shape2dType), el.Attributes["type"].Value);
             var p = new Point();
             ((XmlElement)el.SelectSingleNode("Location")).Read(ref p);
             Location = p;
@@ -120,9 +117,9 @@ namespace CasaEngine.Core.Maths.Shape2D
             _flag = int.Parse(el.Attributes["flag"].Value);
         }
 
-        public abstract Shape2DObject Clone();
+        public abstract Shape2dObject Clone();
 
-        public virtual void CopyFrom(Shape2DObject ob)
+        public virtual void CopyFrom(Shape2dObject ob)
         {
             _location = ob._location;
             _rotation = ob._rotation;
@@ -159,14 +156,14 @@ namespace CasaEngine.Core.Maths.Shape2D
 
 
 
-        public Shape2DObject(Shape2DType type)
+        public Shape2dObject(Shape2dType type)
         {
             _type = type;
         }
 
 
 
-        public virtual bool CompareTo(Shape2DObject o)
+        public virtual bool CompareTo(Shape2dObject o)
         {
             return _flag == o._flag
                 && _location == o._location
@@ -177,7 +174,7 @@ namespace CasaEngine.Core.Maths.Shape2D
         public virtual void Save(XmlElement el, SaveOption option)
         {
             el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
-            el.OwnerDocument.AddAttribute(el, "type", Enum.GetName(typeof(Shape2DType), _type));
+            el.OwnerDocument.AddAttribute(el, "type", Enum.GetName(typeof(Shape2dType), _type));
 
             var location = el.OwnerDocument.CreateElement("Location", Location);
             el.AppendChild(location);
@@ -189,7 +186,7 @@ namespace CasaEngine.Core.Maths.Shape2D
         public virtual void Save(BinaryWriter bw, SaveOption option)
         {
             bw.Write(Version);
-            bw.Write(Enum.GetName(typeof(Shape2DType), _type));
+            bw.Write(Enum.GetName(typeof(Shape2dType), _type));
             bw.Write(_rotation);
             bw.Write(_flag);
         }
@@ -205,9 +202,9 @@ namespace CasaEngine.Core.Maths.Shape2D
 
         public override bool Equals(object obj)
         {
-            if (obj is Shape2DObject)
+            if (obj is Shape2dObject)
             {
-                return CompareTo((Shape2DObject)obj);
+                return CompareTo((Shape2dObject)obj);
             }
 
             return false;

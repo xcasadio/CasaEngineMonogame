@@ -1,10 +1,6 @@
-﻿using Genbox.VelcroPhysics.Shared;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Windows;
-using Xceed.Wpf.AvalonDock.Layout;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace EditorWpf

@@ -20,7 +20,7 @@ namespace Editor.Tools.Graphics2D
 
         protected List<Anchor> m_AnchorList = new();
         public event EventHandler CursorChanged;
-        Shape2DObject m_Shape2DObject;
+        Shape2dObject _mShape2dObject;
         Vector2 m_Offset;
 
 
@@ -75,14 +75,14 @@ namespace Editor.Tools.Graphics2D
         /// <summary>
         /// Gets/Sets lock(SyncRoot)
         /// </summary>
-        public Shape2DObject Shape2DObject
+        public Shape2dObject Shape2dObject
         {
-            get { return m_Shape2DObject; }
+            get { return _mShape2dObject; }
             set
             {
                 lock (SyncRoot)
                 {
-                    m_Shape2DObject = value;
+                    _mShape2dObject = value;
                     CreateAnchor();
                 }
             }
@@ -107,10 +107,10 @@ namespace Editor.Tools.Graphics2D
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="shape2DObject_"></param>
-        protected Shape2DManipulator(Shape2DObject shape2DObject_)
+        /// <param name="shape2dObject"></param>
+        protected Shape2DManipulator(Shape2dObject shape2dObject)
         {
-            Shape2DObject = shape2DObject_;
+            Shape2dObject = shape2dObject;
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         void OnStartManipulating(object sender, EventArgs e)
         {
-            UndoRedoShape2DObjectCommand command = new UndoRedoShape2DObjectCommand(Shape2DObject);
+            UndoRedoShape2DObjectCommand command = new UndoRedoShape2DObjectCommand(Shape2dObject);
             UndoRedoManager.Add(command, Sprite2DEditorComponent);
         }
 

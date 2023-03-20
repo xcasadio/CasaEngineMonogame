@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework;
+using CasaEngine.Framework.Game;
 using Editor.Debugger;
 
 namespace Editor
@@ -74,8 +75,8 @@ namespace Editor
             try
             {
 #endif
-            //Application.Run(new EditorMainForm());
-            Application.Run(new MainForm());
+                //Application.Run(new EditorMainForm());
+                Application.Run(new MainForm());
 #if !DEBUG
             }
             catch (Exception e)

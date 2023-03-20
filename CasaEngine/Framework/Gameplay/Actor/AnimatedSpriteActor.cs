@@ -99,7 +99,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
             _renderer2DComponent.AddSprite2D(
                 _animation2DPlayer.CurrentAnimation.CurrentSpriteId,
                 Position, 0.0f, Vector2.One, Color.White,
-                1 - Position.Y / Game.EngineComponents.Game.GraphicsDevice.Viewport.Height,
+                1 - Position.Y / EngineComponents.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects.None);
         }
 
@@ -113,7 +113,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
 
             foreach (XmlNode node in animListNode.ChildNodes)
             {
-                var anim2d = Game.EngineComponents.Asset2DManager.GetAnimation2DByName(node.Attributes["name"].Value);
+                var anim2d = EngineComponents.Asset2DManager.GetAnimation2DByName(node.Attributes["name"].Value);
                 if (anim2d != null)
                 {
                     _animations.Add(int.Parse(node.Attributes["index"].Value), anim2d);
@@ -129,13 +129,13 @@ namespace CasaEngine.Framework.Gameplay.Actor
         {
             _animations.Add(
                 index,
-                (Animation2D)Game.EngineComponents.ObjectManager.GetObjectByPath(anim2DName));
+                (Animation2D)EngineComponents.ObjectManager.GetObjectByPath(anim2DName));
 
             foreach (var frame in _animations[index].GetFrames())
             {
-                var sprite = (Sprite2D)Game.EngineComponents.ObjectManager.GetObjectById(frame.SpriteId);
+                var sprite = (Sprite2D)EngineComponents.ObjectManager.GetObjectById(frame.SpriteId);
                 //sprite.LoadTextureFile(CasaEngine.Game.EngineComponents.Game.GraphicsDevice);
-                sprite.LoadTexture(Game.EngineComponents.Game.Content);
+                sprite.LoadTexture(EngineComponents.Game.Content);
             }
 
             _animation2DPlayer = new Animation2DPlayer(_animations);
@@ -143,7 +143,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
 
         public virtual void Initialize()
         {
-            _renderer2DComponent = Game.EngineComponents.Game.GetDrawableGameComponent<Renderer2DComponent>();
+            _renderer2DComponent = EngineComponents.Game.GetDrawableGameComponent<Renderer2DComponent>();
         }
 
     }

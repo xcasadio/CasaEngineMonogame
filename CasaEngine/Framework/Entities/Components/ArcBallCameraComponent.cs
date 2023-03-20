@@ -152,7 +152,7 @@ public class ArcBallCameraComponent : Camera3dComponent
 
     public override void Initialize()
     {
-        _inputComponent = Game.EngineComponents.Game.GetGameComponent<InputComponent>();
+        _inputComponent = EngineComponents.Game.GetGameComponent<InputComponent>();
         base.Initialize();
     }
 

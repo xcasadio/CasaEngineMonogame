@@ -81,11 +81,11 @@ namespace CasaEngine.Framework.AI.Navigation
 
         public virtual bool CanMoveBetween(Vector3 start, Vector3 end)
         {
-            if (PhysicEngine.Physic == null)
+            if (EngineComponents.PhysicsEngine == null)
             {
                 throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
             }
-            return !PhysicEngine.Physic.WorldRayCast(ref start, ref end, look);
+            return !EngineComponents.PhysicsEngine.WorldRayCast(ref start, ref end, look);
         }
     }
 }

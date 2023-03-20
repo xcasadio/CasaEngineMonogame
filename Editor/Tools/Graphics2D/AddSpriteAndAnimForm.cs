@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework;
+using CasaEngine.Framework.Game;
 
 namespace Editor.Tools.Graphics2D
 {

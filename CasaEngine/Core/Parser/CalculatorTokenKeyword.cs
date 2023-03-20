@@ -41,10 +41,10 @@ namespace CasaEngine.Core.Parser
 
         public override void Save(XmlElement el, SaveOption option)
         {
-            var node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            var node = el.OwnerDocument.CreateElement("Node");
             el.AppendChild(node);
             el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Keyword).ToString());
-            var valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Keyword", _keyword);
+            var valueNode = el.OwnerDocument.CreateElementWithText("Keyword", _keyword);
             node.AppendChild(valueNode);
         }
 

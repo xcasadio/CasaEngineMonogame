@@ -206,7 +206,7 @@ namespace CasaEngine.Framework.Assets.Textures
                 case AntialiasingType.NoAntialiasing:
                     return 0;
                 case AntialiasingType.System:
-                    return Game.EngineComponents.GraphicsSettings.MultiSampleQuality;
+                    return EngineComponents.GraphicsSettings.MultiSampleQuality;
                 case AntialiasingType.TwoSamples:
                     return 2;
                 case AntialiasingType.FourSamples:

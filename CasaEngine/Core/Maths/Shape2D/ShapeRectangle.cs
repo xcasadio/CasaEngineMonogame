@@ -5,7 +5,7 @@ using CasaEngine.Core.Extension;
 
 namespace CasaEngine.Core.Maths.Shape2D
 {
-    public class ShapeRectangle : Shape2DObject
+    public class ShapeRectangle : Shape2dObject
     {
         private int _width, _height;
 
@@ -53,12 +53,12 @@ namespace CasaEngine.Core.Maths.Shape2D
             _height = int.Parse(el.Attributes["height"].Value);
         }
 
-        public override Shape2DObject Clone()
+        public override Shape2dObject Clone()
         {
             return new ShapeRectangle(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob)
+        public override void CopyFrom(Shape2dObject ob)
         {
             if (ob is ShapeRectangle == false)
             {
@@ -72,14 +72,14 @@ namespace CasaEngine.Core.Maths.Shape2D
 
 #if EDITOR
         public ShapeRectangle(int x, int y, int w, int h)
-            : base(Shape2DType.Rectangle)
+            : base(Shape2dType.Rectangle)
         {
             Location = new Point(x, y);
             _width = w;
             _height = h;
         }
 
-        public override bool CompareTo(Shape2DObject o)
+        public override bool CompareTo(Shape2dObject o)
         {
             if (o is ShapeRectangle)
             {

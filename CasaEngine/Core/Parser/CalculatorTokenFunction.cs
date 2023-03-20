@@ -43,18 +43,18 @@ namespace CasaEngine.Core.Parser
 
         public override void Save(XmlElement el, SaveOption option)
         {
-            var node = (XmlElement)el.OwnerDocument.CreateElement("Node");
+            var node = el.OwnerDocument.CreateElement("Node");
             el.AppendChild(node);
             el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Function).ToString());
-            var valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("FunctionName", _functionName);
+            var valueNode = el.OwnerDocument.CreateElementWithText("FunctionName", _functionName);
             node.AppendChild(valueNode);
 
-            var argNode = (XmlElement)el.OwnerDocument.CreateElement("ArgumentList");
+            var argNode = el.OwnerDocument.CreateElement("ArgumentList");
             node.AppendChild(argNode);
 
             foreach (var a in _args)
             {
-                valueNode = (XmlElement)el.OwnerDocument.CreateElementWithText("Argument", a);
+                valueNode = el.OwnerDocument.CreateElementWithText("Argument", a);
                 argNode.AppendChild(valueNode);
             }
         }

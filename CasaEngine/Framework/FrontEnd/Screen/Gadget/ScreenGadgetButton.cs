@@ -66,7 +66,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
                     Image.Id,
                     Location,
                     0.0f,
-                    new Vector2((float)Width / (float)Image.PositionInTexture.Width, (float)Height / (float)Image.PositionInTexture.Height),
+                    new Vector2(Width / (float)Image.PositionInTexture.Width, Height / (float)Image.PositionInTexture.Height),
                     Color.White,
                     0.0004f,
                     SpriteEffects.None,
@@ -92,8 +92,8 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
 
             if (spriteId != int.MaxValue)
             {
-                Image = Game.EngineComponents.Asset2DManager.GetSprite2DById(spriteId);
-                Game.EngineComponents.Asset2DManager.AddSprite2DToLoadingList(Image);
+                Image = EngineComponents.Asset2DManager.GetSprite2DById(spriteId);
+                EngineComponents.Asset2DManager.AddSprite2DToLoadingList(Image);
             }
 
             SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el.SelectSingleNode("SizeImage").InnerText);

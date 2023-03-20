@@ -17,7 +17,7 @@ namespace CasaEngine.Framework.World
         public event EventHandler? EntitiesChanged;
 #endif
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public IList<Entity> Entities => _entities;
         public Genbox.VelcroPhysics.Dynamics.World? Physic2dWorld { get; }
 
@@ -25,7 +25,7 @@ namespace CasaEngine.Framework.World
         {
             if (usePhysics)
             {
-                Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(Game.EngineComponents.Physics2dSettings.Gravity);
+                Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(EngineComponents.Physics2dSettings.Gravity);
             }
         }
 

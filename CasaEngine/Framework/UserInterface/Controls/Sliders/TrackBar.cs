@@ -383,7 +383,7 @@ namespace CasaEngine.Framework.UserInterface.Controls.Sliders
                 var w = Width - p.ContentMargins.Horizontal - size;
 
                 var px = 100 / (float)w;
-                var pos = p.ContentMargins.Left + (int)Math.Ceiling(_internalValue / (float)px);
+                var pos = p.ContentMargins.Left + (int)Math.Ceiling(_internalValue / px);
 
                 if (pos < p.ContentMargins.Left)
                 {

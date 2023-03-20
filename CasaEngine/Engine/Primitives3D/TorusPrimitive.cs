@@ -61,8 +61,8 @@ namespace CasaEngine.Engine.Primitives3D
                     position = Vector3.Transform(position, transform);
                     normal = Vector3.TransformNormal(normal, transform);
 
-                    uv.X = (float)(tessellation - 1) / (float)i;
-                    uv.Y = (float)(tessellation - 1) / (float)j;
+                    uv.X = (tessellation - 1) / (float)i;
+                    uv.Y = (tessellation - 1) / (float)j;
                     uv.Normalize();
 
                     AddVertex(position, normal, uv);

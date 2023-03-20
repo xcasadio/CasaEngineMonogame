@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.Game.Components;
 
 public class StaticMeshRendererComponent : DrawableGameComponent
 {
-    private List<MeshInfo> _meshInfos = new();
+    private readonly List<MeshInfo> _meshInfos = new();
     private Effect _effect;
 
     public StaticMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
@@ -54,7 +54,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
 
     private class MeshInfo
     {
-        public StaticMesh StaticMesh;
+        public StaticMesh? StaticMesh;
         public Matrix WorldViewProj;
     }
 }

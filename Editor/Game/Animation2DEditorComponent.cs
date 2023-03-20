@@ -8,6 +8,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Assets.Graphics2D;
 using CasaEngine.Framework.Game;
 using CasaEngine.Core.Helper;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Graphics2D;
 
 namespace Editor.Game

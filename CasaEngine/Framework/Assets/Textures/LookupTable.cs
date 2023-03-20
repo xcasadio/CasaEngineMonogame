@@ -29,7 +29,7 @@ namespace CasaEngine.Framework.Assets.Textures
         public LookupTable(GraphicsDevice graphicsDevice, string filename)
         {
             Name = filename;
-            Filename = Game.EngineComponents.ProjectManager.ProjectPath + filename;
+            Filename = EngineComponents.ProjectManager.ProjectPath + filename;
             if (File.Exists(Filename) == false)
             {
                 throw new ArgumentException("Failed to load texture: File " + Filename + " does not exists!", nameof(filename));
@@ -71,7 +71,7 @@ namespace CasaEngine.Framework.Assets.Textures
             Resource.Name = filename;
 
             // Dispose the temporal content manager and restore the user content manager.
-            Game.EngineComponents.AssetContentManager.Unload(AssetContentManagerCategoryName);
+            EngineComponents.AssetContentManager.Unload(AssetContentManagerCategoryName);
         } // Create
 
 

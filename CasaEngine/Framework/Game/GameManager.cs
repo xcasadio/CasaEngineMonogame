@@ -1,5 +1,8 @@
 using CasaEngine.Core.Helper;
 using CasaEngine.Engine.Input;
+using CasaEngine.Engine.Physics;
+using CasaEngine.Engine.Physics.Shapes;
+using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
@@ -15,13 +18,12 @@ namespace CasaEngine.Framework.Game;
 
 public class GameManager
 {
-    private readonly IGraphicsDeviceService _graphicsDeviceService;
-    private GraphicsDeviceManager _graphicsDeviceManager;
     private Renderer2DComponent _renderer2DComponent;
     private ScreenManagerComponent _screenManagerComponent;
     private InputComponent _inputComponent;
     private ShapeRendererComponent _shapeRendererComponent;
     private StaticMeshRendererComponent _staticMeshRendererComponent;
+    private PhysicsEngineComponent _physicsEngine;
 
     private string ProjectFile { get; set; } = string.Empty;
 
@@ -32,22 +34,21 @@ public class GameManager
     public GameManager(CasaEngineGame game)
     {
         EngineComponents.Game = game;
-        _graphicsDeviceManager = new GraphicsDeviceManager(game);
-        _graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
-        _graphicsDeviceManager.DeviceReset += OnDeviceReset;
+        var graphicsDeviceManager = new GraphicsDeviceManager(game);
+        graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
+        graphicsDeviceManager.DeviceReset += OnDeviceReset;
 
     }
 
     public GameManager(CasaEngineGame game, IGraphicsDeviceService graphicsDeviceService)
     {
         EngineComponents.Game = game;
-        _graphicsDeviceService = graphicsDeviceService;
         graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
         if (game.Services.GetService<IGraphicsDeviceService>() != null)
         {
             game.Services.RemoveService(typeof(IGraphicsDeviceService));
         }
-        game.Services.AddService(typeof(IGraphicsDeviceService), (object)_graphicsDeviceService);
+        game.Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
     }
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
@@ -91,10 +92,11 @@ public class GameManager
         _screenManagerComponent = new ScreenManagerComponent(game);
         _shapeRendererComponent = new ShapeRendererComponent(game);
         _staticMeshRendererComponent = new StaticMeshRendererComponent(game);
-        var gizmoComponent = new GizmoComponent(game);
+        _physicsEngine = new PhysicsEngineComponent(game);
 
 #if EDITOR
-        new GridComponent(game);
+        var gizmoComponent = new GizmoComponent(game);
+        var gridComponent = new GridComponent(game);
 #endif
 
 #if !FINAL
@@ -110,7 +112,7 @@ public class GameManager
         ContentPath = "Content";
 #endif
 
-        EngineComponents.Game.Content.RootDirectory = ContentPath;
+        game.Content.RootDirectory = ContentPath;
         //CasaEngine.Game.EngineComponents.ProjectManager.Load(ProjectFile);
         //TODO : create hierarchy of the project
         if (!string.IsNullOrWhiteSpace(ProjectFile))
@@ -118,10 +120,10 @@ public class GameManager
             EngineComponents.ProjectSettings.Load(ProjectFile);
         }
 
-        EngineComponents.Game.Window.Title = EngineComponents.ProjectSettings.WindowTitle;
-        EngineComponents.Game.Window.AllowUserResizing = EngineComponents.ProjectSettings.AllowUserResizing;
-        EngineComponents.Game.IsFixedTimeStep = EngineComponents.ProjectSettings.IsFixedTimeStep;
-        EngineComponents.Game.IsMouseVisible = EngineComponents.ProjectSettings.IsMouseVisible;
+        game.Window.Title = EngineComponents.ProjectSettings.WindowTitle;
+        game.Window.AllowUserResizing = EngineComponents.ProjectSettings.AllowUserResizing;
+        game.IsFixedTimeStep = EngineComponents.ProjectSettings.IsFixedTimeStep;
+        game.IsMouseVisible = EngineComponents.ProjectSettings.IsMouseVisible;
 
         if (!string.IsNullOrWhiteSpace(EngineComponents.ProjectSettings.GameplayDllName))
         {
@@ -169,6 +171,43 @@ public class GameManager
         GameInfo.Instance.ActiveCamera = camera;
         camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
+
+        //TEST
+        //var world = new World.World();
+        //GameInfo.Instance.CurrentWorld = world;
+        //
+        //var entity = new Entity();
+        //entity.Name = "Entity camera";
+        //var camera = new ArcBallCameraComponent(entity);
+        //entity.ComponentManager.Components.Add(camera);
+        //GameInfo.Instance.ActiveCamera = camera;
+        //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+        //world.AddObjectImmediately(entity);
+        //
+        //entity = new Entity();
+        //entity.Name = "Entity box";
+        ////entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
+        //var meshComponent = new StaticMeshComponent(entity);
+        //entity.ComponentManager.Components.Add(meshComponent);
+        //meshComponent.Mesh = new BoxPrimitive(EngineComponents.Game.GraphicsDevice).CreateMesh();
+        //meshComponent.Mesh.Texture = EngineComponents.Game.Content.Load<Texture2D>("checkboard");
+        ////
+        //entity.ComponentManager.Components.Add(new PhysicsComponent(entity)
+        //{
+        //    Shape = new Box { Height = 1f, Width = 1f, Length = 1f }
+        //});
+        ////
+        //world.AddObjectImmediately(entity);
+
+        //
+        //entity = new Entity();
+        //entity.Name = "Entity box 2";
+        //entity.Coordinates.LocalPosition += Vector3.UnitX * 2.0f;
+        //meshComponent = new MeshComponent(entity);
+        //entity.ComponentManager.Components.Add(meshComponent);
+        //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
+        //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
+        //world.AddObjectImmediately(entity);
 #endif
 
         GameInfo.Instance.CurrentWorld.Initialize();

@@ -10,6 +10,7 @@ using Color = Microsoft.Xna.Framework.Color;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using CasaEngine.Core.Helper;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets.Graphics2D;
 using CasaEngine.Framework.Graphics2D;
 
@@ -115,26 +116,26 @@ namespace Editor.Game
                     {
                         m_CurrentCollisonIndex = value;
 
-                        switch (m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex].Shape2DType)
+                        switch (m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex].Shape2dType)
                         {
-                            case Shape2DType.Circle:
+                            case Shape2dType.Circle:
                                 m_CurrentShape2DManipulator = new Shape2DManipulatorCircle((ShapeCircle)m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex]);
                                 break;
 
-                            case Shape2DType.Line:
+                            case Shape2dType.Line:
                                 m_CurrentShape2DManipulator = new Shape2DManipulatorLine((ShapeLine)m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex]);
                                 break;
 
-                            case Shape2DType.Polygone:
+                            case Shape2dType.Polygone:
                                 m_CurrentShape2DManipulator = new Shape2DManipulatorPolygone((ShapePolygone)m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex]);
                                 break;
 
-                            case Shape2DType.Rectangle:
+                            case Shape2dType.Rectangle:
                                 m_CurrentShape2DManipulator = new Shape2DManipulatorRectangle((ShapeRectangle)m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex]);
                                 break;
 
                             default:
-                                throw new InvalidOperationException("Sprite2DEditorForm.listBoxCollision_SelectedIndexChanged() : Shape2DType '" + Enum.GetName(typeof(Shape2DType), m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex].Shape2DType) + "' not supported");
+                                throw new InvalidOperationException("Sprite2DEditorForm.listBoxCollision_SelectedIndexChanged() : Shape2DType '" + Enum.GetName(typeof(Shape2dType), m_CurrentSprite2D.Collisions[m_CurrentCollisonIndex].Shape2dType) + "' not supported");
                         }
 
                         m_CurrentShape2DManipulator.Sprite2DEditorComponent = this;
@@ -465,7 +466,7 @@ namespace Editor.Game
                 if (m_CurrentCollisonIndex >= 0 && m_CurrentCollisonIndex < m_CurrentSprite2D.Collisions.Length
                     && m_CurrentShape2DManipulator != null)
                 {
-                    m_CurrentSprite2D.SetCollisionAt(m_CurrentCollisonIndex, m_CurrentShape2DManipulator.Shape2DObject);
+                    m_CurrentSprite2D.SetCollisionAt(m_CurrentCollisonIndex, m_CurrentShape2DManipulator.Shape2dObject);
                 }
             }
         }

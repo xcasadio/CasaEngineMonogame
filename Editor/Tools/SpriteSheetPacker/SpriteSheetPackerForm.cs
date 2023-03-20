@@ -24,6 +24,7 @@
 
 using System.Diagnostics;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
 
 namespace Editor.Sprite2DEditor.SpriteSheetPacker
@@ -590,8 +591,8 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker
                 try
                 {
 #endif
-                int Result = sspack.sspack.Launch(args.ToArray());
-                (obj as Control).Invoke(new Action<int>(BuildThreadComplete), new[] { (object)Result });
+                    int Result = sspack.sspack.Launch(args.ToArray());
+                    (obj as Control).Invoke(new Action<int>(BuildThreadComplete), new[] { (object)Result });
 #if !DEBUG
                 }
                 catch (System.Exception ex)

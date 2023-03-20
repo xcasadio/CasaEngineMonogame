@@ -1,5 +1,5 @@
 ﻿using System.Windows.Controls;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework;
 
 namespace EditorWpf.Controls
 {

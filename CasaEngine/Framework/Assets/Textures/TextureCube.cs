@@ -87,14 +87,14 @@ namespace CasaEngine.Framework.Assets.Textures
             Name = filename;
             IsRgbm = false;
             RgbmMaxRange = 50;
-            Filename = Game.EngineComponents.ProjectManager.ProjectPath + filename;
+            Filename = EngineComponents.ProjectManager.ProjectPath + filename;
             if (File.Exists(Filename) == false)
             {
                 throw new ArgumentException("Failed to load cube map: File " + Filename + " does not exists!");
             }
             try
             {
-                XnaTextureCube = Game.EngineComponents.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, Game.EngineComponents.Game.GraphicsDevice);
+                XnaTextureCube = EngineComponents.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, EngineComponents.Game.GraphicsDevice);
                 Size = XnaTextureCube.Size;
                 Resource.Name = filename;
             }
@@ -114,7 +114,7 @@ namespace CasaEngine.Framework.Assets.Textures
 
         internal override void OnDeviceReset(GraphicsDevice device)
         {
-            XnaTextureCube = Game.EngineComponents.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, device);
+            XnaTextureCube = EngineComponents.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Filename, device);
         } // RecreateResource
 
 

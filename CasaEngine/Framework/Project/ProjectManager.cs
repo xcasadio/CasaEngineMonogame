@@ -91,7 +91,7 @@
             //CasaEngine.Game.EngineComponents.ObjectManager.Load(projectNode, SaveOption.Editor);
 
 #if EDITOR
-            Game.EngineComponents.ExternalToolManager.Initialize();
+            EngineComponents.ExternalToolManager.Initialize();
 
             ProjectLoaded?.Invoke(this, EventArgs.Empty);
 #endif
@@ -108,9 +108,9 @@
 
         public void Clear()
         {
-            Game.EngineComponents.AssetManager.Clear();
-            Game.EngineComponents.Asset2DManager.Clear();
-            Game.EngineComponents.ExternalToolManager.Clear();
+            EngineComponents.AssetManager.Clear();
+            EngineComponents.Asset2DManager.Clear();
+            EngineComponents.ExternalToolManager.Clear();
             ProjectFileOpened = null;
 
             ProjectClosed?.Invoke(this, EventArgs.Empty);
@@ -123,15 +123,15 @@
             {
 #endif
 
-            Clear();
-            CreateProjectDirectoryHierarchy(Path.GetDirectoryName(fileName));
-            Save(fileName);
+                Clear();
+                CreateProjectDirectoryHierarchy(Path.GetDirectoryName(fileName));
+                Save(fileName);
 
 #if !DEBUG
             }
             catch (System.Exception e)
             {
-                
+
             }
 #endif
         }

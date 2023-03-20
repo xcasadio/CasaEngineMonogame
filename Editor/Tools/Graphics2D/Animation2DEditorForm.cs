@@ -7,6 +7,7 @@ using CasaEngine.Editor.Tools;
 using Editor.Sprite2DEditor.Event;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets.Graphics2D;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Gameplay.Actor.Event;

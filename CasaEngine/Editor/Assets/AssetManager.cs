@@ -3,7 +3,7 @@ using CasaEngine.Core.Extension;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Project;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework;
 
 namespace CasaEngine.Editor.Assets
 {

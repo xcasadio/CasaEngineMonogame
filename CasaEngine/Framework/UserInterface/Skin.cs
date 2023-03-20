@@ -568,7 +568,7 @@ namespace CasaEngine.Framework.UserInterface
             {
                 skinContentManager.Unload(skinContentManagerCategory);
             }*/
-            Game.EngineComponents.AssetContentManager.Unload(SkinContentManagerCategory);
+            EngineComponents.AssetContentManager.Unload(SkinContentManagerCategory);
 
 
 
@@ -613,7 +613,7 @@ namespace CasaEngine.Framework.UserInterface
                 foreach (var skinCursor in Cursors)
                 {
                     skinCursor.Cursor = new Cursor(graphicsDevice,
-                        Game.EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
+                        EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
                         fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur");
                 }
 #endif

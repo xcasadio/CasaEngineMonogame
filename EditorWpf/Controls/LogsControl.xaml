@@ -79,7 +79,6 @@
         <TextBlock Text="{Binding LogEntries.Count, RelativeSource={RelativeSource AncestorType=local:LogsControl}, StringFormat='{}{0} Items'}" 
                    DockPanel.Dock="Top"/>
         <ItemsControl ItemsSource="{Binding LogEntries, RelativeSource={RelativeSource AncestorType=local:LogsControl}}" 
-                      Style="{StaticResource LogViewerStyle}">
-        </ItemsControl>
+                      Style="{StaticResource LogViewerStyle}" />
     </DockPanel>
 </UserControl>

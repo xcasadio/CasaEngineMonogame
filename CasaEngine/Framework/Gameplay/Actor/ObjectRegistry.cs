@@ -3,7 +3,6 @@ using CasaEngine.Core.Extension;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Project;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Gameplay.Actor
 {
@@ -146,11 +145,11 @@ namespace CasaEngine.Framework.Gameplay.Actor
             el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
 
             XmlDocument xmlDocLast = null;
-            if (string.IsNullOrEmpty(Game.EngineComponents.ProjectManager.ProjectFileOpened) == false
-                && File.Exists(Game.EngineComponents.ProjectManager.ProjectFileOpened))
+            if (string.IsNullOrEmpty(EngineComponents.ProjectManager.ProjectFileOpened) == false
+                && File.Exists(EngineComponents.ProjectManager.ProjectFileOpened))
             {
                 xmlDocLast = new XmlDocument();
-                xmlDocLast.Load(Game.EngineComponents.ProjectManager.ProjectFileOpened);
+                xmlDocLast.Load(EngineComponents.ProjectManager.ProjectFileOpened);
             }
 
             foreach (var o in _objectRegistry)
@@ -385,7 +384,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
         public void Load(XmlElement el, SaveOption option)
         {
 #if EDITOR
-            Game.EngineComponents.ObjectRegistry.Clear();
+            EngineComponents.ObjectRegistry.Clear();
 #endif
 
             var version = uint.Parse(el.Attributes["version"].Value);
@@ -445,14 +444,14 @@ namespace CasaEngine.Framework.Gameplay.Actor
             //string projectPath = GameInfo.Instance.GameInfo.Instance.ProjectManager.ProjectPath;			
 
 #if !DEBUG
-			try
+            try
 #endif
             {
                 var xmlDoc = new XmlDocument();
                 var xmlFile = string.Empty;
 
 #if EDITOR
-                xmlFile = Game.EngineComponents.ProjectManager.ProjectFileOpened;
+                xmlFile = EngineComponents.ProjectManager.ProjectFileOpened;
                 xmlDoc.Load(xmlFile);
 #else
                 //CasaEngineGame game = (CasaEngineGame)CasaEngine.Game.EngineComponents.Game;
@@ -473,10 +472,10 @@ namespace CasaEngine.Framework.Gameplay.Actor
             }
 
 #if !DEBUG
-			catch (System.Exception e)
-			{
-				throw e;
-			}
+            catch (System.Exception e)
+            {
+                throw e;
+            }
 #endif
 
             //In Entity Name and ID are temporary fields

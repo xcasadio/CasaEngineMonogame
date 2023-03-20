@@ -25,6 +25,7 @@ using CasaEngine.Framework.UserInterface.Controls.ToolBar;
 using CasaEngine.Framework.UserInterface.Controls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
 
 namespace Editor.Tools.UIScreenEditor

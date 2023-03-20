@@ -16,11 +16,11 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0" Text="X:"/>
+        <TextBlock Grid.Column="0" Text="X" VerticalAlignment="Center"/>
         <xctk:DecimalUpDown Grid.Column="1" Increment="0.1" Value="{Binding X, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
-        <TextBlock Grid.Column="2" Text="Y:" Margin="5, 0, 0, 0"/>
+        <TextBlock Grid.Column="2" Text="Y" Margin="5, 0, 0, 0" VerticalAlignment="Center"/>
         <xctk:DecimalUpDown Grid.Column="3" Increment="0.1" Value="{Binding Y, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
-        <TextBlock Grid.Column="4" Text="Z:" Margin="5, 0, 0, 0"/>
+        <TextBlock Grid.Column="4" Text="Z" Margin="5, 0, 0, 0" VerticalAlignment="Center"/>
         <xctk:DecimalUpDown Grid.Column="5" Increment="0.1" Value="{Binding Z, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:Vector3Control}}" />
     </Grid>
 </UserControl>

@@ -27,6 +27,7 @@ using System.Xml;
 using CasaEngine.Core.Extension;
 using CasaEngine.Core.Logger;
 using CasaEngine.Core.Packing;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 

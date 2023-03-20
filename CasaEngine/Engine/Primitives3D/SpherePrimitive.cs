@@ -76,8 +76,8 @@ namespace CasaEngine.Engine.Primitives3D
 
                     var normal = new Vector3(dx, dy, dz);
 
-                    uv.X = (float)i / (float)(verticalSegments - 2);
-                    uv.Y = (float)j / (float)(horizontalSegments - 1);
+                    uv.X = i / (float)(verticalSegments - 2);
+                    uv.Y = j / (float)(horizontalSegments - 1);
                     //uv.Normalize();
 
                     AddVertex(normal * radius, normal, uv);

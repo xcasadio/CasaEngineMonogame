@@ -13,6 +13,7 @@ using Editor.Tools.Font;
 using Editor.Tools.SkinUIEditor;
 using Font = CasaEngine.Framework.Assets.Fonts.Font;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets.Graphics2D;
 using CasaEngine.Framework.FrontEnd.Screen;
 using CasaEngine.Framework.Game;

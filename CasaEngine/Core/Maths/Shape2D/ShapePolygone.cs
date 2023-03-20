@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Core.Maths.Shape2D
 {
-    public class ShapePolygone : Shape2DObject
+    public class ShapePolygone : Shape2dObject
     {
 
 #if EDITOR
@@ -71,12 +71,12 @@ namespace CasaEngine.Core.Maths.Shape2D
             }
         }
 
-        public override Shape2DObject Clone()
+        public override Shape2dObject Clone()
         {
             return new ShapePolygone(this);
         }
 
-        public override void CopyFrom(Shape2DObject ob)
+        public override void CopyFrom(Shape2dObject ob)
         {
             if (ob is ShapePolygone == false)
             {
@@ -154,7 +154,7 @@ namespace CasaEngine.Core.Maths.Shape2D
         }
 
         public ShapePolygone(Vector2 p1, Vector2 p2, Vector2 p3)
-            : base(Shape2DType.Polygone)
+            : base(Shape2dType.Polygone)
         {
             _points.Add(p1);
             _points.Add(p2);
@@ -267,7 +267,7 @@ namespace CasaEngine.Core.Maths.Shape2D
             }
         }
 
-        public override bool CompareTo(Shape2DObject o)
+        public override bool CompareTo(Shape2dObject o)
         {
             if (o is ShapePolygone polygone)
             {

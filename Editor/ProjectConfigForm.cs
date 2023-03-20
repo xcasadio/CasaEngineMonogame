@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Diagnostics;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
 
 namespace Editor

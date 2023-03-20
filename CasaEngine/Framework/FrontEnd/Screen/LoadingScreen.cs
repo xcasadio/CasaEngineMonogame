@@ -25,7 +25,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
 
             TransitionOnTime = TimeSpan.FromSeconds(0.5);
 
-            _renderer2DComponent = Game.EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+            _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
         }
 
         public static void Load(ScreenManagerComponent screenManager, bool loadingIsSlow,
@@ -68,7 +68,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
                 // Once the load has finished, we use ResetElapsedTime to tell
                 // the  game timing mechanism that we have just finished a very
                 // long frame, and that it should not try to catch up.
-                Game.EngineComponents.Game.ResetElapsedTime();
+                EngineComponents.Game.ResetElapsedTime();
             }
         }
 
@@ -96,9 +96,9 @@ namespace CasaEngine.Framework.FrontEnd.Screen
                 const string message = "Loading...";
 
                 // Center the text in the viewport.
-                var viewport = Game.EngineComponents.GraphicsDeviceManager.GraphicsDevice.Viewport;
+                var viewport = EngineComponents.GraphicsDeviceManager.GraphicsDevice.Viewport;
                 var viewportSize = new Vector2(viewport.Width, viewport.Height);
-                var textSize = Game.EngineComponents.DefaultSpriteFont.MeasureString(message);
+                var textSize = EngineComponents.DefaultSpriteFont.MeasureString(message);
                 var textPosition = (viewportSize - textSize) / 2;
 
                 var color = new Color((byte)255, (byte)255, (byte)255, TransitionAlpha);
@@ -107,7 +107,7 @@ namespace CasaEngine.Framework.FrontEnd.Screen
                 /*spriteBatch.Begin();
                 spriteBatch.DrawString(font, message, textPosition, color);
                 spriteBatch.End();*/
-                _renderer2DComponent.AddText2D(Game.EngineComponents.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
+                _renderer2DComponent.AddText2D(EngineComponents.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
             }
         }
 

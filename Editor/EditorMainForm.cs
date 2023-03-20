@@ -9,6 +9,7 @@ using Editor.Map;
 using Editor.Sprite2DEditor.SpriteSheetPacker;
 using Editor.Tools.UIScreenEditor;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 using Editor.Debugger;

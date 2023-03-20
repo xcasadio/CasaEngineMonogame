@@ -8,7 +8,7 @@ namespace Editor.UndoRedo
         : ICommand
     {
 
-        Shape2DObject m_Object;
+        Shape2dObject m_Object;
 
 
 
@@ -18,7 +18,7 @@ namespace Editor.UndoRedo
         /// 
         /// </summary>
         /// <param name="ob_"></param>
-        public UndoRedoShape2DObjectCommand(Shape2DObject ob_)
+        public UndoRedoShape2DObjectCommand(Shape2dObject ob_)
         {
             if (ob_ == null)
             {
@@ -39,8 +39,8 @@ namespace Editor.UndoRedo
             if (arg1_ is Sprite2DEditorComponent)
             {
                 Sprite2DEditorComponent c = arg1_ as Sprite2DEditorComponent;
-                Shape2DObject temp = (Shape2DObject)c.CurrentShape2DManipulator.Shape2DObject.Clone();
-                c.CurrentShape2DManipulator.Shape2DObject = m_Object;
+                Shape2dObject temp = (Shape2dObject)c.CurrentShape2DManipulator.Shape2dObject.Clone();
+                c.CurrentShape2DManipulator.Shape2dObject = m_Object;
                 m_Object = temp;
             }
         }

@@ -111,7 +111,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
 
                     if (r >= 1.0f)
                     {
-                        _currentTime -= _totalTime * (float)r;
+                        _currentTime -= _totalTime * r;
                         endAnim = true;
                     }
 
@@ -185,7 +185,7 @@ namespace CasaEngine.Framework.Assets.Graphics2D
         public Sprite2D GetCurrentSprite()
         {
             var id = _frames[_currentFrame].SpriteId;
-            return Game.EngineComponents.Asset2DManager.GetSprite2DById(id);
+            return EngineComponents.Asset2DManager.GetSprite2DById(id);
         }
 
         public void ResetTime()

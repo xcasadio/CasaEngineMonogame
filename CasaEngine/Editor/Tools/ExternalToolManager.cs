@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 
 namespace CasaEngine.Editor.Tools

@@ -54,7 +54,7 @@ namespace CasaEngine.Engine.Physics2D
 
         public void Update()
         {
-            Shape2DObject g1, g2;
+            Shape2dObject g1, g2;
 
             for (var i = 0; i < _objects.Count; i++)
             {
@@ -90,13 +90,13 @@ namespace CasaEngine.Engine.Physics2D
                                 _v2.X = g2.Location.X;
                                 _v2.Y = g2.Location.Y;
 
-                                switch (g1.Shape2DType)
+                                switch (g1.Shape2dType)
                                 {
-                                    case Shape2DType.Circle:
+                                    case Shape2dType.Circle:
 
-                                        switch (g2.Shape2DType)
+                                        switch (g2.Shape2dType)
                                         {
-                                            case Shape2DType.Circle:
+                                            case Shape2dType.Circle:
 
                                                 if (Collision2D.CollideCircles(ref _contactPoint, (ShapeCircle)g1, ref _v1, (ShapeCircle)g2, ref _v2))
                                                 {
@@ -115,7 +115,7 @@ namespace CasaEngine.Engine.Physics2D
                                                 }
                                                 break;
 
-                                            case Shape2DType.Polygone:
+                                            case Shape2dType.Polygone:
 
                                                 if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g2, ref _v2, (ShapeCircle)g1, ref _v1))
                                                 {
@@ -139,11 +139,11 @@ namespace CasaEngine.Engine.Physics2D
                                         }
                                         break;
 
-                                    case Shape2DType.Polygone:
+                                    case Shape2dType.Polygone:
 
-                                        switch (g2.Shape2DType)
+                                        switch (g2.Shape2dType)
                                         {
-                                            case Shape2DType.Circle:
+                                            case Shape2dType.Circle:
 
                                                 if (Collision2D.CollidePolygonAndCircle(ref _contactPoint, (ShapePolygone)g1, ref _v1, (ShapeCircle)g2, ref _v2))
                                                 {
@@ -162,7 +162,7 @@ namespace CasaEngine.Engine.Physics2D
                                                 }
                                                 break;
 
-                                            case Shape2DType.Polygone:
+                                            case Shape2dType.Polygone:
 
                                                 if (Collision2D.CollidePolygons((ShapePolygone)g2, ref _v2, (ShapePolygone)g1, ref _v1))
                                                 {
@@ -181,7 +181,7 @@ namespace CasaEngine.Engine.Physics2D
                                                 }
                                                 break;
 
-                                            case Shape2DType.Rectangle:
+                                            case Shape2dType.Rectangle:
 
                                                 if (Collision2D.CollidePolygonAndRectangle((ShapePolygone)g1, ref _v1, (ShapeRectangle)g2, ref _v2))
                                                 {

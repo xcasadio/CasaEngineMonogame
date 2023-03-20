@@ -1,20 +1,22 @@
 ﻿using CasaEngine.Editor.Assets;
+using CasaEngine.Engine.Physics;
+using CasaEngine.Engine.Physics2D;
 using CasaEngine.Engine.Plugin;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.FrontEnd.Screen;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Gameplay.Actor;
+using CasaEngine.Framework.Graphics2D;
+using CasaEngine.Framework.Project;
 using CasaEngine.Framework.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Engine.Physics2D;
-using CasaEngine.Framework.FrontEnd.Screen;
-using CasaEngine.Framework.Graphics2D;
-using CasaEngine.Framework.Project;
 #if EDITOR
 using CasaEngine.Editor.Tools;
 #endif
 
-namespace CasaEngine.Framework.Game
+namespace CasaEngine.Framework
 {
     public static class EngineComponents
     {
@@ -30,8 +32,11 @@ namespace CasaEngine.Framework.Game
         public static ObjectRegistry ObjectRegistry { get; } = new();
         public static CasaEngineGame? Game { get; set; }
         public static ProjectSettings ProjectSettings { get; } = new();
-        public static Physics2dSettings Physics2dSettings { get; } = new();
         public static GraphicsSettings GraphicsSettings { get; } = new();
+        public static PhysicsEngine2d PhysicsEngine2d { get; } = new();
+        public static PhysicsEngine PhysicsEngine { get; } = new();
+        public static Physics2dSettings Physics2dSettings { get; } = new();
+        public static Physics3dSettings Physics3dSettings { get; } = new();
 
 #if !FINAL
 

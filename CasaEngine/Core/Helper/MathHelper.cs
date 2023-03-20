@@ -251,7 +251,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The angle whose cosine is the specified value.</returns>
         public static float Acos(float value)
         {
-            return (float)Math.Acos((double)value);
+            return (float)Math.Acos(value);
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The angle whose sine is the specified value.</returns>
         public static float Asin(float value)
         {
-            return (float)Math.Asin((double)value);
+            return (float)Math.Asin(value);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The angle whos tangent is the speicified number.</returns>
         public static float Atan(float value)
         {
-            return (float)Math.Atan((double)value);
+            return (float)Math.Atan(value);
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The angle whose tangent is the quotient of the two specified numbers.</returns>
         public static float Atan2(float y, float x)
         {
-            return (float)Math.Atan2((double)y, (double)x);
+            return (float)Math.Atan2(y, x);
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The sine of the specified angle.</returns>
         public static float Sin(float value)
         {
-            return (float)Math.Sin((double)value);
+            return (float)Math.Sin(value);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The hyperbolic sine of the specified angle.</returns>
         public static float Sinh(float value)
         {
-            return (float)Math.Sinh((double)value);
+            return (float)Math.Sinh(value);
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The cosine of the specified angle.</returns>
         public static float Cos(float value)
         {
-            return (float)Math.Cos((double)value);
+            return (float)Math.Cos(value);
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The hyperbolic cosine of the specified angle.</returns>
         public static float Cosh(float value)
         {
-            return (float)Math.Cosh((double)value);
+            return (float)Math.Cosh(value);
         }
 
         /// <summary>
@@ -332,7 +332,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The tangent of the specified angle.</returns>
         public static float Tan(float value)
         {
-            return (float)Math.Tan((double)value);
+            return (float)Math.Tan(value);
         }
 
         /// <summary>
@@ -342,7 +342,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The hyperbolic tangent of the specified angle.</returns>
         public static float Tanh(float value)
         {
-            return (float)Math.Tanh((double)value);
+            return (float)Math.Tanh(value);
         }
 
         /// <summary>
@@ -352,7 +352,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The natural (base e) logarithm of the specified value.</returns>
         public static float Log(float value)
         {
-            return (float)Math.Log((double)value);
+            return (float)Math.Log(value);
         }
 
         /// <summary>
@@ -363,7 +363,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The specified value raised to the specified power.</returns>
         public static float Pow(float value, float power)
         {
-            return (float)Math.Pow((double)value, (double)power);
+            return (float)Math.Pow(value, power);
         }
 
         /// <summary>
@@ -373,7 +373,7 @@ namespace CasaEngine.Core.Helper
         /// <returns>The square root of the specified value.</returns>
         public static float Sqrt(float value)
         {
-            return (float)Math.Sqrt((double)value);
+            return (float)Math.Sqrt(value);
         }
 
         /// <summary>
