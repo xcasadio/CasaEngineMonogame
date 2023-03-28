@@ -13,77 +13,76 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Button = CasaEngine.Framework.UserInterface.Controls.Buttons.Button;
 
-namespace CasaEngine.Framework.UserInterface.Controls.Windows
+namespace CasaEngine.Framework.UserInterface.Controls.Windows;
+
+public class ExitDialog : Dialog
 {
 
-    public class ExitDialog : Dialog
+
+    private readonly Button _buttonYes;
+    private readonly Button _buttonNo;
+    private readonly Label _labelMessage;
+    private readonly ImageBox _imageIcon;
+
+
+
+    public ExitDialog(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
     {
+        var msg = "Do you really want to exit?";
+        ClientWidth = (int)UserInterfaceManager.Skin.Controls["Label"].Layers[0].Text.Font.Font.MeasureString(msg).X + 48 + 16 + 16 + 16;
+        ClientHeight = 120;
+        TopPanel.Visible = false;
+        IconVisible = true;
+        Resizable = false;
+        StayOnTop = true;
+        Text = EngineComponents.Game.Window.Title;
+        CenterWindow();
 
-
-        private readonly Button _buttonYes;
-        private readonly Button _buttonNo;
-        private readonly Label _labelMessage;
-        private readonly ImageBox _imageIcon;
-
-
-
-        public ExitDialog(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
+        _imageIcon = new ImageBox(UserInterfaceManager)
         {
-            var msg = "Do you really want to exit?";
-            ClientWidth = (int)UserInterfaceManager.Skin.Controls["Label"].Layers[0].Text.Font.Font.MeasureString(msg).X + 48 + 16 + 16 + 16;
-            ClientHeight = 120;
-            TopPanel.Visible = false;
-            IconVisible = true;
-            Resizable = false;
-            StayOnTop = true;
-            Text = EngineComponents.Game.Window.Title;
-            CenterWindow();
+            Texture = UserInterfaceManager.Skin.Images["Icon.Question"].Texture,
+            Left = 16,
+            Top = 16,
+            Width = 48,
+            Height = 48,
+            SizeMode = SizeMode.Stretched
+        };
 
-            _imageIcon = new ImageBox(UserInterfaceManager)
-            {
-                Texture = UserInterfaceManager.Skin.Images["Icon.Question"].Texture,
-                Left = 16,
-                Top = 16,
-                Width = 48,
-                Height = 48,
-                SizeMode = SizeMode.Stretched
-            };
+        _labelMessage = new Label(UserInterfaceManager)
+        {
+            Left = 80,
+            Top = 16,
+            Height = 48,
+            Alignment = Alignment.TopLeft,
+            Text = msg
+        };
+        _labelMessage.Width = ClientWidth - _labelMessage.Left;
 
-            _labelMessage = new Label(UserInterfaceManager)
-            {
-                Left = 80,
-                Top = 16,
-                Height = 48,
-                Alignment = Alignment.TopLeft,
-                Text = msg
-            };
-            _labelMessage.Width = ClientWidth - _labelMessage.Left;
+        _buttonYes = new Button(UserInterfaceManager)
+        {
+            Top = 8,
+            Text = "Yes",
+            ModalResult = ModalResult.Yes
+        };
+        _buttonYes.Left = BottomPanel.ClientWidth / 2 - _buttonYes.Width - 4;
 
-            _buttonYes = new Button(UserInterfaceManager)
-            {
-                Top = 8,
-                Text = "Yes",
-                ModalResult = ModalResult.Yes
-            };
-            _buttonYes.Left = BottomPanel.ClientWidth / 2 - _buttonYes.Width - 4;
+        _buttonNo = new Button(UserInterfaceManager)
+        {
+            Left = BottomPanel.ClientWidth / 2 + 4,
+            Top = 8,
+            Text = "No",
+            ModalResult = ModalResult.No
+        };
 
-            _buttonNo = new Button(UserInterfaceManager)
-            {
-                Left = BottomPanel.ClientWidth / 2 + 4,
-                Top = 8,
-                Text = "No",
-                ModalResult = ModalResult.No
-            };
+        Add(_imageIcon);
+        Add(_labelMessage);
+        BottomPanel.Add(_buttonYes);
+        BottomPanel.Add(_buttonNo);
 
-            Add(_imageIcon);
-            Add(_labelMessage);
-            BottomPanel.Add(_buttonYes);
-            BottomPanel.Add(_buttonNo);
-
-            DefaultControl = _buttonNo;
-        } // ExitDialog
-
-
+        DefaultControl = _buttonNo;
     } // ExitDialog
-} // XNAFinalEngine.UserInterface
+
+
+} // ExitDialog
+  // XNAFinalEngine.UserInterface

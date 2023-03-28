@@ -25,122 +25,121 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public class Chronometer : Disposable
 {
 
-    public class Chronometer : Disposable
+
+    public enum TimeSpaceEnum
     {
-
-
-        public enum TimeSpaceEnum
-        {
-            GameDeltaTime,
-            FrameTime,
-        } // TimeSpaceEnum
+        GameDeltaTime,
+        FrameTime,
+    } // TimeSpaceEnum
 
 
 
-        private static readonly List<Chronometer> Chronometers = new();
+    private static readonly List<Chronometer> Chronometers = new();
 
 
 
-        public double ElapsedTime { get; set; }
+    public double ElapsedTime { get; set; }
 
-        public bool Paused { get; private set; }
+    public bool Paused { get; private set; }
 
-        public TimeSpaceEnum TimeSpace { get; private set; }
-
-
-
-        public Chronometer(TimeSpaceEnum timeSpace = TimeSpaceEnum.GameDeltaTime)
-        {
-            ElapsedTime = 0;
-            Paused = true;
-            TimeSpace = timeSpace;
-            // If the application/game relies heavily in chronometers a pool should be used. TODO!!
-            Chronometers.Add(this);
-        } // Chronometer
+    public TimeSpaceEnum TimeSpace { get; private set; }
 
 
 
-        public void Start()
-        {
-            Paused = false;
-        } // Start
-
-        public void Pause()
-        {
-            Paused = true;
-        } // Pause
-
-
-
-        public void Reset()
-        {
-            ElapsedTime = 0;
-        } // Reset
-
-
-
-        private void Update()
-        {
-            throw new NotImplementedException("Chronometer.Update()");
-            /*if (!Paused)
-            {
-                if (TimeSpace == TimeSpaceEnum.FrameTime)
-                    ElapsedTime += Time.FrameTime;
-                else
-                    ElapsedTime += Time.GameDeltaTime;
-            }*/
-        } // Update
-
-
-
-        protected override void DisposeManagedResources()
-        {
-            Chronometers.Remove(this);
-        } // DisposeManagedResources
-
-
-
-        public static void PauseAllChronometers()
-        {
-            foreach (var chronometer in Chronometers)
-            {
-                chronometer.Pause();
-            }
-        } // PauseAllChronometers
-
-        public static void StartAllChronometers()
-        {
-            foreach (var chronometer in Chronometers)
-            {
-                chronometer.Start();
-            }
-        } // StartAllChronometers
-
-        internal static void UpdateGameDeltaTimeChronometers()
-        {
-            foreach (var chronometer in Chronometers)
-            {
-                if (chronometer.TimeSpace == TimeSpaceEnum.GameDeltaTime)
-                {
-                    chronometer.Update();
-                }
-            }
-        } // UpdateGameDeltaTimeChronometers
-
-        internal static void UpdateFrameTimeChronometers()
-        {
-            foreach (var chronometer in Chronometers)
-            {
-                if (chronometer.TimeSpace == TimeSpaceEnum.FrameTime)
-                {
-                    chronometer.Update();
-                }
-            }
-        } // UpdateFrameTimeChronometers
-
-
+    public Chronometer(TimeSpaceEnum timeSpace = TimeSpaceEnum.GameDeltaTime)
+    {
+        ElapsedTime = 0;
+        Paused = true;
+        TimeSpace = timeSpace;
+        // If the application/game relies heavily in chronometers a pool should be used. TODO!!
+        Chronometers.Add(this);
     } // Chronometer
-} // XNAFinalEngine.Helpers
+
+
+
+    public void Start()
+    {
+        Paused = false;
+    } // Start
+
+    public void Pause()
+    {
+        Paused = true;
+    } // Pause
+
+
+
+    public void Reset()
+    {
+        ElapsedTime = 0;
+    } // Reset
+
+
+
+    private void Update()
+    {
+        throw new NotImplementedException("Chronometer.Update()");
+        /*if (!Paused)
+        {
+            if (TimeSpace == TimeSpaceEnum.FrameTime)
+                ElapsedTime += Time.FrameTime;
+            else
+                ElapsedTime += Time.GameDeltaTime;
+        }*/
+    } // Update
+
+
+
+    protected override void DisposeManagedResources()
+    {
+        Chronometers.Remove(this);
+    } // DisposeManagedResources
+
+
+
+    public static void PauseAllChronometers()
+    {
+        foreach (var chronometer in Chronometers)
+        {
+            chronometer.Pause();
+        }
+    } // PauseAllChronometers
+
+    public static void StartAllChronometers()
+    {
+        foreach (var chronometer in Chronometers)
+        {
+            chronometer.Start();
+        }
+    } // StartAllChronometers
+
+    internal static void UpdateGameDeltaTimeChronometers()
+    {
+        foreach (var chronometer in Chronometers)
+        {
+            if (chronometer.TimeSpace == TimeSpaceEnum.GameDeltaTime)
+            {
+                chronometer.Update();
+            }
+        }
+    } // UpdateGameDeltaTimeChronometers
+
+    internal static void UpdateFrameTimeChronometers()
+    {
+        foreach (var chronometer in Chronometers)
+        {
+            if (chronometer.TimeSpace == TimeSpaceEnum.FrameTime)
+            {
+                chronometer.Update();
+            }
+        }
+    } // UpdateFrameTimeChronometers
+
+
+} // Chronometer
+// XNAFinalEngine.Helpers

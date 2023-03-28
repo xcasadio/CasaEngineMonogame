@@ -1,32 +1,31 @@
 ﻿using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework.Audio;
 
-namespace CasaEngine.Framework.Audio
+namespace CasaEngine.Framework.Audio;
+
+public class Sound : Entity
 {
-    public class Sound : Entity
+    private readonly SoundEffect _soundEffect;
+    private SoundEffectInstance _soundEffectInstance;
+
+    public SoundEffectInstance SoundEffectInstance
     {
-        private readonly SoundEffect _soundEffect;
-        private SoundEffectInstance _soundEffectInstance;
+        get => _soundEffectInstance;
+        set => _soundEffectInstance = value;
+    }
 
-        public SoundEffectInstance SoundEffectInstance
+    public Sound(SoundEffect soundEffect)
+    {
+        if (soundEffect == null)
         {
-            get => _soundEffectInstance;
-            set => _soundEffectInstance = value;
+            throw new ArgumentNullException("Sound() : SoundEffect is null");
         }
 
-        public Sound(SoundEffect soundEffect)
-        {
-            if (soundEffect == null)
-            {
-                throw new ArgumentNullException("Sound() : SoundEffect is null");
-            }
+        _soundEffect = soundEffect;
+    }
 
-            _soundEffect = soundEffect;
-        }
-
-        public void Initialize()
-        {
-            _soundEffectInstance = _soundEffect.CreateInstance();
-        }
+    public void Initialize()
+    {
+        _soundEffectInstance = _soundEffect.CreateInstance();
     }
 }

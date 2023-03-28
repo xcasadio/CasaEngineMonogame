@@ -1,7 +1,6 @@
-﻿namespace CasaEngine.Framework.Game
+﻿namespace CasaEngine.Framework.Game;
+
+public interface IGameComponentResizable
 {
-    public interface IGameComponentResizable
-    {
-        void OnResize();
-    }
+    void OnResize();
 }

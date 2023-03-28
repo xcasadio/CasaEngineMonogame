@@ -1,9 +1,8 @@
-﻿namespace CasaEngine.Framework.Assets.Graphics2D
+﻿namespace CasaEngine.Framework.Assets.Graphics2D;
+
+public enum Animation2DType
 {
-    public enum Animation2DType
-    {
-        Once,
-        PingPong,
-        Loop
-    }
+    Once,
+    PingPong,
+    Loop
 }

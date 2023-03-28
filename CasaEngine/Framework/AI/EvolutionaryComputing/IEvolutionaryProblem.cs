@@ -1,19 +1,18 @@
-namespace CasaEngine.Framework.AI.EvolutionaryComputing
+namespace CasaEngine.Framework.AI.EvolutionaryComputing;
+
+public interface IEvolutionaryProblem<T>
 {
-    public interface IEvolutionaryProblem<T>
+
+    EvolutionObjective Objective
     {
-
-        EvolutionObjective Objective
-        {
-            get;
-            set;
-        }
-
-
-
-        Population<T> GenerateInitialPopulation();
-
-        void CalculateFitness(Population<T> population);
-
+        get;
+        set;
     }
+
+
+
+    Population<T> GenerateInitialPopulation();
+
+    void CalculateFitness(Population<T> population);
+
 }

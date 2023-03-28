@@ -1,12 +1,11 @@
-﻿namespace CasaEngine.Framework.Gameplay.Actor.Event
+﻿namespace CasaEngine.Framework.Gameplay.Actor.Event;
+
+public enum EventActorType
 {
-    public enum EventActorType
-    {
-        MoveActor,
-        PlaySound,
-        StopSound,
-        SpawnActor,
-        DestroyActor,
-        TeleportActor
-    }
+    MoveActor,
+    PlaySound,
+    StopSound,
+    SpawnActor,
+    DestroyActor,
+    TeleportActor
 }

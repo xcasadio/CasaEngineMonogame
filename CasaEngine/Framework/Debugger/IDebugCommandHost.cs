@@ -5,48 +5,46 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-namespace CasaEngine.Framework.Debugger
+namespace CasaEngine.Framework.Debugger;
+
+public enum DebugCommandMessage
 {
-    public enum DebugCommandMessage
-    {
-        Standard = 1,
-        Error = 2,
-        Warning = 3
-    }
+    Standard = 1,
+    Error = 2,
+    Warning = 3
+}
 
-    public delegate void DebugCommandExecute(IDebugCommandHost host, string command,
-                                                            IList<string> arguments);
+public delegate void DebugCommandExecute(IDebugCommandHost host, string command,
+    IList<string> arguments);
 
-    public interface IDebugCommandExecutioner
-    {
-        void ExecuteCommand(string command);
-    }
+public interface IDebugCommandExecutioner
+{
+    void ExecuteCommand(string command);
+}
 
-    public interface IDebugEchoListner
-    {
-        void Echo(DebugCommandMessage messageType, string text);
-    }
+public interface IDebugEchoListner
+{
+    void Echo(DebugCommandMessage messageType, string text);
+}
 
-    public interface IDebugCommandHost : IDebugEchoListner, IDebugCommandExecutioner
-    {
-        void RegisterCommand(string command, string description,
-                                                        DebugCommandExecute callback);
+public interface IDebugCommandHost : IDebugEchoListner, IDebugCommandExecutioner
+{
+    void RegisterCommand(string command, string description,
+        DebugCommandExecute callback);
 
-        void UnregisterCommand(string command);
+    void UnregisterCommand(string command);
 
-        void Echo(string text);
+    void Echo(string text);
 
-        void EchoWarning(string text);
+    void EchoWarning(string text);
 
-        void EchoError(string text);
+    void EchoError(string text);
 
-        void RegisterEchoListner(IDebugEchoListner listner);
+    void RegisterEchoListner(IDebugEchoListner listner);
 
-        void UnregisterEchoListner(IDebugEchoListner listner);
+    void UnregisterEchoListner(IDebugEchoListner listner);
 
-        void PushExecutioner(IDebugCommandExecutioner executioner);
+    void PushExecutioner(IDebugCommandExecutioner executioner);
 
-        void PopExecutioner();
-    }
-
+    void PopExecutioner();
 }

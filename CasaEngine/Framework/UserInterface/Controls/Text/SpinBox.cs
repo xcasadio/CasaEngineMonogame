@@ -13,284 +13,282 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using CasaEngine.Framework.UserInterface.Controls.Auxiliary;
 using Button = CasaEngine.Framework.UserInterface.Controls.Buttons.Button;
 
-namespace CasaEngine.Framework.UserInterface.Controls.Text
+namespace CasaEngine.Framework.UserInterface.Controls.Text;
+
+public enum SpinBoxMode
+{
+    Range,
+    List
+} // SpinBoxMode
+
+
+public class SpinBox : TextBox
 {
 
 
-    public enum SpinBoxMode
+    private readonly Button _btnUp;
+    private readonly Button _btnDown;
+    private SpinBoxMode _mode = SpinBoxMode.List;
+    private readonly List<object> _items = new();
+    private float _value;
+    private int _rounding = 2;
+    private int _itemIndex = -1;
+
+
+
+    public new virtual SpinBoxMode Mode
     {
-        Range,
-        List
-    } // SpinBoxMode
+        get => _mode;
+        set => _mode = value;
+    } // Mode
 
-
-    public class SpinBox : TextBox
+    public override bool ReadOnly
     {
-
-
-        private readonly Button _btnUp;
-        private readonly Button _btnDown;
-        private SpinBoxMode _mode = SpinBoxMode.List;
-        private readonly List<object> _items = new();
-        private float _value;
-        private int _rounding = 2;
-        private int _itemIndex = -1;
-
-
-
-        public new virtual SpinBoxMode Mode
+        get { return base.ReadOnly; }
+        set
         {
-            get => _mode;
-            set => _mode = value;
-        } // Mode
-
-        public override bool ReadOnly
-        {
-            get { return base.ReadOnly; }
-            set
-            {
-                base.ReadOnly = value;
-                CaretVisible = !value;
+            base.ReadOnly = value;
+            CaretVisible = !value;
 #if (WINDOWS)
-                Cursor = value ? UserInterfaceManager.Skin.Cursors["Default"].Cursor : UserInterfaceManager.Skin.Cursors["Text"].Cursor;
+            Cursor = value ? UserInterfaceManager.Skin.Cursors["Default"].Cursor : UserInterfaceManager.Skin.Cursors["Text"].Cursor;
 #endif
+        }
+    } // ReadOnly
+
+    public virtual List<object> Items => _items; // Items
+
+    public float Value
+    {
+        get => _value;
+        set
+        {
+            if (_value != value)
+            {
+                _value = value;
+                Invalidate();
             }
-        } // ReadOnly
+        }
+    } // Value
 
-        public virtual List<object> Items => _items; // Items
+    public float Minimum { get; set; }
 
-        public float Value
+    public float Maximum { get; set; }
+
+    public float Step { get; set; }
+
+    public int ItemIndex
+    {
+        get => _itemIndex;
+        set
         {
-            get => _value;
-            set
+            if (value < 0)
             {
-                if (_value != value)
-                {
-                    _value = value;
-                    Invalidate();
-                }
+                value = 0;
             }
-        } // Value
 
-        public float Minimum { get; set; }
-
-        public float Maximum { get; set; }
-
-        public float Step { get; set; }
-
-        public int ItemIndex
-        {
-            get => _itemIndex;
-            set
+            if (value > _items.Count - 1)
             {
-                if (value < 0)
-                {
-                    value = 0;
-                }
-
-                if (value > _items.Count - 1)
-                {
-                    value = _items.Count - 1;
-                }
-
-                if (_mode == SpinBoxMode.List && _items.Count != 0)
-                {
-                    _itemIndex = value;
-                    Text = _items[_itemIndex].ToString();
-                }
+                value = _items.Count - 1;
             }
-        } // ItemIndex
 
-        public int Rounding
-        {
-            get => _rounding;
-            set
+            if (_mode == SpinBoxMode.List && _items.Count != 0)
             {
-                if (_rounding != value)
-                {
-                    _rounding = value;
-                    Invalidate();
-                }
+                _itemIndex = value;
+                Text = _items[_itemIndex].ToString();
             }
-        } // Rounding
+        }
+    } // ItemIndex
 
-
-
-        public SpinBox(UserInterfaceManager userInterfaceManager, SpinBoxMode mode)
-            : base(userInterfaceManager)
+    public int Rounding
+    {
+        get => _rounding;
+        set
         {
-            Step = 0.25f;
-            Maximum = 100;
-            Minimum = 0;
-            _mode = mode;
-            ReadOnly = true;
-
-            Height = 20;
-            Width = 64;
-
-            _btnUp = new Button(UserInterfaceManager) { CanFocus = false };
-            _btnUp.MousePress += Button_MousePress;
-            Add(_btnUp, false);
-
-            _btnDown = new Button(UserInterfaceManager) { CanFocus = false };
-            _btnDown.MousePress += Button_MousePress;
-            Add(_btnDown, false);
-        } // SpinBox
-
-
-
-        protected internal override void Init()
-        {
-            base.Init();
-
-            var sc = new SkinControlInformation(_btnUp.SkinInformation);
-            sc.Layers["Control"] = new SkinLayer(SkinInformation.Layers["Button"]);
-            sc.Layers["Button"].Name = "Control";
-            _btnUp.SkinInformation = _btnDown.SkinInformation = sc;
-
-            _btnUp.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowUp"].Texture)
+            if (_rounding != value)
             {
-                SizeMode = SizeMode.Centered,
-                Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
-            };
-
-            _btnDown.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowDown"].Texture)
-            {
-                SizeMode = SizeMode.Centered,
-                Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
-            };
-        } // Init
-
-        protected internal override void InitSkin()
-        {
-            base.InitSkin();
-            SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["SpinBox"]);
-        } // InitSkin
-
-
-
-        protected override void DrawControl(Rectangle rect)
-        {
-            base.DrawControl(rect);
-
-            if (ReadOnly && Focused)
-            {
-                var lr = SkinInformation.Layers[0];
-                var rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
-                                             rect.Top + lr.ContentMargins.Top,
-                                             Width - lr.ContentMargins.Horizontal - _btnDown.Width - _btnUp.Width,
-                                             Height - lr.ContentMargins.Vertical);
-                UserInterfaceManager.Renderer.Draw(UserInterfaceManager.Skin.Images["ListBox.Selection"].Texture.Resource, rc, Color.FromNonPremultiplied(255, 255, 255, 128));
+                _rounding = value;
+                Invalidate();
             }
-        } // DrawControl
+        }
+    } // Rounding
 
 
 
-        private void ShiftIndex(bool direction)
+    public SpinBox(UserInterfaceManager userInterfaceManager, SpinBoxMode mode)
+        : base(userInterfaceManager)
+    {
+        Step = 0.25f;
+        Maximum = 100;
+        Minimum = 0;
+        _mode = mode;
+        ReadOnly = true;
+
+        Height = 20;
+        Width = 64;
+
+        _btnUp = new Button(UserInterfaceManager) { CanFocus = false };
+        _btnUp.MousePress += Button_MousePress;
+        Add(_btnUp, false);
+
+        _btnDown = new Button(UserInterfaceManager) { CanFocus = false };
+        _btnDown.MousePress += Button_MousePress;
+        Add(_btnDown, false);
+    } // SpinBox
+
+
+
+    protected internal override void Init()
+    {
+        base.Init();
+
+        var sc = new SkinControlInformation(_btnUp.SkinInformation);
+        sc.Layers["Control"] = new SkinLayer(SkinInformation.Layers["Button"]);
+        sc.Layers["Button"].Name = "Control";
+        _btnUp.SkinInformation = _btnDown.SkinInformation = sc;
+
+        _btnUp.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowUp"].Texture)
         {
-            if (_mode == SpinBoxMode.List)
-            {
-                if (_items.Count > 0)
-                {
-                    if (direction)
-                    {
-                        _itemIndex += 1;
-                    }
-                    else
-                    {
-                        _itemIndex -= 1;
-                    }
+            SizeMode = SizeMode.Centered,
+            Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
+        };
 
-                    if (_itemIndex < 0)
-                    {
-                        _itemIndex = 0;
-                    }
+        _btnDown.Glyph = new Glyph(UserInterfaceManager.Skin.Images["Shared.ArrowDown"].Texture)
+        {
+            SizeMode = SizeMode.Centered,
+            Color = UserInterfaceManager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled
+        };
+    } // Init
 
-                    if (_itemIndex > _items.Count - 1)
-                    {
-                        _itemIndex = _itemIndex = _items.Count - 1;
-                    }
+    protected internal override void InitSkin()
+    {
+        base.InitSkin();
+        SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["SpinBox"]);
+    } // InitSkin
 
-                    Text = _items[_itemIndex].ToString();
-                }
-            }
-            else
+
+
+    protected override void DrawControl(Rectangle rect)
+    {
+        base.DrawControl(rect);
+
+        if (ReadOnly && Focused)
+        {
+            var lr = SkinInformation.Layers[0];
+            var rc = new Rectangle(rect.Left + lr.ContentMargins.Left,
+                rect.Top + lr.ContentMargins.Top,
+                Width - lr.ContentMargins.Horizontal - _btnDown.Width - _btnUp.Width,
+                Height - lr.ContentMargins.Vertical);
+            UserInterfaceManager.Renderer.Draw(UserInterfaceManager.Skin.Images["ListBox.Selection"].Texture.Resource, rc, Color.FromNonPremultiplied(255, 255, 255, 128));
+        }
+    } // DrawControl
+
+
+
+    private void ShiftIndex(bool direction)
+    {
+        if (_mode == SpinBoxMode.List)
+        {
+            if (_items.Count > 0)
             {
                 if (direction)
                 {
-                    _value += Step;
+                    _itemIndex += 1;
                 }
                 else
                 {
-                    _value -= Step;
+                    _itemIndex -= 1;
                 }
 
-                if (_value < Minimum)
+                if (_itemIndex < 0)
                 {
-                    _value = Minimum;
+                    _itemIndex = 0;
                 }
 
-                if (_value > Maximum)
+                if (_itemIndex > _items.Count - 1)
                 {
-                    _value = Maximum;
+                    _itemIndex = _itemIndex = _items.Count - 1;
                 }
 
-                Text = _value.ToString("n" + _rounding);
+                Text = _items[_itemIndex].ToString();
             }
-        } // ShiftIndex
-
-
-
-        private void Button_MousePress(object sender, MouseEventArgs e)
+        }
+        else
         {
-            Focused = true;
-            if (sender == _btnUp)
+            if (direction)
             {
-                ShiftIndex(true);
+                _value += Step;
             }
-            else if (sender == _btnDown)
+            else
             {
-                ShiftIndex(false);
+                _value -= Step;
             }
-        } // Button_MousePress
+
+            if (_value < Minimum)
+            {
+                _value = Minimum;
+            }
+
+            if (_value > Maximum)
+            {
+                _value = Maximum;
+            }
+
+            Text = _value.ToString("n" + _rounding);
+        }
+    } // ShiftIndex
 
 
 
-        protected override void OnResize(ResizeEventArgs e)
+    private void Button_MousePress(object sender, MouseEventArgs e)
+    {
+        Focused = true;
+        if (sender == _btnUp)
         {
-            base.OnResize(e);
-
-            if (_btnUp != null)
-            {
-                _btnUp.Width = 16;
-                _btnUp.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
-                _btnUp.Top = SkinInformation.Layers["Control"].ContentMargins.Top;
-                _btnUp.Left = Width - 16 - 2 - 16 - 1;
-            }
-            if (_btnDown != null)
-            {
-                _btnDown.Width = 16;
-                _btnDown.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
-                _btnDown.Top = SkinInformation.Layers["Control"].ContentMargins.Top; ;
-                _btnDown.Left = Width - 16 - 2;
-            }
-        } // OnResize
-
-        protected override void OnKeyPress(KeyEventArgs e)
+            ShiftIndex(true);
+        }
+        else if (sender == _btnDown)
         {
-            if (e.Key == Keys.Up)
-            {
-                e.Handled = true;
-                ShiftIndex(true);
-            }
-            else if (e.Key == Keys.Down)
-            {
-                e.Handled = true;
-                ShiftIndex(false);
-            }
-            base.OnKeyPress(e);
-        } // OnKeyPress
+            ShiftIndex(false);
+        }
+    } // Button_MousePress
 
 
-    } // SpinBox
-} // XNAFinalEngine.UserInterface
+
+    protected override void OnResize(ResizeEventArgs e)
+    {
+        base.OnResize(e);
+
+        if (_btnUp != null)
+        {
+            _btnUp.Width = 16;
+            _btnUp.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
+            _btnUp.Top = SkinInformation.Layers["Control"].ContentMargins.Top;
+            _btnUp.Left = Width - 16 - 2 - 16 - 1;
+        }
+        if (_btnDown != null)
+        {
+            _btnDown.Width = 16;
+            _btnDown.Height = Height - SkinInformation.Layers["Control"].ContentMargins.Vertical;
+            _btnDown.Top = SkinInformation.Layers["Control"].ContentMargins.Top; ;
+            _btnDown.Left = Width - 16 - 2;
+        }
+    } // OnResize
+
+    protected override void OnKeyPress(KeyEventArgs e)
+    {
+        if (e.Key == Keys.Up)
+        {
+            e.Handled = true;
+            ShiftIndex(true);
+        }
+        else if (e.Key == Keys.Down)
+        {
+            e.Handled = true;
+            ShiftIndex(false);
+        }
+        base.OnKeyPress(e);
+    } // OnKeyPress
+
+
+} // SpinBox
+  // XNAFinalEngine.UserInterface

@@ -8,18 +8,17 @@
 
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.FrontEnd.Screen
+namespace CasaEngine.Framework.FrontEnd.Screen;
+
+public class PlayerIndexEventArgs : EventArgs
 {
-    public class PlayerIndexEventArgs : EventArgs
+    public PlayerIndexEventArgs(PlayerIndex playerIndex)
     {
-        public PlayerIndexEventArgs(PlayerIndex playerIndex)
-        {
-            _playerIndex = playerIndex;
-        }
-
-
-        public PlayerIndex PlayerIndex => _playerIndex;
-
-        private readonly PlayerIndex _playerIndex;
+        _playerIndex = playerIndex;
     }
+
+
+    public PlayerIndex PlayerIndex => _playerIndex;
+
+    private readonly PlayerIndex _playerIndex;
 }

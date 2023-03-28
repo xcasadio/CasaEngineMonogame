@@ -1,61 +1,60 @@
 ﻿using CasaEngine.Framework.Gameplay.Actor.Event;
 
-namespace CasaEngine.Framework.Assets.Graphics2D
+namespace CasaEngine.Framework.Assets.Graphics2D;
+
+public struct Frame2D
 {
-    public struct Frame2D
-    {
-        public int SpriteId;
-        public float Time;
+    public int SpriteId;
+    public float Time;
 
 #if EDITOR
-        public List<EventActor> Events;
+    public List<EventActor> Events;
 #else
         public EventActor[] Events;
 #endif
 
-        public Frame2D(int spriteId, float time)
-        {
-            SpriteId = spriteId;
-            Time = time;
+    public Frame2D(int spriteId, float time)
+    {
+        SpriteId = spriteId;
+        Time = time;
 
 #if EDITOR
-            Events = new List<EventActor>();
+        Events = new List<EventActor>();
 #else
             Events = null;
 #endif
-        }
+    }
 
 #if EDITOR
 
-        public string EventsToString()
+    public string EventsToString()
+    {
+        if (Events == null)
         {
-            if (Events == null)
-            {
-                return "0 event";
-            }
-
-            return Events.Count + " event" + (Events.Count <= 1 ? "" : "s");
+            return "0 event";
         }
 
-        public bool CompareTo(Frame2D other)
+        return Events.Count + " event" + (Events.Count <= 1 ? "" : "s");
+    }
+
+    public bool CompareTo(Frame2D other)
+    {
+        if (SpriteId != other.SpriteId
+            || Time != other.Time
+            || Events.Count != other.Events.Count)
         {
-            if (SpriteId != other.SpriteId
-                || Time != other.Time
-                || Events.Count != other.Events.Count)
+            return false;
+        }
+
+        for (var i = 0; i < Events.Count; i++)
+        {
+            if (Events[i].CompareTo(other.Events[i]) == false)
             {
                 return false;
             }
-
-            for (var i = 0; i < Events.Count; i++)
-            {
-                if (Events[i].CompareTo(other.Events[i]) == false)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
-#endif
+
+        return true;
     }
+#endif
 }

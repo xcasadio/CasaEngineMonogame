@@ -1,10 +1,9 @@
-﻿namespace CasaEngine.Editor.Assets
+﻿namespace CasaEngine.Editor.Assets;
+
+public interface IAssetable
 {
-    public interface IAssetable
+    List<string> AssetFileNames
     {
-        List<string> AssetFileNames
-        {
-            get;
-        }
+        get;
     }
 }

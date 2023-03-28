@@ -1,11 +1,10 @@
 ﻿using Microsoft.Xna.Framework.Input;
 
-namespace CasaEngine.Engine.Input.InputSequence
+namespace CasaEngine.Engine.Input.InputSequence;
+
+public struct ButtonMapper
 {
-    public struct ButtonMapper
-    {
-        public string Name;
-        public Buttons Buttons;
-        public Keys Key, AltKey;
-    }
+    public string Name;
+    public Buttons Buttons;
+    public Keys Key, AltKey;
 }

@@ -2,12 +2,11 @@
 using CasaEngine.Framework.AI.Messaging;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Gameplay.Design
+namespace CasaEngine.Framework.Gameplay.Design;
+
+public interface ICollide2Dable
+    : IMessageable
 {
-    public interface ICollide2Dable
-        : IMessageable
-    {
-        Shape2dObject[] Shape2DObjectList { get; }
-        Vector2 Position { get; }
-    }
+    Shape2dObject[] Shape2DObjectList { get; }
+    Vector2 Position { get; }
 }

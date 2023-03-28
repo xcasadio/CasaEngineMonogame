@@ -9,20 +9,19 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace CasaEngine.Framework.UserInterface.Controls.Auxiliary
+namespace CasaEngine.Framework.UserInterface.Controls.Auxiliary;
+
+public class ClipBox : Control
 {
 
-    public class ClipBox : Control
+    public ClipBox(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
     {
-
-        public ClipBox(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
-        {
-            Color = Color.Transparent;
-            BackgroundColor = Color.Transparent;
-            CanFocus = false;
-            Passive = true;
-        } // ClipBox
-
+        Color = Color.Transparent;
+        BackgroundColor = Color.Transparent;
+        CanFocus = false;
+        Passive = true;
     } // ClipBox
-} // XNAFinalEngine.UserInterface
+
+} // ClipBox
+  // XNAFinalEngine.UserInterface

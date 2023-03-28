@@ -24,79 +24,79 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 
 */
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public class MultiThreadingTask<T>
 {
-    public class MultiThreadingTask<T>
+    // The task.
+    private readonly Action<T> _task;
+
+    // This are the synchronization elements.
+    private readonly ManualResetEvent[] _taskDone, _waitForWork;
+
+    // The threads.
+    private readonly List<Thread> _threads;
+
+    // Task parameters.
+    private readonly T[] _parameters;
+
+    public MultiThreadingTask(Action<T> task, int numberOfThreads)
     {
-        // The task.
-        private readonly Action<T> _task;
-
-        // This are the synchronization elements.
-        private readonly ManualResetEvent[] _taskDone, _waitForWork;
-
-        // The threads.
-        private readonly List<Thread> _threads;
-
-        // Task parameters.
-        private readonly T[] _parameters;
-
-        public MultiThreadingTask(Action<T> task, int numberOfThreads)
+        if (numberOfThreads <= 0)
         {
-            if (numberOfThreads <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
-            }
+            throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
+        }
 
-            _task = task;
-            _taskDone = new ManualResetEvent[numberOfThreads];
-            _waitForWork = new ManualResetEvent[numberOfThreads];
-            _parameters = new T[numberOfThreads];
-            _threads = new List<Thread>(numberOfThreads);
+        _task = task;
+        _taskDone = new ManualResetEvent[numberOfThreads];
+        _waitForWork = new ManualResetEvent[numberOfThreads];
+        _parameters = new T[numberOfThreads];
+        _threads = new List<Thread>(numberOfThreads);
 
-            for (var i = 0; i < numberOfThreads; i++)
-            {
-                _taskDone[i] = new ManualResetEvent(false);
-                _waitForWork[i] = new ManualResetEvent(false);
-                _threads.Add(new Thread(TaskManager));
-                _threads[i].Start(i);
-            }
-        } // MultiThreadingTask
-
-        private void TaskManager(object parameter)
+        for (var i = 0; i < numberOfThreads; i++)
         {
-            var index = (int)parameter;
-
-            Thread.CurrentThread.IsBackground = true; // To destroy it when the application exits.
-
-            while (true)
-            {
-                _waitForWork[index].WaitOne(); // Wait until a task is added.
-                _waitForWork[index].Reset();
-                _task.Invoke(_parameters[index]);
-                _taskDone[index].Set(); // Indicates that that task was performed.
-            }
-        } // TaskManager
-
-        public void Start(int taskNumber, T parameter)
-        {
-            _parameters[taskNumber] = parameter;
-            _waitForWork[taskNumber].Set();
-        } // Start
-
-        public void WaitForTaskCompletition()
-        {
-            for (var i = 0; i < _threads.Count; i++)
-            {
-                _taskDone[i].WaitOne();
-                _taskDone[i].Reset();
-            }
-        } // WaitForTaskCompletition
-
-        public void WaitForTaskCompletition(int taskNumber)
-        {
-            _taskDone[taskNumber].WaitOne();
-            _taskDone[taskNumber].Reset();
-        } // WaitForTaskCompletition
-
+            _taskDone[i] = new ManualResetEvent(false);
+            _waitForWork[i] = new ManualResetEvent(false);
+            _threads.Add(new Thread(TaskManager));
+            _threads[i].Start(i);
+        }
     } // MultiThreadingTask
-} // XNAFinalEngine.Helpers
+
+    private void TaskManager(object parameter)
+    {
+        var index = (int)parameter;
+
+        Thread.CurrentThread.IsBackground = true; // To destroy it when the application exits.
+
+        while (true)
+        {
+            _waitForWork[index].WaitOne(); // Wait until a task is added.
+            _waitForWork[index].Reset();
+            _task.Invoke(_parameters[index]);
+            _taskDone[index].Set(); // Indicates that that task was performed.
+        }
+    } // TaskManager
+
+    public void Start(int taskNumber, T parameter)
+    {
+        _parameters[taskNumber] = parameter;
+        _waitForWork[taskNumber].Set();
+    } // Start
+
+    public void WaitForTaskCompletition()
+    {
+        for (var i = 0; i < _threads.Count; i++)
+        {
+            _taskDone[i].WaitOne();
+            _taskDone[i].Reset();
+        }
+    } // WaitForTaskCompletition
+
+    public void WaitForTaskCompletition(int taskNumber)
+    {
+        _taskDone[taskNumber].WaitOne();
+        _taskDone[taskNumber].Reset();
+    } // WaitForTaskCompletition
+
+} // MultiThreadingTask
+  // XNAFinalEngine.Helpers

@@ -1,39 +1,38 @@
-namespace CasaEngine.Framework.AI.EvolutionaryComputing.Scaling
+namespace CasaEngine.Framework.AI.EvolutionaryComputing.Scaling;
+
+public sealed class FitnessScaling<T> : ScalingAlgorithm<T>
 {
-    public sealed class FitnessScaling<T> : ScalingAlgorithm<T>
+
+    public FitnessScaling(EvolutionObjective objective)
+        : base(objective) { }
+
+
+
+    public override ScalingMapping<T> Scale(Population<T> population)
     {
+        ScalingMapping<T> mapping;
+        double temp;
 
-        public FitnessScaling(EvolutionObjective objective)
-            : base(objective) { }
+        //Create a new mapping
+        mapping = new ScalingMapping<T>(population.Genome.Count);
 
-
-
-        public override ScalingMapping<T> Scale(Population<T> population)
+        //Populate the mapping with the new fitness values
+        for (var i = 0; i < population.Genome.Count; i++)
         {
-            ScalingMapping<T> mapping;
-            double temp;
-
-            //Create a new mapping
-            mapping = new ScalingMapping<T>(population.Genome.Count);
-
-            //Populate the mapping with the new fitness values
-            for (var i = 0; i < population.Genome.Count; i++)
+            if (Objective == EvolutionObjective.Maximize)
             {
-                if (Objective == EvolutionObjective.Maximize)
-                {
-                    temp = population[i].Fitness;
-                }
-
-                else
-                {
-                    temp = 1 / population[i].Fitness;
-                }
-
-                mapping.AddChromosome(population[i], temp);
+                temp = population[i].Fitness;
             }
 
-            return mapping;
+            else
+            {
+                temp = 1 / population[i].Fitness;
+            }
+
+            mapping.AddChromosome(population[i], temp);
         }
 
+        return mapping;
     }
+
 }

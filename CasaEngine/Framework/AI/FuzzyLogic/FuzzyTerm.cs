@@ -1,16 +1,15 @@
-﻿namespace CasaEngine.Framework.AI.FuzzyLogic
+﻿namespace CasaEngine.Framework.AI.FuzzyLogic;
+
+public interface IFuzzyTerm
 {
-    public interface IFuzzyTerm
-    {
-        IFuzzyTerm Clone();
+    IFuzzyTerm Clone();
 
-        //retrieves the degree of membership of the term
-        double Dom { get; }
+    //retrieves the degree of membership of the term
+    double Dom { get; }
 
-        //clears the degree of membership of the term
-        void ClearDom();
+    //clears the degree of membership of the term
+    void ClearDom();
 
-        //method for updating the DOM of a consequent when a rule fires
-        void ORwithDom(double val);
-    }
+    //method for updating the DOM of a consequent when a rule fires
+    void ORwithDom(double val);
 }

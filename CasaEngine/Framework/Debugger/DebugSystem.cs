@@ -32,47 +32,46 @@
  * having to restart.
  */
 
-namespace CasaEngine.Framework.Debugger
+namespace CasaEngine.Framework.Debugger;
+
+public sealed class DebugSystem
 {
-    public sealed class DebugSystem
+    private static DebugSystem? _singletonInstance;
+
+    public static DebugSystem? Instance => _singletonInstance;
+
+    public DebugManager DebugManager { get; private set; }
+
+    public DebugCommandUi DebugCommandUi { get; private set; }
+
+    public FpsCounter FpsCounter { get; private set; }
+
+    public TimeRuler TimeRuler { get; private set; }
+
+    public static DebugSystem? Initialize(Microsoft.Xna.Framework.Game game)
     {
-        private static DebugSystem? _singletonInstance;
-
-        public static DebugSystem? Instance => _singletonInstance;
-
-        public DebugManager DebugManager { get; private set; }
-
-        public DebugCommandUi DebugCommandUi { get; private set; }
-
-        public FpsCounter FpsCounter { get; private set; }
-
-        public TimeRuler TimeRuler { get; private set; }
-
-        public static DebugSystem? Initialize(Microsoft.Xna.Framework.Game game)
+        // if the singleton exists, return that; we don't want two systems being created for a game
+        if (_singletonInstance != null)
         {
-            // if the singleton exists, return that; we don't want two systems being created for a game
-            if (_singletonInstance != null)
-            {
-                return _singletonInstance;
-            }
-
-            // Create the system
-            _singletonInstance = new DebugSystem();
-
-            // Create all of the system components
-            _singletonInstance.DebugManager = new DebugManager(game);
-            game.Components.Add(_singletonInstance.DebugManager);
-
-            _singletonInstance.DebugCommandUi = new DebugCommandUi(game);
-            game.Components.Add(_singletonInstance.DebugCommandUi);
-
-            _singletonInstance.FpsCounter = new FpsCounter(game);
-            game.Components.Add(_singletonInstance.FpsCounter);
-
-            _singletonInstance.TimeRuler = new TimeRuler(game);
-            game.Components.Add(_singletonInstance.TimeRuler);
-
             return _singletonInstance;
         }
+
+        // Create the system
+        _singletonInstance = new DebugSystem();
+
+        // Create all of the system components
+        _singletonInstance.DebugManager = new DebugManager(game);
+        game.Components.Add(_singletonInstance.DebugManager);
+
+        _singletonInstance.DebugCommandUi = new DebugCommandUi(game);
+        game.Components.Add(_singletonInstance.DebugCommandUi);
+
+        _singletonInstance.FpsCounter = new FpsCounter(game);
+        game.Components.Add(_singletonInstance.FpsCounter);
+
+        _singletonInstance.TimeRuler = new TimeRuler(game);
+        game.Components.Add(_singletonInstance.TimeRuler);
+
+        return _singletonInstance;
     }
 }

@@ -1,109 +1,108 @@
-﻿namespace CasaEngine.Editor.UndoRedo
+﻿namespace CasaEngine.Editor.UndoRedo;
+
+public class UndoRedoManager
 {
-    public class UndoRedoManager
+    private struct UndoRedoParam
     {
-        private struct UndoRedoParam
+        public object Arg;
+        public ICommand Command;
+    }
+
+
+    private readonly Stack<UndoRedoParam> _undo = new();
+    private readonly Stack<UndoRedoParam> _redo = new();
+
+    public event EventHandler UndoRedoCommandAdded;
+    public event EventHandler EventCommandDone;
+
+
+
+
+
+    public bool CanUndo => _undo.Count == 0 ? false : true;
+
+    public bool CanRedo => _redo.Count == 0 ? false : true;
+
+
+    public void Add(ICommand command, object arg)
+    {
+        var param = new UndoRedoParam();
+        param.Arg = arg;
+        param.Command = command;
+
+        _undo.Push(param);
+        _redo.Clear();
+
+        if (UndoRedoCommandAdded != null)
         {
-            public object Arg;
-            public ICommand Command;
+            UndoRedoCommandAdded(null, EventArgs.Empty);
         }
+    }
 
+    public void Clear()
+    {
+        _undo.Clear();
+        _redo.Clear();
 
-        private readonly Stack<UndoRedoParam> _undo = new();
-        private readonly Stack<UndoRedoParam> _redo = new();
-
-        public event EventHandler UndoRedoCommandAdded;
-        public event EventHandler EventCommandDone;
-
-
-
-
-
-        public bool CanUndo => _undo.Count == 0 ? false : true;
-
-        public bool CanRedo => _redo.Count == 0 ? false : true;
-
-
-        public void Add(ICommand command, object arg)
+        if (UndoRedoCommandAdded != null)
         {
-            var param = new UndoRedoParam();
-            param.Arg = arg;
-            param.Command = command;
+            UndoRedoCommandAdded(null, EventArgs.Empty);
+        }
+    }
 
+    public void Undo()
+    {
+        if (CanUndo)
+        {
+            var param = _undo.Pop();
+            param.Command.Undo(param.Arg);
+            _redo.Push(param);
+
+            if (EventCommandDone != null)
+            {
+                EventCommandDone(null, EventArgs.Empty);
+            }
+        }
+    }
+
+    public void Redo()
+    {
+        if (CanRedo)
+        {
+            var param = _redo.Pop();
+            param.Command.Execute(param.Arg);
             _undo.Push(param);
-            _redo.Clear();
 
-            if (UndoRedoCommandAdded != null)
+            if (EventCommandDone != null)
             {
-                UndoRedoCommandAdded(null, EventArgs.Empty);
+                EventCommandDone(null, EventArgs.Empty);
             }
         }
+    }
 
-        public void Clear()
-        {
-            _undo.Clear();
-            _redo.Clear();
+    public void RemoveLastCommand()
+    {
+        RemoveLastCommands(0);
+    }
 
-            if (UndoRedoCommandAdded != null)
-            {
-                UndoRedoCommandAdded(null, EventArgs.Empty);
-            }
-        }
-
-        public void Undo()
+    public void RemoveLastCommands(int nu)
+    {
+        for (var i = 0; i < nu; i++)
         {
             if (CanUndo)
             {
-                var param = _undo.Pop();
-                param.Command.Undo(param.Arg);
-                _redo.Push(param);
-
-                if (EventCommandDone != null)
-                {
-                    EventCommandDone(null, EventArgs.Empty);
-                }
+                _undo.Pop();
             }
-        }
-
-        public void Redo()
-        {
-            if (CanRedo)
+            else
             {
-                var param = _redo.Pop();
-                param.Command.Execute(param.Arg);
-                _undo.Push(param);
-
-                if (EventCommandDone != null)
-                {
-                    EventCommandDone(null, EventArgs.Empty);
-                }
+                break;
             }
         }
 
-        public void RemoveLastCommand()
+        if (UndoRedoCommandAdded != null)
         {
-            RemoveLastCommands(0);
+            UndoRedoCommandAdded(null, EventArgs.Empty);
         }
-
-        public void RemoveLastCommands(int nu)
-        {
-            for (var i = 0; i < nu; i++)
-            {
-                if (CanUndo)
-                {
-                    _undo.Pop();
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            if (UndoRedoCommandAdded != null)
-            {
-                UndoRedoCommandAdded(null, EventArgs.Empty);
-            }
-        }
-
     }
+
 }

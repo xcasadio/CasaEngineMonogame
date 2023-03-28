@@ -1,9 +1,8 @@
-namespace CasaEngine.Framework.AI.Messaging
+namespace CasaEngine.Framework.AI.Messaging;
+
+public interface IMessageable
 {
-    public interface IMessageable
-    {
 
-        bool HandleMessage(Message message);
+    bool HandleMessage(Message message);
 
-    }
 }

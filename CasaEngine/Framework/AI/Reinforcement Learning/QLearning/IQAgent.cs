@@ -1,8 +1,7 @@
-﻿namespace CasaEngine.Framework.AI.Reinforcement_Learning.QLearning
+﻿namespace CasaEngine.Framework.AI.Reinforcement_Learning.QLearning;
+
+public interface IQAgent
 {
-    public interface IQAgent
-    {
-        float GetReward(string actionToDo);
-        bool IsActionIsPossible(string action);
-    }
+    float GetReward(string actionToDo);
+    bool IsActionIsPossible(string action);
 }

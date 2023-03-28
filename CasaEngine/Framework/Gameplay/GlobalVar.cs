@@ -1,33 +1,32 @@
-﻿namespace CasaEngine.Framework.Gameplay
+﻿namespace CasaEngine.Framework.Gameplay;
+
+public class GlobalVar
 {
-    public class GlobalVar
+
+    private static GlobalVar _instance;
+    private Dictionary<string, int> _vars;
+
+    public static GlobalVar Instance
     {
-
-        private static GlobalVar _instance;
-        private Dictionary<string, int> _vars;
-
-        public static GlobalVar Instance
+        get
         {
-            get
+            if (_instance == null)
             {
-                if (_instance == null)
-                {
-                    _instance = new GlobalVar();
-                }
-                return _instance;
+                _instance = new GlobalVar();
             }
+            return _instance;
         }
-
-        public Dictionary<string, int> Vars
-        {
-            get => _vars;
-            set => _vars = value;
-        }
-
-        private GlobalVar()
-        {
-            _vars = new Dictionary<string, int>();
-        }
-
     }
+
+    public Dictionary<string, int> Vars
+    {
+        get => _vars;
+        set => _vars = value;
+    }
+
+    private GlobalVar()
+    {
+        _vars = new Dictionary<string, int>();
+    }
+
 }

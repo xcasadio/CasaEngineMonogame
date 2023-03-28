@@ -1,147 +1,146 @@
-﻿namespace CasaEngine.Framework.AI.NeuralNets.HopField
+﻿namespace CasaEngine.Framework.AI.NeuralNets.HopField;
+
+internal class Hopfield
 {
-    internal class Hopfield
+    private int _numUnits;
+
+    private readonly List<int[]> _pattern = new();
+
+    private int[] _output;
+
+    private int[] _threshold;
+
+    private int[,] _weights;
+
+
+
+    public int[] Output
     {
-        private int _numUnits;
-
-        private readonly List<int[]> _pattern = new();
-
-        private int[] _output;
-
-        private int[] _threshold;
-
-        private int[,] _weights;
+        get => _output;
+        private set => _output = value;
+    }
 
 
 
-        public int[] Output
+
+
+
+    public void GenerateNetwork(int nu)
+    {
+        int i;
+
+        _numUnits = nu;
+        _output = new int[nu];
+        _threshold = new int[nu];
+        _weights = new int[nu, nu];
+
+        for (i = 0; i < nu; i++)
         {
-            get => _output;
-            private set => _output = value;
+            _threshold[i] = 0;
+        }
+    }
+
+    public void AddPattern(int[] pattern)
+    {
+        if (pattern.Length != _numUnits)
+        {
+            throw new ArgumentException("HopField.SetInput() : input_.Length != _NumUnits");
         }
 
+        _pattern.Add(pattern);
+    }
 
+    public void CalculateWeights()
+    {
+        int i, j, n;
+        int weight;
 
-
-
-
-        public void GenerateNetwork(int nu)
+        for (i = 0; i < _numUnits; i++)
         {
-            int i;
-
-            _numUnits = nu;
-            _output = new int[nu];
-            _threshold = new int[nu];
-            _weights = new int[nu, nu];
-
-            for (i = 0; i < nu; i++)
-            {
-                _threshold[i] = 0;
-            }
-        }
-
-        public void AddPattern(int[] pattern)
-        {
-            if (pattern.Length != _numUnits)
-            {
-                throw new ArgumentException("HopField.SetInput() : input_.Length != _NumUnits");
-            }
-
-            _pattern.Add(pattern);
-        }
-
-        public void CalculateWeights()
-        {
-            int i, j, n;
-            int weight;
-
-            for (i = 0; i < _numUnits; i++)
-            {
-                for (j = 0; j < _numUnits; j++)
-                {
-                    weight = 0;
-
-                    if (i != j)
-                    {
-                        for (n = 0; n < _pattern.Count; n++)
-                        {
-                            weight += _pattern[n][i] * _pattern[n][j];
-                        }
-                    }
-
-                    _weights[i, j] = weight;
-                }
-            }
-        }
-
-        public void SetInput(ref int[] input)
-        {
-            if (input.Length != _numUnits)
-            {
-                throw new ArgumentException("HopField.SetInput() : input_.Length != _NumUnits");
-            }
-
-            _output = input;
-        }
-
-
-
-        private bool PropagateUnit(int i)
-        {
-            int j;
-            int sum, @out = 0;
-            bool changed;
-
-            changed = false;
-            sum = 0;
-
             for (j = 0; j < _numUnits; j++)
             {
-                sum += _weights[i, j] * _output[j];
+                weight = 0;
+
+                if (i != j)
+                {
+                    for (n = 0; n < _pattern.Count; n++)
+                    {
+                        weight += _pattern[n][i] * _pattern[n][j];
+                    }
+                }
+
+                _weights[i, j] = weight;
             }
-
-            if (sum != _threshold[i])
-            {
-                if (sum < _threshold[i])
-                {
-                    @out = -1;
-                }
-
-                if (sum >= _threshold[i])
-                {
-                    @out = 1;
-                }
-
-                if (@out != _output[i])
-                {
-                    changed = true;
-                    _output[i] = @out;
-                }
-            }
-
-            return changed;
         }
-
-        public void PropagateNet()
-        {
-            int iteration, iterationOfLastChange;
-
-            iteration = 0;
-            iterationOfLastChange = 0;
-
-            var rand = new Random();
-
-            do
-            {
-                iteration++;
-                if (PropagateUnit(rand.Next(0, _numUnits - 1)))
-                {
-                    iterationOfLastChange = iteration;
-                }
-            }
-            while (iteration - iterationOfLastChange < 10 * _numUnits);
-        }
-
-
     }
+
+    public void SetInput(ref int[] input)
+    {
+        if (input.Length != _numUnits)
+        {
+            throw new ArgumentException("HopField.SetInput() : input_.Length != _NumUnits");
+        }
+
+        _output = input;
+    }
+
+
+
+    private bool PropagateUnit(int i)
+    {
+        int j;
+        int sum, @out = 0;
+        bool changed;
+
+        changed = false;
+        sum = 0;
+
+        for (j = 0; j < _numUnits; j++)
+        {
+            sum += _weights[i, j] * _output[j];
+        }
+
+        if (sum != _threshold[i])
+        {
+            if (sum < _threshold[i])
+            {
+                @out = -1;
+            }
+
+            if (sum >= _threshold[i])
+            {
+                @out = 1;
+            }
+
+            if (@out != _output[i])
+            {
+                changed = true;
+                _output[i] = @out;
+            }
+        }
+
+        return changed;
+    }
+
+    public void PropagateNet()
+    {
+        int iteration, iterationOfLastChange;
+
+        iteration = 0;
+        iterationOfLastChange = 0;
+
+        var rand = new Random();
+
+        do
+        {
+            iteration++;
+            if (PropagateUnit(rand.Next(0, _numUnits - 1)))
+            {
+                iterationOfLastChange = iteration;
+            }
+        }
+        while (iteration - iterationOfLastChange < 10 * _numUnits);
+    }
+
+
 }

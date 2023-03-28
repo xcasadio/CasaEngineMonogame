@@ -29,245 +29,244 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using CasaEngine.Core.Helpers;
 
-namespace CasaEngine.Engine.Input
+namespace CasaEngine.Engine.Input;
+
+public class Button : Disposable
 {
 
-    public class Button : Disposable
+
+    public enum ButtonBehaviors
     {
-
-
-        public enum ButtonBehaviors
-        {
-            DigitalInput,
-            AnalogInput,
-        } // AxisBehaviors
+        DigitalInput,
+        AnalogInput,
+    } // AxisBehaviors
 
 
 
-        // Indicates if the virtual buttons was pressed.
-        private bool _pressed;
+    // Indicates if the virtual buttons was pressed.
+    private bool _pressed;
 
-        // Indicates if the virtual buttons was pressed in this frame but not in the previous.
-        private bool _pressedPreviousFrame;
-
-
-
-        public static List<Button> Buttons { get; set; }
-
-        public string Name { get; set; }
-
-        public ButtonBehaviors ButtonBehavior { get; set; }
-
-        public AnalogAxes AnalogAxis { get; set; }
-
-        public KeyButton KeyButton { get; set; }
-
-        public KeyButton AlternativeKeyButton { get; set; }
-
-        public bool Invert { get; set; }
-
-        public float DeadZone { get; set; }
-
-        public int GamePadNumber { get; set; }
+    // Indicates if the virtual buttons was pressed in this frame but not in the previous.
+    private bool _pressedPreviousFrame;
 
 
 
-        public Button()
-        {
-            DeadZone = 0.75f;
-            Buttons.Add(this);
-        } // Button
+    public static List<Button> Buttons { get; set; }
 
-        static Button()
-        {
-            Buttons = new List<Button>();
-        } // Button
+    public string Name { get; set; }
 
+    public ButtonBehaviors ButtonBehavior { get; set; }
 
+    public AnalogAxes AnalogAxis { get; set; }
 
-        protected override void DisposeManagedResources()
-        {
-            Buttons.Remove(this);
-        } // DisposeManagedResources
+    public KeyButton KeyButton { get; set; }
 
+    public KeyButton AlternativeKeyButton { get; set; }
 
+    public bool Invert { get; set; }
 
-        internal void Update()
-        {
-            _pressedPreviousFrame = _pressed;
+    public float DeadZone { get; set; }
 
-
-            if (ButtonBehavior == ButtonBehaviors.DigitalInput)
-            {
-                // Check if the buttons were pressed.
-                _pressed = KeyButton.Pressed(GamePadNumber) || AlternativeKeyButton.Pressed(GamePadNumber);
-            }
+    public int GamePadNumber { get; set; }
 
 
 
-            else if (ButtonBehavior == ButtonBehaviors.AnalogInput)
-            {
-                float valueRaw = 0;
-
-
-                if (AnalogAxis == AnalogAxes.MouseX)
-                {
-                    valueRaw = Mouse.DeltaX;
-                }
-                else if (AnalogAxis == AnalogAxes.MouseY)
-                {
-                    valueRaw = Mouse.DeltaY;
-                }
-                else if (AnalogAxis == AnalogAxes.MouseWheel)
-                {
-                    valueRaw = Mouse.WheelDelta;
-                }
-
-
-
-                else if (AnalogAxis == AnalogAxes.LeftStickX)
-                {
-                    if (GamePadNumber > 0 && GamePadNumber < 5)
-                    {
-                        valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickX;
-                    }
-                    else
-                    {
-                        for (var i = 0; i < 4; i++)
-                        {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
-                            {
-                                valueRaw = GamePad.Player(i).LeftStickX;
-                            }
-                        }
-                    }
-                }
-                else if (AnalogAxis == AnalogAxes.LeftStickY)
-                {
-                    if (GamePadNumber > 0 && GamePadNumber < 5)
-                    {
-                        valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickY;
-                    }
-                    else
-                    {
-                        for (var i = 0; i < 4; i++)
-                        {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
-                            {
-                                valueRaw = GamePad.Player(i).LeftStickY;
-                            }
-                        }
-                    }
-                }
-                else if (AnalogAxis == AnalogAxes.RightStickX)
-                {
-                    if (GamePadNumber > 0 && GamePadNumber < 5)
-                    {
-                        valueRaw = GamePad.Player(GamePadNumber - 1).RightStickX;
-                    }
-                    else
-                    {
-                        for (var i = 0; i < 4; i++)
-                        {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
-                            {
-                                valueRaw = GamePad.Player(i).RightStickX;
-                            }
-                        }
-                    }
-                }
-                else if (AnalogAxis == AnalogAxes.RightStickY)
-                {
-                    if (GamePadNumber > 0 && GamePadNumber < 5)
-                    {
-                        valueRaw = GamePad.Player(GamePadNumber - 1).RightStickY;
-                    }
-                    else
-                    {
-                        for (var i = 0; i < 4; i++)
-                        {
-                            if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
-                            {
-                                valueRaw = GamePad.Player(i).RightStickY;
-                            }
-                        }
-                    }
-                }
-                else if (AnalogAxis == AnalogAxes.Triggers)
-                {
-                    if (GamePadNumber > 0 && GamePadNumber < 5)
-                    {
-                        valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger + GamePad.Player(GamePadNumber - 1).RightTrigger;
-                    }
-                    else
-                    {
-                        for (var i = 0; i < 4; i++)
-                        {
-                            if (Math.Abs(valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
-                            {
-                                valueRaw = -GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger;
-                            }
-                        }
-                    }
-                }
-
-
-                // Invert if necessary.
-                if (Invert)
-                {
-                    valueRaw *= -1;
-                }
-
-                _pressed = valueRaw > DeadZone;
-            }
-
-
-        } // Update
-
-
-
-        public static bool Pressed(string buttonName)
-        {
-            var foundValue = false;
-            var foundAxis = false;
-            foreach (var axis in Buttons)
-            {
-                if (axis.Name == buttonName)
-                {
-                    foundAxis = true;
-                    foundValue = foundValue || axis._pressed;
-                }
-            }
-            if (!foundAxis)
-            {
-                throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
-            }
-
-            return foundValue;
-        } // Pressed
-
-        public static bool JustPressed(string buttonName)
-        {
-            var foundPressed = false;
-            var foundPressedPreviousFrame = false;
-            var foundAxis = false;
-            foreach (var axis in Buttons)
-            {
-                if (axis.Name == buttonName)
-                {
-                    foundAxis = true;
-                    foundPressed = foundPressed || axis._pressed;
-                    foundPressedPreviousFrame = foundPressedPreviousFrame || axis._pressedPreviousFrame;
-                }
-            }
-            if (!foundAxis)
-            {
-                throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
-            }
-
-            return foundPressed && !foundPressedPreviousFrame;
-        } // JustPressed
-
-
+    public Button()
+    {
+        DeadZone = 0.75f;
+        Buttons.Add(this);
     } // Button
-} // XNAFinalEngine.Input
+
+    static Button()
+    {
+        Buttons = new List<Button>();
+    } // Button
+
+
+
+    protected override void DisposeManagedResources()
+    {
+        Buttons.Remove(this);
+    } // DisposeManagedResources
+
+
+
+    internal void Update()
+    {
+        _pressedPreviousFrame = _pressed;
+
+
+        if (ButtonBehavior == ButtonBehaviors.DigitalInput)
+        {
+            // Check if the buttons were pressed.
+            _pressed = KeyButton.Pressed(GamePadNumber) || AlternativeKeyButton.Pressed(GamePadNumber);
+        }
+
+
+
+        else if (ButtonBehavior == ButtonBehaviors.AnalogInput)
+        {
+            float valueRaw = 0;
+
+
+            if (AnalogAxis == AnalogAxes.MouseX)
+            {
+                valueRaw = Mouse.DeltaX;
+            }
+            else if (AnalogAxis == AnalogAxes.MouseY)
+            {
+                valueRaw = Mouse.DeltaY;
+            }
+            else if (AnalogAxis == AnalogAxes.MouseWheel)
+            {
+                valueRaw = Mouse.WheelDelta;
+            }
+
+
+
+            else if (AnalogAxis == AnalogAxes.LeftStickX)
+            {
+                if (GamePadNumber > 0 && GamePadNumber < 5)
+                {
+                    valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickX;
+                }
+                else
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
+                        {
+                            valueRaw = GamePad.Player(i).LeftStickX;
+                        }
+                    }
+                }
+            }
+            else if (AnalogAxis == AnalogAxes.LeftStickY)
+            {
+                if (GamePadNumber > 0 && GamePadNumber < 5)
+                {
+                    valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickY;
+                }
+                else
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
+                        {
+                            valueRaw = GamePad.Player(i).LeftStickY;
+                        }
+                    }
+                }
+            }
+            else if (AnalogAxis == AnalogAxes.RightStickX)
+            {
+                if (GamePadNumber > 0 && GamePadNumber < 5)
+                {
+                    valueRaw = GamePad.Player(GamePadNumber - 1).RightStickX;
+                }
+                else
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
+                        {
+                            valueRaw = GamePad.Player(i).RightStickX;
+                        }
+                    }
+                }
+            }
+            else if (AnalogAxis == AnalogAxes.RightStickY)
+            {
+                if (GamePadNumber > 0 && GamePadNumber < 5)
+                {
+                    valueRaw = GamePad.Player(GamePadNumber - 1).RightStickY;
+                }
+                else
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (Math.Abs(valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
+                        {
+                            valueRaw = GamePad.Player(i).RightStickY;
+                        }
+                    }
+                }
+            }
+            else if (AnalogAxis == AnalogAxes.Triggers)
+            {
+                if (GamePadNumber > 0 && GamePadNumber < 5)
+                {
+                    valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger + GamePad.Player(GamePadNumber - 1).RightTrigger;
+                }
+                else
+                {
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (Math.Abs(valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
+                        {
+                            valueRaw = -GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger;
+                        }
+                    }
+                }
+            }
+
+
+            // Invert if necessary.
+            if (Invert)
+            {
+                valueRaw *= -1;
+            }
+
+            _pressed = valueRaw > DeadZone;
+        }
+
+
+    } // Update
+
+
+
+    public static bool Pressed(string buttonName)
+    {
+        var foundValue = false;
+        var foundAxis = false;
+        foreach (var axis in Buttons)
+        {
+            if (axis.Name == buttonName)
+            {
+                foundAxis = true;
+                foundValue = foundValue || axis._pressed;
+            }
+        }
+        if (!foundAxis)
+        {
+            throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
+        }
+
+        return foundValue;
+    } // Pressed
+
+    public static bool JustPressed(string buttonName)
+    {
+        var foundPressed = false;
+        var foundPressedPreviousFrame = false;
+        var foundAxis = false;
+        foreach (var axis in Buttons)
+        {
+            if (axis.Name == buttonName)
+            {
+                foundAxis = true;
+                foundPressed = foundPressed || axis._pressed;
+                foundPressedPreviousFrame = foundPressedPreviousFrame || axis._pressedPreviousFrame;
+            }
+        }
+        if (!foundAxis)
+        {
+            throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
+        }
+
+        return foundPressed && !foundPressedPreviousFrame;
+    } // JustPressed
+
+
+} // Button
+  // XNAFinalEngine.Input

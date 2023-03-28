@@ -25,60 +25,60 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public abstract class Disposable : IDisposable
 {
-    public abstract class Disposable : IDisposable
+    private bool _disposed;
+
+    public bool IsDisposed => _disposed;
+
+    ~Disposable()
     {
-        private bool _disposed;
+        Dispose(false);
+    } // ~Disposable
 
-        public bool IsDisposed => _disposed;
+    public void Dispose()
+    {
+        Dispose(true);
+        // This object will be cleaned up by the Dispose method.
+        // Therefore, you should call GC.SupressFinalize to
+        // take this object off the finalization queue
+        // and prevent finalization code for this object
+        // from executing a second time.
+        GC.SuppressFinalize(this);
+    } // Dispose
 
-        ~Disposable()
+    private void Dispose(bool disposing)
+    {
+        // Check to see if Dispose has already been called.
+        if (!_disposed)
         {
-            Dispose(false);
-        } // ~Disposable
-
-        public void Dispose()
-        {
-            Dispose(true);
-            // This object will be cleaned up by the Dispose method.
-            // Therefore, you should call GC.SupressFinalize to
-            // take this object off the finalization queue
-            // and prevent finalization code for this object
-            // from executing a second time.
-            GC.SuppressFinalize(this);
-        } // Dispose
-
-        private void Dispose(bool disposing)
-        {
-            // Check to see if Dispose has already been called.
-            if (!_disposed)
+            // If disposing equals true, dispose all managed and unmanaged resources.
+            if (disposing)
             {
-                // If disposing equals true, dispose all managed and unmanaged resources.
-                if (disposing)
-                {
-                    // Dispose managed resources.
-                    DisposeManagedResources();
-                }
-
-                // Call the appropriate methods to clean up unmanaged resources here.
-                // If disposing is false, only the following code is executed.
-                DisposeUnmanagedResources();
-
-                // disposing has been done.
-                _disposed = true;
+                // Dispose managed resources.
+                DisposeManagedResources();
             }
-        } // Dispose
 
-        protected virtual void DisposeManagedResources()
-        {
-            // Overrite it!!
-        } // DisposeManagedResources
+            // Call the appropriate methods to clean up unmanaged resources here.
+            // If disposing is false, only the following code is executed.
+            DisposeUnmanagedResources();
 
-        protected virtual void DisposeUnmanagedResources()
-        {
-            // Overrite it!!
-        } // DisposeUnmanagedResources
+            // disposing has been done.
+            _disposed = true;
+        }
+    } // Dispose
 
-    } // Disposable
-}  // XNAFinalEngine.Helpers
+    protected virtual void DisposeManagedResources()
+    {
+        // Overrite it!!
+    } // DisposeManagedResources
+
+    protected virtual void DisposeUnmanagedResources()
+    {
+        // Overrite it!!
+    } // DisposeUnmanagedResources
+
+} // Disposable
+// XNAFinalEngine.Helpers

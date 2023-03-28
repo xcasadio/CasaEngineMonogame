@@ -1,7 +1,6 @@
-namespace CasaEngine.Framework.AI.Graphs
+namespace CasaEngine.Framework.AI.Graphs;
+
+public enum EdgeInformation
 {
-    public enum EdgeInformation
-    {
-        Normal
-    }
+    Normal
 }

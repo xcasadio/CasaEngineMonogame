@@ -25,109 +25,109 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public class PoolWithoutAccessor<T> where T : new()
 {
-    public class PoolWithoutAccessor<T> where T : new()
+
+
+    public T[] Elements;
+
+
+
+    public int Count { get; private set; }
+
+    public int Capacity
     {
-
-
-        public T[] Elements;
-
-
-
-        public int Count { get; private set; }
-
-        public int Capacity
+        get => Elements.Length;
+        set
         {
-            get => Elements.Length;
-            set
+            if (value < Count)
             {
-                if (value < Count)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), "Pool: new size has to be bigger than active elements.");
-                }
-
-                ResizePool(value);
-            }
-        } // Capacity
-
-
-
-        public PoolWithoutAccessor(int capacity)
-        {
-            if (capacity <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(capacity), "Pool: Argument capacity must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(value), "Pool: new size has to be bigger than active elements.");
             }
 
-            Elements = new T[capacity];
-            for (var i = 0; i < capacity; i++)
-            {
-                // If T is a reference type then the explicit creation is need it.
-                Elements[i] = new T();
-            }
-        } // Pool
+            ResizePool(value);
+        }
+    } // Capacity
 
 
 
-        public T Fetch()
+    public PoolWithoutAccessor(int capacity)
+    {
+        if (capacity <= 0)
         {
-            if (Count >= Capacity)
-            {
-                ResizePool(Capacity + 25);
-            }
-            Count++;
-            return Elements[Count - 1];
-        } // Fetch
+            throw new ArgumentOutOfRangeException(nameof(capacity), "Pool: Argument capacity must be greater than zero.");
+        }
 
-
-
-        private void ResizePool(int newCapacity)
+        Elements = new T[capacity];
+        for (var i = 0; i < capacity; i++)
         {
-            var oldCapacity = Capacity;
-            var newElements = new T[newCapacity];
             // If T is a reference type then the explicit creation is need it.
-            for (var i = 0; i < newCapacity; i++)
-            {
-                if (i < oldCapacity)
-                {
-                    newElements[i] = Elements[i];
-                }
-                else
-                {
-                    newElements[i] = new T();
-                }
-            }
-            Elements = newElements;
-        } // ResizePool
-
-
-
-        public void Release(T element)
-        {
-            if (element == null)
-            {
-                throw new ArgumentNullException(nameof(element), "Pool: Element value cannot be null");
-            }
-
-            // To accomplish our second objective (memory locality) the last available element will be moved to the place where the released element resided.
-            var i = 0;
-            while (i < Count && !Elements[i].Equals(element))
-            {
-                i++;
-            }
-            if (i == Count)
-            {
-                throw new ArgumentNullException(nameof(element), "Pool: Element value not found.");
-            }
-
-            var temp = Elements[i];
-            Elements[i] = Elements[Count - 1];
-            Elements[Count - 1] = temp;
-
-            Count--;
-        } // Release
-
-
+            Elements[i] = new T();
+        }
     } // Pool
-} // XNAFinalEngine.Helpers
+
+
+
+    public T Fetch()
+    {
+        if (Count >= Capacity)
+        {
+            ResizePool(Capacity + 25);
+        }
+        Count++;
+        return Elements[Count - 1];
+    } // Fetch
+
+
+
+    private void ResizePool(int newCapacity)
+    {
+        var oldCapacity = Capacity;
+        var newElements = new T[newCapacity];
+        // If T is a reference type then the explicit creation is need it.
+        for (var i = 0; i < newCapacity; i++)
+        {
+            if (i < oldCapacity)
+            {
+                newElements[i] = Elements[i];
+            }
+            else
+            {
+                newElements[i] = new T();
+            }
+        }
+        Elements = newElements;
+    } // ResizePool
+
+
+
+    public void Release(T element)
+    {
+        if (element == null)
+        {
+            throw new ArgumentNullException(nameof(element), "Pool: Element value cannot be null");
+        }
+
+        // To accomplish our second objective (memory locality) the last available element will be moved to the place where the released element resided.
+        var i = 0;
+        while (i < Count && !Elements[i].Equals(element))
+        {
+            i++;
+        }
+        if (i == Count)
+        {
+            throw new ArgumentNullException(nameof(element), "Pool: Element value not found.");
+        }
+
+        var temp = Elements[i];
+        Elements[i] = Elements[Count - 1];
+        Elements[Count - 1] = temp;
+
+        Count--;
+    } // Release
+
+
+} // Pool
+  // XNAFinalEngine.Helpers

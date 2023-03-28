@@ -1,13 +1,12 @@
-namespace CasaEngine.Framework.AI.Goals
+namespace CasaEngine.Framework.AI.Goals;
+
+public enum GoalProcessingState
 {
-    public enum GoalProcessingState
-    {
-        Inactive = 0,
+    Inactive = 0,
 
-        Active = 1,
+    Active = 1,
 
-        Completed = 2,
+    Completed = 2,
 
-        Failed = 3
-    }
+    Failed = 3
 }

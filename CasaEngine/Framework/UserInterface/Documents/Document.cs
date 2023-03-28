@@ -32,56 +32,55 @@ using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Framework.UserInterface.Documents
+namespace CasaEngine.Framework.UserInterface.Documents;
+
+public class Document : Asset
 {
+    public XDocument Resource { get; private set; }
 
-    public class Document : Asset
+    public Document(string filename)
     {
-        public XDocument Resource { get; private set; }
-
-        public Document(string filename)
+        Name = filename;
+        Filename = EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
+        //Filename = GameInfo.Instance.ProjectManager.ProjectPath + filename;
+        if (File.Exists(Filename + ".skin") == false) //.xnb
         {
-            Name = filename;
-            Filename = EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
-            //Filename = GameInfo.Instance.ProjectManager.ProjectPath + filename;
-            if (File.Exists(Filename + ".skin") == false) //.xnb
-            {
-                throw new ArgumentException("Failed to load document: File " + Filename + " does not exists!", nameof(filename));
-            }
-            try
-            {
-                Resource = XDocument.Load(Filename + ".skin");
-                //Resource = new XDocument();
-                //Resource = GameInfo.Instance.AssetContentManager.Load<XDocument>(Filename, GameInfo.Instance.Game.GraphicsDevice);
-                //Resource = AssetContentManager.CurrentContentManager.XnaContentManager.Load<XDocument>(Filename);
-            }
-            catch (ObjectDisposedException)
-            {
-                throw new InvalidOperationException("Content Manager: Content manager disposed");
-            }
-            catch (Exception e)
-            {
-                throw new InvalidOperationException("Failed to load document: " + filename, e);
-            }
-        } // Document
-
-        internal override void OnDeviceReset(GraphicsDevice device)
-        {
-            if (Resource == null)
-            {
-                Resource = EngineComponents.AssetContentManager.Load<XDocument>(Filename, device);
-            }
-        } // RecreateResource
-
-        public override void Load(BinaryReader br, SaveOption option)
-        {
-
+            throw new ArgumentException("Failed to load document: File " + Filename + " does not exists!", nameof(filename));
         }
-
-        public override void Load(XmlElement el, SaveOption option)
+        try
         {
-
+            Resource = XDocument.Load(Filename + ".skin");
+            //Resource = new XDocument();
+            //Resource = GameInfo.Instance.AssetContentManager.Load<XDocument>(Filename, GameInfo.Instance.Game.GraphicsDevice);
+            //Resource = AssetContentManager.CurrentContentManager.XnaContentManager.Load<XDocument>(Filename);
         }
-
+        catch (ObjectDisposedException)
+        {
+            throw new InvalidOperationException("Content Manager: Content manager disposed");
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException("Failed to load document: " + filename, e);
+        }
     } // Document
-} // XNAFinalEngine.Assets
+
+    internal override void OnDeviceReset(GraphicsDevice device)
+    {
+        if (Resource == null)
+        {
+            Resource = EngineComponents.AssetContentManager.Load<XDocument>(Filename, device);
+        }
+    } // RecreateResource
+
+    public override void Load(BinaryReader br, SaveOption option)
+    {
+
+    }
+
+    public override void Load(XmlElement el, SaveOption option)
+    {
+
+    }
+
+} // Document
+// XNAFinalEngine.Assets

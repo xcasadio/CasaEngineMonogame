@@ -1,11 +1,10 @@
-namespace CasaEngine.Framework.AI.StateMachines
+namespace CasaEngine.Framework.AI.StateMachines;
+
+public interface IFsmCapable<T> where T : IFsmCapable<T>
 {
-    public interface IFsmCapable<T> where T : IFsmCapable<T>
+    IFiniteStateMachine<T> StateMachine
     {
-        IFiniteStateMachine<T> StateMachine
-        {
-            get;
-            set;
-        }
+        get;
+        set;
     }
 }

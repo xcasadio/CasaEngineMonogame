@@ -30,232 +30,231 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using Screen = CasaEngine.Framework.UserInterface.Screen;
 
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public struct Size
 {
 
-    public struct Size
+
+    public enum TextureSize
     {
+        QuarterSize,
+        HalfSize,
+        FullSize,
+    } // TextureSize
 
 
-        public enum TextureSize
+
+    private int _width, _height;
+    private Screen _screen;
+
+
+
+    public int Width
+    {
+        get
         {
-            QuarterSize,
-            HalfSize,
-            FullSize,
-        } // TextureSize
-
-
-
-        private int _width, _height;
-        private Screen _screen;
-
-
-
-        public int Width
-        {
-            get
+            if (this == FullScreen || this == SplitFullScreen)
             {
-                if (this == FullScreen || this == SplitFullScreen)
-                {
-                    return _screen.Width;
-                }
-
-                if (this == HalfScreen || this == SplitHalfScreen)
-                {
-                    return _screen.Width / 2;
-                }
-
-                if (this == QuarterScreen || this == SplitQuarterScreen)
-                {
-                    return _screen.Width / 4;
-                }
-
-                return _width;
-            }
-            set
-            {
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), "Width has to be greater than or equal to zero.");
-                }
-
-                _width = value;
-            }
-        } // Width
-
-        public int Height
-        {
-            get
-            {
-                if (this == FullScreen)
-                {
-                    return _screen.Height;
-                }
-
-                if (this == HalfScreen)
-                {
-                    return _screen.Height / 2;
-                }
-
-                if (this == QuarterScreen)
-                {
-                    return _screen.Height / 4;
-                }
-
-                if (this == SplitFullScreen)
-                {
-                    return _screen.Height / 2;
-                }
-
-                if (this == SplitHalfScreen)
-                {
-                    return _screen.Height / 4;
-                }
-
-                if (this == SplitQuarterScreen)
-                {
-                    return _screen.Height / 8;
-                }
-
-                return _height;
-            }
-            set
-            {
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), "Height has to be greater than or equal to zero.");
-                }
-
-                _height = value;
-            }
-        } // Height
-
-
-
-        public Size FullScreen => new() { _width = -1, _height = 0, _screen = _screen };
-
-        public Size HalfScreen => new() { _width = -2, _height = 0, _screen = _screen };
-
-        public Size QuarterScreen => new() { _width = -3, _height = 0, _screen = _screen };
-
-        public Size SplitFullScreen => new() { _width = -4, _height = 0, _screen = _screen };
-
-        public Size SplitHalfScreen => new() { _width = -5, _height = 0, _screen = _screen };
-
-        public Size SplitQuarterScreen => new() { _width = -6, _height = 0, _screen = _screen };
-
-        public Size Square256X256 => new(256, 256, _screen);
-
-        public Size Square512X512 => new(512, 512, _screen);
-
-        public Size Square1024X1024 => new(1024, 1024, _screen);
-
-        public Size Square2048X2048 => new(2048, 2048, _screen);
-
-
-        public Size(int width, int height, Screen screen)
-        {
-            if (width < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(width), "Width has to be greater than or equal to zero.");
+                return _screen.Width;
             }
 
-            if (height < 0)
+            if (this == HalfScreen || this == SplitHalfScreen)
             {
-                throw new ArgumentOutOfRangeException(nameof(height), "Height has to be greater than or equal to zero.");
+                return _screen.Width / 2;
             }
 
-            _width = width;
-            _height = height;
+            if (this == QuarterScreen || this == SplitQuarterScreen)
+            {
+                return _screen.Width / 4;
+            }
 
-            _screen = screen;
-        } // Size
-
-
-
-        public static bool operator ==(Size x, Size y)
+            return _width;
+        }
+        set
         {
-            return x._width == y._width && x._height == y._height;
-        } // Equal
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Width has to be greater than or equal to zero.");
+            }
 
-        public static bool operator !=(Size x, Size y)
-        {
-            return x._width != y._width || x._height != y._height;
-        } // Not Equal
+            _width = value;
+        }
+    } // Width
 
-        public override bool Equals(object obj)
-        {
-            return obj is Size && this == (Size)obj;
-        } // Equals
-
-        public override int GetHashCode()
-        {
-            return _width.GetHashCode() ^ _height.GetHashCode();
-        } // GetHashCode
-
-
-
-        public Size HalfSize()
+    public int Height
+    {
+        get
         {
             if (this == FullScreen)
             {
-                return HalfScreen;
+                return _screen.Height;
             }
 
             if (this == HalfScreen)
             {
-                return QuarterScreen;
-            }
-
-            if (this == SplitFullScreen)
-            {
-                return SplitHalfScreen;
-            }
-
-            if (this == SplitHalfScreen)
-            {
-                return SplitQuarterScreen;
-            }
-
-            return new Size(Width / 2, Height / 2, _screen);
-        } // HalfSize
-
-
-
-        public void MakeRelativeIfPosible()
-        {
-            if (this == FullScreen)
-            {
-                this = FullScreen;
-            }
-
-            if (this == HalfScreen)
-            {
-                this = HalfScreen;
+                return _screen.Height / 2;
             }
 
             if (this == QuarterScreen)
             {
-                this = QuarterScreen;
+                return _screen.Height / 4;
             }
 
             if (this == SplitFullScreen)
             {
-                this = SplitFullScreen;
+                return _screen.Height / 2;
             }
 
             if (this == SplitHalfScreen)
             {
-                this = SplitHalfScreen;
+                return _screen.Height / 4;
             }
 
             if (this == SplitQuarterScreen)
             {
-                this = SplitQuarterScreen;
+                return _screen.Height / 8;
             }
-            // If not stay the same.
-        } // MakeRelativeIfPosible
+
+            return _height;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Height has to be greater than or equal to zero.");
+            }
+
+            _height = value;
+        }
+    } // Height
 
 
-    } // Size 
-} // XNAFinalEngine.Helpers
+
+    public Size FullScreen => new() { _width = -1, _height = 0, _screen = _screen };
+
+    public Size HalfScreen => new() { _width = -2, _height = 0, _screen = _screen };
+
+    public Size QuarterScreen => new() { _width = -3, _height = 0, _screen = _screen };
+
+    public Size SplitFullScreen => new() { _width = -4, _height = 0, _screen = _screen };
+
+    public Size SplitHalfScreen => new() { _width = -5, _height = 0, _screen = _screen };
+
+    public Size SplitQuarterScreen => new() { _width = -6, _height = 0, _screen = _screen };
+
+    public Size Square256X256 => new(256, 256, _screen);
+
+    public Size Square512X512 => new(512, 512, _screen);
+
+    public Size Square1024X1024 => new(1024, 1024, _screen);
+
+    public Size Square2048X2048 => new(2048, 2048, _screen);
+
+
+    public Size(int width, int height, Screen screen)
+    {
+        if (width < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width has to be greater than or equal to zero.");
+        }
+
+        if (height < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height has to be greater than or equal to zero.");
+        }
+
+        _width = width;
+        _height = height;
+
+        _screen = screen;
+    } // Size
+
+
+
+    public static bool operator ==(Size x, Size y)
+    {
+        return x._width == y._width && x._height == y._height;
+    } // Equal
+
+    public static bool operator !=(Size x, Size y)
+    {
+        return x._width != y._width || x._height != y._height;
+    } // Not Equal
+
+    public override bool Equals(object obj)
+    {
+        return obj is Size && this == (Size)obj;
+    } // Equals
+
+    public override int GetHashCode()
+    {
+        return _width.GetHashCode() ^ _height.GetHashCode();
+    } // GetHashCode
+
+
+
+    public Size HalfSize()
+    {
+        if (this == FullScreen)
+        {
+            return HalfScreen;
+        }
+
+        if (this == HalfScreen)
+        {
+            return QuarterScreen;
+        }
+
+        if (this == SplitFullScreen)
+        {
+            return SplitHalfScreen;
+        }
+
+        if (this == SplitHalfScreen)
+        {
+            return SplitQuarterScreen;
+        }
+
+        return new Size(Width / 2, Height / 2, _screen);
+    } // HalfSize
+
+
+
+    public void MakeRelativeIfPosible()
+    {
+        if (this == FullScreen)
+        {
+            this = FullScreen;
+        }
+
+        if (this == HalfScreen)
+        {
+            this = HalfScreen;
+        }
+
+        if (this == QuarterScreen)
+        {
+            this = QuarterScreen;
+        }
+
+        if (this == SplitFullScreen)
+        {
+            this = SplitFullScreen;
+        }
+
+        if (this == SplitHalfScreen)
+        {
+            this = SplitHalfScreen;
+        }
+
+        if (this == SplitQuarterScreen)
+        {
+            this = SplitQuarterScreen;
+        }
+        // If not stay the same.
+    } // MakeRelativeIfPosible
+
+
+} // Size 
+// XNAFinalEngine.Helpers

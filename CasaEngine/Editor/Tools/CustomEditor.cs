@@ -1,17 +1,16 @@
-﻿namespace CasaEngine.Editor.Tools
+﻿namespace CasaEngine.Editor.Tools;
+
+public class CustomEditor : Attribute
 {
-    public class CustomEditor : Attribute
+    private readonly Type _type;
+
+    public CustomEditor(Type type)
     {
-        private readonly Type _type;
+        _type = type;
+    }
 
-        public CustomEditor(Type type)
-        {
-            _type = type;
-        }
-
-        public override string ToString()
-        {
-            return _type.FullName;
-        }
+    public override string ToString()
+    {
+        return _type.FullName;
     }
 }

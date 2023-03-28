@@ -1,9 +1,8 @@
 ﻿using CasaEngine.Framework.Entities;
 
-namespace CasaEngine.Framework.Gameplay.Design
+namespace CasaEngine.Framework.Gameplay.Design;
+
+public interface ICloneable
 {
-    public interface ICloneable
-    {
-        Entity Clone();
-    }
+    Entity Clone();
 }

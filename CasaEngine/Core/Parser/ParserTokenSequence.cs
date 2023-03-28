@@ -1,33 +1,32 @@
-﻿namespace CasaEngine.Core.Parser
+﻿namespace CasaEngine.Core.Parser;
+
+internal class ParserTokenSequence
+    : ParserToken
 {
-    internal class ParserTokenSequence
-        : ParserToken
+
+    public static readonly string Sequence = "`";
+
+
+
+
+
+    public ParserTokenSequence(Parser parser)
+        : base(parser, Sequence)
     {
 
-        public static readonly string Sequence = "`";
-
-
-
-
-
-        public ParserTokenSequence(Parser parser)
-            : base(parser, Sequence)
-        {
-
-        }
-
-
-
-        public override bool Check(string sentence)
-        {
-            if (Token.Equals(sentence))
-            {
-                Parser.AddCalculator(new CalculatorTokenSequence(Parser.Calculator, CalculatorTokenSequence.TokenSequence.Sequence));
-                return true;
-            }
-
-            return false;
-        }
-
     }
+
+
+
+    public override bool Check(string sentence)
+    {
+        if (Token.Equals(sentence))
+        {
+            Parser.AddCalculator(new CalculatorTokenSequence(Parser.Calculator, CalculatorTokenSequence.TokenSequence.Sequence));
+            return true;
+        }
+
+        return false;
+    }
+
 }

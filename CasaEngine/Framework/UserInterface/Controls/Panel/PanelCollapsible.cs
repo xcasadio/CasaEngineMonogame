@@ -29,99 +29,98 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using CasaEngine.Framework.UserInterface.Controls.Auxiliary;
 using CasaEngine.Framework.UserInterface.Controls.Buttons;
 
-namespace CasaEngine.Framework.UserInterface.Controls.Panel
+namespace CasaEngine.Framework.UserInterface.Controls.Panel;
+
+public class PanelCollapsible : ClipControl
 {
 
-    public class PanelCollapsible : ClipControl
+
+    private readonly TreeButton _treeButton;
+
+
+
+    public PanelCollapsible(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
     {
+        CanFocus = false;
+        Passive = false;
+        BackgroundColor = Color.Transparent;
 
+        // This is the control that manages the collapse functionality.
+        _treeButton = new TreeButton(UserInterfaceManager);
+        _treeButton.Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
+        Add(_treeButton, false);
+        _treeButton.Width = ClientWidth;
+        TextChanged += delegate { _treeButton.Text = Text; };
+        _treeButton.CanFocus = false;
 
-        private readonly TreeButton _treeButton;
+        // The client area is lowered to make place to the previous control.
+        var m = ClientMargins;
+        m.Top += 20;
+        ClientMargins = m;
 
-
-
-        public PanelCollapsible(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
+        // If the control is collaped or expanded...
+        _treeButton.CheckedChanged += delegate
         {
-            CanFocus = false;
-            Passive = false;
-            BackgroundColor = Color.Transparent;
-
-            // This is the control that manages the collapse functionality.
-            _treeButton = new TreeButton(UserInterfaceManager);
-            _treeButton.Anchor = Anchors.Left | Anchors.Right | Anchors.Top;
-            Add(_treeButton, false);
-            _treeButton.Width = ClientWidth;
-            TextChanged += delegate { _treeButton.Text = Text; };
-            _treeButton.CanFocus = false;
-
-            // The client area is lowered to make place to the previous control.
-            var m = ClientMargins;
-            m.Top += 20;
-            ClientMargins = m;
-
-            // If the control is collaped or expanded...
-            _treeButton.CheckedChanged += delegate
+            int differencial;
+            if (_treeButton.Checked)
             {
-                int differencial;
-                if (_treeButton.Checked)
+                // Only show the tree button.
+                ClientArea.Visible = false;
+                differencial = -Height + 20;
+                Height = 20;
+            }
+            else
+            {
+                // Show the client are.
+                ClientArea.Visible = true;
+                AdjustHeightFromChildren();
+                differencial = Height - 20;
+            }
+            if (Parent != null)
+            {
+                // Move up or down the controls that are below this control
+                foreach (var childControl in Parent.ChildrenControls)
                 {
-                    // Only show the tree button.
-                    ClientArea.Visible = false;
-                    differencial = -Height + 20;
-                    Height = 20;
-                }
-                else
-                {
-                    // Show the client are.
-                    ClientArea.Visible = true;
-                    AdjustHeightFromChildren();
-                    differencial = Height - 20;
-                }
-                if (Parent != null)
-                {
-                    // Move up or down the controls that are below this control
-                    foreach (var childControl in Parent.ChildrenControls)
+                    if (childControl.Top > Top && (childControl.Anchor & Anchors.Top) == Anchors.Top)
                     {
-                        if (childControl.Top > Top && (childControl.Anchor & Anchors.Top) == Anchors.Top)
-                        {
-                            childControl.Top += differencial;
-                        }
+                        childControl.Top += differencial;
                     }
                 }
-                // Adjust the scrolling of all parents.
-                Invalidate();
-            };
-            _treeButton.Checked = false;
-        } // PanelCollapsible
-
-
-
-        public override void Add(Control control, bool client)
-        {
-            base.Add(control, client);
-            if (_treeButton != null && !_treeButton.Checked)
-            {
-                AdjustHeightFromChildren();
             }
-        } // Add
-
-        public override void Remove(Control control)
-        {
-            base.Remove(control);
-            if (_treeButton != null && !_treeButton.Checked)
-            {
-                AdjustHeightFromChildren();
-            }
-        } // IsRemoved
-
-
-
-        protected override void DrawControl(Rectangle rect)
-        {
-            // We only want to render the children.
-        } // DrawControl
-
-
+            // Adjust the scrolling of all parents.
+            Invalidate();
+        };
+        _treeButton.Checked = false;
     } // PanelCollapsible
-} // XNAFinalEngine.UserInterface
+
+
+
+    public override void Add(Control control, bool client)
+    {
+        base.Add(control, client);
+        if (_treeButton != null && !_treeButton.Checked)
+        {
+            AdjustHeightFromChildren();
+        }
+    } // Add
+
+    public override void Remove(Control control)
+    {
+        base.Remove(control);
+        if (_treeButton != null && !_treeButton.Checked)
+        {
+            AdjustHeightFromChildren();
+        }
+    } // IsRemoved
+
+
+
+    protected override void DrawControl(Rectangle rect)
+    {
+        // We only want to render the children.
+    } // DrawControl
+
+
+} // PanelCollapsible
+// XNAFinalEngine.UserInterface

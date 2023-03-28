@@ -12,28 +12,27 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Button = CasaEngine.Framework.UserInterface.Controls.Buttons.Button;
 
-namespace CasaEngine.Framework.UserInterface.Controls.ToolBar
+namespace CasaEngine.Framework.UserInterface.Controls.ToolBar;
+
+public class ToolBarButton : Button
 {
 
-    public class ToolBarButton : Button
+
+    public ToolBarButton(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
     {
-
-
-        public ToolBarButton(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
-        {
-            CanFocus = false;
-            Text = "";
-        }
+        CanFocus = false;
+        Text = "";
+    }
 
 
 
-        protected internal override void InitSkin()
-        {
-            base.InitSkin();
-            SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ToolBarButton"]);
-        } // InitSkin
+    protected internal override void InitSkin()
+    {
+        base.InitSkin();
+        SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["ToolBarButton"]);
+    } // InitSkin
 
 
-    } // ToolBarButton
-} // XNAFinalEngine.UserInterface
+} // ToolBarButton
+// XNAFinalEngine.UserInterface

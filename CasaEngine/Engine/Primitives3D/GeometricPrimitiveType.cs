@@ -1,13 +1,12 @@
-﻿namespace CasaEngine.Engine.Primitives3D
+﻿namespace CasaEngine.Engine.Primitives3D;
+
+public enum GeometricPrimitiveType
 {
-    public enum GeometricPrimitiveType
-    {
-        Cube,
-        Cylinder,
-        Plane,
-        Sphere,
-        Teapot,
-        Torus,
-        BezierCurve
-    }
+    Cube,
+    Cylinder,
+    Plane,
+    Sphere,
+    Teapot,
+    Torus,
+    BezierCurve
 }

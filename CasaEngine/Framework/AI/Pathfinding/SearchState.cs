@@ -1,11 +1,10 @@
-namespace CasaEngine.Framework.AI.Pathfinding
+namespace CasaEngine.Framework.AI.Pathfinding;
+
+public enum SearchState : int
 {
-    public enum SearchState : int
-    {
-        CompletedAndFound = 1,
+    CompletedAndFound = 1,
 
-        CompletedAndNotFound = 2,
+    CompletedAndNotFound = 2,
 
-        NotCompleted = 3
-    }
+    NotCompleted = 3
 }

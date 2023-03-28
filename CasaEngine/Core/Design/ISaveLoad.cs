@@ -1,18 +1,17 @@
 ﻿using System.Xml;
 
-namespace CasaEngine.Core.Design
-{
-    public enum SaveOption
-    {
-        Editor,
-        Game
-    }
+namespace CasaEngine.Core.Design;
 
-    public interface ISaveLoad
-    {
+public enum SaveOption
+{
+    Editor,
+    Game
+}
+
+public interface ISaveLoad
+{
 #if EDITOR
-        void Save(XmlElement el_, SaveOption option_);
+    void Save(XmlElement el_, SaveOption option_);
 #endif
-        void Load(XmlElement el_, SaveOption option_);
-    }
+    void Load(XmlElement el_, SaveOption option_);
 }

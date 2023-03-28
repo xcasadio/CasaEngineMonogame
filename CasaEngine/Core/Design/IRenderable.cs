@@ -1,29 +1,28 @@
-﻿namespace CasaEngine.Core.Design
+﻿namespace CasaEngine.Core.Design;
+
+/// <summary>
+/// 
+/// </summary>
+public interface IRenderable
 {
     /// <summary>
     /// 
     /// </summary>
-    public interface IRenderable
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="elapsedTime_"></param>
-        void Draw(float elapsedTime_);
+    /// <param name="elapsedTime_"></param>
+    void Draw(float elapsedTime_);
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        int Depth { get; }
+    /// <summary>
+    /// Gets
+    /// </summary>
+    int Depth { get; }
 
-        /// <summary>
-        /// Sets
-        /// </summary>
-        float ZOrder { set; }
+    /// <summary>
+    /// Sets
+    /// </summary>
+    float ZOrder { set; }
 
-        /// <summary>
-        /// Gets
-        /// </summary>
-        bool Visible { get; }
-    }
+    /// <summary>
+    /// Gets
+    /// </summary>
+    bool Visible { get; }
 }

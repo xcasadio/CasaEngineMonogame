@@ -1,13 +1,12 @@
 ﻿using CasaEngine.Framework.Gameplay.Design;
 
-namespace CasaEngine.Framework.Gameplay
+namespace CasaEngine.Framework.Gameplay;
+
+public interface IAttackable
+    : ICollide2Dable
 {
-    public interface IAttackable
-        : ICollide2Dable
-    {
-        //ICharacter
-        void DoANewAttack();
-        bool CanAttackHim(IAttackable other);
-        TeamInfo TeamInfo { get; }
-    }
+    //ICharacter
+    void DoANewAttack();
+    bool CanAttackHim(IAttackable other);
+    TeamInfo TeamInfo { get; }
 }

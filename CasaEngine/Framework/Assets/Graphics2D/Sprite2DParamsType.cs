@@ -1,15 +1,14 @@
-﻿namespace CasaEngine.Framework.Assets.Graphics2D
+﻿namespace CasaEngine.Framework.Assets.Graphics2D;
+
+public enum Sprite2DParamsType
 {
-    public enum Sprite2DParamsType
-    {
-        CollisionDefense,
+    CollisionDefense,
 
-        CollisionAttack,
+    CollisionAttack,
 
-        RibbonTrail,
+    RibbonTrail,
 
-        User1,
+    User1,
 
-        User2,
-    }
+    User2,
 }

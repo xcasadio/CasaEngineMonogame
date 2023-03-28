@@ -1,9 +1,8 @@
 ﻿using CasaEngine.Core.Design;
 
-namespace CasaEngine.Framework.Gameplay.Design.Event
+namespace CasaEngine.Framework.Gameplay.Design.Event;
+
+public interface ITriggerEvent
+    : IEvent, ISaveLoad
 {
-    public interface ITriggerEvent
-        : IEvent, ISaveLoad
-    {
-    }
 }

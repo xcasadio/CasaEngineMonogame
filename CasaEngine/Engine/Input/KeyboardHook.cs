@@ -31,109 +31,109 @@ This class was based in the work of Emma Burrows. That work doesn't have a licen
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace CasaEngine.Engine.Input
+namespace CasaEngine.Engine.Input;
+
+public class KeyboardHook : IDisposable
 {
-    public class KeyboardHook : IDisposable
+
+
+    private const int KeyboardHookId = 13;
+
+
+
+    internal struct KeyboadHookStruct
     {
+        public int VkCode;
+        public int Flags;
+    } // KeyboadHookStruct
 
 
-        private const int KeyboardHookId = 13;
+
+    private readonly HookHandlerDelegate _proc;
+    private readonly IntPtr _hookId = IntPtr.Zero;
+    internal delegate IntPtr HookHandlerDelegate(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam);
+
+    private KeyboadHookStruct _lastParameter;
 
 
 
-        internal struct KeyboadHookStruct
+    public KeyboardHook()
+    {
+        _proc = HookCallback;
+        using (var curProcess = Process.GetCurrentProcess())
+        using (var curModule = curProcess.MainModule)
         {
-            public int VkCode;
-            public int Flags;
-        } // KeyboadHookStruct
+            _hookId = NativeMethods.SetWindowsHookEx(KeyboardHookId, _proc, NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
+        }
+    } // KeyboardHook
 
 
 
-        private readonly HookHandlerDelegate _proc;
-        private readonly IntPtr _hookId = IntPtr.Zero;
-        internal delegate IntPtr HookHandlerDelegate(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam);
-
-        private KeyboadHookStruct _lastParameter;
-
-
-
-        public KeyboardHook()
+    private IntPtr HookCallback(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam)
+    {
+        // This is an easy way to change from a key press behavior to a key down behavior.
+        if (lParam.Flags != _lastParameter.Flags || lParam.VkCode != _lastParameter.VkCode)
         {
-            _proc = HookCallback;
-            using (var curProcess = Process.GetCurrentProcess())
-            using (var curModule = curProcess.MainModule)
+            // If the key is disable or has a special function.
+            if (lParam.VkCode == 91 || lParam.VkCode == 92 ||  // Win
+                lParam.VkCode == 13 ||  // Alt-Enter (does not work properly so I made a fix)
+                lParam.VkCode == 44) // Print Screen
             {
-                _hookId = NativeMethods.SetWindowsHookEx(KeyboardHookId, _proc, NativeMethods.GetModuleHandle(curModule.ModuleName), 0);
-            }
-        } // KeyboardHook
+                //if (lParam.VkCode == 44)
+                //{
+                //    ScreenshotCapturer.MakeScreenshot = true;
+                //}
+                //KeyboardState keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+                //if (keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt))
+                //{
+                //    Screen.ToggleFullscreen();
+                //}
 
-
-
-        private IntPtr HookCallback(int nCode, IntPtr wParam, ref KeyboadHookStruct lParam)
-        {
-            // This is an easy way to change from a key press behavior to a key down behavior.
-            if (lParam.Flags != _lastParameter.Flags || lParam.VkCode != _lastParameter.VkCode)
-            {
-                // If the key is disable or has a special function.
-                if (lParam.VkCode == 91 || lParam.VkCode == 92 ||  // Win
-                    lParam.VkCode == 13 ||  // Alt-Enter (does not work properly so I made a fix)
-                    lParam.VkCode == 44) // Print Screen
+                // Store current parameter.
+                _lastParameter = lParam;
+                if (lParam.VkCode != 13)
                 {
-                    //if (lParam.VkCode == 44)
-                    //{
-                    //    ScreenshotCapturer.MakeScreenshot = true;
-                    //}
-                    //KeyboardState keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-                    //if (keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt))
-                    //{
-                    //    Screen.ToggleFullscreen();
-                    //}
-
-                    // Store current parameter.
-                    _lastParameter = lParam;
-                    if (lParam.VkCode != 13)
-                    {
-                        return (IntPtr)1;
-                    }
+                    return (IntPtr)1;
                 }
             }
-            // Store current parameter.
-            _lastParameter = lParam;
-            // if the key is allowed...
-            return NativeMethods.CallNextHookEx(_hookId, nCode, wParam, ref lParam);
-        } // HookCallback
+        }
+        // Store current parameter.
+        _lastParameter = lParam;
+        // if the key is allowed...
+        return NativeMethods.CallNextHookEx(_hookId, nCode, wParam, ref lParam);
+    } // HookCallback
 
 
 
-        public void Dispose()
-        {
-            NativeMethods.UnhookWindowsHookEx(_hookId);
-        } // Dispose
+    public void Dispose()
+    {
+        NativeMethods.UnhookWindowsHookEx(_hookId);
+    } // Dispose
 
 
 
-        [ComVisible(false), System.Security.SuppressUnmanagedCodeSecurity]
-        internal class NativeMethods
-        {
+    [ComVisible(false), System.Security.SuppressUnmanagedCodeSecurity]
+    internal class NativeMethods
+    {
 
-            [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            public static extern IntPtr GetModuleHandle(string lpModuleName);
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            public static extern IntPtr SetWindowsHookEx(int idHook, HookHandlerDelegate lpfn, IntPtr hMod, uint dwThreadId);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(int idHook, HookHandlerDelegate lpfn, IntPtr hMod, uint dwThreadId);
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool UnhookWindowsHookEx(IntPtr hhk);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, ref KeyboadHookStruct lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, ref KeyboadHookStruct lParam);
 
-            [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
-            public static extern short GetKeyState(int keyCode);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
+        public static extern short GetKeyState(int keyCode);
 
-        } // NativeMethods
+    } // NativeMethods
 
 
-    } // KeyboardHook
-} // XNAFinalEngine.Input
+} // KeyboardHook
+  // XNAFinalEngine.Input

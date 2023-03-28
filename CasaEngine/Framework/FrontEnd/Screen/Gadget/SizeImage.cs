@@ -1,10 +1,9 @@
-﻿namespace CasaEngine.Framework.FrontEnd.Screen.Gadget
+﻿namespace CasaEngine.Framework.FrontEnd.Screen.Gadget;
+
+public enum SizeImage
 {
-    public enum SizeImage
-    {
-        None,
-        AutoSize,
-        Center,
-        Stretch
-    }
+    None,
+    AutoSize,
+    Center,
+    Stretch
 }

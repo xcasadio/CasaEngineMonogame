@@ -12,20 +12,19 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using CasaEngine.Framework.UserInterface.Controls.Auxiliary;
 
-namespace CasaEngine.Framework.UserInterface.Controls.Panel
+namespace CasaEngine.Framework.UserInterface.Controls.Panel;
+
+public class SideBarPanel : Container
 {
 
-    public class SideBarPanel : Container
+    public SideBarPanel(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
     {
-
-        public SideBarPanel(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
-        {
-            CanFocus = false;
-            Passive = true;
-            Width = 64;
-            Height = 64;
-        } // SideBarPanel
-
+        CanFocus = false;
+        Passive = true;
+        Width = 64;
+        Height = 64;
     } // SideBarPanel
-} // XNAFinalEngine.UserInterface
+
+} // SideBarPanel
+// XNAFinalEngine.UserInterface

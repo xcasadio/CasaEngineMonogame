@@ -1,163 +1,162 @@
 ﻿using CasaEngine.Framework.Entities;
 
-namespace CasaEngine.Framework.AI.NeuralNets.FeedForward
+namespace CasaEngine.Framework.AI.NeuralNets.FeedForward;
+
+[Serializable]
+public class NeuralNetwork : Entity
 {
-    [Serializable]
-    public class NeuralNetwork : Entity
+    private NeuralNetworkLayer _inputLayer = null;
+    private NeuralNetworkLayer _hiddenLayer = null;
+    private NeuralNetworkLayer _outputLayer = null;
+
+
+
+    public int NumberOfInputNode => _inputLayer.NumberOfNodes;
+
+    public int NumberOfOutputNode => _outputLayer.NumberOfNodes;
+
+
+    public void Update(float elapsedTime)
     {
-        private NeuralNetworkLayer _inputLayer = null;
-        private NeuralNetworkLayer _hiddenLayer = null;
-        private NeuralNetworkLayer _outputLayer = null;
+        FeedForward();
+    }
 
+    public override string ToString()
+    {
+        return "Neural Network " + base.ToString();
+    }
 
+    public void Initialize(int nNodesInput, int nNodesHidden, int nNodesOutput)
+    {
+        _inputLayer.NumberOfNodes = nNodesInput;
+        _inputLayer.NumberOfChildNodes = nNodesHidden;
+        _inputLayer.NumberOfParentNodes = 0;
+        _inputLayer.Initialize(nNodesInput, null, _hiddenLayer);
+        _inputLayer.RandomizeWeights();
 
-        public int NumberOfInputNode => _inputLayer.NumberOfNodes;
+        _hiddenLayer.NumberOfNodes = nNodesHidden;
+        _hiddenLayer.NumberOfChildNodes = nNodesOutput;
+        _hiddenLayer.NumberOfParentNodes = nNodesInput;
+        _hiddenLayer.Initialize(nNodesHidden, _inputLayer, _outputLayer);
+        _hiddenLayer.RandomizeWeights();
 
-        public int NumberOfOutputNode => _outputLayer.NumberOfNodes;
+        _outputLayer.NumberOfNodes = nNodesOutput;
+        _outputLayer.NumberOfChildNodes = 0;
+        _outputLayer.NumberOfParentNodes = nNodesHidden;
+        _outputLayer.Initialize(nNodesOutput, _hiddenLayer, null);
+    }
 
+    public void CleanUp()
+    {
+        _inputLayer.CleanUp();
+        _hiddenLayer.CleanUp();
+        _outputLayer.CleanUp();
+    }
 
-        public void Update(float elapsedTime)
+    public void SetInput(int i, double value)
+    {
+        if (i >= 0 && i < _inputLayer.NumberOfNodes)
         {
-            FeedForward();
+            _inputLayer.NeuronValues[i] = value;
+        }
+    }
+
+    public double GetOutput(int i)
+    {
+        if (i >= 0 && i < _outputLayer.NumberOfNodes)
+        {
+            return _outputLayer.NeuronValues[i];
         }
 
-        public override string ToString()
+        return int.MaxValue; // to indicate an error
+    }
+
+    public void SetDesiredOutput(int i, double value)
+    {
+        if (i >= 0 && i < _outputLayer.NumberOfNodes)
         {
-            return "Neural Network " + base.ToString();
+            _outputLayer.DesiredValues[i] = value;
         }
+    }
 
-        public void Initialize(int nNodesInput, int nNodesHidden, int nNodesOutput)
+    public void FeedForward()
+    {
+        _inputLayer.CalculateNeuronValues();
+        _hiddenLayer.CalculateNeuronValues();
+        _outputLayer.CalculateNeuronValues();
+    }
+
+    public void BackPropagate()
+    {
+        _outputLayer.CalculateErrors();
+        _hiddenLayer.CalculateErrors();
+
+        _hiddenLayer.AdjustWeights();
+        _inputLayer.AdjustWeights();
+    }
+
+    public int GetMaxOutputId()
+    {
+        int i, id;
+        double maxval;
+
+        maxval = _outputLayer.NeuronValues[0];
+        id = 0;
+
+        for (i = 1; i < _outputLayer.NumberOfNodes; i++)
         {
-            _inputLayer.NumberOfNodes = nNodesInput;
-            _inputLayer.NumberOfChildNodes = nNodesHidden;
-            _inputLayer.NumberOfParentNodes = 0;
-            _inputLayer.Initialize(nNodesInput, null, _hiddenLayer);
-            _inputLayer.RandomizeWeights();
-
-            _hiddenLayer.NumberOfNodes = nNodesHidden;
-            _hiddenLayer.NumberOfChildNodes = nNodesOutput;
-            _hiddenLayer.NumberOfParentNodes = nNodesInput;
-            _hiddenLayer.Initialize(nNodesHidden, _inputLayer, _outputLayer);
-            _hiddenLayer.RandomizeWeights();
-
-            _outputLayer.NumberOfNodes = nNodesOutput;
-            _outputLayer.NumberOfChildNodes = 0;
-            _outputLayer.NumberOfParentNodes = nNodesHidden;
-            _outputLayer.Initialize(nNodesOutput, _hiddenLayer, null);
-        }
-
-        public void CleanUp()
-        {
-            _inputLayer.CleanUp();
-            _hiddenLayer.CleanUp();
-            _outputLayer.CleanUp();
-        }
-
-        public void SetInput(int i, double value)
-        {
-            if (i >= 0 && i < _inputLayer.NumberOfNodes)
+            if (_outputLayer.NeuronValues[i] > maxval)
             {
-                _inputLayer.NeuronValues[i] = value;
+                maxval = _outputLayer.NeuronValues[i];
+                id = i;
             }
         }
 
-        public double GetOutput(int i)
-        {
-            if (i >= 0 && i < _outputLayer.NumberOfNodes)
-            {
-                return _outputLayer.NeuronValues[i];
-            }
+        return id;
+    }
 
-            return int.MaxValue; // to indicate an error
+    public double CalculateError()
+    {
+        int i;
+        double error = 0;
+
+        for (i = 0; i < _outputLayer.NumberOfNodes; i++)
+        {
+            error += Math.Pow(_outputLayer.NeuronValues[i] - _outputLayer.DesiredValues[i], 2);
         }
 
-        public void SetDesiredOutput(int i, double value)
-        {
-            if (i >= 0 && i < _outputLayer.NumberOfNodes)
-            {
-                _outputLayer.DesiredValues[i] = value;
-            }
-        }
+        error = error / _outputLayer.NumberOfNodes;
 
-        public void FeedForward()
-        {
-            _inputLayer.CalculateNeuronValues();
-            _hiddenLayer.CalculateNeuronValues();
-            _outputLayer.CalculateNeuronValues();
-        }
+        return error;
+    }
 
-        public void BackPropagate()
-        {
-            _outputLayer.CalculateErrors();
-            _hiddenLayer.CalculateErrors();
+    public void SetLearningRate(double rate)
+    {
+        _inputLayer.LearningRate = rate;
+        _hiddenLayer.LearningRate = rate;
+        _outputLayer.LearningRate = rate;
+    }
 
-            _hiddenLayer.AdjustWeights();
-            _inputLayer.AdjustWeights();
-        }
+    public void SetLinearOutput(bool useLinear)
+    {
+        _inputLayer.LinearOutput = useLinear;
+        _hiddenLayer.LinearOutput = useLinear;
+        _outputLayer.LinearOutput = useLinear;
+    }
 
-        public int GetMaxOutputId()
-        {
-            int i, id;
-            double maxval;
+    public void SetMomentum(bool useMomentum, double factor)
+    {
+        _inputLayer.UseMomentum = useMomentum;
+        _hiddenLayer.UseMomentum = useMomentum;
+        _outputLayer.UseMomentum = useMomentum;
 
-            maxval = _outputLayer.NeuronValues[0];
-            id = 0;
+        _inputLayer.MomentumFactor = factor;
+        _hiddenLayer.MomentumFactor = factor;
+        _outputLayer.MomentumFactor = factor;
+    }
 
-            for (i = 1; i < _outputLayer.NumberOfNodes; i++)
-            {
-                if (_outputLayer.NeuronValues[i] > maxval)
-                {
-                    maxval = _outputLayer.NeuronValues[i];
-                    id = i;
-                }
-            }
+    public void DumpData(string filename)
+    {
 
-            return id;
-        }
-
-        public double CalculateError()
-        {
-            int i;
-            double error = 0;
-
-            for (i = 0; i < _outputLayer.NumberOfNodes; i++)
-            {
-                error += Math.Pow(_outputLayer.NeuronValues[i] - _outputLayer.DesiredValues[i], 2);
-            }
-
-            error = error / _outputLayer.NumberOfNodes;
-
-            return error;
-        }
-
-        public void SetLearningRate(double rate)
-        {
-            _inputLayer.LearningRate = rate;
-            _hiddenLayer.LearningRate = rate;
-            _outputLayer.LearningRate = rate;
-        }
-
-        public void SetLinearOutput(bool useLinear)
-        {
-            _inputLayer.LinearOutput = useLinear;
-            _hiddenLayer.LinearOutput = useLinear;
-            _outputLayer.LinearOutput = useLinear;
-        }
-
-        public void SetMomentum(bool useMomentum, double factor)
-        {
-            _inputLayer.UseMomentum = useMomentum;
-            _hiddenLayer.UseMomentum = useMomentum;
-            _outputLayer.UseMomentum = useMomentum;
-
-            _inputLayer.MomentumFactor = factor;
-            _hiddenLayer.MomentumFactor = factor;
-            _outputLayer.MomentumFactor = factor;
-        }
-
-        public void DumpData(string filename)
-        {
-
-        }
     }
 }

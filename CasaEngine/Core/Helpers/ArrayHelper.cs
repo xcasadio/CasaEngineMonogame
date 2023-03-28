@@ -28,122 +28,122 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public class ArrayHelper
 {
-    public class ArrayHelper
+
+    public static bool Equals(Matrix[] a1, Matrix[] a2)
     {
-
-        public static bool Equals(Matrix[] a1, Matrix[] a2)
+        if (a1 == null && a2 == null)
         {
-            if (a1 == null && a2 == null)
-            {
-                return true;
-            }
-
-            if (a1 == null || a2 == null)
-            {
-                return false;
-            }
-
-            if (a1.Length != a2.Length)
-            {
-                return false;
-            }
-
-            //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (var i = 0; i < a1.Length; i++)
-            {
-                if (a1[i] != a2[i])
-                {
-                    return false;
-                }
-            }
             return true;
-        } // Equals
+        }
 
-        public static bool Equals(Vector2[] a1, Vector2[] a2)
+        if (a1 == null || a2 == null)
         {
-            if (a1 == null && a2 == null)
-            {
-                return true;
-            }
+            return false;
+        }
 
-            if (a1 == null || a2 == null)
-            {
-                return false;
-            }
-
-            if (a1.Length != a2.Length)
-            {
-                return false;
-            }
-
-            //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (var i = 0; i < a1.Length; i++)
-            {
-                if (a1[i] != a2[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        } // Equals
-
-        public static bool Equals(Vector3[] a1, Vector3[] a2)
+        if (a1.Length != a2.Length)
         {
-            if (a1 == null && a2 == null)
-            {
-                return true;
-            }
+            return false;
+        }
 
-            if (a1 == null || a2 == null)
-            {
-                return false;
-            }
-
-            if (a1.Length != a2.Length)
-            {
-                return false;
-            }
-
-            //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (var i = 0; i < a1.Length; i++)
-            {
-                if (a1[i] != a2[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        } // Equals
-
-        public static bool Equals(Vector4[] a1, Vector4[] a2)
+        //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
+        for (var i = 0; i < a1.Length; i++)
         {
-            if (a1 == null && a2 == null)
-            {
-                return true;
-            }
-
-            if (a1 == null || a2 == null)
+            if (a1[i] != a2[i])
             {
                 return false;
             }
+        }
+        return true;
+    } // Equals
 
-            if (a1.Length != a2.Length)
-            {
-                return false;
-            }
-
-            //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
-            for (var i = 0; i < a1.Length; i++)
-            {
-                if (a1[i] != a2[i])
-                {
-                    return false;
-                }
-            }
+    public static bool Equals(Vector2[] a1, Vector2[] a2)
+    {
+        if (a1 == null && a2 == null)
+        {
             return true;
-        } // Equals
+        }
 
-    } // ArrayHelper
-} // XNAFinalEngine.Helpers
+        if (a1 == null || a2 == null)
+        {
+            return false;
+        }
+
+        if (a1.Length != a2.Length)
+        {
+            return false;
+        }
+
+        //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
+        for (var i = 0; i < a1.Length; i++)
+        {
+            if (a1[i] != a2[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    } // Equals
+
+    public static bool Equals(Vector3[] a1, Vector3[] a2)
+    {
+        if (a1 == null && a2 == null)
+        {
+            return true;
+        }
+
+        if (a1 == null || a2 == null)
+        {
+            return false;
+        }
+
+        if (a1.Length != a2.Length)
+        {
+            return false;
+        }
+
+        //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
+        for (var i = 0; i < a1.Length; i++)
+        {
+            if (a1[i] != a2[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    } // Equals
+
+    public static bool Equals(Vector4[] a1, Vector4[] a2)
+    {
+        if (a1 == null && a2 == null)
+        {
+            return true;
+        }
+
+        if (a1 == null || a2 == null)
+        {
+            return false;
+        }
+
+        if (a1.Length != a2.Length)
+        {
+            return false;
+        }
+
+        //return !a1.Where((t, i) => t != a2[i]).Any(); // Produces garbage
+        for (var i = 0; i < a1.Length; i++)
+        {
+            if (a1[i] != a2[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    } // Equals
+
+} // ArrayHelper
+// XNAFinalEngine.Helpers

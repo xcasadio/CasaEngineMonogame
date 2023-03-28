@@ -1,13 +1,12 @@
-﻿namespace CasaEngine.Editor.Manipulation
-{
-    public interface IDockable
-    {
-        bool Selected
-        {
-            get;
-            set;
-        }
+﻿namespace CasaEngine.Editor.Manipulation;
 
-        void DrawArchor();
+public interface IDockable
+{
+    bool Selected
+    {
+        get;
+        set;
     }
+
+    void DrawArchor();
 }

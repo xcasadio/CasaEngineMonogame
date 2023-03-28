@@ -1,30 +1,29 @@
-﻿namespace CasaEngine.Framework.Gameplay.Actor.Event
+﻿namespace CasaEngine.Framework.Gameplay.Actor.Event;
+
+public class DestroyActorEvent
+    : EventActor
 {
-    public class DestroyActorEvent
-        : EventActor
+
+
+
+
+
+    public DestroyActorEvent()
+        : base(EventActorType.DestroyActor)
     {
 
-
-
-
-
-        public DestroyActorEvent()
-            : base(EventActorType.DestroyActor)
-        {
-
-        }
-
-
-
-        public override void Initialize()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Do()
-        {
-            throw new NotImplementedException();
-        }
-
     }
+
+
+
+    public override void Initialize()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Do()
+    {
+        throw new NotImplementedException();
+    }
+
 }

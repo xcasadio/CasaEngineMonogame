@@ -3,40 +3,39 @@ using System.Xml;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Design;
 
-namespace CasaEngine.Framework.Gameplay.Actor
+namespace CasaEngine.Framework.Gameplay.Actor;
+
+public abstract class Actor2D : Entity
 {
-    public abstract class Actor2D : Entity
+
+    //protected Body _Body;
+    private Vector2 _position;
+
+    public Vector2 Position
+    {
+        get => _position;
+        set => _position = value;
+    }
+
+    protected Actor2D()
+        : base()
     {
 
-        //protected Body _Body;
-        private Vector2 _position;
+    }
 
-        public Vector2 Position
-        {
-            get => _position;
-            set => _position = value;
-        }
+    protected Actor2D(XmlElement el, SaveOption opt)
+        : base(el, opt)
+    {
 
-        protected Actor2D()
-            : base()
-        {
+    }
 
-        }
+    public Entity Clone()
+    {
+        throw new NotImplementedException();
+    }
 
-        protected Actor2D(XmlElement el, SaveOption opt)
-            : base(el, opt)
-        {
+    public virtual void Update(float elapsedTime)
+    {
 
-        }
-
-        public Entity Clone()
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual void Update(float elapsedTime)
-        {
-
-        }
     }
 }

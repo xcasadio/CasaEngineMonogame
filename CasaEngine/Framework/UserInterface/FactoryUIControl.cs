@@ -1,16 +1,15 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
 
-namespace CasaEngine.Framework.UserInterface
+namespace CasaEngine.Framework.UserInterface;
+
+internal static class FactoryUiControl
 {
-    internal static class FactoryUiControl
+    public static Control LoadControl(XmlElement node, SaveOption opt)
     {
-        public static Control LoadControl(XmlElement node, SaveOption opt)
-        {
-            Control res = null;
+        Control res = null;
 
 
-            return res;
-        }
+        return res;
     }
 }

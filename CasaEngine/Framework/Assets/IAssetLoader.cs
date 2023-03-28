@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Framework.Assets
+namespace CasaEngine.Framework.Assets;
+
+public interface IAssetLoader
 {
-    public interface IAssetLoader
-    {
-        object LoadAsset(string fileName, GraphicsDevice device);
-    }
+    object LoadAsset(string fileName, GraphicsDevice device);
 }

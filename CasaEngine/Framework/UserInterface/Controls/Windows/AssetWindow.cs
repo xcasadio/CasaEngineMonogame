@@ -28,95 +28,94 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using TextBox = CasaEngine.Framework.UserInterface.Controls.Text.TextBox;
 
-namespace CasaEngine.Framework.UserInterface.Controls.Windows
+namespace CasaEngine.Framework.UserInterface.Controls.Windows;
+
+public class AssetWindow : Window
 {
 
-    public class AssetWindow : Window
+
+    private string _assetName;
+    private readonly TextBox _nameTextBox;
+
+
+
+    public string AssetType { get; set; }
+
+    public string AssetName
     {
-
-
-        private string _assetName;
-        private readonly TextBox _nameTextBox;
-
-
-
-        public string AssetType { get; set; }
-
-        public string AssetName
+        get => _assetName;
+        set
         {
-            get => _assetName;
-            set
+            if (_assetName != value)
             {
-                if (_assetName != value)
-                {
-                    _assetName = value;
-                    OnAssetNameChanged(new EventArgs());
-                    _nameTextBox.Text = _assetName;
-                }
+                _assetName = value;
+                OnAssetNameChanged(new EventArgs());
+                _nameTextBox.Text = _assetName;
             }
-        } // AssetName
+        }
+    } // AssetName
 
-        public override string Text => AssetName + " : " + AssetType; // Text
-
-
-
-        public event EventHandler AssetNameChanged;
+    public override string Text => AssetName + " : " + AssetType; // Text
 
 
 
-        public AssetWindow(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
+    public event EventHandler AssetNameChanged;
+
+
+
+    public AssetWindow(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
+    {
+        var nameLabel = new Label(UserInterfaceManager)
         {
-            var nameLabel = new Label(UserInterfaceManager)
-            {
-                Parent = this,
-                Text = "Name",
-                Left = 10,
-                Top = 10,
-                Height = 25,
-                Alignment = Alignment.BottomCenter,
-            };
-            _nameTextBox = new TextBox(UserInterfaceManager)
-            {
-                Parent = this,
-                Width = ClientWidth - nameLabel.Width - 5,
-                Text = Text,
-                Left = 60,
-                Top = 10,
-                Anchor = Anchors.Left | Anchors.Top | Anchors.Right
-            };
-            _nameTextBox.KeyDown += delegate (object sender, KeyEventArgs e)
-            {
-                if (e.Key == Keys.Enter)
-                {
-                    AssetName = _nameTextBox.Text;
-                }
-            };
-            _nameTextBox.FocusLost += delegate
+            Parent = this,
+            Text = "Name",
+            Left = 10,
+            Top = 10,
+            Height = 25,
+            Alignment = Alignment.BottomCenter,
+        };
+        _nameTextBox = new TextBox(UserInterfaceManager)
+        {
+            Parent = this,
+            Width = ClientWidth - nameLabel.Width - 5,
+            Text = Text,
+            Left = 60,
+            Top = 10,
+            Anchor = Anchors.Left | Anchors.Top | Anchors.Right
+        };
+        _nameTextBox.KeyDown += delegate (object sender, KeyEventArgs e)
+        {
+            if (e.Key == Keys.Enter)
             {
                 AssetName = _nameTextBox.Text;
-            };
-        } // AssetWindow
-
-
-
-        protected override void DisposeManagedResources()
-        {
-            // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
-            AssetNameChanged = null;
-            base.DisposeManagedResources();
-        } // DisposeManagedResources
-
-
-
-        protected virtual void OnAssetNameChanged(EventArgs e)
-        {
-            if (AssetNameChanged != null)
-            {
-                AssetNameChanged.Invoke(this, e);
             }
-        } // OnAssetNameChanged
-
-
+        };
+        _nameTextBox.FocusLost += delegate
+        {
+            AssetName = _nameTextBox.Text;
+        };
     } // AssetWindow
-} // XNAFinalEngine.UserInterface
+
+
+
+    protected override void DisposeManagedResources()
+    {
+        // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
+        AssetNameChanged = null;
+        base.DisposeManagedResources();
+    } // DisposeManagedResources
+
+
+
+    protected virtual void OnAssetNameChanged(EventArgs e)
+    {
+        if (AssetNameChanged != null)
+        {
+            AssetNameChanged.Invoke(this, e);
+        }
+    } // OnAssetNameChanged
+
+
+} // AssetWindow
+  // XNAFinalEngine.UserInterface

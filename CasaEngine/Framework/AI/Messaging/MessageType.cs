@@ -1,23 +1,22 @@
-namespace CasaEngine.Framework.AI.Messaging
+namespace CasaEngine.Framework.AI.Messaging;
+
+public enum MessageType
 {
-    public enum MessageType
-    {
-        DefaultMessage,
+    DefaultMessage,
 
 
-        PathReady,
+    PathReady,
 
-        PathNotAvailable,
-
-
-
-        AnimationChanged,
+    PathNotAvailable,
 
 
 
-        Hit,
+    AnimationChanged,
 
-        HitSomeone,
 
-    }
+
+    Hit,
+
+    HitSomeone,
+
 }

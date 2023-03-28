@@ -1,57 +1,56 @@
-namespace CasaEngine.Framework.AI.EvolutionaryComputing.Mutation
+namespace CasaEngine.Framework.AI.EvolutionaryComputing.Mutation;
+
+public sealed class AleatoryMutation : MutationAlgorithm<int>
 {
-    public sealed class AleatoryMutation : MutationAlgorithm<int>
+
+    internal int Floor;
+
+    internal int Ceil;
+
+
+
+    public AleatoryMutation(double probability, Random generator, int floor, int ceil)
+        : base(probability, generator)
     {
+        var message = string.Empty;
 
-        internal int Floor;
-
-        internal int Ceil;
-
-
-
-        public AleatoryMutation(double probability, Random generator, int floor, int ceil)
-            : base(probability, generator)
+        //Validate params
+        if (ValidateLimits(floor, ceil, ref message) == false)
         {
-            var message = string.Empty;
-
-            //Validate params
-            if (ValidateLimits(floor, ceil, ref message) == false)
-            {
-                throw new AiException("floor-ceil", GetType().ToString(), message);
-            }
-
-            Floor = floor;
-            Ceil = ceil;
+            throw new AiException("floor-ceil", GetType().ToString(), message);
         }
 
+        Floor = floor;
+        Ceil = ceil;
+    }
 
 
-        public override void Mutate(Population<int> population)
+
+    public override void Mutate(Population<int> population)
+    {
+        for (var i = 0; i < population.Genome.Count; i++)
         {
-            for (var i = 0; i < population.Genome.Count; i++)
+            for (var j = 0; j < population[i].Genotype.Count; j++)
             {
-                for (var j = 0; j < population[i].Genotype.Count; j++)
+                if (Generator.NextDouble() <= Probability)
                 {
-                    if (Generator.NextDouble() <= Probability)
-                    {
-                        population[i].Genotype[j] = Generator.Next(Floor, Ceil);
-                    }
+                    population[i].Genotype[j] = Generator.Next(Floor, Ceil);
                 }
             }
         }
+    }
 
 
 
-        public static bool ValidateLimits(int floor, int ceil, ref string message)
+    public static bool ValidateLimits(int floor, int ceil, ref string message)
+    {
+        if (floor > ceil)
         {
-            if (floor > ceil)
-            {
-                message = "The floor value must be lower than the ceil value.";
-                return false;
-            }
-
-            return true;
+            message = "The floor value must be lower than the ceil value.";
+            return false;
         }
 
+        return true;
     }
+
 }

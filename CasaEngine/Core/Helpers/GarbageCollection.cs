@@ -30,44 +30,44 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using System.Runtime;
 using CasaEngine.Framework.Debugger;
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public sealed class GarbageCollector
 {
-    public sealed class GarbageCollector
+
+
+    ~GarbageCollector()
     {
-
-
-        ~GarbageCollector()
-        {
-            Statistics.GarbageCollections++;
-            CreateWeakReference();
-        } // ~TestGarbageCollection
+        Statistics.GarbageCollections++;
+        CreateWeakReference();
+    } // ~TestGarbageCollection
 
 
 
-        public static void CreateWeakReference()
-        {
-            new GarbageCollector();
-        } // CreateWeakReference
+    public static void CreateWeakReference()
+    {
+        new GarbageCollector();
+    } // CreateWeakReference
 
 
 
-        internal static void CollectGarbage()
-        {
-            // All generations will undergo a garbage collection.
+    internal static void CollectGarbage()
+    {
+        // All generations will undergo a garbage collection.
 #if (WINDOWS)
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
 #else
                 GC.Collect();
 #endif
-            // Enables garbage collection that is more conservative in reclaiming objects.
-            // Full Collections occur only if the system is under memory pressure while generation 0 and generation 1 collections might occur more frequently.
-            // This is the least intrusive mode.
-            // If the work is done right, this latency mode is not need really.
+        // Enables garbage collection that is more conservative in reclaiming objects.
+        // Full Collections occur only if the system is under memory pressure while generation 0 and generation 1 collections might occur more frequently.
+        // This is the least intrusive mode.
+        // If the work is done right, this latency mode is not need really.
 #if (WINDOWS)
-            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
+        GCSettings.LatencyMode = GCLatencyMode.LowLatency;
 #endif
-        } // CollectGarbage
+    } // CollectGarbage
 
 
-    } // GarbageCollector
-} // XNAFinalEngine.Helpers
+} // GarbageCollector
+  // XNAFinalEngine.Helpers

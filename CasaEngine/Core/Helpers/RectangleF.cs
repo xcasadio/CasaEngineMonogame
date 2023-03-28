@@ -25,73 +25,72 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace CasaEngine.Core.Helpers
+namespace CasaEngine.Core.Helpers;
+
+public struct RectangleF
 {
 
-    public struct RectangleF
+
+    private float _x, _y, _width, _height;
+
+
+
+    public float X
     {
+        get => _x;
+        set => _x = value;
+    }
 
+    public float Y
+    {
+        get => _y;
+        set => _y = value;
+    }
 
-        private float _x, _y, _width, _height;
+    public float Width
+    {
+        get => _width;
+        set => _width = value;
+    }
 
-
-
-        public float X
-        {
-            get => _x;
-            set => _x = value;
-        }
-
-        public float Y
-        {
-            get => _y;
-            set => _y = value;
-        }
-
-        public float Width
-        {
-            get => _width;
-            set => _width = value;
-        }
-
-        public float Height
-        {
-            get => _height;
-            set => _height = value;
-        }
+    public float Height
+    {
+        get => _height;
+        set => _height = value;
+    }
 
 
 
-        public RectangleF(float x, float y, float width, float height)
-        {
-            _x = x;
-            _y = y;
-            _width = width;
-            _height = height;
-        } // RectangleF
+    public RectangleF(float x, float y, float width, float height)
+    {
+        _x = x;
+        _y = y;
+        _width = width;
+        _height = height;
+    } // RectangleF
 
 
 
-        public static bool operator ==(RectangleF x, RectangleF y)
-        {
-            return x._x == y._x && x._y == y._y && x._width == y._width && x._height == y._height;
-        } // Equal
+    public static bool operator ==(RectangleF x, RectangleF y)
+    {
+        return x._x == y._x && x._y == y._y && x._width == y._width && x._height == y._height;
+    } // Equal
 
-        public static bool operator !=(RectangleF x, RectangleF y)
-        {
-            return !(x == y);
-        } // Not Equal
+    public static bool operator !=(RectangleF x, RectangleF y)
+    {
+        return !(x == y);
+    } // Not Equal
 
-        public override bool Equals(object obj)
-        {
-            return obj is RectangleF && this == (RectangleF)obj;
-        } // Equals
+    public override bool Equals(object obj)
+    {
+        return obj is RectangleF && this == (RectangleF)obj;
+    } // Equals
 
-        public override int GetHashCode()
-        {
-            return _width.GetHashCode() ^ _height.GetHashCode();
-        } // GetHashCode
+    public override int GetHashCode()
+    {
+        return _width.GetHashCode() ^ _height.GetHashCode();
+    } // GetHashCode
 
 
-    } // RectangleF 
-} // XNAFinalEngine.Helpers
+} // RectangleF 
+// XNAFinalEngine.Helpers

@@ -1,7 +1,6 @@
-﻿namespace CasaEngine.Framework.Gameplay.Design.Event
+﻿namespace CasaEngine.Framework.Gameplay.Design.Event;
+
+public interface IEvent
 {
-    public interface IEvent
-    {
-        void Do();
-    }
+    void Do();
 }

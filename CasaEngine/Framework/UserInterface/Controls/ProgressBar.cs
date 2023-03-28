@@ -9,254 +9,252 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace CasaEngine.Framework.UserInterface.Controls
+namespace CasaEngine.Framework.UserInterface.Controls;
+
+public enum ProgressBarMode
+{
+    Default,
+    Infinite
+} // ProgressBarMode
+
+
+public class ProgressBar : Control
 {
 
 
-    public enum ProgressBarMode
+    private int _range = 100;
+
+    private int _value;
+
+    private ProgressBarMode _mode = ProgressBarMode.Default;
+
+    private double _time;
+
+    private int _sign = 1;
+
+
+
+    public int Value
     {
-        Default,
-        Infinite
-    } // ProgressBarMode
-
-
-    public class ProgressBar : Control
-    {
-
-
-        private int _range = 100;
-
-        private int _value;
-
-        private ProgressBarMode _mode = ProgressBarMode.Default;
-
-        private double _time;
-
-        private int _sign = 1;
-
-
-
-        public int Value
+        get => _value;
+        set
         {
-            get => _value;
-            set
+            if (_mode == ProgressBarMode.Default)
             {
-                if (_mode == ProgressBarMode.Default)
+                if (_value != value)
                 {
-                    if (_value != value)
+                    _value = value;
+                    if (_value > _range)
                     {
-                        _value = value;
-                        if (_value > _range)
-                        {
-                            _value = _range;
-                        }
-
-                        if (_value < 0)
-                        {
-                            _value = 0;
-                        }
-
-                        Invalidate();
-
-                        if (!Suspended)
-                        {
-                            OnValueChanged(new EventArgs());
-                        }
+                        _value = _range;
                     }
-                }
-            }
-        } // Value
 
-        public ProgressBarMode Mode
-        {
-            get => _mode;
-            set
-            {
-                if (_mode != value)
-                {
-                    _mode = value;
-                    if (_mode == ProgressBarMode.Infinite)
-                    {
-                        _range = 100;
-                        _value = 0;
-                        _time = 0;
-                        _sign = 1;
-                    }
-                    else
+                    if (_value < 0)
                     {
                         _value = 0;
-                        _range = 100;
                     }
+
                     Invalidate();
 
                     if (!Suspended)
                     {
-                        OnModeChanged(new EventArgs());
+                        OnValueChanged(new EventArgs());
                     }
                 }
             }
-        } // Mode
+        }
+    } // Value
 
-        public int Range
+    public ProgressBarMode Mode
+    {
+        get => _mode;
+        set
         {
-            get => _range;
-            set
+            if (_mode != value)
             {
-                if (_range != value)
+                _mode = value;
+                if (_mode == ProgressBarMode.Infinite)
                 {
-                    if (_mode == ProgressBarMode.Default)
-                    {
-                        _range = value;
-                        if (_range < 0)
-                        {
-                            _range = 0;
-                        }
-
-                        if (_range < _value)
-                        {
-                            _value = _range;
-                        }
-
-                        Invalidate();
-
-                        if (!Suspended)
-                        {
-                            OnRangeChanged(new EventArgs());
-                        }
-                    }
-                }
-            }
-        } // Range
-
-
-
-        public event EventHandler ValueChanged;
-        public event EventHandler RangeChanged;
-        public event EventHandler ModeChanged;
-
-
-
-        public ProgressBar(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
-        {
-            Width = 128;
-            Height = 16;
-            MinimumHeight = 8;
-            MinimumWidth = 32;
-            Passive = true;
-            CanFocus = false;
-        } // ProgressBar
-
-
-
-        protected override void DisposeManagedResources()
-        {
-            // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
-            ValueChanged = null;
-            RangeChanged = null;
-            ModeChanged = null;
-            base.DisposeManagedResources();
-        } // DisposeManagedResources
-
-
-
-        protected override void DrawControl(Rectangle rect)
-        {
-            CheckLayer(SkinInformation, "Control");
-            CheckLayer(SkinInformation, "Scale");
-
-            base.DrawControl(rect);
-
-            if (Value > 0 || _mode == ProgressBarMode.Infinite)
-            {
-                var p = SkinInformation.Layers["Control"];
-                var l = SkinInformation.Layers["Scale"];
-                var r = new Rectangle(rect.Left + p.ContentMargins.Left,
-                                            rect.Top + p.ContentMargins.Top,
-                                            rect.Width - p.ContentMargins.Vertical,
-                                            rect.Height - p.ContentMargins.Horizontal);
-
-                var perc = (float)_value / _range * 100;
-                var w = (int)(perc / 100 * r.Width);
-                Rectangle rx;
-                if (_mode == ProgressBarMode.Default)
-                {
-                    if (w < l.SizingMargins.Vertical)
-                    {
-                        w = l.SizingMargins.Vertical;
-                    }
-
-                    rx = new Rectangle(r.Left, r.Top, w, r.Height);
+                    _range = 100;
+                    _value = 0;
+                    _time = 0;
+                    _sign = 1;
                 }
                 else
                 {
-                    var s = r.Left + w;
-                    if (s > r.Left + p.ContentMargins.Left + r.Width - r.Width / 4)
-                    {
-                        s = r.Left + p.ContentMargins.Left + r.Width - r.Width / 4;
-                    }
-
-                    rx = new Rectangle(s, r.Top, r.Width / 4, r.Height);
+                    _value = 0;
+                    _range = 100;
                 }
+                Invalidate();
 
-                UserInterfaceManager.Renderer.DrawLayer(this, l, rx);
-            }
-        } // DrawControl
-
-
-
-        protected internal override void Update(float elapsedTime)
-        {
-            base.Update(elapsedTime);
-
-            if (_mode == ProgressBarMode.Infinite && Enabled && Visible)
-            {
-                _time += elapsedTime; // From seconds to milliseconds.
-                if (_time >= 33f)
+                if (!Suspended)
                 {
-                    _value += _sign * (int)Math.Ceiling(_time / 20f);
-                    if (_value >= Range - Range / 4)
-                    {
-                        _value = Range - Range / 4;
-                        _sign = -1;
-                    }
-                    else if (_value <= 0)
-                    {
-                        _value = 0;
-                        _sign = 1;
-                    }
-                    _time = 0;
-                    Invalidate();
+                    OnModeChanged(new EventArgs());
                 }
             }
-        } // Update
+        }
+    } // Mode
 
-
-
-        protected virtual void OnValueChanged(EventArgs e)
+    public int Range
+    {
+        get => _range;
+        set
         {
-            if (ValueChanged != null)
+            if (_range != value)
             {
-                ValueChanged.Invoke(this, e);
+                if (_mode == ProgressBarMode.Default)
+                {
+                    _range = value;
+                    if (_range < 0)
+                    {
+                        _range = 0;
+                    }
+
+                    if (_range < _value)
+                    {
+                        _value = _range;
+                    }
+
+                    Invalidate();
+
+                    if (!Suspended)
+                    {
+                        OnRangeChanged(new EventArgs());
+                    }
+                }
             }
-        } // OnValueChanged
-
-        protected virtual void OnRangeChanged(EventArgs e)
-        {
-            if (RangeChanged != null)
-            {
-                RangeChanged.Invoke(this, e);
-            }
-        } // OnRangeChanged
-
-        protected virtual void OnModeChanged(EventArgs e)
-        {
-            if (ModeChanged != null)
-            {
-                ModeChanged.Invoke(this, e);
-            }
-        } // OnModeChanged
+        }
+    } // Range
 
 
+
+    public event EventHandler ValueChanged;
+    public event EventHandler RangeChanged;
+    public event EventHandler ModeChanged;
+
+
+
+    public ProgressBar(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
+    {
+        Width = 128;
+        Height = 16;
+        MinimumHeight = 8;
+        MinimumWidth = 32;
+        Passive = true;
+        CanFocus = false;
     } // ProgressBar
-} // XNAFinalEngine.UserInterface
+
+
+
+    protected override void DisposeManagedResources()
+    {
+        // A disposed object could be still generating events, because it is alive for a time, in a disposed state, but alive nevertheless.
+        ValueChanged = null;
+        RangeChanged = null;
+        ModeChanged = null;
+        base.DisposeManagedResources();
+    } // DisposeManagedResources
+
+
+
+    protected override void DrawControl(Rectangle rect)
+    {
+        CheckLayer(SkinInformation, "Control");
+        CheckLayer(SkinInformation, "Scale");
+
+        base.DrawControl(rect);
+
+        if (Value > 0 || _mode == ProgressBarMode.Infinite)
+        {
+            var p = SkinInformation.Layers["Control"];
+            var l = SkinInformation.Layers["Scale"];
+            var r = new Rectangle(rect.Left + p.ContentMargins.Left,
+                rect.Top + p.ContentMargins.Top,
+                rect.Width - p.ContentMargins.Vertical,
+                rect.Height - p.ContentMargins.Horizontal);
+
+            var perc = (float)_value / _range * 100;
+            var w = (int)(perc / 100 * r.Width);
+            Rectangle rx;
+            if (_mode == ProgressBarMode.Default)
+            {
+                if (w < l.SizingMargins.Vertical)
+                {
+                    w = l.SizingMargins.Vertical;
+                }
+
+                rx = new Rectangle(r.Left, r.Top, w, r.Height);
+            }
+            else
+            {
+                var s = r.Left + w;
+                if (s > r.Left + p.ContentMargins.Left + r.Width - r.Width / 4)
+                {
+                    s = r.Left + p.ContentMargins.Left + r.Width - r.Width / 4;
+                }
+
+                rx = new Rectangle(s, r.Top, r.Width / 4, r.Height);
+            }
+
+            UserInterfaceManager.Renderer.DrawLayer(this, l, rx);
+        }
+    } // DrawControl
+
+
+
+    protected internal override void Update(float elapsedTime)
+    {
+        base.Update(elapsedTime);
+
+        if (_mode == ProgressBarMode.Infinite && Enabled && Visible)
+        {
+            _time += elapsedTime; // From seconds to milliseconds.
+            if (_time >= 33f)
+            {
+                _value += _sign * (int)Math.Ceiling(_time / 20f);
+                if (_value >= Range - Range / 4)
+                {
+                    _value = Range - Range / 4;
+                    _sign = -1;
+                }
+                else if (_value <= 0)
+                {
+                    _value = 0;
+                    _sign = 1;
+                }
+                _time = 0;
+                Invalidate();
+            }
+        }
+    } // Update
+
+
+
+    protected virtual void OnValueChanged(EventArgs e)
+    {
+        if (ValueChanged != null)
+        {
+            ValueChanged.Invoke(this, e);
+        }
+    } // OnValueChanged
+
+    protected virtual void OnRangeChanged(EventArgs e)
+    {
+        if (RangeChanged != null)
+        {
+            RangeChanged.Invoke(this, e);
+        }
+    } // OnRangeChanged
+
+    protected virtual void OnModeChanged(EventArgs e)
+    {
+        if (ModeChanged != null)
+        {
+            ModeChanged.Invoke(this, e);
+        }
+    } // OnModeChanged
+
+
+} // ProgressBar
+  // XNAFinalEngine.UserInterface

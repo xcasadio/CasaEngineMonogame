@@ -1,9 +1,8 @@
-namespace CasaEngine.Framework.AI.EvolutionaryComputing
-{
-    public enum EvolutionObjective
-    {
-        Minimize = 0,
+namespace CasaEngine.Framework.AI.EvolutionaryComputing;
 
-        Maximize = 1
-    }
+public enum EvolutionObjective
+{
+    Minimize = 0,
+
+    Maximize = 1
 }

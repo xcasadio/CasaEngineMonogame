@@ -1,23 +1,22 @@
-﻿namespace CasaEngine.Framework.Gameplay
+﻿namespace CasaEngine.Framework.Gameplay;
+
+public class PlayerController
+    : Controller
 {
-    public class PlayerController
-        : Controller
+
+
+
+
+
+    protected PlayerController(CharacterActor2D character)
+        : base(character)
     {
-
-
-
-
-
-        protected PlayerController(CharacterActor2D character)
-            : base(character)
-        {
-        }
-
-
-
-        public override void Initialize()
-        {
-        }
-
     }
+
+
+
+    public override void Initialize()
+    {
+    }
+
 }

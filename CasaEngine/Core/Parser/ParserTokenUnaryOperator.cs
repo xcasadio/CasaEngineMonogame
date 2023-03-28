@@ -1,30 +1,29 @@
-﻿namespace CasaEngine.Core.Parser
+﻿namespace CasaEngine.Core.Parser;
+
+internal class ParserTokenUnaryOperator
+    : ParserToken
 {
-    internal class ParserTokenUnaryOperator
-        : ParserToken
+
+
+
+
+
+    public ParserTokenUnaryOperator(Parser parser, string token)
+        : base(parser, token)
     {
 
-
-
-
-
-        public ParserTokenUnaryOperator(Parser parser, string token)
-            : base(parser, token)
-        {
-
-        }
-
-
-
-        public override bool Check(string sentence)
-        {
-            if (sentence.StartsWith(Token))
-            {
-                Parser.Check(Token.Substring(1));
-            }
-
-            return false;
-        }
-
     }
+
+
+
+    public override bool Check(string sentence)
+    {
+        if (sentence.StartsWith(Token))
+        {
+            Parser.Check(Token.Substring(1));
+        }
+
+        return false;
+    }
+
 }

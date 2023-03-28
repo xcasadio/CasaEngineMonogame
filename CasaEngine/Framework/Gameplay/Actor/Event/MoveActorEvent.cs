@@ -1,30 +1,29 @@
-﻿namespace CasaEngine.Framework.Gameplay.Actor.Event
+﻿namespace CasaEngine.Framework.Gameplay.Actor.Event;
+
+public class MoveActorEvent
+    : EventActor
 {
-    public class MoveActorEvent
-        : EventActor
+
+
+
+
+
+    public MoveActorEvent()
+        : base(EventActorType.MoveActor)
     {
 
-
-
-
-
-        public MoveActorEvent()
-            : base(EventActorType.MoveActor)
-        {
-
-        }
-
-
-
-        public override void Initialize()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Do()
-        {
-            throw new NotImplementedException();
-        }
-
     }
+
+
+
+    public override void Initialize()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Do()
+    {
+        throw new NotImplementedException();
+    }
+
 }

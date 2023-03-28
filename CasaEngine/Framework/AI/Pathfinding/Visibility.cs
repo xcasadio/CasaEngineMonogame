@@ -1,9 +1,8 @@
-namespace CasaEngine.Framework.AI.Pathfinding
-{
-    public enum Visibility : int
-    {
-        Unvisited = 1,
+namespace CasaEngine.Framework.AI.Pathfinding;
 
-        Visited = 2
-    }
+public enum Visibility : int
+{
+    Unvisited = 1,
+
+    Visited = 2
 }

@@ -1,29 +1,28 @@
 using CasaEngine.Framework.AI.Graphs;
 
 
-namespace CasaEngine.Framework.AI.Pathfinding
+namespace CasaEngine.Framework.AI.Pathfinding;
+
+public interface IGraphSearchAlgorithm<T>
+    where T : Edge
 {
-    public interface IGraphSearchAlgorithm<T>
-        where T : Edge
+
+    List<int> PathOfNodes
     {
-
-        List<int> PathOfNodes
-        {
-            get;
-        }
-
-        List<T> PathOfEdges
-        {
-            get;
-        }
-
-
-
-        void Initialize(int source, int target);
-
-        SearchState Search();
-
-        SearchState CycleOnce();
-
+        get;
     }
+
+    List<T> PathOfEdges
+    {
+        get;
+    }
+
+
+
+    void Initialize(int source, int target);
+
+    SearchState Search();
+
+    SearchState CycleOnce();
+
 }

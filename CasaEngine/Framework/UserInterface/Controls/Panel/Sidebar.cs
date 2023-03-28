@@ -9,22 +9,21 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-namespace CasaEngine.Framework.UserInterface.Controls.Panel
+namespace CasaEngine.Framework.UserInterface.Controls.Panel;
+
+public class SideBar : Panel
 {
-
-    public class SideBar : Panel
+    public SideBar(UserInterfaceManager userInterfaceManager)
+        : base(userInterfaceManager)
     {
-        public SideBar(UserInterfaceManager userInterfaceManager)
-            : base(userInterfaceManager)
-        {
 
-        }
+    }
 
-        protected internal override void InitSkin()
-        {
-            base.InitSkin();
-            SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["SideBar"]);
-        } // InitSkin
+    protected internal override void InitSkin()
+    {
+        base.InitSkin();
+        SkinInformation = new SkinControlInformation(UserInterfaceManager.Skin.Controls["SideBar"]);
+    } // InitSkin
 
-    } // SideBar
-} // XNAFinalEngine.UserInterface
+} // SideBar
+// XNAFinalEngine.UserInterface

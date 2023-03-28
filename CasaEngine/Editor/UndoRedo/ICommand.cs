@@ -1,9 +1,8 @@
-﻿namespace CasaEngine.Editor.UndoRedo
-{
-    public interface ICommand
-    {
-        void Execute(object arg1);
+﻿namespace CasaEngine.Editor.UndoRedo;
 
-        void Undo(object arg1);
-    }
+public interface ICommand
+{
+    void Execute(object arg1);
+
+    void Undo(object arg1);
 }

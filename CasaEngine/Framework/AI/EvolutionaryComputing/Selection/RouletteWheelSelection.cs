@@ -2,43 +2,42 @@ using CasaEngine.Framework.AI.EvolutionaryComputing.Crossover;
 using CasaEngine.Framework.AI.EvolutionaryComputing.Scaling;
 
 
-namespace CasaEngine.Framework.AI.EvolutionaryComputing.Selection
+namespace CasaEngine.Framework.AI.EvolutionaryComputing.Selection;
+
+public sealed class RouletteWheelSelection<T> : SelectionAlgorithm<T>
 {
-    public sealed class RouletteWheelSelection<T> : SelectionAlgorithm<T>
+
+    public RouletteWheelSelection(int numberParents, Random generator, EvolutionObjective objective, CrossoverMethod<T> crossover, ScalingMethod<T> scaling)
+        : base(numberParents, generator, objective, crossover, scaling)
+    { }
+
+
+
+    protected override List<Chromosome<T>> Select()
     {
+        int i, j;
+        double selectedFitness, total;
+        List<Chromosome<T>> selectedChromosomes;
 
-        public RouletteWheelSelection(int numberParents, Random generator, EvolutionObjective objective, CrossoverMethod<T> crossover, ScalingMethod<T> scaling)
-            : base(numberParents, generator, objective, crossover, scaling)
-        { }
-
-
-
-        protected override List<Chromosome<T>> Select()
+        //Select the winner chromosomes
+        selectedChromosomes = new List<Chromosome<T>>();
+        for (i = 0; i < NumberParents; i++)
         {
-            int i, j;
-            double selectedFitness, total;
-            List<Chromosome<T>> selectedChromosomes;
+            selectedFitness = Generator.NextDouble() * ScaledPopulation.TotalFitness;
 
-            //Select the winner chromosomes
-            selectedChromosomes = new List<Chromosome<T>>();
-            for (i = 0; i < NumberParents; i++)
+            //Search for the winner chromosome
+            total = 0;
+            j = -1;
+            while (total < selectedFitness)
             {
-                selectedFitness = Generator.NextDouble() * ScaledPopulation.TotalFitness;
-
-                //Search for the winner chromosome
-                total = 0;
-                j = -1;
-                while (total < selectedFitness)
-                {
-                    j++;
-                    total += ScaledPopulation.Fitness[j];
-                }
-
-                selectedChromosomes.Add((Chromosome<T>)ScaledPopulation.Chromosomes[j].Clone());
+                j++;
+                total += ScaledPopulation.Fitness[j];
             }
 
-            return selectedChromosomes;
+            selectedChromosomes.Add((Chromosome<T>)ScaledPopulation.Chromosomes[j].Clone());
         }
 
+        return selectedChromosomes;
     }
+
 }

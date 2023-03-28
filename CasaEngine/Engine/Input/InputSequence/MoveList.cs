@@ -5,50 +5,49 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-namespace CasaEngine.Engine.Input.InputSequence
-{
-    public class MoveManager
-    {
-        private readonly Move[] _moves;
+namespace CasaEngine.Engine.Input.InputSequence;
 
-        public MoveManager(IEnumerable<Move> moves)
-        {
-            // Store the list of moves in order of decreasing sequence length.
-            // This greatly simplifies the logic of the DetectMove method.
+public class MoveManager
+{
+    private readonly Move[] _moves;
+
+    public MoveManager(IEnumerable<Move> moves)
+    {
+        // Store the list of moves in order of decreasing sequence length.
+        // This greatly simplifies the logic of the DetectMove method.
 
 #if EDITOR
-            _moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
+        _moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
 #else
             _moves = moves.OrderByDescending(m => m.Sequence.Length).ToArray();
 #endif
-        }
+    }
 
-        public Move DetectMove(InputManager input)
+    public Move DetectMove(InputManager input)
+    {
+        // Perform a linear search for a move which matches the input. This relies
+        // on the moves array being in order of decreasing sequence length.
+        foreach (var move in _moves)
         {
-            // Perform a linear search for a move which matches the input. This relies
-            // on the moves array being in order of decreasing sequence length.
-            foreach (var move in _moves)
+            if (input.Matches(move))
             {
-                if (input.Matches(move))
-                {
-                    return move;
-                }
+                return move;
             }
-            return null;
         }
+        return null;
+    }
 
-        public int LongestMoveLength
+    public int LongestMoveLength
+    {
+        get
         {
-            get
-            {
-                // Since they are in decreasing order,
-                // the first move is the longest.
+            // Since they are in decreasing order,
+            // the first move is the longest.
 #if EDITOR
-                return _moves[0].Sequence.Count;
+            return _moves[0].Sequence.Count;
 #else
                 return _moves[0].Sequence.Length;
 #endif
-            }
         }
     }
 }

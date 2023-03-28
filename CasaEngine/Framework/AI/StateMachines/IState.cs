@@ -1,12 +1,11 @@
-namespace CasaEngine.Framework.AI.StateMachines
-{
-    public interface IState<T>
-    {
-        string Name { get; }
+namespace CasaEngine.Framework.AI.StateMachines;
 
-        void Enter(T entity);
-        void Exit(T entity);
-        void Update(T entity, float elapsedTime);
-        bool HandleMessage(T entity, Message message);
-    }
+public interface IState<T>
+{
+    string Name { get; }
+
+    void Enter(T entity);
+    void Exit(T entity);
+    void Update(T entity, float elapsedTime);
+    bool HandleMessage(T entity, Message message);
 }

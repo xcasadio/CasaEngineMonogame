@@ -1,22 +1,21 @@
-﻿namespace CasaEngine.Framework.Gameplay
+﻿namespace CasaEngine.Framework.Gameplay;
+
+public class TeamInfo
 {
-    public class TeamInfo
+
+    public Color Color;
+    public int Numero;
+    public bool AllowFriendlyDamage = false;
+
+
+
+
+
+
+
+    public bool CanAttack(TeamInfo teamInfo)
     {
-
-        public Color Color;
-        public int Numero;
-        public bool AllowFriendlyDamage = false;
-
-
-
-
-
-
-
-        public bool CanAttack(TeamInfo teamInfo)
-        {
-            return !(teamInfo.Numero == Numero && teamInfo.AllowFriendlyDamage == false);
-        }
-
+        return !(teamInfo.Numero == Numero && teamInfo.AllowFriendlyDamage == false);
     }
+
 }

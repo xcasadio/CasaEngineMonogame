@@ -1,7 +1,6 @@
-﻿namespace CasaEngine.Engine.Plugin
+﻿namespace CasaEngine.Engine.Plugin;
+
+public interface IPlugin
 {
-    public interface IPlugin
-    {
-        void Initialize();
-    }
+    void Initialize();
 }
