@@ -56,7 +56,6 @@ namespace EditorWpf.Controls
                 var shape = (Shape)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
                 shape.Location = physicsComponent.Owner.Position;
                 shape.Orientation = physicsComponent.Owner.Orientation;
-                shape.Scale = physicsComponent.Owner.Scale;
 
                 physicsComponent.Shape = shape;
             }

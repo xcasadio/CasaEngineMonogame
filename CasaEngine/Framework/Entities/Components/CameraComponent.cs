@@ -43,9 +43,15 @@ public abstract class CameraComponent : Component
         }
     }
 
-    public Viewport Viewport => _viewport;
+    public Viewport Viewport
+    {
+        get { return _viewport; }
+    }
 
-    public float ViewDistance => _viewDistance;
+    public float ViewDistance
+    {
+        get { return _viewDistance; }
+    }
 
     protected CameraComponent(Entity entity, int type) : base(entity, type)
     {

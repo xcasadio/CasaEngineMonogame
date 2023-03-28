@@ -15,7 +15,7 @@
 		<Optimize>False</Optimize>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|x64'">
-	  <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
+	  <DefineConstants>$(DefineConstants);DEBUG;EDITOR</DefineConstants>
 	  <Optimize>False</Optimize>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' ">
@@ -29,7 +29,7 @@
 	  <DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|AnyCPU'">
-	  <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
+	  <DefineConstants>$(DefineConstants);DEBUG;EDITOR</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	  <DefineConstants>$(DefineConstants)</DefineConstants>
@@ -40,6 +40,7 @@
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
+		<ProjectReference Include="..\PhysicsDebug\PhysicsDebug.csproj" />
 		<ProjectReference Include="..\VelcroPhysics\VelcroPhysics.MonoGame.DebugView\VelcroPhysics.MonoGame.DebugView.csproj" />
 		<ProjectReference Include="..\VelcroPhysics\VelcroPhysics\VelcroPhysics.MonoGame.csproj" />
 	</ItemGroup>

@@ -4,7 +4,6 @@ namespace CasaEngine.Framework.Game
     public enum ComponentUpdateOrder
     {
         GameManager = 500,
-        DebugPhysics,
         Renderer2DComponent,
         MeshComponent,
         Input = 510,
@@ -17,6 +16,7 @@ namespace CasaEngine.Framework.Game
         Gameplay = 560,
         ParticleComponent = 570,
         SpacingComponent = 580,
+        DebugPhysics,
         Default = 5100
 
 #if EDITOR

@@ -204,7 +204,7 @@ namespace CasaEngine.Framework.Debugger
                     }
                     else
                     {
-                        ShapeRendererComponent.DisplayPhysics = state;
+                        Physics2dDebugViewRendererComponent.DisplayPhysics = state;
                     }
 
                 });

@@ -3,12 +3,12 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Game.Components
 {
-    public class ShapeRendererComponent : DrawableGameComponent
+    public class Physics2dDebugViewRendererComponent : DrawableGameComponent
     {
         public static bool DisplayPhysics = false;
         private DebugView _shapeRenderer;
 
-        public ShapeRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
+        public Physics2dDebugViewRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
         {
             game.Components.Add(this);
             UpdateOrder = (int)ComponentUpdateOrder.DebugPhysics;

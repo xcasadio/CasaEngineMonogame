@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation.SteeringsBehaviors
@@ -11,7 +13,9 @@ namespace CasaEngine.Framework.AI.Navigation.SteeringsBehaviors
 
         public override Vector3 Calculate()
         {
-            if (EngineComponents.PhysicsEngine == null)
+            var physicsEngineComponent = EngineComponents.Game.GetGameComponent<PhysicsEngineComponent>();
+
+            if (physicsEngineComponent.PhysicsEngine == null)
             {
                 throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
             }
@@ -35,7 +39,7 @@ namespace CasaEngine.Framework.AI.Navigation.SteeringsBehaviors
                 owner.Position = position;
 
                 //If there was a collision see the collision distance
-                if (EngineComponents.PhysicsEngine.NearBodyWorldRayCast(ref position, ref feelers[i], out var contactPoint, out var contactNormal))
+                if (physicsEngineComponent.PhysicsEngine.NearBodyWorldRayCast(ref position, ref feelers[i], out var contactPoint, out var contactNormal))
                 {
                     var intersectionDist = (contactPoint - owner.Position).Length();
 

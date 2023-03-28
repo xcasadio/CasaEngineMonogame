@@ -1,4 +1,6 @@
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation
@@ -81,11 +83,12 @@ namespace CasaEngine.Framework.AI.Navigation
 
         public virtual bool CanMoveBetween(Vector3 start, Vector3 end)
         {
-            if (EngineComponents.PhysicsEngine == null)
+            var physicsEngineComponent = EngineComponents.Game.GetGameComponent<PhysicsEngineComponent>();
+            if (physicsEngineComponent.PhysicsEngine == null)
             {
                 throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
             }
-            return !EngineComponents.PhysicsEngine.WorldRayCast(ref start, ref end, look);
+            return !physicsEngineComponent.PhysicsEngine.WorldRayCast(ref start, ref end, look);
         }
     }
 }

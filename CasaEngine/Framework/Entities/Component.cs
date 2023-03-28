@@ -1,10 +1,15 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+using CasaEngine.Annotations;
 
 namespace CasaEngine.Framework.Entities;
 
 public abstract class Component
+#if EDITOR
+    : INotifyPropertyChanged
+#endif
 {
     public Entity Owner { get; }
     public int Type { get; }
@@ -41,5 +46,14 @@ public abstract class Component
 
 #if EDITOR
     public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
+
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    [NotifyPropertyChangedInvocator]
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 #endif
 }

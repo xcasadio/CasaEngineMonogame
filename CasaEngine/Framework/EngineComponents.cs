@@ -33,8 +33,6 @@ namespace CasaEngine.Framework
         public static CasaEngineGame? Game { get; set; }
         public static ProjectSettings ProjectSettings { get; } = new();
         public static GraphicsSettings GraphicsSettings { get; } = new();
-        public static PhysicsEngine2d PhysicsEngine2d { get; } = new();
-        public static PhysicsEngine PhysicsEngine { get; } = new();
         public static Physics2dSettings Physics2dSettings { get; } = new();
         public static Physics3dSettings Physics3dSettings { get; } = new();
 

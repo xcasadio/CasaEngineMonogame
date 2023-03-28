@@ -1,8 +1,5 @@
 using CasaEngine.Core.Helper;
 using CasaEngine.Engine.Input;
-using CasaEngine.Engine.Physics;
-using CasaEngine.Engine.Physics.Shapes;
-using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
@@ -21,7 +18,8 @@ public class GameManager
     private Renderer2DComponent _renderer2DComponent;
     private ScreenManagerComponent _screenManagerComponent;
     private InputComponent _inputComponent;
-    private ShapeRendererComponent _shapeRendererComponent;
+    private Physics2dDebugViewRendererComponent _physics2dDebugViewRendererComponent;
+    private PhysicsDebugViewRendererComponent _physicsDebugViewRendererComponent;
     private StaticMeshRendererComponent _staticMeshRendererComponent;
     private PhysicsEngineComponent _physicsEngine;
 
@@ -55,7 +53,6 @@ public class GameManager
     {
         e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = EngineComponents.ProjectSettings.DebugWidth;
         e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = EngineComponents.ProjectSettings.DebugHeight;
-        //e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle = IntPtr.Zero;
 
         e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
             .Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
@@ -90,11 +87,14 @@ public class GameManager
         _renderer2DComponent = new Renderer2DComponent(game);
         _inputComponent = new InputComponent(game);
         _screenManagerComponent = new ScreenManagerComponent(game);
-        _shapeRendererComponent = new ShapeRendererComponent(game);
+        _physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(game);
         _staticMeshRendererComponent = new StaticMeshRendererComponent(game);
         _physicsEngine = new PhysicsEngineComponent(game);
 
 #if EDITOR
+        //In editor mode the game is in idle mode so we don't update physics
+        _physicsEngine.Enabled = false;
+        _physicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(game);
         var gizmoComponent = new GizmoComponent(game);
         var gridComponent = new GridComponent(game);
 #endif
@@ -212,7 +212,7 @@ public class GameManager
 
         GameInfo.Instance.CurrentWorld.Initialize();
 
-        _shapeRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
+        _physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
     }
 
     public void BeginUpdate(GameTime gameTime)

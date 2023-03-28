@@ -153,6 +153,7 @@ namespace CasaEngine.Framework.Entities
 
 #if EDITOR
         public event EventHandler? PositionChanged;
+        public event EventHandler? OrientationChanged;
         public event EventHandler? ScaleChanged;
 
         private static readonly int Version = 1;
@@ -225,7 +226,11 @@ namespace CasaEngine.Framework.Entities
         public Quaternion Orientation
         {
             get => Coordinates.LocalRotation;
-            set => Coordinates.LocalRotation = value;
+            set
+            {
+                Coordinates.LocalRotation = value;
+                OrientationChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);

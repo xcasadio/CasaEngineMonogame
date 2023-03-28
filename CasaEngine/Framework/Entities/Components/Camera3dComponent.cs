@@ -13,11 +13,14 @@ public abstract class Camera3dComponent : CameraComponent
 
     public float FieldOfView
     {
-        get => _fieldOfView;
+        get { return _fieldOfView; }
         set
         {
             _fieldOfView = Math.Clamp(value, 0.1f, MathHelper.Pi - 0.1f);
             _needToComputeProjectionMatrix = true;
+#if EDITOR
+            OnPropertyChanged();
+#endif
         }
     }
 

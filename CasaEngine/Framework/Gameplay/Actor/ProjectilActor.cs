@@ -18,7 +18,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
         private TeamInfo _teamInfo;
 
 #if !FINAL
-        private ShapeRendererComponent _shapeRendererComponent;
+        private Physics2dDebugViewRendererComponent _physics2dDebugViewRendererComponent;
 #endif
 
         //life?
@@ -77,7 +77,7 @@ namespace CasaEngine.Framework.Gameplay.Actor
             //_Body
             //_Shape2DObjectList
             _teamInfo = src.TeamInfo;
-            _shapeRendererComponent = src._shapeRendererComponent;
+            _physics2dDebugViewRendererComponent = src._physics2dDebugViewRendererComponent;
             _start = src._start;
             Owner = src.Owner;
             Velocity = src.Velocity;
@@ -136,14 +136,14 @@ namespace CasaEngine.Framework.Gameplay.Actor
         {
             base.Draw(elapsedTime);
 
-            //if (ShapeRendererComponent.DisplayPhysics)
+            //if (Physics2dDebugViewRendererComponent.DisplayPhysics)
             //{
             //    var geometry2DObjectList = Shape2DObjectList;
             //    if (geometry2DObjectList != null)
             //    {
             //        foreach (var g in geometry2DObjectList)
             //        {
-            //            _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
+            //            _physics2dDebugViewRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
             //        }
             //    }
             //}

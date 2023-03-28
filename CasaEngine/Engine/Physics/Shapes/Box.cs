@@ -2,9 +2,45 @@
 
 public class Box : Shape
 {
-    public float Width { get; set; }
-    public float Height { get; set; }
-    public float Length { get; set; }
+    private float _width;
+    private float _height;
+    private float _length;
+
+    public float Width
+    {
+        get => _width;
+        set
+        {
+            _width = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+        }
+    }
+
+    public float Height
+    {
+        get => _height;
+        set
+        {
+            _height = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+        }
+    }
+
+    public float Length
+    {
+        get => _length;
+        set
+        {
+            _length = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+        }
+    }
 
     public Box() : base(ShapeType.Box)
     {

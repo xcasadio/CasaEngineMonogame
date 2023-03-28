@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
+using CasaEngine.Core.Logger;
+using EditorWpf.Windows;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace EditorWpf
@@ -20,6 +22,8 @@ namespace EditorWpf
         {
             SaveWorkSpace();
         }
+
+        #region Layout
 
         private void ButtonSaveLayout_Click(object sender, RoutedEventArgs e)
         {
@@ -93,6 +97,32 @@ namespace EditorWpf
 
             var fileName = Path.Combine(dirPath, "layout.xml");
             return fileName;
+        }
+
+        #endregion
+
+        private void NewProject_OnClick(object sender, RoutedEventArgs e)
+        {
+            var dialog = new NewProjectWindow();
+
+            if (dialog.ShowDialog() == true)
+            {
+                LogManager.Instance.WriteLine($"Create a new project '{dialog.ProjectName}' in folder '{dialog.ProjectPath}'");
+
+                //CREATE hiera folders
+                //create default settings
+                //
+            }
+        }
+
+        private void OpenProject_OnClick(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void SaveProject_OnClick(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

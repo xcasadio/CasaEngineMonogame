@@ -2,7 +2,19 @@
 
 public class Sphere : Shape
 {
-    public float Radius { get; set; }
+    private float _radius;
+
+    public float Radius
+    {
+        get => _radius;
+        set
+        {
+            _radius = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+        }
+    }
 
     public Sphere() : base(ShapeType.Sphere)
     {

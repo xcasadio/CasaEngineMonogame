@@ -16,11 +16,14 @@ public class StaticMeshComponent : Component
     //private Effect _effect;
     public StaticMesh? Mesh
     {
-        get => _mesh;
+        get { return _mesh; }
         set
         {
             _mesh = value;
             _mesh?.Initialize(EngineComponents.Game.GraphicsDevice);
+#if EDITOR
+            OnPropertyChanged();
+#endif
         }
     }
 

@@ -7,9 +7,19 @@
              xmlns:components="clr-namespace:CasaEngine.Framework.Entities.Components;assembly=CasaEngine"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:shapes="clr-namespace:CasaEngine.Engine.Physics.Shapes;assembly=CasaEngine"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:physics="clr-namespace:CasaEngine.Engine.Physics;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
+
+        <ObjectDataProvider MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}"
+                            x:Key="PhysicsTypeEnumValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="physics:PhysicsType" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
 
         <DataTemplate x:Key="BoxTemplate" DataType="{x:Type shapes:Box}">
             <Grid>
@@ -189,6 +199,7 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
@@ -197,10 +208,15 @@
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
                     <local:Vector3Control x:Name="Vector3ControlPosition" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch"/>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <local:Vector3Control x:Name="Vector3ControlScale" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"/>
 
-                    <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="+" 
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Mass" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Mass}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Type" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="comboBoxType" Grid.Row="2" Grid.Column="1" SelectedItem="{Binding Path=PhysicsType}" 
+                              ItemsSource="{Binding Source={StaticResource PhysicsTypeEnumValues}}"/>
+
+                    <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
                             HorizontalAlignment="Right"/>
                 </Grid>
 

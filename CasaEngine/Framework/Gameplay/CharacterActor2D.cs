@@ -52,7 +52,7 @@ namespace CasaEngine.Framework.Gameplay
         private Vector2 _vector2 = new();
 
 #if !FINAL
-        private ShapeRendererComponent _shapeRendererComponent;
+        private Physics2dDebugViewRendererComponent _physics2dDebugViewRendererComponent;
 #endif
 
         //use to attack only one time per attack
@@ -357,7 +357,7 @@ namespace CasaEngine.Framework.Gameplay
 
             Collision2DManager.Instance.RegisterObject(this);
 
-            _shapeRendererComponent = EngineComponents.Game.GetDrawableGameComponent<ShapeRendererComponent>();
+            _physics2dDebugViewRendererComponent = EngineComponents.Game.GetDrawableGameComponent<Physics2dDebugViewRendererComponent>();
 
             Hp = HpMax;
             Mp = MpMax;
@@ -432,14 +432,14 @@ namespace CasaEngine.Framework.Gameplay
                 1 - Position.Y / EngineComponents.Game.GraphicsDevice.Viewport.Height,
                 SpriteEffects);
 
-            //if (ShapeRendererComponent.DisplayCollisions)
+            //if (Physics2dDebugViewRendererComponent.DisplayCollisions)
             //{
             //    var geometry2DObjectList = Shape2DObjectList;
             //    if (geometry2DObjectList != null)
             //    {
             //        foreach (var g in geometry2DObjectList)
             //        {
-            //            _shapeRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
+            //            _physics2dDebugViewRendererComponent.AddShape2DObject(g, g.Flag == 0 ? Color.Green : Color.Red);
             //        }
             //    }
             //}

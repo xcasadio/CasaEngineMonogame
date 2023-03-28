@@ -7,8 +7,13 @@ namespace CasaEngine.Framework.Entities.Components
     public class GamePlayComponent : Component
     {
         public static readonly int ComponentId = (int)ComponentIds.GamePlay;
+        private IExternalComponent? _externalComponent;
 
-        public IExternalComponent? ExternalComponent { get; set; }
+        public IExternalComponent? ExternalComponent
+        {
+            get { return _externalComponent; }
+            set { _externalComponent = value; }
+        }
 
         public GamePlayComponent(Entity entity) : base(entity, ComponentId)
         {

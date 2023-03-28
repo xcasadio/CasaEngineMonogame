@@ -25,6 +25,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GizmoTools", "GizmoTool\Giz
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Framework.Wpf.Core", "MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj", "{F4427058-1115-4E5D-BC90-DCD97AD99622}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics", "Physics", "{4B5C319D-728A-47E5-9D44-98EA7F9E24C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhysicsDebug", "PhysicsDebug\PhysicsDebug.csproj", "{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +146,18 @@ Global
 		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|x64.ActiveCfg = Release|Any CPU
 		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|x64.Build.0 = Release|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|x64.Build.0 = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|x64.Build.0 = Debug|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|x64.ActiveCfg = Release|Any CPU
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +165,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83} = {EFF5418E-2F3B-4218-A17A-1000F2599AFA}
 		{60F6D253-871D-441D-8975-C80303363C03} = {EFF5418E-2F3B-4218-A17A-1000F2599AFA}
+		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61} = {4B5C319D-728A-47E5-9D44-98EA7F9E24C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B283C82B-7056-4E8E-9E9C-CEE7633F41D1}

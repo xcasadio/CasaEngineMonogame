@@ -3,25 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:EditorWpf"
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
-        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:controls="clr-namespace:EditorWpf.Controls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Menu>
+        <Menu Grid.Row="0" Margin="0, 0, 0, 5">
             <MenuItem Header="_File">
-                <MenuItem Header="_New" />
-                <MenuItem Header="_Open" />
-                <MenuItem Header="_Save" />
+                <MenuItem Header="_New" Click="NewProject_OnClick"/>
+                <MenuItem Header="_Open" Click="OpenProject_OnClick"/>
+                <MenuItem Header="_Save" Click="SaveProject_OnClick"/>
                 <Separator />
                 <MenuItem Header="_Exit" />
             </MenuItem>
@@ -31,21 +28,16 @@
                 <MenuItem Command="Paste" />
             </MenuItem>
             <MenuItem Header="_Windows">
-
+                <Separator/>
+                <MenuItem Header="Save Layout" Click="ButtonSaveLayout_Click"/>
+                <MenuItem Header="Load Layout" Click="ButtonLoadLayout_Click"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About"/>
             </MenuItem>
         </Menu>
 
-        <ToolBarTray Grid.Row="1">
-            <ToolBar>
-                <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="Save Layout" Click="ButtonSaveLayout_Click"/>
-                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Load Layout" Click="ButtonLoadLayout_Click"/>
-            </ToolBar>
-        </ToolBarTray>
-
-        <xcad:DockingManager Grid.Row="2" x:Name="dockingManager1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <xcad:DockingManager Grid.Row="1" x:Name="dockingManager1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <xcad:DockingManager.Theme>
                 <xcad:GenericTheme/>
             </xcad:DockingManager.Theme>
@@ -102,7 +94,7 @@
             </xcad:LayoutRoot>
         </xcad:DockingManager>
 
-        <StatusBar Grid.Row="3">
+        <StatusBar Grid.Row="2">
             <StatusBarItem>
                 <TextBlock Text="Status" />
             </StatusBarItem>

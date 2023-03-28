@@ -16,26 +16,36 @@ public class ArcBallCameraComponent : Camera3dComponent
     private float _inputTurnRate;
     private float _yaw, _pitch;
     private InputComponent _inputComponent;
+    private float _inputDistanceRate;
+    private float _inputDisplacementRate;
 
     public float Pitch
     {
-        get => _pitch;
+        get { return _pitch; }
         set
         {
             _pitch = value;
             _needToComputeViewMatrix = true;
             ComputeOrientation();
+#if EDITOR
+            OnPropertyChanged();
+#endif
+
         }
     }
 
     public float Yaw
     {
-        get => _yaw;
+        get { return _yaw; }
         set
         {
             _yaw = value;
             _needToComputeViewMatrix = true;
             ComputeOrientation();
+#if EDITOR
+            OnPropertyChanged();
+#endif
+
         }
     }
 
@@ -107,33 +117,61 @@ public class ArcBallCameraComponent : Camera3dComponent
 
     public override Vector3 Position
     {
-        get => _target - Direction * _distance;
+        get { return _target - Direction * _distance; }
         //set => SetCamera(value, _target, Up);
     }
 
     public Vector3 Target
     {
-        get => _target;
+        get { return _target; }
         set
         {
             _needToComputeViewMatrix = true;
             _target = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+
         }
     }
 
     public float Distance
     {
-        get => _distance;
+        get { return _distance; }
         set
         {
             _distance = value;
             _needToComputeViewMatrix = true;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+
         }
     }
 
-    public float InputDistanceRate { get; set; }
+    public float InputDistanceRate
+    {
+        get { return _inputDistanceRate; }
+        set
+        {
+            _inputDistanceRate = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+        }
+    }
 
-    public float InputDisplacementRate { get; set; }
+    public float InputDisplacementRate
+    {
+        get { return _inputDisplacementRate; }
+        set
+        {
+            _inputDisplacementRate = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+        }
+    }
 
     public ArcBallCameraComponent(Entity entity) : base(entity, ComponentId)
     {

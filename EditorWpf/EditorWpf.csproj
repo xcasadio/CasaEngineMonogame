@@ -15,13 +15,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Icon_Rotate.png" />
+    <None Remove="Resources\Icon_Scale.png" />
+    <None Remove="Resources\Icon_Translate.png" />
+    <None Remove="Resources\save-44-48.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AvalonEdit" Version="6.2.0.78" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.0" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
     <ProjectReference Include="..\MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icon_Rotate.png" />
+    <Resource Include="Resources\Icon_Scale.png" />
+    <Resource Include="Resources\Icon_Translate.png" />
+    <Resource Include="Resources\save-44-48.png" />
   </ItemGroup>
 
 </Project>
