@@ -28,7 +28,7 @@ namespace CasaEngine.Framework.Assets
                     _name = value;
                 }
             }
-        } // Name
+        }
 
         protected Asset()
         {
@@ -53,5 +53,9 @@ namespace CasaEngine.Framework.Assets
         {
 
         }
+
+#if EDITOR
+
+#endif
     }
 }

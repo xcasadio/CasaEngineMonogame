@@ -27,10 +27,8 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 namespace CasaEngine.Core.Helpers
 {
-
     public abstract class Disposable : IDisposable
     {
-
         private bool _disposed;
 
         public bool IsDisposed => _disposed;

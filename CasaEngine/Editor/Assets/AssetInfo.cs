@@ -5,9 +5,9 @@
         private static int _freeId;
 
         public int Id;
-        public string Name;
-        public string FileName;
-        public AssetType Type;
+        public readonly string Name;
+        public readonly string FileName;
+        public readonly AssetType Type;
 
 
         public AssetInfo(int id, string name, AssetType type, string fileName)
@@ -20,12 +20,11 @@
 
         public override bool Equals(object obj)
         {
-            if (obj is AssetInfo)
+            if (obj is AssetInfo info)
             {
-                var a = (AssetInfo)obj;
-                return a.Name.Equals(Name)
-                    && a.Type.Equals(Type)
-                    && a.FileName.Equals(FileName);
+                return info.Name.Equals(Name)
+                       && info.Type.Equals(Type)
+                       && info.FileName.Equals(FileName);
             }
 
             return false;

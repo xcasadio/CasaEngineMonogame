@@ -12,16 +12,28 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ToolBarTray Grid.Row="0" x:Name="ToolBarTray">
+        <ToolBarTray Grid.Row="0">
             <ToolBar>
-                <Button SnapsToDevicePixels="True" ToolTip="Save Workspace Layout" Content="T" />
-                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="R" />
-                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="S" />
+                <Button ToolTip="Save" Click="ButtonSave_OnClick">
+                    <Image Source="/Resources/save-44-48.png" Height="16" />
+                </Button>
                 <Separator />
-                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="L" />
-                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="W" />
+                <Button ToolTip="Translate" >
+                    <Image Source="/Resources/Icon_Translate.png" Height="16"/>
+                </Button>
+                <Button ToolTip="Rotate" >
+                    <Image Source="/Resources/Icon_Rotate.png" Height="16"/>
+                </Button>
+                <Button ToolTip="Scale" >
+                    <Image Source="/Resources/Icon_Scale.png" Height="16"/>
+                </Button>
                 <Separator />
-                <Button SnapsToDevicePixels="True" ToolTip="Load Workspace Layout" Content="Snap" />
+                <Button ToolTip="Local space" Content="L" />
+                <Button ToolTip="World space" Content="W" />
+                <Separator />
+                <Button ToolTip="Snap to grid" Content="Snap" />
+                <Separator />
+                <Button ToolTip="Launch game" Content="Launch" Click="ButtonLaunchGame_Click" />
             </ToolBar>
         </ToolBarTray>
         <local:GameEditor  Grid.Row="1" x:Name="GameEditor" AllowDrop="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>

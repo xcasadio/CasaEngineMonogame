@@ -1,10 +1,12 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Gameplay.Actor;
 
 namespace CasaEngine.Framework.World
 {
-    public class World
+    public sealed class World : Asset
     {
         private readonly List<Entity> _entities = new();
         private readonly List<Entity> _baseObjectsToAdd = new();
@@ -17,7 +19,6 @@ namespace CasaEngine.Framework.World
         public event EventHandler? EntitiesChanged;
 #endif
 
-        public string? Name { get; set; }
         public IList<Entity> Entities => _entities;
         public Genbox.VelcroPhysics.Dynamics.World? Physic2dWorld { get; }
 
@@ -71,7 +72,7 @@ namespace CasaEngine.Framework.World
             Starting?.Invoke(this, EventArgs.Empty);
         }
 
-        public virtual void Update(float elapsedTime)
+        public void Update(float elapsedTime)
         {
             Physic2dWorld?.Step(elapsedTime);
 
@@ -96,7 +97,7 @@ namespace CasaEngine.Framework.World
             }
         }
 
-        public virtual void Draw(float elapsedTime)
+        public void Draw(float elapsedTime)
         {
             foreach (var baseObject in _entities)
             {
@@ -117,5 +118,22 @@ namespace CasaEngine.Framework.World
 
             _entities.AddRange(EntityLoader.LoadFromArray(rootElement.GetJsonPropertyByName("Entities").Value));
         }
+
+#if EDITOR
+        public void Save(string path)
+        {
+            var jsonString = JsonSerializer.Serialize(
+                new
+                {
+                    Version = 1,
+                    Name,
+                    Id,
+                    Entities
+                }
+                , new JsonSerializerOptions { WriteIndented = true });
+
+            File.WriteAllText(Path.Combine(path, Name), jsonString);
+        }
+#endif
     }
 }
