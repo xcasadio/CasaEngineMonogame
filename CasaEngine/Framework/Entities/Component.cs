@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
 
@@ -46,12 +47,17 @@ public abstract class Component
 #if EDITOR
     public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
 
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public virtual void Save(JObject jObject)
+    {
+        jObject.Add("version", 1);
+        jObject.Add("type", Type);
     }
 #endif
 }

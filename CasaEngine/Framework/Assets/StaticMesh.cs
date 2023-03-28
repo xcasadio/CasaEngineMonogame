@@ -1,28 +1,24 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
 public class StaticMesh
 {
-#if EDITOR
-    private readonly List<VertexPositionNormalTexture> _vertices = new();
-    private readonly List<ushort> _indices = new();
-    private bool _isInitialized;
-#endif
-
     public VertexBuffer VertexBuffer { get; private set; }
     public IndexBuffer IndexBuffer { get; private set; }
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
     public Texture2D Texture { get; set; }
 
-
     public void Initialize(GraphicsDevice graphicsDevice)
     {
+#if EDITOR
         if (_isInitialized)
         {
             return;
         }
+#endif
 
         VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
         VertexBuffer.SetData(_vertices.ToArray());
@@ -33,6 +29,10 @@ public class StaticMesh
     }
 
 #if EDITOR
+    private readonly List<VertexPositionNormalTexture> _vertices = new();
+    private readonly List<ushort> _indices = new();
+    private bool _isInitialized;
+
     public void AddVertex(Vector3 position, Vector3 normal, Vector2 uv)
     {
         _vertices.Add(new VertexPositionNormalTexture(position, normal, uv));
@@ -52,9 +52,14 @@ public class StaticMesh
     {
         _indices.AddRange(indices);
     }
+
     public IReadOnlyCollection<VertexPositionNormalTexture> GetVertices()
     {
         return _vertices;
+    }
+    public void Save(JObject jObject)
+    {
+        //TODO
     }
 #endif
 }

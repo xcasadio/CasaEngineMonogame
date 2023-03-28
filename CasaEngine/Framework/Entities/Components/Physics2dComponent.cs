@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using Newtonsoft.Json.Linq;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -26,4 +28,14 @@ public class Physics2dComponent : Component
     {
 
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        throw new NotImplementedException();
+    }
+#endif
 }

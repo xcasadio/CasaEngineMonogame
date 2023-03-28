@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Engine.Physics.Shapes;
+﻿using Newtonsoft.Json.Linq;
+
+namespace CasaEngine.Engine.Physics.Shapes;
 
 public class Capsule : Shape
 {
@@ -34,4 +36,14 @@ public class Capsule : Shape
         Radius = 1.0f;
         Length = 1.0f;
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+        jObject.Add("radius", Radius);
+        jObject.Add("length", _length);
+    }
+#endif
 }

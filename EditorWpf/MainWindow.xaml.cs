@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework;
 using EditorWpf.Windows;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -112,6 +113,9 @@ namespace EditorWpf
                 //CREATE hiera folders
                 //create default settings
                 //
+                EngineComponents.ProjectManager.ProjectFileOpened = Path.Combine(dialog.ProjectPath, dialog.ProjectName);
+
+                LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             }
         }
 

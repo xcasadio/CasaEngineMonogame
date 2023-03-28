@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -55,4 +57,16 @@ public class StaticMeshComponent : Component
     {
         throw new NotImplementedException();
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        JObject newJObject = new();
+        _mesh.Save(newJObject);
+        jObject.Add("mesh", newJObject);
+    }
+#endif
 }

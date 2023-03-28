@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Engine.Physics.Shapes;
+﻿using Newtonsoft.Json.Linq;
+
+namespace CasaEngine.Engine.Physics.Shapes;
 
 public class Sphere : Shape
 {
@@ -20,4 +22,13 @@ public class Sphere : Shape
     {
         Radius = 1f;
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+        jObject.Add("radius", Radius);
+    }
+#endif
 }

@@ -113,14 +113,14 @@ public class Texture : Asset
     {
         GraphicsDevice = graphicsDevice;
         Name = filename;
-        Filename = EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
-        if (File.Exists(Filename) == false)
+        FileName = EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
+        if (File.Exists(FileName) == false)
         {
-            throw new ArgumentException("Failed to load texture: File " + Filename + " does not exists!", nameof(filename));
+            throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
         }
         try
         {
-            XnaTexture = EngineComponents.AssetContentManager.Load<Texture2D>(Filename, GraphicsDevice);
+            XnaTexture = EngineComponents.AssetContentManager.Load<Texture2D>(FileName, GraphicsDevice);
             Size = new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
             Resource.Name = filename;
         }
@@ -155,13 +155,13 @@ public class Texture : Asset
             return;
         }
 
-        if (string.IsNullOrEmpty(Filename))
+        if (string.IsNullOrEmpty(FileName))
         {
             XnaTexture = new Texture2D(device, Size.Width, Size.Height);
         }
         else if (XnaTexture.IsDisposed)
         {
-            XnaTexture = EngineComponents.AssetContentManager.Load<Texture2D>(Filename, device);
+            XnaTexture = EngineComponents.AssetContentManager.Load<Texture2D>(FileName, device);
         }
 
         GraphicsDevice = device;

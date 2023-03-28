@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -43,15 +45,9 @@ public abstract class CameraComponent : Component
         }
     }
 
-    public Viewport Viewport
-    {
-        get { return _viewport; }
-    }
+    public Viewport Viewport => _viewport;
 
-    public float ViewDistance
-    {
-        get { return _viewDistance; }
-    }
+    public float ViewDistance => _viewDistance;
 
     protected CameraComponent(Entity entity, int type) : base(entity, type)
     {
@@ -78,4 +74,18 @@ public abstract class CameraComponent : Component
         _viewport.Height = height;
         _needToComputeProjectionMatrix = true;
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        jObject.Add("viewDistance", _viewDistance);
+
+        var newjObject = new JObject();
+        Viewport.Save(newjObject);
+        jObject.Add("viewport", newjObject);
+    }
+#endif
 }

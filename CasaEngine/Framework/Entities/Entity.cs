@@ -8,6 +8,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Gameplay.Actor;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 using XNAGizmo;
 using ICloneable = CasaEngine.Framework.Gameplay.Design.ICloneable;
 
@@ -170,37 +171,24 @@ public class Entity : ISaveLoad, ICloneable
         bw.Write(Version);
     }
 
-    public void Save(string fileName, SaveOption option)
+    public void Save(JObject jObject)
     {
-        string jsonString = JsonSerializer.Serialize(
-            new
-            {
-                Version = 1,
-                Name,
-                Id,
-                Components = ComponentManager.Components.Select(x => new { x.Type }),
-                Coordinates = new
-                {
-                    PositionX = Coordinates.LocalPosition.X,
-                    PositionY = Coordinates.LocalPosition.Y,
-                    PositionZ = Coordinates.LocalPosition.Z,
+        jObject.Add("version", 1);
+        jObject.Add("id", Id);
+        jObject.Add("name", Name);
 
-                    CenterOfRotationX = Coordinates.LocalCenterOfRotation.X,
-                    CenterOfRotationY = Coordinates.LocalCenterOfRotation.Y,
-                    CenterOfRotationZ = Coordinates.LocalCenterOfRotation.Z,
+        var coordinatesObject = new JObject();
+        Coordinates.Save(coordinatesObject);
+        jObject.Add("coordinates", coordinatesObject);
 
-                    ScaleX = Coordinates.LocalScale.X,
-                    ScaleY = Coordinates.LocalScale.Y,
-                    ScaleZ = Coordinates.LocalScale.Z,
-
-                    RotationX = Coordinates.LocalRotation.X,
-                    RotationY = Coordinates.LocalRotation.Y,
-                    RotationZ = Coordinates.LocalRotation.Z,
-                    RotationW = Coordinates.LocalRotation.W
-                }
-            }
-            , new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(fileName, jsonString);
+        var componentsJArray = new JArray();
+        foreach (var component in ComponentManager.Components)
+        {
+            JObject componentObject = new();
+            component.Save(componentObject);
+            componentsJArray.Add(componentObject);
+        }
+        jObject.Add("components", componentsJArray);
     }
 
     public Vector3 Position

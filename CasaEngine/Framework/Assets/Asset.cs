@@ -2,6 +2,7 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
@@ -16,7 +17,7 @@ public abstract class Asset : Disposable
 
     public long Id { get; private set; }
 
-    public string Filename { get; protected set; }
+    public string FileName { get; protected set; }
 
     public string Name
     {
@@ -55,6 +56,15 @@ public abstract class Asset : Disposable
     }
 
 #if EDITOR
+    protected void Save(JObject jObject)
+    {
+        var assetObject = new JObject(
+            new JProperty("version", 1),
+            new JProperty("id", Id),
+            new JProperty("name", Name),
+            new JProperty("fileName", FileName));
 
+        jObject.Add("Asset", assetObject);
+    }
 #endif
 }

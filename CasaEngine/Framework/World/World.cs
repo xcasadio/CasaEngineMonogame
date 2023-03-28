@@ -3,6 +3,9 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Gameplay.Actor;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace CasaEngine.Framework.World;
 
@@ -122,17 +125,24 @@ public sealed class World : Asset
 #if EDITOR
     public void Save(string path)
     {
-        var jsonString = JsonSerializer.Serialize(
-            new
-            {
-                Version = 1,
-                Name,
-                Id,
-                Entities
-            }
-            , new JsonSerializerOptions { WriteIndented = true });
+        var fullFileName = Path.Combine(path, Name + ".json");
 
-        File.WriteAllText(Path.Combine(path, Name), jsonString);
+        JObject worldJson = new();
+        base.Save(worldJson);
+        var entitiesJArray = new JArray();
+
+        foreach (var entity in Entities)
+        {
+            JObject entityObject = new();
+            entity.Save(entityObject);
+            entitiesJArray.Add(entityObject);
+        }
+
+        worldJson.Add("entities", entitiesJArray);
+
+        using StreamWriter file = File.CreateText(fullFileName);
+        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
+        worldJson.WriteTo(writer);
     }
 #endif
 }

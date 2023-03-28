@@ -1,4 +1,7 @@
-﻿namespace CasaEngine.Engine.Physics.Shapes;
+﻿using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
+
+namespace CasaEngine.Engine.Physics.Shapes;
 
 public class Box : Shape
 {
@@ -48,4 +51,15 @@ public class Box : Shape
         Height = 1.0f;
         Length = 1.0f;
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+        jObject.Add("width", _width);
+        jObject.Add("height", _height);
+        jObject.Add("length", _length);
+    }
+#endif
 }

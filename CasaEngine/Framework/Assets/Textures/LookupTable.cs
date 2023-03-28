@@ -28,10 +28,10 @@ public class LookupTable : Asset
     public LookupTable(GraphicsDevice graphicsDevice, string filename)
     {
         Name = filename;
-        Filename = EngineComponents.ProjectManager.ProjectPath + filename;
-        if (File.Exists(Filename) == false)
+        FileName = EngineComponents.ProjectManager.ProjectPath + filename;
+        if (File.Exists(FileName) == false)
         {
-            throw new ArgumentException("Failed to load texture: File " + Filename + " does not exists!", nameof(filename));
+            throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
         }
         try
         {
@@ -50,7 +50,7 @@ public class LookupTable : Asset
     private LookupTable()
     {
         Name = "";
-        Filename = "";
+        FileName = "";
     } // LookupTable
 
 
@@ -79,7 +79,7 @@ public class LookupTable : Asset
 
     public static LookupTable Identity(GraphicsDevice graphicsDevice, int size)
     {
-        return new LookupTable { Name = "Identity", Filename = "", Resource = IdentityTexture(graphicsDevice, size), Size = size };
+        return new LookupTable { Name = "Identity", FileName = "", Resource = IdentityTexture(graphicsDevice, size), Size = size };
     } // Identity
 
     private static Texture3D IdentityTexture(GraphicsDevice graphicsDevice, int size)
@@ -140,13 +140,13 @@ public class LookupTable : Asset
 
     internal override void OnDeviceReset(GraphicsDevice device)
     {
-        if (string.IsNullOrEmpty(Filename))
+        if (string.IsNullOrEmpty(FileName))
         {
             Resource = IdentityTexture(device, Size);
         }
         else
         {
-            Create(device, Filename.Substring(30)); // Removes "Textures\\"
+            Create(device, FileName.Substring(30)); // Removes "Textures\\"
         }
 
         GraphicsDevice = device;

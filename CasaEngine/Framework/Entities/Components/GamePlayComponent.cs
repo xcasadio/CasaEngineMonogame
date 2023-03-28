@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Newtonsoft.Json.Linq;
+using System.ComponentModel;
 using System.Text.Json;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -11,8 +12,8 @@ public class GamePlayComponent : Component
 
     public IExternalComponent? ExternalComponent
     {
-        get { return _externalComponent; }
-        set { _externalComponent = value; }
+        get => _externalComponent;
+        set => _externalComponent = value;
     }
 
     public GamePlayComponent(Entity entity) : base(entity, ComponentId)
@@ -38,4 +39,14 @@ public class GamePlayComponent : Component
     {
         throw new NotImplementedException();
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        throw new NotImplementedException();
+    }
+#endif
 }

@@ -2,12 +2,14 @@
 using System.Diagnostics;
 using System.Text.Json;
 using BepuPhysics;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Physics.Shapes;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using Genbox.VelcroPhysics.Dynamics.Solver;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -221,6 +223,29 @@ public class PhysicsComponent : Component
             {
                 _physicsEngineComponent.UpdatePositionAndOrientation(Owner.Position, Owner.Orientation, _bodyHandle.Value);
             }
+        }
+    }
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        jObject.Add("physicsType", _physicsType.ConvertToString());
+
+        if (PhysicsType == PhysicsType.Dynamic)
+        {
+            jObject.Add("mass", _mass);
+        }
+
+        if (_shape == null)
+        {
+            JObject newJObject = new();
+            _shape.Save(newJObject);
+            jObject.Add("shape", newJObject);
+        }
+        else
+        {
+            jObject.Add("shape", "");
         }
     }
 #endif

@@ -5,13 +5,25 @@ namespace EditorWpf.Windows
 {
     public partial class NewProjectWindow : Window
     {
+        public static readonly DependencyProperty ProjectNameProperty = DependencyProperty.Register(nameof(ProjectName), typeof(string), typeof(NewProjectWindow));
+        public static readonly DependencyProperty ProjectPathProperty = DependencyProperty.Register(nameof(ProjectPath), typeof(string), typeof(NewProjectWindow));
+
+        public string ProjectName
+        {
+            get => (string)GetValue(ProjectNameProperty);
+            set => SetValue(ProjectNameProperty, value);
+        }
+        public string ProjectPath
+        {
+            get => (string)GetValue(ProjectPathProperty);
+            set => SetValue(ProjectPathProperty, value);
+        }
+
         public NewProjectWindow()
         {
             InitializeComponent();
         }
 
-        public string ProjectName { get; set; }
-        public string ProjectPath { get; private set; }
 
         private void ButtonSetProjectFolder_OnClick(object sender, RoutedEventArgs e)
         {

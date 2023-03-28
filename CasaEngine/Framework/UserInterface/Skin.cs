@@ -602,10 +602,10 @@ public class Skin
             foreach (var skinFont in Fonts)
             {
                 throw new NotImplementedException();
-                //skinFont.Font = (Font)CasaEngine.Game.EngineComponents.ObjectManager.GetObjectByPath(skinFont.Filename);
+                //skinFont.Font = (Font)CasaEngine.Game.EngineComponents.ObjectManager.GetObjectByPath(skinFont.FileName);
                 //skinFont.Font.LoadTexture("", graphicsDevice);
                 //skinFont.Font = new Font();
-                //skinFont.Font.LoadTexture(fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.Filename, graphicsDevice);
+                //skinFont.Font.LoadTexture(fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.FileName, graphicsDevice);
             }
 #if (WINDOWS)
             foreach (var skinCursor in Cursors)

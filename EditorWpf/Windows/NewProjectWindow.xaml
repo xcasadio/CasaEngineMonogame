@@ -20,7 +20,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Row="0" Grid.Column="0" Text="Name"/>
-        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ProjectName, RelativeSource={RelativeSource Self}}"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ProjectName, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:NewProjectWindow}}"/>
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="Folder"/>
         <Grid Grid.Row="2" Grid.Column="1">
@@ -29,7 +29,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox Grid.Column="0" Text="{Binding ProjectFolder, RelativeSource={RelativeSource Self}}"/>
+            <TextBox Grid.Column="0" Text="{Binding ProjectPath, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:NewProjectWindow}}"/>
             <Button Grid.Column="1" Content="..." Click="ButtonSetProjectFolder_OnClick" Width="25"/>
         </Grid>
 

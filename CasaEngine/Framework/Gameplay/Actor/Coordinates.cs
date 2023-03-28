@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
+using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Gameplay.Actor;
 
@@ -117,4 +119,26 @@ public class Coordinates
             WorldMatrix = LocalMatrix;
         }
     }
+
+#if EDITOR
+    public void Save(JObject jObject)
+    {
+        var newObject = new JObject();
+        LocalPosition.Save(newObject);
+        jObject.Add("position", newObject);
+
+        newObject = new JObject();
+        LocalCenterOfRotation.Save(newObject);
+        jObject.Add("centerOfRotation", newObject);
+
+        newObject = new JObject();
+        LocalScale.Save(newObject);
+        jObject.Add("scale", newObject);
+
+        newObject = new JObject();
+        LocalRotation.Save(newObject);
+        jObject.Add("rotation", newObject);
+    }
+
+#endif
 }

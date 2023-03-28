@@ -2,6 +2,8 @@
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Game;
 using System.ComponentModel;
+using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -11,13 +13,13 @@ public class ArcBallCameraComponent : Camera3dComponent
     public static readonly int ComponentId = (int)ComponentIds.ArcBallCamera;
 
     private Vector3 _target;
-    private float _distance;
     private Quaternion _orientation;
-    private float _inputTurnRate;
+    private float _distance;
     private float _yaw, _pitch;
-    private InputComponent _inputComponent;
+    private float _inputTurnRate;
     private float _inputDistanceRate;
     private float _inputDisplacementRate;
+    private InputComponent _inputComponent;
 
     public float Pitch
     {
@@ -115,12 +117,9 @@ public class ArcBallCameraComponent : Camera3dComponent
         }
     }
 
-    public override Vector3 Position
-    {
-        get { return _target - Direction * _distance; }
-        //set => SetCamera(value, _target, Up);
-    }
+    public override Vector3 Position => _target - Direction * _distance;
 
+    //set => SetCamera(value, _target, Up);
     public Vector3 Target
     {
         get { return _target; }
@@ -419,4 +418,24 @@ public class ArcBallCameraComponent : Camera3dComponent
         //we pitch is zero at Forward, not Up.
         Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, zAxis)) - MathHelper.PiOver2);
     }
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        JObject newJObject = new();
+        _target.Save(newJObject);
+        jObject.Add("target", newJObject);
+
+        newJObject = new();
+        _orientation.Save(newJObject);
+        jObject.Add("orientation", newJObject);
+
+        jObject.Add("distance", _distance);
+        jObject.Add("yaw", _yaw);
+        jObject.Add("pitch", _pitch);
+    }
+#endif
 }
