@@ -10,7 +10,7 @@ public abstract class Asset : Disposable
 {
     public event EventHandler? Disposed;
 
-    private static int _uniqueIdCounter = int.MinValue;
+    private static int _uniqueIdCounter;
 
     // The asset name.
     private string _name;

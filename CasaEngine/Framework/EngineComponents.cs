@@ -35,6 +35,7 @@ namespace CasaEngine.Framework
         public static GraphicsSettings GraphicsSettings { get; } = new();
         public static Physics2dSettings Physics2dSettings { get; } = new();
         public static Physics3dSettings Physics3dSettings { get; } = new();
+        public static PluginManager PluginManager { get; } = new();
 
 #if !FINAL
 
@@ -49,7 +50,6 @@ namespace CasaEngine.Framework
         public static AssetManager AssetManager { get; } = new();
 
         public static ExternalToolManager ExternalToolManager { get; } = new();
-        public static PluginManager PluginManager { get; } = new();
 
 #endif
     }

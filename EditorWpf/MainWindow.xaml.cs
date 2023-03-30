@@ -8,9 +8,6 @@ using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace EditorWpf
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -44,10 +41,12 @@ namespace EditorWpf
                 XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManager1);
                 using var writer = new StreamWriter(fileName);
                 layoutSerializer.Serialize(writer);
+                LogManager.Instance.WriteLineDebug($"Save Layout '{fileName}'");
+
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                LogManager.Instance.WriteException(e);
             }
         }
 
@@ -66,10 +65,11 @@ namespace EditorWpf
                 layoutSerializer.LayoutSerializationCallback += LayoutSerializer_LayoutSerializationCallback;
                 using var reader = new StreamReader(fileName);
                 layoutSerializer.Deserialize(reader);
+                LogManager.Instance.WriteLineDebug($"Load Layout '{fileName}'");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                LogManager.Instance.WriteException(e);
             }
         }
 

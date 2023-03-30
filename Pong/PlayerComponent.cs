@@ -14,10 +14,9 @@ public class PlayerComponent : Component
 {
     public static readonly int ComponentId = 1001;
 
-    private ShapeRectangle _shapeRectangle;
+    private readonly ShapeRectangle _shapeRectangle;
     private readonly int _width;
     private readonly int _height;
-    private Physics2dDebugViewRendererComponent _physics2dDebugViewRendererComponent;
 
     public PlayerComponent(Entity owner) : base(owner, ComponentId)
     {
@@ -28,7 +27,6 @@ public class PlayerComponent : Component
 
     public override void Initialize()
     {
-        _physics2dDebugViewRendererComponent = EngineComponents.Game.Components.First(x => x is Physics2dDebugViewRendererComponent) as Physics2dDebugViewRendererComponent;
     }
 
     public override void Update(float elapsedTime)
@@ -51,7 +49,7 @@ public class PlayerComponent : Component
 
     public override void Draw()
     {
-        //_physics2dDebugViewRendererComponent.AddShape2DObject(_shapeRectangle, Color.Blue);
+
     }
 
     public override void Load(JsonElement element)

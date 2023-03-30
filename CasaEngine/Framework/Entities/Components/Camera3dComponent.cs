@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Text.Json;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -40,6 +41,13 @@ public abstract class Camera3dComponent : CameraComponent
     {
         base.ScreenResized(width, height);
         FieldOfView = MathHelper.PiOver4 * 1.777777777f / Viewport.AspectRatio; //1920 / 1080 = 1.777777777 => MathHelper.PiOver4
+    }
+
+    public override void Load(JsonElement element)
+    {
+        base.Load(element);
+
+        _fieldOfView = element.GetProperty("fieldOfView").GetSingle();
     }
 
 #if EDITOR

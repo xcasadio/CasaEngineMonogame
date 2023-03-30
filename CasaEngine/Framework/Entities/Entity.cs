@@ -98,37 +98,21 @@ public class Entity : ISaveLoad, ICloneable
 
     public void Load(JsonElement element)
     {
-        var version = element.GetJsonPropertyByName("Version").Value.GetInt32();
-        Name = element.GetJsonPropertyByName("Name").Value.GetString();
-        Id = element.GetJsonPropertyByName("Id").Value.GetInt32();
+        var version = element.GetJsonPropertyByName("version").Value.GetInt32();
+        Name = element.GetJsonPropertyByName("name").Value.GetString();
+        Id = element.GetJsonPropertyByName("id").Value.GetInt32();
 
-        foreach (var item in element.GetJsonPropertyByName("Components").Value.EnumerateArray())
+        foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
         {
             ComponentManager.Components.Add(ComponentLoader.Load(this, item));
         }
 
-        var jsonCoordinate = element.GetJsonPropertyByName("Coordinates").Value;
+        var jsonCoordinate = element.GetJsonPropertyByName("coordinates").Value;
 
-        Coordinates.LocalPosition = new Vector3(
-            jsonCoordinate.GetJsonPropertyByName("PositionX").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("PositionY").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("PositionZ").Value.GetSingle());
-
-        Coordinates.LocalCenterOfRotation = new Vector3(
-            jsonCoordinate.GetJsonPropertyByName("CenterOfRotationX").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("CenterOfRotationY").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("CenterOfRotationZ").Value.GetSingle());
-
-        Coordinates.LocalScale = new Vector3(
-            jsonCoordinate.GetJsonPropertyByName("ScaleX").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("ScaleY").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("ScaleZ").Value.GetSingle());
-
-        Coordinates.LocalRotation = new Quaternion(
-            jsonCoordinate.GetJsonPropertyByName("RotationX").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("RotationY").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("RotationZ").Value.GetSingle(),
-            jsonCoordinate.GetJsonPropertyByName("RotationW").Value.GetSingle());
+        Coordinates.LocalPosition = jsonCoordinate.GetProperty("position").GetVector3();
+        Coordinates.LocalCenterOfRotation = jsonCoordinate.GetProperty("centerOfRotation").GetVector3();
+        Coordinates.LocalScale = jsonCoordinate.GetProperty("scale").GetVector3();
+        Coordinates.LocalRotation = jsonCoordinate.GetProperty("rotation").GetQuaternion();
     }
 
     public virtual void Load(XmlElement el, SaveOption option)
@@ -246,7 +230,7 @@ public class Entity : ISaveLoad, ICloneable
                 max = Vector3.Max(max, positionTransformed);
             }
         }
-        else
+        else // default box
         {
             const float length = 0.5f;
             //var min = Position - Vector3.Transform(Vector3.One * length, Orientation) * Scale;

@@ -62,7 +62,8 @@ public abstract class CameraComponent : Component
 
     public override void Load(JsonElement element)
     {
-        throw new NotImplementedException();
+        _viewDistance = element.GetProperty("viewDistance").GetSingle();
+        _viewport = element.GetJsonPropertyByName("viewport").Value.GetViewPort();
     }
 
     protected abstract void ComputeProjectionMatrix();

@@ -12,11 +12,68 @@ public static class JsonHelper
         return jsonElement.EnumerateObject().First(x => x.Name == key);
     }
 
+    //Load
+
+    public static Viewport GetViewPort(this JsonElement element)
+    {
+        var viewport = new Viewport();
+        viewport.X = element.GetProperty("x").GetInt32();
+        viewport.Y = element.GetProperty("y").GetInt32();
+        viewport.Width = element.GetProperty("width").GetInt32();
+        viewport.Height = element.GetProperty("height").GetInt32();
+        viewport.MinDepth = element.GetProperty("minDepth").GetSingle();
+        viewport.MaxDepth = element.GetProperty("maxDepth").GetSingle();
+        return viewport;
+    }
+
+    public static Vector2 GetVector2(this JsonElement element)
+    {
+        return new Vector2
+        {
+            X = element.GetProperty("x").GetSingle(),
+            Y = element.GetProperty("y").GetSingle()
+        };
+    }
+    public static Vector3 GetVector3(this JsonElement element)
+    {
+        return new Vector3
+        {
+            X = element.GetProperty("x").GetSingle(),
+            Y = element.GetProperty("y").GetSingle(),
+            Z = element.GetProperty("z").GetSingle()
+        };
+    }
+
+    public static Vector4 GetVector4(this JsonElement element)
+    {
+        return new Vector4
+        {
+            X = element.GetProperty("x").GetSingle(),
+            Y = element.GetProperty("y").GetSingle(),
+            Z = element.GetProperty("z").GetSingle(),
+            W = element.GetProperty("w").GetSingle()
+        };
+    }
+
+    public static Quaternion GetQuaternion(this JsonElement element)
+    {
+        return new Quaternion
+        {
+            X = element.GetProperty("x").GetSingle(),
+            Y = element.GetProperty("y").GetSingle(),
+            Z = element.GetProperty("z").GetSingle(),
+            W = element.GetProperty("w").GetSingle()
+        };
+    }
+
+    //Save
+
     public static void Save(this Vector2 obj, JObject jObject)
     {
         jObject.Add("x", obj.X);
         jObject.Add("y", obj.Y);
     }
+
     public static void Save(this Vector3 obj, JObject jObject)
     {
         jObject.Add("x", obj.X);

@@ -70,7 +70,7 @@ public class ShapeRectangle : Shape2dObject
         _height = ((ShapeRectangle)ob)._height;
     }
 
-#if EDITOR
+
     public ShapeRectangle(int x, int y, int w, int h)
         : base(Shape2dType.Rectangle)
     {
@@ -79,6 +79,7 @@ public class ShapeRectangle : Shape2dObject
         _height = h;
     }
 
+#if EDITOR
     public override bool CompareTo(Shape2dObject o)
     {
         if (o is ShapeRectangle)

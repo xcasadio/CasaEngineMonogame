@@ -2,6 +2,7 @@
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Game;
 using System.ComponentModel;
+using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
 
@@ -417,6 +418,18 @@ public class ArcBallCameraComponent : Camera3dComponent
         //the forward direction, then subtracting PI / 2, since 
         //we pitch is zero at Forward, not Up.
         Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, zAxis)) - MathHelper.PiOver2);
+    }
+
+    public override void Load(JsonElement element)
+    {
+        base.Load(element);
+
+        _target = element.GetProperty("target").GetVector3();
+        _orientation = element.GetProperty("orientation").GetQuaternion();
+
+        _distance = element.GetProperty("distance").GetSingle();
+        _yaw = element.GetProperty("yaw").GetSingle();
+        _pitch = element.GetProperty("pitch").GetSingle();
     }
 
 #if EDITOR

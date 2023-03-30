@@ -10,22 +10,16 @@ public class AssetContentManager
     private readonly Dictionary<string, Dictionary<string, object>> _loadedAssets = new();
     private readonly Dictionary<Type, IAssetLoader> _assetLoader = new();
 
-
-
     public string RootDirectory
     {
         get;
         set;
     }
 
-
-
     public AssetContentManager()
     {
         RootDirectory = Environment.CurrentDirectory;
     }
-
-
 
     public void Initialize(GraphicsDevice device)
     {
@@ -105,7 +99,6 @@ public class AssetContentManager
         }
     }
 
-
     internal void AddAsset(Asset asset)
     {
         _assets.Add(asset);
@@ -132,6 +125,5 @@ public class AssetContentManager
             a.OnDeviceReset(device);
         }
     }
-
 
 }

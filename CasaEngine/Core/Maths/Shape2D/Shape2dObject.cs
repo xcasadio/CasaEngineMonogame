@@ -73,6 +73,11 @@ public abstract class Shape2dObject
         CopyFrom(o);
     }
 
+    protected Shape2dObject(Shape2dType type)
+    {
+        _type = type;
+    }
+
     public static Shape2dObject CreateShape2DObject(XmlElement el, SaveOption option)
     {
         var type = (Shape2dType)Enum.Parse(typeof(Shape2dType), el.Attributes["type"].Value);
@@ -145,23 +150,12 @@ public abstract class Shape2dObject
     public bool PropertyChangedActivated = true;
     private object _tag;
 
-
-
     [Browsable(false)]
     public object Tag
     {
         get => _tag;
         set => _tag = value;
     }
-
-
-
-    public Shape2dObject(Shape2dType type)
-    {
-        _type = type;
-    }
-
-
 
     public virtual bool CompareTo(Shape2dObject o)
     {

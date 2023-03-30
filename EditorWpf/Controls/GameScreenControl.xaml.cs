@@ -24,7 +24,7 @@ namespace EditorWpf.Controls
             //EngineComponents.ProjectManager.Load(fileName_);
             var path = Path.Combine(EngineComponents.ProjectManager.ProjectPath, "Worlds");
             GameInfo.Instance.CurrentWorld.Save(path);
-            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved. ({Path.Combine(path, GameInfo.Instance.CurrentWorld.Name + ".json")})");
+            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved '{Path.Combine(path, GameInfo.Instance.CurrentWorld.Name + ".json")}'");
         }
     }
 }

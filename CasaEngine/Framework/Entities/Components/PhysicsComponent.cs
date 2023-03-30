@@ -126,8 +126,11 @@ public class PhysicsComponent : Component
     public PhysicsComponent(Entity entity) : base(entity, ComponentId)
     {
         _physicsType = PhysicsType.Static;
+
+#if EDITOR
         entity.PositionChanged += OnPositionChanged;
         entity.OrientationChanged += OnOrientationChanged;
+#endif
     }
 
     public override void Initialize()

@@ -34,7 +34,7 @@ public static class ComponentLoader
 
     public static Component Load(Entity owner, JsonElement element)
     {
-        var id = element.GetJsonPropertyByName("Type").Value.GetInt32();
+        var id = element.GetJsonPropertyByName("type").Value.GetInt32();
         return FactoryByIds[id].Invoke(owner, element);
     }
 }

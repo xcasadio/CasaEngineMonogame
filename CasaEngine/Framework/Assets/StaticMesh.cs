@@ -6,6 +6,8 @@ namespace CasaEngine.Framework.Assets;
 
 public class StaticMesh
 {
+    private readonly List<VertexPositionNormalTexture> _vertices = new();
+    private readonly List<ushort> _indices = new();
     public VertexBuffer VertexBuffer { get; private set; }
     public IndexBuffer IndexBuffer { get; private set; }
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
@@ -25,13 +27,11 @@ public class StaticMesh
 
         IndexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
-        _isInitialized = true;
-    }
 
 #if EDITOR
-    private readonly List<VertexPositionNormalTexture> _vertices = new();
-    private readonly List<ushort> _indices = new();
-    private bool _isInitialized;
+        _isInitialized = true;
+#endif
+    }
 
     public void AddVertex(Vector3 position, Vector3 normal, Vector2 uv)
     {
@@ -53,10 +53,15 @@ public class StaticMesh
         _indices.AddRange(indices);
     }
 
+#if EDITOR
+
+    private bool _isInitialized;
+
     public IReadOnlyCollection<VertexPositionNormalTexture> GetVertices()
     {
         return _vertices;
     }
+
     public void Save(JObject jObject)
     {
         //TODO

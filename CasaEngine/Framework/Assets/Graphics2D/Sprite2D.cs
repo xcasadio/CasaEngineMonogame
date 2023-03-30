@@ -25,7 +25,7 @@ public class Sprite2D : Entity
 #if EDITOR
     private readonly List<Shape2dObject> _collisions = new();
 #else
-        private Shape2DObject[] _Collisions;
+    private Shape2dObject[] _collisions;
 #endif
 
     private readonly Dictionary<string, Vector2> _sockets = new();
@@ -94,7 +94,7 @@ public class Sprite2D : Entity
 #if EDITOR
             return _collisions.ToArray();
 #else
-                return _Collisions;
+            return _collisions;
 #endif
         }
     }
@@ -124,9 +124,9 @@ public class Sprite2D : Entity
 #if EDITOR
     public
 #else
-        internal
+    internal
 #endif
-        void CopyFrom(Sprite2D sprite)
+    void CopyFrom(Sprite2D sprite)
     {
         if (sprite == null)
         {
@@ -141,15 +141,15 @@ public class Sprite2D : Entity
             _collisions.Add(o.Clone());
         }
 #else
-            if (sprite._Collisions != null)
-            {
-                this._Collisions = sprite._Collisions;
-                //this._Collisions = (Shape2DObject[])sprite_._Collisions.Clone();
-            }
-            else
-            {
-                this._Collisions = null;
-            }
+        if (sprite._collisions != null)
+        {
+            this._collisions = sprite._collisions;
+            //this._Collisions = (Shape2DObject[])sprite_._Collisions.Clone();
+        }
+        else
+        {
+            this._collisions = null;
+        }
 #endif
 
         _origin = sprite._origin;
@@ -192,20 +192,20 @@ public class Sprite2D : Entity
             _collisions.Add(Shape2dObject.CreateShape2DObject((XmlElement)node, option));
         }
 #else
-            if (collisionNode.ChildNodes.Count > 0)
-            {
-                _Collisions = new Shape2DObject[collisionNode.ChildNodes.Count];
-                int i = 0;
+        if (collisionNode.ChildNodes.Count > 0)
+        {
+            _collisions = new Shape2dObject[collisionNode.ChildNodes.Count];
+            int i = 0;
 
-                foreach (XmlNode node in collisionNode.ChildNodes)
-                {
-                    _Collisions[i++] = (Shape2DObject.CreateShape2DObject((XmlElement)node, option));
-                }
-            }
-            else
+            foreach (XmlNode node in collisionNode.ChildNodes)
             {
-                _Collisions = null;
+                _collisions[i++] = (Shape2dObject.CreateShape2DObject((XmlElement)node, option));
             }
+        }
+        else
+        {
+            _collisions = null;
+        }
 #endif
 
         //Sockets
@@ -228,10 +228,10 @@ public class Sprite2D : Entity
     public void UnloadTexture()
     {
 #if !EDITOR
-            if (_texture2D == null)
-            {
-                throw new InvalidOperationException("Sprite2D.LoadTexture() : texture is null !");
-            }
+        if (_texture2D == null)
+        {
+            throw new InvalidOperationException("Sprite2D.LoadTexture() : texture is null !");
+        }
 #endif
 
         //_Texture2D.Dispose();
@@ -245,13 +245,12 @@ public class Sprite2D : Entity
 
     public void LoadTexture(ContentManager content)
     {
-        if (_texture2D != null && _texture2D.IsDisposed == false)
+        if (_texture2D is { IsDisposed: false })
         {
             return;
         }
 
-        var assetFile = Path.GetDirectoryName(_assetFileNames[0]) + Path.DirectorySeparatorChar +
-                        Path.GetFileNameWithoutExtension(_assetFileNames[0]);
+        var assetFile = Path.Combine(Path.GetDirectoryName(_assetFileNames[0]), Path.GetFileNameWithoutExtension(_assetFileNames[0]));
 
         _texture2D = content.Load<Texture2D>(assetFile);
     }
@@ -264,11 +263,10 @@ public class Sprite2D : Entity
         assetFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar +
                     ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + _assetFileNames[0];
 #else
-            assetFile = Game.EngineComponents.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
+        assetFile = EngineComponents.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _assetFileNames[0];
 #endif
 
-        if (_texture2D != null
-            && _texture2D.IsDisposed == false
+        if (_texture2D is { IsDisposed: false }
             && _texture2D.GraphicsDevice.IsDisposed == false)
         {
             return;

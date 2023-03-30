@@ -170,7 +170,8 @@ public class GameManager
         entity.ComponentManager.Components.Add(camera);
         GameInfo.Instance.ActiveCamera = camera;
         camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
+        camera.Initialize();
+        //GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
 
         //TEST
         //var world = new World.World();
@@ -220,6 +221,11 @@ public class GameManager
 #if !FINAL
         DebugSystem.Instance.TimeRuler.StartFrame();
         DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
+#endif
+
+#if EDITOR
+        //In editor the camera is not an entity of the world
+        GameInfo.Instance.ActiveCamera.Update(gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
 #endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))

@@ -5,6 +5,8 @@ using XNAGizmo;
 
 namespace CasaEngine.Framework.Game.Components;
 
+#if EDITOR
+
 public class GizmoComponent : DrawableGameComponent
 {
     public Gizmo Gizmo { get; private set; }
@@ -146,3 +148,5 @@ public class GizmoComponent : DrawableGameComponent
         transformable.Scale = scale;
     }
 }
+
+#endif

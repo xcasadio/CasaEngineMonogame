@@ -312,7 +312,7 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
         _fsm = new FiniteStateMachine<CharacterActor2D>(this);
 
 #if !EDITOR
-            _renderer2DComponent = Game.EngineComponents.Game.GetDrawableGameComponent<Renderer2DComponent>();
+        _renderer2DComponent = EngineComponents.Game.GetDrawableGameComponent<Renderer2DComponent>();
 #endif
     }
 
