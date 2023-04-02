@@ -50,14 +50,14 @@ public class ProjectManager
     public static readonly string ConfigDirPath = "Config";
     //static public readonly string PackageDirPath = "Packages";
 
-    public string ProjectPath
+    public string? ProjectPath
     {
         get
         {
 #if EDITOR
             return Path.GetDirectoryName(ProjectFileOpened);
 #else
-                return Environment.CurrentDirectory;
+            return Environment.CurrentDirectory;
 #endif
         }
     }
@@ -104,7 +104,7 @@ public class ProjectManager
     public event EventHandler? ProjectLoaded;
     public event EventHandler? ProjectClosed;
 
-    public string ProjectFileOpened { get; set; }
+    public string? ProjectFileOpened { get; private set; }
 
     public void Clear()
     {
@@ -116,16 +116,20 @@ public class ProjectManager
         ProjectClosed?.Invoke(this, EventArgs.Empty);
     }
 
-    public void CreateProject(string fileName)
+    public void CreateProject(string projectName, string path)
     {
 #if !DEBUG
             try
             {
 #endif
 
+        var fullFileName = Path.Combine(path, projectName + ".json");
+
         Clear();
-        CreateProjectDirectoryHierarchy(Path.GetDirectoryName(fileName));
-        Save(fileName);
+        CreateProjectDirectoryHierarchy(path);
+        Save(fullFileName);
+
+        ProjectLoaded?.Invoke(this, EventArgs.Empty);
 
 #if !DEBUG
             }

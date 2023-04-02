@@ -83,6 +83,7 @@ namespace EditorWpf
                 "Game Screen" => GameScreenControl,
                 "Place Actors" => PlaceActorsControl,
                 "Logs" => LogsControl,
+                "Content Browser" => ContentBrowserControl,
                 _ => e.Content
             };
         }
@@ -113,7 +114,7 @@ namespace EditorWpf
                 //CREATE hiera folders
                 //create default settings
                 //
-                EngineComponents.ProjectManager.ProjectFileOpened = Path.Combine(dialog.ProjectPath, dialog.ProjectName);
+                EngineComponents.ProjectManager.CreateProject(dialog.ProjectPath, dialog.ProjectName);
 
                 LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             }

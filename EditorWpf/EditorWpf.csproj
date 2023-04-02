@@ -15,9 +15,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\fichier-50.png" />
+    <None Remove="Resources\file-folder-48.png" />
     <None Remove="Resources\Icon_Rotate.png" />
     <None Remove="Resources\Icon_Scale.png" />
     <None Remove="Resources\Icon_Translate.png" />
+    <None Remove="Resources\open-file-folder-48.png" />
     <None Remove="Resources\save-44-48.png" />
   </ItemGroup>
 
@@ -33,9 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\file-folder-48.png" />
+    <Resource Include="Resources\fichier-50.png" />
     <Resource Include="Resources\Icon_Rotate.png" />
     <Resource Include="Resources\Icon_Scale.png" />
     <Resource Include="Resources\Icon_Translate.png" />
+    <Resource Include="Resources\open-file-folder-48.png" />
     <Resource Include="Resources\save-44-48.png" />
   </ItemGroup>
 

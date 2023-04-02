@@ -375,7 +375,7 @@ namespace Editor
             {
 #endif
                 ClearProject();
-                EngineComponents.ProjectManager.CreateProject(fileName_);
+                EngineComponents.ProjectManager.CreateProject(fileName_, Path.GetDirectoryName(fileName_));
                 OnProjectLoaded(fileName_);
 #if !DEBUG
             }

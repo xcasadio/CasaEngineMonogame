@@ -366,7 +366,7 @@ namespace Editor
             {
 #endif
                 ClearProject();
-                EngineComponents.ProjectManager.CreateProject(fileName_);
+                EngineComponents.ProjectManager.CreateProject(fileName_, Path.GetDirectoryName(fileName_));
                 EngineComponents.ProjectSettings.ProjectName = "New Project";
                 OnProjectLoaded(fileName_);
 #if !DEBUG
@@ -574,7 +574,7 @@ namespace Editor
                 file += ProjectManager.GameDirPath + Path.DirectorySeparatorChar + Path.GetFileName(EngineComponents.ProjectManager.ProjectFileOpened);
 
                 SaveProject(file); // temporary project file
-                EngineComponents.ProjectManager.ProjectFileOpened = projectFileOpened; // ProjectFileOpened will be change in SaveProject function
+                //EngineComponents.ProjectManager.ProjectFileOpened = projectFileOpened; // ProjectFileOpened will be change in SaveProject function
 
                 ProcessStartInfo myInfo = new ProcessStartInfo();
                 myInfo.FileName = FindGameExe(Path.GetDirectoryName(file));

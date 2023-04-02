@@ -16,10 +16,8 @@ using CasaEngine.Framework.Graphics2D;
 
 namespace Editor.Game
 {
-    public class Sprite2DEditorComponent
-        : DrawableGameComponent
+    public class Sprite2DEditorComponent : DrawableGameComponent
     {
-
         /// <summary>
         /// 
         /// </summary>
@@ -29,8 +27,6 @@ namespace Editor.Game
             Collision,
             Socket
         }
-
-
 
         /// <summary>
         /// Copy of the original Sprite2D which will be edited.
@@ -59,8 +55,6 @@ namespace Editor.Game
 
         //used to manipulate point (hotspot, socket, ...)
         Anchor m_Anchor;
-
-
 
         /// <summary>
         /// 
@@ -206,8 +200,6 @@ namespace Editor.Game
             set;
         }
 
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -219,9 +211,6 @@ namespace Editor.Game
 
             m_Zoom = Vector2.One;
         }
-
-
-
 
         /// <summary>
         /// 
@@ -388,7 +377,6 @@ namespace Editor.Game
 
             base.Draw(gameTime);
         }
-
 
         /// <summary>
         /// 
@@ -571,7 +559,6 @@ namespace Editor.Game
             //Game.Control.Cursor = c_;
         }
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -647,7 +634,6 @@ namespace Editor.Game
         {
             OnCursorChanged(Cursors.SizeAll, EventArgs.Empty);
         }
-
 
     }
 }

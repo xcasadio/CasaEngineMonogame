@@ -29,6 +29,7 @@ public abstract class Shape
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
     public virtual void Save(JObject jObject)
     {
         jObject.Add("version", 1);
