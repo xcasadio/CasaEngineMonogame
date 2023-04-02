@@ -109,12 +109,10 @@ namespace EditorWpf
 
             if (dialog.ShowDialog() == true)
             {
-                LogManager.Instance.WriteLine($"Create a new project '{dialog.ProjectName}' in folder '{dialog.ProjectPath}'");
-
                 //CREATE hiera folders
                 //create default settings
                 //
-                EngineComponents.ProjectManager.CreateProject(dialog.ProjectPath, dialog.ProjectName);
+                EngineComponents.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
 
                 LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             }

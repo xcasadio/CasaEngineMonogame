@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CasaEngine.Framework.UserInterface.Controls.Text;
 
 namespace EditorWpf.Controls.ContentBrowser;
 

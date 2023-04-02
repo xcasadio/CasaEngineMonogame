@@ -406,7 +406,7 @@ public class AssetManager
     public void Clear()
     {
         _assets.Clear();
-        LogManager.Instance.WriteLineDebug("Asset.Clear()");
+        LogManager.Instance.WriteLineDebug("All asset was cleared.");
     }
 
     public string[] GetAllAssetByType(AssetType type)

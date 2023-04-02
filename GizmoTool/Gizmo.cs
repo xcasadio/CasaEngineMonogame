@@ -94,9 +94,31 @@ namespace XNAGizmo
         private readonly Vector3 _axisTextOffset = new(0, 0.5f, 0);
 
         // -- Modes & Selections -- //
+        private GizmoMode _activeMode = GizmoMode.Translate;
+        private TransformSpace _activeSpace = TransformSpace.Local;
+
         public GizmoAxis ActiveAxis = GizmoAxis.None;
-        public GizmoMode ActiveMode = GizmoMode.Translate;
-        public TransformSpace ActiveSpace = TransformSpace.Local;
+
+        public GizmoMode ActiveMode
+        {
+            get => _activeMode;
+            set
+            {
+                _activeMode = value;
+                GizmoModeChangedEvent?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public TransformSpace ActiveSpace
+        {
+            get => _activeSpace;
+            set
+            {
+                _activeSpace = value;
+                TransformSpaceChangedEvent?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
         public PivotType ActivePivot = PivotType.SelectionCenter;
 
         // -- BoundingBoxes -- //
@@ -1503,6 +1525,9 @@ namespace XNAGizmo
         public event TransformationEventHandler TranslateEvent;
         public event TransformationEventHandler RotateEvent;
         public event TransformationEventHandler ScaleEvent;
+
+        public event EventHandler GizmoModeChangedEvent;
+        public event EventHandler TransformSpaceChangedEvent;
 
         private void OnTranslateEvent(ITransformable transformable, Vector3 delta)
         {

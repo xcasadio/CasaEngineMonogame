@@ -119,8 +119,8 @@ public class ProjectManager
     public void CreateProject(string projectName, string path)
     {
 #if !DEBUG
-            try
-            {
+        try
+        {
 #endif
 
         var fullFileName = Path.Combine(path, projectName + ".json");
@@ -132,11 +132,11 @@ public class ProjectManager
         ProjectLoaded?.Invoke(this, EventArgs.Empty);
 
 #if !DEBUG
-            }
-            catch (System.Exception e)
-            {
+        }
+        catch (System.Exception e)
+        {
 
-            }
+        }
 #endif
     }
 

@@ -6,13 +6,13 @@ namespace EditorWpf.Controls.ContentBrowser;
 
 public class ContentItem : INotifyPropertyChanged
 {
-    private ContentItem? _parent;
+    private FolderItem? _parent;
     private string _name;
 
     public string Path => Parent != null ? System.IO.Path.Combine(Parent.Path ?? ".", Name) : Name;
     public Type Type => GetType();
 
-    public ContentItem? Parent
+    public FolderItem? Parent
     {
         get => _parent;
         set
@@ -26,7 +26,6 @@ public class ContentItem : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-
 
     public string Name
     {
