@@ -14,6 +14,7 @@ namespace EditorWpf.Controls
         public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register("SelectedItem", typeof(Entity), typeof(EntitiesControl));
 
         private bool isSelectionTriggerActive = true;
+        private bool isSelectionTriggerFromGizmoActive = true;
 
         public Entity SelectedItem
         {
@@ -38,6 +39,10 @@ namespace EditorWpf.Controls
 
         private void OnEntitiesSelectionChanged(object? sender, System.Collections.Generic.List<ITransformable> e)
         {
+            if (!isSelectionTriggerFromGizmoActive)
+            {
+                return;
+            }
             isSelectionTriggerActive = false;
 
             var gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
@@ -70,6 +75,8 @@ namespace EditorWpf.Controls
                 return;
             }
 
+            isSelectionTriggerFromGizmoActive = false;
+
             var gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
 
             if (e.NewValue == null)
@@ -85,6 +92,8 @@ namespace EditorWpf.Controls
 
             var selectedEntity = (Entity)e.NewValue;
             SetSelectedItem(selectedEntity);
+
+            isSelectionTriggerFromGizmoActive = true;
         }
 
         private void SetSelectedItem(Entity? selectedEntity)
