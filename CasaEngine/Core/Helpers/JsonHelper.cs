@@ -14,18 +14,6 @@ public static class JsonHelper
 
     //Load
 
-    public static Viewport GetViewPort(this JsonElement element)
-    {
-        var viewport = new Viewport();
-        viewport.X = element.GetProperty("x").GetInt32();
-        viewport.Y = element.GetProperty("y").GetInt32();
-        viewport.Width = element.GetProperty("width").GetInt32();
-        viewport.Height = element.GetProperty("height").GetInt32();
-        viewport.MinDepth = element.GetProperty("minDepth").GetSingle();
-        viewport.MaxDepth = element.GetProperty("maxDepth").GetSingle();
-        return viewport;
-    }
-
     public static Vector2 GetVector2(this JsonElement element)
     {
         return new Vector2
@@ -65,6 +53,28 @@ public static class JsonHelper
             W = element.GetProperty("w").GetSingle()
         };
     }
+
+    public static Viewport GetViewPort(this JsonElement element)
+    {
+        var viewport = new Viewport();
+        viewport.X = element.GetProperty("x").GetInt32();
+        viewport.Y = element.GetProperty("y").GetInt32();
+        viewport.Width = element.GetProperty("width").GetInt32();
+        viewport.Height = element.GetProperty("height").GetInt32();
+        viewport.MinDepth = element.GetProperty("minDepth").GetSingle();
+        viewport.MaxDepth = element.GetProperty("maxDepth").GetSingle();
+        return viewport;
+    }
+
+    public static VertexPositionNormalTexture GetVertexPositionNormalTexture(this JsonElement element)
+    {
+        var obj = new VertexPositionNormalTexture();
+        obj.Position = element.GetProperty("position").GetVector3();
+        obj.Normal = element.GetProperty("normal").GetVector3();
+        obj.TextureCoordinate = element.GetProperty("textureCoordinate").GetVector2();
+        return obj;
+    }
+
 
     //Save
 
@@ -124,6 +134,21 @@ public static class JsonHelper
         jObject.Add("height", obj.Height);
         jObject.Add("minDepth", obj.MinDepth);
         jObject.Add("maxDepth", obj.MaxDepth);
+    }
+
+    public static void Save(this VertexPositionNormalTexture obj, JObject jObject)
+    {
+        var positionObject = new JObject();
+        obj.Position.Save(positionObject);
+        jObject.Add("position", positionObject);
+
+        var normalObject = new JObject();
+        obj.Normal.Save(normalObject);
+        jObject.Add("normal", normalObject);
+
+        var textureCoordinateObject = new JObject();
+        obj.TextureCoordinate.Save(textureCoordinateObject);
+        jObject.Add("textureCoordinate", textureCoordinateObject);
     }
 
     public static string? ConvertToString(this Enum value)

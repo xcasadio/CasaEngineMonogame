@@ -55,7 +55,13 @@ public class StaticMeshComponent : Component
 
     public override void Load(JsonElement element)
     {
-        throw new NotImplementedException();
+        var meshElement = element.GetProperty("mesh");
+
+        if (meshElement.ToString() != "null")
+        {
+            _mesh = new StaticMesh();
+            _mesh.Load(meshElement);
+        }
     }
 
 #if EDITOR
@@ -65,8 +71,15 @@ public class StaticMeshComponent : Component
         base.Save(jObject);
 
         JObject newJObject = new();
-        _mesh.Save(newJObject);
-        jObject.Add("mesh", newJObject);
+        if (Mesh != null)
+        {
+            _mesh.Save(newJObject);
+            jObject.Add("mesh", newJObject);
+        }
+        else
+        {
+            jObject.Add("mesh", "null");
+        }
     }
 #endif
 }

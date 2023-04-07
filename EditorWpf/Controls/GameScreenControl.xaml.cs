@@ -27,10 +27,8 @@ namespace EditorWpf.Controls
 
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
         {
-            //EngineComponents.ProjectManager.Load(fileName_);
-            var path = Path.Combine(EngineComponents.ProjectManager.ProjectPath, "Worlds");
-            GameInfo.Instance.CurrentWorld.Save(path);
-            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved '{Path.Combine(path, GameInfo.Instance.CurrentWorld.Name + ".json")}'");
+            GameInfo.Instance.CurrentWorld.Save();
+            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved '{Path.Combine(EngineComponents.ProjectManager.ProjectPath, GameInfo.Instance.CurrentWorld.Name + ".json")}'");
         }
 
         private void ButtonTranslate_Click(object sender, RoutedEventArgs e)

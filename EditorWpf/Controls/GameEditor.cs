@@ -50,7 +50,7 @@ public class GameEditor : WpfGame
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         //in editor the camera is an element of the world
-        GameInfo.Instance.ActiveCamera.ScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
+        GameInfo.Instance.ActiveCamera?.ScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
         _game?.GameManager.OnScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
         base.OnRenderSizeChanged(sizeInfo);
     }

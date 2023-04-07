@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
+using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework.Graphics;
@@ -8,16 +9,15 @@ namespace CasaEngine.Framework.Assets;
 
 public abstract class Asset : Disposable
 {
-    public event EventHandler? Disposed;
+    //public event EventHandler? Disposed;
 
     private static int _uniqueIdCounter;
 
-    // The asset name.
     private string _name;
 
     public long Id { get; private set; }
 
-    public string FileName { get; protected set; }
+    public string FileName { get; set; }
 
     public string Name
     {
@@ -55,8 +55,16 @@ public abstract class Asset : Disposable
 
     }
 
+    public virtual void Load(JsonElement element)
+    {
+        var version = element.GetJsonPropertyByName("version").Value.GetInt32();
+        Name = element.GetJsonPropertyByName("name").Value.GetString();
+        FileName = element.GetJsonPropertyByName("fileName").Value.GetString();
+        Id = element.GetJsonPropertyByName("id").Value.GetInt32();
+    }
+
 #if EDITOR
-    protected void Save(JObject jObject)
+    public virtual void Save(JObject jObject)
     {
         var assetObject = new JObject(
             new JProperty("version", 1),
@@ -64,7 +72,7 @@ public abstract class Asset : Disposable
             new JProperty("name", Name),
             new JProperty("fileName", FileName));
 
-        jObject.Add("Asset", assetObject);
+        jObject.Add("asset", assetObject);
     }
 #endif
 }

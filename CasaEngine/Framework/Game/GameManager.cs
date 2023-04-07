@@ -150,7 +150,6 @@ public class GameManager
 
     public void EndLoadContent()
     {
-#if !EDITOR
         if (GameInfo.Instance.CurrentWorld == null)
         {
             if (string.IsNullOrWhiteSpace(EngineComponents.ProjectSettings.FirstWorldLoaded))
@@ -161,21 +160,19 @@ public class GameManager
             GameInfo.Instance.CurrentWorld = new World.World();
             GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
         }
-#else
-        //default world
-        GameInfo.Instance.CurrentWorld = new World.World();
 
+#if EDITOR
+        //in editor the active camera is debug camera and it isn't belong to the world
         var entity = new Entity { Name = "Camera" };
         var camera = new ArcBallCameraComponent(entity);
         entity.ComponentManager.Components.Add(camera);
         GameInfo.Instance.ActiveCamera = camera;
         camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         camera.Initialize();
-        //GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
+#endif
 
         //TEST
-        //var world = new World.World();
-        //GameInfo.Instance.CurrentWorld = world;
+        //var world = GameInfo.Instance.CurrentWorld;
         //
         //var entity = new Entity();
         //entity.Name = "Entity camera";
@@ -209,7 +206,6 @@ public class GameManager
         //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
         //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
         //world.AddObjectImmediately(entity);
-#endif
 
         GameInfo.Instance.CurrentWorld.Initialize();
 

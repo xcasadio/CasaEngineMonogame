@@ -17,9 +17,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TreeView x:Name="treeViewFolders" Grid.Column="0" ItemsSource="{Binding RootFolder.Folders}">
+        <TreeView x:Name="treeViewFolders" Grid.Column="0" ItemsSource="{Binding ContentItems}">
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type contentBrowser:ContentItem}" ItemsSource="{Binding Folders}">
+                <HierarchicalDataTemplate DataType="{x:Type contentBrowser:FolderItem}" ItemsSource="{Binding Folders}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="24"/>
@@ -27,7 +27,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Image Grid.Column="0" Source="/Resources/file-folder-48.png" Width="24" Height="24"/>
-                        <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"/>
+                        <Label Grid.Column="1" Content="{Binding Name}" VerticalAlignment="Center"/>
                     </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>

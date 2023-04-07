@@ -11,11 +11,9 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 {
     public List<ContentItem> ContentItems { get; } = new();
 
-    public FolderItem RootFolder { get; private init; }
-
     public ContentBrowserViewModel()
     {
-        RootFolder = new FolderItem { Name = "" };
+        ContentItems.Add(new FolderItem { Name = "All" });
 
         EngineComponents.ProjectManager.ProjectLoaded += OnProjectLoaded;
         EngineComponents.ProjectManager.ProjectClosed += OnProjectClosed;
@@ -25,10 +23,10 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     {
         Clear();
 
-        ContentItems.Add(RootFolder);
-        AddContent(EngineComponents.ProjectManager.ProjectPath!, RootFolder);
+        var rootFolder = new FolderItem { Name = "All" };
+        ContentItems.Add(rootFolder);
+        AddContent(EngineComponents.ProjectManager.ProjectPath!, rootFolder);
 
-        OnPropertyChanged(nameof(RootFolder));
         OnPropertyChanged(nameof(ContentItems));
     }
 
@@ -40,7 +38,6 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     private void Clear()
     {
         ContentItems.Clear();
-        OnPropertyChanged(nameof(RootFolder));
         OnPropertyChanged(nameof(ContentItems));
     }
 

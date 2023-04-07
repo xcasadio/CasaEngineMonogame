@@ -69,6 +69,8 @@ public class ProjectManager
         ProjectFileOpened = fileName;
 #endif
 
+        EngineComponents.ProjectSettings.Load(fileName);
+
         //var xmlDoc = new XmlDocument();
         //xmlDoc.Load(fileName);
         //
@@ -126,7 +128,10 @@ public class ProjectManager
         var fullFileName = Path.Combine(path, projectName + ".json");
 
         Clear();
+
+        ProjectFileOpened = fullFileName;
         CreateProjectDirectoryHierarchy(path);
+        CreateDefaultItem(projectName, fullFileName);
         Save(fullFileName);
 
         ProjectLoaded?.Invoke(this, EventArgs.Empty);
@@ -138,6 +143,16 @@ public class ProjectManager
 
         }
 #endif
+    }
+
+    private void CreateDefaultItem(string projectName, string fullFileName)
+    {
+        var projectPath = Path.GetDirectoryName(fullFileName);
+        var world = new World.World { Name = "DefaultWorld" };
+        world.FileName = world.Name;
+        world.Save();
+        EngineComponents.ProjectSettings.ProjectName = projectName;
+        EngineComponents.ProjectSettings.FirstWorldLoaded = world.FileName;
     }
 
     private void CreateProjectDirectoryHierarchy(string path)
@@ -156,7 +171,7 @@ public class ProjectManager
 
     public bool Save(string fileName)
     {
-        ProjectFileOpened = fileName;
+        EngineComponents.ProjectSettings.Save(fileName);
 
         //nouveau fichier
         //var xmlDoc = new XmlDocument();

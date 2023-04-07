@@ -1,11 +1,10 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Gameplay.Actor;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace CasaEngine.Framework.World;
 
@@ -110,25 +109,27 @@ public sealed class World : Asset
 
     public void Load(string fileName)
     {
-        Clear();
-
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+        Load(jsonDocument.RootElement);
+    }
 
-        var rootElement = jsonDocument.RootElement;
-        var version = rootElement.GetJsonPropertyByName("Version").Value.GetInt32();
-
-        Name = rootElement.GetJsonPropertyByName("Name").Value.GetString();
-
-        _entities.AddRange(EntityLoader.LoadFromArray(rootElement.GetJsonPropertyByName("Entities").Value));
+    public override void Load(JsonElement element)
+    {
+        Clear();
+        base.Load(element.GetProperty("asset"));
+        var version = element.GetJsonPropertyByName("version").Value.GetInt32();
+        _entities.AddRange(EntityLoader.LoadFromArray(element.GetJsonPropertyByName("entities").Value));
     }
 
 #if EDITOR
-    public void Save(string path)
+    public void Save()
     {
-        var fullFileName = Path.Combine(path, Name + ".json");
+        var fullFileName = Path.Combine(EngineComponents.ProjectManager.ProjectPath, Name + Constants.FileNames.WorldExtension);
+        FileName = fullFileName;
 
         JObject worldJson = new();
         base.Save(worldJson);
+        worldJson.Add("version", 1);
         var entitiesJArray = new JArray();
 
         foreach (var entity in Entities)

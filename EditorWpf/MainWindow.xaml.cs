@@ -10,10 +10,32 @@ namespace EditorWpf
 {
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        private readonly string _projectFileName;
+
+        public MainWindow(string projectFileName)
         {
+            _projectFileName = projectFileName;
             Closing += OnClosing;
+            Loaded += MainWindow_Loaded;
+
             InitializeComponent();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            OpenProject(_projectFileName);
+        }
+
+        private void OpenProject(string projectFileName)
+        {
+            if (!File.Exists(projectFileName))
+            {
+                LogManager.Instance.WriteLineError($"Can't open project {projectFileName}");
+                return;
+            }
+
+            LogManager.Instance.WriteLine($"Project opened {projectFileName}");
+            EngineComponents.ProjectManager.Load(projectFileName);
         }
 
         private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)

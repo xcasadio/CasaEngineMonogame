@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using System.Windows.Forms;
+using MessageBox = System.Windows.MessageBox;
 
 namespace EditorWpf.Windows
 {
@@ -24,7 +26,6 @@ namespace EditorWpf.Windows
             InitializeComponent();
         }
 
-
         private void ButtonSetProjectFolder_OnClick(object sender, RoutedEventArgs e)
         {
             var dialog = new FolderBrowserDialog();
@@ -40,6 +41,24 @@ namespace EditorWpf.Windows
 
         private void ButtonOk_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(ProjectName))
+            {
+                MessageBox.Show("The name of the project cannot be empty.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(ProjectPath))
+            {
+                MessageBox.Show("The name of the project cannot be empty.");
+                return;
+            }
+
+            if (!Directory.Exists(ProjectPath))
+            {
+                MessageBox.Show("The path of the project doesn't exist.");
+                return;
+            }
+
             DialogResult = true;
             Close();
         }
