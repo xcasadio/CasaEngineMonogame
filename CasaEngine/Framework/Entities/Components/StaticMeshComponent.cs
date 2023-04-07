@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using Newtonsoft.Json.Linq;

@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Text.Json;
+using CasaEngine.Core.Helpers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
@@ -8,10 +10,10 @@ public class StaticMesh
 {
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<ushort> _indices = new();
-    public VertexBuffer VertexBuffer { get; private set; }
-    public IndexBuffer IndexBuffer { get; private set; }
+    public VertexBuffer? VertexBuffer { get; private set; }
+    public IndexBuffer? IndexBuffer { get; private set; }
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
-    public Texture2D Texture { get; set; }
+    public Textures.Texture? Texture { get; set; }
 
     public void Initialize(GraphicsDevice graphicsDevice)
     {
@@ -53,6 +55,35 @@ public class StaticMesh
         _indices.AddRange(indices);
     }
 
+    public void Load(JsonElement element)
+    {
+        //base.Save(jObject); //asset ?
+        var version = element.GetProperty("version").GetInt32();
+        PrimitiveType = Enum.Parse<PrimitiveType>(element.GetProperty("primitiveType").GetString());
+
+        var verticesJObject = element.GetProperty("vertices");
+
+        var arrayEnumerator = verticesJObject.EnumerateArray();
+        foreach (var vertex in arrayEnumerator.GetEnumerator())
+        {
+            _vertices.Add(vertex.GetVertexPositionNormalTexture());
+        }
+
+        var indicesJObject = element.GetProperty("indices");
+        arrayEnumerator = indicesJObject.EnumerateArray();
+        foreach (var index in arrayEnumerator.GetEnumerator())
+        {
+            _indices.Add(index.GetUInt16());
+        }
+
+        var textureElement = element.GetProperty("texture");
+        if (textureElement.ToString() != "null")
+        {
+            Texture = new Textures.Texture(EngineComponents.Game.GraphicsDevice);
+            Texture.Load(textureElement);
+        }
+    }
+
 #if EDITOR
 
     private bool _isInitialized;
@@ -64,7 +95,38 @@ public class StaticMesh
 
     public void Save(JObject jObject)
     {
-        //TODO
+        //base.Save(jObject); //asset ?
+        jObject.Add("version", 1);
+        jObject.Add("primitiveType", PrimitiveType.ConvertToString());
+
+        var verticesJObject = new JArray();
+        jObject.Add("vertices", verticesJObject);
+
+        foreach (var vertex in _vertices)
+        {
+            var vertexObject = new JObject();
+            vertex.Save(vertexObject);
+            verticesJObject.Add(vertexObject);
+        }
+
+        var indicesJObject = new JArray();
+        jObject.Add("indices", indicesJObject);
+
+        foreach (var index in _indices)
+        {
+            indicesJObject.Add(index);
+        }
+
+        var textureJObject = new JObject();
+        if (Texture != null)
+        {
+            Texture.Save(textureJObject);
+            jObject.Add("texture", textureJObject);
+        }
+        else
+        {
+            jObject.Add("texture", "null");
+        }
     }
 #endif
 }

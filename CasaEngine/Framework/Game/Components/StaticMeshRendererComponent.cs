@@ -38,7 +38,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
             graphicsDevice.SetVertexBuffer(meshInfo.StaticMesh.VertexBuffer);
             graphicsDevice.Indices = meshInfo.StaticMesh.IndexBuffer;
 
-            _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture);
+            _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource);
             _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
 
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)

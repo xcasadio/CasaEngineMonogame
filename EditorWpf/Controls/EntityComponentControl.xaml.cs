@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using CasaEngine.Engine.Physics.Shapes;
+using CasaEngine.Framework.Assets.Textures;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace EditorWpf.Controls
@@ -42,7 +43,8 @@ namespace EditorWpf.Controls
                 var graphicsDevice = EngineComponents.Game.GraphicsDevice;
 
                 staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
-                staticMeshComponent.Mesh.Texture = EngineComponents.Game.Content.Load<Texture2D>("checkboard");
+                staticMeshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(graphicsDevice, "Content\\checkboard.png");
+                //EngineComponents.Game.Content.Load<Texture2D>("checkboard"));
             }
         }
 
@@ -54,10 +56,44 @@ namespace EditorWpf.Controls
                 var physicsComponent = button.DataContext as PhysicsComponent;
 
                 var shape = (Shape)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
+                SetParametersFromBoundingBox(shape, physicsComponent.Owner);
                 shape.Location = physicsComponent.Owner.Position;
                 shape.Orientation = physicsComponent.Owner.Orientation;
 
                 physicsComponent.Shape = shape;
+            }
+        }
+
+        private void SetParametersFromBoundingBox(Shape shape, Entity entity)
+        {
+            switch (shape.Type)
+            {
+                case ShapeType.Compound:
+                    throw new ArgumentOutOfRangeException();
+                    break;
+                case ShapeType.Box:
+                    var box = shape as Box;
+                    box.Width = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
+                    box.Height = entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y;
+                    box.Length = entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z;
+                    break;
+                case ShapeType.Capsule:
+                    var capsule = shape as Capsule;
+                    capsule.Length = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
+                    capsule.Radius = Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z);
+                    break;
+                case ShapeType.Cylinder:
+                    var cylinder = shape as Cylinder;
+                    cylinder.Length = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
+                    cylinder.Radius = Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z);
+                    break;
+                case ShapeType.Sphere:
+                    var sphere = shape as Sphere;
+                    sphere.Radius = Math.Min(entity.BoundingBox.Max.X - entity.BoundingBox.Min.X,
+                        Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }
