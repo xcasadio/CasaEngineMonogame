@@ -1,55 +1,23 @@
-﻿//-----------------------------------------------------------------------------
-// TeapotPrimitive.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
-/// <summary>
-/// Geometric primitive class for drawing teapots.
-/// 
-/// This teapot model was created by Martin Newell and Jim Blinn in 1975.
-/// It consists of ten cubic bezier patches, a type of curved surface which
-/// can be tessellated to create triangles at various levels of detail. The
-/// use of curved surfaces allows a smoothly curved, visually interesting,
-/// and instantly recognizable shape to be specified by a tiny amount of
-/// data, which made the teapot a popular test data set for computer graphics
-/// researchers. It has been used in so many papers and demos that many
-/// graphics programmers have come to think of it as a standard geometric
-/// primitive, right up there with cubes and spheres!
-/// </summary>
 public class TeapotPrimitive : BezierPrimitive
 {
-    /// <summary>
-    /// Constructs a new teapot primitive, using default settings.
-    /// </summary>
-    public TeapotPrimitive(GraphicsDevice graphicsDevice)
-        : this(graphicsDevice, 1, 8)
+    public TeapotPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 8)
     {
     }
 
-
-    /// <summary>
-    /// Constructs a new teapot primitive,
-    /// with the specified size and tessellation level.
-    /// </summary>
-    public TeapotPrimitive(GraphicsDevice graphicsDevice,
-        float size, int tessellation)
-        : base(GeometricPrimitiveType.Teapot)
+    public TeapotPrimitive(GraphicsDevice graphicsDevice, float size, int tessellation) : base(GeometricPrimitiveType.Teapot)
     {
         if (tessellation < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(tessellation));
         }
 
-        foreach (var patch in _teapotPatches)
+        foreach (var patch in TeapotPatches)
         {
             // Because the teapot is symmetrical from left to right, we only store
             // data for one side, then tessellate each patch twice, mirroring in X.
@@ -69,13 +37,8 @@ public class TeapotPrimitive : BezierPrimitive
         InitializePrimitive(graphicsDevice);
     }
 
-
-    /// <summary>
-    /// Tessellates the specified bezier patch.
-    /// </summary>
     private void TessellatePatch(TeapotPatch patch, int tessellation, Vector3 scale)
     {
-        // Look up the 16 control points for this patch.
         var controlPoints = new Vector3[16];
 
         for (var i = 0; i < 16; i++)
@@ -84,27 +47,16 @@ public class TeapotPrimitive : BezierPrimitive
             controlPoints[i] = _teapotControlPoints[index] * scale;
         }
 
-        // Is this patch being mirrored?
         var isMirrored = Math.Sign(scale.X) != Math.Sign(scale.Z);
 
-        // Create the index and vertex data.
         CreatePatchIndices(tessellation, isMirrored);
         CreatePatchVertices(controlPoints, tessellation, isMirrored);
     }
 
-
-    /// <summary>
-    /// The teapot model consists of 10 bezier patches. Each patch has 16 control
-    /// points, plus a flag indicating whether it should be mirrored in the Z axis
-    /// as well as in X (all of the teapot is symmetrical from left to right, but
-    /// only some parts are symmetrical from front to back). The control points
-    /// are stored as integer indices into the TeapotControlPoints array.
-    /// </summary>
     private class TeapotPatch
     {
         public readonly int[] Indices;
         public readonly bool MirrorZ;
-
 
         public TeapotPatch(bool mirrorZ, int[] indices)
         {
@@ -115,75 +67,27 @@ public class TeapotPrimitive : BezierPrimitive
         }
     }
 
-
-    /// <summary>
-    /// Static data array defines the bezier patches that make up the teapot.
-    /// </summary>
-    private static TeapotPatch[] _teapotPatches =
+    private static readonly TeapotPatch[] TeapotPatches =
     {
         // Rim.
-        new(true, new int[]
-        {
-            102, 103, 104, 105, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-        }),
-
+        new(true, new[] { 102, 103, 104, 105, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }),
         // Body.
-        new(true, new int[]
-        {
-            12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
-        }),
-
-        new(true, new int[]
-        {
-            24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40
-        }),
-
+        new(true, new[] { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 }),
+        new(true, new[] { 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40 }),
         // Lid.
-        new(true, new int[]
-        {
-            96, 96, 96, 96, 97, 98, 99, 100, 101, 101, 101, 101, 0, 1, 2, 3
-        }),
-
-        new(true, new int[]
-        {
-            0, 1, 2, 3, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117
-        }),
-
+        new(true, new[] { 96, 96, 96, 96, 97, 98, 99, 100, 101, 101, 101, 101, 0, 1, 2, 3 }),
+        new(true, new[] { 0, 1, 2, 3, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117 }),
         // Handle.
-        new(false, new int[]
-        {
-            41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56
-        }),
-
-        new(false, new int[]
-        {
-            53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 28, 65, 66, 67
-        }),
-
+        new(false, new[] { 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56 }),
+        new(false, new[] { 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 28, 65, 66, 67 }),
         // Spout.
-        new(false, new int[]
-        {
-            68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83
-        }),
-
-        new(false, new int[]
-        {
-            80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95
-        }),
-
+        new(false, new[] { 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83 }),
+        new(false, new[] { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95 }),
         // Bottom.
-        new(true, new int[]
-        {
-            118, 118, 118, 118, 124, 122, 119, 121,
-            123, 126, 125, 120, 40, 39, 38, 37
-        }),
+        new(true, new[] { 118, 118, 118, 118, 124, 122, 119, 121, 123, 126, 125, 120, 40, 39, 38, 37 }),
     };
 
-
-    /// <summary>
-    /// Static array defines the control point positions that make up the teapot.
-    /// </summary>
-    private static Vector3[] _teapotControlPoints =
+    private static readonly Vector3[] _teapotControlPoints =
     {
         new(0f, 0.345f, -0.05f),
         new(-0.028f, 0.345f, -0.05f),

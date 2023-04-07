@@ -1,48 +1,23 @@
-﻿//-----------------------------------------------------------------------------
-// Geometric3dPrimitive.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-using CasaEngine.Framework;
+﻿using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
-/// <summary>
-/// Base class for simple geometric primitive models. This provides a vertex
-/// buffer, an index buffer, plus methods for drawing the model. Classes for
-/// specific types of primitive (CubePrimitive, SpherePrimitive, etc.) are
-/// derived from this common base, and use the AddVertex and AddIndex methods
-/// to specify their geometry.
-/// </summary>
 public abstract class GeometricPrimitive : IDisposable
 {
     private GeometricPrimitiveType _type;
 
-    // During the process of constructing a primitive model, vertex
-    // and index data is stored on the CPU in these managed lists.
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<ushort> _indices = new();
 
-    // Once all the geometry has been specified, the InitializePrimitive
-    // method copies the vertex and index data into these buffers, which
-    // store it on the GPU ready for efficient rendering.
     private VertexBuffer _vertexBuffer;
     private IndexBuffer _indexBuffer;
     private BasicEffect _basicEffect;
 
-    /// <summary>
-    /// Gets VertexDeclaration
-    /// </summary>
-    public VertexDeclaration VertexDeclaration => VertexPositionNormalTexture.VertexDeclaration;
+    protected int CurrentVertex => _vertices.Count;
 
-    /// <summary>
-    /// 
-    /// </summary>
     protected GeometricPrimitive(GeometricPrimitiveType type)
     {
         _type = type;
@@ -57,19 +32,11 @@ public abstract class GeometricPrimitive : IDisposable
         return mesh;
     }
 
-    /// <summary>
-    /// Adds a new vertex to the primitive model. This should only be called
-    /// during the initialization process, before InitializePrimitive.
-    /// </summary>
     protected void AddVertex(Vector3 position, Vector3 normal, Vector2 uv)
     {
         _vertices.Add(new VertexPositionNormalTexture(position, normal, uv));
     }
 
-    /// <summary>
-    /// Adds a new index to the primitive model. This should only be called
-    /// during the initialization process, before InitializePrimitive.
-    /// </summary>
     protected void AddIndex(int index)
     {
         if (index > ushort.MaxValue)
@@ -80,16 +47,6 @@ public abstract class GeometricPrimitive : IDisposable
         _indices.Add((ushort)index);
     }
 
-    /// <summary>
-    /// Queries the index of the current vertex. This starts at
-    /// zero, and increments every time AddVertex is called.
-    /// </summary>
-    protected int CurrentVertex => _vertices.Count;
-
-    /// <summary>
-    /// Once all the geometry has been specified by calling AddVertex and AddIndex,
-    /// this method copies the vertex and index data into GPU format buffers, ready
-    /// for efficient rendering.
     protected void InitializePrimitive(GraphicsDevice graphicsDevice)
     {
         _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
@@ -104,26 +61,17 @@ public abstract class GeometricPrimitive : IDisposable
         _basicEffect.PreferPerPixelLighting = true;
     }
 
-    /// <summary>
-    /// Finalizer.
-    /// </summary>
     ~GeometricPrimitive()
     {
         Dispose(false);
     }
 
-    /// <summary>
-    /// Frees resources used by this object.
-    /// </summary>
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Frees resources used by this object.
-    /// </summary>
     protected virtual void Dispose(bool disposing)
     {
         if (!disposing)
@@ -147,10 +95,6 @@ public abstract class GeometricPrimitive : IDisposable
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="effect"></param>
     public void DrawOnlyVertex()
     {
         var graphicsDevice = EngineComponents.Game.GraphicsDevice;

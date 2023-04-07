@@ -1,117 +1,102 @@
-﻿//-----------------------------------------------------------------------------
-// CylinderPrimitive.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
-/// <summary>
-/// Geometric primitive class for drawing cylinders.
-/// </summary>
 public class CylinderPrimitive : GeometricPrimitive
 {
-    /// <summary>
-    /// Constructs a new cylinder primitive, using default settings.
-    /// </summary>
     public CylinderPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 1, 32)
     {
     }
 
-
-    /// <summary>
-    /// Constructs a new cylinder primitive,
-    /// with the specified size and tessellation level.
-    /// </summary>
     public CylinderPrimitive(GraphicsDevice graphicsDevice, float height, float diameter, int tessellation) : base(GeometricPrimitiveType.Cylinder)
     {
         if (tessellation < 3)
         {
-            throw new ArgumentOutOfRangeException(nameof(tessellation));
+            throw new ArgumentOutOfRangeException(nameof(tessellation), "tessellation must be >= 3");
         }
 
         height /= 2;
 
-        var radius = diameter / 2;
+        var topOffset = Vector3.UnitY * height;
+
+        float radius = diameter / 2;
+        int stride = tessellation + 1;
 
         // Create a ring of triangles around the outside of the cylinder.
-        for (var i = 0; i < tessellation; i++)
+        for (int i = 0; i <= tessellation; i++)
         {
-            Vector2 uv;
-            var normal = GetCircleVector(i, tessellation, out uv);
+            var normal = GetCircleVector(i, tessellation);
 
-            AddVertex(normal * radius + Vector3.Up * height, normal, uv);
-            AddVertex(normal * radius + Vector3.Down * height, normal, uv);
+            var sideOffset = normal * radius;
+
+            var textureCoordinate = new Vector2((float)i / tessellation, 0);
+
+            AddVertex(sideOffset + topOffset, normal, textureCoordinate);
+            AddVertex(sideOffset - topOffset, normal, textureCoordinate + Vector2.UnitY);
 
             AddIndex(i * 2);
+            AddIndex((i * 2 + 2) % (stride * 2));
             AddIndex(i * 2 + 1);
-            AddIndex((i * 2 + 2) % (tessellation * 2));
 
             AddIndex(i * 2 + 1);
-            AddIndex((i * 2 + 3) % (tessellation * 2));
-            AddIndex((i * 2 + 2) % (tessellation * 2));
+            AddIndex((i * 2 + 2) % (stride * 2));
+            AddIndex((i * 2 + 3) % (stride * 2));
         }
 
         // Create flat triangle fan caps to seal the top and bottom.
-        CreateCap(tessellation, height, radius, Vector3.Up);
-        CreateCap(tessellation, height, radius, Vector3.Down);
+        CreateCylinderCap(tessellation, height, radius, true);
+        CreateCylinderCap(tessellation, height, radius, false);
 
         InitializePrimitive(graphicsDevice);
     }
 
+    private static Vector3 GetCircleVector(int i, int tessellation)
+    {
+        var angle = (float)(i * 2.0 * Math.PI / tessellation);
+        var dx = (float)Math.Sin(angle);
+        var dz = (float)Math.Cos(angle);
 
-    /// <summary>
-    /// Helper method creates a triangle fan to close the ends of the cylinder.
-    /// </summary>
-    private void CreateCap(int tessellation, float height, float radius, Vector3 normal)
+        return new Vector3(dx, 0, dz);
+    }
+
+    private void CreateCylinderCap(int tessellation, float height, float radius, bool isTop)
     {
         // Create cap indices.
-        for (var i = 0; i < tessellation - 2; i++)
+        for (int i = 0; i < tessellation - 2; i++)
         {
-            if (normal.Y > 0)
+            int i1 = (i + 1) % tessellation;
+            int i2 = (i + 2) % tessellation;
+
+            if (isTop)
             {
-                AddIndex(CurrentVertex);
-                AddIndex(CurrentVertex + (i + 1) % tessellation);
-                AddIndex(CurrentVertex + (i + 2) % tessellation);
+                (i1, i2) = (i2, i1);
             }
-            else
-            {
-                AddIndex(CurrentVertex);
-                AddIndex(CurrentVertex + (i + 2) % tessellation);
-                AddIndex(CurrentVertex + (i + 1) % tessellation);
-            }
+
+            int vbase = CurrentVertex;
+            AddIndex(vbase);
+            AddIndex(vbase + i1);
+            AddIndex(vbase + i2);
+        }
+
+        // Which end of the cylinder is this?
+        var normal = Vector3.UnitY;
+        var textureScale = new Vector2(-0.5f);
+
+        if (!isTop)
+        {
+            normal = -normal;
+            textureScale.X = -textureScale.X;
         }
 
         // Create cap vertices.
-        for (var i = 0; i < tessellation; i++)
+        for (int i = 0; i < tessellation; i++)
         {
-            Vector2 uv;
-            var position = GetCircleVector(i, tessellation, out uv) * radius +
-                           normal * height;
+            var circleVector = GetCircleVector(i, tessellation);
+            var position = (circleVector * radius) + (normal * height);
+            var textureCoordinate = new Vector2(circleVector.X * textureScale.X + 0.5f, circleVector.Z * textureScale.Y + 0.5f);
 
-            AddVertex(position, normal, uv);
+            AddVertex(position, normal, textureCoordinate);
         }
-    }
-
-
-    /// <summary>
-    /// Helper method computes a point on a circle.
-    /// </summary>
-    private static Vector3 GetCircleVector(int i, int tessellation, out Vector2 uv)
-    {
-        var angle = i * MathHelper.TwoPi / tessellation;
-
-        var dx = (float)Math.Cos(angle);
-        var dz = (float)Math.Sin(angle);
-
-        uv = new Vector2(dx, dz);
-        //uv_.Normalize();
-
-        return new Vector3(dx, 0, dz);
     }
 }

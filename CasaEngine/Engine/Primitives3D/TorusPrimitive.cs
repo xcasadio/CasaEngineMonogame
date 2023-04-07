@@ -1,83 +1,63 @@
-﻿//-----------------------------------------------------------------------------
-// TorusPrimitive.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
-/// <summary>
-/// Geometric primitive class for drawing toruses.
-/// </summary>
 public class TorusPrimitive : GeometricPrimitive
 {
-    /// <summary>
-    /// Constructs a new torus primitive, using default settings.
-    /// </summary>
     public TorusPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 0.333f, 32)
     {
     }
 
-    /// <summary>
-    /// Constructs a new torus primitive,
-    /// with the specified size and tessellation level.
-    /// </summary>
-    public TorusPrimitive(GraphicsDevice graphicsDevice, float diameter, float thickness, int tessellation)
-        : base(GeometricPrimitiveType.Torus)
+    public TorusPrimitive(GraphicsDevice graphicsDevice, float diameter, float thickness, int tessellation) : base(GeometricPrimitiveType.Torus)
     {
         if (tessellation < 3)
         {
             throw new ArgumentOutOfRangeException(nameof(tessellation));
         }
 
-        var uv = Vector2.Zero;
+        int stride = tessellation + 1;
 
         // First we loop around the main ring of the torus.
-        for (var i = 0; i < tessellation; i++)
+        for (int i = 0; i <= tessellation; i++)
         {
-            var outerAngle = i * MathHelper.TwoPi / tessellation;
+            float u = (float)i / tessellation;
+
+            float outerAngle = i * MathHelper.TwoPi / tessellation - MathHelper.PiOver2;
 
             // Create a transform matrix that will align geometry to
             // slice perpendicularly though the current ring position.
-            var transform = Matrix.CreateTranslation(diameter / 2, 0, 0) *
-                            Matrix.CreateRotationY(outerAngle);
+            var transform = Matrix.CreateTranslation(diameter / 2, 0, 0) * Matrix.CreateRotationY(outerAngle);
 
             // Now we loop along the other axis, around the side of the tube.
-            for (var j = 0; j < tessellation; j++)
+            for (int j = 0; j <= tessellation; j++)
             {
-                var innerAngle = j * MathHelper.TwoPi / tessellation;
+                float v = 1 - (float)j / tessellation;
 
-                var dx = (float)Math.Cos(innerAngle);
-                var dy = (float)Math.Sin(innerAngle);
+                float innerAngle = j * MathHelper.TwoPi / tessellation + MathHelper.Pi;
+                float dx = (float)Math.Cos(innerAngle), dy = (float)Math.Sin(innerAngle);
 
                 // Create a vertex.
                 var normal = new Vector3(dx, dy, 0);
                 var position = normal * thickness / 2;
+                var textureCoordinate = new Vector2(u, v);
 
-                position = Vector3.Transform(position, transform);
-                normal = Vector3.TransformNormal(normal, transform);
+                Vector3.Transform(ref position, ref transform, out position);
+                Vector3.TransformNormal(ref normal, ref transform, out normal);
 
-                uv.X = (tessellation - 1) / (float)i;
-                uv.Y = (tessellation - 1) / (float)j;
-                uv.Normalize();
-
-                AddVertex(position, normal, uv);
+                AddVertex(position, normal, textureCoordinate);
 
                 // And create indices for two triangles.
-                var nextI = (i + 1) % tessellation;
-                var nextJ = (j + 1) % tessellation;
+                int nextI = (i + 1) % stride;
+                int nextJ = (j + 1) % stride;
 
-                AddIndex(i * tessellation + j);
-                AddIndex(i * tessellation + nextJ);
-                AddIndex(nextI * tessellation + j);
+                AddIndex(i * stride + j);
+                AddIndex(i * stride + nextJ);
+                AddIndex(nextI * stride + j);
 
-                AddIndex(i * tessellation + nextJ);
-                AddIndex(nextI * tessellation + nextJ);
-                AddIndex(nextI * tessellation + j);
+                AddIndex(i * stride + nextJ);
+                AddIndex(nextI * stride + nextJ);
+                AddIndex(nextI * stride + j);
             }
         }
 

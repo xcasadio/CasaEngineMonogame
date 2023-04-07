@@ -5,7 +5,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
@@ -25,7 +24,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
         : base(type)
     {
     }
-
 
     /// <summary>
     /// Creates indices for a patch that is tessellated at the specified level.
@@ -65,7 +63,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
             }
         }
     }
-
 
     /// <summary>
     /// Creates vertices for a patch that is tessellated at the specified level.
@@ -145,7 +142,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
         }
     }
 
-
     /// <summary>
     /// Performs a cubic bezier interpolation between four scalar control
     /// points, returning the value at the specified time (t ranges 0 to 1).
@@ -157,7 +153,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
                p3 * 3 * t * t * (1 - t) +
                p4 * t * t * t;
     }
-
 
     /// <summary>
     /// Performs a cubic bezier interpolation between four Vector3 control
@@ -175,7 +170,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
         return result;
     }
 
-
     /// <summary>
     /// Computes the tangent of a cubic bezier curve at the specified time,
     /// when given four scalar control points.
@@ -187,7 +181,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
                p3 * (2 * t - 3 * t * t) +
                p4 * (t * t);
     }
-
 
     /// <summary>
     /// Computes the tangent of a cubic bezier curve at the specified time,
