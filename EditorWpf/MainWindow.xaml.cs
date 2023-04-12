@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework;
+using CasaEngine.Framework.Game;
 using EditorWpf.Windows;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -11,9 +12,12 @@ namespace EditorWpf
     public partial class MainWindow : Window
     {
         private readonly string _projectFileName;
+        private bool _isWindowLoaded;
+        private bool _isGameReadyToStart;
 
         public MainWindow(string projectFileName)
         {
+            GameInfo.Instance.ReadyToStart += OnGameReadyToStart;
             _projectFileName = projectFileName;
             Closing += OnClosing;
             Loaded += MainWindow_Loaded;
@@ -21,13 +25,26 @@ namespace EditorWpf
             InitializeComponent();
         }
 
+        private void OnGameReadyToStart(object? sender, EventArgs e)
+        {
+            _isGameReadyToStart = true;
+            OpenProject(_projectFileName);
+        }
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            _isWindowLoaded = true;
             OpenProject(_projectFileName);
         }
 
         private void OpenProject(string projectFileName)
         {
+            if (!_isWindowLoaded || !_isGameReadyToStart)
+            {
+                //MessageBox.Show(this, "Open project only after the window is loaded and the game is initialized");
+                return;
+            }
+
             if (!File.Exists(projectFileName))
             {
                 LogManager.Instance.WriteLineError($"Can't open project {projectFileName}");

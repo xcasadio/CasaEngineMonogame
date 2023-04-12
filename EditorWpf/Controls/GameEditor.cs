@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Media;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
@@ -21,14 +22,15 @@ public class GameEditor : WpfGame
         Drop += OnDrop;
     }
 
+    protected override bool CanRender => !string.IsNullOrEmpty(EngineComponents.ProjectSettings.FirstWorldLoaded);
+
     protected override void Initialize()
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
         _game = new CasaEngineGame(graphicsDeviceService);
         _game.GameManager.Initialize();
 
-        _game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)),
-            new MouseStateProvider(new WpfMouse(this)));
+        _game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)), new MouseStateProvider(new WpfMouse(this)));
 
         base.Initialize();
     }

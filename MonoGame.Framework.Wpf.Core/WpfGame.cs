@@ -2,14 +2,13 @@
 
 namespace Microsoft.Xna.Framework
 {
-    /// <summary>
-    /// WpfGame
-    /// </summary>
-    /// <seealso cref="Microsoft.Xna.Framework.D3D11Host" />
     public abstract class WpfGame : D3D11Host
     {
         readonly string _contentDir;
         ContentManager _content;
+
+
+        protected abstract bool CanRender { get; }
 
         protected WpfGame(string contentDir = "Content")
         {
@@ -36,9 +35,16 @@ namespace Microsoft.Xna.Framework
             get => _content;
             set => _content = value ?? throw new ArgumentNullException();
         }
-
-        protected virtual void Draw(GameTime gameTime)
+        protected sealed override void Render(GameTime time)
         {
+            if (!CanRender)
+            {
+                return;
+            }
+
+            // just run as fast as possible, WPF itself is limited to 60 FPS so that's the max we will get
+            Update(time);
+            Draw(time);
         }
 
         protected override void Initialize()
@@ -50,18 +56,8 @@ namespace Microsoft.Xna.Framework
 
         protected virtual void LoadContent() { }
 
-        protected sealed override void Render(GameTime time)
-        {
-            // just run as fast as possible, WPF itself is limited to 60 FPS so that's the max we will get
-            Update(time);
-            Draw(time);
-        }
-
         protected virtual void UnloadContent() { }
-
-        protected virtual void Update(GameTime gameTime)
-        {
-
-        }
+        protected virtual void Update(GameTime gameTime) { }
+        protected virtual void Draw(GameTime gameTime) { }
     }
 }

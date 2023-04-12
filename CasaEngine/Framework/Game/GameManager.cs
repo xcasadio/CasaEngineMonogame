@@ -150,6 +150,7 @@ public class GameManager
 
     public void EndLoadContent()
     {
+#if !EDITOR
         if (GameInfo.Instance.CurrentWorld == null)
         {
             if (string.IsNullOrWhiteSpace(EngineComponents.ProjectSettings.FirstWorldLoaded))
@@ -160,8 +161,7 @@ public class GameManager
             GameInfo.Instance.CurrentWorld = new World.World();
             GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
         }
-
-#if EDITOR
+#else
         //in editor the active camera is debug camera and it isn't belong to the world
         var entity = new Entity { Name = "Camera" };
         var camera = new ArcBallCameraComponent(entity);
@@ -207,13 +207,19 @@ public class GameManager
         //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
         //world.AddObjectImmediately(entity);
 
-        GameInfo.Instance.CurrentWorld.Initialize();
-
-        _physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
     }
 
     public void BeginUpdate(GameTime gameTime)
     {
+        if (GameInfo.Instance.CurrentWorld == null)
+        {
+            //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
+            GameInfo.Instance.CurrentWorld = new World.World();
+            GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
+            GameInfo.Instance.CurrentWorld.Initialize();
+            _physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
+        }
+
 #if !FINAL
         DebugSystem.Instance.TimeRuler.StartFrame();
         DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
@@ -221,7 +227,7 @@ public class GameManager
 
 #if EDITOR
         //In editor the camera is not an entity of the world
-        GameInfo.Instance.ActiveCamera.Update(gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
+        GameInfo.Instance.ActiveCamera?.Update(gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
 #endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))

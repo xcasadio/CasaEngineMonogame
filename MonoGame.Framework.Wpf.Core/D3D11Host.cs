@@ -102,10 +102,8 @@ namespace Microsoft.Xna.Framework
         {
             get
             {
-                if (!_isInDesignMode.HasValue)
-                {
-                    _isInDesignMode = (bool)DependencyPropertyDescriptor.FromProperty(DesignerProperties.IsInDesignModeProperty, typeof(FrameworkElement)).Metadata.DefaultValue;
-                }
+                _isInDesignMode ??= (bool)DependencyPropertyDescriptor
+                    .FromProperty(DesignerProperties.IsInDesignModeProperty, typeof(FrameworkElement)).Metadata.DefaultValue;
 
                 return _isInDesignMode.Value;
             }
