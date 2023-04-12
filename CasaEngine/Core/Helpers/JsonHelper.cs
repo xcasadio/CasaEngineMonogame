@@ -75,6 +75,10 @@ public static class JsonHelper
         return obj;
     }
 
+    public static T GetEnum<T>(this JsonElement element) where T : struct
+    {
+        return Enum.Parse<T>(element.GetString());
+    }
 
     //Save
 

@@ -183,10 +183,59 @@ public class PhysicsComponent : Component
 
     public override void Load(JsonElement element)
     {
+        _physicsType = element.GetJsonPropertyByName("physicsType").Value.GetEnum<PhysicsType>();
 
+        if (PhysicsType == PhysicsType.Dynamic)
+        {
+            _mass = element.GetProperty("mass").GetSingle();
+        }
+
+        var shapeElement = element.GetProperty("shape");
+        if (shapeElement.GetRawText() != "null")
+        {
+            var shapeType = shapeElement.GetProperty("shapeType").GetEnum<ShapeType>();
+
+            Shape shape = shapeType switch
+            {
+                ShapeType.Compound => new ShapeCompound(),
+                ShapeType.Box => new Box(),
+                ShapeType.Capsule => new Capsule(),
+                ShapeType.Cylinder => new Cylinder(),
+                ShapeType.Sphere => new Sphere(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            shape.Load(shapeElement);
+
+            Shape = shape;
+        }
     }
 
 #if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        jObject.Add("physicsType", _physicsType.ConvertToString());
+
+        if (PhysicsType == PhysicsType.Dynamic)
+        {
+            jObject.Add("mass", _mass);
+        }
+
+        if (_shape != null)
+        {
+            JObject newJObject = new();
+            _shape.Save(newJObject);
+            jObject.Add("shape", newJObject);
+        }
+        else
+        {
+            jObject.Add("shape", "null");
+        }
+    }
+
     ~PhysicsComponent()
     {
         Owner.PositionChanged -= OnPositionChanged;
@@ -226,29 +275,6 @@ public class PhysicsComponent : Component
             {
                 _physicsEngineComponent.UpdatePositionAndOrientation(Owner.Position, Owner.Orientation, _bodyHandle.Value);
             }
-        }
-    }
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        jObject.Add("physicsType", _physicsType.ConvertToString());
-
-        if (PhysicsType == PhysicsType.Dynamic)
-        {
-            jObject.Add("mass", _mass);
-        }
-
-        if (_shape == null)
-        {
-            JObject newJObject = new();
-            _shape.Save(newJObject);
-            jObject.Add("shape", newJObject);
-        }
-        else
-        {
-            jObject.Add("shape", "");
         }
     }
 #endif

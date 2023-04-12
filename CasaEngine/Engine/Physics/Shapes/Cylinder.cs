@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace CasaEngine.Engine.Physics.Shapes;
 
@@ -35,6 +36,13 @@ public class Cylinder : Shape
     {
         Radius = 1f;
         Length = 1f;
+    }
+
+    public override void Load(JsonElement element)
+    {
+        base.Load(element);
+        _radius = element.GetProperty("radius").GetSingle();
+        _length = element.GetProperty("length").GetSingle();
     }
 
 #if EDITOR

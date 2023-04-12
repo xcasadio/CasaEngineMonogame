@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace CasaEngine.Engine.Physics.Shapes;
 
@@ -21,6 +22,12 @@ public class Sphere : Shape
     public Sphere() : base(ShapeType.Sphere)
     {
         Radius = 1f;
+    }
+
+    public override void Load(JsonElement element)
+    {
+        base.Load(element);
+        _radius = element.GetProperty("radius").GetSingle();
     }
 
 #if EDITOR

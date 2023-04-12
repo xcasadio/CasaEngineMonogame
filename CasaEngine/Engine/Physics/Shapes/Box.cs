@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace CasaEngine.Engine.Physics.Shapes;
 
@@ -50,6 +51,14 @@ public class Box : Shape
         Width = 1.0f;
         Height = 1.0f;
         Length = 1.0f;
+    }
+
+    public override void Load(JsonElement element)
+    {
+        base.Load(element);
+        _width = element.GetProperty("width").GetSingle();
+        _height = element.GetProperty("height").GetSingle();
+        _length = element.GetProperty("length").GetSingle();
     }
 
 #if EDITOR

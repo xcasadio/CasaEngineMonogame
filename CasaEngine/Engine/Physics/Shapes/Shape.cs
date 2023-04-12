@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -22,18 +23,24 @@ public abstract class Shape
         Type = type;
     }
 
+    public virtual void Load(JsonElement element)
+    {
+        var version = element.GetProperty("version").GetInt32();
+        //Type = element.GetProperty("shapeType").GetEnum<ShapeType>();
+    }
+
 #if EDITOR
+    public virtual void Save(JObject jObject)
+    {
+        jObject.Add("version", 1);
+        jObject.Add("shapeType", Type.ConvertToString());
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    public virtual void Save(JObject jObject)
-    {
-        jObject.Add("version", 1);
-        jObject.Add("shapeType", Type.ConvertToString());
     }
 #endif
 }

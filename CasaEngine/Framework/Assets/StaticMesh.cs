@@ -59,7 +59,7 @@ public class StaticMesh
     {
         //base.Save(jObject); //asset ?
         var version = element.GetProperty("version").GetInt32();
-        PrimitiveType = Enum.Parse<PrimitiveType>(element.GetProperty("primitiveType").GetString());
+        PrimitiveType = element.GetProperty("primitiveType").GetEnum<PrimitiveType>();
 
         var verticesJObject = element.GetProperty("vertices");
 
