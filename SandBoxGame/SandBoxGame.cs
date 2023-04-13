@@ -40,7 +40,7 @@ namespace SandBoxGame
             var meshComponent = new StaticMeshComponent(entity);
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
-            meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
+            meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(GraphicsDevice, "Content\\checkboard.png"); //Content.Load<Texture2D>("checkboard");
             world.AddObjectImmediately(entity);
 
             base.LoadContent();
@@ -49,7 +49,9 @@ namespace SandBoxGame
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
                 Exit();
+            }
 
             // TODO: Add your update logic here
 
