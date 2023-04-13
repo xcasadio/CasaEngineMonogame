@@ -53,7 +53,7 @@ namespace Editor.Map
         private void RunGame()
         {
             m_Game = new MyOwnEditorGame();
-            Renderer2DComponent r = new Renderer2DComponent(m_Game);
+            Renderer2dComponent r = new Renderer2dComponent(m_Game);
             m_Game.AttachedForm = this;
             m_Game.Run();
         }

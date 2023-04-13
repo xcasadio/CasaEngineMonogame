@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.Graphics2D.Tile;
 public abstract class TileLayer
 {
     private GraphicsDeviceManager _graphics;
-    /*private Renderer2DComponent _Renderer2DComponent = null;*/
+    /*private Renderer2dComponent _Renderer2DComponent = null;*/
 
     private Vector2 _worldOffset;
     protected bool VisibilityChanged;
@@ -20,7 +20,7 @@ public abstract class TileLayer
     private Vector2 _displaySize;
     private Color _layerColor = Color.White;
 
-    /*public Renderer2DComponent Renderer2DComponent
+    /*public Renderer2dComponent Renderer2dComponent
     {
 #if EDITOR
         protected 
@@ -82,7 +82,7 @@ public abstract class TileLayer
         get => _worldOffset;
     }
 
-    public TileLayer(Vector2 offset, GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
+    public TileLayer(Vector2 offset, GraphicsDeviceManager graphicsComponent/*, Renderer2dComponent Renderer2DComponent_*/)
     {
 #if !EDITOR
             if (graphicsComponent == null)
@@ -93,7 +93,7 @@ public abstract class TileLayer
 
         /*if (Renderer2DComponent_ == null)
         {
-            throw new ArgumentException("TileLayer() : Renderer2DComponent is null");
+            throw new ArgumentException("TileLayer() : Renderer2dComponent is null");
         }*/
 
         _graphics = graphicsComponent;

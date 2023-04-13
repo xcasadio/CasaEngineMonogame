@@ -31,7 +31,7 @@ public class ScreenManagerComponent
 
     private bool _traceEnabled;
 
-    private Renderer2DComponent _renderer2DComponent;
+    private Renderer2dComponent _renderer2dComponent;
 
 
 
@@ -65,11 +65,11 @@ public class ScreenManagerComponent
 
     public override void Initialize()
     {
-        _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
 
-        if (_renderer2DComponent == null)
+        if (_renderer2dComponent == null)
         {
-            throw new NullReferenceException("Renderer2DComponent is null");
+            throw new NullReferenceException("Renderer2dComponent is null");
         }
 
         _isInitialized = true;
@@ -91,7 +91,7 @@ public class ScreenManagerComponent
         // Tell each of the screens to load their content.
         foreach (var screen in _screens)
         {
-            screen.LoadContent(_renderer2DComponent);
+            screen.LoadContent(_renderer2dComponent);
         }
     }
 
@@ -219,7 +219,7 @@ public class ScreenManagerComponent
         // If we have a graphics device, tell the screen to load content.
         if (_isInitialized)
         {
-            screen.LoadContent(_renderer2DComponent);
+            screen.LoadContent(_renderer2dComponent);
         }
 
         //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenInitialized(screen);
@@ -260,7 +260,7 @@ public class ScreenManagerComponent
     {
         var viewport = GraphicsDevice.Viewport;
 
-        _renderer2DComponent.AddSprite2D(_blankTexture,
+        _renderer2dComponent.AddSprite2D(_blankTexture,
             new Rectangle(0, 0, viewport.Width, viewport.Height),
             Point.Zero, Vector2.Zero, 0.0f, Vector2.One,
             new Color(0, 0, 0, alpha), 0.99f, SpriteEffects.None);

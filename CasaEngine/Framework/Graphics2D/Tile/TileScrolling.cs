@@ -16,7 +16,7 @@ public class TileScrolling
 
 
 
-    public TileScrolling(GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
+    public TileScrolling(GraphicsDeviceManager graphicsComponent/*, Renderer2dComponent Renderer2DComponent_*/)
         : base(Vector2.Zero, graphicsComponent/*, Renderer2DComponent_*/)
     {
     }
@@ -37,7 +37,7 @@ public class TileScrolling
         _visibleTiles.Width = (int)(DisplaySize.X / CameraZoom);
         _visibleTiles.Height = (int)(DisplaySize.Y / CameraZoom);
 
-        //PooItem released in Renderer2DComponent
+        //PooItem released in Renderer2dComponent
         _displaySprites.Clear();
 
         throw new NotImplementedException();
@@ -54,7 +54,7 @@ public class TileScrolling
             {
                 PoolItem<Sprite2D> sprite = Graphics2DPool.ResourcePoolSprite2D.GetItem();
                 sprite.Resource.Clone(s);
-                // = GameInfo.Instance.Asset2DManager.GetSprite2DByID(s.Id);
+                // = GameInfo.Instance.Asset2dManager.GetSprite2DByID(s.Id);
                 sprite.Resource.position = (s.position - CameraPosition) * CameraZoom;
                 sprite.Resource.HotSpot = new Point((int)((float)s.HotSpot.X * CameraZoom), (int)((float)s.HotSpot.Y * CameraZoom));
                 sprite.Resource.Scale = new Vector2(CameraZoom);

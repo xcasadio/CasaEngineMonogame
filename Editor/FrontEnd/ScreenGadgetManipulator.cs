@@ -231,22 +231,22 @@ namespace Editor.FrontEnd
         /// <param name="elapsedTime_"></param>
         public override void DrawGadget(float elapsedTime_)
         {
-            /*Renderer2DComponent.AddBox(m_ScreenGadget.Location.X, m_ScreenGadget.Location.Y, m_ScreenGadget.Width, m_ScreenGadget.Height, Color.Black);
+            /*Renderer2dComponent.AddBox(m_ScreenGadget.Location.X, m_ScreenGadget.Location.Y, m_ScreenGadget.Width, m_ScreenGadget.Height, Color.Black);
 
             //anchors
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X - 3, m_ScreenGadget.Location.Y - 3, 6, 6, Color.Black);
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width - 3, m_ScreenGadget.Location.Y - 3, 6, 6, Color.Black);
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height - 3, 6, 6, Color.Black);
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X - 3, m_ScreenGadget.Location.Y - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width - 3, m_ScreenGadget.Location.Y - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height - 3, 6, 6, Color.Black);
 
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width / 2 - 3, m_ScreenGadget.Location.Y - 3, 6, 6, Color.Black);
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width / 2 - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height - 3, 6, 6, Color.Black);
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height / 2 - 3, 6, 6, Color.Black);
-            Renderer2DComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height / 2 - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width / 2 - 3, m_ScreenGadget.Location.Y - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width / 2 - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height / 2 - 3, 6, 6, Color.Black);
+            Renderer2dComponent.AddBox(m_ScreenGadget.Location.X + m_ScreenGadget.Width - 3, m_ScreenGadget.Location.Y + m_ScreenGadget.Height / 2 - 3, 6, 6, Color.Black);
             */
             foreach (Anchor a in m_Anchors)
             {
-                a.Draw(Renderer2DComponent);
+                a.Draw(Renderer2dComponent);
             }
 
             m_ScreenGadget.DrawGadget(elapsedTime_);

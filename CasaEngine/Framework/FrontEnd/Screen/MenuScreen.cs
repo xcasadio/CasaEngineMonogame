@@ -10,7 +10,7 @@ public class MenuScreen : Screen
     private int _selectedEntry;
     private readonly string _menuTitle;
 
-    private readonly Renderer2DComponent _renderer2DComponent;
+    private readonly Renderer2dComponent _renderer2dComponent;
 
 
 
@@ -25,7 +25,7 @@ public class MenuScreen : Screen
         TransitionOnTime = TimeSpan.FromSeconds(0.5);
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-        _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
     }
 
 
@@ -151,7 +151,7 @@ public class MenuScreen : Screen
 
         titlePosition.Y -= transitionOffset * 100;
 
-        _renderer2DComponent.AddText2D(font, _menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
+        _renderer2dComponent.AddText2d(font, _menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
         //spriteBatch.DrawString(font, menuTitle, titlePosition, titleColor, 0,
         //					   titleOrigin, titleScale, SpriteEffects.None, 0);
 

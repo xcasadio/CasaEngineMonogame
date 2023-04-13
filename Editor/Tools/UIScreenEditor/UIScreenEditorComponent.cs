@@ -15,7 +15,7 @@ namespace Editor.Tools.UIScreenEditor
 
         UIScreenDesigner m_Screen;
         System.Windows.Forms.Control m_Control;
-        //Renderer2DComponent m_Renderer2DComponent;
+        //Renderer2dComponent m_Renderer2DComponent;
         UserInterfaceManager m_UIManager;
         List<Control> m_ControlToAdd = new();
         List<Control> m_ControlToRemove = new();

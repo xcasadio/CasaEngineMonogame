@@ -27,7 +27,7 @@ public class UiScreen : Screen
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
     }
 
-    public override void LoadContent(Renderer2DComponent r)
+    public override void LoadContent(Renderer2dComponent r)
     {
         base.LoadContent(r);
 

@@ -233,7 +233,7 @@ public class Anchor
         _mousePressed = Mouse.GetState().LeftButton == ButtonState.Pressed;
     }
 
-    public void Draw(Renderer2DComponent r)
+    public void Draw(Renderer2dComponent r)
     {
         r.AddBox(_position.X + Offset.X, _position.Y + Offset.Y, Width, Height, Color.Black);
     }

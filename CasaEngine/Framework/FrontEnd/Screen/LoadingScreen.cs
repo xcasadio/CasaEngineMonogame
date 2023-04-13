@@ -12,7 +12,7 @@ public class LoadingScreen
 
     private readonly Screen[] _screensToLoad;
 
-    private readonly Renderer2DComponent _renderer2DComponent;
+    private readonly Renderer2dComponent _renderer2dComponent;
 
 
 
@@ -25,7 +25,7 @@ public class LoadingScreen
 
         TransitionOnTime = TimeSpan.FromSeconds(0.5);
 
-        _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
     }
 
     public static void Load(ScreenManagerComponent screenManager, bool loadingIsSlow,
@@ -107,7 +107,7 @@ public class LoadingScreen
             /*spriteBatch.Begin();
             spriteBatch.DrawString(font, message, textPosition, color);
             spriteBatch.End();*/
-            _renderer2DComponent.AddText2D(EngineComponents.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
+            _renderer2dComponent.AddText2d(EngineComponents.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
         }
     }
 

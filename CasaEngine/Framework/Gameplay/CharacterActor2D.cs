@@ -42,7 +42,7 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
     private int _numberOfDirection = 8;
     private int _animationDirectioMask;
     private readonly Dictionary<int, int> _animationDirectionOffset = new();
-    private Renderer2DComponent _renderer2DComponent;
+    private Renderer2dComponent _renderer2dComponent;
 
     private Body _body;
 
@@ -312,7 +312,7 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
         _fsm = new FiniteStateMachine<CharacterActor2D>(this);
 
 #if !EDITOR
-        _renderer2DComponent = EngineComponents.Game.GetDrawableGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetDrawableGameComponent<Renderer2dComponent>();
 #endif
     }
 
@@ -344,10 +344,10 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
             pair.Value.InitializeEvent();
 
             //sprite
-            //CasaEngine.Game.EngineComponents.Asset2DManager.AddSprite2DToLoadingList(pair.Value);
+            //CasaEngine.Game.EngineComponents.Asset2dManager.AddSprite2DToLoadingList(pair.Value);
         }
 
-        //CasaEngine.Game.EngineComponents.Asset2DManager.LoadLoadingList(CasaEngine.Game.EngineComponents.Game.Content);
+        //CasaEngine.Game.EngineComponents.Asset2dManager.LoadLoadingList(CasaEngine.Game.EngineComponents.Game.Content);
 
         _animation2DPlayer = new Animation2DPlayer(_animations);
         _animation2DPlayer.OnEndAnimationReached += OnEndAnimationReached;
@@ -426,7 +426,7 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
 
     public void Draw(float elapsedTime)
     {
-        _renderer2DComponent.AddSprite2D(
+        _renderer2dComponent.AddSprite2D(
             _animation2DPlayer.CurrentAnimation.CurrentSpriteId,
             Position, 0.0f, Vector2.One, Color.White,
             1 - Position.Y / EngineComponents.Game.GraphicsDevice.Viewport.Height,
@@ -447,14 +447,14 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
         if (DisplayDebugInformation)
         {
             //display HP
-            _renderer2DComponent.AddSprite2D(
+            _renderer2dComponent.AddSprite2D(
                 _whiteTexture,
                 Position + new Vector2(-50.0f, 10.0f),
                 0.0f,
                 new Vector2(100.0f, 5.0f), // scale
                 Color.Red, 0.00001f, SpriteEffects.None);
 
-            _renderer2DComponent.AddSprite2D(
+            _renderer2dComponent.AddSprite2D(
                 _whiteTexture,
                 Position + new Vector2(-50.0f, 10.0f),
                 0.0f,
@@ -467,12 +467,12 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
             {
                 rr.Normalize();
             }
-            _renderer2DComponent.AddLine2D(Position, Position + rr * 80.0f, Color.Blue);
+            _renderer2dComponent.AddLine2d(Position, Position + rr * 80.0f, Color.Blue);
 
             //for debugging State
             /*if (_Controller != null)
             {
-                _Renderer2DComponent.AddText2D(
+                _Renderer2DComponent.AddText2d(
                     CasaEngine.Game.EngineComponents.DefaultSpriteFont,
                     "State : " + _Controller.StateMachine.CurrentState.Name,
                     position + new Vector2(-100.0f, -130.0f),
@@ -481,7 +481,7 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
 
             if (_Body != null)
             {
-                _Renderer2DComponent.AddText2D(
+                _Renderer2DComponent.AddText2d(
                     CasaEngine.Game.EngineComponents.DefaultSpriteFont,
                     "Speed : " + _Body.LinearVelocity.Length(),
                     position + new Vector2(-70.0f, -100.0f),
@@ -813,7 +813,7 @@ public class CharacterActor2D : Actor2D, IFsmCapable<CharacterActor2D>, IRendera
             index++;
         }
 
-        var anim = EngineComponents.Asset2DManager.GetAnimation2DByName(name);
+        var anim = EngineComponents.Asset2dManager.GetAnimation2DByName(name);
 
         if (anim != null)
         {

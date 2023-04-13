@@ -80,7 +80,7 @@ public class ProjectManager
         //CasaEngine.Game.EngineComponents.ProjectSettings.Load(configNode, SaveOption.Editor);
 
         /*XmlElement asset2DNode = (XmlElement)projectNode.SelectSingleNode(NodeAsset2DName);
-        GameInfo.Instance.Asset2DManager.Load(asset2DNode, SaveOption.Editor);
+        GameInfo.Instance.Asset2dManager.Load(asset2DNode, SaveOption.Editor);
 
 #if EDITOR
         XmlElement assetNode = (XmlElement)projectNode.SelectSingleNode(NodeAssetListName);
@@ -111,7 +111,7 @@ public class ProjectManager
     public void Clear()
     {
         EngineComponents.AssetManager.Clear();
-        EngineComponents.Asset2DManager.Clear();
+        EngineComponents.Asset2dManager.Clear();
         EngineComponents.ExternalToolManager.Clear();
         ProjectFileOpened = null;
 
@@ -204,7 +204,7 @@ public class ProjectManager
 
         /*XmlElement assetNode = xmlDoc.CreateElement(NodeAsset2DName);
         projectNode.AppendChild(assetNode);
-        GameInfo.Instance.Asset2DManager.Save(assetNode, SaveOption.Editor);*/
+        GameInfo.Instance.Asset2dManager.Save(assetNode, SaveOption.Editor);*/
 
         /*XmlElement asset3DNode = xmlDoc.CreateElement("Asset3D");
         projectNode.AppendChild(asset3DNode);

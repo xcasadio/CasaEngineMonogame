@@ -23,7 +23,7 @@ namespace CasaEngine.Framework
         public static string[] Arguments { get; set; }
         public static GraphicsDeviceManager GraphicsDeviceManager => (GraphicsDeviceManager)Game.GetService<IGraphicsDeviceManager>();
         public static AssetContentManager AssetContentManager { get; internal set; } = new();
-        public static Asset2DManager Asset2DManager { get; } = new();
+        public static Asset2dManager Asset2dManager { get; } = new();
         public static ProjectManager ProjectManager { get; } = new();
         public static ObjectManager ObjectManager { get; } = new();
         public static ScreenManager ScreenManager { get; } = new();

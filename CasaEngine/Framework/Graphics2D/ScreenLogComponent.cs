@@ -9,7 +9,7 @@ public class ScreenLogComponent
     : DrawableGameComponent
 {
     private readonly List<LogText> _logText = new();
-    private Renderer2DComponent _renderer2DComponent;
+    private Renderer2dComponent _renderer2dComponent;
 
 
 
@@ -72,7 +72,7 @@ public class ScreenLogComponent
 
     protected override void LoadContent()
     {
-        _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
         base.LoadContent();
     }
 
@@ -111,7 +111,7 @@ public class ScreenLogComponent
 
         for (var i = _logText.Count - 1; i >= 0; i--)
         {
-            _renderer2DComponent.AddText2D(_logText[i].SpriteFont, _logText[i].Text, pos, 0.0f, Vector2.One, _logText[i].Color, 0.99f);
+            _renderer2dComponent.AddText2d(_logText[i].SpriteFont, _logText[i].Text, pos, 0.0f, Vector2.One, _logText[i].Color, 0.99f);
             pos.Y -= _logText[i].SpriteFont.MeasureString(_logText[i].Text).Y + 5;
         }
 

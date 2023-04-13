@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace CasaEngine.Framework.Graphics2D;
 
-public class Asset2DManager
+public class Asset2dManager
 {
 
     private readonly Dictionary<int, Sprite2D> _sprite2DList = new();
@@ -38,7 +38,7 @@ public class Asset2DManager
     {
         if (_sprite2DList.ContainsKey(spriteId) == false)
         {
-            throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Sprite2D with the id " + spriteId + " doesn't exist.");
+            throw new ArgumentException("Asset2dManager.AddSprite2DToLoadingList() : Sprite2D with the id " + spriteId + " doesn't exist.");
         }
 
         if (_sprite2DLoadingList.Contains(spriteId) == false)
@@ -51,7 +51,7 @@ public class Asset2DManager
     {
         if (sprite2D == null)
         {
-            throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Sprite2D is null.");
+            throw new ArgumentException("Asset2dManager.AddSprite2DToLoadingList() : Sprite2D is null.");
         }
 
         AddSprite2DToLoadingList(sprite2D.Id);
@@ -61,7 +61,7 @@ public class Asset2DManager
     {
         if (anim2D == null)
         {
-            throw new ArgumentException("Asset2DManager.AddSprite2DToLoadingList() : Animation2D is null.");
+            throw new ArgumentException("Asset2dManager.AddSprite2DToLoadingList() : Animation2D is null.");
         }
 
         foreach (var frame in anim2D.GetFrames())
@@ -295,13 +295,13 @@ public class Asset2DManager
 
         if (tmp == null)
         {
-            throw new ArgumentException("Asset2DManager.RenameAnimation2D() : animation named " + anim2DName + "doesn't exist.");
+            throw new ArgumentException("Asset2dManager.RenameAnimation2D() : animation named " + anim2DName + "doesn't exist.");
         }
 
         if (IsValidAnimation2DName(newName) == false)
         {
             return false;
-            //throw new ArgumentException("Asset2DManager.RenameAnimation2D() : animation named " + newName_ + " already exist.");
+            //throw new ArgumentException("Asset2dManager.RenameAnimation2D() : animation named " + newName_ + " already exist.");
         }
 
         tmp.Name = newName;

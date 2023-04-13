@@ -19,7 +19,7 @@ public class MenuEntry
 
     private float _selectionFade;
 
-    private readonly Renderer2DComponent _renderer2DComponent;
+    private readonly Renderer2dComponent _renderer2dComponent;
 
 
 
@@ -53,7 +53,7 @@ public class MenuEntry
     {
         _text = text;
 
-        _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
     }
 
 
@@ -106,7 +106,7 @@ public class MenuEntry
 
         //spriteBatch.DrawString(font, text, position, color, 0,
         //                       origin, scale, SpriteEffects.None, 0);
-        _renderer2DComponent.AddText2D(font, _text, position, 0.0f, new Vector2(scale), color, 0.99f);
+        _renderer2dComponent.AddText2d(font, _text, position, 0.0f, new Vector2(scale), color, 0.99f);
     }
 
     public virtual int GetHeight(MenuScreen screen)

@@ -104,7 +104,7 @@ namespace CasaEngine.Framework.Debugger
         // Selecting command history index.
         private int _commandHistoryIndex;
 
-        private Renderer2DComponent _renderer2DComponent;
+        private Renderer2dComponent _renderer2dComponent;
 
         private readonly Color _backgroundColor = new(0, 0, 0, 200);
 
@@ -288,11 +288,11 @@ namespace CasaEngine.Framework.Debugger
 
         protected override void LoadContent()
         {
-            _renderer2DComponent = Game.GetGameComponent<Renderer2DComponent>();
+            _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
 
-            if (_renderer2DComponent == null)
+            if (_renderer2dComponent == null)
             {
-                throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2DComponent is null");
+                throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2dComponent is null");
             }
 
             base.LoadContent();
@@ -631,7 +631,7 @@ namespace CasaEngine.Framework.Debugger
             //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState, mtx);
 
             //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
-            _renderer2DComponent.AddSprite2D(
+            _renderer2dComponent.AddSprite2D(
                 whiteTexture,
                 new Vector2(leftMargin, topMargin), // position
                 0.0f,
@@ -643,7 +643,7 @@ namespace CasaEngine.Framework.Debugger
             foreach (var line in _lines)
             {
                 //spriteBatch.DrawString(font, line, pos, Color.White);
-                _renderer2DComponent.AddText2D(font, line, pos, 0.0f, Vector2.One, Color.White, depth);
+                _renderer2dComponent.AddText2d(font, line, pos, 0.0f, Vector2.One, Color.White, depth);
                 pos.Y += font.LineSpacing;
             }
 
@@ -654,9 +654,9 @@ namespace CasaEngine.Framework.Debugger
 
             // spriteBatch.DrawString(font,
             //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
-            _renderer2DComponent.AddText2D(font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2dComponent.AddText2d(font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
             //spriteBatch.DrawString(font, Cursor, cursorPos, Color.White);
-            _renderer2DComponent.AddText2D(font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2dComponent.AddText2d(font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
 
             //spriteBatch.End();
         }

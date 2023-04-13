@@ -94,7 +94,7 @@ public abstract class Screen : Entity
         internal set => _controllingPlayer = value;
     }
 
-    public Renderer2DComponent Renderer2DComponent
+    public Renderer2dComponent Renderer2dComponent
     {
         get;
         private set;
@@ -110,9 +110,9 @@ public abstract class Screen : Entity
         Load(el, opt);
     }
 
-    public virtual void LoadContent(Renderer2DComponent r)
+    public virtual void LoadContent(Renderer2dComponent r)
     {
-        Renderer2DComponent = r;
+        Renderer2dComponent = r;
     }
 
     public virtual void UnloadContent() { }

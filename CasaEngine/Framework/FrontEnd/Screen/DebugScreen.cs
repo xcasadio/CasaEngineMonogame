@@ -8,7 +8,7 @@ public class DebugScreen : Screen
     private int _selectedEntry = 0;
     private string _menuTitle;
 
-    private Renderer2DComponent _renderer2DComponent;
+    private Renderer2dComponent _renderer2dComponent;
 
     public DebugScreen(string menuTitle, string menuName)
         : base(menuName)
@@ -18,6 +18,6 @@ public class DebugScreen : Screen
         TransitionOnTime = TimeSpan.FromSeconds(0.5);
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
 
-        _renderer2DComponent = EngineComponents.Game.GetGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
     }
 }

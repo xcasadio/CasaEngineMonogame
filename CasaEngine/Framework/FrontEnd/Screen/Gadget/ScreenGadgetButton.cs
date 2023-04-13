@@ -43,7 +43,7 @@ public class ScreenGadgetButton : ScreenGadget
     {
         var area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
 
-        Renderer2DComponent.AddSprite2D(
+        Renderer2dComponent.AddSprite2D(
             WhiteTexture,
             Location,
             0.0f,
@@ -52,7 +52,7 @@ public class ScreenGadgetButton : ScreenGadget
             0.0003f,
             SpriteEffects.None);
 
-        Renderer2DComponent.AddBox(
+        Renderer2dComponent.AddBox(
             Location.X,
             Location.Y,
             Width,
@@ -62,7 +62,7 @@ public class ScreenGadgetButton : ScreenGadget
 
         if (Image != null)
         {
-            Renderer2DComponent.AddSprite2D(
+            Renderer2dComponent.AddSprite2D(
                 Image.Id,
                 Location,
                 0.0f,
@@ -73,7 +73,7 @@ public class ScreenGadgetButton : ScreenGadget
                 area);
         }
 
-        Renderer2DComponent.AddText2D(
+        Renderer2dComponent.AddText2d(
             Font,
             Text,
             Location + Vector2.One * 5,
@@ -92,8 +92,8 @@ public class ScreenGadgetButton : ScreenGadget
 
         if (spriteId != int.MaxValue)
         {
-            Image = EngineComponents.Asset2DManager.GetSprite2DById(spriteId);
-            EngineComponents.Asset2DManager.AddSprite2DToLoadingList(Image);
+            Image = EngineComponents.Asset2dManager.GetSprite2DById(spriteId);
+            EngineComponents.Asset2dManager.AddSprite2DToLoadingList(Image);
         }
 
         SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el.SelectSingleNode("SizeImage").InnerText);

@@ -20,7 +20,7 @@ public abstract class ScreenGadget
     public event EventHandler MouseLeave;
     public event EventHandler SelectedChanged;
 
-    private Renderer2DComponent _renderer2DComponent;
+    private Renderer2dComponent _renderer2dComponent;
     private int _width;
     private int _height;
     private Vector2 _location;
@@ -36,7 +36,7 @@ public abstract class ScreenGadget
 
     protected Texture2D WhiteTexture => _whiteTexture;
 
-    public Renderer2DComponent Renderer2DComponent => _renderer2DComponent;
+    public Renderer2dComponent Renderer2dComponent => _renderer2dComponent;
 
     public bool AutoSize
     {
@@ -135,7 +135,7 @@ public abstract class ScreenGadget
 
     public virtual void Initialize(Microsoft.Xna.Framework.Game game)
     {
-        _renderer2DComponent = game.GetDrawableGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = game.GetDrawableGameComponent<Renderer2dComponent>();
 
         //TODO : faire autrement
         _whiteTexture = new Texture2D(game.GraphicsDevice, 1, 1);

@@ -28,7 +28,7 @@ public class AnimatedSpriteActor : Actor2D, IRenderable
 
     private Dictionary<int, Animation2D> _animations = new();
     private Animation2DPlayer _animation2DPlayer;
-    private Renderer2DComponent _renderer2DComponent;
+    private Renderer2dComponent _renderer2dComponent;
 
 
 
@@ -86,7 +86,7 @@ public class AnimatedSpriteActor : Actor2D, IRenderable
         }
 
         _animation2DPlayer = new Animation2DPlayer(_animations);
-        _renderer2DComponent = src._renderer2DComponent;
+        _renderer2dComponent = src._renderer2dComponent;
     }
 
     public override void Update(float elapsedTime)
@@ -96,7 +96,7 @@ public class AnimatedSpriteActor : Actor2D, IRenderable
 
     public virtual void Draw(float elapsedTime)
     {
-        _renderer2DComponent.AddSprite2D(
+        _renderer2dComponent.AddSprite2D(
             _animation2DPlayer.CurrentAnimation.CurrentSpriteId,
             Position, 0.0f, Vector2.One, Color.White,
             1 - Position.Y / EngineComponents.Game.GraphicsDevice.Viewport.Height,
@@ -113,7 +113,7 @@ public class AnimatedSpriteActor : Actor2D, IRenderable
 
         foreach (XmlNode node in animListNode.ChildNodes)
         {
-            var anim2d = EngineComponents.Asset2DManager.GetAnimation2DByName(node.Attributes["name"].Value);
+            var anim2d = EngineComponents.Asset2dManager.GetAnimation2DByName(node.Attributes["name"].Value);
             if (anim2d != null)
             {
                 _animations.Add(int.Parse(node.Attributes["index"].Value), anim2d);
@@ -143,7 +143,7 @@ public class AnimatedSpriteActor : Actor2D, IRenderable
 
     public virtual void Initialize()
     {
-        _renderer2DComponent = EngineComponents.Game.GetDrawableGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = EngineComponents.Game.GetDrawableGameComponent<Renderer2dComponent>();
     }
 
 }

@@ -15,13 +15,13 @@ namespace CasaEngine.Framework.Game;
 
 public class GameManager
 {
-    private Renderer2DComponent _renderer2DComponent;
-    private ScreenManagerComponent _screenManagerComponent;
-    private InputComponent _inputComponent;
-    private Physics2dDebugViewRendererComponent _physics2dDebugViewRendererComponent;
-    private PhysicsDebugViewRendererComponent _physicsDebugViewRendererComponent;
-    private StaticMeshRendererComponent _staticMeshRendererComponent;
-    private PhysicsEngineComponent _physicsEngine;
+    public InputComponent InputComponent { get; private set; }
+    public Renderer2dComponent Renderer2dComponent { get; private set; }
+    public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
+    public ScreenManagerComponent ManagerComponent { get; private set; }
+    public PhysicsEngineComponent PhysicsEngine { get; private set; }
+    public Physics2dDebugViewRendererComponent Physics2dDebugViewRendererComponent { get; private set; }
+    public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
     private string ProjectFile { get; set; } = string.Empty;
 
@@ -84,17 +84,17 @@ public class GameManager
         var game = EngineComponents.Game;
         DebugSystem.Initialize(game);
 
-        _renderer2DComponent = new Renderer2DComponent(game);
-        _inputComponent = new InputComponent(game);
-        _screenManagerComponent = new ScreenManagerComponent(game);
-        _physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(game);
-        _staticMeshRendererComponent = new StaticMeshRendererComponent(game);
-        _physicsEngine = new PhysicsEngineComponent(game);
+        Renderer2dComponent = new Renderer2dComponent(game);
+        InputComponent = new InputComponent(game);
+        ManagerComponent = new ScreenManagerComponent(game);
+        Physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(game);
+        MeshRendererComponent = new StaticMeshRendererComponent(game);
+        PhysicsEngine = new PhysicsEngineComponent(game);
 
 #if EDITOR
         //In editor mode the game is in idle mode so we don't update physics
-        _physicsEngine.Enabled = false;
-        _physicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(game);
+        PhysicsEngine.Enabled = false;
+        PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(game);
         var gizmoComponent = new GizmoComponent(game);
         var gridComponent = new GridComponent(game);
 #endif
@@ -142,7 +142,7 @@ public class GameManager
         //TODO : defaultSpriteFont
         //GameInfo.Instance.DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
 
-        //_renderer2DComponent.SpriteBatch = EngineComponents.SpriteBatch;
+        //_renderer2dComponent.SpriteBatch = EngineComponents.SpriteBatch;
         //var renderTarget = new RenderTarget2D(EngineComponents.Game.GraphicsDevice, 1024, 768, false,
         //    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
         //EngineComponents.Game.GraphicsDevice.SetRenderTarget(renderTarget);
@@ -161,6 +161,9 @@ public class GameManager
             GameInfo.Instance.CurrentWorld = new World.World();
             GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
         }
+
+        GameInfo.Instance.CurrentWorld.Initialize();
+        _physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
 #else
         //in editor the active camera is debug camera and it isn't belong to the world
         var entity = new Entity { Name = "Camera" };
@@ -217,7 +220,7 @@ public class GameManager
             GameInfo.Instance.CurrentWorld = new World.World();
             GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
             GameInfo.Instance.CurrentWorld.Initialize();
-            _physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
+            Physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
         }
 
 #if !FINAL
@@ -270,7 +273,7 @@ public class GameManager
 #if EDITOR
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
-        _inputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
+        InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
     }
 #endif
 }

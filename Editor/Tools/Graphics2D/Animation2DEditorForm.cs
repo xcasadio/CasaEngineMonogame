@@ -124,7 +124,7 @@ namespace Editor.Tools.Graphics2D
             {
                 //case 0 : index : readonly
                 case 1: // name
-                    //Sprite2D sprite2D = GameInfo.Instance.Asset2DManager.GetSprite2DByName(e.DisplayText);
+                    //Sprite2D sprite2D = GameInfo.Instance.Asset2dManager.GetSprite2DByName(e.DisplayText);
                     //anim2D.SetFrameSprite2D(sprite2D.Id, e.Item.Index);
                     break;
 
@@ -432,7 +432,7 @@ namespace Editor.Tools.Graphics2D
         /// <param name="e"></param>
         private void buttonAddFrame_Click(object sender, EventArgs e)
         {
-            /*string[] sprite2DNames = GameInfo.Instance.Asset2DManager.GetAllSprite2DName();
+            /*string[] sprite2DNames = GameInfo.Instance.Asset2dManager.GetAllSprite2DName();
 
             if (listBoxAnimations.SelectedIndex == -1
                 || sprite2DNames.Length == 0)
@@ -440,9 +440,9 @@ namespace Editor.Tools.Graphics2D
                 return;
             }
 
-            Sprite2D sprite2D = GameInfo.Instance.Asset2DManager.GetSprite2DByName(sprite2DNames[0]);
+            Sprite2D sprite2D = GameInfo.Instance.Asset2dManager.GetSprite2DByName(sprite2DNames[0]);
 
-            Animation2D anim2D = GameInfo.Instance.Asset2DManager.GetAnimation2DByName(listBoxAnimations.SelectedItem as string);
+            Animation2D anim2D = GameInfo.Instance.Asset2dManager.GetAnimation2DByName(listBoxAnimations.SelectedItem as string);
             anim2D.AddFrame(sprite2D.Id, 0.1f, null);
 
             listViewFrame.SelectedItems.Clear();

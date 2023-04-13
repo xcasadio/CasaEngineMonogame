@@ -67,7 +67,7 @@ public sealed class Sprite2DPhysicsManager
 
     /*public void AddSprite2DPhysicsToWorldByID(uint id_)
     {
-        _PhysicToAddInWorld.Add(GameInfo.Instance.Asset2DManager.GetSprite2DByID(id_));
+        _PhysicToAddInWorld.Add(GameInfo.Instance.Asset2dManager.GetSprite2DByID(id_));
     }
 
     public void AddPhysicsToWorld(Genbox.VelcroPhysics.Dynamics.World world_)

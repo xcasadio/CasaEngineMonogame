@@ -42,7 +42,7 @@ public class TileGrid
 
     public TileGrid(int tileWidth, int tileHeight, int numXTiles, int numYTiles,
         Vector2 offset,  /*SpriteSheet tileSheet,*/
-        GraphicsDeviceManager graphicsComponent/*, Renderer2DComponent Renderer2DComponent_*/)
+        GraphicsDeviceManager graphicsComponent/*, Renderer2dComponent Renderer2DComponent_*/)
         : base(offset, graphicsComponent/*, Renderer2DComponent_*/)
     {
         //sheet = tileSheet;
@@ -240,7 +240,7 @@ public class TileGrid
                     //drawing tiles as an offset from the center coordinate
                     /*batch.Draw(sheet.Texture, screenCenter, sourceRect, layerColor,
                         rotationValue, position, scale, SpriteEffects.None, 0.0f);*/
-                    //Renderer2DComponent.AddSprite2D(sprite);
+                    //Renderer2dComponent.AddSprite2D(sprite);
                 }
             }
         }

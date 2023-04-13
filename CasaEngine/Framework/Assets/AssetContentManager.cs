@@ -4,9 +4,7 @@ namespace CasaEngine.Framework.Assets;
 
 public class AssetContentManager
 {
-
     private readonly List<Asset> _assets = new();
-
     private readonly Dictionary<string, Dictionary<string, object>> _loadedAssets = new();
     private readonly Dictionary<Type, IAssetLoader> _assetLoader = new();
 
@@ -33,12 +31,7 @@ public class AssetContentManager
 
     public T Load<T>(string filePath, GraphicsDevice device, string categoryName = "default")
     {
-        Type type = null;
-
-        Dictionary<string, object> categoryAssetList = null;
-
-        //find category
-        if (_loadedAssets.ContainsKey(categoryName))
+        if (_loadedAssets.TryGetValue(categoryName, out var categoryAssetList))
         {
             categoryAssetList = _loadedAssets[categoryName];
         }
@@ -48,32 +41,28 @@ public class AssetContentManager
             _loadedAssets.Add(categoryName, categoryAssetList);
         }
 
-        //find asset
         if (categoryAssetList.ContainsKey(filePath))
         {
             return (T)categoryAssetList[filePath];
         }
-        else
-        {
-            type = typeof(T);
 
-            if (_assetLoader.ContainsKey(type))
-            {
-                var asset = (T)_assetLoader[type].LoadAsset(filePath, device);
-                categoryAssetList.Add(filePath, asset);
-                return asset;
-            }
+        var type = typeof(T);
+
+        if (!_assetLoader.ContainsKey(type))
+        {
+            throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
         }
 
-        throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
+        var asset = (T)_assetLoader[type].LoadAsset(filePath, device);
+        categoryAssetList.Add(filePath, asset);
+        return asset;
+
     }
 
     public void Unload(string categoryName)
     {
-        Dictionary<string, object> categoryAssetList = null;
-
         //find category
-        if (_loadedAssets.ContainsKey(categoryName) == false)
+        if (_loadedAssets.TryGetValue(categoryName, out var categoryAssetList) == false)
         {
             return;
         }
@@ -82,9 +71,9 @@ public class AssetContentManager
 
         foreach (var a in categoryAssetList)
         {
-            if (a.Value is IDisposable)
+            if (a.Value is IDisposable disposable)
             {
-                ((IDisposable)a.Value).Dispose();
+                disposable.Dispose();
             }
         }
 
@@ -125,5 +114,4 @@ public class AssetContentManager
             a.OnDeviceReset(device);
         }
     }
-
 }

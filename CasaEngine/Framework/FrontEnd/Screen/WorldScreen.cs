@@ -20,7 +20,7 @@ public class WorldScreen : Screen
         _world = world;
     }
 
-    public override void LoadContent(Renderer2DComponent r)
+    public override void LoadContent(Renderer2dComponent r)
     {
         base.LoadContent(r);
         // once the load has finished, we use ResetElapsedTime to tell the game's

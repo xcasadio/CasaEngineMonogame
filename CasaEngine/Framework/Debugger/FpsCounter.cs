@@ -48,7 +48,7 @@ public class FpsCounter
     // stringBuilder for FPS counter draw.
     private readonly StringBuilder _stringBuilder = new(16);
 
-    private Renderer2DComponent _renderer2DComponent;
+    private Renderer2dComponent _renderer2dComponent;
 
     private readonly Color _colorBackground = new(0, 0, 0, 128);
 
@@ -97,11 +97,11 @@ public class FpsCounter
 
     protected override void LoadContent()
     {
-        _renderer2DComponent = Game.GetGameComponent<Renderer2DComponent>();
+        _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
 
-        if (_renderer2DComponent == null)
+        if (_renderer2dComponent == null)
         {
-            throw new InvalidOperationException("FpsCounter.LoadContent() : Renderer2DComponent is null");
+            throw new InvalidOperationException("FpsCounter.LoadContent() : Renderer2dComponent is null");
         }
 
         base.LoadContent();
@@ -205,8 +205,8 @@ public class FpsCounter
         var pos = layout.Place(size, 0, 0.1f, Alignment.Center);
 
         // Draw
-        _renderer2DComponent.AddSprite2D(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
-        _renderer2DComponent.AddText2D(EngineComponents.DefaultSpriteFont, _stringBuilder.ToString(),
+        _renderer2dComponent.AddSprite2D(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
+        _renderer2dComponent.AddText2d(EngineComponents.DefaultSpriteFont, _stringBuilder.ToString(),
             pos, 0.0f, Vector2.One, Color.White, 0f);
 
         base.Draw(gameTime);
