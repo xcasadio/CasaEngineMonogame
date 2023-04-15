@@ -62,14 +62,14 @@ public class PhysicsEngineComponent : GameComponent
         //return typeIndex
         var rigidPose = new RigidPose(position, orientation);
         var bodyVelocity = new BodyVelocity(Vector3.Zero, Vector3.Zero);
-        var bodyInertia = physicsInfo.Item2.ComputeInertia(mass);
-        var collidableDescription = new CollidableDescription(physicsInfo.Item1, ContinuousDetection.Continuous());
+        var bodyInertia = physicsInfo.ConvexShape.ComputeInertia(Math.Max(mass, 0.00001f));
+        var collidableDescription = new CollidableDescription(physicsInfo.TypedIndex, ContinuousDetection.Continuous());
         var bodyActivityDescription = new BodyActivityDescription(0.01f);
 
         return PhysicsEngine.Simulation.Bodies.Add(BodyDescription.CreateDynamic(rigidPose, bodyVelocity, bodyInertia, collidableDescription, bodyActivityDescription));
     }
 
-    private (TypedIndex, IConvexShape) ConvertToShape(Shape shape)
+    private (TypedIndex TypedIndex, IConvexShape ConvexShape) ConvertToShape(Shape shape)
     {
         TypedIndex typeIndex;
         IConvexShape convexShape;
@@ -131,7 +131,7 @@ public class PhysicsEngineComponent : GameComponent
         return (staticReference.Pose.Position, staticReference.Pose.Orientation);
     }
 
-    public (Microsoft.Xna.Framework.Vector3, Microsoft.Xna.Framework.Quaternion) GetTransformations(BodyHandle bodyHandle)
+    public (Microsoft.Xna.Framework.Vector3 Position, Microsoft.Xna.Framework.Quaternion Orientation) GetTransformations(BodyHandle bodyHandle)
     {
         var bodyReference = PhysicsEngine.Simulation.Bodies.GetBodyReference(bodyHandle);
         return (bodyReference.Pose.Position, bodyReference.Pose.Orientation);

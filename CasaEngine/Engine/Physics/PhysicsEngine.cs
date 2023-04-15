@@ -103,14 +103,18 @@ public class PhysicsEngine
     public void Initialize()
     {
         var events = new ContactEvents(ThreadDispatcher, BufferPool);
-        Simulation = Simulation.Create(BufferPool, new ContactEventCallbacks(events), new DemoPoseIntegratorCallbacks(new Vector3(0, -10, 0)), new SolveDescription(8, 1));
-        var eventHandler = new EventHandler(Simulation, BufferPool);
+        var gravity = new Vector3(0, -10, 0); //TODO settings
+        Simulation = Simulation.Create(BufferPool,
+            new ContactEventCallbacks(events),
+            new DemoPoseIntegratorCallbacks(gravity),
+            new SolveDescription(8, 1));
+        //var eventHandler = new EventHandler(Simulation, BufferPool);
     }
 
     public void Update(GameTime gameTime)
     {
         //And here's an example of how to use an accumulator to take a number of timesteps of fixed length in response to variable update dt:
-        _timeAccumulator = (float)(gameTime.ElapsedGameTime.TotalMilliseconds / 1000d);
+        _timeAccumulator += (float)(gameTime.ElapsedGameTime.TotalMilliseconds / 1000d);
         var targetTimestepDuration = 1 / 120f;
         while (_timeAccumulator >= targetTimestepDuration)
         {
@@ -327,8 +331,7 @@ public class ContactEvents : IDisposable
     public void Initialize(Simulation simulation)
     {
         this.simulation = simulation;
-        if (pool == null)
-            pool = simulation.BufferPool;
+        pool ??= simulation.BufferPool;
         //threadPools = threadDispatcher != null ? new WorkerBufferPools(pool, threadDispatcher.ThreadCount) : null;
         simulation.Timestepper.BeforeCollisionDetection += SetFreshnessForCurrentActivityStatus;
         listenerIndices = new CollidableProperty<int>(simulation, pool);

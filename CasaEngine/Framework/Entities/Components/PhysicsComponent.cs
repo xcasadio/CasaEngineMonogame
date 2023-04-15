@@ -155,6 +155,13 @@ public class PhysicsComponent : Component
         }
 #endif
 
+        //TODO : remove this
+        if (_shape != null)
+        {
+            _shape.Location = Owner.Coordinates.LocalPosition;
+            _shape.Orientation = Owner.Coordinates.Rotation;
+        }
+
         if (PhysicsType == PhysicsType.Static)
         {
             _staticHandle = _physicsEngineComponent.AddStaticObject(_shape);
@@ -172,8 +179,8 @@ public class PhysicsComponent : Component
         if (_bodyHandle != null)
         {
             var transformations = _physicsEngineComponent.GetTransformations(_bodyHandle.Value);
-            Owner.Coordinates.LocalPosition = transformations.Item1;
-            Owner.Coordinates.LocalRotation = transformations.Item2;
+            Owner.Coordinates.LocalPosition = transformations.Position;
+            Owner.Coordinates.LocalRotation = transformations.Orientation;
         }
 #endif
     }

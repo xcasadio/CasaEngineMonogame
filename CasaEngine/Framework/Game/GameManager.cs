@@ -85,8 +85,10 @@ public class GameManager
 
         PluginManager = new PluginManager(game);
 
+#if EDITOR
         AssetManager = new AssetManager(game);
         ExternalToolManager = new ExternalToolManager(game);
+#endif
     }
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
@@ -201,8 +203,8 @@ public class GameManager
             GameInfo.Instance.CurrentWorld.Load(ProjectSettings.FirstWorldLoaded);
         }
 
-        GameInfo.Instance.CurrentWorld.Initialize();
-        _physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
+        GameInfo.Instance.CurrentWorld.Initialize(_game);
+        //_physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
 #else
         //in editor the active camera is debug camera and it isn't belong to the world
         var entity = new Entity { Name = "Camera" };
