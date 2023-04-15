@@ -108,22 +108,17 @@ public class InputComponent : GameComponent
         // With shift pressed this also results in this keys:
         // ~_|{}:"<>? !@#$%^&*().
         var keyNum = (int)key;
-        if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z ||
-            keyNum >= (int)Keys.D0 && keyNum <= (int)Keys.D9 ||
-            key == Keys.Space || // well, space ^^
-            key == Keys.OemTilde || // `~
-            key == Keys.OemMinus || // -_
-            key == Keys.OemPipe || // \|
-            key == Keys.OemOpenBrackets || // [{
-            key == Keys.OemCloseBrackets || // ]}
-            key == Keys.OemQuotes || // '"
-            key == Keys.OemQuestion || // /?
-            key == Keys.OemPlus) // =+
-        {
-            return false;
-        }
-
-        return true;
+        return (keyNum < (int)Keys.A || keyNum > (int)Keys.Z) &&
+               (keyNum < (int)Keys.D0 || keyNum > (int)Keys.D9) &&
+               key != Keys.Space && // well, space ^^
+               key != Keys.OemTilde && // `~
+               key != Keys.OemMinus && // -_
+               key != Keys.OemPipe && // \|
+               key != Keys.OemOpenBrackets && // [{
+               key != Keys.OemCloseBrackets && // ]}
+               key != Keys.OemQuotes && // '"
+               key != Keys.OemQuestion && // /?
+               key != Keys.OemPlus; // =+
     }
 
     public char KeyToChar(Keys key, bool shiftPressed)
@@ -131,106 +126,36 @@ public class InputComponent : GameComponent
         // If key will not be found, just return space
         var ret = ' ';
         var keyNum = (int)key;
-        if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z)
+        ret = keyNum switch
         {
-            if (shiftPressed)
+            >= (int)Keys.A and <= (int)Keys.Z => shiftPressed ? key.ToString()[0] : key.ToString().ToLower()[0],
+            >= (int)Keys.D0 and <= (int)Keys.D9 when shiftPressed == false => (char)('0' + (keyNum - Keys.D0)),
+            _ => key switch
             {
-                ret = key.ToString()[0];
+                Keys.D1 when shiftPressed => '!',
+                Keys.D2 when shiftPressed => '@',
+                Keys.D3 when shiftPressed => '#',
+                Keys.D4 when shiftPressed => '$',
+                Keys.D5 when shiftPressed => '%',
+                Keys.D6 when shiftPressed => '^',
+                Keys.D7 when shiftPressed => '&',
+                Keys.D8 when shiftPressed => '*',
+                Keys.D9 when shiftPressed => '(',
+                Keys.D0 when shiftPressed => ')',
+                Keys.OemTilde => shiftPressed ? '~' : '`',
+                Keys.OemMinus => shiftPressed ? '_' : '-',
+                Keys.OemPipe => shiftPressed ? '|' : '\\',
+                Keys.OemOpenBrackets => shiftPressed ? '{' : '[',
+                Keys.OemCloseBrackets => shiftPressed ? '}' : ']',
+                Keys.OemSemicolon => shiftPressed ? ':' : ';',
+                Keys.OemQuotes => shiftPressed ? '"' : '\'',
+                Keys.OemComma => shiftPressed ? '<' : '.',
+                Keys.OemPeriod => shiftPressed ? '>' : ',',
+                Keys.OemQuestion => shiftPressed ? '?' : '/',
+                Keys.OemPlus => shiftPressed ? '+' : '=',
+                _ => ret
             }
-            else
-            {
-                ret = key.ToString().ToLower()[0];
-            }
-        }
-        else if (keyNum >= (int)Keys.D0 && keyNum <= (int)Keys.D9 &&
-                 shiftPressed == false)
-        {
-            ret = (char)('0' + (keyNum - Keys.D0));
-        }
-        else if (key == Keys.D1 && shiftPressed)
-        {
-            ret = '!';
-        }
-        else if (key == Keys.D2 && shiftPressed)
-        {
-            ret = '@';
-        }
-        else if (key == Keys.D3 && shiftPressed)
-        {
-            ret = '#';
-        }
-        else if (key == Keys.D4 && shiftPressed)
-        {
-            ret = '$';
-        }
-        else if (key == Keys.D5 && shiftPressed)
-        {
-            ret = '%';
-        }
-        else if (key == Keys.D6 && shiftPressed)
-        {
-            ret = '^';
-        }
-        else if (key == Keys.D7 && shiftPressed)
-        {
-            ret = '&';
-        }
-        else if (key == Keys.D8 && shiftPressed)
-        {
-            ret = '*';
-        }
-        else if (key == Keys.D9 && shiftPressed)
-        {
-            ret = '(';
-        }
-        else if (key == Keys.D0 && shiftPressed)
-        {
-            ret = ')';
-        }
-        else if (key == Keys.OemTilde)
-        {
-            ret = shiftPressed ? '~' : '`';
-        }
-        else if (key == Keys.OemMinus)
-        {
-            ret = shiftPressed ? '_' : '-';
-        }
-        else if (key == Keys.OemPipe)
-        {
-            ret = shiftPressed ? '|' : '\\';
-        }
-        else if (key == Keys.OemOpenBrackets)
-        {
-            ret = shiftPressed ? '{' : '[';
-        }
-        else if (key == Keys.OemCloseBrackets)
-        {
-            ret = shiftPressed ? '}' : ']';
-        }
-        else if (key == Keys.OemSemicolon)
-        {
-            ret = shiftPressed ? ':' : ';';
-        }
-        else if (key == Keys.OemQuotes)
-        {
-            ret = shiftPressed ? '"' : '\'';
-        }
-        else if (key == Keys.OemComma)
-        {
-            ret = shiftPressed ? '<' : '.';
-        }
-        else if (key == Keys.OemPeriod)
-        {
-            ret = shiftPressed ? '>' : ',';
-        }
-        else if (key == Keys.OemQuestion)
-        {
-            ret = shiftPressed ? '?' : '/';
-        }
-        else if (key == Keys.OemPlus)
-        {
-            ret = shiftPressed ? '+' : '=';
-        }
+        };
 
         return ret;
     }
@@ -743,13 +668,13 @@ public class InputComponent : GameComponent
     public override void Update(GameTime gameTime)
     {
 #if !EDITOR
-            // Handle mouse input variables
-            _mouseStateLastFrame = _mouseState;
-            _mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
+        // Handle mouse input variables
+        _mouseStateLastFrame = _mouseState;
+        _mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
 
-            //keysPressedLastFrame = new List<Keys>(keyboardState.GetPressedKeys());
-            _keyboardPreviousState = _keyboardState;
-            _keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        //keysPressedLastFrame = new List<Keys>(keyboardState.GetPressedKeys());
+        _keyboardPreviousState = _keyboardState;
+        _keyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 
 #else
         _keyboardPreviousState = _keyboardState;
@@ -824,16 +749,7 @@ public class InputComponent : GameComponent
         {
             _keysState[j].Time = elapsedTime;
             _keysState[j].Key = enumerator.Current.Key;
-
-            if (IsButtonPressed(_buttonConfiguration.PlayerIndex, enumerator.Current.Value.Buttons))
-            {
-                _keysState[j].State = ButtonState.Pressed;
-            }
-            else
-            {
-                _keysState[j].State = ButtonState.Released;
-            }
-
+            _keysState[j].State = IsButtonPressed(_buttonConfiguration.PlayerIndex, enumerator.Current.Value.Buttons) ? ButtonState.Pressed : ButtonState.Released;
             j++;
         }
 
