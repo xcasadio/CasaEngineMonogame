@@ -4,6 +4,7 @@ using CasaEngine.Engine;
 using CasaEngine.Engine.Physics2D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -62,6 +63,15 @@ public sealed class World : Asset
         {
             entity.Initialize(game);
         }
+
+#if !EDITOR
+        //TODO : remove this, use a script tou set active camera
+        var camera = _entities
+            .Select(x => x.ComponentManager.Components.FirstOrDefault(y => y is CameraComponent) as CameraComponent)
+            .FirstOrDefault(x => x != null);
+
+        GameInfo.Instance.ActiveCamera = camera;
+#endif
 
         Initializing?.Invoke(this, EventArgs.Empty);
     }

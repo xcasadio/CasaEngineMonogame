@@ -78,6 +78,6 @@
                 <Button ToolTip="Launch game" Content="Launch" Click="ButtonLaunchGame_Click" />
             </ToolBar>
         </ToolBarTray>
-        <local:GameEditor  Grid.Row="1" x:Name="GameEditor" AllowDrop="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        <local:GameEditor Grid.Row="1" x:Name="gameEditor" AllowDrop="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
     </Grid>
 </UserControl>

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Windows;
 using CasaEngine.Core.Logger;
-using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
 using EditorWpf.Windows;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;

@@ -209,37 +209,44 @@ public class ArcBallCameraComponent : Camera3dComponent
         //Keyboard
         if (_inputComponent.IsKeyPressed(Keys.Right))
         {
-            rightAxis = -step;
+            rightAxis = step;
         }
         else if (_inputComponent.IsKeyPressed(Keys.Left))
         {
-            rightAxis = step;
+            rightAxis = -step;
         }
 
         if (_inputComponent.IsKeyPressed(Keys.Up))
         {
-            forwardAxis = -step;
+            forwardAxis = step;
         }
         else if (_inputComponent.IsKeyPressed(Keys.Down))
         {
-            forwardAxis = step;
+            forwardAxis = -step;
         }
 
         if (_inputComponent.IsKeyPressed(Keys.PageUp))
         {
-            upAxis = step;
+            upAxis = -step;
         }
         else if (_inputComponent.IsKeyPressed(Keys.PageDown))
         {
-            upAxis = -step;
+            upAxis = step;
         }
 
         if (_inputComponent.MouseRightButtonPressed)
         {
-
             horizontalOrbit = -_inputComponent.MouseXMovement;
-            verticalOrbit = _inputComponent.MouseYMovement;
+            verticalOrbit = -_inputComponent.MouseYMovement;
         }
+
+#if EDITOR
+        rightAxis = -rightAxis;
+        forwardAxis = -forwardAxis;
+        upAxis = -upAxis;
+        //horizontalOrbit = -horizontalOrbit;
+        verticalOrbit = -verticalOrbit;
+#endif
 
         //Touch
         //if (_inputComponent.IsTouchMove(0) == true)

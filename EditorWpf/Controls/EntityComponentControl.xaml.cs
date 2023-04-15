@@ -6,7 +6,6 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Engine.Physics.Shapes;
-using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls
 {

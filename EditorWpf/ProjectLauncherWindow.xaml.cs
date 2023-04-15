@@ -5,7 +5,6 @@ using EditorWpf.Windows;
 using System.Windows;
 using System.Windows.Input;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
 using EditorWpf.Controls;
 
