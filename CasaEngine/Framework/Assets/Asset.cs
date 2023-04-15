@@ -33,14 +33,11 @@ public abstract class Asset : Disposable
 
     protected Asset()
     {
-        // Create a unique ID
         Id = _uniqueIdCounter;
         _uniqueIdCounter++;
-
-        EngineComponents.AssetContentManager.AddAsset(this);
     }
 
-    internal virtual void OnDeviceReset(GraphicsDevice device)
+    internal virtual void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         //override
     }

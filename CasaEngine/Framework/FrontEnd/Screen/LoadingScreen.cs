@@ -4,47 +4,33 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
-public class LoadingScreen
-    : Screen
+public class LoadingScreen : Screen
 {
     private readonly bool _loadingIsSlow;
     private bool _otherScreensAreGone;
 
     private readonly Screen[] _screensToLoad;
 
-    private readonly Renderer2dComponent _renderer2dComponent;
-
-
-
-    private LoadingScreen(ScreenManagerComponent screenManager, bool loadingIsSlow,
-        Screen[] screensToLoad)
+    private LoadingScreen(ScreenManagerComponent screenManager, bool loadingIsSlow, Screen[] screensToLoad)
         : base("LoadingScreen")
     {
         _loadingIsSlow = loadingIsSlow;
         _screensToLoad = screensToLoad;
 
         TransitionOnTime = TimeSpan.FromSeconds(0.5);
-
-        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
     }
 
-    public static void Load(ScreenManagerComponent screenManager, bool loadingIsSlow,
-        PlayerIndex? controllingPlayer,
-        params Screen[] screensToLoad)
+    public static void Load(ScreenManagerComponent screenManager, bool loadingIsSlow, PlayerIndex? controllingPlayer, params Screen[] screensToLoad)
     {
         // Tell all the current screens to transition off.
         foreach (var screen in screenManager.GetScreens())
             screen.ExitScreen();
 
         // Create and activate the loading screen.
-        var loadingScreen = new LoadingScreen(screenManager,
-            loadingIsSlow,
-            screensToLoad);
+        var loadingScreen = new LoadingScreen(screenManager, loadingIsSlow, screensToLoad);
 
         screenManager.AddScreen(loadingScreen, controllingPlayer);
     }
-
-
 
     public override void Update(float elapsedTime, bool otherScreenHasFocus,
         bool coveredByOtherScreen)
@@ -68,7 +54,7 @@ public class LoadingScreen
             // Once the load has finished, we use ResetElapsedTime to tell
             // the  game timing mechanism that we have just finished a very
             // long frame, and that it should not try to catch up.
-            EngineComponents.Game.ResetElapsedTime();
+            ScreenManagerComponent.Game.ResetElapsedTime();
         }
     }
 
@@ -96,9 +82,9 @@ public class LoadingScreen
             const string message = "Loading...";
 
             // Center the text in the viewport.
-            var viewport = EngineComponents.GraphicsDeviceManager.GraphicsDevice.Viewport;
+            var viewport = GameInfo.Instance.ActiveCamera.Viewport;
             var viewportSize = new Vector2(viewport.Width, viewport.Height);
-            var textSize = EngineComponents.DefaultSpriteFont.MeasureString(message);
+            var textSize = Font.MeasureString(message);
             var textPosition = (viewportSize - textSize) / 2;
 
             var color = new Color((byte)255, (byte)255, (byte)255, TransitionAlpha);
@@ -107,7 +93,7 @@ public class LoadingScreen
             /*spriteBatch.Begin();
             spriteBatch.DrawString(font, message, textPosition, color);
             spriteBatch.End();*/
-            _renderer2dComponent.AddText2d(EngineComponents.DefaultSpriteFont, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
+            Renderer2dComponent.AddText2d(Font, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
         }
     }
 

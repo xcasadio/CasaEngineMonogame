@@ -188,10 +188,10 @@ public class ArcBallCameraComponent : Camera3dComponent
         _target = Vector3.Zero;
     }
 
-    public override void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
-        _inputComponent = EngineComponents.Game.GetGameComponent<InputComponent>();
-        base.Initialize();
+        _inputComponent = game.GetGameComponent<InputComponent>();
+        base.Initialize(game);
     }
 
     public override void Update(float elapsedTime)

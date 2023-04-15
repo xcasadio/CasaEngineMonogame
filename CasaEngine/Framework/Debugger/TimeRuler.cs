@@ -571,7 +571,7 @@ namespace CasaEngine.Framework.Debugger
             // Reset update count.
             Interlocked.Exchange(ref updateCount, 0);
 
-            var font = EngineComponents.DefaultSpriteFont;//debugManager.DebugFont;
+            var font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;//debugManager.DebugFont;
             var texture = debugManager.WhiteTexture;
             var depth_ = 0.0f;
 
@@ -583,8 +583,7 @@ namespace CasaEngine.Framework.Debugger
                 if (bar.MarkCount > 0)
                 {
                     height += BarHeight + BarPadding * 2;
-                    maxTime = Math.Max(maxTime,
-                                            bar.Markers[bar.MarkCount - 1].EndTime);
+                    maxTime = Math.Max(maxTime, bar.Markers[bar.MarkCount - 1].EndTime);
                 }
             }
 

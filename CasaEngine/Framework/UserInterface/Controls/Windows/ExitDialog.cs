@@ -11,6 +11,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
+using CasaEngine.Framework.Game;
 using Button = CasaEngine.Framework.UserInterface.Controls.Buttons.Button;
 
 namespace CasaEngine.Framework.UserInterface.Controls.Windows;
@@ -36,7 +37,7 @@ public class ExitDialog : Dialog
         IconVisible = true;
         Resizable = false;
         StayOnTop = true;
-        Text = EngineComponents.Game.Window.Title;
+        Text = userInterfaceManager.Game.Window.Title;
         CenterWindow();
 
         _imageIcon = new ImageBox(UserInterfaceManager)

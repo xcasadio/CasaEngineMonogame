@@ -7,12 +7,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 {
     public GameManager GameManager { get; }
 
-    public CasaEngineGame()
-    {
-        GameManager = new GameManager(this);
-    }
-
-    public CasaEngineGame(IGraphicsDeviceService graphicsDeviceService)
+    public CasaEngineGame(IGraphicsDeviceService? graphicsDeviceService = null)
     {
         GameManager = new GameManager(this, graphicsDeviceService);
     }

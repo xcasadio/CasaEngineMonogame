@@ -45,7 +45,7 @@ namespace Editor.Tools.Font
 
             m_XnaEditorForm = new XnaEditorForm(this);
             m_FontPreviewEditorComponent = new FontPreviewEditorComponent(m_XnaEditorForm.Game);
-            m_XnaEditorForm.Game.Content.RootDirectory = EngineComponents.ProjectManager.ProjectPath;
+            m_XnaEditorForm.Game.Content.RootDirectory = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath;
             m_XnaEditorForm.StartGame();
         }
 

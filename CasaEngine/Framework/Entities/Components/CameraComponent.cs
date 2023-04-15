@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -53,9 +54,14 @@ public abstract class CameraComponent : Component
     {
         _needToComputeProjectionMatrix = true;
         _needToComputeViewMatrix = true;
+    }
 
-        _viewport.Width = EngineComponents.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
-        _viewport.Height = EngineComponents.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
+    public override void Initialize(CasaEngineGame game)
+    {
+        base.Initialize(game);
+
+        _viewport.Width = game.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        _viewport.Height = game.GraphicsDevice.PresentationParameters.BackBufferHeight;
         _viewport.MinDepth = 0.1f;
         _viewport.MaxDepth = 100000.0f;
     }

@@ -5,23 +5,22 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using System.Diagnostics;
 using CasaEngine.Core.Helper;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
+using CasaEngine.Framework.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
-public class ScreenManagerComponent
-    : DrawableGameComponent
+public class ScreenManagerComponent : DrawableGameComponent
 {
     private readonly List<Screen> _screens = new();
     private readonly List<Screen> _screensToUpdate = new();
 
-    private readonly InputState _input = new();
+    private readonly InputState _input;
 
     //SpriteBatch spriteBatch;
     //SpriteFont font;
@@ -33,8 +32,6 @@ public class ScreenManagerComponent
 
     private Renderer2dComponent _renderer2dComponent;
 
-
-
     public bool CanSetVisible => true;
 
     public bool CanSetEnable => true;
@@ -45,15 +42,14 @@ public class ScreenManagerComponent
         set => _traceEnabled = value;
     }
 
-
-
-    public ScreenManagerComponent(Microsoft.Xna.Framework.Game game)
-        : base(game)
+    public ScreenManagerComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         if (game == null)
         {
-            throw new ArgumentException("ScreenManagerComponent : Game is null");
+            throw new ArgumentNullException(nameof(game));
         }
+
+        _input = new InputState(game);
 
         game.Components.Add(this);
 
@@ -61,11 +57,9 @@ public class ScreenManagerComponent
         DrawOrder = (int)ComponentDrawOrder.ScreenManagerComponent;
     }
 
-
-
     public override void Initialize()
     {
-        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
+        _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
 
         if (_renderer2dComponent == null)
         {
@@ -91,7 +85,7 @@ public class ScreenManagerComponent
         // Tell each of the screens to load their content.
         foreach (var screen in _screens)
         {
-            screen.LoadContent(_renderer2dComponent);
+            screen.LoadContent(Game);
         }
     }
 
@@ -109,8 +103,6 @@ public class ScreenManagerComponent
             _blankTexture = null;
         }
     }
-
-
 
     public override void Update(GameTime gameTime)
     {
@@ -192,8 +184,6 @@ public class ScreenManagerComponent
         }
     }
 
-
-
 #if EDITOR
     /*public void LoadStaticAsset(AssetManager assetManager_)
     {
@@ -219,7 +209,7 @@ public class ScreenManagerComponent
         // If we have a graphics device, tell the screen to load content.
         if (_isInitialized)
         {
-            screen.LoadContent(_renderer2dComponent);
+            screen.LoadContent(Game);
         }
 
         //GameHelper.GetGameComponent<Gameplay.Gameplay>(GameInfo.Instance.Game).OnScreenInitialized(screen);

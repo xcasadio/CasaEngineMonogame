@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
@@ -20,7 +21,7 @@ public abstract class Component
         Type = type;
     }
 
-    public virtual void Initialize()
+    public virtual void Initialize(CasaEngineGame game)
     {
 
     }

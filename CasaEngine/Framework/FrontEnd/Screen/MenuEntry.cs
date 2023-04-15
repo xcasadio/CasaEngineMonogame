@@ -5,10 +5,10 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MathHelper = CasaEngine.Core.Helper.MathHelper;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
@@ -20,9 +20,7 @@ public class MenuEntry
     private float _selectionFade;
 
     private readonly Renderer2dComponent _renderer2dComponent;
-
-
-
+    private readonly SpriteFont _font;
 
     public string Text
     {
@@ -30,12 +28,7 @@ public class MenuEntry
         set => _text = value;
     }
 
-
-
-
-
     public event EventHandler<PlayerIndexEventArgs> Selected;
-
 
     protected internal virtual void OnSelectEntry(PlayerIndex playerIndex)
     {
@@ -45,19 +38,13 @@ public class MenuEntry
         }
     }
 
-
-
-
-
-    public MenuEntry(string text)
+    public MenuEntry(string text, Renderer2dComponent renderer2dComponent, SpriteFont font)
     {
         _text = text;
 
-        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
+        _renderer2dComponent = renderer2dComponent;
+        _font = font;
     }
-
-
-
 
     public virtual void Update(MenuScreen screen, bool isSelected,
         float elapsedTime)
@@ -76,7 +63,6 @@ public class MenuEntry
             _selectionFade = Math.Max(_selectionFade - fadeSpeed, 0);
         }
     }
-
 
     public virtual void Draw(MenuScreen screen, Vector2 position,
         bool isSelected, float elapsedTime)
@@ -97,8 +83,8 @@ public class MenuEntry
 
         // Draw text, centered on the middle of each line.
         var screenManager = screen.ScreenManagerComponent;
-        var spriteBatch = EngineComponents.SpriteBatch;
-        var font = EngineComponents.DefaultSpriteFont;
+        var spriteBatch = ((CasaEngineGame)screen.ScreenManagerComponent.Game).GameManager.SpriteBatch;
+        var font = ((CasaEngineGame)screen.ScreenManagerComponent.Game).GameManager.DefaultSpriteFont;
 
         var origin = new Vector2(0, font.LineSpacing / 2);
 
@@ -111,7 +97,7 @@ public class MenuEntry
 
     public virtual int GetHeight(MenuScreen screen)
     {
-        return EngineComponents.DefaultSpriteFont.LineSpacing;
+        return _font.LineSpacing;
     }
 
 }

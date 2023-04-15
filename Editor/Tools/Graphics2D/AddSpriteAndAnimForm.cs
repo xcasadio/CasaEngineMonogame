@@ -111,7 +111,7 @@ namespace Editor.Tools.Graphics2D
             FolderBrowserDialog form = new FolderBrowserDialog();
             form.ShowNewFolderButton = false;
             form.Description = "select a directory";
-            form.SelectedPath = EngineComponents.ProjectManager.ProjectPath;
+            form.SelectedPath = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath;
 
             if (form.ShowDialog(this) == DialogResult.OK)
             {

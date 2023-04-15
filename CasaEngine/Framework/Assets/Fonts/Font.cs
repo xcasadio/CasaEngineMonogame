@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
 using CasaEngine.Editor.Assets;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -19,12 +20,12 @@ public class Font
     private readonly Dictionary<char, FontChar> _charsDic;
     private readonly List<string> _texturesFileNames;
 
-    public GraphicsDevice GraphicsDevice { get; private set; }
+    private GraphicsDevice GraphicsDevice { get; set; }
 
-    public Texture[] Textures
+    public Texture[]? Textures
     {
         get;
-        internal set;
+        private set;
     }
 
     public bool UseKerning
@@ -122,9 +123,9 @@ public class Font
         return new Vector2(width, Common.LineHeight);
     }
 
-    public void LoadTexture(string path, GraphicsDevice graphicsDevice)
+    public void LoadTexture(string path, CasaEngineGame game)
     {
-        GraphicsDevice = graphicsDevice;
+        GraphicsDevice = game.GraphicsDevice;
 
         if (Textures == null)
         {
@@ -135,9 +136,7 @@ public class Font
 
         foreach (var texFileName in _texturesFileNames)
         {
-            //string fileName = path_ + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath + Path.DirectorySeparatorChar + texFileName;
-            //fileName = fileName.Replace(CasaEngine.Game.EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar, "");
-            Textures[i] = new Texture(graphicsDevice, texFileName); //fileName);
+            Textures[i] = new Texture(game.GraphicsDevice, texFileName, game.GameManager.AssetContentManager);
             i++;
         }
 
@@ -145,10 +144,10 @@ public class Font
         string assetFile;
 
 #if EDITOR
-        assetFile = CasaEngine.Game.EngineComponents.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
+        assetFile = Game.GameManager.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
             ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
 #else
-        assetFile = CasaEngine.Game.EngineComponents.Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
+        assetFile = Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
 #endif
 
         if (_Texture2D != null

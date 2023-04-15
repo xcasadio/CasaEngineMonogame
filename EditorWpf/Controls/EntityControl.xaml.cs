@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Editor.Tools;
 using CasaEngine.Framework.Entities;
-using EditorWpf.Controls.Common;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls

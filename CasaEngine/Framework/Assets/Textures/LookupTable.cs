@@ -5,15 +5,15 @@
  Modify by: Schneider, José Ignacio
 */
 
-
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
 public class LookupTable : Asset
 {
+    private readonly AssetContentManager _assetContentManager;
     private static readonly string AssetContentManagerCategoryName = "temp";
-
 
     public GraphicsDevice GraphicsDevice { get; private set; }
 
@@ -23,19 +23,18 @@ public class LookupTable : Asset
 
     public static string[] Filenames { get; private set; }
 
-
-
-    public LookupTable(GraphicsDevice graphicsDevice, string filename)
+    public LookupTable(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager)
     {
-        Name = filename;
-        FileName = EngineComponents.ProjectManager.ProjectPath + filename;
+        _assetContentManager = assetContentManager;
+        Name = Path.GetFileName(filename);
+        FileName = filename;
         if (File.Exists(FileName) == false)
         {
             throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
         }
         try
         {
-            Create(graphicsDevice, filename);
+            Create(graphicsDevice, filename, assetContentManager);
         }
         catch (ObjectDisposedException)
         {
@@ -53,11 +52,9 @@ public class LookupTable : Asset
         FileName = "";
     } // LookupTable
 
-
-
-    private void Create(GraphicsDevice graphicsDevice, string filename)
+    private void Create(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager)
     {
-        var lookupTableTexture2D = new Texture(graphicsDevice, filename);
+        var lookupTableTexture2D = new Texture(graphicsDevice, filename, _assetContentManager);
         // SideSize is inaccurate because Math.Pow is a bad way to calculate cube roots.
         var sideSize = (int)Math.Pow(lookupTableTexture2D.Width * lookupTableTexture2D.Height, 1 / 3.0);
         // hence this second step to snap to nearest power of 2.
@@ -70,12 +67,8 @@ public class LookupTable : Asset
         Resource.Name = filename;
 
         // Dispose the temporal content manager and restore the user content manager.
-        EngineComponents.AssetContentManager.Unload(AssetContentManagerCategoryName);
+        assetContentManager.Unload(AssetContentManagerCategoryName);
     } // Create
-
-
-
-
 
     public static LookupTable Identity(GraphicsDevice graphicsDevice, int size)
     {
@@ -104,9 +97,7 @@ public class LookupTable : Asset
         return lookupTableTexture;
     } // IdentityTexture
 
-
-
-    public static Texture LookupTableToTexture(GraphicsDevice graphicsDevice, LookupTable lookupTable)
+    public static Texture LookupTableToTexture(GraphicsDevice graphicsDevice, LookupTable lookupTable, AssetContentManager assetContentManager)
     {
         // Calculate closest to square proportions for 2d table
         // We assume power-of-two sides, otherwise I don't know
@@ -127,8 +118,6 @@ public class LookupTable : Asset
         return new Texture(lookupTable2DTexture) { Name = lookupTable.Name + "-Texture" };
     } // LookupTextureToTexture
 
-
-
     protected override void DisposeManagedResources()
     {
         // This type of resource can be disposed ignoring the content manager.
@@ -136,9 +125,7 @@ public class LookupTable : Asset
         Resource.Dispose();
     } // DisposeManagedResources
 
-
-
-    internal override void OnDeviceReset(GraphicsDevice device)
+    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         if (string.IsNullOrEmpty(FileName))
         {
@@ -146,12 +133,11 @@ public class LookupTable : Asset
         }
         else
         {
-            Create(device, FileName.Substring(30)); // Removes "Textures\\"
+            Create(device, FileName.Substring(30), assetContentManager); // Removes "Textures\\"
         }
 
         GraphicsDevice = device;
     } // RecreateResource
-
 
 } // LookupTable
 // CasaEngine.Asset

@@ -3,7 +3,7 @@ using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Gameplay.Actor;
+namespace CasaEngine.Framework.Entities;
 
 public class Coordinates
 {

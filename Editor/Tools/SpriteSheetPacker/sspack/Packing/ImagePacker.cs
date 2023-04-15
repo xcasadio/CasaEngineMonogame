@@ -249,7 +249,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
         /// </summary>
         private void LoadSpriteSheetBuildInfo()
         {
-            string buildFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "SpriteSheetBuildInfo.xml";
+            string buildFile = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "SpriteSheetBuildInfo.xml";
 
             if (File.Exists(buildFile) == false)
             {
@@ -286,7 +286,7 @@ namespace Editor.Sprite2DEditor.SpriteSheetPacker.sspack
         /// </summary>
         private void SaveSpriteSheetBuildInfo()
         {
-            string buildFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "SpriteSheetBuildInfo.xml";
+            string buildFile = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.ConfigDirPath + Path.DirectorySeparatorChar + "SpriteSheetBuildInfo.xml";
 
             XmlDocument xmlDoc = new XmlDocument();
             XmlElement elRoot = xmlDoc.AddRootNode("SpriteSheetBuildInfo");

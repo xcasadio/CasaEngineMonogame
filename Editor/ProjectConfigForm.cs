@@ -16,7 +16,7 @@ namespace Editor
 
             InitializeComponent();
 
-            propertyGrid1.SelectedObject = EngineComponents.ProjectSettings;
+            propertyGrid1.SelectedObject = CasaEngineGame.Game.GameManager.ProjectSettings;
         }
 
         private void buttonOK_Click(object sender, EventArgs e)

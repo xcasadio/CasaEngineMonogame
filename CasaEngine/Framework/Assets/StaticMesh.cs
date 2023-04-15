@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -29,6 +30,8 @@ public class StaticMesh
 
         IndexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
+
+        //Texture?.Initialize(graphicsDevice);
 
 #if EDITOR
         _isInitialized = true;
@@ -79,7 +82,7 @@ public class StaticMesh
         var textureElement = element.GetProperty("texture");
         if (textureElement.ToString() != "null")
         {
-            Texture = new Textures.Texture(EngineComponents.Game.GraphicsDevice);
+            Texture = new Textures.Texture();
             Texture.Load(textureElement);
         }
     }

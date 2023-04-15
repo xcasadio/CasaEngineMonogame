@@ -5,7 +5,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Xna.Framework;
@@ -16,13 +15,11 @@ using CasaEngine.Framework.Graphics2D;
 
 namespace CasaEngine.Framework.Debugger;
 
-public class FpsCounter
-    : DrawableGameComponent
+public class FpsCounter : DrawableGameComponent
 #if EDITOR
         , Core.Design.IObservable<FpsCounter>
 #endif
 {
-
     public float Fps { get; private set; }
 
     public float FpsMin { get; private set; }
@@ -34,8 +31,6 @@ public class FpsCounter
     public int TotalNumberOfFrames { get; private set; }
 
     public TimeSpan SampleSpan { get; set; }
-
-
 
     // Reference for debug manager.
     private DebugManager _debugManager;
@@ -59,11 +54,9 @@ public class FpsCounter
     private int _numberOfFpsCount;
 
     private bool _firstCompute = true;
+    private SpriteFont? _font;
 
-
-
-    public FpsCounter(Microsoft.Xna.Framework.Game game)
-        : base(game)
+    public FpsCounter(Microsoft.Xna.Framework.Game game) : base(game)
     {
         SampleSpan = TimeSpan.FromSeconds(1);
 
@@ -73,18 +66,14 @@ public class FpsCounter
 
     public override void Initialize()
     {
-        // Get debug manager from game service.
         _debugManager = DebugSystem.Instance.DebugManager;
 
         if (_debugManager == null)
         {
-            throw new InvalidOperationException("DebugManaer is not registered.");
+            throw new InvalidOperationException("DebugManager is not registered.");
         }
 
-        // Register 'fps' command if debug command is registered as a service.
-        var host = Game.Services.GetService(typeof(IDebugCommandHost)) as IDebugCommandHost;
-
-        if (host != null)
+        if (Game.Services.GetService(typeof(IDebugCommandHost)) is IDebugCommandHost host)
         {
             host.RegisterCommand("fps", "FPS Counter", CommandExecute);
             Visible = false;
@@ -97,6 +86,8 @@ public class FpsCounter
 
     protected override void LoadContent()
     {
+        _font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;
+
         _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
 
         if (_renderer2dComponent == null)
@@ -106,7 +97,6 @@ public class FpsCounter
 
         base.LoadContent();
     }
-
 
     public void Reset()
     {
@@ -142,7 +132,6 @@ public class FpsCounter
             }
         }
     }
-
 
     public override void Update(GameTime gameTime)
     {
@@ -189,30 +178,25 @@ public class FpsCounter
 
     public override void Draw(GameTime gameTime)
     {
-        var font = EngineComponents.DefaultSpriteFont;
-
         // Compute size of border area.
-        var size = font.MeasureString("X");
-        var rc =
-            new Rectangle(0, 0, (int)(size.X * 14f), (int)(size.Y * 1.3f));
+        var size = _font.MeasureString("X");
+        var rc = new Rectangle(0, 0, (int)(size.X * 14f), (int)(size.Y * 1.3f));
 
-        var layout = new Layout(EngineComponents.SpriteBatch.GraphicsDevice.Viewport);
+        var layout = new Layout(((CasaEngineGame)Game).GameManager.SpriteBatch.GraphicsDevice.Viewport);
         rc = layout.Place(rc, 0.01f, 0.01f, Alignment.TopLeft);
 
         // Place FPS string in border area.
-        size = font.MeasureString(_stringBuilder);
+        size = _font.MeasureString(_stringBuilder);
         layout.ClientArea = rc;
         var pos = layout.Place(size, 0, 0.1f, Alignment.Center);
 
         // Draw
         _renderer2dComponent.AddSprite2D(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
-        _renderer2dComponent.AddText2d(EngineComponents.DefaultSpriteFont, _stringBuilder.ToString(),
+        _renderer2dComponent.AddText2d(((CasaEngineGame)Game).GameManager.DefaultSpriteFont, _stringBuilder.ToString(),
             pos, 0.0f, Vector2.One, Color.White, 0f);
 
         base.Draw(gameTime);
     }
-
-
 
     public void RegisterObserver(Core.Design.IObserver<FpsCounter> arg)
     {
@@ -232,5 +216,4 @@ public class FpsCounter
             ob.OnNotify(this);
         }
     }
-
 }

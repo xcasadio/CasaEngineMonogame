@@ -25,7 +25,7 @@ public class PlayerComponent : Component
         _shapeRectangle = new ShapeRectangle((int)owner.Coordinates.Position.X, (int)owner.Coordinates.Position.Y, _width, _height);
     }
 
-    public override void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
     }
 

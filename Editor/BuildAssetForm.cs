@@ -13,7 +13,7 @@ namespace Editor
         {
             InitializeComponent();
 
-            foreach (AssetInfo info in EngineComponents.AssetManager.Assets)
+            foreach (AssetInfo info in CasaEngineGame.Game.GameManager.AssetManager.Assets)
             {
                 ListViewItem item = new ListViewItem(
                     new string[] {
@@ -44,7 +44,7 @@ namespace Editor
         {
             foreach (ListViewItem item in listView1.CheckedItems)
             {
-                EngineComponents.AssetManager.RebuildAsset((AssetInfo)item.Tag);
+                CasaEngineGame.Game.GameManager.AssetManager.RebuildAsset((AssetInfo)item.Tag);
             }
         }
 

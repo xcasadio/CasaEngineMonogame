@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Framework.AI.Navigation;
 
 [Serializable]
-public abstract class MovingObject : Entity
+public abstract class MovingObject : Component
 {
     protected internal Vector3 position;
     protected internal Vector3 velocity;
@@ -18,6 +18,7 @@ public abstract class MovingObject : Entity
     protected internal float maxForce;
     protected internal float maxTurnRate;
     protected internal object meshObject;
+    private PhysicsEngineComponent _physicsEngineComponent;
 
     public Vector3 Position
     {
@@ -81,13 +82,20 @@ public abstract class MovingObject : Entity
         set => meshObject = value;
     }
 
+    protected MovingObject(Entity entity, int type) : base(entity, type)
+    {
+
+    }
+
+    public override void Initialize(CasaEngineGame game)
+    {
+        base.Initialize(game);
+
+        _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>()!;
+    }
+
     public virtual bool CanMoveBetween(Vector3 start, Vector3 end)
     {
-        var physicsEngineComponent = EngineComponents.Game.GetGameComponent<PhysicsEngineComponent>();
-        if (physicsEngineComponent.PhysicsEngine == null)
-        {
-            throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
-        }
-        return !physicsEngineComponent.PhysicsEngine.WorldRayCast(ref start, ref end, look);
+        return _physicsEngineComponent.PhysicsEngine.WorldRayCast(ref start, ref end, look);
     }
 }

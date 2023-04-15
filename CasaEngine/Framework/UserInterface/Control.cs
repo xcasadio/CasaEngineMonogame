@@ -1308,7 +1308,7 @@ public class Control : Disposable
                 {
                     //AssetContentManager userContentManager = AssetContentManager.CurrentContentManager;
                     //AssetContentManager.CurrentContentManager = UserInterfaceManager.UserInterfaceContentManager;
-                    _renderTarget = new RenderTarget(
+                    _renderTarget = new RenderTarget(UserInterfaceManager.AssetContentManager,
                         UserInterfaceManager.GraphicsDevice, new Core.Helpers.Size(w, h, UserInterfaceManager.Screen),
                         SurfaceFormat.Color, false)
                     {

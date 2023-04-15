@@ -12,6 +12,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 
 using System.Xml.Linq;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Documents;
 using Microsoft.Xna.Framework.Graphics;
 using Cursor = CasaEngine.Framework.UserInterface.Cursors.Cursor;
@@ -544,7 +545,7 @@ public class Skin
 
 
 
-    public void LoadSkin(GraphicsDevice graphicsDevice, string skinName)
+    public void LoadSkin(CasaEngineGame game, string skinName)
     {
         CurrentSkinName = skinName;
 
@@ -566,7 +567,7 @@ public class Skin
         {
             skinContentManager.Unload(skinContentManagerCategory);
         }*/
-        EngineComponents.AssetContentManager.Unload(SkinContentManagerCategory);
+        game.GameManager.AssetContentManager.Unload(SkinContentManagerCategory);
 
 
 
@@ -602,7 +603,7 @@ public class Skin
             foreach (var skinFont in Fonts)
             {
                 throw new NotImplementedException();
-                //skinFont.Font = (Font)CasaEngine.Game.EngineComponents.ObjectManager.GetObjectByPath(skinFont.FileName);
+                //skinFont.Font = (Font)GameManager.ObjectManager.GetObjectByPath(skinFont.FileName);
                 //skinFont.Font.LoadTexture("", graphicsDevice);
                 //skinFont.Font = new Font();
                 //skinFont.Font.LoadTexture(fullPath + Path.DirectorySeparatorChar + "Fonts" + Path.DirectorySeparatorChar + skinFont.FileName, graphicsDevice);
@@ -610,15 +611,16 @@ public class Skin
 #if (WINDOWS)
             foreach (var skinCursor in Cursors)
             {
-                skinCursor.Cursor = new Cursor(graphicsDevice,
-                    EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
-                    fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur");
+                skinCursor.Cursor = new Cursor(game.GraphicsDevice,
+                    game.GameManager.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar +
+                    fullPath + Path.DirectorySeparatorChar + "Cursors" + Path.DirectorySeparatorChar + skinCursor.Filename + ".cur",
+                    game.GameManager.AssetContentManager);
             }
 #endif
             foreach (var skinImage in Images)
             {
-                skinImage.Texture = new Texture(graphicsDevice,
-                    fullPath + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar + skinImage.Filename + ".png");
+                var fileName = fullPath + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar + skinImage.Filename + ".png";
+                skinImage.Texture = new Texture(game.GraphicsDevice, fileName, game.GameManager.AssetContentManager);
             }
             foreach (var skinControl in Controls)
             {

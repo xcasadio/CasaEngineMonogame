@@ -26,6 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Size = CasaEngine.Core.Helpers.Size;
 
@@ -33,6 +34,7 @@ namespace CasaEngine.Framework.Assets.Textures;
 
 public sealed class RenderTarget : Texture
 {
+    private readonly AssetContentManager _assetContentManager;
 
     public struct RenderTargetBinding
     {
@@ -61,7 +63,7 @@ public sealed class RenderTarget : Texture
 
     } // RenderTargetBinding
 
-    public enum AntialiasingType
+    public enum AntiAliasingType
     {
         System,
         NoAntialiasing,
@@ -69,7 +71,7 @@ public sealed class RenderTarget : Texture
         FourSamples,
         EightSamples,
         SixtySamples
-    } // AntialiasingType
+    } // AntiAliasingType
 
     // XNA Render target.
     // Why don't use the derived xnaTexture? Good question. I don't remember why I do it.
@@ -103,23 +105,24 @@ public sealed class RenderTarget : Texture
 
     public DepthFormat DepthFormat { get; private set; }
 
-    public AntialiasingType Antialiasing { get; private set; }
+    public AntiAliasingType AntiAliasing { get; private set; }
 
     public bool MipMap { get; private set; }
 
     public static RenderTarget[] CurrentRenderTarget => currentRenderTarget;
 
-    public RenderTarget(GraphicsDevice graphicsDevice, Size size,
+    public RenderTarget(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, Size size,
         SurfaceFormat surfaceFormat, DepthFormat depthFormat,
-        AntialiasingType antialiasingType = AntialiasingType.NoAntialiasing, bool mipMap = false)
+        AntiAliasingType antiAliasingType = AntiAliasingType.NoAntialiasing, bool mipMap = false)
         : base(graphicsDevice)
     {
+        _assetContentManager = assetContentManager;
         Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = depthFormat;
-        Antialiasing = antialiasingType;
+        AntiAliasing = antiAliasingType;
         MipMap = mipMap;
 
         Create();
@@ -127,20 +130,22 @@ public sealed class RenderTarget : Texture
     } // RenderTarget
 
     public RenderTarget(
+        AssetContentManager assetContentManager,
         GraphicsDevice graphicsDevice,
         Size size,
         SurfaceFormat surfaceFormat = SurfaceFormat.Color,
         bool hasDepthBuffer = true,
-        AntialiasingType antialiasingType = AntialiasingType.NoAntialiasing,
+        AntiAliasingType antiAliasingType = AntiAliasingType.NoAntialiasing,
         bool mipMap = false)
         : base(graphicsDevice)
     {
+        _assetContentManager = assetContentManager;
         Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
-        Antialiasing = antialiasingType;
+        AntiAliasing = antiAliasingType;
         MipMap = mipMap;
 
         Create();
@@ -157,7 +162,7 @@ public sealed class RenderTarget : Texture
             // But I assume that the system works in DiscardContents mode so that an XBOX 360 implementation works.
             // What I lose, mostly nothing, because I made my own ZBuffer texture and the stencil buffer is deleted no matter what I do.
             _renderTarget = new RenderTarget2D(GraphicsDevice, Width, Height, MipMap, SurfaceFormat,
-                DepthFormat, CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
+                DepthFormat, CalculateMultiSampleQuality(AntiAliasing), RenderTargetUsage.PlatformContents);
             _alreadyResolved = true;
         }
         catch (Exception e)
@@ -181,11 +186,11 @@ public sealed class RenderTarget : Texture
         {
             // Render Targets don't use content managers.
             _renderTarget.Dispose();
-            OnDeviceReset(GraphicsDevice);
+            OnDeviceReset(GraphicsDevice, _assetContentManager);
         }
     } // OnScreenSizeChanged
 
-    internal override void OnDeviceReset(GraphicsDevice device)
+    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         Create();
         // Redo the bindings
@@ -199,24 +204,24 @@ public sealed class RenderTarget : Texture
         }
     } // RecreateResource
 
-    internal static int CalculateMultiSampleQuality(AntialiasingType antialiasingTypeType)
+    internal static int CalculateMultiSampleQuality(AntiAliasingType antiAliasingTypeType)
     {
-        switch (antialiasingTypeType)
+        switch (antiAliasingTypeType)
         {
-            case AntialiasingType.NoAntialiasing:
+            case AntiAliasingType.NoAntialiasing:
                 return 0;
-            case AntialiasingType.System:
-                return EngineComponents.GraphicsSettings.MultiSampleQuality;
-            case AntialiasingType.TwoSamples:
+            case AntiAliasingType.System:
+                return 0; //GraphicsSettings.MultiSampleQuality;
+            case AntiAliasingType.TwoSamples:
                 return 2;
-            case AntialiasingType.FourSamples:
+            case AntiAliasingType.FourSamples:
                 return 4;
-            case AntialiasingType.EightSamples:
+            case AntiAliasingType.EightSamples:
                 return 8;
-            case AntialiasingType.SixtySamples:
+            case AntiAliasingType.SixtySamples:
                 return 16;
             default:
-                throw new ArgumentException("Render Target error. Antialiasing type doesn't exist (probably a bug).");
+                throw new ArgumentException("Render Target error. AntiAliasing type doesn't exist (probably a bug).");
         }
     } // CalculateMultiSampleQuality
 
@@ -373,21 +378,22 @@ public sealed class RenderTarget : Texture
     // A pool of all render targets.
     private static readonly List<RenderTarget> RenderTargets = new(0);
 
-    public static RenderTarget Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntialiasingType antialiasingType, bool mipMap = false)
+    public static RenderTarget Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice,
+        Size size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntiAliasingType antiAliasingType, bool mipMap = false)
     {
         RenderTarget renderTarget;
         for (var i = 0; i < RenderTargets.Count; i++)
         {
             renderTarget = RenderTargets[i];
             if (renderTarget.Size == size && renderTarget.SurfaceFormat == surfaceFormat &&
-                renderTarget.DepthFormat == depthFormat && renderTarget.Antialiasing == antialiasingType && renderTarget.MipMap == mipMap && !renderTarget._looked)
+                renderTarget.DepthFormat == depthFormat && renderTarget.AntiAliasing == antiAliasingType && renderTarget.MipMap == mipMap && !renderTarget._looked)
             {
                 renderTarget._looked = true;
                 return renderTarget;
             }
         }
         // If there is not one unlook or present we create one.
-        renderTarget = new RenderTarget(graphicsDevice, size, surfaceFormat, depthFormat, antialiasingType, mipMap);
+        renderTarget = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat, depthFormat, antiAliasingType, mipMap);
         RenderTargets.Add(renderTarget);
         renderTarget._looked = true;
         return renderTarget;
@@ -425,7 +431,7 @@ public sealed class RenderTarget : Texture
     // A pool of all multiple render targets.
     private static readonly List<RenderTargetBinding> MultipleRenderTargets = new(0);
 
-    public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
+    public static RenderTargetBinding Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
     {
         RenderTargetBinding renderTargetBinding;
         for (var i = 0; i < MultipleRenderTargets.Count; i++)
@@ -445,15 +451,15 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        var renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat);
-        var renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false);
+        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat1, depthFormat);
+        var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat2, false);
         renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2);
         MultipleRenderTargets.Add(renderTargetBinding);
         renderTargetBinding.RenderTargets[0]._looked = true;
         return renderTargetBinding;
     } // Fetch
 
-    public static RenderTargetBinding Fetch(GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2, SurfaceFormat surfaceFormat3)
+    public static RenderTargetBinding Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2, SurfaceFormat surfaceFormat3)
     {
         RenderTargetBinding renderTargetBinding;
         for (var i = 0; i < MultipleRenderTargets.Count; i++)
@@ -474,9 +480,9 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        var renderTarget1 = new RenderTarget(graphicsDevice, size, surfaceFormat1, depthFormat);
-        var renderTarget2 = new RenderTarget(graphicsDevice, size, surfaceFormat2, false);
-        var renderTarget3 = new RenderTarget(graphicsDevice, size, surfaceFormat3, false);
+        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat1, depthFormat);
+        var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat2, false);
+        var renderTarget3 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat3, false);
         renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2, renderTarget3);
         MultipleRenderTargets.Add(renderTargetBinding);
         renderTargetBinding.RenderTargets[0]._looked = true;

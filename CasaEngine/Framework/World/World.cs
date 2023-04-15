@@ -1,8 +1,10 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
+using CasaEngine.Engine.Physics2D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -24,11 +26,11 @@ public sealed class World : Asset
     public IList<Entity> Entities => _entities;
     public Genbox.VelcroPhysics.Dynamics.World? Physic2dWorld { get; }
 
-    public World(bool usePhysics = true)
+    public World(Physics2dSettings? physics2dSettings = null)
     {
-        if (usePhysics)
+        if (physics2dSettings != null)
         {
-            Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(EngineComponents.Physics2dSettings.Gravity);
+            Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(physics2dSettings.Gravity);
         }
     }
 
@@ -54,11 +56,11 @@ public sealed class World : Asset
 #endif
     }
 
-    public void Initialize()
+    public void Initialize(CasaEngineGame game)
     {
-        foreach (var baseObject in _entities)
+        foreach (var entity in _entities)
         {
-            baseObject.Initialize();
+            entity.Initialize(game);
         }
 
         Initializing?.Invoke(this, EventArgs.Empty);
@@ -119,12 +121,16 @@ public sealed class World : Asset
         base.Load(element.GetProperty("asset"));
         var version = element.GetJsonPropertyByName("version").Value.GetInt32();
         _entities.AddRange(EntityLoader.LoadFromArray(element.GetJsonPropertyByName("entities").Value));
+
+#if EDITOR
+        EntitiesChanged?.Invoke(this, EventArgs.Empty);
+#endif
     }
 
 #if EDITOR
-    public void Save()
+    public void Save(string path)
     {
-        var fullFileName = Path.Combine(EngineComponents.ProjectManager.ProjectPath, Name + Constants.FileNames.WorldExtension);
+        var fullFileName = Path.Combine(path, Name + Constants.FileNames.WorldExtension);
         FileName = fullFileName;
 
         JObject worldJson = new();

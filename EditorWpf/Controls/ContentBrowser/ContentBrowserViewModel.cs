@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
-using CasaEngine.Framework;
+using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls.ContentBrowser;
 
@@ -14,9 +14,14 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     public ContentBrowserViewModel()
     {
         ContentItems.Add(new FolderItem { Name = "All" });
+        GameEditor.GameStarted += OnGameGameStarted;
+    }
 
-        EngineComponents.ProjectManager.ProjectLoaded += OnProjectLoaded;
-        EngineComponents.ProjectManager.ProjectClosed += OnProjectClosed;
+    private void OnGameGameStarted(object? sender, EventArgs e)
+    {
+        var game = (CasaEngineGame)sender;
+        game.GameManager.ProjectManager.ProjectLoaded += OnProjectLoaded;
+        game.GameManager.ProjectManager.ProjectClosed += OnProjectClosed;
     }
 
     private void OnProjectLoaded(object? sender, EventArgs e)
@@ -25,7 +30,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
         var rootFolder = new FolderItem { Name = "All" };
         ContentItems.Add(rootFolder);
-        AddContent(EngineComponents.ProjectManager.ProjectPath!, rootFolder);
+        AddContent(GameEditor.Game.GameManager.ProjectManager.ProjectPath!, rootFolder);
 
         OnPropertyChanged(nameof(ContentItems));
     }

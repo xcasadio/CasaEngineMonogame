@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Media;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
@@ -15,53 +13,55 @@ namespace EditorWpf.Controls;
 
 public class GameEditor : WpfGame
 {
-    private CasaEngineGame? _game;
+    public static event EventHandler? GameStarted;
+
+    public static CasaEngineGame? Game { get; private set; }
 
     public GameEditor()
     {
         Drop += OnDrop;
     }
 
-    protected override bool CanRender => !string.IsNullOrEmpty(EngineComponents.ProjectSettings.FirstWorldLoaded);
+    protected override bool CanRender => !string.IsNullOrEmpty(Game.GameManager.ProjectSettings.FirstWorldLoaded);
 
     protected override void Initialize()
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
-        _game = new CasaEngineGame(graphicsDeviceService);
-        _game.GameManager.Initialize();
+        Game = new CasaEngineGame(graphicsDeviceService);
+        Game.GameManager.Initialize();
 
-        _game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)), new MouseStateProvider(new WpfMouse(this)));
+        Game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)), new MouseStateProvider(new WpfMouse(this)));
 
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
-        _game.GameManager.BeginLoadContent();
+        Game.GameManager.BeginLoadContent();
         base.LoadContent();
-        _game.GameManager.EndLoadContent();
+        Game.GameManager.EndLoadContent();
 
-        foreach (var component in _game.Components)
+        foreach (var component in Game.Components)
         {
             component.Initialize();
         }
 
-        GameInfo.Instance.InvokeReadyToStart(_game);
+        GameStarted?.Invoke(Game, EventArgs.Empty);
     }
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         //in editor the camera is an element of the world
         GameInfo.Instance.ActiveCamera?.ScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
-        _game?.GameManager.OnScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
+        Game?.GameManager.OnScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
         base.OnRenderSizeChanged(sizeInfo);
     }
 
     protected override void Update(GameTime gameTime)
     {
-        _game.GameManager.BeginUpdate(gameTime);
+        Game.GameManager.BeginUpdate(gameTime);
 
-        foreach (var component in _game.Components)
+        foreach (var component in Game.Components)
         {
             if (component is IUpdateable { Enabled: true } updateable)
             {
@@ -70,14 +70,14 @@ public class GameEditor : WpfGame
         }
 
         base.Update(gameTime);
-        _game.GameManager.EndUpdate(gameTime);
+        Game.GameManager.EndUpdate(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        _game.GameManager.BeginDraw(gameTime);
+        Game.GameManager.BeginDraw(gameTime);
 
-        foreach (var component in _game.Components)
+        foreach (var component in Game.Components)
         {
             if (component is IDrawable { Visible: true } drawable)
             {
@@ -86,7 +86,7 @@ public class GameEditor : WpfGame
         }
 
         base.Draw(gameTime);
-        _game.GameManager.EndDraw(gameTime);
+        Game.GameManager.EndDraw(gameTime);
     }
 
     private void OnDrop(object sender, DragEventArgs e)
@@ -117,11 +117,11 @@ public class GameEditor : WpfGame
                         Name = "Entity " + new Random().NextInt64()
                     };
                     entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;//entity.BoundingBox.;
-                    entity.Initialize();
+                    entity.Initialize(Game);
                     GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
 
                     //select this entity
-                    var gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
+                    var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
                     gizmoComponent.Gizmo.Clear(); // TODO
                     gizmoComponent.Gizmo.Selection.Add(entity);
                     gizmoComponent.Gizmo.RaiseSelectionChanged();

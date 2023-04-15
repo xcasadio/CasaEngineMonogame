@@ -111,7 +111,7 @@ public class AssetContentManager
 
         foreach (var a in _assets)
         {
-            a.OnDeviceReset(device);
+            a.OnDeviceReset(device, this);
         }
     }
 }

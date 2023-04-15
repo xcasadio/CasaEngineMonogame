@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Text.Json;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -14,7 +14,7 @@ public class Physics2dComponent : Component
     {
     }
 
-    public override void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
 
     }

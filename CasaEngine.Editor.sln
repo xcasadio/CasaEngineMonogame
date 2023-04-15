@@ -5,8 +5,6 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Editor", "CasaEngine\CasaEngine.Editor.csproj", "{36D16292-D92F-4087-8BE7-A09AD6D5AC05}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Editor", "Editor\Editor.csproj", "{223CE39C-656E-4193-960B-0E9F1E36DDA8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EditorWpf", "EditorWpf\EditorWpf.csproj", "{F2707E78-7C71-43AC-A27A-0E2FB32BB684}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pong", "Pong\Pong.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
@@ -27,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Framework.Wpf.Core
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics", "Physics", "{4B5C319D-728A-47E5-9D44-98EA7F9E24C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhysicsDebug", "PhysicsDebug\PhysicsDebug.csproj", "{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhysicsDebug", "PhysicsDebug\PhysicsDebug.csproj", "{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,16 +49,6 @@ Global
 		{36D16292-D92F-4087-8BE7-A09AD6D5AC05}.Release|Any CPU.Build.0 = Release|Any CPU
 		{36D16292-D92F-4087-8BE7-A09AD6D5AC05}.Release|x64.ActiveCfg = Release|Any CPU
 		{36D16292-D92F-4087-8BE7-A09AD6D5AC05}.Release|x64.Build.0 = Release|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.DebugEditor|Any CPU.ActiveCfg = DebugEditor|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.DebugEditor|Any CPU.Build.0 = DebugEditor|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.DebugEditor|x64.ActiveCfg = DebugEditor|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.DebugEditor|x64.Build.0 = DebugEditor|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.Release|x64.ActiveCfg = Release|Any CPU
-		{223CE39C-656E-4193-960B-0E9F1E36DDA8}.Release|x64.Build.0 = Release|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.DebugEditor|Any CPU.ActiveCfg = DebugEditor|Any CPU

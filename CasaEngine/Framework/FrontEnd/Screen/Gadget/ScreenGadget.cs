@@ -142,8 +142,7 @@ public abstract class ScreenGadget
         var whitePixels = new Color[] { Color.White };
         _whiteTexture.SetData<Color>(whitePixels);
 
-        Font = EngineComponents.DefaultSpriteFont;
-        //Font = game_.Content.Load<SpriteFont>(FontName);
+        Font = ((CasaEngineGame)game).GameManager.DefaultSpriteFont;
     }
 
     public virtual void Update(float elapsedTime)
@@ -283,7 +282,6 @@ public abstract class ScreenGadget
         Scale = Vector2.One;
         Name = name;
         Text = Name;
-        Font = EngineComponents.DefaultSpriteFont;
     }
 
     public virtual void Save(XmlElement el, SaveOption opt)

@@ -252,7 +252,7 @@ namespace Editor.Game
 
             foreach (Frame2D f in m_CurrentAnimation2D.GetFrames())
             {
-                Entity b = EngineComponents.ObjectManager.GetObjectById(f.SpriteId);
+                Entity b = CasaEngineGame.Game.GameManager.ObjectManager.GetObjectById(f.SpriteId);
 
                 if (b == null)
                 {
@@ -306,7 +306,7 @@ namespace Editor.Game
         {
             if (m_CurrentAnimation2D != null)
             {
-                EngineComponents.ObjectManager.Replace(m_ObjectPath, m_CurrentAnimation2D);
+                CasaEngineGame.Game.GameManager.ObjectManager.Replace(m_ObjectPath, m_CurrentAnimation2D);
             }
         }
 

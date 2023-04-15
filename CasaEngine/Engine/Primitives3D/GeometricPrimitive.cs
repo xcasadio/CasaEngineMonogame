@@ -1,5 +1,5 @@
-﻿using CasaEngine.Framework;
-using CasaEngine.Framework.Assets;
+﻿using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -93,18 +93,6 @@ public abstract class GeometricPrimitive : IDisposable
         {
             _basicEffect.Dispose();
         }
-    }
-
-    public void DrawOnlyVertex()
-    {
-        var graphicsDevice = EngineComponents.Game.GraphicsDevice;
-
-        graphicsDevice.SetVertexBuffer(_vertexBuffer);
-        graphicsDevice.Indices = _indexBuffer;
-
-        var primitiveCount = _indices.Count / 3;
-
-        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, _vertices.Count, primitiveCount);
     }
 
     /// <summary>

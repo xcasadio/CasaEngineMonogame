@@ -10,10 +10,7 @@ public class ScreenLogComponent
 {
     private readonly List<LogText> _logText = new();
     private Renderer2dComponent _renderer2dComponent;
-
-
-
-
+    private SpriteFont? _font;
 
     public ScreenLogComponent(Microsoft.Xna.Framework.Game game)
         : base(game)
@@ -23,13 +20,12 @@ public class ScreenLogComponent
             throw new ArgumentNullException("ScreenLogComponent : Game is null");
         }
 
+
         game.Components.Add(this);
 
         UpdateOrder = (int)ComponentUpdateOrder.Renderer2DComponent;
         DrawOrder = (int)ComponentDrawOrder.Renderer2DComponent;
     }
-
-
 
     protected override void Dispose(bool disposing)
     {
@@ -47,7 +43,7 @@ public class ScreenLogComponent
 
     public void AddText(string text)
     {
-        AddText(text, EngineComponents.DefaultSpriteFont, Color.White);
+        AddText(text, _font, Color.White);
     }
 
     public void AddText(string text, SpriteFont spriteFont)
@@ -57,7 +53,7 @@ public class ScreenLogComponent
 
     public void AddText(string text, Color color)
     {
-        AddText(text, EngineComponents.DefaultSpriteFont, color);
+        AddText(text, _font, color);
     }
 
     public void AddText(string text, SpriteFont spriteFont, Color color)
@@ -69,10 +65,10 @@ public class ScreenLogComponent
         _logText.Add(log);
     }
 
-
     protected override void LoadContent()
     {
-        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
+        _font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;
+        _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
         base.LoadContent();
     }
 
@@ -117,7 +113,6 @@ public class ScreenLogComponent
 
         base.Draw(gameTime);
     }
-
 
 }
 

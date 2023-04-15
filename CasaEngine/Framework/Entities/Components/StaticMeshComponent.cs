@@ -1,8 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using Newtonsoft.Json.Linq;
@@ -16,14 +14,12 @@ public class StaticMeshComponent : Component
     private StaticMeshRendererComponent? _meshRendererComponent;
     private StaticMesh? _mesh;
 
-    //private Effect _effect;
     public StaticMesh? Mesh
     {
         get { return _mesh; }
         set
         {
             _mesh = value;
-            _mesh?.Initialize(EngineComponents.Game.GraphicsDevice);
 #if EDITOR
             OnPropertyChanged();
 #endif
@@ -34,12 +30,11 @@ public class StaticMeshComponent : Component
     {
     }
 
-    public override void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
-        //load shader in byte
-        //_effect = new Effect(Game.EngineComponents.Game.GraphicsDevice, );
-        Mesh?.Initialize(EngineComponents.Game.GraphicsDevice);
-        _meshRendererComponent = EngineComponents.Game.GetGameComponent<StaticMeshRendererComponent>();
+        _meshRendererComponent = game.GetGameComponent<StaticMeshRendererComponent>();
+        Mesh?.Initialize(game.GraphicsDevice);
+        Mesh?.Texture?.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
     }
 
     public override void Update(float elapsedTime)

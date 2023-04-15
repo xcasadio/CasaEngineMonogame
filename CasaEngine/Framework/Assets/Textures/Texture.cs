@@ -1,9 +1,10 @@
 ﻿using System.Text.Json;
 using System.Xml;
-using System.Xml.Linq;
 using CasaEngine.Core.Design;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
+using static CasaEngine.Engine.Constants;
 using Screen = CasaEngine.Framework.UserInterface.Screen;
 using Size = CasaEngine.Core.Helpers.Size;
 
@@ -50,30 +51,40 @@ public class Texture : Asset
 
     public Size Size { get; protected set; }
 
-    internal Texture(GraphicsDevice graphicsDevice)
+    public Texture()
+    {
+    }
+
+    public Texture(GraphicsDevice graphicsDevice)
     {
         GraphicsDevice = graphicsDevice;
         Name = "Empty Texture";
     }
 
-    public Texture(Texture2D xnaTexture)
+    public Texture(Texture2D xnaTexture) : this(xnaTexture.GraphicsDevice)
     {
-        GraphicsDevice = xnaTexture.GraphicsDevice;
         Name = "Texture";
         XnaTexture = xnaTexture;
         Size = new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
     }
 
-    public Texture(GraphicsDevice graphicsDevice, string filename)
+
+    public Texture(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager) : this(graphicsDevice)
     {
-        GraphicsDevice = graphicsDevice;
-        LoadTexture(filename);
+        FileName = filename;
+        Initialize(graphicsDevice, assetContentManager);
     }
 
-    private void LoadTexture(string filename)
+    public void Initialize(GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
+    {
+        GraphicsDevice = graphicsDevice;
+        LoadTexture(FileName, assetContentManager);
+    }
+
+    private void LoadTexture(string filename, AssetContentManager assetContentManager)
     {
         Name = Path.GetFileNameWithoutExtension(filename);
-        FileName = filename; //EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
+        FileName = filename;
         if (File.Exists(FileName) == false)
         {
             throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
@@ -81,7 +92,7 @@ public class Texture : Asset
 
         try
         {
-            XnaTexture = EngineComponents.AssetContentManager.Load<Texture2D>(FileName, GraphicsDevice);
+            XnaTexture = assetContentManager.Load<Texture2D>(FileName, GraphicsDevice);
             Size = new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
             Resource.Name = filename;
         }
@@ -104,7 +115,7 @@ public class Texture : Asset
         }
     }
 
-    internal override void OnDeviceReset(GraphicsDevice device)
+    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         if (Resource == null)
         {
@@ -117,7 +128,7 @@ public class Texture : Asset
         }
         else if (XnaTexture is { IsDisposed: true })
         {
-            XnaTexture = EngineComponents.AssetContentManager.Load<Texture2D>(FileName, device);
+            XnaTexture = assetContentManager.Load<Texture2D>(FileName, device);
         }
 
         GraphicsDevice = device;
@@ -137,10 +148,10 @@ public class Texture : Asset
     {
         base.Load(element.GetProperty("asset"));
 
-        if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
-        {
-            LoadTexture(FileName);
-        }
+        //if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+        //{
+        //    LoadTexture(FileName);
+        //}
     }
 
 #if EDITOR

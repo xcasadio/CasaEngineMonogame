@@ -13,7 +13,7 @@ public class WallAvoidance : SteeringBehavior
 
     public override Vector3 Calculate()
     {
-        var physicsEngineComponent = EngineComponents.Game.GetGameComponent<PhysicsEngineComponent>();
+        PhysicsEngineComponent physicsEngineComponent = null; //TODO
 
         if (physicsEngineComponent.PhysicsEngine == null)
         {

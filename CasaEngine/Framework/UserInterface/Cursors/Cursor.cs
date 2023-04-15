@@ -1,6 +1,7 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.UserInterface.Cursors;
@@ -13,7 +14,7 @@ public class Cursor : Asset
 
     public System.Windows.Forms.Cursor Resource { get; private set; }
 
-    public Cursor(GraphicsDevice graphicsDevice, string fileName)
+    public Cursor(GraphicsDevice graphicsDevice, string fileName, AssetContentManager assetContentManager)
     {
         GraphicsDevice = graphicsDevice;
         Name = Path.GetFileName(fileName);
@@ -24,7 +25,7 @@ public class Cursor : Asset
         }
         try
         {
-            Resource = EngineComponents.AssetContentManager.Load<System.Windows.Forms.Cursor>(FileName, GraphicsDevice);
+            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(FileName, GraphicsDevice);
         }
         catch (ObjectDisposedException)
         {
@@ -36,11 +37,11 @@ public class Cursor : Asset
         }
     } // Cursor
 
-    internal override void OnDeviceReset(GraphicsDevice device)
+    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         if (Resource == null)
         {
-            Resource = EngineComponents.AssetContentManager.Load<System.Windows.Forms.Cursor>(FileName, GraphicsDevice);
+            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(FileName, GraphicsDevice);
         }
     } // RecreateResource
 

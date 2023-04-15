@@ -12,7 +12,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 #if (!XBOX)
 #endif
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Controls.Windows;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -74,6 +76,8 @@ public class UserInterfaceManager
     private int _oldScreenWidth, _oldScreenHeight;
 
     public GraphicsDevice GraphicsDevice { get; private set; }
+    public AssetContentManager AssetContentManager { get; private set; }
+    public CasaEngineGame Game { get; private set; }
 
 #if (!XBOX)
 
@@ -202,7 +206,7 @@ public class UserInterfaceManager
 
     public event ResizeEventHandler? WindowResize;
 
-    public void Initialize(GraphicsDevice graphicsDevice, IntPtr formHandle, Rectangle gameWindowClientBounds)
+    public void Initialize(CasaEngineGame game, IntPtr formHandle, Rectangle gameWindowClientBounds)
     {
         if (_initialized)
         {
@@ -211,11 +215,14 @@ public class UserInterfaceManager
 
         try
         {
+            Game = game;
+
             Skin = new Skin();
             Renderer = new Renderer();
-            Screen = new Screen(graphicsDevice);
+            Screen = new Screen(game.GraphicsDevice);
 
-            GraphicsDevice = graphicsDevice;
+            GraphicsDevice = game.GraphicsDevice;
+            AssetContentManager = game.GameManager.AssetContentManager;
             Visible = true;
             InputEnabled = true;
             _initialized = true;
@@ -235,7 +242,7 @@ public class UserInterfaceManager
             RootControls = new ControlsList();
             OrderList = new ControlsList();
 
-            graphicsDevice.DeviceReset += OnDeviceReset;
+            Game.GraphicsDevice.DeviceReset += OnDeviceReset;
 
             _states.Buttons = new Control[32];
             _states.Click = -1;
@@ -256,14 +263,15 @@ public class UserInterfaceManager
             UserInterfaceContentManager = new AssetContentManager { Name = "User Interface Content Manager", Hidden = true };
             AssetContentManager.CurrentContentManager = UserInterfaceContentManager;*/
             var size = new Core.Helpers.Size(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, Screen);
-            _renderTarget = new RenderTarget(graphicsDevice, size.FullScreen, SurfaceFormat.Color, false)
+            _renderTarget = new RenderTarget(Game.GameManager.AssetContentManager, Game.GraphicsDevice, size.FullScreen,
+                SurfaceFormat.Color, false)
             {
                 Name = "User Interface Render Target",
             };
             //AssetContentManager.CurrentContentManager = userContentManager;
 
             // Init User Interface UserInterfaceManager.Renderer.
-            Renderer.Initialize(graphicsDevice);
+            Renderer.Initialize(Game.GraphicsDevice);
 
             // Set Default UserInterfaceManager.Skin.
             SetSkin("Default");
@@ -341,7 +349,7 @@ public class UserInterfaceManager
     {
         SkinChanging?.Invoke(new EventArgs());
 
-        Skin.LoadSkin(GraphicsDevice, skinName);
+        Skin.LoadSkin(Game, skinName);
 
 #if (!XBOX)
         if (Skin.Cursors["Default"] != null)

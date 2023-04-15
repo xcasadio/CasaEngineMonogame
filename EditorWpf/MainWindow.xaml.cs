@@ -2,8 +2,8 @@
 using System.IO;
 using System.Windows;
 using CasaEngine.Core.Logger;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
+using EditorWpf.Controls;
 using EditorWpf.Windows;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -17,7 +17,7 @@ namespace EditorWpf
 
         public MainWindow(string projectFileName)
         {
-            GameInfo.Instance.ReadyToStart += OnGameReadyToStart;
+            GameEditor.GameStarted += OnGameGameStarted;
             _projectFileName = projectFileName;
             Closing += OnClosing;
             Loaded += MainWindow_Loaded;
@@ -25,7 +25,7 @@ namespace EditorWpf
             InitializeComponent();
         }
 
-        private void OnGameReadyToStart(object? sender, EventArgs e)
+        private void OnGameGameStarted(object? sender, EventArgs e)
         {
             _isGameReadyToStart = true;
             OpenProject(_projectFileName);
@@ -52,7 +52,7 @@ namespace EditorWpf
             }
 
             LogManager.Instance.WriteLine($"Project opened {projectFileName}");
-            EngineComponents.ProjectManager.Load(projectFileName);
+            GameEditor.Game.GameManager.ProjectManager.Load(GameEditor.Game, projectFileName);
         }
 
         private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -151,7 +151,7 @@ namespace EditorWpf
                 //CREATE hiera folders
                 //create default settings
                 //
-                EngineComponents.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
+                GameEditor.Game.GameManager.ProjectManager.CreateProject(GameEditor.Game, dialog.ProjectName, dialog.ProjectPath);
 
                 LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             }

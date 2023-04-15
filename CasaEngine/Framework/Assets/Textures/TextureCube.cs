@@ -26,22 +26,14 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
 public class TextureCube : Asset
 {
-
-
     // XNA Texture.
     protected Microsoft.Xna.Framework.Graphics.TextureCube XnaTextureCube;
-
-    // Simple and small textures filled with a constant color.
-    private static TextureCube _blackTexture, _whiteTexture;
-
-
 
     public virtual Microsoft.Xna.Framework.Graphics.TextureCube Resource => XnaTextureCube;
 
@@ -53,47 +45,19 @@ public class TextureCube : Asset
 
     public static string[] Filenames { get; private set; }
 
-
-    public static TextureCube BlackTexture
-    {
-        get
-        {
-            if (_blackTexture == null)
-            {
-                _blackTexture = new TextureCube("BlackCube");
-            }
-            return _blackTexture;
-        }
-    } // BlackTexture
-
-    public static TextureCube WhiteTexture
-    {
-        get
-        {
-            if (_whiteTexture == null)
-            {
-                _whiteTexture = new TextureCube("WhiteCube");
-            }
-            return _whiteTexture;
-        }
-    } // WhiteTexture
-
-
-
-
-    public TextureCube(string filename)
+    public TextureCube(string filename, GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
     {
         Name = filename;
         IsRgbm = false;
         RgbmMaxRange = 50;
-        FileName = EngineComponents.ProjectManager.ProjectPath + filename;
+        FileName = filename;
         if (File.Exists(FileName) == false)
         {
             throw new ArgumentException("Failed to load cube map: File " + FileName + " does not exists!");
         }
         try
         {
-            XnaTextureCube = EngineComponents.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(FileName, EngineComponents.Game.GraphicsDevice);
+            XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(FileName, graphicsDevice);
             Size = XnaTextureCube.Size;
             Resource.Name = filename;
         }
@@ -109,14 +73,10 @@ public class TextureCube : Asset
 
     protected TextureCube() { }
 
-
-
-    internal override void OnDeviceReset(GraphicsDevice device)
+    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        XnaTextureCube = EngineComponents.AssetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(FileName, device);
+        XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(FileName, device);
     } // RecreateResource
-
 
 } // TextureCube
 // CasaEngine.Asset
-

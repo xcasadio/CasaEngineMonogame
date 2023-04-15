@@ -26,15 +26,13 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
 public sealed class RenderTargetCube : TextureCube
 {
-
-
     // XNA Render target.
     private Microsoft.Xna.Framework.Graphics.RenderTargetCube _renderTarget;
 
@@ -45,9 +43,7 @@ public sealed class RenderTargetCube : TextureCube
     private bool _looked;
 
     // Remember the last render targets we set. We can enable up to four render targets at once.
-    private static RenderTargetCube _currentRenderTarget;
-
-
+    private static RenderTargetCube? _currentRenderTarget;
 
     public override Microsoft.Xna.Framework.Graphics.TextureCube Resource
     {
@@ -66,43 +62,41 @@ public sealed class RenderTargetCube : TextureCube
 
     public DepthFormat DepthFormat { get; private set; }
 
-    public RenderTarget.AntialiasingType Antialiasing { get; private set; }
+    public RenderTarget.AntiAliasingType AntiAliasing { get; private set; }
 
     public bool MipMap { get; private set; }
 
     public static RenderTargetCube CurrentRenderTarget => _currentRenderTarget;
 
-
-    public RenderTargetCube(int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
+    public RenderTargetCube(GraphicsDevice graphicsDevice, int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntiAliasingType antiAliasingType = RenderTarget.AntiAliasingType.NoAntialiasing, bool mipMap = false)
     {
         Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = depthFormat;
-        Antialiasing = antialiasingType;
+        AntiAliasing = antiAliasingType;
         MipMap = mipMap;
 
-        Create();
+        Create(graphicsDevice);
     } // RenderTarget
 
-    public RenderTargetCube(int size, SurfaceFormat surfaceFormat = SurfaceFormat.Color, bool hasDepthBuffer = true, RenderTarget.AntialiasingType antialiasingType = RenderTarget.AntialiasingType.NoAntialiasing, bool mipMap = false)
+    public RenderTargetCube(GraphicsDevice graphicsDevice, int size, SurfaceFormat surfaceFormat = SurfaceFormat.Color, bool hasDepthBuffer = true, RenderTarget.AntiAliasingType antiAliasingType = RenderTarget.AntiAliasingType.NoAntialiasing, bool mipMap = false)
     {
         Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
-        Antialiasing = antialiasingType;
+        AntiAliasing = antiAliasingType;
         MipMap = mipMap;
 
-        Create();
+        Create(graphicsDevice);
     } // RenderTarget
 
-
-
-    private void Create()
+    private void Create(GraphicsDevice graphicsDevice)
     {
+        _graphicsDevice = graphicsDevice;
         try
         {
             // Create render target of specified size.
@@ -110,7 +104,7 @@ public sealed class RenderTargetCube : TextureCube
             // I use RenderTargetUsage.PlatformContents to be little more performance friendly with PC.
             // But I assume that the system works in DiscardContents mode so that an XBOX 360 implementation works.
             // What I lose, mostly nothing, because I made my own ZBuffer texture and the stencil buffer is deleted no matter what I do.
-            _renderTarget = new Microsoft.Xna.Framework.Graphics.RenderTargetCube(EngineComponents.Game.GraphicsDevice, Size, MipMap, SurfaceFormat, DepthFormat, RenderTarget.CalculateMultiSampleQuality(Antialiasing), RenderTargetUsage.PlatformContents);
+            _renderTarget = new Microsoft.Xna.Framework.Graphics.RenderTargetCube(graphicsDevice, Size, MipMap, SurfaceFormat, DepthFormat, RenderTarget.CalculateMultiSampleQuality(AntiAliasing), RenderTargetUsage.PlatformContents);
             _alreadyResolved = true;
         }
         catch (Exception e)
@@ -119,22 +113,16 @@ public sealed class RenderTargetCube : TextureCube
         }
     } // Create
 
-
-
     protected override void DisposeManagedResources()
     {
         base.DisposeManagedResources();
         _renderTarget.Dispose();
     } // DisposeManagedResources
 
-
-
-    internal override void OnDeviceReset(GraphicsDevice device)
+    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        Create();
+        Create(device);
     } // RecreateResource
-
-
 
     public void EnableRenderTarget(CubeMapFace cubeMapFace)
     {
@@ -143,12 +131,10 @@ public sealed class RenderTargetCube : TextureCube
             throw new InvalidOperationException("Render Target Cube: unable to set render target. Another render target is still set. If you want to set multiple render targets use the static method called EnableRenderTargets.");
         }
 
-        EngineComponents.Game.GraphicsDevice.SetRenderTarget(_renderTarget, cubeMapFace);
+        _graphicsDevice.SetRenderTarget(_renderTarget, cubeMapFace);
         _currentRenderTarget = this;
         _alreadyResolved = false;
     } // EnableRenderTarget
-
-
 
     public void Clear(Color clearColor)
     {
@@ -159,15 +145,15 @@ public sealed class RenderTargetCube : TextureCube
 
         if (DepthFormat == DepthFormat.None)
         {
-            EngineComponents.Game.GraphicsDevice.Clear(clearColor);
+            _graphicsDevice.Clear(clearColor);
         }
         else if (DepthFormat == DepthFormat.Depth24Stencil8)
         {
-            EngineComponents.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, clearColor, 1.0f, 0);
+            _graphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, clearColor, 1.0f, 0);
         }
         else
         {
-            EngineComponents.Game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
+            _graphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
         }
     } // Clear
 
@@ -181,8 +167,6 @@ public sealed class RenderTargetCube : TextureCube
         _currentRenderTarget.Clear(clearColor);
     } // Clear
 
-
-
     public void DisableRenderTarget()
     {
         // Make sure this render target is currently set!
@@ -192,10 +176,10 @@ public sealed class RenderTargetCube : TextureCube
         }
         _alreadyResolved = true;
         _currentRenderTarget = null;
-        EngineComponents.Game.GraphicsDevice.SetRenderTarget(null);
+        _graphicsDevice.SetRenderTarget(null);
     } // DisableRenderTarget
 
-    public static void DisableCurrentRenderTargets()
+    public void DisableCurrentRenderTargets()
     {
         if (_currentRenderTarget != null)
         {
@@ -203,29 +187,28 @@ public sealed class RenderTargetCube : TextureCube
         }
 
         _currentRenderTarget = null;
-        EngineComponents.Game.GraphicsDevice.SetRenderTarget(null);
+        _graphicsDevice.SetRenderTarget(null);
     } // DisableCurrentRenderTargets
-
-
 
     // A pool of all render targets.
     private static readonly List<RenderTargetCube> RenderTargets = new(0);
+    private GraphicsDevice _graphicsDevice;
 
-    public static RenderTargetCube Fetch(int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntialiasingType antialiasingType, bool mipMap = false)
+    public static RenderTargetCube Fetch(GraphicsDevice graphicsDevice, int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntiAliasingType antiAliasingType, bool mipMap = false)
     {
         RenderTargetCube renderTarget;
         for (var i = 0; i < RenderTargets.Count; i++)
         {
             renderTarget = RenderTargets[i];
             if (renderTarget.Size == size && renderTarget.SurfaceFormat == surfaceFormat &&
-                renderTarget.DepthFormat == depthFormat && renderTarget.Antialiasing == antialiasingType && renderTarget.MipMap == mipMap && !renderTarget._looked)
+                renderTarget.DepthFormat == depthFormat && renderTarget.AntiAliasing == antiAliasingType && renderTarget.MipMap == mipMap && !renderTarget._looked)
             {
                 renderTarget._looked = true;
                 return renderTarget;
             }
         }
         // If there is not one unlook or present we create one.
-        renderTarget = new RenderTargetCube(size, surfaceFormat, depthFormat, antialiasingType, mipMap);
+        renderTarget = new RenderTargetCube(graphicsDevice, size, surfaceFormat, depthFormat, antiAliasingType, mipMap);
         RenderTargets.Add(renderTarget);
         renderTarget._looked = true;
         return renderTarget;
@@ -259,7 +242,6 @@ public sealed class RenderTargetCube : TextureCube
 
         RenderTargets.Clear();
     } // ClearRenderTargetPool
-
 
 } // RenderTargetCube
   // CasaEngine.Asset

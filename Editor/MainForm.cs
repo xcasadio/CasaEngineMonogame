@@ -152,7 +152,7 @@ namespace Editor
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(EngineComponents.ProjectManager.ProjectFileOpened) == true)
+            if (string.IsNullOrEmpty(CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened) == true)
             {
                 saveAsToolStripMenuItem_Click(this, EventArgs.Empty);
             }
@@ -162,7 +162,7 @@ namespace Editor
                 try
 #endif
                 {
-                    SaveProject(EngineComponents.ProjectManager.ProjectFileOpened);
+                    SaveProject(CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened);
                 }
 #if !DEBUG
                 catch (Exception ex)
@@ -231,11 +231,11 @@ namespace Editor
                 i++;
             }*/
 
-            EngineComponents.ExternalToolManager.RegisterEditor(typeof(Sprite2D).FullName, typeof(Sprite2DEditorForm));
-            EngineComponents.ExternalToolManager.RegisterEditor(typeof(Animation2D).FullName, typeof(Animation2DEditorForm));
-            EngineComponents.ExternalToolManager.RegisterEditor(typeof(UiScreen).FullName, typeof(UIScreenEditorForm));
-            EngineComponents.ExternalToolManager.RegisterEditor(typeof(Font).FullName, typeof(FontPreviewForm));
-            EngineComponents.ExternalToolManager.RegisterEditor(typeof(SkinUi).FullName, typeof(SkinUIEditorForm));
+            CasaEngineGame.Game.GameManager.ExternalToolManager.RegisterEditor(typeof(Sprite2D).FullName, typeof(Sprite2DEditorForm));
+            CasaEngineGame.Game.GameManager.ExternalToolManager.RegisterEditor(typeof(Animation2D).FullName, typeof(Animation2DEditorForm));
+            CasaEngineGame.Game.GameManager.ExternalToolManager.RegisterEditor(typeof(UiScreen).FullName, typeof(UIScreenEditorForm));
+            CasaEngineGame.Game.GameManager.ExternalToolManager.RegisterEditor(typeof(Font).FullName, typeof(FontPreviewForm));
+            CasaEngineGame.Game.GameManager.ExternalToolManager.RegisterEditor(typeof(SkinUi).FullName, typeof(SkinUIEditorForm));
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace Editor
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
 
-            Text = "Project Editor - " + EngineComponents.ProjectSettings.ProjectName + " - " + fvi.ProductVersion;
+            Text = "Project Editor - " + CasaEngineGame.Game.GameManager.ProjectSettings.ProjectName + " - " + fvi.ProductVersion;
 
 #if DEBUG
             Text += " - DEBUG";
@@ -334,7 +334,7 @@ namespace Editor
         private void ClearProject()
         {
             SpriteSheetTaskListForm.Clear();
-            EngineComponents.ProjectManager.Clear();
+            CasaEngineGame.Game.GameManager.ProjectManager.Clear();
             EnableComponent(false);
 
             DisposeControl(m_ProjectConfigForm);
@@ -366,8 +366,8 @@ namespace Editor
             {
 #endif
                 ClearProject();
-                EngineComponents.ProjectManager.CreateProject(fileName_, Path.GetDirectoryName(fileName_));
-                EngineComponents.ProjectSettings.ProjectName = "New Project";
+                CasaEngineGame.Game.GameManager.ProjectManager.CreateProject(fileName_, Path.GetDirectoryName(fileName_));
+                CasaEngineGame.Game.GameManager.ProjectSettings.ProjectName = "New Project";
                 OnProjectLoaded(fileName_);
 #if !DEBUG
             }
@@ -396,10 +396,10 @@ namespace Editor
             {
 #endif
                 ClearProject();
-                EngineComponents.ProjectManager.Load(fileName_);
+                CasaEngineGame.Game.GameManager.ProjectManager.Load(fileName_);
                 CheckExternalTool();
 
-                EngineComponents.AssetContentManager.RootDirectory = EngineComponents.ProjectManager.ProjectPath +
+                CasaEngineGame.Game.GameManager.AssetContentManager.RootDirectory = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath +
                                                                     Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
 
 #if !UNITTEST
@@ -446,10 +446,10 @@ namespace Editor
             try
             {
 #endif
-                if (EngineComponents.ProjectManager.Save(fileName_) == true)
+                if (CasaEngineGame.Game.GameManager.ProjectManager.Save(fileName_) == true)
                 {
                     LogManager.Instance.WriteLine("Project ",
-                        "\"" + EngineComponents.ProjectSettings.ProjectName + "\"", Color.Blue,
+                        "\"" + CasaEngineGame.Game.GameManager.ProjectSettings.ProjectName + "\"", Color.Blue,
                         " successfully saved.");
                 }
                 else
@@ -475,8 +475,8 @@ namespace Editor
             m_MruManager.Add(fileName_);
             SetTitle();
             LogManager.Instance.WriteLine("Project ",
-                "\"" + EngineComponents.ProjectSettings.ProjectName + "\" ", Color.Blue,
-                "(", EngineComponents.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
+                "\"" + CasaEngineGame.Game.GameManager.ProjectSettings.ProjectName + "\" ", Color.Blue,
+                "(", CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened, ")", " successfully loaded.");
         }
 
         /// <summary>
@@ -568,13 +568,13 @@ namespace Editor
             try
             {
 #endif
-                string projectFileOpened = EngineComponents.ProjectManager.ProjectFileOpened;
+                string projectFileOpened = CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened;
 
-                string file = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
-                file += ProjectManager.GameDirPath + Path.DirectorySeparatorChar + Path.GetFileName(EngineComponents.ProjectManager.ProjectFileOpened);
+                string file = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+                file += ProjectManager.GameDirPath + Path.DirectorySeparatorChar + Path.GetFileName(CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened);
 
                 SaveProject(file); // temporary project file
-                //EngineComponents.ProjectManager.ProjectFileOpened = projectFileOpened; // ProjectFileOpened will be change in SaveProject function
+                //CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened = projectFileOpened; // ProjectFileOpened will be change in SaveProject function
 
                 ProcessStartInfo myInfo = new ProcessStartInfo();
                 myInfo.FileName = FindGameExe(Path.GetDirectoryName(file));
@@ -582,7 +582,7 @@ namespace Editor
                 if (string.IsNullOrWhiteSpace(myInfo.FileName) == false)
                 {
                     myInfo.WorkingDirectory = Path.GetDirectoryName(myInfo.FileName);
-                    myInfo.Arguments = file + " " + EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
+                    myInfo.Arguments = file + " " + CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.AssetDirPath;
                     Process.Start(myInfo);
                 }
                 else
@@ -683,30 +683,30 @@ namespace Editor
             int percent = 0;
             BackgroundWorker bg = sender as BackgroundWorker;
 
-            string xnbPath = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\";
+            string xnbPath = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\";
 
             /*
              * AssetBuildParam doit implementer IObservable
              * pour modifier BuildParamChanged
              */
-            foreach (AssetInfo info in EngineComponents.AssetManager.Assets)
+            foreach (AssetInfo info in CasaEngineGame.Game.GameManager.AssetManager.Assets)
             {
                 bg.ReportProgress(
-                    (int)(((float)percent / (float)(EngineComponents.AssetManager.Assets.Length + 1)) * 100.0f),
-                    "building " + info.Name + " ... (" + percent + "/" + (EngineComponents.AssetManager.Assets.Length + 1) + ")");
+                    (int)(((float)percent / (float)(CasaEngineGame.Game.GameManager.AssetManager.Assets.Length + 1)) * 100.0f),
+                    "building " + info.Name + " ... (" + percent + "/" + (CasaEngineGame.Game.GameManager.AssetManager.Assets.Length + 1) + ")");
 
                 fi = new FileInfo(info.FileName);
                 if (File.Exists(xnbPath + info.Name + ".xnb") == false)
                 {
-                    EngineComponents.AssetManager.RebuildAsset(info);
+                    CasaEngineGame.Game.GameManager.AssetManager.RebuildAsset(info);
                 }
 
                 percent++;
             }
 
             //project File
-            destFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(EngineComponents.ProjectManager.ProjectFileOpened);
-            fi = new FileInfo(EngineComponents.ProjectManager.ProjectFileOpened);
+            destFile = CasaEngineGame.Game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened);
+            fi = new FileInfo(CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened);
             ro = fi.IsReadOnly;
             fi.IsReadOnly = false;
 
@@ -717,7 +717,7 @@ namespace Editor
                 fi2.Delete();
             }
 
-            File.Copy(EngineComponents.ProjectManager.ProjectFileOpened,
+            File.Copy(CasaEngineGame.Game.GameManager.ProjectManager.ProjectFileOpened,
                 destFile,
                 true);
 

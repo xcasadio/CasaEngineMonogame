@@ -66,7 +66,7 @@ namespace Editor
             //    }
             //}
 
-            EngineComponents.Arguments = args_;
+            CasaEngineGame.Game.GameManager.Arguments = args_;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

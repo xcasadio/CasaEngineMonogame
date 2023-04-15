@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Assets.Graphics2D;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
 
@@ -226,8 +225,8 @@ public class Renderer2dComponent : DrawableGameComponent
 
     public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
-        var sprite = (Sprite2D)EngineComponents.ObjectManager.GetObjectById(spriteId);
-        AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+        //var sprite = (Sprite2D)GameManager.ObjectManager.GetObjectById(spriteId);
+        //AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
     }
 
     public void AddSprite2D(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)

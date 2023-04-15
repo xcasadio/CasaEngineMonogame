@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Logger;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls
@@ -16,13 +15,17 @@ namespace EditorWpf.Controls
 
         private void ButtonLaunchGame_Click(object sender, RoutedEventArgs e)
         {
-
+            //Create the specific project settings =>
+            //  launch in the project directory
+            //  launch this world
+            var game = new CasaEngineGame();
+            game.Run();
         }
 
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
         {
-            GameInfo.Instance.CurrentWorld.Save();
-            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved '{Path.Combine(EngineComponents.ProjectManager.ProjectPath, GameInfo.Instance.CurrentWorld.Name + ".json")}'");
+            GameInfo.Instance.CurrentWorld.Save(Path.GetDirectoryName(GameInfo.Instance.CurrentWorld.FileName));
+            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved '{Path.Combine(GameEditor.Game.GameManager.ProjectManager.ProjectPath, GameInfo.Instance.CurrentWorld.Name + ".json")}'");
         }
 
         private void ButtonTranslate_Click(object sender, RoutedEventArgs e)

@@ -3,12 +3,14 @@ using CasaEngine.Core.Extension;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Project;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework;
+using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Editor.Assets;
 
 public class AssetManager
 {
+    private readonly CasaEngineGame _game;
 
     private static readonly uint Version = 1;
 
@@ -26,8 +28,9 @@ public class AssetManager
     public AssetInfo[] Assets => _assets.ToArray();
 
 
-    public AssetManager()
+    public AssetManager(CasaEngineGame game)
     {
+        _game = game;
         _contentBuilder = new ContentBuilder.ContentBuilder();
         _contentBuilderTempFiles = new ContentBuilder.ContentBuilder();
 
@@ -132,8 +135,8 @@ public class AssetManager
         {
             File.Copy(
                 file,
-                /*GameInfo.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.XNBDirPath + Path.DirectorySeparatorChar + Path.GetFileName(file)*/
-                EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file),
+            /*GameInfo.Instance.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.XNBDirPath + Path.DirectorySeparatorChar + Path.GetFileName(file)*/
+                _game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + Path.GetFileName(file),
                 true);
         }
 
@@ -165,7 +168,7 @@ public class AssetManager
 
     public string GetAssetFullPath(AssetInfo info)
     {
-        var fullpath = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+        var fullpath = _game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
         fullpath += ProjectManager.AssetDirPath + Path.DirectorySeparatorChar;
 
@@ -207,7 +210,7 @@ public class AssetManager
 
     public string GetAssetXnbFullPath(AssetInfo info)
     {
-        return EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info.Name + ".xnb";
+        return _game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar + ProjectManager.GameDirPath + "\\Content\\" + info.Name + ".xnb";
     }
 
     /*private string GetPrefix(AssetType type_)
@@ -344,7 +347,7 @@ public class AssetManager
 
     public string GetPathFromType(AssetType type)
     {
-        var assetFile = EngineComponents.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
+        var assetFile = _game.GameManager.ProjectManager.ProjectPath + Path.DirectorySeparatorChar;
 
         assetFile += ProjectManager.AssetDirPath;
 

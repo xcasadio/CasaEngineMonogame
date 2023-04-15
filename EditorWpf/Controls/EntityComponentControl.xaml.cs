@@ -1,15 +1,12 @@
 ﻿using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using EditorWpf.Windows;
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using CasaEngine.Engine.Physics.Shapes;
-using CasaEngine.Framework.Assets.Textures;
-using Microsoft.Xna.Framework.Graphics;
+using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls
 {
@@ -40,11 +37,13 @@ namespace EditorWpf.Controls
             if (selectStaticMeshWindow.ShowDialog() == true && sender is FrameworkElement button)
             {
                 var staticMeshComponent = button.DataContext as StaticMeshComponent;
-                var graphicsDevice = EngineComponents.Game.GraphicsDevice;
+                var graphicsDevice = GameEditor.Game.GraphicsDevice;
 
                 staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
-                staticMeshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(graphicsDevice, "Content\\checkboard.png");
-                //EngineComponents.Game.Content.Load<Texture2D>("checkboard"));
+                staticMeshComponent.Mesh.Initialize(graphicsDevice);
+                staticMeshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(
+                    graphicsDevice, "Content\\checkboard.png", GameEditor.Game.GameManager.AssetContentManager);
+                //GameEditor.Game.Content.Load<Texture2D>("checkboard"));
             }
         }
 

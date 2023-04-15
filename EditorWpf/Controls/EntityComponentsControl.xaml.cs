@@ -51,7 +51,7 @@ namespace EditorWpf.Controls
             {
                 var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
                 var component = (Component)Activator.CreateInstance(componentType, entity);
-                component.Initialize();
+                component.Initialize(GameEditor.Game);
                 entity.ComponentManager.Components.Add(component);
 
                 RefreshComponentsList(entity);

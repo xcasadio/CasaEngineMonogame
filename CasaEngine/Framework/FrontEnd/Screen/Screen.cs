@@ -8,8 +8,10 @@
 using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
@@ -100,6 +102,12 @@ public abstract class Screen : Entity
         private set;
     }
 
+    protected SpriteFont Font
+    {
+        get;
+        private set;
+    }
+
     protected Screen(string name)
     {
         Name = name;
@@ -110,15 +118,15 @@ public abstract class Screen : Entity
         Load(el, opt);
     }
 
-    public virtual void LoadContent(Renderer2dComponent r)
+    public virtual void LoadContent(Microsoft.Xna.Framework.Game game)
     {
-        Renderer2dComponent = r;
+        Renderer2dComponent = game.GetGameComponent<Renderer2dComponent>();
+        Font = ((CasaEngineGame)game).GameManager.DefaultSpriteFont;
     }
 
     public virtual void UnloadContent() { }
 
-    public virtual void Update(float elapsedTime, bool otherScreenHasFocus,
-        bool coveredByOtherScreen)
+    public virtual void Update(float elapsedTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
     {
         _otherScreenHasFocus = otherScreenHasFocus;
 

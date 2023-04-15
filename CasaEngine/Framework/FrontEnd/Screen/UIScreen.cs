@@ -3,6 +3,7 @@ using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.UserInterface;
+using Microsoft.Xna.Framework.Graphics;
 using Control = CasaEngine.Framework.UserInterface.Control;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
@@ -27,7 +28,7 @@ public class UiScreen : Screen
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
     }
 
-    public override void LoadContent(Renderer2dComponent r)
+    public override void LoadContent(Microsoft.Xna.Framework.Game r)
     {
         base.LoadContent(r);
 

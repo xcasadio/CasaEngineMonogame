@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Core.Logger;
-using CasaEngine.Framework;
 using EditorWpf.Windows;
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Input;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
+using EditorWpf.Controls;
 
 namespace EditorWpf
 {
@@ -74,7 +74,7 @@ namespace EditorWpf
                 //CREATE hiera folders
                 //create default settings
                 //
-                EngineComponents.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
+                GameEditor.Game.GameManager.ProjectManager.CreateProject(GameEditor.Game, dialog.ProjectName, dialog.ProjectPath);
                 LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
                 OpenEditor(Path.Combine(dialog.ProjectPath, dialog.ProjectName));
             }

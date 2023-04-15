@@ -7,7 +7,6 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Physics.Shapes;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
-using Genbox.VelcroPhysics.Dynamics.Solver;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -40,7 +39,6 @@ public class PhysicsComponent : Component
             _physicsType = value;
 #if EDITOR
             OnPropertyChanged();
-            Initialize();
 #endif
         }
     }
@@ -118,7 +116,6 @@ public class PhysicsComponent : Component
             _shape = value;
 #if EDITOR
             OnPropertyChanged();
-            Initialize();
 #endif
         }
     }
@@ -133,14 +130,14 @@ public class PhysicsComponent : Component
 #endif
     }
 
-    public override void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
-        var physicsEngineComponent = EngineComponents.Game.GetGameComponent<PhysicsEngineComponent>();
+        var physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
         Debug.Assert(physicsEngineComponent != null);
 
         _physicsEngineComponent = physicsEngineComponent;
 
-#if EDITOR
+#if EDITOR // TODO : usefull ???
         if (_shape == null)
         {
             return;

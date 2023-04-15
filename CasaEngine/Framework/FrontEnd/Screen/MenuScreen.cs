@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
@@ -11,7 +12,8 @@ public class MenuScreen : Screen
     private readonly string _menuTitle;
 
     private readonly Renderer2dComponent _renderer2dComponent;
-
+    private SpriteBatch? _spriteBatch;
+    private SpriteFont? _font;
 
 
     protected IList<MenuEntry> MenuEntries => _menuEntries;
@@ -24,8 +26,6 @@ public class MenuScreen : Screen
 
         TransitionOnTime = TimeSpan.FromSeconds(0.5);
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
-
-        _renderer2dComponent = EngineComponents.Game.GetGameComponent<Renderer2dComponent>();
     }
 
 
@@ -109,9 +109,6 @@ public class MenuScreen : Screen
 
     public override void Draw(float elapsedTime)
     {
-        var spriteBatch = EngineComponents.SpriteBatch;
-        var font = EngineComponents.DefaultSpriteFont;
-
         var position = new Vector2(100, 150);
 
         // Make the menu slide into place during transitions, using a
@@ -144,14 +141,14 @@ public class MenuScreen : Screen
 
         // Draw the menu title.
         var titlePosition = new Vector2(426, 80);
-        var titleOrigin = font.MeasureString(_menuTitle) / 2.0f;
+        var titleOrigin = _font.MeasureString(_menuTitle) / 2.0f;
         titlePosition = Vector2.Subtract(titlePosition, titleOrigin);
         var titleColor = new Color((byte)192, (byte)192, (byte)192, TransitionAlpha);
         var titleScale = 1.25f;
 
         titlePosition.Y -= transitionOffset * 100;
 
-        _renderer2dComponent.AddText2d(font, _menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
+        _renderer2dComponent.AddText2d(_font, _menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
         //spriteBatch.DrawString(font, menuTitle, titlePosition, titleColor, 0,
         //					   titleOrigin, titleScale, SpriteEffects.None, 0);
 

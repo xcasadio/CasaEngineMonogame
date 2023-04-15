@@ -1,5 +1,4 @@
-﻿using CasaEngine.Core.Helpers;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System.Text.Json;
 
 namespace CasaEngine.Engine.Physics.Shapes;

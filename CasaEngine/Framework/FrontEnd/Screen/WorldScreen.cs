@@ -1,4 +1,6 @@
-﻿using CasaEngine.Framework.Graphics2D;
+﻿using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics2D;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
@@ -20,13 +22,13 @@ public class WorldScreen : Screen
         _world = world;
     }
 
-    public override void LoadContent(Renderer2dComponent r)
+    public override void LoadContent(Microsoft.Xna.Framework.Game game)
     {
-        base.LoadContent(r);
+        base.LoadContent(game);
         // once the load has finished, we use ResetElapsedTime to tell the game's
         // timing mechanism that we have just finished a very long frame, and that
         // it should not try to catch up.
-        EngineComponents.Game.ResetElapsedTime();
+        game.ResetElapsedTime();
     }
 
     public override void UnloadContent()

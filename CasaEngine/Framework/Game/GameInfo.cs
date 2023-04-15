@@ -6,8 +6,6 @@ public class GameInfo
 {
     private World.World? _currentWorld;
 
-    public event EventHandler? ReadyToStart;
-
     public static GameInfo Instance { get; } = new();
 
     public World.World? CurrentWorld
@@ -22,11 +20,4 @@ public class GameInfo
 
     public CameraComponent? ActiveCamera { get; set; }
     public event EventHandler? WorldChanged;
-
-#if EDITOR
-    public void InvokeReadyToStart(CasaEngineGame game)
-    {
-        ReadyToStart?.Invoke(game, EventArgs.Empty);
-    }
-#endif
 }

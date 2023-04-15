@@ -32,7 +32,7 @@ namespace Editor.Tools.Event.EventForm
         /// <param name="e"></param>
         private void buttonOK_Click(object sender, EventArgs e)
         {
-            Entity obj = EngineComponents.ObjectManager.GetObjectByPath(textBox1.Text);
+            Entity obj = CasaEngineGame.Game.GameManager.ObjectManager.GetObjectByPath(textBox1.Text);
 
             if (obj == null)
             {

@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using CasaEngine.Core.Logger;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 
 namespace CasaEngine.Editor.Tools;
@@ -12,19 +12,25 @@ public class ExternalToolManager
     private readonly Dictionary<string, Type> _customEditorsTemplate = new();
     private readonly Dictionary<Type, IExternalTool> _customEditors = new();
     private readonly Dictionary<string, Assembly> _customObjectAssembly = new();
+    private readonly CasaEngineGame _game;
 
-    public event EventHandler EventExternalToolChanged;
+    public ExternalToolManager(CasaEngineGame game)
+    {
+        _game = game;
+    }
+
+    public event EventHandler? EventExternalToolChanged;
 
     public void Initialize()
     {
         Clear();
 
-        if (string.IsNullOrEmpty(EngineComponents.ProjectManager.ProjectPath))
+        if (string.IsNullOrEmpty(_game.GameManager.ProjectManager.ProjectPath))
         {
             return;
         }
 
-        var fullPath = EngineComponents.ProjectManager.ProjectPath;
+        var fullPath = _game.GameManager.ProjectManager.ProjectPath;
         fullPath += Path.DirectorySeparatorChar + ProjectManager.ExternalToolsDirPath;
 
         //AppDomain.CurrentDomain.SetupInformation.PrivateBiAnPath = fullPath;

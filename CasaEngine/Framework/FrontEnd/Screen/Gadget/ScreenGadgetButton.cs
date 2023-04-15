@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
-using CasaEngine.Framework.Assets.Graphics2D;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -17,11 +17,11 @@ public class ScreenGadgetButton : ScreenGadget
         set;
     }
 
-    public Sprite2D Image
-    {
-        get;
-        set;
-    }
+    //public Sprite2D Image
+    //{
+    //    get;
+    //    set;
+    //}
 
     public ScreenGadgetButton(XmlElement el, SaveOption opt)
         : base(el, opt)
@@ -60,18 +60,18 @@ public class ScreenGadgetButton : ScreenGadget
             Color.Black,
             0.0002f);
 
-        if (Image != null)
-        {
-            Renderer2dComponent.AddSprite2D(
-                Image.Id,
-                Location,
-                0.0f,
-                new Vector2(Width / (float)Image.PositionInTexture.Width, Height / (float)Image.PositionInTexture.Height),
-                Color.White,
-                0.0004f,
-                SpriteEffects.None,
-                area);
-        }
+        //if (Image != null)
+        //{
+        //    Renderer2dComponent.AddSprite2D(
+        //        Image.Id,
+        //        Location,
+        //        0.0f,
+        //        new Vector2(Width / (float)Image.PositionInTexture.Width, Height / (float)Image.PositionInTexture.Height),
+        //        Color.White,
+        //        0.0004f,
+        //        SpriteEffects.None,
+        //        area);
+        //}
 
         Renderer2dComponent.AddText2d(
             Font,
@@ -92,8 +92,8 @@ public class ScreenGadgetButton : ScreenGadget
 
         if (spriteId != int.MaxValue)
         {
-            Image = EngineComponents.Asset2dManager.GetSprite2DById(spriteId);
-            EngineComponents.Asset2dManager.AddSprite2DToLoadingList(Image);
+            //Image = GameManager.Asset2dManager.GetSprite2DById(spriteId);
+            //GameManager.Asset2dManager.AddSprite2DToLoadingList(Image);
         }
 
         SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el.SelectSingleNode("SizeImage").InnerText);
@@ -117,9 +117,9 @@ public class ScreenGadgetButton : ScreenGadget
 
         base.Save(el, opt);
 
-        var spriteId = Image == null ? int.MaxValue : Image.Id;
-        node = el.OwnerDocument.CreateElementWithText("Image", spriteId.ToString());
-        el.AppendChild(node);
+        //var spriteId = Image == null ? int.MaxValue : Image.Id;
+        //node = el.OwnerDocument.CreateElementWithText("Image", spriteId.ToString());
+        //el.AppendChild(node);
         node = el.OwnerDocument.CreateElementWithText("SizeImage", Enum.GetName(typeof(SizeImage), SizeImage));
         el.AppendChild(node);
     }
@@ -128,8 +128,8 @@ public class ScreenGadgetButton : ScreenGadget
     {
         base.Save(bw, opt);
 
-        var spriteId = Image == null ? int.MaxValue : Image.Id;
-        bw.Write(spriteId);
+        //var spriteId = Image == null ? int.MaxValue : Image.Id;
+        //bw.Write(spriteId);
         bw.Write((int)SizeImage);
     }
 #endif

@@ -30,6 +30,7 @@ using System.Xml;
 using System.Xml.Linq;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.UserInterface.Documents;
@@ -41,7 +42,7 @@ public class Document : Asset
     public Document(string filename)
     {
         Name = filename;
-        FileName = EngineComponents.AssetContentManager.RootDirectory + Path.DirectorySeparatorChar + filename;
+        FileName = filename;
         //FileName = GameInfo.Instance.ProjectManager.ProjectPath + filename;
         if (File.Exists(FileName + ".skin") == false) //.xnb
         {
@@ -64,11 +65,11 @@ public class Document : Asset
         }
     } // Document
 
-    internal override void OnDeviceReset(GraphicsDevice device)
+    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         if (Resource == null)
         {
-            Resource = EngineComponents.AssetContentManager.Load<XDocument>(FileName, device);
+            Resource = assetContentManager.Load<XDocument>(FileName, device);
         }
     } // RecreateResource
 

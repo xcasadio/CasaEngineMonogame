@@ -5,26 +5,17 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.Game.Components;
-
-#if EDITOR
-//using CasaEngine.Editor.GameComponent;
-#endif
 
 
 namespace CasaEngine.Framework.Debugger
 {
-    public class DebugCommandUi
-        : DrawableGameComponent,
-        IDebugCommandHost,
-        IGameComponentResizable
+    public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameComponentResizable
     {
         private const int MaxLineCount = 20;
 
@@ -33,7 +24,6 @@ namespace CasaEngine.Framework.Debugger
         private const string Cursor = "_";
 
         public const string DefaultPrompt = "CMD>";
-
 
 
         public bool CanSetVisible => true;
@@ -123,9 +113,7 @@ namespace CasaEngine.Framework.Debugger
 
         // Key repeat duration in seconds after the first key press.
         private readonly float _keyRepeatDuration = 0.03f;
-
-
-
+        private SpriteFont? _font;
 
 
         public DebugCommandUi(Microsoft.Xna.Framework.Game game)
@@ -209,67 +197,6 @@ namespace CasaEngine.Framework.Debugger
 
                 });
 
-            // AnimationSpeed command
-            RegisterCommand("AnimationSpeed", "Speed of animations.",
-            delegate (IDebugCommandHost host, string command, IList<string> args)
-            {
-                var ok = true;
-                var value = 1.0f;
-
-                if (args.Count == 1)
-                {
-                    args[0] = args[0].Replace(".", ",");
-                    ok = float.TryParse(args[0], out value);
-                }
-
-                if (ok == false)
-                {
-                    EchoError("Please use AnimationSpeed with one argument");
-                }
-                else
-                {
-                    Animation2DPlayer.AnimationSpeed = value;
-                }
-
-            });
-
-            // Character2DActor Display Debug Information command
-            RegisterCommand("DisplayCharacterDebugInformation", "Display Debug Information from character.",
-            delegate (IDebugCommandHost host, string command, IList<string> args)
-            {
-                var error = false;
-                var state = false;
-
-                if (args.Count == 1)
-                {
-                    if (args[0].ToLower().Equals("on"))
-                    {
-                        state = true;
-                    }
-                    else if (args[0].ToLower().Equals("off"))
-                    {
-                        state = false;
-                    }
-                    else
-                    {
-                        error = true;
-                    }
-                }
-                else
-                {
-                    error = true;
-                }
-
-                if (error)
-                {
-                    EchoError("Please use DisplayCollisions with one argument : 'on' or 'off'");
-                }
-                else
-                {
-                    CharacterActor2D.DisplayDebugInformation = state;
-                }
-            });
-
             UpdateOrder = (int)ComponentUpdateOrder.DebugManager;
             DrawOrder = (int)ComponentDrawOrder.DebugManager;
         }
@@ -294,6 +221,8 @@ namespace CasaEngine.Framework.Debugger
             {
                 throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2dComponent is null");
             }
+
+            _font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;
 
             base.LoadContent();
         }
@@ -608,7 +537,6 @@ namespace CasaEngine.Framework.Debugger
                 return;
             }
 
-            var font = EngineComponents.DefaultSpriteFont;
             var whiteTexture = _debugManager.WhiteTexture;
             var depth = 0.0f;
 
@@ -635,7 +563,7 @@ namespace CasaEngine.Framework.Debugger
                 whiteTexture,
                 new Vector2(leftMargin, topMargin), // position
                 0.0f,
-                new Vector2(w * 0.8f, MaxLineCount * font.LineSpacing), // scale
+                new Vector2(w * 0.8f, MaxLineCount * _font.LineSpacing), // scale
                 _backgroundColor, depth + 0.001f, SpriteEffects.None);
 
             // Draw each lines.
@@ -643,20 +571,20 @@ namespace CasaEngine.Framework.Debugger
             foreach (var line in _lines)
             {
                 //spriteBatch.DrawString(font, line, pos, Color.White);
-                _renderer2dComponent.AddText2d(font, line, pos, 0.0f, Vector2.One, Color.White, depth);
-                pos.Y += font.LineSpacing;
+                _renderer2dComponent.AddText2d(_font, line, pos, 0.0f, Vector2.One, Color.White, depth);
+                pos.Y += _font.LineSpacing;
             }
 
             // Draw prompt string.
             var leftPart = Prompt + _commandLine.Substring(0, _cursorIndex);
-            var cursorPos = pos + font.MeasureString(leftPart);
+            var cursorPos = pos + _font.MeasureString(leftPart);
             cursorPos.Y = pos.Y;
 
             // spriteBatch.DrawString(font,
             //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
-            _renderer2dComponent.AddText2d(font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2dComponent.AddText2d(_font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
             //spriteBatch.DrawString(font, Cursor, cursorPos, Color.White);
-            _renderer2dComponent.AddText2d(font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2dComponent.AddText2d(_font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
 
             //spriteBatch.End();
         }

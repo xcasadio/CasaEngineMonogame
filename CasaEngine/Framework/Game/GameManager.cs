@@ -1,5 +1,9 @@
 using CasaEngine.Core.Helper;
+using CasaEngine.Editor.Assets;
+using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Input;
+using CasaEngine.Engine.Physics2D;
+using CasaEngine.Engine.Plugin;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
@@ -8,13 +12,47 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.FrontEnd.Screen;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
+using CasaEngine.Framework.Project;
+using CasaEngine.Framework.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using EventArgs = System.EventArgs;
 
 namespace CasaEngine.Framework.Game;
 
 public class GameManager
 {
+    private readonly CasaEngineGame _game;
+    public string[] Arguments { get; set; }
+    private string ProjectFile { get; set; } = string.Empty;
+    public GraphicsDeviceManager GraphicsDeviceManager { get; private set; }
+    public AssetContentManager AssetContentManager { get; internal set; } = new();
+    //public Asset2dManager Asset2dManager { get; } = new();
+    public ProjectManager ProjectManager { get; } = new();
+    //public ObjectManager ObjectManager { get; } = new();
+    public ScreenManager ScreenManager { get; } = new();
+    public UserInterfaceManager UiManager { get; } = new();
+    public SpriteBatch? SpriteBatch { get; set; }
+    //public ObjectRegistry ObjectRegistry { get; } = new();
+    public ProjectSettings ProjectSettings { get; } = new();
+    public GraphicsSettings GraphicsSettings { get; } = new();
+    public Physics2dSettings Physics2dSettings { get; } = new();
+    public Physics3dSettings Physics3dSettings { get; } = new();
+    public PluginManager PluginManager { get; }
+
+#if !FINAL
+    public SpriteFont? DefaultSpriteFont { get; set; }
+    public string ContentPath = string.Empty;
+#endif
+
+#if EDITOR
+    public BasicEffect? BasicEffect { get; set; }
+
+    public AssetManager AssetManager { get; }
+
+    public ExternalToolManager ExternalToolManager { get; }
+#endif
+
     public InputComponent InputComponent { get; private set; }
     public Renderer2dComponent Renderer2dComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
@@ -23,36 +61,38 @@ public class GameManager
     public Physics2dDebugViewRendererComponent Physics2dDebugViewRendererComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
-    private string ProjectFile { get; set; } = string.Empty;
-
-#if !FINAL
-    protected string ContentPath = string.Empty;
-#endif
-
-    public GameManager(CasaEngineGame game)
+    public GameManager(CasaEngineGame game, IGraphicsDeviceService? graphicsDeviceService)
     {
-        EngineComponents.Game = game;
-        var graphicsDeviceManager = new GraphicsDeviceManager(game);
-        graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
-        graphicsDeviceManager.DeviceReset += OnDeviceReset;
+        _game = game;
 
-    }
-
-    public GameManager(CasaEngineGame game, IGraphicsDeviceService graphicsDeviceService)
-    {
-        EngineComponents.Game = game;
-        graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
-        if (game.Services.GetService<IGraphicsDeviceService>() != null)
+        if (graphicsDeviceService == null)
         {
-            game.Services.RemoveService(typeof(IGraphicsDeviceService));
+            var graphicsDeviceManager = new GraphicsDeviceManager(game);
+            graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
+            graphicsDeviceManager.DeviceReset += OnDeviceReset;
         }
-        game.Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
+        else
+        {
+            graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
+            if (game.Services.GetService<IGraphicsDeviceService>() != null)
+            {
+                game.Services.RemoveService(typeof(IGraphicsDeviceService));
+            }
+            game.Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
+        }
+
+        GraphicsDeviceManager = (GraphicsDeviceManager)game.GetService<IGraphicsDeviceManager>();
+
+        PluginManager = new PluginManager(game);
+
+        AssetManager = new AssetManager(game);
+        ExternalToolManager = new ExternalToolManager(game);
     }
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
     {
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = EngineComponents.ProjectSettings.DebugWidth;
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = EngineComponents.ProjectSettings.DebugHeight;
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = ProjectSettings.DebugWidth;
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = ProjectSettings.DebugHeight;
 
         e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
             .Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
@@ -77,26 +117,25 @@ public class GameManager
 
     public void Initialize()
     {
-        EngineComponents.AssetContentManager = new AssetContentManager();
-        EngineComponents.AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
-        EngineComponents.AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+        AssetContentManager = new AssetContentManager();
+        AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
+        AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
 
-        var game = EngineComponents.Game;
-        DebugSystem.Initialize(game);
+        DebugSystem.Initialize(_game);
 
-        Renderer2dComponent = new Renderer2dComponent(game);
-        InputComponent = new InputComponent(game);
-        ManagerComponent = new ScreenManagerComponent(game);
-        Physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(game);
-        MeshRendererComponent = new StaticMeshRendererComponent(game);
-        PhysicsEngine = new PhysicsEngineComponent(game);
+        Renderer2dComponent = new Renderer2dComponent(_game);
+        InputComponent = new InputComponent(_game);
+        ManagerComponent = new ScreenManagerComponent(_game);
+        Physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(_game);
+        MeshRendererComponent = new StaticMeshRendererComponent(_game);
+        PhysicsEngine = new PhysicsEngineComponent(_game);
 
 #if EDITOR
         //In editor mode the game is in idle mode so we don't update physics
         PhysicsEngine.Enabled = false;
-        PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(game);
-        var gizmoComponent = new GizmoComponent(game);
-        var gridComponent = new GridComponent(game);
+        PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(_game);
+        var gizmoComponent = new GizmoComponent(_game);
+        var gridComponent = new GridComponent(_game);
 #endif
 
 #if !FINAL
@@ -112,40 +151,40 @@ public class GameManager
         ContentPath = "Content";
 #endif
 
-        game.Content.RootDirectory = ContentPath;
-        //CasaEngine.Game.EngineComponents.ProjectManager.Load(ProjectFile);
+        _game.Content.RootDirectory = ContentPath;
+        //CasaEngine.Game.ProjectManager.Load(ProjectFile);
         //TODO : create hierarchy of the project
         if (!string.IsNullOrWhiteSpace(ProjectFile))
         {
-            EngineComponents.ProjectSettings.Load(ProjectFile);
+            ProjectSettings.Load(ProjectFile);
         }
 
-        game.Window.Title = EngineComponents.ProjectSettings.WindowTitle;
-        game.Window.AllowUserResizing = EngineComponents.ProjectSettings.AllowUserResizing;
-        game.IsFixedTimeStep = EngineComponents.ProjectSettings.IsFixedTimeStep;
-        game.IsMouseVisible = EngineComponents.ProjectSettings.IsMouseVisible;
+        _game.Window.Title = ProjectSettings.WindowTitle;
+        _game.Window.AllowUserResizing = ProjectSettings.AllowUserResizing;
+        _game.IsFixedTimeStep = ProjectSettings.IsFixedTimeStep;
+        _game.IsMouseVisible = ProjectSettings.IsMouseVisible;
 
-        if (!string.IsNullOrWhiteSpace(EngineComponents.ProjectSettings.GameplayDllName))
+        if (!string.IsNullOrWhiteSpace(ProjectSettings.GameplayDllName))
         {
-            EngineComponents.PluginManager.Load(EngineComponents.ProjectSettings.GameplayDllName);
+            PluginManager.Load(ProjectSettings.GameplayDllName);
         }
     }
 
     public void BeginLoadContent()
     {
-        EngineComponents.AssetContentManager.Initialize(EngineComponents.Game.GraphicsDevice);
-        EngineComponents.AssetContentManager.RootDirectory = ContentPath;
+        AssetContentManager.Initialize(_game.GraphicsDevice);
+        AssetContentManager.RootDirectory = ContentPath;
 
-        //CasaEngine.Game.EngineComponents.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
+        //CasaEngine.Game.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
 
-        EngineComponents.SpriteBatch = new SpriteBatch(EngineComponents.Game.GraphicsDevice);
+        SpriteBatch = new SpriteBatch(_game.GraphicsDevice);
         //TODO : defaultSpriteFont
         //GameInfo.Instance.DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
 
-        //_renderer2dComponent.SpriteBatch = EngineComponents.SpriteBatch;
-        //var renderTarget = new RenderTarget2D(EngineComponents.Game.GraphicsDevice, 1024, 768, false,
+        //_renderer2dComponent.SpriteBatch = SpriteBatch;
+        //var renderTarget = new RenderTarget2D(Game.GraphicsDevice, 1024, 768, false,
         //    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-        //EngineComponents.Game.GraphicsDevice.SetRenderTarget(renderTarget);
+        //Game.GraphicsDevice.SetRenderTarget(renderTarget);
     }
 
     public void EndLoadContent()
@@ -153,13 +192,13 @@ public class GameManager
 #if !EDITOR
         if (GameInfo.Instance.CurrentWorld == null)
         {
-            if (string.IsNullOrWhiteSpace(EngineComponents.ProjectSettings.FirstWorldLoaded))
+            if (string.IsNullOrWhiteSpace(ProjectSettings.FirstWorldLoaded))
             {
                 throw new InvalidOperationException("FirstWorldLoaded is undefined");
             }
 
             GameInfo.Instance.CurrentWorld = new World.World();
-            GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
+            GameInfo.Instance.CurrentWorld.Load(ProjectSettings.FirstWorldLoaded);
         }
 
         GameInfo.Instance.CurrentWorld.Initialize();
@@ -171,7 +210,7 @@ public class GameManager
         entity.ComponentManager.Components.Add(camera);
         GameInfo.Instance.ActiveCamera = camera;
         camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        camera.Initialize();
+        camera.Initialize(_game);
 #endif
 
         //TEST
@@ -190,8 +229,8 @@ public class GameManager
         ////entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
         //var meshComponent = new StaticMeshComponent(entity);
         //entity.ComponentManager.Components.Add(meshComponent);
-        //meshComponent.Mesh = new BoxPrimitive(EngineComponents.Game.GraphicsDevice).CreateMesh();
-        //meshComponent.Mesh.Texture = EngineComponents.Game.Content.Load<Texture2D>("checkboard");
+        //meshComponent.Mesh = new BoxPrimitive(Game.GraphicsDevice).CreateMesh();
+        //meshComponent.Mesh.Texture = Game.Content.Load<Texture2D>("checkboard");
         ////
         //entity.ComponentManager.Components.Add(new PhysicsComponent(entity)
         //{
@@ -218,9 +257,13 @@ public class GameManager
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
             GameInfo.Instance.CurrentWorld = new World.World();
-            GameInfo.Instance.CurrentWorld.Load(EngineComponents.ProjectSettings.FirstWorldLoaded);
-            GameInfo.Instance.CurrentWorld.Initialize();
-            Physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
+            GameInfo.Instance.CurrentWorld.Load(ProjectSettings.FirstWorldLoaded);
+            GameInfo.Instance.CurrentWorld.Initialize(_game);
+
+            if (GameInfo.Instance.CurrentWorld.Physic2dWorld != null)
+            {
+                Physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
+            }
         }
 
 #if !FINAL
@@ -238,7 +281,7 @@ public class GameManager
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         GameInfo.Instance.CurrentWorld?.Update(elapsedTime);
-        //CasaEngine.Game.EngineComponents.UiManager.Update(time);
+        //CasaEngine.Game.UiManager.Update(time);
     }
 
     public void EndUpdate(GameTime gameTime)
@@ -255,12 +298,12 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-        //EngineComponents.Game.GraphicsDevice.Clear(Color.CornflowerBlue);
-        EngineComponents.Game.GraphicsDevice.Clear(Color.Black);
+        //Game.GraphicsDevice.Clear(Color.CornflowerBlue);
+        _game.GraphicsDevice.Clear(Color.Black);
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         GameInfo.Instance.CurrentWorld?.Draw(elapsedTime);
-        //CasaEngine.Game.EngineComponents.UiManager.PreRenderControls();
+        //CasaEngine.Game.UiManager.PreRenderControls();
     }
 
     public void EndDraw(GameTime gameTime)

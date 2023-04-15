@@ -530,7 +530,7 @@ namespace Editor.Game
         {
             if (m_CurrentSprite2D != null)
             {
-                EngineComponents.ObjectManager.Replace(m_ObjectPath, m_CurrentSprite2D);
+                CasaEngineGame.Game.GameManager.ObjectManager.Replace(m_ObjectPath, m_CurrentSprite2D);
             }
         }
 

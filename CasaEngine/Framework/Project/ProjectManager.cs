@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Framework.Project;
+﻿using CasaEngine.Framework.Game;
+
+namespace CasaEngine.Framework.Project;
 
 public class ProjectManager
 {
@@ -62,14 +64,14 @@ public class ProjectManager
         }
     }
 
-    public void Load(string fileName)
+    public void Load(CasaEngineGame game, string fileName)
     {
 #if EDITOR
-        Clear();
+        Clear(game);
         ProjectFileOpened = fileName;
 #endif
 
-        EngineComponents.ProjectSettings.Load(fileName);
+        game.GameManager.ProjectSettings.Load(fileName);
 
         //var xmlDoc = new XmlDocument();
         //xmlDoc.Load(fileName);
@@ -77,7 +79,7 @@ public class ProjectManager
         //var projectNode = (XmlElement)xmlDoc.SelectSingleNode(NodeRootName);
         //
         //var configNode = (XmlElement)projectNode.SelectSingleNode(NodeConfigName);
-        //CasaEngine.Game.EngineComponents.ProjectSettings.Load(configNode, SaveOption.Editor);
+        //CasaEngine.Game.game.GameManager.ProjectSettings.Load(configNode, SaveOption.Editor);
 
         /*XmlElement asset2DNode = (XmlElement)projectNode.SelectSingleNode(NodeAsset2DName);
         GameInfo.Instance.Asset2dManager.Load(asset2DNode, SaveOption.Editor);
@@ -88,12 +90,12 @@ public class ProjectManager
 #endif
 
         XmlElement objectRegistryNode = (XmlElement)projectNode.SelectSingleNode(NodeObjectRegistryName);
-        CasaEngine.Game.EngineComponents.ObjectManager.Load(objectRegistryNode, SaveOption.Editor);*/
+        CasaEngine.Game.game.GameManager.ObjectManager.Load(objectRegistryNode, SaveOption.Editor);*/
 
-        //CasaEngine.Game.EngineComponents.ObjectManager.Load(projectNode, SaveOption.Editor);
+        //CasaEngine.Game.game.GameManager.ObjectManager.Load(projectNode, SaveOption.Editor);
 
 #if EDITOR
-        EngineComponents.ExternalToolManager.Initialize();
+        game.GameManager.ExternalToolManager.Initialize();
 
         ProjectLoaded?.Invoke(this, EventArgs.Empty);
 #endif
@@ -108,17 +110,17 @@ public class ProjectManager
 
     public string? ProjectFileOpened { get; private set; }
 
-    public void Clear()
+    public void Clear(CasaEngineGame game)
     {
-        EngineComponents.AssetManager.Clear();
-        EngineComponents.Asset2dManager.Clear();
-        EngineComponents.ExternalToolManager.Clear();
+        game.GameManager.AssetManager.Clear();
+        //game.GameManager.Asset2dManager.Clear();
+        game.GameManager.ExternalToolManager.Clear();
         ProjectFileOpened = null;
 
         ProjectClosed?.Invoke(this, EventArgs.Empty);
     }
 
-    public void CreateProject(string projectName, string path)
+    public void CreateProject(CasaEngineGame game, string projectName, string path)
     {
 #if !DEBUG
         try
@@ -127,12 +129,12 @@ public class ProjectManager
 
         var fullFileName = Path.Combine(path, projectName + ".json");
 
-        Clear();
+        Clear(game);
 
         ProjectFileOpened = fullFileName;
         CreateProjectDirectoryHierarchy(path);
-        CreateDefaultItem(projectName, fullFileName);
-        Save(fullFileName);
+        CreateDefaultItem(game, projectName, fullFileName);
+        Save(game, fullFileName);
 
         ProjectLoaded?.Invoke(this, EventArgs.Empty);
 
@@ -145,14 +147,14 @@ public class ProjectManager
 #endif
     }
 
-    private void CreateDefaultItem(string projectName, string fullFileName)
+    private void CreateDefaultItem(CasaEngineGame game, string projectName, string fullFileName)
     {
         var projectPath = Path.GetDirectoryName(fullFileName);
         var world = new World.World { Name = "DefaultWorld" };
         world.FileName = world.Name;
-        world.Save();
-        EngineComponents.ProjectSettings.ProjectName = projectName;
-        EngineComponents.ProjectSettings.FirstWorldLoaded = world.FileName;
+        world.Save(projectPath);
+        game.GameManager.ProjectSettings.ProjectName = projectName;
+        game.GameManager.ProjectSettings.FirstWorldLoaded = world.FileName;
     }
 
     private void CreateProjectDirectoryHierarchy(string path)
@@ -169,9 +171,9 @@ public class ProjectManager
         Directory.CreateDirectory(path + Path.DirectorySeparatorChar + ConfigDirPath);
     }
 
-    public bool Save(string fileName)
+    public bool Save(CasaEngineGame game, string fileName)
     {
-        EngineComponents.ProjectSettings.Save(fileName);
+        game.GameManager.ProjectSettings.Save(fileName);
 
         //nouveau fichier
         //var xmlDoc = new XmlDocument();
@@ -180,7 +182,7 @@ public class ProjectManager
         //
         //var configNode = xmlDoc.CreateElement(NodeConfigName);
         //projectNode.AppendChild(configNode);
-        //CasaEngine.Game.EngineComponents.ProjectSettings.Save(configNode, SaveOption.Editor);
+        //CasaEngine.Game.game.GameManager.ProjectSettings.Save(configNode, SaveOption.Editor);
 
         //liste des mondes
         /*XmlElement worldListNode = xmlDoc.CreateElement("WorldList");
@@ -220,7 +222,7 @@ public class ProjectManager
 
         //XmlElement objectManagerNode = xmlDoc.CreateElement(NodeObjectListName);
         //projectNode.AppendChild(objectManagerNode);
-        //CasaEngine.Game.EngineComponents.ObjectManager.Save(projectNode, SaveOption.Editor);
+        //CasaEngine.Game.game.GameManager.ObjectManager.Save(projectNode, SaveOption.Editor);
 
         //xmlDoc.Save(fileName);
 

@@ -6,15 +6,13 @@ using CasaEngine.Core.Extension;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Gameplay.Actor;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using XNAGizmo;
-using ICloneable = CasaEngine.Framework.Gameplay.Design.ICloneable;
 
 namespace CasaEngine.Framework.Entities;
 
-public class Entity : ISaveLoad, ICloneable
+public class Entity : ISaveLoad
 #if EDITOR
     , ITransformable
 #endif
@@ -53,15 +51,9 @@ public class Entity : ISaveLoad, ICloneable
         ComponentManager = new ComponentManager(this);
     }
 
-    protected Entity(XmlElement el, SaveOption option)
+    public void Initialize(CasaEngineGame game)
     {
-        throw new InvalidOperationException("To be removed");
-        Load(el, option);
-    }
-
-    public void Initialize()
-    {
-        ComponentManager.Initialize();
+        ComponentManager.Initialize(game);
     }
 
     public void Update(float elapsedTime)

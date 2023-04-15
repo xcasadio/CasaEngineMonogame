@@ -17,12 +17,9 @@ public class InputState
 {
     private readonly InputComponent _inputComponent;
 
-
-
-
-    public InputState()
+    public InputState(Microsoft.Xna.Framework.Game game)
     {
-        _inputComponent = EngineComponents.Game.GetGameComponent<InputComponent>();
+        _inputComponent = ((CasaEngineGame)game).GetGameComponent<InputComponent>();
 
         if (_inputComponent == null)
         {
@@ -30,11 +27,7 @@ public class InputState
         }
     }
 
-
-
-
-    public bool IsNewKeyPress(Keys key, PlayerIndex? controllingPlayer,
-        out PlayerIndex playerIndex)
+    public bool IsNewKeyPress(Keys key, PlayerIndex? controllingPlayer, out PlayerIndex playerIndex)
     {
         if (controllingPlayer.HasValue)
         {
@@ -53,7 +46,6 @@ public class InputState
             //return _InputComponent.KeyboardKeyJustPressed(key);
         }
     }
-
 
     public bool IsNewButtonPress(Buttons button, PlayerIndex? controllingPlayer,
         out PlayerIndex playerIndex)
@@ -77,7 +69,6 @@ public class InputState
                IsNewButtonPress(button, PlayerIndex.Four, out playerIndex);
     }
 
-
     public bool IsMenuSelect(PlayerIndex? controllingPlayer,
         out PlayerIndex playerIndex)
     {
@@ -87,7 +78,6 @@ public class InputState
                IsNewButtonPress(Buttons.Start, controllingPlayer, out playerIndex);
     }
 
-
     public bool IsMenuCancel(PlayerIndex? controllingPlayer,
         out PlayerIndex playerIndex)
     {
@@ -95,7 +85,6 @@ public class InputState
                IsNewButtonPress(Buttons.B, controllingPlayer, out playerIndex) ||
                IsNewButtonPress(Buttons.Back, controllingPlayer, out playerIndex);
     }
-
 
     public bool IsMenuUp(PlayerIndex? controllingPlayer)
     {
@@ -106,7 +95,6 @@ public class InputState
                IsNewButtonPress(Buttons.LeftThumbstickUp, controllingPlayer, out playerIndex);
     }
 
-
     public bool IsMenuDown(PlayerIndex? controllingPlayer)
     {
         PlayerIndex playerIndex;
@@ -116,7 +104,6 @@ public class InputState
                IsNewButtonPress(Buttons.LeftThumbstickDown, controllingPlayer, out playerIndex);
     }
 
-
     public bool IsPauseGame(PlayerIndex? controllingPlayer)
     {
         PlayerIndex playerIndex;
@@ -125,6 +112,5 @@ public class InputState
                IsNewButtonPress(Buttons.Back, controllingPlayer, out playerIndex) ||
                IsNewButtonPress(Buttons.Start, controllingPlayer, out playerIndex);
     }
-
 
 }

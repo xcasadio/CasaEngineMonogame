@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using XNAGizmo;
@@ -65,12 +64,13 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
 
     public GameScreenControlViewModel()
     {
-        GameInfo.Instance.ReadyToStart += OnGameReadyToStart;
+        GameEditor.GameStarted += OnGameGameStarted;
     }
 
-    private void OnGameReadyToStart(object? sender, System.EventArgs e)
+    private void OnGameGameStarted(object? sender, System.EventArgs e)
     {
-        _gizmoComponent = EngineComponents.Game.GetGameComponent<GizmoComponent>();
+        CasaEngineGame game = (CasaEngineGame)sender;
+        _gizmoComponent = game.GetGameComponent<GizmoComponent>();
         _gizmoComponent.Gizmo.GizmoModeChangedEvent += OnGizmoModeChangedEvent;
         _gizmoComponent.Gizmo.TransformSpaceChangedEvent += OnTransformSpaceChangedEvent;
 
