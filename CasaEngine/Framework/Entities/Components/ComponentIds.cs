@@ -7,6 +7,8 @@ public enum ComponentIds
     ArcBallCamera,
     Physics2d,
     Physics,
+    AnimatedSprite,
+
 
     Custom = 1000
 }
