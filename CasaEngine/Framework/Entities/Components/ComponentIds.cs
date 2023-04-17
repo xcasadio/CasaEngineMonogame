@@ -8,7 +8,8 @@ public enum ComponentIds
     Physics2d,
     Physics,
     AnimatedSprite,
-
+    StaticSprite,
+    Tile,
 
     Custom = 1000
 }

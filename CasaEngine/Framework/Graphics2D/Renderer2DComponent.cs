@@ -78,8 +78,8 @@ public class Renderer2dComponent : DrawableGameComponent
 
         //_RoundLineManager = new RoundLineManager();
 
-        UpdateOrder = (int)ComponentUpdateOrder.Renderer2DComponent;
-        DrawOrder = (int)ComponentDrawOrder.Renderer2DComponent;
+        UpdateOrder = (int)ComponentUpdateOrder.Renderer2dComponent;
+        DrawOrder = (int)ComponentDrawOrder.Renderer2dComponent;
     }
 
     public override void Initialize()
@@ -225,7 +225,7 @@ public class Renderer2dComponent : DrawableGameComponent
 
     public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
-        //var sprite = (Sprite2D)GameManager.ObjectManager.GetObjectById(spriteId);
+        //var sprite = (Sprite2D)Game.GameManager.ObjectManager.GetObjectById(spriteId);
         //AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
     }
 

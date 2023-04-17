@@ -23,8 +23,8 @@ public class ScreenLogComponent
 
         game.Components.Add(this);
 
-        UpdateOrder = (int)ComponentUpdateOrder.Renderer2DComponent;
-        DrawOrder = (int)ComponentDrawOrder.Renderer2DComponent;
+        UpdateOrder = (int)ComponentUpdateOrder.ScreenLogComponent;
+        DrawOrder = (int)ComponentDrawOrder.ScreenLogComponent;
     }
 
     protected override void Dispose(bool disposing)

@@ -56,9 +56,9 @@ public class AnimatedSpriteComponent : Component
         _currentAnim.AnimationFinished += OnAnimationFinished;
     }
 
-    public void SetCurrentAnimation(int index_, bool forceReset)
+    public void SetCurrentAnimation(int index, bool forceReset)
     {
-        SetCurrentAnimation(Animations[index_], forceReset);
+        SetCurrentAnimation(Animations[index], forceReset);
     }
 
     public bool SetCurrentAnimation(string name, bool forceReset)

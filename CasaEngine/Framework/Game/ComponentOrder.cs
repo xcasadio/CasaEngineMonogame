@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Game;
 public enum ComponentUpdateOrder
 {
     GameManager = 500,
-    Renderer2DComponent,
+    Renderer2dComponent,
     MeshComponent,
     Input = 510,
     Manipulator,
@@ -36,7 +36,7 @@ public enum ComponentDrawOrder
     ScreenLogComponent = 556,
     Default = 5100,
     MeshComponent,
-    Renderer2DComponent = 5150,
+    Renderer2dComponent = 5150,
     DebugPhysics = 5200,
     Manipulator = 51000
 }
