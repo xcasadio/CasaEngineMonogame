@@ -187,7 +187,7 @@ public class PhysicsComponent : Component
 
     public override void Load(JsonElement element)
     {
-        _physicsType = element.GetJsonPropertyByName("physicsType").Value.GetEnum<PhysicsType>();
+        _physicsType = element.GetJsonPropertyByName("physics_type").Value.GetEnum<PhysicsType>();
 
         if (PhysicsType == PhysicsType.Dynamic)
         {
@@ -197,7 +197,7 @@ public class PhysicsComponent : Component
         var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "null")
         {
-            var shapeType = shapeElement.GetProperty("shapeType").GetEnum<ShapeType>();
+            var shapeType = shapeElement.GetProperty("shape_type").GetEnum<ShapeType>();
 
             Shape shape = shapeType switch
             {
@@ -221,7 +221,7 @@ public class PhysicsComponent : Component
     {
         base.Save(jObject);
 
-        jObject.Add("physicsType", _physicsType.ConvertToString());
+        jObject.Add("physics_type", _physicsType.ConvertToString());
 
         if (PhysicsType == PhysicsType.Dynamic)
         {

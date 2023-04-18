@@ -14,7 +14,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using System.Xml.Linq;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Documents;
-using Microsoft.Xna.Framework.Graphics;
 using Cursor = CasaEngine.Framework.UserInterface.Cursors.Cursor;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 

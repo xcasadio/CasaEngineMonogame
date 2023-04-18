@@ -55,6 +55,7 @@ public class FpsCounter : DrawableGameComponent
 
     private bool _firstCompute = true;
     private SpriteFont? _font;
+    private SpriteBatch? _spriteBatch;
 
     public FpsCounter(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -87,7 +88,7 @@ public class FpsCounter : DrawableGameComponent
     protected override void LoadContent()
     {
         _font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;
-
+        _spriteBatch = ((CasaEngineGame)Game).GameManager.SpriteBatch;
         _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
 
         if (_renderer2dComponent == null)
@@ -182,7 +183,7 @@ public class FpsCounter : DrawableGameComponent
         var size = _font.MeasureString("X");
         var rc = new Rectangle(0, 0, (int)(size.X * 14f), (int)(size.Y * 1.3f));
 
-        var layout = new Layout(((CasaEngineGame)Game).GameManager.SpriteBatch.GraphicsDevice.Viewport);
+        var layout = new Layout(_spriteBatch.GraphicsDevice.Viewport);
         rc = layout.Place(rc, 0.01f, 0.01f, Alignment.TopLeft);
 
         // Place FPS string in border area.
@@ -191,8 +192,8 @@ public class FpsCounter : DrawableGameComponent
         var pos = layout.Place(size, 0, 0.1f, Alignment.Center);
 
         // Draw
-        _renderer2dComponent.AddSprite2D(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
-        _renderer2dComponent.AddText2d(((CasaEngineGame)Game).GameManager.DefaultSpriteFont, _stringBuilder.ToString(),
+        _renderer2dComponent.AddSprite(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
+        _renderer2dComponent.AddText2d(_font, _stringBuilder.ToString(),
             pos, 0.0f, Vector2.One, Color.White, 0f);
 
         base.Draw(gameTime);

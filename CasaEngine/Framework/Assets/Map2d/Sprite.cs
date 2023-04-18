@@ -1,29 +1,24 @@
-﻿using CasaEngine.Framework.Assets.Textures;
+﻿using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
 public class Sprite
 {
-    //TODO : remove and use AssetManager
-    private static Dictionary<string, Texture> _textureCache = new();
+    public Texture Texture { get; }
+    public SpriteData SpriteData { get; }
 
-    public Texture Texture { get; set; }
-    public SpriteData SpriteData { get; set; }
+    public Sprite()
+    { }
 
-    public Sprite(SpriteData spriteData)
+    private Sprite(SpriteData spriteData, Texture texture)
     {
-        if (_textureCache.TryGetValue(spriteData.FileName, out var texture))
-        {
-            Texture = texture;
-        }
-        else
-        {
-            throw new NotImplementedException();
-            //auto* textureFile = Game::Instance().GetMediaManager().FindMedia(spriteData.GetAssetFileName().c_str(), true);
-            //Texture = Texture::loadTexture(textureFile);
-            //_textureCache.insert(std::make_pair(spriteData.GetAssetFileName(), texture));
-        }
-
         SpriteData = spriteData;
+        Texture = texture;
+    }
+
+    public static Sprite Create(SpriteData spriteData, AssetContentManager assetContentManager)
+    {
+        var texture = new Texture(assetContentManager.GraphicsDevice, spriteData.SpriteSheetFileName, assetContentManager);
+        return new Sprite(spriteData, texture);
     }
 };

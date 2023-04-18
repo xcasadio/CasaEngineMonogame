@@ -118,7 +118,7 @@ public class GameEditor : WpfGame
                     };
                     entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;//entity.BoundingBox.;
                     entity.Initialize(Game);
-                    GameInfo.Instance.CurrentWorld.AddObjectImmediately(entity);
+                    GameInfo.Instance.CurrentWorld.AddEntityImmediately(entity);
 
                     //select this entity
                     var gizmoComponent = Game.GetGameComponent<GizmoComponent>();

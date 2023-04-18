@@ -17,11 +17,11 @@ public class ScreenGadgetLabel
 #if EDITOR
     public
 #else
-        protected
+    protected
 #endif
-        override void DrawGadget(float elapsedTime)
+    override void DrawGadget(float elapsedTime)
     {
-        Renderer2dComponent.AddSprite2D(
+        Renderer2dComponent.AddSprite(
             WhiteTexture,
             Location,
             0.0f,

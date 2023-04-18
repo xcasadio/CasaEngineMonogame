@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -62,7 +61,7 @@ public class StaticMesh
     {
         //base.Save(jObject); //asset ?
         var version = element.GetProperty("version").GetInt32();
-        PrimitiveType = element.GetProperty("primitiveType").GetEnum<PrimitiveType>();
+        PrimitiveType = element.GetProperty("primitive_type").GetEnum<PrimitiveType>();
 
         var verticesJObject = element.GetProperty("vertices");
 
@@ -100,7 +99,7 @@ public class StaticMesh
     {
         //base.Save(jObject); //asset ?
         jObject.Add("version", 1);
-        jObject.Add("primitiveType", PrimitiveType.ConvertToString());
+        jObject.Add("primitive_type", PrimitiveType.ConvertToString());
 
         var verticesJObject = new JArray();
         jObject.Add("vertices", verticesJObject);

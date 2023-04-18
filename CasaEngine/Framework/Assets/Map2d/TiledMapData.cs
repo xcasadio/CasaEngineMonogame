@@ -5,9 +5,9 @@ namespace CasaEngine.Framework.Assets.Map2d;
 
 public class TiledMapData
 {
-    public Coordinates coordinates;
-    public Vector2 mapSize;
-    public List<TiledMapLayerData> layers;
-    public string tileSetFileName;
-    public string autoTileSetFileName;
+    public Coordinates Coordinates { get; } = new();
+    public Vector2 MapSize { get; set; }
+    public List<TiledMapLayerData> Layers { get; } = new();
+    public string TileSetFileName { get; set; }
+    public string AutoTileSetFileName { get; set; }
 };

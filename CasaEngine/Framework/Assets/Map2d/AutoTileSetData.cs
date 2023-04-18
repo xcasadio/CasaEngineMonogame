@@ -4,15 +4,15 @@ namespace CasaEngine.Framework.Assets.Map2d;
 
 public class AutoTileSetData
 {
-    public string spriteSheetFileName;
-    public Vector2 tileSize;
-    public List<AutoTileTileSetData> sets;
+    public string SpriteSheetFileName { get; set; }
+    public Vector2 TileSize { get; set; }
+    public List<AutoTileTileSetData> Sets { get; } = new();
 
     public AutoTileTileSetData? GetTileSetById(int id)
     {
-        foreach (var set in sets)
+        foreach (var set in Sets)
         {
-            if (set.id == id)
+            if (set.Id == id)
             {
                 return set;
             }

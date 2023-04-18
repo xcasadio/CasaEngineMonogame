@@ -1,7 +1,6 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -37,13 +36,13 @@ public class ScreenGadgetButton : ScreenGadget
 #if EDITOR
     public
 #else
-        protected
+    protected
 #endif
-        override void DrawGadget(float elapsedTime)
+    override void DrawGadget(float elapsedTime)
     {
         var area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
 
-        Renderer2dComponent.AddSprite2D(
+        Renderer2dComponent.AddSprite(
             WhiteTexture,
             Location,
             0.0f,
@@ -92,7 +91,7 @@ public class ScreenGadgetButton : ScreenGadget
 
         if (spriteId != int.MaxValue)
         {
-            //Image = GameManager.Asset2dManager.GetSprite2DById(spriteId);
+            //Image = GameManager.Asset2dManager.GetSprite2DById(SpriteId);
             //GameManager.Asset2dManager.AddSprite2DToLoadingList(Image);
         }
 
@@ -117,8 +116,8 @@ public class ScreenGadgetButton : ScreenGadget
 
         base.Save(el, opt);
 
-        //var spriteId = Image == null ? int.MaxValue : Image.Id;
-        //node = el.OwnerDocument.CreateElementWithText("Image", spriteId.ToString());
+        //var SpriteId = Image == null ? int.MaxValue : Image.Id;
+        //node = el.OwnerDocument.CreateElementWithText("Image", SpriteId.ToString());
         //el.AppendChild(node);
         node = el.OwnerDocument.CreateElementWithText("SizeImage", Enum.GetName(typeof(SizeImage), SizeImage));
         el.AppendChild(node);
@@ -128,8 +127,8 @@ public class ScreenGadgetButton : ScreenGadget
     {
         base.Save(bw, opt);
 
-        //var spriteId = Image == null ? int.MaxValue : Image.Id;
-        //bw.Write(spriteId);
+        //var SpriteId = Image == null ? int.MaxValue : Image.Id;
+        //bw.Write(SpriteId);
         bw.Write((int)SizeImage);
     }
 #endif

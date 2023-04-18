@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
@@ -11,9 +12,9 @@ public class AnimatedTile : Tile
         Animation = animation;
     }
 
-    public override void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
-        base.Initialize();
+        base.Initialize(game);
         Animation?.Initialize();
     }
 

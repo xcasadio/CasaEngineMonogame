@@ -1,5 +1,4 @@
 ﻿using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;

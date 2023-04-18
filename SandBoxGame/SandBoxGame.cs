@@ -1,10 +1,10 @@
 ﻿using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -12,10 +12,6 @@ namespace SandBoxGame
 {
     public class SandBoxGame : CasaEngineGame
     {
-        public SandBoxGame()
-        {
-        }
-
         protected override void Initialize()
         {
             base.Initialize();
@@ -33,7 +29,7 @@ namespace SandBoxGame
             entity.ComponentManager.Components.Add(camera);
             GameInfo.Instance.ActiveCamera = camera;
             camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-            world.AddObjectImmediately(entity);
+            world.AddEntityImmediately(entity);
 
             entity = new Entity();
             //entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
@@ -43,7 +39,10 @@ namespace SandBoxGame
             meshComponent.Mesh.Initialize(GraphicsDevice);
             meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(
                 GraphicsDevice, "Content\\checkboard.png", GameManager.AssetContentManager);
-            world.AddObjectImmediately(entity);
+            world.AddEntityImmediately(entity);
+
+            SpriteLoader.LoadFromFile(@"Content\TiledMap\Outside_A2_sprites.json", GameManager.AssetContentManager);
+            TiledMapCreator.LoadMapFromFile(@"Content\TiledMap\tileMap.json", world, GameManager.AssetContentManager);
 
             base.LoadContent();
         }
@@ -55,17 +54,11 @@ namespace SandBoxGame
                 Exit();
             }
 
-            // TODO: Add your update logic here
-
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            // TODO: Add your drawing code here
-
             base.Draw(gameTime);
         }
     }

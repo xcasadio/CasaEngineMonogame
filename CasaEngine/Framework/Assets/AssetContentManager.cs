@@ -4,9 +4,9 @@ namespace CasaEngine.Framework.Assets;
 
 public class AssetContentManager
 {
-    private readonly List<Asset> _assets = new();
-    private readonly Dictionary<string, Dictionary<string, object>> _loadedAssets = new();
     private readonly Dictionary<Type, IAssetLoader> _assetLoader = new();
+    private readonly Dictionary<string, Dictionary<string, object>> _assetsByFileNameByCategory = new();
+    public GraphicsDevice GraphicsDevice { get; private set; }
 
     public string RootDirectory
     {
@@ -21,7 +21,8 @@ public class AssetContentManager
 
     public void Initialize(GraphicsDevice device)
     {
-        device.DeviceReset += OnDeviceReset;
+        GraphicsDevice = device;
+        GraphicsDevice.DeviceReset += OnDeviceReset;
     }
 
     public void RegisterAssetLoader(Type type, IAssetLoader loader)
@@ -29,16 +30,27 @@ public class AssetContentManager
         _assetLoader.Add(type, loader);
     }
 
+    public void AddAsset(string fileName, object asset, string categoryName = "default")
+    {
+        _assetsByFileNameByCategory[categoryName][fileName] = asset;
+    }
+
+    public T? GetAsset<T>(string fileName, string categoryName = "default")
+    {
+        _assetsByFileNameByCategory[categoryName].TryGetValue(fileName, out object? asset);
+        return (T?)asset;
+    }
+
     public T Load<T>(string filePath, GraphicsDevice device, string categoryName = "default")
     {
-        if (_loadedAssets.TryGetValue(categoryName, out var categoryAssetList))
+        if (_assetsByFileNameByCategory.TryGetValue(categoryName, out var categoryAssetList))
         {
-            categoryAssetList = _loadedAssets[categoryName];
+            categoryAssetList = _assetsByFileNameByCategory[categoryName];
         }
         else
         {
             categoryAssetList = new Dictionary<string, object>();
-            _loadedAssets.Add(categoryName, categoryAssetList);
+            _assetsByFileNameByCategory.Add(categoryName, categoryAssetList);
         }
 
         if (categoryAssetList.ContainsKey(filePath))
@@ -53,21 +65,20 @@ public class AssetContentManager
             throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
         }
 
-        var asset = (T)_assetLoader[type].LoadAsset(filePath, device);
-        categoryAssetList.Add(filePath, asset);
+        var asset = (T)_assetLoader[type].LoadAsset(filePath, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {filePath}");
+        AddAsset(filePath, asset, categoryName);
         return asset;
 
     }
 
     public void Unload(string categoryName)
     {
-        //find category
-        if (_loadedAssets.TryGetValue(categoryName, out var categoryAssetList) == false)
+        if (_assetsByFileNameByCategory.TryGetValue(categoryName, out var categoryAssetList) == false)
         {
             return;
         }
 
-        categoryAssetList = _loadedAssets[categoryName];
+        categoryAssetList = _assetsByFileNameByCategory[categoryName];
 
         foreach (var a in categoryAssetList)
         {
@@ -77,41 +88,35 @@ public class AssetContentManager
             }
         }
 
-        _loadedAssets.Remove(categoryName);
+        _assetsByFileNameByCategory.Remove(categoryName);
     }
 
     public void UnloadAll()
     {
-        foreach (var pair in _loadedAssets)
+        foreach (var pair in _assetsByFileNameByCategory)
         {
             Unload(pair.Key);
         }
     }
 
-    internal void AddAsset(Asset asset)
-    {
-        _assets.Add(asset);
-    }
-
     internal void OnDeviceReset(object? sender, EventArgs e)
     {
-        var device = sender as GraphicsDevice;
+        GraphicsDevice = sender as GraphicsDevice;
 
-        //TODO : useful or buggy ?
-        /*foreach (var pair in _LoadedAssets)
+        foreach (var assetsByCategory in _assetsByFileNameByCategory)
         {
-            foreach (var pair2 in pair.Value)
+            foreach (var assetByFileName in assetsByCategory.Value)
             {
-                if (pair2.Value is IDisposable)
+                /*if (assetByFileName.Value is IDisposable) //TODO : useful or buggy ?
                 {
                     ((IDisposable)pair2.Value).Dispose();
+                }*/
+
+                if (assetByFileName.Value is Asset asset)
+                {
+                    asset.OnDeviceReset(GraphicsDevice, this);
                 }
             }
-        }*/
-
-        foreach (var a in _assets)
-        {
-            a.OnDeviceReset(device, this);
         }
     }
 }

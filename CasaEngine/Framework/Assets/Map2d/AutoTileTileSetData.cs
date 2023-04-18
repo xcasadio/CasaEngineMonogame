@@ -2,14 +2,14 @@
 
 public class AutoTileTileSetData
 {
-    public int id;
-    public List<TileData> tiles;
+    public int Id { get; set; }
+    public List<TileData> Tiles { get; } = new();
 
     public TileData? GetTileById(int id)
     {
-        foreach (var tile in tiles)
+        foreach (var tile in Tiles)
         {
-            if (tile.id == id)
+            if (tile.Id == id)
             {
                 return tile;
             }

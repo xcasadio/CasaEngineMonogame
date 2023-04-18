@@ -35,7 +35,7 @@ public sealed class World : Asset
         }
     }
 
-    public void AddObjectImmediately(Entity entity)
+    public void AddEntityImmediately(Entity entity)
     {
         _entities.Add(entity);
 #if EDITOR
@@ -43,7 +43,7 @@ public sealed class World : Asset
 #endif
     }
 
-    public void AddObject(Entity entity)
+    public void AddEntity(Entity entity)
     {
         _baseObjectsToAdd.Add(entity);
     }
@@ -148,7 +148,7 @@ public sealed class World : Asset
         worldJson.Add("version", 1);
         var entitiesJArray = new JArray();
 
-        foreach (var entity in Entities)
+        foreach (var entity in Entities.Where(x => x.IsPersistent))
         {
             JObject entityObject = new();
             entity.Save(entityObject);

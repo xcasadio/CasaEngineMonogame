@@ -26,14 +26,14 @@ public abstract class Shape
     public virtual void Load(JsonElement element)
     {
         var version = element.GetProperty("version").GetInt32();
-        //Type = element.GetProperty("shapeType").GetEnum<ShapeType>();
+        //Type = element.GetProperty("shape_type").GetEnum<ShapeType>();
     }
 
 #if EDITOR
     public virtual void Save(JObject jObject)
     {
         jObject.Add("version", 1);
-        jObject.Add("shapeType", Type.ConvertToString());
+        jObject.Add("shape_type", Type.ConvertToString());
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

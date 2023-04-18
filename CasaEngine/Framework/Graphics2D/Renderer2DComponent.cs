@@ -44,17 +44,17 @@ public class Renderer2dComponent : DrawableGameComponent
 
     public static bool DrawDebug = false;
 
-    private readonly List<SpriteDisplayData> _listSprite2D = new(50);
+    private readonly List<SpriteDisplayData> _spritesData = new(50);
     //used to create a resource pool
-    private readonly Stack<SpriteDisplayData> _listFreeSpriteDisplayData = new(50);
+    private readonly Stack<SpriteDisplayData> _freeSpritesData = new(50);
 
-    private readonly List<Text2dDisplayData> _listText2D = new(50);
+    private readonly List<Text2dDisplayData> _textsData = new(50);
     //used to create a resource pool
-    private readonly Stack<Text2dDisplayData> _listFreeTextDisplayData = new(50);
+    private readonly Stack<Text2dDisplayData> _freeTextsData = new(50);
 
-    private readonly List<Line2dDisplayData> _listLine2D = new(50);
+    private readonly List<Line2dDisplayData> _lines = new(50);
     //used to create a resource pool
-    private readonly Stack<Line2dDisplayData> _listFreeLine2DDisplayData = new(50);
+    private readonly Stack<Line2dDisplayData> _linesData = new(50);
 
     //List<RoundLine> _RoundLines = new List<RoundLine>();		
     //RoundLineManager _RoundLineManager = null;
@@ -103,9 +103,9 @@ public class Renderer2dComponent : DrawableGameComponent
 
     public override void Draw(GameTime gameTime)
     {
-        if (_listSprite2D.Count == 0
-            && _listText2D.Count == 0
-            && _listLine2D.Count == 0)
+        if (_spritesData.Count == 0
+            && _textsData.Count == 0
+            && _lines.Count == 0)
         {
             return;
         }
@@ -124,7 +124,7 @@ public class Renderer2dComponent : DrawableGameComponent
             RasterizerState.CullCounterClockwise);
 
         //sprite2D
-        foreach (var sprite in _listSprite2D)
+        foreach (var sprite in _spritesData)
         {
             switch (sprite.SpriteEffect)
             {
@@ -184,24 +184,22 @@ public class Renderer2dComponent : DrawableGameComponent
 
             //GraphicsDevice.ScissorRectangle = sprite.ScissorRectangle;
 
-            SpriteBatch.Draw(sprite.Texture2D, sprite.Position, rect, sprite.Color,
-                0.0f, hotspot, sprite.Scale, sprite.SpriteEffect, sprite.ZOrder);
+            SpriteBatch.Draw(sprite.Texture2D, sprite.Position, rect, sprite.Color, 0.0f, hotspot, sprite.Scale, sprite.SpriteEffect, sprite.ZOrder);
         }
 
         //Text2D
-        foreach (var text2D in _listText2D)
+        foreach (var text2D in _textsData)
         {
             tmpVec2.X = (int)text2D.Position.X;
             tmpVec2.Y = (int)text2D.Position.Y;
 
             //GraphicsDevice.ScissorRectangle = text2D.ScissorRectangle;
 
-            SpriteBatch.DrawString(text2D.SpriteFont, text2D.Text, tmpVec2, text2D.Color,
-                0.0f, Vector2.Zero, text2D.Scale, text2D.SpriteEffect, text2D.ZOrder);
+            SpriteBatch.DrawString(text2D.SpriteFont, text2D.Text, tmpVec2, text2D.Color, 0.0f, Vector2.Zero, text2D.Scale, text2D.SpriteEffect, text2D.ZOrder);
         }
 
         //Line2D
-        foreach (var line2D in _listLine2D)
+        foreach (var line2D in _lines)
         {
             _line2DRenderer.DrawLine(SpriteBatch, line2D.Color, line2D.Start, line2D.End, line2D.ZOrder);
         }
@@ -218,34 +216,34 @@ public class Renderer2dComponent : DrawableGameComponent
         Clear();
     }
 
-    public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
+    //public void AddSprite(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
+    //{
+    //    AddSprite(spriteId, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
+    //}
+
+    //public void AddSprite(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
+    //{
+    //    //var sprite = (Sprite2D)((CasaEngineGame)Game).GameManager.AssetContentManager.GetAsset<>(SpriteId);
+    //    //AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+    //}
+    //
+    public void AddSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
     {
-        AddSprite2D(spriteId, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
+        AddSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddSprite2D(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
+    public void AddSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
-        //var sprite = (Sprite2D)Game.GameManager.ObjectManager.GetObjectById(spriteId);
-        //AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+        AddSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, scissorRectangle);
     }
 
-    public void AddSprite2D(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
-    {
-        AddSprite2D(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
-    }
-
-    public void AddSprite2D(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
-    {
-        AddSprite2D(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, scissorRectangle);
-    }
-
-    public void AddSprite2D(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
+    public void AddSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
         Vector2 scale, Color color, float zOrder, SpriteEffects effects)
     {
-        AddSprite2D(tex, src, origin, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
+        AddSprite(tex, src, origin, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddSprite2D(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
+    public void AddSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
         Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
         if (tex == null)
@@ -270,7 +268,7 @@ public class Renderer2dComponent : DrawableGameComponent
         sprite.Origin = origin;
         sprite.ScissorRectangle = scissorRectangle;
 
-        _listSprite2D.Add(sprite);
+        _spritesData.Add(sprite);
     }
 
     /*public void AddText2d(PoolItem<Text2D> text2D_)
@@ -315,7 +313,7 @@ public class Renderer2dComponent : DrawableGameComponent
         text2D.ZOrder = zOrder;
         text2D.ScissorRectangle = scissorRectangle;
 
-        _listText2D.Add(text2D);
+        _textsData.Add(text2D);
     }
 
     public void AddLine2d(Vector2 start, Vector2 end, Color color, float zOrder, Rectangle scissorRectangle)
@@ -327,7 +325,7 @@ public class Renderer2dComponent : DrawableGameComponent
         line2D.ZOrder = zOrder;
         line2D.ScissorRectangle = scissorRectangle;
 
-        _listLine2D.Add(line2D);
+        _lines.Add(line2D);
     }
 
     public void AddLine2d(Vector2 start, Vector2 end, Color color, float zOrder = 0.0f)
@@ -366,56 +364,41 @@ public class Renderer2dComponent : DrawableGameComponent
 
     private SpriteDisplayData GetSpriteDisplayData()
     {
-        if (_listFreeSpriteDisplayData.Count > 0)
-        {
-            return _listFreeSpriteDisplayData.Pop();
-        }
-
-        return new SpriteDisplayData();
+        return _freeSpritesData.Count > 0 ? _freeSpritesData.Pop() : new SpriteDisplayData();
     }
 
     private Text2dDisplayData GetText2dDisplayData()
     {
-        if (_listFreeTextDisplayData.Count > 0)
-        {
-            return _listFreeTextDisplayData.Pop();
-        }
-
-        return new Text2dDisplayData();
+        return _freeTextsData.Count > 0 ? _freeTextsData.Pop() : new Text2dDisplayData();
     }
 
     private Line2dDisplayData GetLine2dDisplayData()
     {
-        if (_listFreeLine2DDisplayData.Count > 0)
-        {
-            return _listFreeLine2DDisplayData.Pop();
-        }
-
-        return new Line2dDisplayData();
+        return _linesData.Count > 0 ? _linesData.Pop() : new Line2dDisplayData();
     }
 
     public void Clear()
     {
-        foreach (var sprite in _listSprite2D)
+        foreach (var sprite in _spritesData)
         {
-            _listFreeSpriteDisplayData.Push(sprite);
+            _freeSpritesData.Push(sprite);
         }
 
-        _listSprite2D.Clear();
+        _spritesData.Clear();
 
-        foreach (var t in _listText2D)
+        foreach (var t in _textsData)
         {
-            _listFreeTextDisplayData.Push(t);
+            _freeTextsData.Push(t);
         }
 
-        _listText2D.Clear();
+        _textsData.Clear();
 
-        foreach (var t in _listLine2D)
+        foreach (var t in _lines)
         {
-            _listFreeLine2DDisplayData.Push(t);
+            _linesData.Push(t);
         }
 
-        _listLine2D.Clear();
+        _lines.Clear();
     }
 
 }

@@ -1,9 +1,7 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.UserInterface;
-using Microsoft.Xna.Framework.Graphics;
 using Control = CasaEngine.Framework.UserInterface.Control;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;

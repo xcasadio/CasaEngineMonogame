@@ -1,9 +1,19 @@
-﻿namespace CasaEngine.Framework.Assets.Map2d;
+﻿using CasaEngine.Core.Helpers;
+using SharpDX.Direct3D9;
+using System.Text.Json;
+
+namespace CasaEngine.Framework.Assets.Map2d;
 
 public class AnimatedTileData : TileData
 {
-    string animation2DId;
+    public string Animation2dId;
 
     public AnimatedTileData() : base(TileType.Animated)
     { }
+
+    public virtual void Load(JsonElement jObject)
+    {
+        base.Load(jObject);
+        Animation2dId = jObject.GetJsonPropertyByName("animation_2d_id").Value.GetString();
+    }
 };

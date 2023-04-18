@@ -15,7 +15,7 @@ public class TileComponent : Component
 
     public override void Initialize(CasaEngineGame game)
     {
-        Tile.Initialize();
+        Tile.Initialize(game);
     }
 
     public override void Update(float elapsedTime)

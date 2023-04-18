@@ -1,7 +1,4 @@
-﻿using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics2D;
-
-namespace CasaEngine.Framework.FrontEnd.Screen;
+﻿namespace CasaEngine.Framework.FrontEnd.Screen;
 
 public class DebugScreen : Screen
 {

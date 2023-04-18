@@ -5,7 +5,6 @@
  Modify by: Schneider, José Ignacio
 */
 
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
@@ -13,7 +12,7 @@ namespace CasaEngine.Framework.Assets.Textures;
 public class LookupTable : Asset
 {
     private readonly AssetContentManager _assetContentManager;
-    private static readonly string AssetContentManagerCategoryName = "temp";
+    private static readonly string AssetContentManagerCategoryName = "LookupTableTemp";
 
     public GraphicsDevice GraphicsDevice { get; private set; }
 

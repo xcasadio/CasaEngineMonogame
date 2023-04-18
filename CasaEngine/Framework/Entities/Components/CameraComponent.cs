@@ -68,7 +68,7 @@ public abstract class CameraComponent : Component
 
     public override void Load(JsonElement element)
     {
-        _viewDistance = element.GetProperty("viewDistance").GetSingle();
+        _viewDistance = element.GetProperty("view_distance").GetSingle();
         _viewport = element.GetJsonPropertyByName("viewport").Value.GetViewPort();
     }
 
@@ -88,7 +88,7 @@ public abstract class CameraComponent : Component
     {
         base.Save(jObject);
 
-        jObject.Add("viewDistance", _viewDistance);
+        jObject.Add("view_distance", _viewDistance);
 
         var newjObject = new JObject();
         Viewport.Save(newjObject);

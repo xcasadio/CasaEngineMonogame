@@ -11,7 +11,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 
-using CasaEngine.Framework.Game;
 using Button = CasaEngine.Framework.UserInterface.Controls.Buttons.Button;
 
 namespace CasaEngine.Framework.UserInterface.Controls.Windows;

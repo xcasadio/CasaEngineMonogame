@@ -30,7 +30,6 @@ using System.Xml;
 using System.Xml.Linq;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.UserInterface.Documents;

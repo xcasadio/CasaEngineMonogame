@@ -1,7 +1,6 @@
 ﻿namespace CasaEngine.Framework.Assets.Animations;
 
-public class AnimationData
+public class AnimationData : Asset
 {
-    public string Name { get; set; }
     public AnimationType AnimationType { get; set; }
 }

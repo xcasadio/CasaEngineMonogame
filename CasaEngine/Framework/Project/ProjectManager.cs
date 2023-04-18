@@ -112,8 +112,6 @@ public class ProjectManager
 
     public void Clear(CasaEngineGame game)
     {
-        game.GameManager.AssetManager.Clear();
-        //game.GameManager.Asset2dManager.Clear();
         game.GameManager.ExternalToolManager.Clear();
         ProjectFileOpened = null;
 

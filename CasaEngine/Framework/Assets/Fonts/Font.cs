@@ -4,7 +4,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Extension;
-using CasaEngine.Editor.Assets;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,7 +13,7 @@ namespace CasaEngine.Framework.Assets.Fonts;
 
 public class Font
 #if EDITOR
-    : INotifyPropertyChanged, IAssetable
+    : INotifyPropertyChanged
 #endif
 {
     private readonly Dictionary<char, FontChar> _charsDic;

@@ -1,10 +1,4 @@
-﻿using CasaEngine.Framework.Assets.Map2d;
-using SharpDX.Direct2D1;
-using SharpDX.Direct3D9;
-using SharpDX.MediaFoundation;
-using System.Threading.Tasks;
-
-namespace CasaEngine.Framework.Assets.Map2d;
+﻿namespace CasaEngine.Framework.Assets.Map2d;
 
 public class StaticTile : Tile
 {

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Assets.Map2d;
@@ -44,21 +45,26 @@ public class AutoTile : Tile
     const uint mask_right_bottom = 1 << 7;
     const uint mask_all = mask_left | mask_right | mask_top | mask_bottom | mask_left_top | mask_left_bottom | mask_right_top | mask_right_bottom;
 
-    AutoTile(TileData tileData) : base(tileData)
-    { }
+    public AutoTile(TileData tileData) : base(tileData)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            _drawingInfos[i] = new AutoTileDrawingInfo();
+        }
+    }
 
     public void RemovedTileFromLayer()
     {
-        _tiledMapLayerData.tilesId[_x + _y * (int)_mapSize.X] = -1;
+        _tiledMapLayerData.tiles[_x + _y * (int)_mapSize.X] = -1;
     }
 
-    public override void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
-        base.Initialize();
+        base.Initialize(game);
 
         foreach (var tile in _tiles)
         {
-            tile.Initialize();
+            tile.Initialize(game);
         }
 
         _drawingInfos[0].SetInfo(-1, 0, 0, 0, new Rectangle());
@@ -74,7 +80,7 @@ public class AutoTile : Tile
             return 0;
         }
 
-        var tileId = layer.tilesId[x + y * (int)mapSize.X];
+        var tileId = layer.tiles[x + y * (int)mapSize.X];
         if (tileId != -1)
         {
             return (uint)1 << offset;

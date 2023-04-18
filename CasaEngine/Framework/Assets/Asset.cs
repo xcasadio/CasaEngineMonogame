@@ -67,7 +67,7 @@ public abstract class Asset : Disposable
             new JProperty("version", 1),
             new JProperty("id", Id),
             new JProperty("name", Name),
-            new JProperty("fileName", FileName));
+            new JProperty("file_name", FileName));
 
         jObject.Add("asset", assetObject);
     }

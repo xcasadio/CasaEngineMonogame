@@ -1,8 +1,4 @@
-﻿using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics2D;
-using Microsoft.Xna.Framework.Graphics;
-
-namespace CasaEngine.Framework.FrontEnd.Screen;
+﻿namespace CasaEngine.Framework.FrontEnd.Screen;
 
 public class WorldScreen : Screen
 {

@@ -1,5 +1,4 @@
 using CasaEngine.Core.Helper;
-using CasaEngine.Editor.Assets;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Physics2D;
@@ -27,13 +26,10 @@ public class GameManager
     private string ProjectFile { get; set; } = string.Empty;
     public GraphicsDeviceManager GraphicsDeviceManager { get; private set; }
     public AssetContentManager AssetContentManager { get; internal set; } = new();
-    //public Asset2dManager Asset2dManager { get; } = new();
     public ProjectManager ProjectManager { get; } = new();
-    //public ObjectManager ObjectManager { get; } = new();
     public ScreenManager ScreenManager { get; } = new();
     public UserInterfaceManager UiManager { get; } = new();
     public SpriteBatch? SpriteBatch { get; set; }
-    //public ObjectRegistry ObjectRegistry { get; } = new();
     public ProjectSettings ProjectSettings { get; } = new();
     public GraphicsSettings GraphicsSettings { get; } = new();
     public Physics2dSettings Physics2dSettings { get; } = new();
@@ -47,8 +43,6 @@ public class GameManager
 
 #if EDITOR
     public BasicEffect? BasicEffect { get; set; }
-
-    public AssetManager AssetManager { get; }
 
     public ExternalToolManager ExternalToolManager { get; }
 #endif
@@ -86,7 +80,6 @@ public class GameManager
         PluginManager = new PluginManager(game);
 
 #if EDITOR
-        AssetManager = new AssetManager(game);
         ExternalToolManager = new ExternalToolManager(game);
 #endif
     }
@@ -122,10 +115,14 @@ public class GameManager
         AssetContentManager = new AssetContentManager();
         AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
         AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+        AssetContentManager.Initialize(_game.GraphicsDevice);
+        AssetContentManager.RootDirectory = ContentPath;
 
         DebugSystem.Initialize(_game);
 
         Renderer2dComponent = new Renderer2dComponent(_game);
+        SpriteBatch = new SpriteBatch(_game.GraphicsDevice);
+        Renderer2dComponent.SpriteBatch = SpriteBatch;
         InputComponent = new InputComponent(_game);
         ManagerComponent = new ScreenManagerComponent(_game);
         Physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(_game);
@@ -170,16 +167,13 @@ public class GameManager
         {
             PluginManager.Load(ProjectSettings.GameplayDllName);
         }
+
+        //CasaEngine.Game.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
+
     }
 
     public void BeginLoadContent()
     {
-        AssetContentManager.Initialize(_game.GraphicsDevice);
-        AssetContentManager.RootDirectory = ContentPath;
-
-        //CasaEngine.Game.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
-
-        SpriteBatch = new SpriteBatch(_game.GraphicsDevice);
         //TODO : defaultSpriteFont
         //GameInfo.Instance.DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
 
@@ -224,7 +218,7 @@ public class GameManager
         //entity.ComponentManager.Components.Add(camera);
         //GameInfo.Instance.ActiveCamera = camera;
         //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        //world.AddObjectImmediately(entity);
+        //world.AddEntityImmediately(entity);
         //
         //entity = new Entity();
         //entity.Name = "Entity box";
@@ -239,7 +233,7 @@ public class GameManager
         //    Shape = new Box { Height = 1f, Width = 1f, Length = 1f }
         //});
         ////
-        //world.AddObjectImmediately(entity);
+        //world.AddEntityImmediately(entity);
 
         //
         //entity = new Entity();
@@ -249,7 +243,7 @@ public class GameManager
         //entity.ComponentManager.Components.Add(meshComponent);
         //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
         //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
-        //world.AddObjectImmediately(entity);
+        //world.AddEntityImmediately(entity);
 
     }
 

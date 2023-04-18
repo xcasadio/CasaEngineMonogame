@@ -559,7 +559,7 @@ namespace CasaEngine.Framework.Debugger
             //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState, mtx);
 
             //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
-            _renderer2dComponent.AddSprite2D(
+            _renderer2dComponent.AddSprite(
                 whiteTexture,
                 new Vector2(leftMargin, topMargin), // position
                 0.0f,

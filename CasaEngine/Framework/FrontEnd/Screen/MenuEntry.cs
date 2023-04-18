@@ -41,13 +41,11 @@ public class MenuEntry
     public MenuEntry(string text, Renderer2dComponent renderer2dComponent, SpriteFont font)
     {
         _text = text;
-
         _renderer2dComponent = renderer2dComponent;
         _font = font;
     }
 
-    public virtual void Update(MenuScreen screen, bool isSelected,
-        float elapsedTime)
+    public virtual void Update(MenuScreen screen, bool isSelected, float elapsedTime)
     {
         // When the menu selection changes, entries gradually fade between
         // their selected and deselected appearance, rather than instantly
@@ -64,8 +62,7 @@ public class MenuEntry
         }
     }
 
-    public virtual void Draw(MenuScreen screen, Vector2 position,
-        bool isSelected, float elapsedTime)
+    public virtual void Draw(MenuScreen screen, Vector2 position, bool isSelected, float elapsedTime)
     {
         // Draw the selected entry in yellow, otherwise white.
         var color = isSelected ? Color.Yellow : Color.White;
@@ -83,16 +80,12 @@ public class MenuEntry
 
         // Draw text, centered on the middle of each line.
         var screenManager = screen.ScreenManagerComponent;
-        var spriteBatch = ((CasaEngineGame)screen.ScreenManagerComponent.Game).GameManager.SpriteBatch;
-        var font = ((CasaEngineGame)screen.ScreenManagerComponent.Game).GameManager.DefaultSpriteFont;
 
-        var origin = new Vector2(0, font.LineSpacing / 2);
+        var origin = new Vector2(0, _font.LineSpacing / 2);
 
         position = Vector2.Subtract(position, origin);
 
-        //spriteBatch.DrawString(font, text, position, color, 0,
-        //                       origin, scale, SpriteEffects.None, 0);
-        _renderer2dComponent.AddText2d(font, _text, position, 0.0f, new Vector2(scale), color, 0.99f);
+        _renderer2dComponent.AddText2d(_font, _text, position, 0.0f, new Vector2(scale), color, 0.99f);
     }
 
     public virtual int GetHeight(MenuScreen screen)

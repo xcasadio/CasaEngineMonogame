@@ -1,10 +1,8 @@
 ﻿using System.Text.Json;
 using System.Xml;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
-using static CasaEngine.Engine.Constants;
 using Screen = CasaEngine.Framework.UserInterface.Screen;
 using Size = CasaEngine.Core.Helpers.Size;
 

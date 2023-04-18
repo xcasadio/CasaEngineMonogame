@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -118,6 +119,14 @@ public class Coordinates
         {
             WorldMatrix = LocalMatrix;
         }
+    }
+
+    public void Load(JsonElement element)
+    {
+        LocalPosition = element.GetProperty("position").GetVector3();
+        LocalCenterOfRotation = element.GetProperty("center_of_rotation").GetVector3();
+        LocalScale = element.GetProperty("scale").GetVector3();
+        LocalRotation = element.GetProperty("rotation").GetQuaternion();
     }
 
 #if EDITOR

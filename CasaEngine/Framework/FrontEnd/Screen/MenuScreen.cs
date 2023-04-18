@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics2D;
+﻿using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -15,20 +14,15 @@ public class MenuScreen : Screen
     private SpriteBatch? _spriteBatch;
     private SpriteFont? _font;
 
-
     protected IList<MenuEntry> MenuEntries => _menuEntries;
 
-
-    public MenuScreen(string menuTitle, string menuName)
-        : base(menuName)
+    public MenuScreen(string menuTitle, string menuName) : base(menuName)
     {
         _menuTitle = menuTitle;
 
         TransitionOnTime = TimeSpan.FromSeconds(0.5);
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
     }
-
-
 
     public override void HandleInput(InputState input)
     {
@@ -91,10 +85,7 @@ public class MenuScreen : Screen
         OnCancel(e.PlayerIndex);
     }
 
-
-
-    public override void Update(float elapsedTime, bool otherScreenHasFocus,
-        bool coveredByOtherScreen)
+    public override void Update(float elapsedTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
     {
         base.Update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen);
 
