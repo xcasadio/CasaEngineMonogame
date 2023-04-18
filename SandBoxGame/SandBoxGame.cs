@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -41,8 +42,33 @@ namespace SandBoxGame
                 GraphicsDevice, "Content\\checkboard.png", GameManager.AssetContentManager);
             world.AddEntityImmediately(entity);
 
-            SpriteLoader.LoadFromFile(@"Content\TiledMap\Outside_A2_sprites.json", GameManager.AssetContentManager);
-            TiledMapCreator.LoadMapFromFile(@"Content\TiledMap\tileMap.json", world, GameManager.AssetContentManager);
+            //test tiledMap
+            //SpriteLoader.LoadFromFile(@"Content\TiledMap\Outside_A2_sprites.json", GameManager.AssetContentManager);
+            //TiledMapCreator.LoadMapFromFile(@"Content\TiledMap\tileMap.json", world, GameManager.AssetContentManager);
+
+            //Test animated sprite
+            SpriteLoader.LoadFromFile("Content\\sprites.json", GameManager.AssetContentManager);
+            var animations = Animation2dLoader.LoadFromFile("Content\\animations.json", GameManager.AssetContentManager);
+
+            //Entity
+            entity = new Entity();
+            entity.Coordinates.LocalPosition = new Vector3(250, 250, 0.0f);
+            var scale = 2.0f;
+            entity.Coordinates.LocalScale = new Vector3(scale, scale, 0.0f);
+
+            var animatedSprite = new AnimatedSpriteComponent(entity);
+            entity.ComponentManager.Components.Add(animatedSprite);
+            foreach (var animation in animations)
+            {
+                animatedSprite.AddAnimation(new Animation2d(animation));
+            }
+
+            animatedSprite.SetCurrentAnimation("idle", true); //0, true);
+
+            world.AddEntityImmediately(entity);
+
+
+
 
             base.LoadContent();
         }

@@ -1,6 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics2D;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -13,13 +18,14 @@ public class AnimatedSpriteComponent : Component
     public event EventHandler<string>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
 
-    //SpriteRenderer _spriteRenderer;
     private Animation2d? _currentAnim;
 
     public List<Animation2d> Animations { get; } = new();
 
     //Dictionary<string, List<ICollisionObjectContainer>> _collisionObjectByFrameId;
     private string _lastFrameId;
+    private Renderer2dComponent _renderer2dComponent;
+    private AssetContentManager _assetContentManager;
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
@@ -95,7 +101,7 @@ public class AnimatedSpriteComponent : Component
         int i = 0;
         foreach (var frame in _currentAnim.Animation2dData.Frames)
         {
-            if (frame._spriteId == _currentAnim.CurrentFrame)
+            if (frame.SpriteId == _currentAnim.CurrentFrame)
             {
                 return i;
             }
@@ -106,9 +112,12 @@ public class AnimatedSpriteComponent : Component
         return -1;
     }
 
-    public void Initialize()
+    public override void Initialize(CasaEngineGame game)
     {
-        //_spriteRenderer = Game::Instance().GetGameComponent<SpriteRenderer>();
+        base.Initialize(game);
+
+        _renderer2dComponent = game.GetGameComponent<Renderer2dComponent>();
+        _assetContentManager = game.GameManager.AssetContentManager;
 
         foreach (var animation in Animations)
         {
@@ -137,17 +146,22 @@ public class AnimatedSpriteComponent : Component
         }
     }
 
-    public void Draw()
+    public override void Draw()
     {
         if (_currentAnim != null)
         {
-            //auto worldMatrix = GetEntity().GetCoordinates().GetWorldMatrix();
-            //_spriteRenderer.AddSprite(
-            //    //TODO : load all sprites in a dictionary<name, sprite>
-            //    new Sprite(*Game::Instance().GetAssetManager().GetAsset<SpriteData>(_currentAnim.CurrentFrame())),
-            //    worldMatrix,
-            //    _color,
-            //    _spriteEffect);
+            var spriteData = _assetContentManager.GetAsset<SpriteData>(_currentAnim.CurrentFrame);
+            var sprite = Sprite.Create(spriteData, _assetContentManager);
+            var worldMatrix = Owner.Coordinates.WorldMatrix;
+            _renderer2dComponent.AddSprite(sprite.Texture.Resource, //TODO : load all sprites in a dictionary<name, sprite>
+                spriteData.PositionInTexture,
+                spriteData.Origin,
+                new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
+                0.0f,
+                Vector2.One,
+                Color.White,
+                0.0f,
+                SpriteEffects.None);
         }
     }
 

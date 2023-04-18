@@ -26,9 +26,9 @@ public class Animation2d : Animation
         foreach (var frame in animation2dData.Frames)
         {
             var pFrameEvent = new SetFrameEvent();
-            pFrameEvent.FrameId = frame._spriteId;
+            pFrameEvent.FrameId = frame.SpriteId;
             pFrameEvent.Time = timeEventFired;
-            timeEventFired += frame._duration;
+            timeEventFired += frame.Duration;
             AddEvent(pFrameEvent);
         }
 

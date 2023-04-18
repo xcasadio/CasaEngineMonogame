@@ -23,5 +23,4 @@ public class SpriteLoader
 
         return spriteDatas;
     }
-
 }
