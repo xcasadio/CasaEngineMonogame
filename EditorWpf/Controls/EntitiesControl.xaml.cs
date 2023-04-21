@@ -12,6 +12,8 @@ namespace EditorWpf.Controls
     {
         public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(Entity), typeof(EntitiesControl));
 
+        private CasaEngineGame Game { get; set; }
+
         private bool _isSelectionTriggerActive = true;
         private bool _isSelectionTriggerFromGizmoActive = true;
 
@@ -24,14 +26,18 @@ namespace EditorWpf.Controls
         public EntitiesControl()
         {
             InitializeComponent();
-            GameEditor.GameStarted += OnGameGameStarted;
+        }
+
+        public void InitializeFromGameEditor(GameEditor gameEditor)
+        {
+            gameEditor.GameStarted += OnGameGameStarted;
             GameInfo.Instance.WorldChanged += OnWorldChanged;
         }
 
         private void OnGameGameStarted(object? sender, EventArgs e)
         {
-            var game = (CasaEngineGame)sender;
-            var gizmoComponent = game.GetGameComponent<GizmoComponent>();
+            Game = (CasaEngineGame)sender;
+            var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
             gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
             gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
         }
@@ -44,7 +50,7 @@ namespace EditorWpf.Controls
             }
             _isSelectionTriggerActive = false;
 
-            var gizmoComponent = GameEditor.Game.GetGameComponent<GizmoComponent>();
+            var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
             Entity? selectedEntity = null;
             if (gizmoComponent.Gizmo.Selection.Count > 0)
             {
@@ -76,7 +82,7 @@ namespace EditorWpf.Controls
 
             _isSelectionTriggerFromGizmoActive = false;
 
-            var gizmoComponent = GameEditor.Game.GetGameComponent<GizmoComponent>();
+            var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
 
             if (e.NewValue == null)
             {

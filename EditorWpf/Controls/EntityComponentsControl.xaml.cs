@@ -4,19 +4,19 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Common;
 
 namespace EditorWpf.Controls
 {
-    /// <summary>
-    /// Interaction logic for EntityComponentsControl.xaml
-    /// </summary>
     public partial class EntityComponentsControl : UserControl
     {
         public EntityComponentsControl()
         {
             InitializeComponent();
         }
+
+        public CasaEngineGame Game { get; set; }
 
         private void OnComponentsChanged(object? sender, EventArgs e)
         {
@@ -51,7 +51,7 @@ namespace EditorWpf.Controls
             {
                 var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
                 var component = (Component)Activator.CreateInstance(componentType, entity);
-                component.Initialize(GameEditor.Game);
+                component.Initialize(Game);
                 entity.ComponentManager.Components.Add(component);
 
                 RefreshComponentsList(entity);

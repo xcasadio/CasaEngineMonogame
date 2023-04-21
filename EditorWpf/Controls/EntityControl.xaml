@@ -36,7 +36,7 @@
             </Grid>
         </Grid>
 
-        <local:EntityComponentsControl/>
+        <local:EntityComponentsControl x:Name="entityComponentsControl"/>
 
     </StackPanel>
 </UserControl>

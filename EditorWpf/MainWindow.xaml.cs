@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using CasaEngine.Core.Logger;
+using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
+using EditorWpf.Controls.ContentBrowser;
 using EditorWpf.Windows;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -16,12 +19,16 @@ namespace EditorWpf
 
         public MainWindow(string projectFileName)
         {
-            GameEditor.GameStarted += OnGameGameStarted;
             _projectFileName = projectFileName;
             Closing += OnClosing;
             Loaded += MainWindow_Loaded;
 
             InitializeComponent();
+
+            GameScreenControl.gameEditor.GameStarted += OnGameGameStarted;
+            EntitiesControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
+            EntityControl.InitializeFromGameEditor(GameScreenControl.gameEditor.Game);
+            ContentBrowserControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
         }
 
         private void OnGameGameStarted(object? sender, EventArgs e)
@@ -51,7 +58,8 @@ namespace EditorWpf
             }
 
             LogManager.Instance.WriteLine($"Project opened {projectFileName}");
-            GameEditor.Game.GameManager.ProjectManager.Load(GameEditor.Game, projectFileName);
+            //GameScreenControl.gameEditor.Game
+            GameSettings.ProjectManager.Load(GameScreenControl.gameEditor.Game, projectFileName);
         }
 
         private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -150,7 +158,7 @@ namespace EditorWpf
                 //CREATE hiera folders
                 //create default settings
                 //
-                GameEditor.Game.GameManager.ProjectManager.CreateProject(GameEditor.Game, dialog.ProjectName, dialog.ProjectPath);
+                GameSettings.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
 
                 LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             }
@@ -158,7 +166,9 @@ namespace EditorWpf
 
         private void OpenProject_OnClick(object sender, RoutedEventArgs e)
         {
+            //select project
 
+            //OpenProject(string projectFileName)
         }
 
         private void SaveProject_OnClick(object sender, RoutedEventArgs e)

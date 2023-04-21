@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Logger;
@@ -11,6 +12,8 @@ namespace EditorWpf.Controls
         public GameScreenControl()
         {
             InitializeComponent();
+
+            DataContext = new GameScreenControlViewModel(gameEditor);
         }
 
         private void ButtonLaunchGame_Click(object sender, RoutedEventArgs e)
@@ -18,14 +21,17 @@ namespace EditorWpf.Controls
             //Create the specific project settings =>
             //  launch in the project directory
             //  launch this world
-            var game = new CasaEngineGame();
-            game.Run();
+            var gameExe = "CasaEngineLauncher.exe";
+            var processStartInfo = new ProcessStartInfo(Path.Combine("Game", gameExe), "project path");
+            var process = Process.Start(processStartInfo);
+
+            //process.WaitForExit()
         }
 
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
         {
             GameInfo.Instance.CurrentWorld.Save(Path.GetDirectoryName(GameInfo.Instance.CurrentWorld.FileName));
-            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved '{Path.Combine(GameEditor.Game.GameManager.ProjectManager.ProjectPath, GameInfo.Instance.CurrentWorld.Name + ".json")}'");
+            LogManager.Instance.WriteLine($"World {GameInfo.Instance.CurrentWorld.Name} saved '{Path.Combine(GameSettings.ProjectManager.ProjectPath, GameInfo.Instance.CurrentWorld.Name + ".json")}'");
         }
 
         private void ButtonTranslate_Click(object sender, RoutedEventArgs e)

@@ -9,9 +9,6 @@ using CasaEngine.Engine.Physics.Shapes;
 
 namespace EditorWpf.Controls
 {
-    /// <summary>
-    /// Interaction logic for EntityComponentControl.xaml
-    /// </summary>
     public partial class EntityComponentControl : UserControl
     {
         public event EventHandler? ComponentsChanged;
@@ -36,12 +33,12 @@ namespace EditorWpf.Controls
             if (selectStaticMeshWindow.ShowDialog() == true && sender is FrameworkElement button)
             {
                 var staticMeshComponent = button.DataContext as StaticMeshComponent;
-                var graphicsDevice = GameEditor.Game.GraphicsDevice;
+                var graphicsDevice = staticMeshComponent.Game.GraphicsDevice;
 
                 staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
                 staticMeshComponent.Mesh.Initialize(graphicsDevice);
                 staticMeshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(
-                    graphicsDevice, "Content\\checkboard.png", GameEditor.Game.GameManager.AssetContentManager);
+                    graphicsDevice, "Content\\checkboard.png", staticMeshComponent.Game.GameManager.AssetContentManager);
                 //GameEditor.Game.Content.Load<Texture2D>("checkboard"));
             }
         }

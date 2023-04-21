@@ -1,8 +1,8 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Project;
 
 namespace CasaEngine.Editor.Tools;
 
@@ -12,35 +12,24 @@ public class ExternalToolManager
     private readonly Dictionary<string, Type> _customEditorsTemplate = new();
     private readonly Dictionary<Type, IExternalTool> _customEditors = new();
     private readonly Dictionary<string, Assembly> _customObjectAssembly = new();
-    private readonly CasaEngineGame _game;
-
-    public ExternalToolManager(CasaEngineGame game)
-    {
-        _game = game;
-    }
 
     public event EventHandler? EventExternalToolChanged;
 
-    public void Initialize()
+    public void Initialize(string directory)
     {
         Clear();
 
-        if (string.IsNullOrEmpty(_game.GameManager.ProjectManager.ProjectPath))
+        if (string.IsNullOrEmpty(GameSettings.ProjectManager.ProjectPath))
         {
             return;
         }
 
-        var fullPath = _game.GameManager.ProjectManager.ProjectPath;
-        fullPath += Path.DirectorySeparatorChar + ProjectManager.ExternalToolsDirPath;
-
-        //AppDomain.CurrentDomain.SetupInformation.PrivateBiAnPath = fullPath;
-
-        Assembly assembly;
+        var fullPath = Path.Combine(GameSettings.ProjectManager.ProjectPath, directory);
         var msg = string.Empty;
 
         foreach (var file in Directory.GetFiles(fullPath, "*.dll"))
         {
-            assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(file));
+            var assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(file));
 
             try
             {
@@ -55,37 +44,23 @@ public class ExternalToolManager
                         //}
                     }
 
-                    foreach (var attribute in t.GetCustomAttributes(true))
+                    foreach (var attribute in t.GetCustomAttributes(true).Where(x => x is CustomEditor))
                     {
-                        if (attribute is CustomEditor)
+                        if (t.GetInterfaces().Any(inter => inter == typeof(IExternalTool)))
                         {
-                            foreach (var inter in t.GetInterfaces())
-                            {
-                                if (inter.Equals(typeof(IExternalTool)))
-                                {
-                                    RegisterEditor(attribute.ToString(), t);
-                                    break;
-                                }
-                            }
+                            RegisterEditor(attribute.ToString(), t);
                         }
                     }
                 }
             }
             catch (ReflectionTypeLoadException rtle)
             {
-                foreach (var e in rtle.LoaderExceptions)
-                {
-                    msg += e.Message + "\n";
-                }
-
+                msg = rtle.LoaderExceptions.Aggregate(msg, (current, e) => current + e.Message + Environment.NewLine);
                 throw new Exception(msg);
             }
         }
 
-        if (EventExternalToolChanged != null)
-        {
-            EventExternalToolChanged.Invoke(this, EventArgs.Empty);
-        }
+        EventExternalToolChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void RegisterEditor(string objectTypeName, Type editorType)
@@ -192,13 +167,9 @@ public class ExternalToolManager
 
     private void CloseAllSubEditor()
     {
-        foreach (var p in _customEditors)
+        foreach (var p in _customEditors.Where(p => p.Value.ExternalTool.Window is { IsDisposed: false }))
         {
-            if (p.Value.ExternalTool.Window != null
-                && p.Value.ExternalTool.Window.IsDisposed == false)
-            {
-                p.Value.ExternalTool.Window.Close();
-            }
+            p.Value.ExternalTool.Window.Close();
         }
     }
 

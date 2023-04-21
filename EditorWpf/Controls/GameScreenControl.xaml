@@ -6,9 +6,6 @@
              xmlns:local="clr-namespace:EditorWpf.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800" VerticalContentAlignment="Stretch">
-    <UserControl.DataContext>
-        <local:GameScreenControlViewModel/>
-    </UserControl.DataContext>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>

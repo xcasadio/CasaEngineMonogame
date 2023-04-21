@@ -51,6 +51,11 @@ public class ProjectSettings
     [Category("Debug")]
     public int DebugHeight { get; set; } = 768;
 
+#if EDITOR
+    [Category("External Tool")]
+    public string ExternalToolsDirectory { get; set; }
+#endif
+
 #endif
 
     public void Load(string fileName)

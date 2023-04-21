@@ -14,6 +14,11 @@ public class StaticMeshComponent : Component
     private StaticMeshRendererComponent? _meshRendererComponent;
     private StaticMesh? _mesh;
 
+#if EDITOR
+    //TODO remove : use only in editor mode to retrieve the game. Very ugly....
+    public CasaEngineGame Game { get; private set; }
+#endif
+
     public StaticMesh? Mesh
     {
         get { return _mesh; }
@@ -32,6 +37,9 @@ public class StaticMeshComponent : Component
 
     public override void Initialize(CasaEngineGame game)
     {
+#if EDITOR
+        Game = game;
+#endif
         _meshRendererComponent = game.GetGameComponent<StaticMeshRendererComponent>();
         Mesh?.Initialize(game.GraphicsDevice);
         Mesh?.Texture?.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);

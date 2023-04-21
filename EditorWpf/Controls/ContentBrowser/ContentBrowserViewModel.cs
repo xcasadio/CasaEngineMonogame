@@ -14,24 +14,26 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     public ContentBrowserViewModel()
     {
         ContentItems.Add(new FolderItem { Name = "All" });
-        GameEditor.GameStarted += OnGameGameStarted;
     }
 
-    private void OnGameGameStarted(object? sender, EventArgs e)
+    public void Initialize(GameEditor gameEditor)
     {
-        var game = (CasaEngineGame)sender;
-        game.GameManager.ProjectManager.ProjectLoaded += OnProjectLoaded;
-        game.GameManager.ProjectManager.ProjectClosed += OnProjectClosed;
-        OnProjectLoaded(game, EventArgs.Empty);
+        gameEditor.GameStarted += OnGameStarted;
+    }
+
+    private void OnGameStarted(object? sender, EventArgs e)
+    {
+        GameSettings.ProjectManager.ProjectLoaded += OnProjectLoaded;
+        GameSettings.ProjectManager.ProjectClosed += OnProjectClosed;
+        OnProjectLoaded(sender, EventArgs.Empty);
     }
 
     private void OnProjectLoaded(object? sender, EventArgs e)
     {
-        var game = (CasaEngineGame)sender;
         Clear();
         var rootFolder = new FolderItem { Name = "All" };
         ContentItems.Add(rootFolder);
-        AddContent(game.GameManager.ProjectManager.ProjectPath!, rootFolder);
+        AddContent(GameSettings.ProjectManager.ProjectPath!, rootFolder);
 
         OnPropertyChanged(nameof(ContentItems));
     }

@@ -9,14 +9,12 @@ namespace EditorWpf.Controls
         public SettingsControl()
         {
             InitializeComponent();
-            GameEditor.GameStarted += OnGameGameStarted;
         }
 
         private void OnGameGameStarted(object? sender, EventArgs e)
         {
-            CasaEngineGame game = (CasaEngineGame)sender;
-            PropertyGridProjectSettings.SelectedObject = game.GameManager.ProjectSettings;
-            PropertyGridPhysicSettings.SelectedObject = game.GameManager.Physics2dSettings;
+            PropertyGridProjectSettings.SelectedObject = GameSettings.ProjectSettings;
+            PropertyGridPhysicSettings.SelectedObject = GameSettings.Physics2dSettings;
         }
     }
 }

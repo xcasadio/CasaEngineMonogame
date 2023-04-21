@@ -1,8 +1,5 @@
 using CasaEngine.Core.Helper;
-using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Input;
-using CasaEngine.Engine.Physics2D;
-using CasaEngine.Engine.Plugin;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
@@ -11,7 +8,6 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.FrontEnd.Screen;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
-using CasaEngine.Framework.Project;
 using CasaEngine.Framework.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -24,17 +20,11 @@ public class GameManager
     private readonly CasaEngineGame _game;
     public string[] Arguments { get; set; }
     private string ProjectFile { get; set; } = string.Empty;
-    public GraphicsDeviceManager GraphicsDeviceManager { get; private set; }
+    public GraphicsDeviceManager GraphicsDeviceManager { get; }
     public AssetContentManager AssetContentManager { get; internal set; } = new();
-    public ProjectManager ProjectManager { get; } = new();
     public ScreenManager ScreenManager { get; } = new();
     public UserInterfaceManager UiManager { get; } = new();
     public SpriteBatch? SpriteBatch { get; set; }
-    public ProjectSettings ProjectSettings { get; } = new();
-    public GraphicsSettings GraphicsSettings { get; } = new();
-    public Physics2dSettings Physics2dSettings { get; } = new();
-    public Physics3dSettings Physics3dSettings { get; } = new();
-    public PluginManager PluginManager { get; }
 
 #if !FINAL
     public SpriteFont? DefaultSpriteFont { get; set; }
@@ -43,8 +33,6 @@ public class GameManager
 
 #if EDITOR
     public BasicEffect? BasicEffect { get; set; }
-
-    public ExternalToolManager ExternalToolManager { get; }
 #endif
 
     public InputComponent InputComponent { get; private set; }
@@ -76,18 +64,12 @@ public class GameManager
         }
 
         GraphicsDeviceManager = (GraphicsDeviceManager)game.GetService<IGraphicsDeviceManager>();
-
-        PluginManager = new PluginManager(game);
-
-#if EDITOR
-        ExternalToolManager = new ExternalToolManager(game);
-#endif
     }
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
     {
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = ProjectSettings.DebugWidth;
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = ProjectSettings.DebugHeight;
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = GameSettings.ProjectSettings.DebugWidth;
+        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = GameSettings.ProjectSettings.DebugHeight;
 
         e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
             .Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
@@ -106,7 +88,7 @@ public class GameManager
 
     private void OnDeviceReset(object? sender, EventArgs e)
     {
-        var graphicsDevice = (GraphicsDevice)sender;
+        var graphicsDevice = (GraphicsDevice)sender!;
         OnScreenResized(graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
     }
 
@@ -151,21 +133,20 @@ public class GameManager
 #endif
 
         _game.Content.RootDirectory = ContentPath;
-        //CasaEngine.Game.ProjectManager.Load(ProjectFile);
         //TODO : create hierarchy of the project
         if (!string.IsNullOrWhiteSpace(ProjectFile))
         {
-            ProjectSettings.Load(ProjectFile);
+            GameSettings.ProjectSettings.Load(ProjectFile);
         }
 
-        _game.Window.Title = ProjectSettings.WindowTitle;
-        _game.Window.AllowUserResizing = ProjectSettings.AllowUserResizing;
-        _game.IsFixedTimeStep = ProjectSettings.IsFixedTimeStep;
-        _game.IsMouseVisible = ProjectSettings.IsMouseVisible;
+        _game.Window.Title = GameSettings.ProjectSettings.WindowTitle;
+        _game.Window.AllowUserResizing = GameSettings.ProjectSettings.AllowUserResizing;
+        _game.IsFixedTimeStep = GameSettings.ProjectSettings.IsFixedTimeStep;
+        _game.IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
 
-        if (!string.IsNullOrWhiteSpace(ProjectSettings.GameplayDllName))
+        if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName))
         {
-            PluginManager.Load(ProjectSettings.GameplayDllName);
+            GameSettings.PluginManager.Load(GameSettings.ProjectSettings.GameplayDllName);
         }
 
         //UiManager.Initialize(_game, null/*Window.Handle*/, _game.Window.ClientBounds);
@@ -252,7 +233,7 @@ public class GameManager
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
             GameInfo.Instance.CurrentWorld = new World.World();
-            GameInfo.Instance.CurrentWorld.Load(ProjectSettings.FirstWorldLoaded);
+            GameInfo.Instance.CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded);
             GameInfo.Instance.CurrentWorld.Initialize(_game);
 
             if (GameInfo.Instance.CurrentWorld.Physic2dWorld != null)

@@ -13,16 +13,16 @@ namespace EditorWpf.Controls;
 
 public class GameEditor : WpfGame
 {
-    public static event EventHandler? GameStarted;
+    public event EventHandler? GameStarted;
 
-    public static CasaEngineGame? Game { get; private set; }
+    public CasaEngineGame? Game { get; private set; }
 
     public GameEditor()
     {
         Drop += OnDrop;
     }
 
-    protected override bool CanRender => !string.IsNullOrEmpty(Game.GameManager.ProjectSettings.FirstWorldLoaded);
+    protected override bool CanRender => !string.IsNullOrEmpty(GameSettings.ProjectSettings.FirstWorldLoaded);
 
     protected override void Initialize()
     {

@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls
@@ -19,6 +20,11 @@ namespace EditorWpf.Controls
             DataContextChanged += OnDataContextChanged;
 
             InitializeComponent();
+        }
+
+        public void InitializeFromGameEditor(CasaEngineGame game)
+        {
+            entityComponentsControl.Game = game;
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)

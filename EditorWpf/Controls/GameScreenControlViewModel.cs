@@ -10,6 +10,7 @@ namespace EditorWpf.Controls;
 
 public class GameScreenControlViewModel : INotifyPropertyChanged
 {
+    private readonly CasaEngineGame? _game;
     private GizmoComponent? _gizmoComponent;
 
     public bool IsTranslationMode
@@ -62,9 +63,10 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
         }
     }
 
-    public GameScreenControlViewModel()
+    public GameScreenControlViewModel(GameEditor gameEditor)
     {
-        GameEditor.GameStarted += OnGameGameStarted;
+        _game = gameEditor.Game;
+        gameEditor.GameStarted += OnGameGameStarted;
     }
 
     private void OnGameGameStarted(object? sender, System.EventArgs e)
