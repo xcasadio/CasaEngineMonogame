@@ -56,7 +56,7 @@ public abstract class Asset : Disposable
     {
         var version = element.GetJsonPropertyByName("version").Value.GetInt32();
         Name = element.GetJsonPropertyByName("name").Value.GetString();
-        FileName = element.GetJsonPropertyByName("fileName").Value.GetString();
+        FileName = element.GetJsonPropertyByName("file_name").Value.GetString();
         Id = element.GetJsonPropertyByName("id").Value.GetInt32();
     }
 

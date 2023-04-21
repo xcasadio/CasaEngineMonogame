@@ -22,15 +22,16 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
         var game = (CasaEngineGame)sender;
         game.GameManager.ProjectManager.ProjectLoaded += OnProjectLoaded;
         game.GameManager.ProjectManager.ProjectClosed += OnProjectClosed;
+        OnProjectLoaded(game, EventArgs.Empty);
     }
 
     private void OnProjectLoaded(object? sender, EventArgs e)
     {
+        var game = (CasaEngineGame)sender;
         Clear();
-
         var rootFolder = new FolderItem { Name = "All" };
         ContentItems.Add(rootFolder);
-        AddContent(GameEditor.Game.GameManager.ProjectManager.ProjectPath!, rootFolder);
+        AddContent(game.GameManager.ProjectManager.ProjectPath!, rootFolder);
 
         OnPropertyChanged(nameof(ContentItems));
     }

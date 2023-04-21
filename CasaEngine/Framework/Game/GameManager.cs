@@ -168,8 +168,7 @@ public class GameManager
             PluginManager.Load(ProjectSettings.GameplayDllName);
         }
 
-        //CasaEngine.Game.UiManager.Initialize(GraphicsDevice, Window.Handle, Window.ClientBounds);
-
+        //UiManager.Initialize(_game, null/*Window.Handle*/, _game.Window.ClientBounds);
     }
 
     public void BeginLoadContent()
@@ -277,7 +276,7 @@ public class GameManager
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         GameInfo.Instance.CurrentWorld?.Update(elapsedTime);
-        //CasaEngine.Game.UiManager.Update(time);
+        //UiManager.Update(elapsedTime);
     }
 
     public void EndUpdate(GameTime gameTime)
@@ -294,12 +293,11 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-        //Game.GraphicsDevice.Clear(Color.CornflowerBlue);
         _game.GraphicsDevice.Clear(Color.Black);
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         GameInfo.Instance.CurrentWorld?.Draw(elapsedTime);
-        //CasaEngine.Game.UiManager.PreRenderControls();
+        //UiManager.PreRenderControls();
     }
 
     public void EndDraw(GameTime gameTime)

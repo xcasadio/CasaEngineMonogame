@@ -148,7 +148,7 @@ public sealed class World : Asset
         worldJson.Add("version", 1);
         var entitiesJArray = new JArray();
 
-        foreach (var entity in Entities.Where(x => x.IsPersistent))
+        foreach (var entity in Entities.Where(x => !x.IsTemporary))
         {
             JObject entityObject = new();
             entity.Save(entityObject);

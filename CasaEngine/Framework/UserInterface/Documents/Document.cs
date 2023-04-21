@@ -36,7 +36,7 @@ namespace CasaEngine.Framework.UserInterface.Documents;
 
 public class Document : Asset
 {
-    public XDocument Resource { get; private set; }
+    public XDocument? Resource { get; private set; }
 
     public Document(string filename)
     {
@@ -66,10 +66,7 @@ public class Document : Asset
 
     internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        if (Resource == null)
-        {
-            Resource = assetContentManager.Load<XDocument>(FileName, device);
-        }
+        Resource ??= assetContentManager.Load<XDocument>(FileName, device);
     } // RecreateResource
 
     public override void Load(BinaryReader br, SaveOption option)

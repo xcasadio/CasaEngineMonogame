@@ -18,10 +18,6 @@ public class AnimatedSpriteComponent : Component
     public event EventHandler<string>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
 
-    private Animation2d? _currentAnim;
-
-    public List<Animation2d> Animations { get; } = new();
-
     //Dictionary<string, List<ICollisionObjectContainer>> _collisionObjectByFrameId;
     private string _lastFrameId;
     private Renderer2dComponent _renderer2dComponent;
@@ -29,7 +25,8 @@ public class AnimatedSpriteComponent : Component
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
-    public Animation2d CurrentAnimation => _currentAnim;
+    public Animation2d? CurrentAnimation { get; private set; }
+    public List<Animation2d> Animations { get; } = new();
 
     public AnimatedSpriteComponent(Entity entity) : base(entity, ComponentId)
     {
@@ -39,27 +36,27 @@ public class AnimatedSpriteComponent : Component
 
     public void SetCurrentAnimation(Animation2d anim, bool forceReset)
     {
-        if (_currentAnim != null && _currentAnim.AnimationData.Name == anim.AnimationData.Name)
+        if (CurrentAnimation != null && CurrentAnimation.AnimationData.Name == anim.AnimationData.Name)
         {
             if (forceReset)
             {
-                _currentAnim.Reset();
+                CurrentAnimation.Reset();
             }
 
             return;
         }
 
-        if (_currentAnim != null)
+        if (CurrentAnimation != null)
         {
-            _currentAnim.FrameChanged -= OnFrameChanged;
-            _currentAnim.AnimationFinished -= OnAnimationFinished;
+            CurrentAnimation.FrameChanged -= OnFrameChanged;
+            CurrentAnimation.AnimationFinished -= OnAnimationFinished;
         }
 
-        _currentAnim = anim;
-        _currentAnim.Reset();
+        CurrentAnimation = anim;
+        CurrentAnimation.Reset();
 
-        _currentAnim.FrameChanged += OnFrameChanged;
-        _currentAnim.AnimationFinished += OnAnimationFinished;
+        CurrentAnimation.FrameChanged += OnFrameChanged;
+        CurrentAnimation.AnimationFinished += OnAnimationFinished;
     }
 
     public void SetCurrentAnimation(int index, bool forceReset)
@@ -83,25 +80,25 @@ public class AnimatedSpriteComponent : Component
 
     public string GetCurrentFrameName()
     {
-        if (_currentAnim == null)
+        if (CurrentAnimation == null)
         {
             return "";
         }
 
-        return _currentAnim.CurrentFrame;
+        return CurrentAnimation.CurrentFrame;
     }
 
     public int GetCurrentFrameIndex()
     {
-        if (_currentAnim == null)
+        if (CurrentAnimation == null)
         {
             return -1;
         }
 
         int i = 0;
-        foreach (var frame in _currentAnim.Animation2dData.Frames)
+        foreach (var frame in CurrentAnimation.Animation2dData.Frames)
         {
-            if (frame.SpriteId == _currentAnim.CurrentFrame)
+            if (frame.SpriteId == CurrentAnimation.CurrentFrame)
             {
                 return i;
             }
@@ -134,9 +131,9 @@ public class AnimatedSpriteComponent : Component
 
     public override void Update(float elapsedTime)
     {
-        if (_currentAnim != null)
+        if (CurrentAnimation != null)
         {
-            _currentAnim.Update(elapsedTime);
+            CurrentAnimation.Update(elapsedTime);
 
             //var pair = _collisionObjectByFrameId[_currentAnim.CurrentFrame];
             //foreach (var collision_object_container in pair.second)
@@ -148,9 +145,9 @@ public class AnimatedSpriteComponent : Component
 
     public override void Draw()
     {
-        if (_currentAnim != null)
+        if (CurrentAnimation != null)
         {
-            var spriteData = _assetContentManager.GetAsset<SpriteData>(_currentAnim.CurrentFrame);
+            var spriteData = _assetContentManager.GetAsset<SpriteData>(CurrentAnimation.CurrentFrame);
             var sprite = Sprite.Create(spriteData, _assetContentManager);
             var worldMatrix = Owner.Coordinates.WorldMatrix;
             _renderer2dComponent.AddSprite(sprite.Texture.Resource, //TODO : load all sprites in a dictionary<name, sprite>

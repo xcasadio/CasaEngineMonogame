@@ -132,7 +132,7 @@ public class TiledMapCreator
             var layerPos = layerEntity.Coordinates.LocalPosition;
             layerEntity.Coordinates.LocalPosition = new Vector3(layerPos.X, layerPos.Y, layerPos.Z + layer.zOffset);
 #if EDITOR
-            layerEntity.IsPersistent = false;
+            layerEntity.IsTemporary = true;
 #endif
             layerEntity.Coordinates.Parent = mapEntity.Coordinates;
             world.AddEntityImmediately(layerEntity);
@@ -148,7 +148,7 @@ public class TiledMapCreator
                 var tileEntity = new Entity();
                 tileEntity.Name = "tile_" + index + "_" + layerIndex + "_" + prefixName;
 #if EDITOR
-                tileEntity.IsPersistent = false;
+                tileEntity.IsTemporary = true;
 #endif
                 tileEntity.Coordinates.Parent = layerEntity.Coordinates;
                 tileEntity.Coordinates.LocalPosition = new Vector3(posX, posY, 0.0f);

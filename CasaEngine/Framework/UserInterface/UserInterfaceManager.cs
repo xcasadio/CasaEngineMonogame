@@ -55,8 +55,7 @@ public class UserInterfaceManager
 
 #if (!XBOX)
     private Cursor _cursor;
-
-    private Form _window;
+    //private Form _window;
 #endif
 
     // Main render target, when the UI will be render.
@@ -88,14 +87,14 @@ public class UserInterfaceManager
         {
             _cursor = value;
 
-            if (_window.InvokeRequired)
-            {
-                _window.Invoke(new Action(() => _window.Cursor = value.Resource));
-            }
-            else
-            {
-                _window.Cursor = value.Resource;
-            }
+            //if (_window.InvokeRequired)
+            //{
+            //    _window.Invoke(new Action(() => _window.Cursor = value.Resource));
+            //}
+            //else
+            //{
+            //    _window.Cursor = value.Resource;
+            //}
         }
     } // Cursor
 
@@ -206,7 +205,7 @@ public class UserInterfaceManager
 
     public event ResizeEventHandler? WindowResize;
 
-    public void Initialize(CasaEngineGame game, IntPtr formHandle, Rectangle gameWindowClientBounds)
+    public void Initialize(CasaEngineGame game, IntPtr? formHandle, Rectangle gameWindowClientBounds)
     {
         if (_initialized)
         {
@@ -235,8 +234,8 @@ public class UserInterfaceManager
 #if (WINDOWS)
             MenuDelay = SystemInformation.MenuShowDelay;
             DoubleClickTime = SystemInformation.DoubleClickTime;
-            _window = (Form)System.Windows.Forms.Control.FromHandle(formHandle);
-            _window.FormClosing += FormClosing;
+            //_window = (Form)System.Windows.Forms.Control.FromHandle(formHandle);
+            //_window.FormClosing += FormClosing;
 #endif
 
             RootControls = new ControlsList();

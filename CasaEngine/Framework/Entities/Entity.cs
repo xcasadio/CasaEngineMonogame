@@ -44,7 +44,7 @@ public class Entity : ISaveLoad
     public bool ToBeRemoved { get; set; }
 
     [Category("Object"), ReadOnly(true)]
-    public bool Temporary { get; internal set; }
+    public bool IsTemporary { get; internal set; }
 
     public Entity()
     {
@@ -85,14 +85,14 @@ public class Entity : ISaveLoad
 
     public void CopyFrom(Entity ob)
     {
-        Temporary = ob.Temporary;
+        IsTemporary = ob.IsTemporary;
     }
 
     public void Load(JsonElement element)
     {
         var version = element.GetJsonPropertyByName("version").Value.GetInt32();
         Name = element.GetJsonPropertyByName("name").Value.GetString();
-        Id = element.GetJsonPropertyByName("Id").Value.GetInt32();
+        Id = element.GetJsonPropertyByName("id").Value.GetInt32();
 
         foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
         {
@@ -130,8 +130,6 @@ public class Entity : ISaveLoad
     public event EventHandler? ScaleChanged;
 
     private static readonly int Version = 1;
-
-    public bool IsPersistent { get; set; } = true;
 
     public virtual void Save(XmlElement el, SaveOption option)
     {

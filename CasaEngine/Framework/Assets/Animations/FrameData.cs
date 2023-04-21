@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Animations;
 
@@ -19,9 +20,8 @@ public class FrameData
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public void Save(JObject jObject)
     {
-        base.Save(jObject);
     }
 #endif
 }
