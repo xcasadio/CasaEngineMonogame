@@ -52,7 +52,7 @@ public class StaticMeshComponent : Component
             return;
         }
 
-        var camera = GameInfo.Instance.ActiveCamera;
+        var camera = Game.GameManager.ActiveCamera;
         var worldViewProj = Owner.Coordinates.WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
         _meshRendererComponent.AddMesh(Mesh, worldViewProj);
     }

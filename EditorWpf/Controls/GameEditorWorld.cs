@@ -4,6 +4,7 @@ using System.Windows;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.World;
 using EditorWpf.Datas;
 using EditorWpf.Inputs;
 using Microsoft.Xna.Framework;
@@ -13,26 +14,39 @@ namespace EditorWpf.Controls;
 
 public class GameEditor : WpfGame
 {
+    private bool _isInitialized;
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
+    public Physics2dDebugViewRendererComponent Physics2dDebugViewRendererComponent { get; private set; }
+    public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
-    public GameEditor()
-    {
-        Drop += OnDrop;
-    }
-
-    protected override bool CanRender => !string.IsNullOrEmpty(GameSettings.ProjectSettings.FirstWorldLoaded);
+    protected override bool CanRender => _isInitialized;
 
     protected override void Initialize()
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
-        Game = new CasaEngineGame(graphicsDeviceService);
+        Game = new CasaEngineGame(null, graphicsDeviceService);
         Game.GameManager.Initialize();
+        Game.GameManager.WorldChanged += OnWorldChanged;
 
         Game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)), new MouseStateProvider(new WpfMouse(this)));
 
+        //In editor mode the game is in idle mode so we don't update physics
+        Game.GameManager.PhysicsEngine.Enabled = false;
+        PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(Game);
+        Physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(Game);
+
         base.Initialize();
+    }
+
+    private void OnWorldChanged(object? sender, EventArgs e)
+    {
+        var world = Game.GameManager.CurrentWorld;
+        if (world.Physic2dWorld != null)
+        {
+            Physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(world.Physic2dWorld);
+        }
     }
 
     protected override void LoadContent()
@@ -47,12 +61,13 @@ public class GameEditor : WpfGame
         }
 
         GameStarted?.Invoke(Game, EventArgs.Empty);
+        _isInitialized = true;
     }
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         //in editor the camera is an element of the world
-        GameInfo.Instance.ActiveCamera?.ScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
+        Game?.GameManager.ActiveCamera?.ScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
         Game?.GameManager.OnScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
         base.OnRenderSizeChanged(sizeInfo);
     }
@@ -89,6 +104,22 @@ public class GameEditor : WpfGame
         Game.GameManager.EndDraw(gameTime);
     }
 
+}
+public class GameEditorWorld : GameEditor
+{
+    public GameEditorWorld()
+    {
+        Drop += OnDrop;
+    }
+
+    protected override void LoadContent()
+    {
+        var gizmoComponent = new GizmoComponent(Game);
+        var gridComponent = new GridComponent(Game);
+
+        base.LoadContent();
+    }
+
     private void OnDrop(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.StringFormat))
@@ -99,7 +130,7 @@ public class GameEditor : WpfGame
 
             e.Handled = true;
             var position = e.GetPosition(this);
-            var camera = GameInfo.Instance.ActiveCamera;
+            var camera = Game?.GameManager.ActiveCamera;
             var ray = CasaEngine.Core.Helper.MathHelper.CalculateRayFromScreenCoordinate(
                 new Vector2((float)position.X, (float)position.Y),
                 camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
@@ -118,7 +149,7 @@ public class GameEditor : WpfGame
                     };
                     entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;//entity.BoundingBox.;
                     entity.Initialize(Game);
-                    GameInfo.Instance.CurrentWorld.AddEntityImmediately(entity);
+                    Game?.GameManager.CurrentWorld.AddEntityImmediately(entity);
 
                     //select this entity
                     var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
@@ -128,5 +159,16 @@ public class GameEditor : WpfGame
                 }
             }
         }
+    }
+}
+
+
+public class GameEditorSprite : GameEditorWorld
+{
+    protected override void LoadContent()
+    {
+        base.LoadContent();
+        Game.Components.Remove(Game.GetGameComponent<GridComponent>());
+        Game.GameManager.CurrentWorld = new World();
     }
 }

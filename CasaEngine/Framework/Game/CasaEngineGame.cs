@@ -5,16 +5,24 @@ namespace CasaEngine.Framework.Game;
 
 public class CasaEngineGame : Microsoft.Xna.Framework.Game
 {
+    private readonly string? _projectFileName;
     public GameManager GameManager { get; }
 
-    public CasaEngineGame(IGraphicsDeviceService? graphicsDeviceService = null)
+    public CasaEngineGame(string? projectFileName = null, IGraphicsDeviceService? graphicsDeviceService = null)
     {
+        _projectFileName = projectFileName;
         GameManager = new GameManager(this, graphicsDeviceService);
     }
 
     protected override void Initialize()
     {
         GameManager.Initialize();
+
+        if (!string.IsNullOrWhiteSpace(_projectFileName))
+        {
+            GameSettings.ProjectManager.Load(_projectFileName);
+        }
+
         base.Initialize();
     }
 

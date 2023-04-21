@@ -14,10 +14,10 @@ namespace EditorWpf.Controls.ContentBrowser
             InitializeComponent();
         }
 
-        public void InitializeFromGameEditor(GameEditor gameEditor)
+        public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)
         {
             var contentBrowserViewModel = DataContext as ContentBrowserViewModel;
-            contentBrowserViewModel.Initialize(gameEditor);
+            contentBrowserViewModel.Initialize(gameEditorWorld);
         }
 
         private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)

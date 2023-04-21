@@ -23,12 +23,12 @@ namespace SandBoxGame
         protected override void LoadContent()
         {
             var world = new World();
-            GameInfo.Instance.CurrentWorld = world;
+            GameManager.CurrentWorld = world;
 
             var entity = new Entity();
             var camera = new ArcBallCameraComponent(entity);
             entity.ComponentManager.Components.Add(camera);
-            GameInfo.Instance.ActiveCamera = camera;
+            GameManager.ActiveCamera = camera;
             camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
             world.AddEntityImmediately(entity);
 

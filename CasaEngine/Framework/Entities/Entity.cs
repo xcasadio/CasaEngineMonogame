@@ -229,15 +229,5 @@ public class Entity : ISaveLoad
 
         return new BoundingBox(min, max);
     }
-
-    public float? Select(Ray selectionRay)
-    {
-        if (GameInfo.Instance.ActiveCamera?.Owner == this)
-        {
-            return null;
-        }
-
-        return selectionRay.Intersects(BoundingBox);
-    }
 #endif
 }

@@ -38,68 +38,112 @@
             </MenuItem>
         </Menu>
 
-        <xcad:DockingManager Grid.Row="1" x:Name="dockingManager1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <xcad:DockingManager.Theme>
-                <xcad:GenericTheme/>
-            </xcad:DockingManager.Theme>
+        <TabControl Grid.Row="1" x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <TabItem Header="World">
+                <xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <xcad:DockingManager.Theme>
+                        <xcad:GenericTheme/>
+                    </xcad:DockingManager.Theme>
 
-            <xcad:LayoutRoot>
-                <xcad:LayoutRoot.RootPanel>
-                    <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
+                    <xcad:LayoutRoot>
+                        <xcad:LayoutRoot.RootPanel>
+                            <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
 
-                        <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
-                            <xcad:LayoutDocumentPane>
-                                <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
-                                    <controls:GameScreenControl x:Name="GameScreenControl" AllowDrop="True"/>
-                                </xcad:LayoutDocument>
-                                <xcad:LayoutAnchorable x:Name="SettingsLayout" Title="Settings">
-                                    <controls:SettingsControl x:Name="SettingsControl"/>
-                                </xcad:LayoutAnchorable>
-                            </xcad:LayoutDocumentPane>
-                            <xcad:LayoutDocumentPane DockHeight="0.17883508690344715*">
-                                <xcad:LayoutAnchorable x:Name="LogsLayout" Title="Logs">
-                                    <controls:LogsControl x:Name="LogsControl"/>
-                                </xcad:LayoutAnchorable>
-                                <xcad:LayoutAnchorable x:Name="ContentBrowserLayout" Title="Content Browser">
-                                    <contentBrowser:ContentBrowserControl x:Name="ContentBrowserControl"/>
-                                </xcad:LayoutAnchorable>
-                            </xcad:LayoutDocumentPane>
-                        </xcad:LayoutDocumentPaneGroup>
+                                <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
+                                    <xcad:LayoutDocumentPane>
+                                        <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
+                                            <controls:GameScreenControl x:Name="GameScreenControl" AllowDrop="True"/>
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
+                                    <xcad:LayoutDocumentPane DockHeight="0.17883508690344715*">
+                                        <xcad:LayoutAnchorable x:Name="LogsLayout" Title="Logs">
+                                            <controls:LogsControl x:Name="LogsControl"/>
+                                        </xcad:LayoutAnchorable>
+                                        <xcad:LayoutAnchorable x:Name="ContentBrowserLayout" Title="Content Browser">
+                                            <contentBrowser:ContentBrowserControl x:Name="ContentBrowserControl"/>
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutDocumentPane>
+                                </xcad:LayoutDocumentPaneGroup>
 
-                        <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
-                            <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
-                                <xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities">
-                                    <controls:EntitiesControl x:Name="EntitiesControl"/>
-                                </xcad:LayoutAnchorable>
-                            </xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-                                <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-                                    <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-                                        <controls:EntityControl x:Name="EntityControl" DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
+                                <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
+                                    <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
+                                        <xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities">
+                                            <controls:EntitiesControl x:Name="EntitiesControl"/>
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutAnchorablePane>
+                                    <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                        <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                            <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
+                                                <controls:EntityControl x:Name="EntityControl" DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
+                                            </xcad:LayoutAnchorable>
+                                        </xcad:LayoutAnchorablePane>
+                                    </xcad:LayoutAnchorablePaneGroup>
+                                </xcad:LayoutAnchorablePaneGroup>
+                            </xcad:LayoutPanel>
+
+                        </xcad:LayoutRoot.RootPanel>
+
+                        <xcad:LayoutRoot.LeftSide>
+                            <xcad:LayoutAnchorSide>
+                                <xcad:LayoutAnchorGroup>
+                                    <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
+                                        <controls:PlaceActorsControl x:Name="PlaceActorsControl"/>
                                     </xcad:LayoutAnchorable>
-                                </xcad:LayoutAnchorablePane>
-                            </xcad:LayoutAnchorablePaneGroup>
-                        </xcad:LayoutAnchorablePaneGroup>
-                    </xcad:LayoutPanel>
+                                </xcad:LayoutAnchorGroup>
+                            </xcad:LayoutAnchorSide>
+                        </xcad:LayoutRoot.LeftSide>
 
-                </xcad:LayoutRoot.RootPanel>
+                    </xcad:LayoutRoot>
+                </xcad:DockingManager>
+            </TabItem>
+            <TabItem Header="Sprite">
+                <xcad:DockingManager Grid.Row="1" x:Name="dockingManagerSprite" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <xcad:DockingManager.Theme>
+                        <xcad:GenericTheme/>
+                    </xcad:DockingManager.Theme>
 
-                <xcad:LayoutRoot.LeftSide>
-                    <xcad:LayoutAnchorSide>
-                        <xcad:LayoutAnchorGroup>
-                            <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
-                                <controls:PlaceActorsControl x:Name="PlaceActorsControl"/>
-                            </xcad:LayoutAnchorable>
-                        </xcad:LayoutAnchorGroup>
-                    </xcad:LayoutAnchorSide>
-                </xcad:LayoutRoot.LeftSide>
+                    <xcad:LayoutRoot>
+                        <xcad:LayoutRoot.RootPanel>
+                            <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
 
-            </xcad:LayoutRoot>
-        </xcad:DockingManager>
+                                <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
+                                    <xcad:LayoutDocumentPane>
+                                        <xcad:LayoutDocument x:Name="spriteViewLayout" Title="Game Screen" CanFloat="False" CanClose="False">
+                                            <controls:GameEditorSprite x:Name="GameEditorSprite"/>
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
+                                </xcad:LayoutDocumentPaneGroup>
+
+                                <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
+                                    <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
+                                        <xcad:LayoutAnchorable x:Name="spriteLayout" Title="Sprites">
+                                            <controls:SpritesControl x:Name="spritesControl"/>
+                                        </xcad:LayoutAnchorable>
+                                    </xcad:LayoutAnchorablePane>
+                                    <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                        <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                            <xcad:LayoutAnchorable x:Name="spriteDetailsLayout" Title="Sprite Details">
+                                                <controls:SpriteDetailsControl x:Name="spriteDetailsControl" DataContext="{Binding ElementName=spritesControl, Path=SelectedItem}"/>
+                                            </xcad:LayoutAnchorable>
+                                        </xcad:LayoutAnchorablePane>
+                                    </xcad:LayoutAnchorablePaneGroup>
+                                </xcad:LayoutAnchorablePaneGroup>
+                            </xcad:LayoutPanel>
+                        </xcad:LayoutRoot.RootPanel>
+                    </xcad:LayoutRoot>
+                </xcad:DockingManager>
+            </TabItem>
+            <TabItem Header="Animation 2d">
+
+            </TabItem>
+            <TabItem Header="Settings">
+                <controls:SettingsControl x:Name="SettingsControl"/>
+            </TabItem>
+        </TabControl>
 
         <StatusBar Grid.Row="2">
             <StatusBarItem>
-                <TextBlock Text="Status" />
+                <Button Content="Content Browser" Click="ButtonOpenContentBrowser_OnClick"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

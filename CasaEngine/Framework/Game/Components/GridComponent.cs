@@ -8,9 +8,11 @@ public class GridComponent : DrawableGameComponent
     private VertexPositionColor[] LinesVertices;
     private int m_Size = 50;
     private BasicEffect GridEffect;
+    private CasaEngineGame? _game;
 
     public GridComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
+        _game = game as CasaEngineGame;
         game.Components.Add(this);
     }
 
@@ -75,14 +77,15 @@ public class GridComponent : DrawableGameComponent
 
     public override void Draw(GameTime gameTime)
     {
-        if (GameInfo.Instance.ActiveCamera == null)
+        var camera = _game.GameManager.ActiveCamera;
+        if (camera == null)
         {
             return;
         }
 
         GridEffect.World = Matrix.Identity;
-        GridEffect.View = GameInfo.Instance.ActiveCamera.ViewMatrix;
-        GridEffect.Projection = GameInfo.Instance.ActiveCamera.ProjectionMatrix;
+        GridEffect.View = camera.ViewMatrix;
+        GridEffect.Projection = camera.ProjectionMatrix;
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
         foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)

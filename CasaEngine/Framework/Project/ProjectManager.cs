@@ -16,7 +16,7 @@ public class ProjectManager
         }
     }
 
-    public void Load(CasaEngineGame game, string fileName)
+    public void Load(string fileName)
     {
 #if EDITOR
         Clear();
@@ -24,6 +24,11 @@ public class ProjectManager
 #endif
 
         GameSettings.ProjectSettings.Load(fileName);
+
+        if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName))
+        {
+            GameSettings.PluginManager.Load(GameSettings.ProjectSettings.GameplayDllName);
+        }
 
 #if EDITOR
         GameSettings.ExternalToolManager.Initialize(GameSettings.ProjectSettings.ExternalToolsDirectory);

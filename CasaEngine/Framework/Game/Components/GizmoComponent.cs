@@ -12,9 +12,11 @@ public class GizmoComponent : DrawableGameComponent
     public Gizmo Gizmo { get; private set; }
 
     private InputComponent? _inputComponent;
+    private CasaEngineGame? _game;
 
     public GizmoComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
+        _game = game as CasaEngineGame;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.Manipulator;
         DrawOrder = (int)ComponentDrawOrder.Manipulator;
@@ -37,21 +39,22 @@ public class GizmoComponent : DrawableGameComponent
 
     public override void Update(GameTime gameTime)
     {
-        if (Gizmo.GetSelectionPool() == null && GameInfo.Instance.CurrentWorld != null)
+        if (Gizmo.GetSelectionPool() == null && _game.GameManager.CurrentWorld != null)
         {
-            Gizmo.SetSelectionPool(GameInfo.Instance.CurrentWorld.Entities);
+            Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.Entities);
         }
         else if (Gizmo.GetSelectionPool() == null)
         {
             return;
         }
 
-        if (GameInfo.Instance.ActiveCamera != null)
+        var camera = _game.GameManager.ActiveCamera;
+        if (camera != null)
         {
             Gizmo.UpdateCameraProperties(
-                GameInfo.Instance.ActiveCamera.ViewMatrix,
-                GameInfo.Instance.ActiveCamera.ProjectionMatrix,
-                GameInfo.Instance.ActiveCamera.Position);
+                camera.ViewMatrix,
+                camera.ProjectionMatrix,
+                camera.Position);
         }
 
         if (_inputComponent.MouseLeftButtonJustPressed)

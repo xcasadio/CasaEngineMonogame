@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.Framework.Game;
-
+/*
 public class GameInfo
 {
     private World.World? _currentWorld;
@@ -20,4 +20,4 @@ public class GameInfo
 
     public CameraComponent? ActiveCamera { get; set; }
     public event EventHandler? WorldChanged;
-}
+}*/

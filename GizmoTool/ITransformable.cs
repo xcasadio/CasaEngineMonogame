@@ -50,7 +50,5 @@ namespace XNAGizmo
 #endif
 
         BoundingBox BoundingBox { get; }
-
-        float? Select(Ray selectionRay);
     }
 }

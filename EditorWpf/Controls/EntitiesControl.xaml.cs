@@ -28,15 +28,15 @@ namespace EditorWpf.Controls
             InitializeComponent();
         }
 
-        public void InitializeFromGameEditor(GameEditor gameEditor)
+        public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)
         {
-            gameEditor.GameStarted += OnGameGameStarted;
-            GameInfo.Instance.WorldChanged += OnWorldChanged;
+            gameEditorWorld.GameStarted += OnGameGameStarted;
         }
 
         private void OnGameGameStarted(object? sender, EventArgs e)
         {
             Game = (CasaEngineGame)sender;
+            Game.GameManager.WorldChanged += OnWorldChanged;
             var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
             gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
             gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
@@ -63,14 +63,14 @@ namespace EditorWpf.Controls
 
         private void OnWorldChanged(object? sender, EventArgs e)
         {
-            GameInfo.Instance.CurrentWorld.EntitiesChanged += OnEntitiesChanged;
-            TreeView.ItemsSource = GameInfo.Instance.CurrentWorld.Entities;
+            Game.GameManager.CurrentWorld.EntitiesChanged += OnEntitiesChanged;
+            TreeView.ItemsSource = Game.GameManager.CurrentWorld.Entities;
         }
 
         private void OnEntitiesChanged(object? sender, EventArgs e)
         {
             TreeView.ItemsSource = null;
-            TreeView.ItemsSource = GameInfo.Instance.CurrentWorld.Entities;
+            TreeView.ItemsSource = Game.GameManager.CurrentWorld.Entities;
         }
 
         private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

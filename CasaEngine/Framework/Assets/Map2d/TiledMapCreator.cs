@@ -122,7 +122,7 @@ public class TiledMapCreator
         //mapEntity.IsPersistent(false);
         world.AddEntityImmediately(mapEntity);
 
-        var physics_world = GameInfo.Instance.CurrentWorld.Physic2dWorld;
+        var physics_world = world.Physic2dWorld;
         var layerIndex = 0;
 
         foreach (var layer in tiledMapData.Layers)

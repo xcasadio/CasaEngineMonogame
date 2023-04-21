@@ -7,11 +7,13 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <xctk:PropertyGrid Grid.Row="0" x:Name="PropertyGridProjectSettings" AutoGenerateProperties="True"/>
-        <xctk:PropertyGrid Grid.Row="1" x:Name="PropertyGridPhysicSettings" AutoGenerateProperties="True"/>
+        <TabControl>
+            <TabItem Header="Project Settings">
+                <xctk:PropertyGrid x:Name="PropertyGridProjectSettings" AutoGenerateProperties="True"/>
+            </TabItem>
+            <TabItem Header="Physics Settings">
+                <xctk:PropertyGrid x:Name="PropertyGridPhysicSettings" AutoGenerateProperties="True"/>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

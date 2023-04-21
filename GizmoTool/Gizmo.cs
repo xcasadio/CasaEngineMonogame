@@ -964,7 +964,8 @@ namespace XNAGizmo
             ITransformable obj = null;
             foreach (var entity in _selectionPool)
             {
-                var intersection = entity.Select(ray);
+                var intersection = ray.Intersects(entity.BoundingBox);
+
                 if (intersection < closest)
                 {
                     if (!Selection.Contains(entity))

@@ -9,10 +9,12 @@ public class LoadingScreen : Screen
     private bool _otherScreensAreGone;
 
     private readonly Screen[] _screensToLoad;
+    private CasaEngineGame? _game;
 
     private LoadingScreen(ScreenManagerComponent screenManager, bool loadingIsSlow, Screen[] screensToLoad)
         : base("LoadingScreen")
     {
+        _game = screenManager.Game as CasaEngineGame;
         _loadingIsSlow = loadingIsSlow;
         _screensToLoad = screensToLoad;
 
@@ -31,8 +33,7 @@ public class LoadingScreen : Screen
         screenManager.AddScreen(loadingScreen, controllingPlayer);
     }
 
-    public override void Update(float elapsedTime, bool otherScreenHasFocus,
-        bool coveredByOtherScreen)
+    public override void Update(float elapsedTime, bool otherScreenHasFocus, bool coveredByOtherScreen)
     {
         base.Update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen);
 
@@ -81,7 +82,7 @@ public class LoadingScreen : Screen
             const string message = "Loading...";
 
             // Center the text in the viewport.
-            var viewport = GameInfo.Instance.ActiveCamera.Viewport;
+            var viewport = _game.GameManager.ActiveCamera.Viewport;
             var viewportSize = new Vector2(viewport.Width, viewport.Height);
             var textSize = Font.MeasureString(message);
             var textPosition = (viewportSize - textSize) / 2;

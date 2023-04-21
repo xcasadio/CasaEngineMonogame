@@ -27,6 +27,12 @@ public class ExternalToolManager
         var fullPath = Path.Combine(GameSettings.ProjectManager.ProjectPath, directory);
         var msg = string.Empty;
 
+        if (!Directory.Exists(fullPath))
+        {
+            LogManager.Instance.WriteLineError($"ExternalToolManager : can't find the directory {fullPath}");
+            return;
+        }
+
         foreach (var file in Directory.GetFiles(fullPath, "*.dll"))
         {
             var assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(file));

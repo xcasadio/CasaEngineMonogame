@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 using EditorWpf.Controls;
 using EditorWpf.Controls.ContentBrowser;
 using EditorWpf.Windows;
@@ -58,8 +59,8 @@ namespace EditorWpf
             }
 
             LogManager.Instance.WriteLine($"Project opened {projectFileName}");
-            //GameScreenControl.gameEditor.Game
-            GameSettings.ProjectManager.Load(GameScreenControl.gameEditor.Game, projectFileName);
+
+            GameSettings.ProjectManager.Load(projectFileName);
         }
 
         private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -84,7 +85,7 @@ namespace EditorWpf
             try
             {
                 var fileName = GetLayoutFileName();
-                XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManager1);
+                XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManagerWorld);
                 using var writer = new StreamWriter(fileName);
                 layoutSerializer.Serialize(writer);
                 LogManager.Instance.WriteLineDebug($"Save Layout '{fileName}'");
@@ -107,7 +108,7 @@ namespace EditorWpf
                     return;
                 }
 
-                XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManager1);
+                XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManagerWorld);
                 layoutSerializer.LayoutSerializationCallback += LayoutSerializer_LayoutSerializationCallback;
                 using var reader = new StreamReader(fileName);
                 layoutSerializer.Deserialize(reader);
@@ -173,7 +174,15 @@ namespace EditorWpf
 
         private void SaveProject_OnClick(object sender, RoutedEventArgs e)
         {
+            // use full ??
+        }
 
+        private void ButtonOpenContentBrowser_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (tabControl.SelectedItem is TabItem tabItem)
+            {
+
+            }
         }
     }
 }

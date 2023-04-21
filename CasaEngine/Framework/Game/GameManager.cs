@@ -12,12 +12,14 @@ using CasaEngine.Framework.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using EventArgs = System.EventArgs;
+using EventHandler = System.EventHandler;
 
 namespace CasaEngine.Framework.Game;
 
 public class GameManager
 {
     private readonly CasaEngineGame _game;
+
     public string[] Arguments { get; set; }
     private string ProjectFile { get; set; } = string.Empty;
     public GraphicsDeviceManager GraphicsDeviceManager { get; }
@@ -40,8 +42,27 @@ public class GameManager
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
     public ScreenManagerComponent ManagerComponent { get; private set; }
     public PhysicsEngineComponent PhysicsEngine { get; private set; }
-    public Physics2dDebugViewRendererComponent Physics2dDebugViewRendererComponent { get; private set; }
-    public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
+
+    // Game running infos
+    private World.World? _currentWorld;
+
+    public World.World? CurrentWorld
+    {
+        get => _currentWorld;
+        set
+        {
+            _currentWorld = value;
+#if EDITOR
+            WorldChanged?.Invoke(this, EventArgs.Empty);
+#endif
+        }
+    }
+
+    public CameraComponent? ActiveCamera { get; set; }
+
+#if EDITOR
+    public event EventHandler? WorldChanged;
+#endif
 
     public GameManager(CasaEngineGame game, IGraphicsDeviceService? graphicsDeviceService)
     {
@@ -77,9 +98,9 @@ public class GameManager
 
     public void OnScreenResized(int width, int height)
     {
-        if (GameInfo.Instance.CurrentWorld != null)
+        if (CurrentWorld != null)
         {
-            foreach (var entity in GameInfo.Instance.CurrentWorld.Entities)
+            foreach (var entity in CurrentWorld.Entities)
             {
                 entity.ScreenResized(width, height);
             }
@@ -94,7 +115,6 @@ public class GameManager
 
     public void Initialize()
     {
-        AssetContentManager = new AssetContentManager();
         AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
         AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
         AssetContentManager.Initialize(_game.GraphicsDevice);
@@ -107,17 +127,8 @@ public class GameManager
         Renderer2dComponent.SpriteBatch = SpriteBatch;
         InputComponent = new InputComponent(_game);
         ManagerComponent = new ScreenManagerComponent(_game);
-        Physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(_game);
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
         PhysicsEngine = new PhysicsEngineComponent(_game);
-
-#if EDITOR
-        //In editor mode the game is in idle mode so we don't update physics
-        PhysicsEngine.Enabled = false;
-        PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(_game);
-        var gizmoComponent = new GizmoComponent(_game);
-        var gridComponent = new GridComponent(_game);
-#endif
 
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
@@ -133,21 +144,10 @@ public class GameManager
 #endif
 
         _game.Content.RootDirectory = ContentPath;
-        //TODO : create hierarchy of the project
-        if (!string.IsNullOrWhiteSpace(ProjectFile))
-        {
-            GameSettings.ProjectSettings.Load(ProjectFile);
-        }
-
         _game.Window.Title = GameSettings.ProjectSettings.WindowTitle;
         _game.Window.AllowUserResizing = GameSettings.ProjectSettings.AllowUserResizing;
         _game.IsFixedTimeStep = GameSettings.ProjectSettings.IsFixedTimeStep;
         _game.IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
-
-        if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName))
-        {
-            GameSettings.PluginManager.Load(GameSettings.ProjectSettings.GameplayDllName);
-        }
 
         //UiManager.Initialize(_game, null/*Window.Handle*/, _game.Window.ClientBounds);
     }
@@ -155,7 +155,7 @@ public class GameManager
     public void BeginLoadContent()
     {
         //TODO : defaultSpriteFont
-        //GameInfo.Instance.DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
+        //DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
 
         //_renderer2dComponent.SpriteBatch = SpriteBatch;
         //var renderTarget = new RenderTarget2D(Game.GraphicsDevice, 1024, 768, false,
@@ -166,37 +166,37 @@ public class GameManager
     public void EndLoadContent()
     {
 #if !EDITOR
-        if (GameInfo.Instance.CurrentWorld == null)
+        if (CurrentWorld == null)
         {
             if (string.IsNullOrWhiteSpace(ProjectSettings.FirstWorldLoaded))
             {
                 throw new InvalidOperationException("FirstWorldLoaded is undefined");
             }
 
-            GameInfo.Instance.CurrentWorld = new World.World();
-            GameInfo.Instance.CurrentWorld.Load(ProjectSettings.FirstWorldLoaded);
+            CurrentWorld = new World.World();
+            CurrentWorld.Load(ProjectSettings.FirstWorldLoaded);
         }
 
-        GameInfo.Instance.CurrentWorld.Initialize(_game);
-        //_physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
+        CurrentWorld.Initialize(_game);
+        //_physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(CurrentWorld.Physic2dWorld);
 #else
         //in editor the active camera is debug camera and it isn't belong to the world
         var entity = new Entity { Name = "Camera" };
         var camera = new ArcBallCameraComponent(entity);
         entity.ComponentManager.Components.Add(camera);
-        GameInfo.Instance.ActiveCamera = camera;
+        ActiveCamera = camera;
         camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         camera.Initialize(_game);
 #endif
 
         //TEST
-        //var world = GameInfo.Instance.CurrentWorld;
+        //var world = CurrentWorld;
         //
         //var entity = new Entity();
         //entity.Name = "Entity camera";
         //var camera = new ArcBallCameraComponent(entity);
         //entity.ComponentManager.Components.Add(camera);
-        //GameInfo.Instance.ActiveCamera = camera;
+        //ActiveCamera = camera;
         //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         //world.AddEntityImmediately(entity);
         //
@@ -229,17 +229,12 @@ public class GameManager
 
     public void BeginUpdate(GameTime gameTime)
     {
-        if (GameInfo.Instance.CurrentWorld == null)
+        if (CurrentWorld == null)
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
-            GameInfo.Instance.CurrentWorld = new World.World();
-            GameInfo.Instance.CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded);
-            GameInfo.Instance.CurrentWorld.Initialize(_game);
-
-            if (GameInfo.Instance.CurrentWorld.Physic2dWorld != null)
-            {
-                Physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(GameInfo.Instance.CurrentWorld.Physic2dWorld);
-            }
+            CurrentWorld = new World.World();
+            CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded);
+            CurrentWorld.Initialize(_game);
         }
 
 #if !FINAL
@@ -249,14 +244,14 @@ public class GameManager
 
 #if EDITOR
         //In editor the camera is not an entity of the world
-        GameInfo.Instance.ActiveCamera?.Update(gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
+        ActiveCamera?.Update(gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
 #endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
         //    DebugSystem.Instance.DebugCommandUI.Show(); 
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
-        GameInfo.Instance.CurrentWorld?.Update(elapsedTime);
+        CurrentWorld?.Update(elapsedTime);
         //UiManager.Update(elapsedTime);
     }
 
@@ -277,7 +272,7 @@ public class GameManager
         _game.GraphicsDevice.Clear(Color.Black);
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
-        GameInfo.Instance.CurrentWorld?.Draw(elapsedTime);
+        CurrentWorld?.Draw(elapsedTime);
         //UiManager.PreRenderControls();
     }
 

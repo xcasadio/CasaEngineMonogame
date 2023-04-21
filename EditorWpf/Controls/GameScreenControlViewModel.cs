@@ -63,10 +63,10 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
         }
     }
 
-    public GameScreenControlViewModel(GameEditor gameEditor)
+    public GameScreenControlViewModel(GameEditorWorld gameEditorWorld)
     {
-        _game = gameEditor.Game;
-        gameEditor.GameStarted += OnGameGameStarted;
+        _game = gameEditorWorld.Game;
+        gameEditorWorld.GameStarted += OnGameGameStarted;
     }
 
     private void OnGameGameStarted(object? sender, System.EventArgs e)
