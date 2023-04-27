@@ -32,6 +32,11 @@ public class AssetContentManager
 
     public void AddAsset(string fileName, object asset, string categoryName = "default")
     {
+        if (!_assetsByFileNameByCategory.ContainsKey(categoryName))
+        {
+            _assetsByFileNameByCategory.Add(categoryName, new Dictionary<string, object>());
+        }
+
         _assetsByFileNameByCategory[categoryName][fileName] = asset;
     }
 

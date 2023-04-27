@@ -70,7 +70,7 @@ public sealed class World : Asset
             .Select(x => x.ComponentManager.Components.FirstOrDefault(y => y is CameraComponent) as CameraComponent)
             .FirstOrDefault(x => x != null);
 
-        GameInfo.Instance.ActiveCamera = camera;
+        game.GameManager.ActiveCamera = camera;
 #endif
 
         Initializing?.Invoke(this, EventArgs.Empty);

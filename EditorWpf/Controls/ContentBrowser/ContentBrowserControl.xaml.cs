@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls.ContentBrowser
 {
@@ -14,10 +13,10 @@ namespace EditorWpf.Controls.ContentBrowser
             InitializeComponent();
         }
 
-        public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)
+        public void InitializeFromGameEditor(GameEditor gameEditor)
         {
             var contentBrowserViewModel = DataContext as ContentBrowserViewModel;
-            contentBrowserViewModel.Initialize(gameEditorWorld);
+            contentBrowserViewModel.Initialize(gameEditor);
         }
 
         private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)

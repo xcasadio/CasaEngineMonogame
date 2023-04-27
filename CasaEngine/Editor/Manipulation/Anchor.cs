@@ -13,10 +13,10 @@ public class Anchor
     private bool _mousePressed;
     private readonly List<Anchor> _anchors = new();
 
-    public event EventHandler<AnchorLocationChangedEventArgs> LocationChanged;
-    public event EventHandler StartManipulating, FinishManipulating;
+    public event EventHandler<AnchorLocationChangedEventArgs>? LocationChanged;
+    public event EventHandler? StartManipulating, FinishManipulating;
 
-    public event EventHandler CursorChanged;
+    public event EventHandler? CursorChanged;
     private bool _isOver;
     private bool _shiftPressed, _controlPressed;
 
@@ -58,21 +58,7 @@ public class Anchor
         private set;
     }
 
-    public bool CanManipulate
-    {
-        get
-        {
-            foreach (var a in _anchors)
-            {
-                if (a.IsManipulating)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
+    public bool CanManipulate => _anchors.All(a => !a.IsManipulating);
 
     public Vector2 Offset
     {
@@ -147,10 +133,7 @@ public class Anchor
 
             _position = new Vector2(_position.X + offsetX, _position.Y + offsetY);
 
-            if (LocationChanged != null)
-            {
-                LocationChanged.Invoke(this, new AnchorLocationChangedEventArgs(offsetX, offsetY));
-            }
+            LocationChanged?.Invoke(this, new AnchorLocationChangedEventArgs(offsetX, offsetY));
         }
 
         if (mouseState.LeftButton == ButtonState.Released)
@@ -158,10 +141,7 @@ public class Anchor
             if (IsManipulating)
             {
                 IsManipulating = false;
-                if (FinishManipulating != null)
-                {
-                    FinishManipulating.Invoke(this, EventArgs.Empty);
-                }
+                FinishManipulating?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -183,14 +163,7 @@ public class Anchor
 
             _isOver = true;
 
-            if (IsManipulating)
-            {
-                InvokeCursorChanged(CursorPressed);
-            }
-            else
-            {
-                InvokeCursorChanged(CursorOver);
-            }
+            InvokeCursorChanged(IsManipulating ? CursorPressed : CursorOver);
         }
         else
         {
@@ -238,7 +211,7 @@ public class Anchor
         r.AddBox(_position.X + Offset.X, _position.Y + Offset.Y, Width, Height, Color.Black);
     }
 
-    public void Draw(Line2DRenderer lineRenderer, SpriteBatch spriteBatch, Color color)
+    public void Draw(Line2dRenderer lineRenderer, SpriteBatch spriteBatch, Color color)
     {
         lineRenderer.DrawLine(spriteBatch, color,
             new Vector2(_position.X + Offset.X, _position.Y + Offset.Y),
@@ -283,10 +256,7 @@ public class Anchor
 
     private void InvokeCursorChanged(Cursor cursor)
     {
-        if (CursorChanged != null)
-        {
-            CursorChanged.Invoke(cursor, EventArgs.Empty);
-        }
+        CursorChanged?.Invoke(cursor, EventArgs.Empty);
     }
 
     public bool IsInside(int x, int y)
@@ -303,5 +273,4 @@ public class Anchor
     {
         return IsInside((int)v.X, (int)v.Y);
     }
-
 }

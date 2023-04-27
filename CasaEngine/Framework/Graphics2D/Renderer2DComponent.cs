@@ -59,7 +59,7 @@ public class Renderer2dComponent : DrawableGameComponent
     //List<RoundLine> _RoundLines = new List<RoundLine>();		
     //RoundLineManager _RoundLineManager = null;
 
-    private readonly Line2DRenderer _line2DRenderer = new();
+    private readonly Line2dRenderer _line2dRenderer = new();
 
     public SpriteBatch SpriteBatch
     {
@@ -85,7 +85,7 @@ public class Renderer2dComponent : DrawableGameComponent
     public override void Initialize()
     {
         base.Initialize();
-        _line2DRenderer.Init(GraphicsDevice);
+        _line2dRenderer.Init(GraphicsDevice);
     }
 
     protected override void Dispose(bool disposing)
@@ -201,7 +201,7 @@ public class Renderer2dComponent : DrawableGameComponent
         //Line2D
         foreach (var line2D in _lines)
         {
-            _line2DRenderer.DrawLine(SpriteBatch, line2D.Color, line2D.Start, line2D.End, line2D.ZOrder);
+            _line2dRenderer.DrawLine(SpriteBatch, line2D.Color, line2D.Start, line2D.End, line2D.ZOrder);
         }
 
         SpriteBatch.End();

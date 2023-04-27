@@ -16,9 +16,9 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
         ContentItems.Add(new FolderItem { Name = "All" });
     }
 
-    public void Initialize(GameEditorWorld gameEditorWorld)
+    public void Initialize(GameEditor gameEditor)
     {
-        gameEditorWorld.GameStarted += OnGameStarted;
+        gameEditor.GameStarted += OnGameStarted;
     }
 
     private void OnGameStarted(object? sender, EventArgs e)

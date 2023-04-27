@@ -36,7 +36,7 @@
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
         <ListBox x:Name="ListBoxFoldersContent" Grid.Column="2" ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" AllowDrop="True">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

@@ -154,13 +154,6 @@ public class GameManager
 
     public void BeginLoadContent()
     {
-        //TODO : defaultSpriteFont
-        //DefaultSpriteFont = Content.Load<SpriteFont>("Content/defaultSpriteFont");
-
-        //_renderer2dComponent.SpriteBatch = SpriteBatch;
-        //var renderTarget = new RenderTarget2D(Game.GraphicsDevice, 1024, 768, false,
-        //    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-        //Game.GraphicsDevice.SetRenderTarget(renderTarget);
     }
 
     public void EndLoadContent()
@@ -168,13 +161,13 @@ public class GameManager
 #if !EDITOR
         if (CurrentWorld == null)
         {
-            if (string.IsNullOrWhiteSpace(ProjectSettings.FirstWorldLoaded))
+            if (string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.FirstWorldLoaded))
             {
                 throw new InvalidOperationException("FirstWorldLoaded is undefined");
             }
 
             CurrentWorld = new World.World();
-            CurrentWorld.Load(ProjectSettings.FirstWorldLoaded);
+            CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded);
         }
 
         CurrentWorld.Initialize(_game);

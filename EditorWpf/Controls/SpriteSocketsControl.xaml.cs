@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace EditorWpf.Controls
 {
     /// <summary>
-    /// Interaction logic for SpritesControl.xaml
+    /// Interaction logic for SpriteSocketsControl.xaml
     /// </summary>
-    public partial class SpritesControl : UserControl
+    public partial class SpriteSocketsControl : UserControl
     {
-        public SpritesControl()
+        public SpriteSocketsControl()
         {
             InitializeComponent();
         }

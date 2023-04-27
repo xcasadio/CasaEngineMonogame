@@ -3,9 +3,9 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Graphics2D;
 
-public class Line2DRenderer
+public class Line2dRenderer
 {
-    private Texture2D _emptyTexture;
+    private Texture2D? _emptyTexture;
 
     public void Init(GraphicsDevice device)
     {
@@ -13,12 +13,7 @@ public class Line2DRenderer
         _emptyTexture.SetData(new[] { Color.White });
     }
 
-    public void DrawLine(SpriteBatch batch, Color color, Vector2 point1, Vector2 point2)
-    {
-        DrawLine(batch, color, point1, point2, 0);
-    }
-
-    public void DrawLine(SpriteBatch batch, Color color, Vector2 point1, Vector2 point2, float layer)
+    public void DrawLine(SpriteBatch batch, Color color, Vector2 point1, Vector2 point2, float layer = 0f)
     {
         var angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
         var length = (point2 - point1).Length();

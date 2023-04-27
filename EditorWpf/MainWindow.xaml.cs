@@ -4,11 +4,9 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.World;
 using EditorWpf.Controls;
 using EditorWpf.Controls.ContentBrowser;
 using EditorWpf.Windows;
-using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace EditorWpf
 {
@@ -17,6 +15,8 @@ namespace EditorWpf
         private readonly string _projectFileName;
         private bool _isWindowLoaded;
         private bool _isGameReadyToStart;
+        public ContentBrowserControl ContentBrowserControl { get; }
+        public LogsControl LogsControl { get; }
 
         public MainWindow(string projectFileName)
         {
@@ -24,15 +24,19 @@ namespace EditorWpf
             Closing += OnClosing;
             Loaded += MainWindow_Loaded;
 
+            ContentBrowserControl = new ContentBrowserControl();
+            ContentBrowserControl.InitializeComponent();
+            LogsControl = new LogsControl();
+            LogsControl.InitializeComponent();
+
             InitializeComponent();
 
-            GameScreenControl.gameEditor.GameStarted += OnGameGameStarted;
-            EntitiesControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
-            EntityControl.InitializeFromGameEditor(GameScreenControl.gameEditor.Game);
-            ContentBrowserControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
+            WorldEditorControl.GameStarted += OnGameStarted;
+
+            ContentBrowserControl.InitializeFromGameEditor(WorldEditorControl.GameEditor);
         }
 
-        private void OnGameGameStarted(object? sender, EventArgs e)
+        private void OnGameStarted(object? sender, EventArgs e)
         {
             _isGameReadyToStart = true;
             OpenProject(_projectFileName);
@@ -40,6 +44,8 @@ namespace EditorWpf
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            LoadWorkSpace();
+
             _isWindowLoaded = true;
             OpenProject(_projectFileName);
         }
@@ -84,11 +90,15 @@ namespace EditorWpf
         {
             try
             {
-                var fileName = GetLayoutFileName();
-                XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManagerWorld);
-                using var writer = new StreamWriter(fileName);
-                layoutSerializer.Serialize(writer);
-                LogManager.Instance.WriteLineDebug($"Save Layout '{fileName}'");
+                string path = GetLayoutPath();
+
+                foreach (var tab in tabControl.Items)
+                {
+                    if (tab is TabItem { Content: IEditorControl editorControl })
+                    {
+                        editorControl.SaveLayout(path);
+                    }
+                }
 
             }
             catch (Exception e)
@@ -101,18 +111,15 @@ namespace EditorWpf
         {
             try
             {
-                var fileName = GetLayoutFileName(false);
+                string path = GetLayoutPath(false);
 
-                if (!File.Exists(fileName))
+                foreach (var tab in tabControl.Items)
                 {
-                    return;
+                    if (tab is TabItem { Content: IEditorControl editorControl })
+                    {
+                        editorControl.LoadLayout(path);
+                    }
                 }
-
-                XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManagerWorld);
-                layoutSerializer.LayoutSerializationCallback += LayoutSerializer_LayoutSerializationCallback;
-                using var reader = new StreamReader(fileName);
-                layoutSerializer.Deserialize(reader);
-                LogManager.Instance.WriteLineDebug($"Load Layout '{fileName}'");
             }
             catch (Exception e)
             {
@@ -120,22 +127,7 @@ namespace EditorWpf
             }
         }
 
-        private void LayoutSerializer_LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
-        {
-            e.Content = e.Model.Title switch
-            {
-                "Settings" => SettingsControl,
-                "Entities" => EntitiesControl,
-                "Details" => EntityControl,
-                "Game Screen" => GameScreenControl,
-                "Place Actors" => PlaceActorsControl,
-                "Logs" => LogsControl,
-                "Content Browser" => ContentBrowserControl,
-                _ => e.Content
-            };
-        }
-
-        private static string GetLayoutFileName(bool createDirectory = true)
+        private static string GetLayoutPath(bool createDirectory = true)
         {
             string dirPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CasaEngine");
 
@@ -144,8 +136,7 @@ namespace EditorWpf
                 Directory.CreateDirectory(dirPath);
             }
 
-            var fileName = Path.Combine(dirPath, "layout.xml");
-            return fileName;
+            return dirPath;
         }
 
         #endregion
@@ -179,9 +170,17 @@ namespace EditorWpf
 
         private void ButtonOpenContentBrowser_OnClick(object sender, RoutedEventArgs e)
         {
-            if (tabControl.SelectedItem is TabItem tabItem)
+            if (tabControl.SelectedItem is TabItem { Content: IEditorControl editorControl })
             {
+                editorControl.ShowControl(ContentBrowserControl, "Content Browser");
+            }
+        }
 
+        private void ButtonOpenLog_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (tabControl.SelectedItem is TabItem { Content: IEditorControl editorControl })
+            {
+                editorControl.ShowControl(LogsControl, "Logs");
             }
         }
     }

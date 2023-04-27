@@ -11,7 +11,7 @@ public class SpriteData : Asset
     public Rectangle PositionInTexture { get; set; }
     public Point Origin { get; set; }
     //List<Vector2I> m_Sockets;
-    ////List<Collision> _collisionShapes;
+    //List<Collision> _collisionShapes;
 
     public override void Load(JsonElement element)
     {

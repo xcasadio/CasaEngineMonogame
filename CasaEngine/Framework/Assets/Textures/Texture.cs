@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Xml;
 using CasaEngine.Core.Design;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using Screen = CasaEngine.Framework.UserInterface.Screen;
@@ -83,16 +84,22 @@ public class Texture : Asset
     {
         Name = Path.GetFileNameWithoutExtension(filename);
         FileName = filename;
-        if (File.Exists(FileName) == false)
+
+        if (File.Exists(filename) == false)
         {
-            throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
+            //TODO : all asset must be loaded from  ProjectPath
+            filename = Path.Combine(GameSettings.ProjectManager.ProjectPath, filename);
+            if (File.Exists(filename) == false)
+            {
+                throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
+            }
         }
 
         try
         {
-            XnaTexture = assetContentManager.Load<Texture2D>(FileName, GraphicsDevice);
+            XnaTexture = assetContentManager.Load<Texture2D>(filename, GraphicsDevice);
             Size = new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
-            Resource.Name = filename;
+            Resource.Name = FileName;
         }
         catch (ObjectDisposedException)
         {

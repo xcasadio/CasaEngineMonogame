@@ -7,9 +7,9 @@ using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls
 {
-    public partial class GameScreenControl : UserControl
+    public partial class GameEditorWorldControl : UserControl
     {
-        public GameScreenControl()
+        public GameEditorWorldControl()
         {
             InitializeComponent();
 
