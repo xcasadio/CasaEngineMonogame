@@ -6,6 +6,8 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:controls="clr-namespace:EditorWpf.Controls"
         xmlns:contentBrowser="clr-namespace:EditorWpf.Controls.ContentBrowser"
+        xmlns:spriteControls="clr-namespace:EditorWpf.Controls.SpriteControls"
+        xmlns:animation2dControls="clr-namespace:EditorWpf.Controls.Animation2dControls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
     <Grid>
@@ -43,10 +45,10 @@
                 <controls:WorldEditorControl x:Name="WorldEditorControl"/>
             </TabItem>
             <TabItem Header="Sprite">
-                <controls:SpriteEditorControl />
+                <spriteControls:SpriteEditorControl />
             </TabItem>
             <TabItem Header="Animation 2d">
-
+                <animation2dControls:Animation2dEditorControl/>
             </TabItem>
             <TabItem Header="Settings">
                 <controls:SettingsControl x:Name="SettingsControl"/>

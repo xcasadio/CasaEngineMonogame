@@ -1,0 +1,242 @@
+﻿<UserControl x:Class="EditorWpf.Controls.WorldControls.EntityComponentControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EditorWpf.Controls"
+             xmlns:components="clr-namespace:CasaEngine.Framework.Entities.Components;assembly=CasaEngine"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:shapes="clr-namespace:CasaEngine.Engine.Physics.Shapes;assembly=CasaEngine"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:physics="clr-namespace:CasaEngine.Engine.Physics;assembly=CasaEngine"
+             xmlns:worldControls="clr-namespace:EditorWpf.Controls.WorldControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Control.Resources>
+
+        <ObjectDataProvider MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}"
+                            x:Key="PhysicsTypeEnumValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="physics:PhysicsType" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <DataTemplate x:Key="BoxTemplate" DataType="{x:Type shapes:Box}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Width" />
+                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Width, Mode=TwoWay}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Height" />
+                <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Increment="0.1" Value="{Binding Height, Mode=TwoWay}" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Length" />
+                <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Increment="0.1" Value="{Binding Length, Mode=TwoWay}" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SphereTemplate" DataType="{x:Type shapes:Sphere}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
+                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="CapsuleTemplate" DataType="{x:Type shapes:Capsule}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
+                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Length" />
+                <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Increment="0.1" Value="{Binding Length, Mode=TwoWay}" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="CylinderTemplate" DataType="{x:Type shapes:Cylinder}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
+                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Length" />
+                <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Increment="0.1" Value="{Binding Length, Mode=TwoWay}" />
+            </Grid>
+        </DataTemplate>
+
+        <local:ShapeTemplateSelector x:Key="ShapeTemplateSelectorWithoutCompound" 
+                                     BoxTemplate="{StaticResource BoxTemplate}"
+                                     SphereTemplate="{StaticResource SphereTemplate}"
+                                     CapsuleTemplate="{StaticResource CapsuleTemplate}"
+                                     CylinderTemplate="{StaticResource CylinderTemplate}"/>
+
+        <DataTemplate x:Key="CompoundTemplate" DataType="{x:Type shapes:ShapeCompound}">
+            <ItemsControl ItemsSource="{Binding Shapes}" >
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="shapes:Shape">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="{Binding Type}" />
+                            <ContentControl Grid.Row="1" Content="{Binding }" ContentTemplateSelector="{StaticResource ShapeTemplateSelectorWithoutCompound}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </DataTemplate>
+
+        <local:ShapeTemplateSelector x:Key="ShapeTemplateSelector" 
+                                     BoxTemplate="{StaticResource BoxTemplate}"
+                                     SphereTemplate="{StaticResource SphereTemplate}"
+                                     CapsuleTemplate="{StaticResource CapsuleTemplate}"
+                                     CylinderTemplate="{StaticResource CylinderTemplate}"
+                                     CompoundTemplate="{StaticResource CompoundTemplate}"/>
+
+
+        <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type components:GamePlayComponent}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding ExternalComponent.Name}" />
+                <TextBlock Text="{Binding ExternalComponent.Id}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <TextBlock Text="Mesh : " />
+                <TextBlock Text="nb vertices = " />
+                <TextBlock Text="{Binding Mesh.VertexBuffer.VertexCount}" />
+                <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0"/>
+                <local:Vector3Control Grid.Row="0" Grid.Column="1" X="{Binding DataContext.Position, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Target" Margin="0,0,5,0"/>
+                <local:Vector3Control Grid.Row="1" Grid.Column="1" X="{Binding DataContext.Target, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Distance}" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding FieldOfView}" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="3" Grid.Column="1" Value="{Binding FieldOfView, Mode=TwoWay}" Increment="0.05"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Viewport X" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Viewport.X, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Viewport Y" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Viewport.Y, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Viewport Width" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Viewport.Width, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Viewport Height" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Viewport.Height, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Viewport Min Depth" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Viewport.MinDepth, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="9" Grid.Column="0" Text="Viewport Max Depth" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="9" Grid.Column="1" Value="{Binding Viewport.MaxDepth, Mode=TwoWay}" Increment="10"/>
+
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="physicsComponentTemplate" DataType="{x:Type components:PhysicsComponent}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <local:Vector3Control x:Name="Vector3ControlPosition" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Mass" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Mass}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Type" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="comboBoxType" Grid.Row="2" Grid.Column="1" SelectedItem="{Binding Path=PhysicsType}" 
+                              ItemsSource="{Binding Source={StaticResource PhysicsTypeEnumValues}}"/>
+
+                    <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
+                            HorizontalAlignment="Right"/>
+                </Grid>
+
+                <TextBlock Grid.Row="2" Text="{Binding Shape.Type}"/>
+                <ContentControl x:Name="physicsShapeControl"  Grid.Row="3" Content="{Binding Shape}" 
+                                ContentTemplateSelector="{StaticResource ShapeTemplateSelector}"/>
+            </Grid>
+        </DataTemplate>
+    </Control.Resources>
+
+    <Grid>
+        <ContentControl x:Name="componentControl" Content="{Binding}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+            <ContentControl.ContentTemplateSelector>
+                <worldControls:EntityComponentTemplateSelector
+                    ArcBallCameraComponenTemplate="{StaticResource arcBallCameraComponentTemplate}"
+                    MeshComponenTemplate="{StaticResource meshComponentTemplate}"
+                    GamePlayComponenTemplate="{StaticResource gamePlayComponentTemplate}"
+                    PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"/>
+            </ContentControl.ContentTemplateSelector>
+        </ContentControl>
+    </Grid>
+</UserControl>

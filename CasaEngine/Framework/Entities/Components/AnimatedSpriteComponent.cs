@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
@@ -148,6 +149,13 @@ public class AnimatedSpriteComponent : Component
         if (CurrentAnimation != null)
         {
             var spriteData = _assetContentManager.GetAsset<SpriteData>(CurrentAnimation.CurrentFrame);
+
+            if (spriteData == null)
+            {
+                LogManager.Instance.WriteLineError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
+                return;
+            }
+
             var sprite = Sprite.Create(spriteData, _assetContentManager);
             var worldMatrix = Owner.Coordinates.WorldMatrix;
             _renderer2dComponent.AddSprite(sprite.Texture.Resource, //TODO : load all sprites in a dictionary<name, sprite>
