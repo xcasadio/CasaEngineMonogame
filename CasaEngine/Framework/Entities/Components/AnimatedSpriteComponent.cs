@@ -163,9 +163,9 @@ public class AnimatedSpriteComponent : Component
                 spriteData.Origin,
                 new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
                 0.0f,
-                Vector2.One,
+                new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
                 Color.White,
-                0.0f,
+                Owner.Coordinates.Position.Z,
                 SpriteEffects.None);
         }
     }

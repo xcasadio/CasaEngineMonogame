@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using CasaEngine.Core.Logger;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;

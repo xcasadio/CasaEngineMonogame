@@ -17,6 +17,14 @@
   <ItemGroup>
     <None Remove="Resources\fichier-50.png" />
     <None Remove="Resources\file-folder-48.png" />
+    <None Remove="Resources\icon_arrowDown_16x16.png" />
+    <None Remove="Resources\icon_arrowUP_16x16.png" />
+    <None Remove="Resources\icon_first_16x16.png" />
+    <None Remove="Resources\icon_last_16x16.png" />
+    <None Remove="Resources\icon_Minus_16x16.png" />
+    <None Remove="Resources\icon_pause_16x16.png" />
+    <None Remove="Resources\icon_play_16x16.png" />
+    <None Remove="Resources\icon_Plus_16x16.png" />
     <None Remove="Resources\Icon_Rotate.png" />
     <None Remove="Resources\Icon_Rotate_gray.png" />
     <None Remove="Resources\Icon_Scale.png" />
@@ -41,6 +49,14 @@
   <ItemGroup>
     <Resource Include="Resources\file-folder-48.png" />
     <Resource Include="Resources\fichier-50.png" />
+    <Resource Include="Resources\icon_arrowDown_16x16.png" />
+    <Resource Include="Resources\icon_arrowUP_16x16.png" />
+    <Resource Include="Resources\icon_first_16x16.png" />
+    <Resource Include="Resources\icon_last_16x16.png" />
+    <Resource Include="Resources\icon_Minus_16x16.png" />
+    <Resource Include="Resources\icon_pause_16x16.png" />
+    <Resource Include="Resources\icon_play_16x16.png" />
+    <Resource Include="Resources\icon_Plus_16x16.png" />
     <Resource Include="Resources\Icon_Rotate.png" />
     <Resource Include="Resources\Icon_Rotate_gray.png" />
     <Resource Include="Resources\Icon_Scale.png" />
@@ -49,6 +65,12 @@
     <Resource Include="Resources\Icon_Translate_gray.png" />
     <Resource Include="Resources\open-file-folder-48.png" />
     <Resource Include="Resources\save-44-48.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controls\Common\InputTextBox.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>

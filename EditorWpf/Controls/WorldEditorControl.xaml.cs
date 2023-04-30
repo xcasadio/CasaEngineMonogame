@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;

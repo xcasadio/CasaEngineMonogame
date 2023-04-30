@@ -16,14 +16,22 @@
 
         <ToolBarTray Grid.Row="0">
             <ToolBar>
+                <Button ToolTip="Save" Click="ButtonSave_OnClick">
+                    <Image Source="/Resources/save-44-48.png" Height="16"/>
+                </Button>
+                <Separator />
                 <TextBlock Text="Zoom" VerticalAlignment="Center"/>
-                <ComboBox>
+                <ComboBox SelectionChanged="OnZoomChanged">
                     <ComboBoxItem Content="x1" IsSelected="true"/>
                     <ComboBoxItem Content="x2"/>
                     <ComboBoxItem Content="x4"/>
                     <ComboBoxItem Content="x8"/>
                 </ComboBox>
                 <Separator />
+                <TextBlock Text="Display" VerticalAlignment="Center"/>
+                <CheckBox Content="HotSpot" Click="ButtonHotSpot_OnClick"/>
+                <CheckBox Content="Border" Click="ButtonSpriteBorder_OnClick"/>
+                <CheckBox Content="SpriteSheet" Click="ButtonDisplaySpriteSheet_OnClick"/>
             </ToolBar>
         </ToolBarTray>
         <spriteControls:GameEditorSprite Grid.Row="1" x:Name="gameEditor" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>

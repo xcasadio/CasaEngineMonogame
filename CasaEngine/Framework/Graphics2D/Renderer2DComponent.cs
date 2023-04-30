@@ -42,7 +42,8 @@ public class Renderer2dComponent : DrawableGameComponent
         public Rectangle ScissorRectangle;
     }
 
-    public static bool DrawDebug = false;
+    public bool DrawSpriteOrigin = false;
+    public bool DrawSpriteBorder = false;
 
     private readonly List<SpriteDisplayData> _spritesData = new(50);
     //used to create a resource pool
@@ -61,11 +62,7 @@ public class Renderer2dComponent : DrawableGameComponent
 
     private readonly Line2dRenderer _line2dRenderer = new();
 
-    public SpriteBatch SpriteBatch
-    {
-        get;
-        set;
-    }
+    public SpriteBatch SpriteBatch { get; set; }
 
     public Renderer2dComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -143,9 +140,21 @@ public class Renderer2dComponent : DrawableGameComponent
                     break;
             }
 
-            if (DrawDebug)
+            if (DrawSpriteOrigin)
             {
                 DrawCross(sprite.Position, 6, Color.Violet);
+            }
+
+            if (DrawSpriteBorder)
+            {
+                Rectangle temp = new Rectangle
+                {
+                    X = (int)(sprite.Position.X - hotspot.X * sprite.Scale.X),
+                    Y = (int)(sprite.Position.Y - hotspot.Y * sprite.Scale.Y),
+                    Width = (int)(sprite.PositionInTexture.Width * sprite.Scale.X),
+                    Height = (int)(sprite.PositionInTexture.Height * sprite.Scale.Y)
+                };
+                AddBox(ref temp, Color.BlueViolet);
             }
 
             Rectangle? rect = sprite.PositionInTexture;
@@ -343,6 +352,11 @@ public class Renderer2dComponent : DrawableGameComponent
         AddLine2d(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
+    public void AddBox(ref Rectangle rectangle, Color color, float zOrder = 0.0f)
+    {
+        AddBox(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, zOrder, GraphicsDevice.ScissorRectangle);
+    }
+
     public void AddBox(float x, float y, float width, float height, Color color, float zOrder = 0.0f)
     {
         AddBox(x, y, width, height, color, zOrder, GraphicsDevice.ScissorRectangle);
@@ -354,12 +368,6 @@ public class Renderer2dComponent : DrawableGameComponent
         AddLine2d(x, y, x, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
         AddLine2d(x + width, y, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
         AddLine2d(x, y + height, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
-    }
-
-    private void DrawCross(Vector2 pos, int size, Color color)
-    {
-        AddLine2d(pos.X - size, pos.Y, pos.X + size, pos.Y, color);
-        AddLine2d(pos.X, pos.Y - size, pos.X, pos.Y + size, color);
     }
 
     private SpriteDisplayData GetSpriteDisplayData()
@@ -401,4 +409,10 @@ public class Renderer2dComponent : DrawableGameComponent
         _lines.Clear();
     }
 
+
+    private void DrawCross(Vector2 pos, int size, Color color)
+    {
+        AddLine2d(pos.X - size, pos.Y, pos.X + size - 1, pos.Y, color);
+        AddLine2d(pos.X, pos.Y - size, pos.X, pos.Y + size, color);
+    }
 }

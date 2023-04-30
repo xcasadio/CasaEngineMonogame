@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Animation2dControls;
@@ -10,7 +9,7 @@ public class Animation2dListModelView
 {
     private AssetContentManager _assetContentManager;
 
-    public ObservableCollection<Animation2dData> Animation2dDatas { get; } = new();
+    public ObservableCollection<Animation2dDataViewModel> Animation2dDatas { get; } = new();
 
     public Animation2dListModelView(GameEditorAnimation2d gameEditor)
     {
@@ -20,7 +19,7 @@ public class Animation2dListModelView
 
         foreach (var animation2dData in animations)
         {
-            Animation2dDatas.Add(animation2dData);
+            Animation2dDatas.Add(new Animation2dDataViewModel(animation2dData));
         }
     }
 }

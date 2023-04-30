@@ -9,7 +9,7 @@ namespace EditorWpf.Controls.SpriteControls;
 public class SpritesModelView
 {
     private AssetContentManager _assetContentManager;
-    public ObservableCollection<SpriteData> SpriteDatas { get; } = new();
+    public ObservableCollection<SpriteDataViewModel> SpriteDatas { get; } = new();
 
     public SpritesModelView(GameEditorSprite gameEditorSprite)
     {
@@ -21,7 +21,7 @@ public class SpritesModelView
 
         foreach (var spriteData in spriteDatas)
         {
-            SpriteDatas.Add(spriteData);
+            SpriteDatas.Add(new SpriteDataViewModel(spriteData));
         }
     }
 }

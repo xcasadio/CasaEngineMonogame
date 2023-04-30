@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace EditorWpf.Controls.Animation2dControls
 {
@@ -9,6 +10,31 @@ namespace EditorWpf.Controls.Animation2dControls
         public GameEditorAnimation2dControl()
         {
             InitializeComponent();
+        }
+
+        private void OnZoomChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (gameEditor == null)
+            {
+                return;
+            }
+            var value = ((e.AddedItems[0] as ComboBoxItem).Content as string).Remove(0, 1);
+            gameEditor.Scale = float.Parse(value);
+        }
+
+        private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonPlay_OnClick(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonNextFrame_OnClick(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
