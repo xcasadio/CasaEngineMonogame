@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Assets.Map2d;
-using CasaEngine.Framework.Entities;
+﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 
 namespace EditorWpf.Controls.SpriteControls;

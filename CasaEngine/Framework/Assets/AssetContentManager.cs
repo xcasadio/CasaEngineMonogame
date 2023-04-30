@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using static CasaEngine.Engine.Constants;
 
 namespace CasaEngine.Framework.Assets;
 
@@ -44,6 +45,20 @@ public class AssetContentManager
     {
         _assetsByFileNameByCategory[categoryName].TryGetValue(fileName, out object? asset);
         return (T?)asset;
+    }
+
+    public bool Rename(string oldName, string newName, string categoryName = "default")
+    {
+        if (!_assetsByFileNameByCategory.ContainsKey(categoryName) || !_assetsByFileNameByCategory[categoryName].ContainsKey(oldName))
+        {
+            return false;
+        }
+
+        var asset = _assetsByFileNameByCategory[categoryName][oldName];
+        _assetsByFileNameByCategory[categoryName][newName] = asset;
+        _assetsByFileNameByCategory[categoryName].Remove(oldName);
+
+        return true;
     }
 
     public T Load<T>(string filePath, GraphicsDevice device, string categoryName = "default")

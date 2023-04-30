@@ -44,12 +44,13 @@ namespace EditorWpf.Controls.Animation2dControls
                 var inputTextBox = new InputTextBox();
                 inputTextBox.Description = "Enter a new name";
                 inputTextBox.Title = "Rename";
-                var animation2dData = (listBox.SelectedItem as Animation2dDataViewModel);
-                inputTextBox.Text = animation2dData.Name;
+                var animation2dDataViewModel = (listBox.SelectedItem as Animation2dDataViewModel);
+                inputTextBox.Text = animation2dDataViewModel.Name;
 
                 if (inputTextBox.ShowDialog() == true)
                 {
-                    animation2dData.Name = inputTextBox.Text;
+                    _gameEditor.Game.GameManager.AssetContentManager.Rename(animation2dDataViewModel.Name, inputTextBox.Text);
+                    animation2dDataViewModel.Name = inputTextBox.Text;
                 }
             }
         }

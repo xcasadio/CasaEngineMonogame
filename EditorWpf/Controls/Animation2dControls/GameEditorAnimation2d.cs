@@ -1,7 +1,6 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using EditorWpf.Controls.SpriteControls;
 
 namespace EditorWpf.Controls.Animation2dControls;
 

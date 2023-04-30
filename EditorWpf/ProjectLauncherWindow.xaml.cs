@@ -74,7 +74,7 @@ namespace EditorWpf
                 //create default settings
                 //
                 GameSettings.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
-                LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
+                LogManager.Instance.WriteLineInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
                 OpenEditor(Path.Combine(dialog.ProjectPath, dialog.ProjectName));
             }
         }

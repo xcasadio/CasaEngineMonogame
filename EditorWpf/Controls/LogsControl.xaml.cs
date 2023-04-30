@@ -5,9 +5,6 @@ using EditorWpf.Logs;
 
 namespace EditorWpf.Controls
 {
-    /// <summary>
-    /// Interaction logic for LogsControl.xaml
-    /// </summary>
     public partial class LogsControl : UserControl
     {
         public ObservableCollection<LogEntry> LogEntries { get; } = new();

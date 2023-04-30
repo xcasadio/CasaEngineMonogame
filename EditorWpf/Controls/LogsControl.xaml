@@ -5,9 +5,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EditorWpf.Controls"
              xmlns:logs="clr-namespace:EditorWpf.Logs"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:logger="clr-namespace:CasaEngine.Core.Logger;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <ObjectDataProvider x:Key="logVerbosity" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="logger:LogVerbosity"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
         <Style TargetType="ItemsControl" x:Key="LogViewerStyle">
             <Setter Property="Template">
                 <Setter.Value>
@@ -28,6 +36,26 @@
             </Setter>
         </Style>
 
+        <Style TargetType="TextBlock" x:Key="LogLineStyle">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Severity}" Value="Trace">
+                    <Setter Property="Foreground" Value="Gray" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Debug">
+                    <Setter Property="Foreground" Value="Green" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Info">
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                    <Setter Property="Foreground" Value="Brown" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Error">
+                    <Setter Property="Foreground" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <DataTemplate DataType="{x:Type logs:LogEntry}">
             <Grid IsSharedSizeScope="True">
                 <Grid.ColumnDefinitions>
@@ -36,9 +64,9 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="{Binding DateTime}" Grid.Column="0" FontWeight="Bold" Margin="5,0,5,0"/>
-                <TextBlock Text="{Binding Index}" Grid.Column="1" FontWeight="Bold" Margin="0,0,2,0" />
-                <TextBlock Text="{Binding Message}" Grid.Column="2" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding DateTime, StringFormat='{}{0:HH:mm:ss}'}" Grid.Column="0" FontWeight="Bold" Margin="5,0,5,0" Style="{StaticResource LogLineStyle}" />
+                <TextBlock Text="{Binding Severity}" Grid.Column="1" FontWeight="Bold" Margin="0,0,2,0"  Style="{StaticResource LogLineStyle}" />
+                <TextBlock Text="{Binding Message}" Grid.Column="2" TextWrapping="Wrap" Style="{StaticResource LogLineStyle}"/>
             </Grid>
         </DataTemplate>
 
@@ -56,7 +84,7 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Text="{Binding DateTime}" Grid.Row="0" Grid.Column="0" FontWeight="Bold" Margin="5,0,5,0"/>
-                <TextBlock Text="{Binding Index}" Grid.Row="0" Grid.Column="1" FontWeight="Bold" Margin="0,0,2,0" />
+                <TextBlock Text="{Binding Severity}" Grid.Row="0" Grid.Column="1" FontWeight="Bold" Margin="0,0,2,0" />
                 <TextBlock Text="{Binding Message}" Grid.Row="0" Grid.Column="2" TextWrapping="Wrap"/>
 
                 <ToggleButton x:Name="Expander" Grid.Row="1" Grid.Column="0" VerticalAlignment="Top" Content="+" HorizontalAlignment="Right"/>

@@ -7,7 +7,6 @@ namespace EditorWpf.Controls.ContentBrowser
 {
     public partial class ContentBrowserControl : UserControl
     {
-
         public ContentBrowserControl()
         {
             InitializeComponent();

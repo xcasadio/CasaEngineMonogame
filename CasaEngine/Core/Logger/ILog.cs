@@ -3,8 +3,9 @@
 public interface ILog
 {
     void Close();
-    void Write(params object[] args);
+    void WriteLineTrace(string msg);
     void WriteLineDebug(string msg);
+    void WriteLineInfo(string msg);
     void WriteLineWarning(string msg);
     void WriteLineError(string msg);
 }

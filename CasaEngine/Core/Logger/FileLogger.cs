@@ -1,72 +1,46 @@
 ﻿namespace CasaEngine.Core.Logger;
 
-/// <summary>
-/// Log into a file
-/// </summary>
-public class FileLogger
-    : ILog
+public class FileLogger : ILog
 {
-    private StreamWriter m_Stream = null;
-    private readonly string m_Debug = "[DEBUG] : ";
-    private readonly string m_Warning = "Warning : ";
-    private readonly string m_Error = "Error : ";
+    private StreamWriter _stream;
+    private readonly string _trace = "Trace : ";
+    private readonly string _debug = "Debug : ";
+    private readonly string _info = "Info : ";
+    private readonly string _warning = "Warning : ";
+    private readonly string _error = "Error : ";
 
-
-
-
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="fileName_"></param>
-    public FileLogger(string fileName_)
+    public FileLogger(string fileName)
     {
-        m_Stream = new StreamWriter(fileName_, false);
-        m_Stream.AutoFlush = true;
+        _stream = new StreamWriter(fileName, false);
+        _stream.AutoFlush = true;
     }
 
-
-
-    /// <summary>
-    /// 
-    /// </summary>
     public void Close()
     {
-        m_Stream.Close();
-        m_Stream = null;
+        _stream.Close();
+        _stream = null;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="msg_"></param>
-    private void Write(string msg_, bool displayTime_)
+    private void Write(string msg, bool displayTime)
     {
-        if (displayTime_ == true)
+        if (displayTime == true)
         {
-            m_Stream.Write(DateTime.Now.ToString("T") + " : ");
+            _stream.Write(DateTime.Now.ToString("T") + " : ");
         }
 
-        m_Stream.Write(msg_);
+        _stream.Write(msg);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="msg_"></param>
-    /// <param name="args_"></param>
-    public void Write(params object[] args_)
+    private void Write(params object[]? args)
     {
         bool first = true;
-        string msg = string.Empty;
 
-        if (args_ != null)
+        if (args != null)
         {
-            for (int i = 0; i < args_.Length; i++)
+            foreach (var arg in args)
             {
-                if (args_[i] is string)
+                if (arg is string msg)
                 {
-                    msg = (string)args_[i];
                     Write(msg, first);
                     first = false;
                 }
@@ -74,31 +48,29 @@ public class FileLogger
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="msg_"></param>
-    public void WriteLineDebug(string msg_)
+    public void WriteLineTrace(string msg)
     {
-        Write(m_Debug + msg_ + Environment.NewLine);
+        Write(_trace + msg + Environment.NewLine);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="msg_"></param>
-    public void WriteLineWarning(string msg_)
+    public void WriteLineDebug(string msg)
     {
-        Write(m_Warning + msg_ + Environment.NewLine);
+        Write(_debug + msg + Environment.NewLine);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="msg_"></param>
-    public void WriteLineError(string msg_)
+    public void WriteLineInfo(string msg)
     {
-        Write(m_Error + msg_ + Environment.NewLine);
+        Write(_info + msg + Environment.NewLine);
+    }
+
+    public void WriteLineWarning(string msg)
+    {
+        Write(_warning + msg + Environment.NewLine);
+    }
+
+    public void WriteLineError(string msg)
+    {
+        Write(_error + msg + Environment.NewLine);
     }
 
 }

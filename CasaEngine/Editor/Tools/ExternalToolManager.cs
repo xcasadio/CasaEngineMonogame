@@ -167,7 +167,7 @@ public class ExternalToolManager
         }
         else
         {
-            LogManager.Instance.WriteLine("Can't find editor for type of object '" + obj.GetType().FullName + "'");
+            LogManager.Instance.WriteLineWarning("Can't find editor for type of object '" + obj.GetType().FullName + "'");
         }
     }
 

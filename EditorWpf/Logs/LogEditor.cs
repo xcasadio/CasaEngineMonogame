@@ -17,30 +17,36 @@ public class LogEditor : ILog
     {
     }
 
-    public void Write(params object[] args)
+    public void WriteLineTrace(string msg)
     {
-        AddLogEntry(string.Join(" ", args));
+        AddLogEntry(LogVerbosity.Trace, msg);
     }
 
     public void WriteLineDebug(string msg)
     {
-        AddLogEntry(msg);
+        AddLogEntry(LogVerbosity.Debug, msg);
+    }
+
+    public void WriteLineInfo(string msg)
+    {
+        AddLogEntry(LogVerbosity.Info, msg);
     }
 
     public void WriteLineWarning(string msg)
     {
-        AddLogEntry(msg);
+        AddLogEntry(LogVerbosity.Warning, msg);
     }
 
     public void WriteLineError(string msg)
     {
-        AddLogEntry(msg);
+        AddLogEntry(LogVerbosity.Error, msg);
     }
 
-    private void AddLogEntry(string message)
+    private void AddLogEntry(LogVerbosity logVerbosity, string message)
     {
         _logs.Add(new LogEntry
         {
+            Severity = Enum.GetName(logVerbosity),
             DateTime = DateTime.Now,
             Message = message
         });

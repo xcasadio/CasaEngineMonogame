@@ -64,7 +64,7 @@ namespace EditorWpf
                 return;
             }
 
-            LogManager.Instance.WriteLine($"Project opened {projectFileName}");
+            LogManager.Instance.WriteLineInfo($"Project opened {projectFileName}");
 
             GameSettings.ProjectManager.Load(projectFileName);
         }
@@ -152,7 +152,7 @@ namespace EditorWpf
                 //
                 GameSettings.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
 
-                LogManager.Instance.WriteLine($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
+                LogManager.Instance.WriteLineInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             }
         }
 

@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Framework.Assets.Map2d;
 using EditorWpf.Controls.Common;
 
 namespace EditorWpf.Controls.SpriteControls
@@ -9,7 +8,7 @@ namespace EditorWpf.Controls.SpriteControls
     public partial class SpriteListControl : UserControl
     {
         public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(SpriteDataViewModel), typeof(SpriteListControl));
-        private GameEditorSprite _gameEditorSprite;
+        private GameEditorSprite _gameEditor;
 
         public SpriteDataViewModel SelectedItem
         {
@@ -29,13 +28,13 @@ namespace EditorWpf.Controls.SpriteControls
 
         public void InitializeFromGameEditor(GameEditorSprite gameEditorSprite)
         {
-            _gameEditorSprite = gameEditorSprite;
-            _gameEditorSprite.GameStarted += OnGameStarted;
+            _gameEditor = gameEditorSprite;
+            _gameEditor.GameStarted += OnGameStarted;
         }
 
         private void OnGameStarted(object? sender, System.EventArgs e)
         {
-            DataContext = new SpritesModelView(_gameEditorSprite);
+            DataContext = new SpritesModelView(_gameEditor);
         }
 
         private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -50,6 +49,7 @@ namespace EditorWpf.Controls.SpriteControls
 
                 if (inputTextBox.ShowDialog() == true)
                 {
+                    _gameEditor.Game.GameManager.AssetContentManager.Rename(spriteDataViewModel.Name, inputTextBox.Text);
                     spriteDataViewModel.Name = inputTextBox.Text;
                 }
             }

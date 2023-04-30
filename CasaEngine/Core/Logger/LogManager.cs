@@ -2,14 +2,18 @@
 
 namespace CasaEngine.Core.Logger;
 
+public enum LogVerbosity
+{
+    Trace = 0,
+    Debug = 1,
+    Info = 2,
+    Warning = 3,
+    Error = 4,
+    None = 5
+}
+
 public sealed class LogManager
 {
-    public enum LogVerbosity
-    {
-        Debug,
-        Normal,
-        None
-    }
 
     private static LogManager? _instance;
     private readonly List<ILog> _loggers = new();
@@ -46,40 +50,22 @@ public sealed class LogManager
         _loggers.Clear();
     }
 
-    public void Write(params object[] args)
+    public void WriteLineTrace(string msg)
     {
+        if (_verbosity > LogVerbosity.Trace)
+        {
+            return;
+        }
+
         foreach (var log in _loggers)
         {
-            log.Write(args);
+            log.WriteLineTrace(msg);
         }
-    }
-
-    public void WriteLine(params object[] args)
-    {
-        object[] newArgs;
-
-        if (args != null)
-        {
-            newArgs = new object[args.Length + 1];
-
-            for (var i = 0; i < args.Length; i++)
-            {
-                newArgs[i] = args[i];
-            }
-        }
-        else
-        {
-            newArgs = new object[1];
-        }
-
-        newArgs[^1] = Environment.NewLine;
-
-        Write(newArgs);
     }
 
     public void WriteLineDebug(string msg)
     {
-        if (_verbosity != LogVerbosity.Debug)
+        if (_verbosity > LogVerbosity.Debug)
         {
             return;
         }
@@ -90,9 +76,22 @@ public sealed class LogManager
         }
     }
 
+    public void WriteLineInfo(string msg)
+    {
+        if (_verbosity > LogVerbosity.Info)
+        {
+            return;
+        }
+
+        foreach (var log in _loggers)
+        {
+            log.WriteLineInfo(msg);
+        }
+    }
+
     public void WriteLineWarning(string msg)
     {
-        if (_verbosity == LogVerbosity.None)
+        if (_verbosity > LogVerbosity.Warning)
         {
             return;
         }
@@ -105,7 +104,7 @@ public sealed class LogManager
 
     public void WriteLineError(string msg)
     {
-        if (_verbosity == LogVerbosity.None)
+        if (_verbosity > LogVerbosity.Error)
         {
             return;
         }
@@ -118,7 +117,7 @@ public sealed class LogManager
 
     public void WriteException(Exception e, bool writeStackTrace = true)
     {
-        if (_verbosity == LogVerbosity.None)
+        if (_verbosity > LogVerbosity.Error)
         {
             return;
         }
