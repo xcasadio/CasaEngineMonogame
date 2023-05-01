@@ -52,5 +52,10 @@ namespace EditorWpf.Controls.SpriteControls
             var fileName = Path.Combine(path, LayoutFileName);
             EditorControlHelper.SaveLayout(dockingManagerSprite, fileName);
         }
+
+        public void LoadSpriteSheet(string fileName)
+        {
+            SpriteListControl.LoadSpriteSheet(fileName);
+        }
     }
 }

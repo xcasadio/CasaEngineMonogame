@@ -30,10 +30,13 @@ public class EditorControlHelper
             methodInfo.Invoke(parent, new object?[] { control });
         }
 
-        var layoutAnchorable = new LayoutAnchorable { Content = control, Title = panelTitle };
-        dockingManager.Layout.BottomSide = new LayoutAnchorSide { Children = { new LayoutAnchorGroup { Children = { layoutAnchorable } } } };
-        layoutAnchorable.Show();
-        dockingManager.UpdateLayout();
+        dockingManager.Dispatcher.Invoke(() =>
+        {
+            var layoutAnchorable = new LayoutAnchorable { Content = control, Title = panelTitle };
+            dockingManager.Layout.BottomSide = new LayoutAnchorSide { Children = { new LayoutAnchorGroup { Children = { layoutAnchorable } } } };
+            layoutAnchorable.Show();
+            dockingManager.UpdateLayout();
+        });
     }
 
     private static bool RemoveControlFromLayoutPane(UserControl control, ILayoutContainer layoutContainerParent)

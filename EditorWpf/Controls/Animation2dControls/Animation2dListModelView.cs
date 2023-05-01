@@ -14,9 +14,16 @@ public class Animation2dListModelView
     public Animation2dListModelView(GameEditorAnimation2d gameEditor)
     {
         _assetContentManager = gameEditor.Game.GameManager.AssetContentManager;
-        var spriteDatas = SpriteLoader.LoadFromFile(Path.Combine(GameSettings.ProjectManager.ProjectPath, "Spritesheets", "sprites.json"), _assetContentManager);
-        var animations = Animation2dLoader.LoadFromFile(Path.Combine(GameSettings.ProjectManager.ProjectPath, "Spritesheets", "animations.json"), _assetContentManager);
+    }
 
+    public void LoadAnimations2d(string fileName)
+    {
+        var spriteSheetFileName = fileName.Replace(Path.GetExtension(fileName), ".spriteSheet");
+
+        var spriteDatas = SpriteLoader.LoadFromFile(Path.Combine(GameSettings.ProjectManager.ProjectPath, spriteSheetFileName), _assetContentManager);
+        var animations = Animation2dLoader.LoadFromFile(Path.Combine(GameSettings.ProjectManager.ProjectPath, fileName), _assetContentManager);
+
+        Animation2dDatas.Clear();
         foreach (var animation2dData in animations)
         {
             Animation2dDatas.Add(new Animation2dDataViewModel(animation2dData));

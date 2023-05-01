@@ -8,17 +8,20 @@ namespace EditorWpf.Controls.SpriteControls;
 
 public class SpritesModelView
 {
-    private AssetContentManager _assetContentManager;
+    private readonly AssetContentManager _assetContentManager;
     public ObservableCollection<SpriteDataViewModel> SpriteDatas { get; } = new();
 
     public SpritesModelView(GameEditorSprite gameEditorSprite)
     {
         _assetContentManager = gameEditorSprite.Game.GameManager.AssetContentManager;
-        var spriteDatas = SpriteLoader.LoadFromFile(Path.Combine(GameSettings.ProjectManager.ProjectPath, "Spritesheets", "sprites.json"),
-            _assetContentManager);
-        //var animations = Animation2dLoader.LoadFromFile(Path.Combine(GameSettings.ProjectManager.ProjectPath, "Spritesheets", "animations.json"),
-        //    _assetContentManager);
+        //LoadSpriteSheet("Spritesheets\\sprites.json");
+    }
 
+    public void LoadSpriteSheet(string fileName)
+    {
+        var spriteDatas = SpriteLoader.LoadFromFile(Path.Combine(GameSettings.ProjectManager.ProjectPath, fileName), _assetContentManager);
+
+        SpriteDatas.Clear();
         foreach (var spriteData in spriteDatas)
         {
             SpriteDatas.Add(new SpriteDataViewModel(spriteData));

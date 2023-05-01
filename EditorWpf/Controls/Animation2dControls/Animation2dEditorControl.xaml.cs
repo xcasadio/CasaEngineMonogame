@@ -49,5 +49,10 @@ namespace EditorWpf.Controls.Animation2dControls
             var fileName = Path.Combine(path, LayoutFileName);
             EditorControlHelper.SaveLayout(dockingManagerAnimation2d, fileName);
         }
+
+        public void LoadAnimations2d(string fileName)
+        {
+            Animation2dListControl.LoadAnimations2d(fileName);
+        }
     }
 }

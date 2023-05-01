@@ -2,6 +2,10 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using EditorWpf.Controls.Animation2dControls;
+using EditorWpf.Controls.SpriteControls;
+using Genbox.VelcroPhysics.Tools.PathGenerator;
+using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.ContentBrowser
 {
@@ -38,7 +42,30 @@ namespace EditorWpf.Controls.ContentBrowser
 
         private void TryToOpenFile(ContentItem contentItem)
         {
-            //TODO
+            var extension = System.IO.Path.GetExtension(contentItem.Name);
+            var window = this.FindParent<MainWindow>();
+
+            if (window == null)
+            {
+                return;
+            }
+
+            switch (extension)
+            {
+                case ".spritesheet":
+                    var spriteControl = window.GetEditorControl<SpriteEditorControl>();
+                    window.ActivateEditorControl<SpriteEditorControl>();
+                    spriteControl.LoadSpriteSheet(contentItem.Path);
+                    break;
+                case ".anims2d":
+                    var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
+                    window.ActivateEditorControl<Animation2dEditorControl>();
+                    animation2dControl.LoadAnimations2d(contentItem.Path);
+                    break;
+                case ".world":
+
+                    break;
+            }
         }
 
         private void SelectTreeViewItem(FolderItem folderItem)

@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using EditorWpf.Controls.Common;
+using EditorWpf.Controls.SpriteControls;
 
 namespace EditorWpf.Controls.Animation2dControls
 {
@@ -52,6 +53,17 @@ namespace EditorWpf.Controls.Animation2dControls
                     _gameEditor.Game.GameManager.AssetContentManager.Rename(animation2dDataViewModel.Name, inputTextBox.Text);
                     animation2dDataViewModel.Name = inputTextBox.Text;
                 }
+            }
+        }
+
+        public void LoadAnimations2d(string fileName)
+        {
+            var animation2dListModelView = DataContext as Animation2dListModelView;
+            animation2dListModelView.LoadAnimations2d(fileName);
+
+            if (animation2dListModelView.Animation2dDatas.Count > 0)
+            {
+                Dispatcher.Invoke(() => ListBox.SelectedIndex = 0);
             }
         }
     }

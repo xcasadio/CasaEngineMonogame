@@ -54,5 +54,16 @@ namespace EditorWpf.Controls.SpriteControls
                 }
             }
         }
+
+        public void LoadSpriteSheet(string fileName)
+        {
+            var spritesModelView = DataContext as SpritesModelView;
+            spritesModelView.LoadSpriteSheet(fileName);
+
+            if (spritesModelView.SpriteDatas.Count > 0)
+            {
+                Dispatcher.Invoke(() => ListBox.SelectedIndex = 0);
+            }
+        }
     }
 }

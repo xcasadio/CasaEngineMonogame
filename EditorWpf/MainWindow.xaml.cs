@@ -5,7 +5,9 @@ using System.Windows.Controls;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
+using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.ContentBrowser;
+using EditorWpf.Controls.SpriteControls;
 using EditorWpf.Windows;
 
 namespace EditorWpf
@@ -181,6 +183,38 @@ namespace EditorWpf
             if (tabControl.SelectedItem is TabItem { Content: IEditorControl editorControl })
             {
                 editorControl.ShowControl(LogsControl, "Logs");
+            }
+        }
+
+        public T? GetEditorControl<T>() where T : class
+        {
+            foreach (TabItem tabItem in tabControl.Items)
+            {
+                if (tabItem.Content is T control)
+                {
+                    return control;
+                }
+            }
+
+            return null;
+        }
+
+        public void ActivateEditorControl<T>() where T : class
+        {
+            foreach (TabItem tabItem in tabControl.Items)
+            {
+                Dispatcher.BeginInvoke(() =>
+                {
+                    if (tabItem.Content is T control)
+                    {
+                        tabControl.SelectedItem = tabItem;
+                        tabItem.IsSelected = true;
+                    }
+                    else
+                    {
+                        tabItem.IsSelected = false;
+                    }
+                });
             }
         }
     }
