@@ -23,6 +23,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -33,21 +34,31 @@
 
         <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Name" />
+            <TextBlock Grid.Column="1" Text="{Binding Name}" />
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <TextBlock Text="Type" />
-            <ComboBox x:Name="comboBoxType" Grid.Column="1" SelectedItem="{Binding Path=AnimationType}" 
+            <ComboBox x:Name="comboBoxType" Grid.Column="1" SelectedItem="{Binding Path=AnimationType}" HorizontalAlignment="Stretch"
                       ItemsSource="{Binding Source={StaticResource AnimationTypeEnumValues}}"/>
         </Grid>
 
-        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical">
+        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Vertical">
             <Button Content="+" />
             <Button Content="-" />
         </StackPanel>
 
-        <ListView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Frames}">
+        <ListView Grid.Row="2" Grid.Column="0" ItemsSource="{Binding Frames}">
             <ListView.View>
                 <GridView ColumnHeaderToolTip="Frame Information">
                     <GridViewColumn DisplayMemberBinding="{Binding Path=SpriteId}" Header="Sprite" Width="100"/>

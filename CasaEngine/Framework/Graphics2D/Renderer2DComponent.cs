@@ -44,6 +44,8 @@ public class Renderer2dComponent : DrawableGameComponent
 
     public bool DrawSpriteOrigin = false;
     public bool DrawSpriteBorder = false;
+    public bool DrawSpriteSheet = false;
+    public int SpriteSheetTransparency = 124;
 
     private readonly List<SpriteDisplayData> _spritesData = new(50);
     //used to create a resource pool
@@ -155,6 +157,16 @@ public class Renderer2dComponent : DrawableGameComponent
                     Height = (int)(sprite.PositionInTexture.Height * sprite.Scale.Y)
                 };
                 AddBox(ref temp, Color.BlueViolet);
+            }
+
+            if (DrawSpriteSheet)
+            {
+                var position = sprite.Position - new Vector2(
+                    sprite.PositionInTexture.Left + hotspot.X,
+                    sprite.PositionInTexture.Top + hotspot.Y) * sprite.Scale;
+
+                SpriteBatch.Draw(sprite.Texture2D, position, sprite.Texture2D.Bounds, Color.FromNonPremultiplied(255, 255, 255, SpriteSheetTransparency),
+                    0.0f, Vector2.Zero, sprite.Scale, sprite.SpriteEffect, sprite.ZOrder);
             }
 
             Rectangle? rect = sprite.PositionInTexture;

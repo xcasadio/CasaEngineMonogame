@@ -32,6 +32,9 @@
                 <CheckBox Content="HotSpot" Click="ButtonHotSpot_OnClick"/>
                 <CheckBox Content="Border" Click="ButtonSpriteBorder_OnClick"/>
                 <CheckBox Content="SpriteSheet" Click="ButtonDisplaySpriteSheet_OnClick"/>
+                <Separator />
+                <TextBlock Text="SpriteSheet Transparency " VerticalAlignment="Center"/>
+                <Slider TickFrequency="1" Value="124" Minimum="0" Maximum="255" Width="150" ValueChanged="Transparency_OnValueChanged"/>
             </ToolBar>
         </ToolBarTray>
         <spriteControls:GameEditorSprite Grid.Row="1" x:Name="gameEditor" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>

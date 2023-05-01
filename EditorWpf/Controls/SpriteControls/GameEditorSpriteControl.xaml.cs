@@ -44,9 +44,18 @@ namespace EditorWpf.Controls.SpriteControls
         private void ButtonDisplaySpriteSheet_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            var drawSpriteSheet = checkBox.IsChecked ?? false;
+            gameEditor.Game.GetGameComponent<Renderer2dComponent>().DrawSpriteSheet = checkBox.IsChecked ?? false;
+        }
 
+        private void Transparency_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (gameEditor?.Game == null)
+            {
+                return;
+            }
 
+            var slider = (sender as Slider);
+            gameEditor.Game.GetGameComponent<Renderer2dComponent>().SpriteSheetTransparency = (int)slider.Value;
         }
     }
 }
