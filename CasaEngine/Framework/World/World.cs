@@ -140,7 +140,7 @@ public sealed class World : Asset
 #if EDITOR
     public void Save(string path)
     {
-        var fullFileName = Path.Combine(path, Name + Constants.FileNames.WorldExtension);
+        var fullFileName = Path.Combine(path, Name + Constants.FileNameExtensions.World);
         FileName = fullFileName;
 
         JObject worldJson = new();

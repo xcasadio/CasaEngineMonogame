@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using EditorWpf.Controls.Common;
-using EditorWpf.Controls.SpriteControls;
 
 namespace EditorWpf.Controls.Animation2dControls
 {
@@ -11,7 +10,7 @@ namespace EditorWpf.Controls.Animation2dControls
         public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(Animation2dDataViewModel), typeof(Animation2dListControl));
         private GameEditorAnimation2d _gameEditor;
 
-        public Animation2dDataViewModel SelectedItem
+        public Animation2dDataViewModel? SelectedItem
         {
             get => (Animation2dDataViewModel)GetValue(SelectedItemProperty);
             set => SetValue(SelectedItemProperty, value);

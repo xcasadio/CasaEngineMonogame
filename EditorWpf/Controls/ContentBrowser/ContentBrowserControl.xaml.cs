@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Engine;
 using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.SpriteControls;
-using Genbox.VelcroPhysics.Tools.PathGenerator;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.ContentBrowser
@@ -52,18 +52,20 @@ namespace EditorWpf.Controls.ContentBrowser
 
             switch (extension)
             {
-                case ".spritesheet":
+                case Constants.FileNameExtensions.SpriteSheet:
                     var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                     window.ActivateEditorControl<SpriteEditorControl>();
                     spriteControl.LoadSpriteSheet(contentItem.Path);
                     break;
-                case ".anims2d":
+                case Constants.FileNameExtensions.Animation2d:
                     var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
                     window.ActivateEditorControl<Animation2dEditorControl>();
                     animation2dControl.LoadAnimations2d(contentItem.Path);
                     break;
-                case ".world":
-
+                case Constants.FileNameExtensions.World:
+                    var worldEditorControl = window.GetEditorControl<WorldEditorControl>();
+                    window.ActivateEditorControl<WorldEditorControl>();
+                    worldEditorControl.LoadWorld(contentItem.Path);
                     break;
             }
         }

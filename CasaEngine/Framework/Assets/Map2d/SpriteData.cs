@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
-using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Map2d;

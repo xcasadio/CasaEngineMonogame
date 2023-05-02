@@ -2,13 +2,11 @@
 {
     public class Constants
     {
-        public class FileNames
+        public class FileNameExtensions
         {
-            public const string WorldExtension = ".world";
-
-#if EDITOR
-            public const string MostRecentProjectsFileName = "mostRecentProjects.json";
-#endif
+            public const string World = ".world";
+            public const string SpriteSheet = ".spritesheet";
+            public const string Animation2d = ".anims2d";
         }
     }
 }

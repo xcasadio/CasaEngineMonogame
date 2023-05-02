@@ -12,6 +12,8 @@ namespace EditorWpf
 {
     public partial class ProjectLauncherWindow : Window
     {
+        private const string MostRecentProjectsFileName = "mostRecentProjects.json";
+
         public ProjectLauncherWindow()
         {
             InitializeComponent();
@@ -23,13 +25,13 @@ namespace EditorWpf
         {
             listBoxRecentProjects.ItemsSource = new List<string>();
 
-            if (!File.Exists(Constants.FileNames.MostRecentProjectsFileName))
+            if (!File.Exists(MostRecentProjectsFileName))
             {
                 return;
             }
 
             JsonSerializer serializer = new JsonSerializer();
-            using StreamReader sw = new StreamReader(Constants.FileNames.MostRecentProjectsFileName);
+            using StreamReader sw = new StreamReader(MostRecentProjectsFileName);
             using JsonReader reader = new JsonTextReader(sw);
             var projectList = serializer.Deserialize<List<string>>(reader);
             listBoxRecentProjects.ItemsSource = projectList;
@@ -49,7 +51,7 @@ namespace EditorWpf
             }
 
             JsonSerializer serializer = new JsonSerializer();
-            using StreamWriter sw = new StreamWriter(Constants.FileNames.MostRecentProjectsFileName);
+            using StreamWriter sw = new StreamWriter(MostRecentProjectsFileName);
             using JsonWriter writer = new JsonTextWriter(sw) { Formatting = Formatting.Indented };
             serializer.Serialize(writer, projects);
         }

@@ -9,9 +9,9 @@ namespace EditorWpf.Controls
     /// </summary>
     public partial class Vector3Control : UserControl
     {
-        public static readonly DependencyProperty XProperty = DependencyProperty.Register("X", typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
-        public static readonly DependencyProperty YProperty = DependencyProperty.Register("Y", typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
-        public static readonly DependencyProperty ZProperty = DependencyProperty.Register("Z", typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
+        public static readonly DependencyProperty XProperty = DependencyProperty.Register(nameof(X), typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
+        public static readonly DependencyProperty YProperty = DependencyProperty.Register(nameof(Y), typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
+        public static readonly DependencyProperty ZProperty = DependencyProperty.Register(nameof(Z), typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

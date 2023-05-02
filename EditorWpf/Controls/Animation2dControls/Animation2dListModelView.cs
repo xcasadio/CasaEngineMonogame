@@ -7,7 +7,7 @@ using EditorWpf.Controls.Animation2dControls;
 
 public class Animation2dListModelView
 {
-    private AssetContentManager _assetContentManager;
+    private readonly AssetContentManager _assetContentManager;
 
     public ObservableCollection<Animation2dDataViewModel> Animation2dDatas { get; } = new();
 

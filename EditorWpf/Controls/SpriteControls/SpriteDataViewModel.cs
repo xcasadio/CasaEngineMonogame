@@ -1,12 +1,16 @@
-﻿using CasaEngine.Framework.Assets.Map2d;
+﻿using System.ComponentModel;
+using CasaEngine.Framework.Assets.Map2d;
+using EditorWpf.Controls.PropertyGridTypeEditor;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.SpriteControls;
 
 public class SpriteDataViewModel : NotifyPropertyChangeBase
 {
+    [Browsable(false)]
     public SpriteData SpriteData { get; }
 
+    [ReadOnly(true)]
     public string Name
     {
         get => SpriteData.Name;
@@ -18,6 +22,7 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         }
     }
 
+    [ReadOnly(true)]
     public string SpriteSheetFileName
     {
         get => SpriteData.SpriteSheetFileName;
@@ -29,6 +34,7 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         }
     }
 
+    [Editor(typeof(RectangleTypeEditorControl), typeof(RectangleTypeEditorControl))]
     public Rectangle PositionInTexture
     {
         get => SpriteData.PositionInTexture;
@@ -40,6 +46,7 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         }
     }
 
+    [Editor(typeof(PointTypeEditorControl), typeof(PointTypeEditorControl))]
     public Point Origin
     {
         get => SpriteData.Origin;

@@ -5,9 +5,7 @@ using System.Windows.Controls;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
-using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.ContentBrowser;
-using EditorWpf.Controls.SpriteControls;
 using EditorWpf.Windows;
 
 namespace EditorWpf
