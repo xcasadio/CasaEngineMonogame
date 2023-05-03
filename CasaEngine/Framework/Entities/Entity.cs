@@ -146,7 +146,7 @@ public class Entity : ISaveLoad
     public void Save(JObject jObject)
     {
         jObject.Add("version", 1);
-        jObject.Add("Id", Id);
+        jObject.Add("id", Id);
         jObject.Add("name", Name);
 
         var coordinatesObject = new JObject();

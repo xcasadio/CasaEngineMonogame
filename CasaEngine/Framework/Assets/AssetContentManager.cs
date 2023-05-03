@@ -5,6 +5,7 @@ namespace CasaEngine.Framework.Assets;
 
 public class AssetContentManager
 {
+    private const string DefaultCategory = "default";
     private readonly Dictionary<Type, IAssetLoader> _assetLoader = new();
     private readonly Dictionary<string, Dictionary<string, object>> _assetsByFileNameByCategory = new();
     public GraphicsDevice GraphicsDevice { get; private set; }
@@ -31,7 +32,7 @@ public class AssetContentManager
         _assetLoader.Add(type, loader);
     }
 
-    public void AddAsset(string fileName, object asset, string categoryName = "default")
+    public void AddAsset(string fileName, object asset, string categoryName = DefaultCategory)
     {
         if (!_assetsByFileNameByCategory.ContainsKey(categoryName))
         {
@@ -41,13 +42,13 @@ public class AssetContentManager
         _assetsByFileNameByCategory[categoryName][fileName] = asset;
     }
 
-    public T? GetAsset<T>(string fileName, string categoryName = "default")
+    public T? GetAsset<T>(string fileName, string categoryName = DefaultCategory)
     {
         _assetsByFileNameByCategory[categoryName].TryGetValue(fileName, out object? asset);
         return (T?)asset;
     }
 
-    public bool Rename(string oldName, string newName, string categoryName = "default")
+    public bool Rename(string oldName, string newName, string categoryName = DefaultCategory)
     {
         if (!_assetsByFileNameByCategory.ContainsKey(categoryName) || !_assetsByFileNameByCategory[categoryName].ContainsKey(oldName))
         {
@@ -61,7 +62,7 @@ public class AssetContentManager
         return true;
     }
 
-    public T Load<T>(string filePath, GraphicsDevice device, string categoryName = "default")
+    public T Load<T>(string filePath, GraphicsDevice device, string categoryName = DefaultCategory)
     {
         if (_assetsByFileNameByCategory.TryGetValue(categoryName, out var categoryAssetList))
         {
@@ -98,7 +99,7 @@ public class AssetContentManager
             return;
         }
 
-        categoryAssetList = _assetsByFileNameByCategory[categoryName];
+        //categoryAssetList = _assetsByFileNameByCategory[categoryName];
 
         foreach (var a in categoryAssetList)
         {
@@ -139,4 +140,27 @@ public class AssetContentManager
             }
         }
     }
+
+#if EDITOR
+
+    public IList<T> GetAssets<T>(string categoryName = DefaultCategory)
+    {
+        var assets = new List<T>();
+
+        if (_assetsByFileNameByCategory.TryGetValue(categoryName, out var categoryAssetList) == false)
+        {
+            return assets;
+        }
+
+        foreach (var pair in categoryAssetList)
+        {
+            if (pair.Value is T asset)
+            {
+                assets.Add(asset);
+            }
+        }
+
+        return assets;
+    }
+#endif
 }

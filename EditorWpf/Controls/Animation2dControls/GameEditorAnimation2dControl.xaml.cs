@@ -22,11 +22,6 @@ namespace EditorWpf.Controls.Animation2dControls
             gameEditor.Scale = float.Parse(value);
         }
 
-        private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void ButtonPlay_OnClick(object sender, RoutedEventArgs e)
         {
 

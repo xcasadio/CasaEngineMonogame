@@ -13,6 +13,7 @@ namespace EditorWpf.Controls
 
         private void OnGameGameStarted(object? sender, EventArgs e)
         {
+            var game = sender as CasaEngineGame;
             PropertyGridProjectSettings.SelectedObject = GameSettings.ProjectSettings;
             PropertyGridPhysicSettings.SelectedObject = GameSettings.Physics2dSettings;
         }

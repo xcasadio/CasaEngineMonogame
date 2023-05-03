@@ -75,7 +75,7 @@ namespace EditorWpf
                 //CREATE hiera folders
                 //create default settings
                 //
-                GameSettings.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
+                GameSettings.ProjectSettings.CreateProject(dialog.ProjectName, dialog.ProjectPath);
                 LogManager.Instance.WriteLineInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
                 OpenEditor(Path.Combine(dialog.ProjectPath, dialog.ProjectName));
             }

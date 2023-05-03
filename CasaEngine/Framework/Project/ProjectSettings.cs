@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using CasaEngine.Framework.Game;
+using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Helpers;
 
@@ -6,16 +7,6 @@ namespace CasaEngine.Framework.Project;
 
 public class ProjectSettings
 {
-#if EDITOR
-    private string _dataSrcCtrlServer = string.Empty;
-    private string _dataSrcCtrlUser = string.Empty;
-    private string _dataSrcCtrlPassword = string.Empty;
-    private string _dataSrcCtrlWorkspace = string.Empty;
-
-    [Category("Project")]
-    public int Version => 1;
-#endif
-
     [Category("Project")]
     public string WindowTitle { get; set; } = "Game name undefined";
 
@@ -52,13 +43,31 @@ public class ProjectSettings
     public int DebugHeight { get; set; } = 768;
 
 #if EDITOR
-    [Category("External Tool")] public string ExternalToolsDirectory { get; set; } = "ExternalTools";
+    [Category("External Tool")]
+    public string ExternalToolsDirectory { get; set; } = "ExternalTools";
 #endif
 
 #endif
+
+    public string? ProjectPath
+    {
+        get
+        {
+#if EDITOR
+            return Path.GetDirectoryName(ProjectFileOpened);
+#else
+            return Environment.CurrentDirectory;
+#endif
+        }
+    }
 
     public void Load(string fileName)
     {
+#if EDITOR
+        Clear();
+        ProjectFileOpened = fileName;
+#endif
+
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
 
         var rootElement = jsonDocument.RootElement;
@@ -73,13 +82,76 @@ public class ProjectSettings
 
         FirstWorldLoaded = rootElement.GetJsonPropertyByName("FirstWorldLoaded").Value.GetString();
         GameplayDllName = rootElement.GetJsonPropertyByName("GameplayDllName").Value.GetString();
-    }
+
+        if (!string.IsNullOrWhiteSpace(GameplayDllName))
+        {
+            GameSettings.PluginManager.Load(GameplayDllName);
+        }
 
 #if EDITOR
-    public void Save(string fileName)
+        GameSettings.ExternalToolManager.Initialize(ExternalToolsDirectory);
+
+        ProjectLoaded?.Invoke(this, EventArgs.Empty);
+#endif
+    }
+
+
+#if EDITOR
+    public event EventHandler? ProjectLoaded;
+    public event EventHandler? ProjectClosed;
+
+    public string? ProjectFileOpened { get; private set; }
+
+    public void Clear()
+    {
+        GameSettings.ExternalToolManager.Clear();
+        ProjectFileOpened = null;
+
+        ProjectClosed?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void CreateProject(string projectName, string path)
+    {
+#if !DEBUG
+        try
+        {
+#endif
+
+        var fullFileName = Path.Combine(path, projectName + ".json");
+
+        Clear();
+
+        ProjectFileOpened = fullFileName;
+        CreateDefaultItem(projectName, fullFileName);
+        Save(fullFileName);
+
+        ProjectLoaded?.Invoke(this, EventArgs.Empty);
+
+#if !DEBUG
+        }
+        catch (System.Exception e)
+        {
+
+        }
+#endif
+    }
+
+    private void CreateDefaultItem(string projectName, string fullFileName)
+    {
+        var projectPath = Path.GetDirectoryName(fullFileName);
+        var world = new World.World { Name = "DefaultWorld" };
+        world.FileName = world.Name;
+        world.Save(projectPath);
+        ProjectName = projectName;
+        FirstWorldLoaded = world.FileName;
+    }
+
+    public bool Save(string fileName)
     {
         string jsonString = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(fileName, jsonString);
+        return true;
     }
+
 #endif
 }

@@ -24,11 +24,6 @@ namespace EditorWpf.Controls.SpriteControls
             gameEditor.Scale = float.Parse(value);
         }
 
-        private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void ButtonHotSpot_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);

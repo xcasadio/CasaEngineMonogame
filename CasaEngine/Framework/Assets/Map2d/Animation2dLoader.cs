@@ -1,18 +1,23 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Assets.Animations;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
 public class Animation2dLoader
 {
+    private const string Animation2dDatasNodeName = "animations";
+
     public static List<Animation2dData> LoadFromFile(string fileName, AssetContentManager assetContentManager)
     {
         List<Animation2dData> animations = new();
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
         var rootElement = jsonDocument.RootElement;
 
-        foreach (var jsonElement in rootElement.GetJsonPropertyByName("animations").Value.EnumerateArray())
+        foreach (var jsonElement in rootElement.GetJsonPropertyByName(Animation2dDatasNodeName).Value.EnumerateArray())
         {
             var animation2dData = new Animation2dData();
             animation2dData.Load(jsonElement);
@@ -23,4 +28,27 @@ public class Animation2dLoader
 
         return animations;
     }
+
+#if EDITOR
+    public static void SaveToFile(string fileName, IEnumerable<Animation2dData> animation2dDatas)
+    {
+        JObject rootJObject = new();
+        var spriteJArray = new JArray();
+
+        foreach (var data in animation2dDatas)
+        {
+            JObject entityObject = new();
+            data.Save(entityObject);
+            spriteJArray.Add(entityObject);
+        }
+
+        rootJObject.Add(Animation2dDatasNodeName, spriteJArray);
+
+        var fullFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName);
+        using StreamWriter file = File.CreateText(fullFileName);
+        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
+        rootJObject.WriteTo(writer);
+    }
+
+#endif
 }

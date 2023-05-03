@@ -66,7 +66,7 @@ namespace EditorWpf
 
             LogManager.Instance.WriteLineInfo($"Project opened {projectFileName}");
 
-            GameSettings.ProjectManager.Load(projectFileName);
+            GameSettings.ProjectSettings.Load(projectFileName);
         }
 
         private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -150,7 +150,7 @@ namespace EditorWpf
                 //CREATE hiera folders
                 //create default settings
                 //
-                GameSettings.ProjectManager.CreateProject(dialog.ProjectName, dialog.ProjectPath);
+                GameSettings.ProjectSettings.CreateProject(dialog.ProjectName, dialog.ProjectPath);
 
                 LogManager.Instance.WriteLineInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             }

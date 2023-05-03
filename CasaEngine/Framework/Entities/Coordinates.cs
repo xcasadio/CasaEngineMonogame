@@ -138,7 +138,7 @@ public class Coordinates
 
         newObject = new JObject();
         LocalCenterOfRotation.Save(newObject);
-        jObject.Add("centerOfRotation", newObject);
+        jObject.Add("center_of_rotation", newObject);
 
         newObject = new JObject();
         LocalScale.Save(newObject);

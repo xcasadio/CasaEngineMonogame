@@ -1,12 +1,16 @@
 ﻿using System.IO;
 using Microsoft.Xna.Framework;
 using System.Windows.Controls;
+using System.Windows.Input;
+using CasaEngine.Framework.Assets.Animations;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
+using CasaEngine.Framework.Assets.Map2d;
 
 namespace EditorWpf.Controls.Animation2dControls
 {
     public partial class Animation2dEditorControl : UserControl, IEditorControl
     {
+        private string _animation2dFileName;
         private const string LayoutFileName = "animation2dEditorLayout.xml";
 
         public Animation2dEditorControl()
@@ -52,7 +56,15 @@ namespace EditorWpf.Controls.Animation2dControls
 
         public void LoadAnimations2d(string fileName)
         {
+            _animation2dFileName = fileName;
             Animation2dListControl.LoadAnimations2d(fileName);
+        }
+
+        private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var animation2dDatas = GameEditorAnimation2dControl.GameEditor.Game.GameManager.AssetContentManager.GetAssets<Animation2dData>();
+            Animation2dLoader.SaveToFile(_animation2dFileName, animation2dDatas);
+            e.Handled = true;
         }
     }
 }

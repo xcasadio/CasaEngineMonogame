@@ -65,5 +65,10 @@ namespace EditorWpf.Controls
             var fileName = Path.Combine(path, LayoutFileName);
             EditorControlHelper.SaveLayout(dockingManagerWorld, fileName);
         }
+
+        public void LoadWorld(string fileName)
+        {
+            //GameEditor.Game.GameManager.CurrentWorld = 
+        }
     }
 }

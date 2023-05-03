@@ -20,7 +20,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         if (!string.IsNullOrWhiteSpace(_projectFileName))
         {
-            GameSettings.ProjectManager.Load(_projectFileName);
+            GameSettings.ProjectSettings.Load(_projectFileName);
         }
 
         base.Initialize();

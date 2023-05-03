@@ -88,7 +88,7 @@ public class Texture : Asset
         if (File.Exists(filename) == false)
         {
             //TODO : all asset must be loaded from  ProjectPath
-            filename = Path.Combine(GameSettings.ProjectManager.ProjectPath, filename);
+            filename = Path.Combine(GameSettings.ProjectSettings.ProjectPath, filename);
             if (File.Exists(filename) == false)
             {
                 throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));

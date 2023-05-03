@@ -16,12 +16,12 @@
 
         <ToolBarTray Grid.Row="0">
             <ToolBar>
-                <Button ToolTip="Save" Click="ButtonSave_OnClick">
+                <Button ToolTip="Save all sprites" Command="{StaticResource Commands.Sprite.Save}">
                     <Image Source="/Resources/save-44-48.png" Height="16"/>
                 </Button>
                 <Separator />
                 <TextBlock Text="Zoom" VerticalAlignment="Center"/>
-                <ComboBox SelectionChanged="OnZoomChanged">
+                <ComboBox SelectionChanged="OnZoomChanged" ToolTip="Zoom the sprite">
                     <ComboBoxItem Content="x1" IsSelected="true"/>
                     <ComboBoxItem Content="x2"/>
                     <ComboBoxItem Content="x4"/>
@@ -29,12 +29,12 @@
                 </ComboBox>
                 <Separator />
                 <TextBlock Text="Display" VerticalAlignment="Center"/>
-                <CheckBox Content="HotSpot" Click="ButtonHotSpot_OnClick"/>
-                <CheckBox Content="Border" Click="ButtonSpriteBorder_OnClick"/>
-                <CheckBox Content="SpriteSheet" Click="ButtonDisplaySpriteSheet_OnClick"/>
+                <CheckBox Content="HotSpot" Click="ButtonHotSpot_OnClick" ToolTip="Display the origin of the sprite"/>
+                <CheckBox Content="Border" Click="ButtonSpriteBorder_OnClick" ToolTip="Display border of the sprite"/>
+                <CheckBox Content="SpriteSheet" Click="ButtonDisplaySpriteSheet_OnClick" ToolTip="Display all the sprite sheet behind the sprite"/>
                 <Separator />
-                <TextBlock Text="SpriteSheet Transparency " VerticalAlignment="Center"/>
-                <Slider TickFrequency="1" Value="124" Minimum="0" Maximum="255" Width="150" ValueChanged="Transparency_OnValueChanged"/>
+                <TextBlock Text="SpriteSheet Transparency" VerticalAlignment="Center"/>
+                <Slider TickFrequency="1" Value="124" Minimum="0" Maximum="255" Width="150" ValueChanged="Transparency_OnValueChanged" ToolTip="SpriteSheet transparency"/>
             </ToolBar>
         </ToolBarTray>
         <spriteControls:GameEditorSprite Grid.Row="1" x:Name="gameEditor" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>

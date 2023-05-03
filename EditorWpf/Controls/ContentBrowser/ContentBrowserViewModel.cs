@@ -23,8 +23,8 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
     private void OnGameStarted(object? sender, EventArgs e)
     {
-        GameSettings.ProjectManager.ProjectLoaded += OnProjectLoaded;
-        GameSettings.ProjectManager.ProjectClosed += OnProjectClosed;
+        GameSettings.ProjectSettings.ProjectLoaded += OnProjectLoaded;
+        GameSettings.ProjectSettings.ProjectClosed += OnProjectClosed;
         OnProjectLoaded(sender, EventArgs.Empty);
     }
 
@@ -33,7 +33,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
         Clear();
         var rootFolder = new FolderItem { Name = "All" };
         ContentItems.Add(rootFolder);
-        AddContent(GameSettings.ProjectManager.ProjectPath!, rootFolder);
+        AddContent(GameSettings.ProjectSettings.ProjectPath!, rootFolder);
 
         OnPropertyChanged(nameof(ContentItems));
     }

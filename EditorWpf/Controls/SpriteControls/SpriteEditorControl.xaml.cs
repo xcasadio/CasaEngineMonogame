@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using System.Windows.Controls;
+using System.Windows.Input;
+using CasaEngine.Framework.Assets.Map2d;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -7,6 +9,7 @@ namespace EditorWpf.Controls.SpriteControls
 {
     public partial class SpriteEditorControl : UserControl, IEditorControl
     {
+        private string _spriteSheetFileName;
         private const string LayoutFileName = "spriteEditorLayout.xml";
 
         public SpriteEditorControl()
@@ -55,7 +58,15 @@ namespace EditorWpf.Controls.SpriteControls
 
         public void LoadSpriteSheet(string fileName)
         {
+            _spriteSheetFileName = fileName;
             SpriteListControl.LoadSpriteSheet(fileName);
+        }
+
+        private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var spriteDatas = GameEditorSpriteControl.GameEditor.Game.GameManager.AssetContentManager.GetAssets<SpriteData>();
+            SpriteLoader.SaveToFile(_spriteSheetFileName, spriteDatas);
+            e.Handled = true;
         }
     }
 }

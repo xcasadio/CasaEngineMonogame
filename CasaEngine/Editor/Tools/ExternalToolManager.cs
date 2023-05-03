@@ -19,12 +19,12 @@ public class ExternalToolManager
     {
         Clear();
 
-        if (string.IsNullOrEmpty(GameSettings.ProjectManager.ProjectPath))
+        if (string.IsNullOrEmpty(GameSettings.ProjectSettings.ProjectPath))
         {
             return;
         }
 
-        var fullPath = Path.Combine(GameSettings.ProjectManager.ProjectPath, directory);
+        var fullPath = Path.Combine(GameSettings.ProjectSettings.ProjectPath, directory);
         var msg = string.Empty;
 
         if (!Directory.Exists(fullPath))

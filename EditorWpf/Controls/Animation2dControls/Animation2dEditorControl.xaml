@@ -8,6 +8,11 @@
              xmlns:spriteControls="clr-namespace:EditorWpf.Controls.SpriteControls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{StaticResource Commands.Animation2d.Save}" Executed="SaveCommand_Executed" />
+    </UserControl.CommandBindings>
+
     <Grid>
         <xcad:DockingManager x:Name="dockingManagerAnimation2d" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <xcad:DockingManager.Theme>
