@@ -8,6 +8,7 @@
         xmlns:contentBrowser="clr-namespace:EditorWpf.Controls.ContentBrowser"
         xmlns:spriteControls="clr-namespace:EditorWpf.Controls.SpriteControls"
         xmlns:animation2dControls="clr-namespace:EditorWpf.Controls.Animation2dControls"
+        xmlns:tiledMapControls="clr-namespace:EditorWpf.Controls.TiledMapControls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
     <Grid>
@@ -49,6 +50,9 @@
             </TabItem>
             <TabItem Header="Animation 2d">
                 <animation2dControls:Animation2dEditorControl/>
+            </TabItem>
+            <TabItem Header="Tiled Map">
+                <tiledMapControls:TiledMapEditorControl/>
             </TabItem>
             <TabItem Header="Settings">
                 <controls:SettingsControl x:Name="SettingsControl"/>

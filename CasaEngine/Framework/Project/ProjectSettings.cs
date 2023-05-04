@@ -1,7 +1,12 @@
 ﻿using CasaEngine.Framework.Game;
 using System.ComponentModel;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Engine;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+using JsonIgnoreAttribute = System.Text.Json.Serialization.JsonIgnoreAttribute;
 
 namespace CasaEngine.Framework.Project;
 
@@ -49,6 +54,7 @@ public class ProjectSettings
 
 #endif
 
+    [Browsable(false), JsonIgnore]
     public string? ProjectPath
     {
         get
@@ -71,7 +77,6 @@ public class ProjectSettings
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
 
         var rootElement = jsonDocument.RootElement;
-        var version = rootElement.GetJsonPropertyByName("Version").Value.GetInt32();
 
         WindowTitle = rootElement.GetJsonPropertyByName("WindowTitle").Value.GetString();
         ProjectName = rootElement.GetJsonPropertyByName("ProjectName").Value.GetString();
@@ -100,6 +105,7 @@ public class ProjectSettings
     public event EventHandler? ProjectLoaded;
     public event EventHandler? ProjectClosed;
 
+    [Browsable(false), JsonIgnore]
     public string? ProjectFileOpened { get; private set; }
 
     public void Clear()
@@ -117,10 +123,12 @@ public class ProjectSettings
         {
 #endif
 
-        var fullFileName = Path.Combine(path, projectName + ".json");
+        var fullFileName = Path.Combine(path, projectName + Constants.FileNameExtensions.Project);
 
         Clear();
 
+        WindowTitle = ProjectName;
+        ProjectName = projectName;
         ProjectFileOpened = fullFileName;
         CreateDefaultItem(projectName, fullFileName);
         Save(fullFileName);
@@ -142,7 +150,6 @@ public class ProjectSettings
         var world = new World.World { Name = "DefaultWorld" };
         world.FileName = world.Name;
         world.Save(projectPath);
-        ProjectName = projectName;
         FirstWorldLoaded = world.FileName;
     }
 

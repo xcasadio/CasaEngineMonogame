@@ -72,12 +72,10 @@ namespace EditorWpf
 
             if (dialog.ShowDialog() == true)
             {
-                //CREATE hiera folders
                 //create default settings
-                //
                 GameSettings.ProjectSettings.CreateProject(dialog.ProjectName, dialog.ProjectPath);
                 LogManager.Instance.WriteLineInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
-                OpenEditor(Path.Combine(dialog.ProjectPath, dialog.ProjectName));
+                OpenEditor(Path.Combine(dialog.ProjectPath, dialog.ProjectName + Constants.FileNameExtensions.Project));
             }
         }
 

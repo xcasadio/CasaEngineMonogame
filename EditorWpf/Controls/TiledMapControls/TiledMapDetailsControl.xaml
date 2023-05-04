@@ -1,0 +1,70 @@
+﻿<UserControl x:Class="EditorWpf.Controls.TiledMapControls.TiledMapDetailsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EditorWpf.Controls.Animation2dControls"
+             xmlns:animations="clr-namespace:CasaEngine.Framework.Assets.Animations;assembly=CasaEngine"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Control.Resources>
+
+        <ObjectDataProvider MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}"
+                            x:Key="AnimationTypeEnumValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="animations:AnimationType" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+    </Control.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Name" />
+            <TextBlock Grid.Column="1" Text="{Binding Name}" />
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Type" />
+            <ComboBox x:Name="comboBoxType" Grid.Column="1" SelectedItem="{Binding Path=AnimationType}" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Source={StaticResource AnimationTypeEnumValues}}"/>
+        </Grid>
+
+        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Vertical">
+            <Button Content="+" />
+            <Button Content="-" />
+        </StackPanel>
+
+        <ListView Grid.Row="2" Grid.Column="0" ItemsSource="{Binding Frames}">
+            <ListView.View>
+                <GridView ColumnHeaderToolTip="Frame Information">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=SpriteId}" Header="Sprite" Width="100"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Duration}" Header="Duration" Width="100"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

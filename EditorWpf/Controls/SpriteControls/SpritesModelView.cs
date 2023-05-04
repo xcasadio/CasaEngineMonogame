@@ -14,7 +14,6 @@ public class SpritesModelView
     public SpritesModelView(GameEditorSprite gameEditorSprite)
     {
         _assetContentManager = gameEditorSprite.Game.GameManager.AssetContentManager;
-        //LoadSpriteSheet("Spritesheets\\sprites.json");
     }
 
     public void LoadSpriteSheet(string fileName)

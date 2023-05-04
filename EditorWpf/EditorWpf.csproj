@@ -68,6 +68,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Controls\TiledMapControls\TiledMapDetailsControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TiledMapControls\TiledMapEditorControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TiledMapControls\TiledMapListControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TiledMapControls\GameEditorTiledMapControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\Common\InputTextBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

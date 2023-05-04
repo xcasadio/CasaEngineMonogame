@@ -32,7 +32,7 @@ public class TiledMapCreator
             tiledMapData.Layers.Add(tiledMapLayerData);
         }
 
-        TileSetData tileSetData = new TileSetData();
+        var tileSetData = new TileSetData();
         jsonDocument = JsonDocument.Parse(File.ReadAllText(tiledMapData.TileSetFileName));
         rootElement = jsonDocument.RootElement;
 
@@ -119,7 +119,7 @@ public class TiledMapCreator
         mapEntity.Coordinates.LocalScale = tiledMapData.Coordinates.LocalScale;
         mapEntity.Coordinates.LocalCenterOfRotation = tiledMapData.Coordinates.LocalCenterOfRotation;
         // TODO : Add tile map component : does nothing, here only for saving purpose
-        //mapEntity.IsPersistent(false);
+        //mapEntity.IsTemporary = true;
         world.AddEntityImmediately(mapEntity);
 
         var physics_world = world.Physic2dWorld;
@@ -136,14 +136,14 @@ public class TiledMapCreator
 #endif
             layerEntity.Coordinates.Parent = mapEntity.Coordinates;
             world.AddEntityImmediately(layerEntity);
-            int index = 0;
+            var index = 0;
 
             foreach (var tileId in layer.tiles)
             {
-                int x = index % (int)tiledMapData.MapSize.X;
-                int y = index / (int)tiledMapData.MapSize.X;
-                int posX = x * (int)tileSetData.TileSize.X;
-                int posY = y * (int)tileSetData.TileSize.Y;
+                var x = index % (int)tiledMapData.MapSize.X;
+                var y = index / (int)tiledMapData.MapSize.X;
+                var posX = x * (int)tileSetData.TileSize.X;
+                var posY = y * (int)tileSetData.TileSize.Y;
 
                 var tileEntity = new Entity();
                 tileEntity.Name = "tile_" + index + "_" + layerIndex + "_" + prefixName;
@@ -153,7 +153,7 @@ public class TiledMapCreator
                 tileEntity.Coordinates.Parent = layerEntity.Coordinates;
                 tileEntity.Coordinates.LocalPosition = new Vector3(posX, posY, 0.0f);
                 Tile? tile;
-                TileCollisionType collisionType = TileCollisionType.None;
+                var collisionType = TileCollisionType.None;
                 if (tileId == -1)
                 {
                     tile = new EmptyTile();
@@ -168,7 +168,7 @@ public class TiledMapCreator
                     }
                     else
                     {
-                        TileData? tileData = tileSetData.GetTileById(tileId);
+                        var tileData = tileSetData.GetTileById(tileId);
                         tile = CreateTile(tileData, assetContentManager);
                         collisionType = tileData.CollisionType;
 
@@ -215,13 +215,13 @@ public class TiledMapCreator
             case TileType.Static:
                 {
                     var staticTileParams = tileData as StaticTileData;
-                    SpriteData spriteData = assetContentManager.GetAsset<SpriteData>(staticTileParams.SpriteId);
+                    var spriteData = assetContentManager.GetAsset<SpriteData>(staticTileParams.SpriteId);
                     return new StaticTile(Sprite.Create(spriteData, assetContentManager), staticTileParams);
                 }
             case TileType.Animated:
                 {
                     var animatedTileParams = tileData as AnimatedTileData;
-                    Animation2dData animation = assetContentManager.GetAsset<Animation2dData>(animatedTileParams.Animation2dId);
+                    var animation = assetContentManager.GetAsset<Animation2dData>(animatedTileParams.Animation2dId);
                     return new AnimatedTile(new Animation2d(animation), animatedTileParams);
                 }
         }
@@ -233,7 +233,7 @@ public class TiledMapCreator
 
     private static Tile CreateTile(AutoTileTileSetData autoTileTileSetData, TileSetData tileSetData, TiledMapLayerData layer, TiledMapData map, int x, int y, AssetContentManager assetContentManager)
     {
-        List<Tile> tiles = new List<Tile>();
+        var tiles = new List<Tile>();
 
         foreach (var tileData in autoTileTileSetData.Tiles)
         {

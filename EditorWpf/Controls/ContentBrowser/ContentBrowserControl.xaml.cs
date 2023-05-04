@@ -5,6 +5,7 @@ using System.Windows.Input;
 using CasaEngine.Engine;
 using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.SpriteControls;
+using EditorWpf.Controls.TiledMapControls;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.ContentBrowser
@@ -61,6 +62,11 @@ namespace EditorWpf.Controls.ContentBrowser
                     var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
                     window.ActivateEditorControl<Animation2dEditorControl>();
                     animation2dControl.LoadAnimations2d(contentItem.Path);
+                    break;
+                case Constants.FileNameExtensions.TiledMap:
+                    var tiledMapEditorControl = window.GetEditorControl<TiledMapEditorControl>();
+                    window.ActivateEditorControl<TiledMapEditorControl>();
+                    tiledMapEditorControl.LoadTiledMap(contentItem.Path);
                     break;
                 case Constants.FileNameExtensions.World:
                     var worldEditorControl = window.GetEditorControl<WorldEditorControl>();
