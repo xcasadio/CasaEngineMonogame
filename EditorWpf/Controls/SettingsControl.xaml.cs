@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Game;
 
@@ -11,9 +12,8 @@ namespace EditorWpf.Controls
             InitializeComponent();
         }
 
-        private void OnGameGameStarted(object? sender, EventArgs e)
+        private void SettingsControl_OnGotFocus(object sender, RoutedEventArgs e)
         {
-            var game = sender as CasaEngineGame;
             PropertyGridProjectSettings.SelectedObject = GameSettings.ProjectSettings;
             PropertyGridPhysicSettings.SelectedObject = GameSettings.Physics2dSettings;
         }
