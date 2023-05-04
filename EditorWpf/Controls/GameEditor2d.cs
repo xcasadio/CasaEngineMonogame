@@ -10,7 +10,7 @@ namespace EditorWpf.Controls;
 public abstract class GameEditor2d : GameEditor
 {
     private float _scale = 1.0f;
-    private Entity _entity;
+    protected Entity _entity;
     private InputComponent? _inputComponent;
     private Point _lastMousePosition;
 

@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
@@ -23,7 +24,7 @@ public class AnimatedTile : Tile
         Animation?.Update(elapsedTime);
     }
 
-    public override void Draw(float x, float y, float z)
+    public override void Draw(float x, float y, float z, Vector2 scale)
     {
         if (Animation == null)
         {
@@ -32,10 +33,10 @@ public class AnimatedTile : Tile
 
         //TODO : load all sprite in initialization function
         Sprite sprite = null;//new Sprite(*Game::Instance().GetAssetManager().GetAsset<SpriteData>(_animation->CurrentFrame()));
-        base.Draw(sprite, x, y, z, sprite.SpriteData.PositionInTexture);
+        base.Draw(sprite, x, y, z, sprite.SpriteData.PositionInTexture, scale);
     }
 
-    public override void Draw(float x, float y, float z, Rectangle uvOffset)
+    public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         if (Animation == null)
         {
@@ -44,6 +45,6 @@ public class AnimatedTile : Tile
 
         //TODO : load all sprite in initialization function
         Sprite sprite = null;//new Sprite(*Game::Instance().GetAssetManager().GetAsset<SpriteData>(_animation->CurrentFrame()));
-        base.Draw(sprite, x, y, z, uvOffset);
+        base.Draw(sprite, x, y, z, uvOffset, scale);
     }
 }

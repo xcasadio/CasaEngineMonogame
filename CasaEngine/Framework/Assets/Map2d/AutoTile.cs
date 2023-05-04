@@ -107,22 +107,23 @@ public class AutoTile : Tile
         ComputeDrawingInfos(mask, 0, 0, 0, new Rectangle(0, 0, (int)_tileSize.X, (int)_tileSize.Y));
     }
 
-    public override void Draw(float x, float y, float z)
+    public override void Draw(float x, float y, float z, Vector2 scale)
     {
-        Draw(x, y, z, new Rectangle(0, 0, (int)_tileSize.X, (int)_tileSize.Y));
+        Draw(x, y, z, new Rectangle(0, 0, (int)_tileSize.X, (int)_tileSize.Y), scale);
     }
 
-    public override void Draw(float x, float y, float z, Rectangle uvOffset)
+    public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         foreach (var drawingInfo in _drawingInfos)
         {
             if (drawingInfo.TileIndex != -1)
             {
                 _tiles[drawingInfo.TileIndex].Draw(
-                    x + drawingInfo.XOffset,
-                    y + drawingInfo.YOffset,
+                    x + drawingInfo.XOffset * scale.X,
+                    y + drawingInfo.YOffset * scale.Y,
                     z + drawingInfo.ZOffset,
-                    drawingInfo.PosInTexture);
+                    drawingInfo.PosInTexture,
+                    scale);
             }
         }
     }

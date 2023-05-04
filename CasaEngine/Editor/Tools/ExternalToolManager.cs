@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;

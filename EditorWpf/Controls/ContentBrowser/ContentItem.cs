@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CasaEngine.Framework.Game;
+using System;
 
 namespace EditorWpf.Controls.ContentBrowser;
 
@@ -6,6 +7,8 @@ public class ContentItem : NotifyPropertyChangeBase
 {
     private FolderItem? _parent;
     private string _name;
+
+    public string FullPath => System.IO.Path.Combine(GameSettings.ProjectSettings.ProjectPath, Path);
 
     public string Path
     {

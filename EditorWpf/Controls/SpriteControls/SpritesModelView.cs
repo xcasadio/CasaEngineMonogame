@@ -18,7 +18,7 @@ public class SpritesModelView
 
     public void LoadSpriteSheet(string fileName)
     {
-        var spriteDatas = SpriteLoader.LoadFromFile(Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName), _assetContentManager);
+        var spriteDatas = SpriteLoader.LoadFromFile(fileName, _assetContentManager);
 
         SpriteDatas.Clear();
         foreach (var spriteData in spriteDatas)

@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Framework.Assets.Map2d;
+﻿using Microsoft.Xna.Framework;
+
+namespace CasaEngine.Framework.Assets.Map2d;
 
 public class StaticTile : Tile
 {
@@ -14,7 +16,7 @@ public class StaticTile : Tile
         //do nothing
     }
 
-    public override void Draw(float x, float y, float z)
+    public override void Draw(float x, float y, float z, Vector2 scale)
     {
         if (Sprite == null)
         {
@@ -24,14 +26,14 @@ public class StaticTile : Tile
         var uvOffset = Sprite.SpriteData.PositionInTexture;
         uvOffset.X = 0;
         uvOffset.Y = 0;
-        base.Draw(Sprite, x, y, z, uvOffset);
+        base.Draw(Sprite, x, y, z, uvOffset, scale);
     }
 
-    public override void Draw(float x, float y, float z, Rectangle uvOffset)
+    public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         if (Sprite != null)
         {
-            base.Draw(Sprite, x, y, z, uvOffset);
+            base.Draw(Sprite, x, y, z, uvOffset, scale);
         }
     }
 }

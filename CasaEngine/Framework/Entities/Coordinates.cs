@@ -84,7 +84,7 @@ public class Coordinates
     public Quaternion Rotation => Parent == null ? LocalRotation : LocalRotation + Parent.Rotation;
 
     [Category("Coordinates")]
-    public Vector3 Scale => Parent == null ? LocalScale : LocalScale + Parent.Scale;
+    public Vector3 Scale => Parent == null ? LocalScale : LocalScale * Parent.Scale;
 
     public Coordinates()
     {

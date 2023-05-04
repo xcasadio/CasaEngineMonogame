@@ -15,7 +15,7 @@ public class Renderer2dComponent : DrawableGameComponent
         public Point Origin;
         public Vector2 Scale;
         public Color Color;
-        public float ZOrder;
+        public float ZOrder; // 0 being the frontmost layer, and 1 being the backmost layer.
         public SpriteEffects SpriteEffect;
         public Rectangle ScissorRectangle;
     }

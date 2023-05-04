@@ -1,10 +1,8 @@
 ﻿using CasaEngine.Framework.Game;
 using System.ComponentModel;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using JsonIgnoreAttribute = System.Text.Json.Serialization.JsonIgnoreAttribute;
 

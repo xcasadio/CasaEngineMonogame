@@ -1,7 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Game;
 using EditorWpf.Controls.TiledMapControls;
 using EditorWpf.Controls.Common;
 
@@ -36,7 +39,7 @@ public partial class TiledMapListControl : UserControl
 
     private void OnGameStarted(object? sender, System.EventArgs e)
     {
-        //DataContext = new TiledMapListModelView(_gameEditor);
+        DataContext = new TiledMapDataViewModel(_gameEditor.Game.GameManager.AssetContentManager);
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -59,12 +62,19 @@ public partial class TiledMapListControl : UserControl
 
     public void LoadTiledMap(string fileName)
     {
-        //var TiledMapListModelView = DataContext as TiledMapListModelView;
-        //TiledMapListModelView.LoadAnimations2d(fileName);
-        //
-        //if (TiledMapListModelView.TiledMapDatas.Count > 0)
+        var tiledMapListModelView = DataContext as TiledMapDataViewModel;
+        tiledMapListModelView.LoadMap(fileName);
+
+        var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
+        var projectPath = GameSettings.ProjectSettings.ProjectPath;
+        SpriteLoader.LoadFromFile(Path.Combine(projectPath, tiledMapListModelView.TileSetData.SpriteSheetFileName), assetContentManager);
+        SpriteLoader.LoadFromFile(Path.Combine(projectPath, tiledMapListModelView.AutoTileSetData.SpriteSheetFileName), assetContentManager);
+
+        //if (tiledMapListModelView.TiledMapData.Count > 0)
         //{
         //    Dispatcher.Invoke((Action)(() => ListBox.SelectedIndex = 0));
         //}
+
+        _gameEditor.CreateMapEntities(tiledMapListModelView);
     }
 }

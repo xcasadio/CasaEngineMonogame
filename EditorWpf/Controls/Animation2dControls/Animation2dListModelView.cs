@@ -21,8 +21,8 @@ public class Animation2dListModelView
     {
         var spriteSheetFileName = fileName.Replace(Path.GetExtension(fileName), Constants.FileNameExtensions.SpriteSheet);
 
-        var spriteDatas = SpriteLoader.LoadFromFile(Path.Combine(GameSettings.ProjectSettings.ProjectPath, spriteSheetFileName), _assetContentManager);
-        var animations = Animation2dLoader.LoadFromFile(Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName), _assetContentManager);
+        var spriteDatas = SpriteLoader.LoadFromFile(spriteSheetFileName, _assetContentManager);
+        var animations = Animation2dLoader.LoadFromFile(fileName, _assetContentManager);
 
         Animation2dDatas.Clear();
         foreach (var animation2dData in animations)

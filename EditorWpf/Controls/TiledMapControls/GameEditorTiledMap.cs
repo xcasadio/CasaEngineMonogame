@@ -16,13 +16,23 @@ public class GameEditorTiledMap : GameEditor2d
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
-        var tiledMapLayerData = DataContext as TiledMapLayerData;
-        //TileComponents.SetCurrentAnimation(animation2d, true);
+        var tiledMapDataViewModel = DataContext as TiledMapDataViewModel;
+
+
     }
 
     protected override void CreateEntityComponents(Entity entity)
     {
         //TileComponents = new TileComponent(entity);
         //entity.ComponentManager.Components.Add(TileComponents);
+    }
+
+    public void CreateMapEntities(TiledMapDataViewModel tiledMapDataViewModel)
+    {
+        TiledMapCreator.Create(_entity, "prefix",
+            tiledMapDataViewModel.AutoTileSetData, tiledMapDataViewModel.TileSetData, tiledMapDataViewModel.TiledMapData,
+            Game.GameManager.CurrentWorld, Game.GameManager.AssetContentManager);
+
+        Game.GameManager.CurrentWorld.Initialize(Game);
     }
 }

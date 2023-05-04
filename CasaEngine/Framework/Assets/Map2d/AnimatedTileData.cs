@@ -1,5 +1,4 @@
 ﻿using CasaEngine.Core.Helpers;
-using SharpDX.Direct3D9;
 using System.Text.Json;
 
 namespace CasaEngine.Framework.Assets.Map2d;

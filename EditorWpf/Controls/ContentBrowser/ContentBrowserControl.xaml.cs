@@ -56,22 +56,22 @@ namespace EditorWpf.Controls.ContentBrowser
                 case Constants.FileNameExtensions.SpriteSheet:
                     var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                     window.ActivateEditorControl<SpriteEditorControl>();
-                    spriteControl.LoadSpriteSheet(contentItem.Path);
+                    spriteControl.LoadSpriteSheet(contentItem.FullPath);
                     break;
                 case Constants.FileNameExtensions.Animation2d:
                     var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
                     window.ActivateEditorControl<Animation2dEditorControl>();
-                    animation2dControl.LoadAnimations2d(contentItem.Path);
+                    animation2dControl.LoadAnimations2d(contentItem.FullPath);
                     break;
                 case Constants.FileNameExtensions.TiledMap:
                     var tiledMapEditorControl = window.GetEditorControl<TiledMapEditorControl>();
                     window.ActivateEditorControl<TiledMapEditorControl>();
-                    tiledMapEditorControl.LoadTiledMap(contentItem.Path);
+                    tiledMapEditorControl.LoadTiledMap(contentItem.FullPath);
                     break;
                 case Constants.FileNameExtensions.World:
                     var worldEditorControl = window.GetEditorControl<WorldEditorControl>();
                     window.ActivateEditorControl<WorldEditorControl>();
-                    worldEditorControl.LoadWorld(contentItem.Path);
+                    worldEditorControl.LoadWorld(contentItem.FullPath);
                     break;
             }
         }

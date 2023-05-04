@@ -22,10 +22,10 @@ public abstract class Tile
     }
 
     public abstract void Update(float elapsedTime);
-    public abstract void Draw(float x, float y, float z);
-    public abstract void Draw(float x, float y, float z, Rectangle uvOffset);
+    public abstract void Draw(float x, float y, float z, Vector2 scale);
+    public abstract void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale);
 
-    protected void Draw(Sprite sprite, float x, float y, float z, Rectangle uvOffset)
+    protected void Draw(Sprite sprite, float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         Rectangle texUV = new Rectangle(
             sprite.SpriteData.PositionInTexture.Left + uvOffset.Left,
@@ -39,7 +39,7 @@ public abstract class Tile
             sprite.SpriteData.Origin,
             new Vector2(x, y),
             0.0f,
-            Vector2.One,
+            scale,
             Color.White,
             z,
             SpriteEffects.None);

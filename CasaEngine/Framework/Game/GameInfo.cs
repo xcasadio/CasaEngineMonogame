@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Entities.Components;
-
-namespace CasaEngine.Framework.Game;
+﻿namespace CasaEngine.Framework.Game;
 /*
 public class GameInfo
 {

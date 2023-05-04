@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using static CasaEngine.Engine.Constants;
 
 namespace CasaEngine.Framework.Assets;
 

@@ -23,8 +23,11 @@ public class StaticSpriteComponent : Component
         set
         {
             _spriteId = value;
-            _spriteData = _game.GameManager.AssetContentManager.GetAsset<SpriteData>(_spriteId);
-            _sprite = Sprite.Create(_spriteData, _game.GameManager.AssetContentManager);
+            if (_spriteId != null)
+            {
+                _spriteData = _game.GameManager.AssetContentManager.GetAsset<SpriteData>(_spriteId);
+                _sprite = Sprite.Create(_spriteData, _game.GameManager.AssetContentManager);
+            }
         }
     }
 

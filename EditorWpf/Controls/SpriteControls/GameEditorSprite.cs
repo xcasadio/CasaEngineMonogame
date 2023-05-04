@@ -15,7 +15,7 @@ public class GameEditorSprite : GameEditor2d
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
         var spriteData = DataContext as SpriteDataViewModel;
-        StaticSpriteComponent.SpriteId = spriteData.Name;
+        StaticSpriteComponent.SpriteId = spriteData?.Name;
     }
 
     protected override void CreateEntityComponents(Entity entity)

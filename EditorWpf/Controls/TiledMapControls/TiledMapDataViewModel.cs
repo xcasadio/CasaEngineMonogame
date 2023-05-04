@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Map2d;
 using Microsoft.Xna.Framework;
 
@@ -7,7 +8,11 @@ namespace EditorWpf.Controls.TiledMapControls;
 
 public class TiledMapDataViewModel : NotifyPropertyChangeBase
 {
-    public TiledMapData TiledMapData { get; }
+    private readonly AssetContentManager _assetContentManager;
+
+    public TiledMapData TiledMapData { get; private set; }
+    public TileSetData TileSetData { get; private set; }
+    public AutoTileSetData AutoTileSetData { get; private set; }
 
     public string TileSetFileName
     {
@@ -33,9 +38,18 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
 
     public ObservableCollection<TiledMapLayerDataViewModel> Layers { get; } = new();
 
-    public TiledMapDataViewModel(TiledMapData TiledMapData)
+    public TiledMapDataViewModel(AssetContentManager assetContentManager)
     {
-        TiledMapData = TiledMapData;
+        _assetContentManager = assetContentManager;
+    }
+
+    public void LoadMap(string fileName)
+    {
+        var (tiledMapData, tileSetData, autoTileSetData) = TiledMapCreator.LoadMapFromFile(fileName);
+
+        TiledMapData = tiledMapData;
+        TileSetData = tileSetData;
+        AutoTileSetData = autoTileSetData;
 
         foreach (var layer in TiledMapData.Layers)
         {

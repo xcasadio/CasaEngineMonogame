@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Framework.Assets.Map2d;
+﻿using Microsoft.Xna.Framework;
+
+namespace CasaEngine.Framework.Assets.Map2d;
 
 public class EmptyTile : Tile
 {
@@ -10,12 +12,12 @@ public class EmptyTile : Tile
         //do nothing
     }
 
-    public override void Draw(float x, float y, float z)
+    public override void Draw(float x, float y, float z, Vector2 scale)
     {
         //do nothing
     }
 
-    public override void Draw(float x, float y, float z, Rectangle uvOffset)
+    public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         //do nothing
     }
