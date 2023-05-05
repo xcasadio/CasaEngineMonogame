@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Game;
 
@@ -15,7 +14,8 @@ namespace EditorWpf.Controls
         private void SettingsControl_OnGotFocus(object sender, RoutedEventArgs e)
         {
             PropertyGridProjectSettings.SelectedObject = GameSettings.ProjectSettings;
-            PropertyGridPhysicSettings.SelectedObject = GameSettings.Physics2dSettings;
+            PropertyGridPhysiscSettings.SelectedObject = GameSettings.Physics2dSettings;
+            PropertyGridGraphicsSettings.SelectedObject = GameSettings.GraphicsSettings;
         }
     }
 }

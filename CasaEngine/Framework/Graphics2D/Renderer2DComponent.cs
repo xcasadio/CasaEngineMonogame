@@ -116,11 +116,11 @@ public class Renderer2dComponent : DrawableGameComponent
         var hotspot = Vector2.Zero;
 
         SpriteBatch.Begin(
-            SpriteSortMode.BackToFront,
-            BlendState.NonPremultiplied, //AlphaBlend need texture to be compiled with some options
-            SamplerState.LinearWrap,
-            DepthStencilState.None,
-            RasterizerState.CullCounterClockwise);
+            GameSettings.GraphicsSettings.SpriteSortMode,
+            GameSettings.GraphicsSettings.BlendState,
+            GameSettings.GraphicsSettings.SamplerState,
+            GameSettings.GraphicsSettings.DepthStencilState,
+            GameSettings.GraphicsSettings.RasterizerState);
 
         //sprite2D
         foreach (var sprite in _spritesData)

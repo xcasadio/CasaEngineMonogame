@@ -12,7 +12,10 @@
                 <xctk:PropertyGrid x:Name="PropertyGridProjectSettings" AutoGenerateProperties="True"/>
             </TabItem>
             <TabItem Header="Physics Settings">
-                <xctk:PropertyGrid x:Name="PropertyGridPhysicSettings" AutoGenerateProperties="True"/>
+                <xctk:PropertyGrid x:Name="PropertyGridPhysiscSettings" AutoGenerateProperties="True"/>
+            </TabItem>
+            <TabItem Header="Graphics Settings">
+                <xctk:PropertyGrid x:Name="PropertyGridGraphicsSettings" AutoGenerateProperties="True"/>
             </TabItem>
         </TabControl>
     </Grid>
