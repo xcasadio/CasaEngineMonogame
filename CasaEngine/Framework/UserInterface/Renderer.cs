@@ -15,6 +15,7 @@ using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.UserInterface.Controls.Auxiliary;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Size = CasaEngine.Core.Size;
 
 namespace CasaEngine.Framework.UserInterface;
 

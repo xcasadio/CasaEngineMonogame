@@ -1,34 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Game;
-using EditorWpf.Controls.TiledMapControls;
-using EditorWpf.Controls.Common;
 
 namespace EditorWpf.Controls.TiledMapControls;
 
-public partial class TiledMapListControl : UserControl
+public partial class TiledMapLayersControl : UserControl
 {
-    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(TiledMapDataViewModel), typeof(TiledMapListControl));
+    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(TiledMapLayerDataViewModel), typeof(TiledMapLayersControl));
     private GameEditorTiledMap _gameEditor;
 
-    public TiledMapDataViewModel? SelectedItem
+    public TiledMapLayerDataViewModel? SelectedItem
     {
-        get => (TiledMapDataViewModel)GetValue(SelectedItemProperty);
+        get => (TiledMapLayerDataViewModel)GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
     }
 
-    public TiledMapListControl()
+    public TiledMapLayersControl()
     {
         InitializeComponent();
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        SelectedItem = ListBox.SelectedItem as TiledMapDataViewModel;
+        SelectedItem = ListBox.SelectedItem as TiledMapLayerDataViewModel;
     }
 
     public void InitializeFromGameEditor(GameEditorTiledMap gameEditor)
@@ -39,7 +38,7 @@ public partial class TiledMapListControl : UserControl
 
     private void OnGameStarted(object? sender, System.EventArgs e)
     {
-        DataContext = new TiledMapDataViewModel(_gameEditor.Game.GameManager.AssetContentManager);
+        //Do nothing
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -62,6 +61,8 @@ public partial class TiledMapListControl : UserControl
 
     public void LoadTiledMap(string fileName)
     {
+        Clear();
+
         var tiledMapListModelView = DataContext as TiledMapDataViewModel;
         tiledMapListModelView.LoadMap(fileName);
 
@@ -70,11 +71,18 @@ public partial class TiledMapListControl : UserControl
         SpriteLoader.LoadFromFile(Path.Combine(projectPath, tiledMapListModelView.TileSetData.SpriteSheetFileName), assetContentManager);
         SpriteLoader.LoadFromFile(Path.Combine(projectPath, tiledMapListModelView.AutoTileSetData.SpriteSheetFileName), assetContentManager);
 
-        //if (tiledMapListModelView.TiledMapData.Count > 0)
-        //{
-        //    Dispatcher.Invoke((Action)(() => ListBox.SelectedIndex = 0));
-        //}
+        if (tiledMapListModelView.Layers.Count > 0)
+        {
+            Dispatcher.Invoke((Action)(() => ListBox.SelectedIndex = 0));
+        }
 
         _gameEditor.CreateMapEntities(tiledMapListModelView);
+    }
+
+    private void Clear()
+    {
+        var tiledMapLayersViewModel = DataContext as TiledMapDataViewModel;
+        tiledMapLayersViewModel.Clear();
+        _gameEditor.RemoveAllEntities();
     }
 }

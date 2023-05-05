@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Assets;
 
 public class AssetContentManager
 {
-    private const string DefaultCategory = "default";
+    public const string DefaultCategory = "default";
     private readonly Dictionary<Type, IAssetLoader> _assetLoader = new();
     private readonly Dictionary<string, Dictionary<string, object>> _assetsByFileNameByCategory = new();
     public GraphicsDevice GraphicsDevice { get; private set; }

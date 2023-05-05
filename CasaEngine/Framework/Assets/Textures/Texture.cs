@@ -1,17 +1,17 @@
 ﻿using System.Text.Json;
 using System.Xml;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using Screen = CasaEngine.Framework.UserInterface.Screen;
-using Size = CasaEngine.Core.Helpers.Size;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
 public class Texture : Asset
 {
-    protected Texture2D? XnaTexture;
+    protected Texture2D? Texture2d;
     private SamplerState _preferedSamplerState = SamplerState.AnisotropicWrap;
     //private static Texture _blackTexture, _greyTexture, _whiteTexture;
 
@@ -25,16 +25,15 @@ public class Texture : Asset
             // For that reason the nullified resources could be accessed.
             //if (xnaTexture != null && xnaTexture.IsDisposed)
             //xnaTexture = null;
-            XnaTexture;
+            Texture2d;
         // This is only allowed for videos. 
         // Doing something to avoid this “set” is unnecessary and probably will make more complex some classes just for this special case. 
         // Besides, an internal statement elegantly prevents a bad use of this set.
         // Just don’t dispose this texture because the resource is managed by the video.
         internal set
         {
-            XnaTexture = value;
-            Size = value == null ?
-                new Size(0, 0, new Screen(GraphicsDevice)) : new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
+            Texture2d = value;
+            //ScreenSize = value == null ? new ScreenSize(0, 0, new Screen(GraphicsDevice)) : new ScreenSize(Texture2d.Width, Texture2d.Height, new Screen(GraphicsDevice));
         }
     }
 
@@ -44,11 +43,11 @@ public class Texture : Asset
         set => _preferedSamplerState = value;
     }
 
-    public int Width => Size.Width;
+    public int Width => Texture2d.Width;
 
-    public int Height => Size.Height;
+    public int Height => Texture2d.Height;
 
-    public Size Size { get; protected set; }
+    //public ScreenSize ScreenSize { get; protected set; }
 
     public Texture()
     {
@@ -60,11 +59,11 @@ public class Texture : Asset
         Name = "Empty Texture";
     }
 
-    public Texture(Texture2D xnaTexture) : this(xnaTexture.GraphicsDevice)
+    public Texture(Texture2D texture2d) : this(texture2d.GraphicsDevice)
     {
         Name = "Texture";
-        XnaTexture = xnaTexture;
-        Size = new Size(xnaTexture.Width, xnaTexture.Height, new Screen(GraphicsDevice));
+        Texture2d = texture2d;
+        //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new Screen(GraphicsDevice));
     }
 
 
@@ -97,8 +96,8 @@ public class Texture : Asset
 
         try
         {
-            XnaTexture = assetContentManager.Load<Texture2D>(filename, GraphicsDevice);
-            Size = new Size(XnaTexture.Width, XnaTexture.Height, new Screen(GraphicsDevice));
+            Texture2d = assetContentManager.Load<Texture2D>(filename, GraphicsDevice);
+            //ScreenSize = new ScreenSize(Texture2d.Width, Texture2d.Height, new Screen(GraphicsDevice));
             Resource.Name = FileName;
         }
         catch (ObjectDisposedException)
@@ -114,7 +113,7 @@ public class Texture : Asset
     protected override void DisposeManagedResources()
     {
         base.DisposeManagedResources();
-        if (XnaTexture is { IsDisposed: false })
+        if (Texture2d is { IsDisposed: false })
         {
             Resource?.Dispose();
         }
@@ -129,11 +128,11 @@ public class Texture : Asset
 
         if (string.IsNullOrEmpty(FileName))
         {
-            XnaTexture = new Texture2D(device, Size.Width, Size.Height);
+            Texture2d = new Texture2D(device, Texture2d.Width, Texture2d.Height);
         }
-        else if (XnaTexture is { IsDisposed: true })
+        else if (Texture2d is { IsDisposed: true })
         {
-            XnaTexture = assetContentManager.Load<Texture2D>(FileName, device);
+            Texture2d = assetContentManager.Load<Texture2D>(FileName, device);
         }
 
         GraphicsDevice = device;

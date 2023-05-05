@@ -32,6 +32,15 @@ public static class JsonHelper
         };
     }
 
+    public static Size GetSize(this JsonElement element)
+    {
+        return new Size
+        {
+            Width = element.GetProperty("w").GetInt32(),
+            Height = element.GetProperty("h").GetInt32()
+        };
+    }
+
     public static Vector2 GetVector2(this JsonElement element)
     {
         return new Vector2
@@ -112,6 +121,12 @@ public static class JsonHelper
     {
         jObject.Add("x", obj.X);
         jObject.Add("y", obj.Y);
+    }
+
+    public static void Save(this Size obj, JObject jObject)
+    {
+        jObject.Add("w", obj.Width);
+        jObject.Add("h", obj.Height);
     }
 
     public static void Save(this Vector2 obj, JObject jObject)

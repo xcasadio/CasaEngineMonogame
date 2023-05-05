@@ -1,11 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace CasaEngine.Framework.Assets.Map2d;
+﻿namespace CasaEngine.Framework.Assets.Map2d;
 
 public class AutoTileSetData
 {
     public string SpriteSheetFileName { get; set; }
-    public Vector2 TileSize { get; set; }
+    public Core.Size TileSize { get; set; }
     public List<AutoTileTileSetData> Sets { get; } = new();
 
     public AutoTileTileSetData? GetTileSetById(int id)
@@ -19,5 +17,4 @@ public class AutoTileSetData
         }
         return null;
     }
-
 }

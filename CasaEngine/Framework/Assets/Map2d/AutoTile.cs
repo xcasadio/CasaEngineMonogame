@@ -24,9 +24,9 @@ public class AutoTileDrawingInfo
 
 public class AutoTile : Tile
 {
-    private Vector2 _tileSize;
+    private CasaEngine.Core.Size _tileSize;
     private TiledMapLayerData? _tiledMapLayerData;
-    private Vector2 _mapSize;
+    private CasaEngine.Core.Size _mapSize;
     private AutoTileDrawingInfo[] _drawingInfos = new AutoTileDrawingInfo[4];
     private Tile[] _tiles = new Tile[6];
     private int _x, _y;
@@ -55,7 +55,7 @@ public class AutoTile : Tile
 
     public void RemovedTileFromLayer()
     {
-        _tiledMapLayerData.tiles[_x + _y * (int)_mapSize.X] = -1;
+        _tiledMapLayerData.tiles[_x + _y * (int)_mapSize.Width] = -1;
     }
 
     public override void Initialize(CasaEngineGame game)
@@ -73,14 +73,14 @@ public class AutoTile : Tile
         _drawingInfos[3].SetInfo(-1, 0, 0, 0, new Rectangle());
     }
 
-    uint getMask(Vector2 mapSize, TiledMapLayerData layer, int x, int y, int offset)
+    uint getMask(CasaEngine.Core.Size mapSize, TiledMapLayerData layer, int x, int y, int offset)
     {
-        if (x >= mapSize.X || x < 0 || y >= mapSize.Y || y < 0)
+        if (x >= mapSize.Width || x < 0 || y >= mapSize.Height || y < 0)
         {
             return 0;
         }
 
-        var tileId = layer.tiles[x + y * (int)mapSize.X];
+        var tileId = layer.tiles[x + y * (int)mapSize.Width];
         if (tileId != -1)
         {
             return (uint)1 << offset;
@@ -104,12 +104,12 @@ public class AutoTile : Tile
         mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y - 1, 6);
         mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y + 1, 7);
 
-        ComputeDrawingInfos(mask, 0, 0, 0, new Rectangle(0, 0, (int)_tileSize.X, (int)_tileSize.Y));
+        ComputeDrawingInfos(mask, 0, 0, 0, new Rectangle(0, 0, (int)_tileSize.Width, (int)_tileSize.Height));
     }
 
     public override void Draw(float x, float y, float z, Vector2 scale)
     {
-        Draw(x, y, z, new Rectangle(0, 0, (int)_tileSize.X, (int)_tileSize.Y), scale);
+        Draw(x, y, z, new Rectangle(0, 0, (int)_tileSize.Width, (int)_tileSize.Height), scale);
     }
 
     public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
@@ -128,7 +128,7 @@ public class AutoTile : Tile
         }
     }
 
-    public void SetTileInfo(List<Tile> tiles, Vector2 tileSize, Vector2 mapSize, TiledMapLayerData layer, int x, int y)
+    public void SetTileInfo(List<Tile> tiles, Core.Size tileSize, Core.Size mapSize, TiledMapLayerData layer, int x, int y)
     {
         Debug.Assert(tiles.Count == 6, "SetTileInfo() : size is not 6");
 

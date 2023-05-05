@@ -1,43 +1,30 @@
-﻿using System.IO;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using System.Windows.Input;
+using CasaEngine.Framework.Assets.Map2d;
 using Microsoft.Xna.Framework;
+using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace EditorWpf.Controls.TiledMapControls;
 
-public partial class TiledMapEditorControl : UserControl, IEditorControl
+public partial class TiledMapEditorControl : EditorControlBase
 {
     private string _tileMapFileName;
-    private const string LayoutFileName = "tiledMapEditorLayout.xml";
+
+    protected override string LayoutFileName { get; } = "tiledMapEditorLayout.xml";
+    protected override DockingManager DockingManager => dockingManagerTiledMap;
 
     public TiledMapEditorControl()
     {
         InitializeComponent();
-        TiledMapListControl.InitializeFromGameEditor(GameEditorControl.GameEditor);
-    }
-    public void ShowControl(UserControl control, string panelTitle)
-    {
-        EditorControlHelper.ShowControl(control, dockingManagerTiledMap, panelTitle);
+        DataContext = new TiledMapDataViewModel();
+        TiledMapLayersControl.InitializeFromGameEditor(GameEditorControl.GameEditor);
     }
 
-    public void LoadLayout(string path)
-    {
-        var fileName = Path.Combine(path, LayoutFileName);
-
-        if (!File.Exists(fileName))
-        {
-            return;
-        }
-
-        EditorControlHelper.LoadLayout(dockingManagerTiledMap, fileName, LayoutSerializationCallback);
-    }
-
-    private void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
+    protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
     {
         e.Content = e.Model.Title switch
         {
-            "Tiled Map" => TiledMapListControl,
+            "Layers" => TiledMapLayersControl,
             "Tiled Map View" => GameEditorControl,
             "Details" => TiledMapDetailsControl,
             "Logs" => this.FindParent<MainWindow>().LogsControl,
@@ -46,22 +33,20 @@ public partial class TiledMapEditorControl : UserControl, IEditorControl
         };
     }
 
-    public void SaveLayout(string path)
-    {
-        var fileName = Path.Combine(path, LayoutFileName);
-        EditorControlHelper.SaveLayout(dockingManagerTiledMap, fileName);
-    }
-
     public void LoadTiledMap(string fileName)
     {
         _tileMapFileName = fileName;
-        TiledMapListControl.LoadTiledMap(fileName);
+        TiledMapLayersControl.LoadTiledMap(fileName);
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
-        //var animation2dDatas = GameEditorTiledMapControl.GameEditor.Game.GameManager.AssetContentManager.GetAssets<TiledMapData>();
-        //Animation2dLoader.SaveToFile(_animation2dFileName, animation2dDatas);
-        //e.Handled = true;
+        var tiledMapDataViewModel = TiledMapLayersControl.DataContext as TiledMapDataViewModel;
+        TiledMapLoader.Save(_tileMapFileName, tiledMapDataViewModel.TiledMapData);
+
+        //tileset ??
+        //autotileset ??
+
+        e.Handled = true;
     }
 }

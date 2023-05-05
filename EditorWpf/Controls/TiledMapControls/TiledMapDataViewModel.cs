@@ -1,22 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using CasaEngine.Framework.Assets;
+using CasaEngine.Core;
 using CasaEngine.Framework.Assets.Map2d;
-using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.TiledMapControls;
 
 public class TiledMapDataViewModel : NotifyPropertyChangeBase
 {
-    private readonly AssetContentManager _assetContentManager;
+    public TiledMapData? TiledMapData { get; private set; }
+    public TileSetData? TileSetData { get; private set; }
+    public AutoTileSetData? AutoTileSetData { get; private set; }
 
-    public TiledMapData TiledMapData { get; private set; }
-    public TileSetData TileSetData { get; private set; }
-    public AutoTileSetData AutoTileSetData { get; private set; }
+    public ObservableCollection<TiledMapLayerDataViewModel> Layers { get; } = new();
 
     public string TileSetFileName
     {
-        get => TiledMapData.TileSetFileName;
+        get => TiledMapData?.TileSetFileName;
         set
         {
             if (EqualityComparer<string>.Default.Equals(TiledMapData.TileSetFileName, value)) return;
@@ -25,27 +24,20 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
         }
     }
 
-    public Vector2 MapSize
+    public CasaEngine.Core.Size MapSize
     {
-        get => TiledMapData.MapSize;
+        get => TiledMapData == null ? Size.Zero : TiledMapData.MapSize;
         set
         {
-            if (EqualityComparer<Vector2>.Default.Equals(TiledMapData.MapSize, value)) return;
+            if (EqualityComparer<CasaEngine.Core.Size>.Default.Equals(TiledMapData.MapSize, value)) return;
             TiledMapData.MapSize = value;
             OnPropertyChanged();
         }
     }
 
-    public ObservableCollection<TiledMapLayerDataViewModel> Layers { get; } = new();
-
-    public TiledMapDataViewModel(AssetContentManager assetContentManager)
-    {
-        _assetContentManager = assetContentManager;
-    }
-
     public void LoadMap(string fileName)
     {
-        var (tiledMapData, tileSetData, autoTileSetData) = TiledMapCreator.LoadMapFromFile(fileName);
+        var (tiledMapData, tileSetData, autoTileSetData) = TiledMapLoader.LoadMapFromFile(fileName);
 
         TiledMapData = tiledMapData;
         TileSetData = tileSetData;
@@ -55,5 +47,10 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
         {
             Layers.Add(new TiledMapLayerDataViewModel(layer));
         }
+    }
+
+    public void Clear()
+    {
+        Layers.Clear();
     }
 }

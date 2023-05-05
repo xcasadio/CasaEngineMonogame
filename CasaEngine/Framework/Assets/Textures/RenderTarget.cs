@@ -26,8 +26,8 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
+using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework.Graphics;
-using Size = CasaEngine.Core.Helpers.Size;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
@@ -110,14 +110,14 @@ public sealed class RenderTarget : Texture
 
     public static RenderTarget[] CurrentRenderTarget => currentRenderTarget;
 
-    public RenderTarget(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, Size size,
+    public RenderTarget(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, ScreenSize screenSize,
         SurfaceFormat surfaceFormat, DepthFormat depthFormat,
         AntiAliasingType antiAliasingType = AntiAliasingType.NoAntialiasing, bool mipMap = false)
         : base(graphicsDevice)
     {
         _assetContentManager = assetContentManager;
         Name = "Render Target";
-        Size = size;
+        //ScreenSize = screenSize;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = depthFormat;
@@ -131,7 +131,7 @@ public sealed class RenderTarget : Texture
     public RenderTarget(
         AssetContentManager assetContentManager,
         GraphicsDevice graphicsDevice,
-        Size size,
+        ScreenSize screenSize,
         SurfaceFormat surfaceFormat = SurfaceFormat.Color,
         bool hasDepthBuffer = true,
         AntiAliasingType antiAliasingType = AntiAliasingType.NoAntialiasing,
@@ -140,7 +140,7 @@ public sealed class RenderTarget : Texture
     {
         _assetContentManager = assetContentManager;
         Name = "Render Target";
-        Size = size;
+        //ScreenSize = screenSize;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
@@ -378,13 +378,13 @@ public sealed class RenderTarget : Texture
     private static readonly List<RenderTarget> RenderTargets = new(0);
 
     public static RenderTarget Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice,
-        Size size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntiAliasingType antiAliasingType, bool mipMap = false)
+        ScreenSize screenSize, SurfaceFormat surfaceFormat, DepthFormat depthFormat, AntiAliasingType antiAliasingType, bool mipMap = false)
     {
         RenderTarget renderTarget;
         for (var i = 0; i < RenderTargets.Count; i++)
         {
             renderTarget = RenderTargets[i];
-            if (renderTarget.Size == size && renderTarget.SurfaceFormat == surfaceFormat &&
+            if (/*renderTarget.ScreenSize == screenSize &&*/ renderTarget.SurfaceFormat == surfaceFormat &&
                 renderTarget.DepthFormat == depthFormat && renderTarget.AntiAliasing == antiAliasingType && renderTarget.MipMap == mipMap && !renderTarget._looked)
             {
                 renderTarget._looked = true;
@@ -392,7 +392,7 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        renderTarget = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat, depthFormat, antiAliasingType, mipMap);
+        renderTarget = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat, depthFormat, antiAliasingType, mipMap);
         RenderTargets.Add(renderTarget);
         renderTarget._looked = true;
         return renderTarget;
@@ -430,7 +430,7 @@ public sealed class RenderTarget : Texture
     // A pool of all multiple render targets.
     private static readonly List<RenderTargetBinding> MultipleRenderTargets = new(0);
 
-    public static RenderTargetBinding Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
+    public static RenderTargetBinding Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, ScreenSize screenSize, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2)
     {
         RenderTargetBinding renderTargetBinding;
         for (var i = 0; i < MultipleRenderTargets.Count; i++)
@@ -439,7 +439,7 @@ public sealed class RenderTarget : Texture
             // If is a multiple render target of three render targets.
             if (renderTargetBinding.RenderTargets.Length == 2)
             {
-                if (renderTargetBinding.RenderTargets[0].Size == size && renderTargetBinding.RenderTargets[0].SurfaceFormat == surfaceFormat1 &&
+                if (/*renderTargetBinding.RenderTargets[0].ScreenSize == screenSize &&*/ renderTargetBinding.RenderTargets[0].SurfaceFormat == surfaceFormat1 &&
                     renderTargetBinding.RenderTargets[0].DepthFormat == depthFormat &&
                     renderTargetBinding.RenderTargets[1].SurfaceFormat == surfaceFormat2 &&
                     !renderTargetBinding.RenderTargets[0]._looked)
@@ -450,15 +450,15 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat1, depthFormat);
-        var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat2, false);
+        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat1, depthFormat);
+        var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat2, false);
         renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2);
         MultipleRenderTargets.Add(renderTargetBinding);
         renderTargetBinding.RenderTargets[0]._looked = true;
         return renderTargetBinding;
     } // Fetch
 
-    public static RenderTargetBinding Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, Size size, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2, SurfaceFormat surfaceFormat3)
+    public static RenderTargetBinding Fetch(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, ScreenSize screenSize, SurfaceFormat surfaceFormat1, DepthFormat depthFormat, SurfaceFormat surfaceFormat2, SurfaceFormat surfaceFormat3)
     {
         RenderTargetBinding renderTargetBinding;
         for (var i = 0; i < MultipleRenderTargets.Count; i++)
@@ -467,7 +467,7 @@ public sealed class RenderTarget : Texture
             // If is a multiple render target of three render targets.
             if (renderTargetBinding.RenderTargets.Length == 3)
             {
-                if (renderTargetBinding.RenderTargets[0].Size == size && renderTargetBinding.RenderTargets[0].SurfaceFormat == surfaceFormat1 &&
+                if (/*renderTargetBinding.RenderTargets[0].ScreenSize == screenSize && */renderTargetBinding.RenderTargets[0].SurfaceFormat == surfaceFormat1 &&
                     renderTargetBinding.RenderTargets[0].DepthFormat == depthFormat &&
                     renderTargetBinding.RenderTargets[1].SurfaceFormat == surfaceFormat2 &&
                     renderTargetBinding.RenderTargets[2].SurfaceFormat == surfaceFormat3 &&
@@ -479,9 +479,9 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat1, depthFormat);
-        var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat2, false);
-        var renderTarget3 = new RenderTarget(assetContentManager, graphicsDevice, size, surfaceFormat3, false);
+        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat1, depthFormat);
+        var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat2, false);
+        var renderTarget3 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat3, false);
         renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2, renderTarget3);
         MultipleRenderTargets.Add(renderTargetBinding);
         renderTargetBinding.RenderTargets[0]._looked = true;

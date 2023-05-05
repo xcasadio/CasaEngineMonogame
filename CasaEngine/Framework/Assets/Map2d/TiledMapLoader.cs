@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
-public class TiledMapCreator
+public class TiledMapLoader
 {
     public static (TiledMapData tiledMapData, TileSetData tileSetData, AutoTileSetData autoTileSetData) LoadMapFromFile(string fileName)
     {
@@ -28,7 +28,7 @@ public class TiledMapCreator
         tiledMapData.TileSetFileName = rootElement.GetJsonPropertyByName("tile_set_file_name").Value.GetString();
         tiledMapData.AutoTileSetFileName = rootElement.GetJsonPropertyByName("auto_tile_set_file_name").Value.GetString();
         tiledMapData.Coordinates.Load(rootElement.GetJsonPropertyByName("coordinates").Value);
-        tiledMapData.MapSize = rootElement.GetJsonPropertyByName("map_size").Value.GetVector2();
+        tiledMapData.MapSize = rootElement.GetJsonPropertyByName("map_size").Value.GetSize();
 
         foreach (var jObject in rootElement.GetJsonPropertyByName("layers").Value.EnumerateArray())
         {
@@ -56,7 +56,7 @@ public class TiledMapCreator
         rootElement = jsonDocument.RootElement;
 
         tileSetData.SpriteSheetFileName = rootElement.GetJsonPropertyByName("sprite_sheet_file_name").Value.GetString();
-        tileSetData.TileSize = rootElement.GetJsonPropertyByName("tile_size").Value.GetVector2();
+        tileSetData.TileSize = rootElement.GetJsonPropertyByName("tile_size").Value.GetSize();
         //TODO : create template with factory
         foreach (var jObject in rootElement.GetJsonPropertyByName("tiles").Value.EnumerateArray())
         {
@@ -94,7 +94,7 @@ public class TiledMapCreator
         jsonDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(Game.GameSettings.ProjectSettings.ProjectPath, tiledMapData.AutoTileSetFileName)));
         rootElement = jsonDocument.RootElement;
         autoTileSetData.SpriteSheetFileName = rootElement.GetJsonPropertyByName("sprite_sheet_file_name").Value.GetString();
-        autoTileSetData.TileSize = rootElement.GetJsonPropertyByName("tile_size").Value.GetVector2();
+        autoTileSetData.TileSize = rootElement.GetJsonPropertyByName("tile_size").Value.GetSize();
 
         foreach (var jObject in rootElement.GetJsonPropertyByName("sets").Value.EnumerateArray())
         {
@@ -154,28 +154,18 @@ public class TiledMapCreator
 
     public static void Create(Entity mapEntity, string prefixName, AutoTileSetData autoTileSetData, TileSetData tileSetData, TiledMapData tiledMapData, World.World world, AssetContentManager assetContentManager)
     {
-        var physics_world = world.Physic2dWorld;
         var layerIndex = 0;
 
         foreach (var layer in tiledMapData.Layers)
-        {/*
-            var layerEntity = new Entity();
-            layerEntity.Name = "layer_" + layerIndex + "_" + prefixName;
-            var layerPos = layerEntity.Coordinates.LocalPosition;
-            layerEntity.Coordinates.LocalPosition = new Vector3(layerPos.X, layerPos.Y, layerPos.Z + layer.zOffset);
-#if EDITOR
-            layerEntity.IsTemporary = true;
-#endif
-            layerEntity.Coordinates.Parent = mapEntity.Coordinates;
-            world.AddEntityImmediately(layerEntity);*/
+        {
             var index = 0;
 
             foreach (var tileId in layer.tiles)
             {
-                var x = index % (int)tiledMapData.MapSize.X;
-                var y = index / (int)tiledMapData.MapSize.X;
-                var posX = x * (int)tileSetData.TileSize.X;
-                var posY = y * (int)tileSetData.TileSize.Y;
+                var x = index % tiledMapData.MapSize.Width;
+                var y = index / tiledMapData.MapSize.Width;
+                var posX = x * tileSetData.TileSize.Width;
+                var posY = y * tileSetData.TileSize.Height;
 
                 var tileEntity = new Entity();
                 tileEntity.Name = "tile_" + index + "_" + layerIndex + "_" + prefixName;
@@ -219,14 +209,14 @@ public class TiledMapCreator
                 //    ICollisionObjectContainer* collisionShape = null;
                 //    if (collisionType == TileCollisionType.Blocked)
                 //    {
-                //        collisionShape = physics_world.CreateCollisionShape(tileEntity, shape, position, CollisionHitType.Defense, CollisionFlags.Static);
+                //        collisionShape = world.Physic2dWorld.CreateCollisionShape(tileEntity, shape, position, CollisionHitType.Defense, CollisionFlags.Static);
                 //    }
                 //    else
                 //    {
-                //        collisionShape = physics_world.CreateSensor(tileEntity, shape, position, CollisionHitType.Defense);
+                //        collisionShape = world.Physic2dWorld.CreateSensor(tileEntity, shape, position, CollisionHitType.Defense);
                 //    }
                 //
-                //    physics_world.AddCollisionObject(collisionShape);
+                //    world.Physic2dWorld.AddCollisionObject(collisionShape);
                 //}
 
                 var tileComponent = new TileComponent(tileEntity);
@@ -277,4 +267,10 @@ public class TiledMapCreator
         return autoTile;
     }
 
+#if EDITOR
+    public static void Save(string file, TiledMapData tiledMapData)
+    {
+
+    }
+#endif
 }

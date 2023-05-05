@@ -1,16 +1,17 @@
-﻿using System.IO;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using CasaEngine.Framework.Assets.Map2d;
 using Microsoft.Xna.Framework;
+using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace EditorWpf.Controls.SpriteControls
 {
-    public partial class SpriteEditorControl : UserControl, IEditorControl
+    public partial class SpriteEditorControl : EditorControlBase
     {
         private string _spriteSheetFileName;
-        private const string LayoutFileName = "spriteEditorLayout.xml";
+
+        protected override string LayoutFileName { get; } = "spriteEditorLayout.xml";
+        protected override DockingManager DockingManager => dockingManagerSprite;
 
         public SpriteEditorControl()
         {
@@ -18,24 +19,7 @@ namespace EditorWpf.Controls.SpriteControls
             SpriteListControl.InitializeFromGameEditor(GameEditorSpriteControl.GameEditor);
         }
 
-        public void ShowControl(UserControl control, string panelTitle)
-        {
-            EditorControlHelper.ShowControl(control, dockingManagerSprite, panelTitle);
-        }
-
-        public void LoadLayout(string path)
-        {
-            var fileName = Path.Combine(path, LayoutFileName);
-
-            if (!File.Exists(fileName))
-            {
-                return;
-            }
-
-            EditorControlHelper.LoadLayout(dockingManagerSprite, fileName, LayoutSerializationCallback);
-        }
-
-        private void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
+        protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
         {
             e.Content = e.Model.Title switch
             {
@@ -48,12 +32,6 @@ namespace EditorWpf.Controls.SpriteControls
                 "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
                 _ => e.Content
             };
-        }
-
-        public void SaveLayout(string path)
-        {
-            var fileName = Path.Combine(path, LayoutFileName);
-            EditorControlHelper.SaveLayout(dockingManagerSprite, fileName);
         }
 
         public void LoadSpriteSheet(string fileName)

@@ -74,7 +74,7 @@
     <Compile Update="Controls\TiledMapControls\TiledMapEditorControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Controls\TiledMapControls\TiledMapListControl.xaml.cs">
+    <Compile Update="Controls\TiledMapControls\TiledMapLayersControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Controls\TiledMapControls\GameEditorTiledMapControl.xaml.cs">

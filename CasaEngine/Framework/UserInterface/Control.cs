@@ -1309,7 +1309,7 @@ public class Control : Disposable
                     //AssetContentManager userContentManager = AssetContentManager.CurrentContentManager;
                     //AssetContentManager.CurrentContentManager = UserInterfaceManager.UserInterfaceContentManager;
                     _renderTarget = new RenderTarget(UserInterfaceManager.AssetContentManager,
-                        UserInterfaceManager.GraphicsDevice, new Core.Helpers.Size(w, h, UserInterfaceManager.Screen),
+                        UserInterfaceManager.GraphicsDevice, new Core.Helpers.ScreenSize(w, h, UserInterfaceManager.Screen),
                         SurfaceFormat.Color, false)
                     {
                         Name = "User Interface Render Target"

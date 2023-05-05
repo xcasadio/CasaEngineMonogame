@@ -26,15 +26,12 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-
 using Screen = CasaEngine.Framework.UserInterface.Screen;
-
 
 namespace CasaEngine.Core.Helpers;
 
-public struct Size
+public struct ScreenSize
 {
-
 
     public enum TextureSize
     {
@@ -43,12 +40,8 @@ public struct Size
         FullSize,
     } // TextureSize
 
-
-
     private int _width, _height;
     private Screen _screen;
-
-
 
     public int Width
     {
@@ -129,30 +122,27 @@ public struct Size
         }
     } // Height
 
+    public ScreenSize FullScreen => new() { _width = -1, _height = 0, _screen = _screen };
 
+    public ScreenSize HalfScreen => new() { _width = -2, _height = 0, _screen = _screen };
 
-    public Size FullScreen => new() { _width = -1, _height = 0, _screen = _screen };
+    public ScreenSize QuarterScreen => new() { _width = -3, _height = 0, _screen = _screen };
 
-    public Size HalfScreen => new() { _width = -2, _height = 0, _screen = _screen };
+    public ScreenSize SplitFullScreen => new() { _width = -4, _height = 0, _screen = _screen };
 
-    public Size QuarterScreen => new() { _width = -3, _height = 0, _screen = _screen };
+    public ScreenSize SplitHalfScreen => new() { _width = -5, _height = 0, _screen = _screen };
 
-    public Size SplitFullScreen => new() { _width = -4, _height = 0, _screen = _screen };
+    public ScreenSize SplitQuarterScreen => new() { _width = -6, _height = 0, _screen = _screen };
 
-    public Size SplitHalfScreen => new() { _width = -5, _height = 0, _screen = _screen };
+    public ScreenSize Square256X256 => new(256, 256, _screen);
 
-    public Size SplitQuarterScreen => new() { _width = -6, _height = 0, _screen = _screen };
+    public ScreenSize Square512X512 => new(512, 512, _screen);
 
-    public Size Square256X256 => new(256, 256, _screen);
+    public ScreenSize Square1024X1024 => new(1024, 1024, _screen);
 
-    public Size Square512X512 => new(512, 512, _screen);
+    public ScreenSize Square2048X2048 => new(2048, 2048, _screen);
 
-    public Size Square1024X1024 => new(1024, 1024, _screen);
-
-    public Size Square2048X2048 => new(2048, 2048, _screen);
-
-
-    public Size(int width, int height, Screen screen)
+    public ScreenSize(int width, int height, Screen screen)
     {
         if (width < 0)
         {
@@ -170,21 +160,19 @@ public struct Size
         _screen = screen;
     } // Size
 
-
-
-    public static bool operator ==(Size x, Size y)
+    public static bool operator ==(ScreenSize x, ScreenSize y)
     {
         return x._width == y._width && x._height == y._height;
     } // Equal
 
-    public static bool operator !=(Size x, Size y)
+    public static bool operator !=(ScreenSize x, ScreenSize y)
     {
         return x._width != y._width || x._height != y._height;
     } // Not Equal
 
     public override bool Equals(object obj)
     {
-        return obj is Size && this == (Size)obj;
+        return obj is ScreenSize && this == (ScreenSize)obj;
     } // Equals
 
     public override int GetHashCode()
@@ -192,9 +180,7 @@ public struct Size
         return _width.GetHashCode() ^ _height.GetHashCode();
     } // GetHashCode
 
-
-
-    public Size HalfSize()
+    public ScreenSize HalfSize()
     {
         if (this == FullScreen)
         {
@@ -216,10 +202,8 @@ public struct Size
             return SplitQuarterScreen;
         }
 
-        return new Size(Width / 2, Height / 2, _screen);
+        return new ScreenSize(Width / 2, Height / 2, _screen);
     } // HalfSize
-
-
 
     public void MakeRelativeIfPosible()
     {
@@ -254,7 +238,6 @@ public struct Size
         }
         // If not stay the same.
     } // MakeRelativeIfPosible
-
 
 } // Size 
 // XNAFinalEngine.Helpers

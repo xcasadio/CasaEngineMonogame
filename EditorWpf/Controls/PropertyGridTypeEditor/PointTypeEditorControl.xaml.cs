@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Xna.Framework;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using Xceed.Wpf.Toolkit.PropertyGrid.Editors;
 using Point = Microsoft.Xna.Framework.Point;

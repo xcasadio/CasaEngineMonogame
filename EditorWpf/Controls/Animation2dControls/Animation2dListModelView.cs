@@ -3,7 +3,6 @@ using System.IO;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Map2d;
-using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Animation2dControls;
 
 public class Animation2dListModelView
