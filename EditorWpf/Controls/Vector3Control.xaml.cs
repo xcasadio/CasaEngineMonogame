@@ -4,9 +4,6 @@ using System.Windows.Controls;
 
 namespace EditorWpf.Controls
 {
-    /// <summary>
-    /// Interaction logic for Vector3Control.xaml
-    /// </summary>
     public partial class Vector3Control : UserControl
     {
         public static readonly DependencyProperty XProperty = DependencyProperty.Register(nameof(X), typeof(float), typeof(Vector3Control), new PropertyMetadata(0f, OnValueChanged));

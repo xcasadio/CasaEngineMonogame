@@ -31,8 +31,10 @@
     <None Remove="Resources\Icon_Scale_gray.png" />
     <None Remove="Resources\Icon_Translate.png" />
     <None Remove="Resources\Icon_Translate_gray.png" />
+    <None Remove="Resources\non_visible_icon.png" />
     <None Remove="Resources\open-file-folder-48.png" />
     <None Remove="Resources\save-44-48.png" />
+    <None Remove="Resources\visible_icon.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CasaEngine.WpfControls\CasaEngine.WpfControls.csproj" />
     <ProjectReference Include="..\CasaEngine\CasaEngine.Editor.csproj" />
     <ProjectReference Include="..\MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj" />
   </ItemGroup>
@@ -63,8 +66,10 @@
     <Resource Include="Resources\Icon_Scale_gray.png" />
     <Resource Include="Resources\Icon_Translate.png" />
     <Resource Include="Resources\Icon_Translate_gray.png" />
+    <Resource Include="Resources\non_visible_icon.png" />
     <Resource Include="Resources\open-file-folder-48.png" />
     <Resource Include="Resources\save-44-48.png" />
+    <Resource Include="Resources\visible_icon.png" />
   </ItemGroup>
 
   <ItemGroup>

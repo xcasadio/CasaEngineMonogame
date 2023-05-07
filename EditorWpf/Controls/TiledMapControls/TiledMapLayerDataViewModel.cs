@@ -1,11 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CasaEngine.Framework.Assets.Map2d;
 
 namespace EditorWpf.Controls.TiledMapControls;
 
 public class TiledMapLayerDataViewModel : NotifyPropertyChangeBase
 {
+    private bool _isVisible = true;
     public TiledMapLayerData TiledMapLayerData { get; }
+
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set => SetField(ref _isVisible, value);
+    }
+
+    public string? Name
+    {
+        get => TiledMapLayerData.Name;
+        set
+        {
+            if (EqualityComparer<string>.Default.Equals(TiledMapLayerData.Name, value)) return;
+            TiledMapLayerData.Name = value;
+            OnPropertyChanged();
+        }
+    }
 
     public List<int> Tiles
     {

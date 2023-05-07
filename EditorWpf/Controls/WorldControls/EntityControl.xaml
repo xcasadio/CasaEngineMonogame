@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EditorWpf.Controls"
              xmlns:worldControls="clr-namespace:EditorWpf.Controls.WorldControls"
+             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="800">
     <StackPanel>
@@ -23,6 +24,7 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
@@ -30,10 +32,15 @@
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Name}" VerticalAlignment="Center"/>
+
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <local:Vector3Control x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"/>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <local:Vector3Control x:Name="Vector3ControlScale" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalPosition}"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Rotation" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalRotation}"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalScale}"/>
             </Grid>
         </Grid>
 

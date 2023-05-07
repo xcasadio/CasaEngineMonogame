@@ -7,6 +7,7 @@
         xmlns:spriteControls="clr-namespace:EditorWpf.Controls.SpriteControls"
         xmlns:animation2dControls="clr-namespace:EditorWpf.Controls.Animation2dControls"
         xmlns:tiledMapControls="clr-namespace:EditorWpf.Controls.TiledMapControls"
+        xmlns:worldControls="clr-namespace:EditorWpf.Controls.WorldControls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
     <Grid>
@@ -41,7 +42,7 @@
 
         <TabControl Grid.Row="1" x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TabItem Header="World">
-                <controls:WorldEditorControl x:Name="WorldEditorControl"/>
+                <worldControls:WorldEditorControl x:Name="WorldEditorControl"/>
             </TabItem>
             <TabItem Header="Sprite">
                 <spriteControls:SpriteEditorControl />

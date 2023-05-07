@@ -1,14 +1,14 @@
 ﻿using System;
-using System.IO;
-using System.Windows.Controls;
 using Microsoft.Xna.Framework;
+using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace EditorWpf.Controls
+namespace EditorWpf.Controls.WorldControls
 {
-    public partial class WorldEditorControl : UserControl, IEditorControl
+    public partial class WorldEditorControl : EditorControlBase
     {
-        private const string LayoutFileName = "worldEditorLayout.xml";
+        protected override string LayoutFileName { get; } = "worldEditorLayout.xml";
+        protected override DockingManager DockingManager => dockingManagerWorld;
 
         public event EventHandler GameStarted;
 
@@ -23,30 +23,12 @@ namespace EditorWpf.Controls
             EntityControl.InitializeFromGameEditor(GameScreenControl.gameEditor.Game);
         }
 
-
         private void OnGameStarted(object? sender, EventArgs e)
         {
             GameStarted?.Invoke(this, e);
         }
 
-        public void ShowControl(UserControl control, string panelTitle)
-        {
-            EditorControlHelper.ShowControl(control, dockingManagerWorld, panelTitle);
-        }
-
-        public void LoadLayout(string path)
-        {
-            var fileName = Path.Combine(path, LayoutFileName);
-
-            if (!File.Exists(fileName))
-            {
-                return;
-            }
-
-            EditorControlHelper.LoadLayout(dockingManagerWorld, fileName, LayoutSerializationCallback);
-        }
-
-        private void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
+        protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
         {
             e.Content = e.Model.Title switch
             {
@@ -58,12 +40,6 @@ namespace EditorWpf.Controls
                 "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
                 _ => e.Content
             };
-        }
-
-        public void SaveLayout(string path)
-        {
-            var fileName = Path.Combine(path, LayoutFileName);
-            EditorControlHelper.SaveLayout(dockingManagerWorld, fileName);
         }
 
         public void LoadWorld(string fileName)

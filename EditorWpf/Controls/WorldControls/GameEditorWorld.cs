@@ -35,7 +35,7 @@ public class GameEditorWorld : GameEditor
             e.Handled = true;
             var position = e.GetPosition(this);
             var camera = Game?.GameManager.ActiveCamera;
-            var ray = CasaEngine.Core.Helper.MathHelper.CalculateRayFromScreenCoordinate(
+            var ray = CasaEngine.Core.Helper.MathUtils.CalculateRayFromScreenCoordinate(
                 new Vector2((float)position.X, (float)position.Y),
                 camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
             //tester si le ray intersect un model sinon ray.Position

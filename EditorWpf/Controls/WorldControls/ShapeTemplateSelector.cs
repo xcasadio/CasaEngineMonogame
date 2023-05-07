@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Engine.Physics.Shapes;
 
-namespace EditorWpf.Controls;
+namespace EditorWpf.Controls.WorldControls;
 
 public class ShapeTemplateSelector : DataTemplateSelector
 {

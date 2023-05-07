@@ -90,7 +90,7 @@
             </Grid>
         </DataTemplate>
 
-        <local:ShapeTemplateSelector x:Key="ShapeTemplateSelectorWithoutCompound" 
+        <worldControls:ShapeTemplateSelector x:Key="ShapeTemplateSelectorWithoutCompound" 
                                      BoxTemplate="{StaticResource BoxTemplate}"
                                      SphereTemplate="{StaticResource SphereTemplate}"
                                      CapsuleTemplate="{StaticResource CapsuleTemplate}"
@@ -114,7 +114,7 @@
             </ItemsControl>
         </DataTemplate>
 
-        <local:ShapeTemplateSelector x:Key="ShapeTemplateSelector" 
+        <worldControls:ShapeTemplateSelector x:Key="ShapeTemplateSelector" 
                                      BoxTemplate="{StaticResource BoxTemplate}"
                                      SphereTemplate="{StaticResource SphereTemplate}"
                                      CapsuleTemplate="{StaticResource CapsuleTemplate}"

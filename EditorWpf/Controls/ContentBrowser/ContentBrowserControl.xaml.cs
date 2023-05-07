@@ -6,6 +6,7 @@ using CasaEngine.Engine;
 using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.SpriteControls;
 using EditorWpf.Controls.TiledMapControls;
+using EditorWpf.Controls.WorldControls;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.ContentBrowser

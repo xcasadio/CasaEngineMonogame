@@ -19,8 +19,12 @@
         <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"/>
 
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical">
-            <Button Content="+" />
-            <Button Content="-" />
+            <Button>
+                <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
+            </Button>
+            <Button>
+                <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
+            </Button>
         </StackPanel>
 
         <ListBox Grid.Row="1" Grid.Column="0" x:Name="ListBox" ItemsSource="{Binding Animation2dDatas}" 
