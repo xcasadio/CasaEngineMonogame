@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics", "Physics", "{4B5C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhysicsDebug", "PhysicsDebug\PhysicsDebug.csproj", "{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CasaEngine.WpfControls", "CasaEngine.WpfControls\CasaEngine.WpfControls.csproj", "{DFF1902F-E282-423D-80A0-4A3DEE29796F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -146,6 +148,18 @@ Global
 		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|x64.ActiveCfg = Release|Any CPU
 		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|x64.Build.0 = Release|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Debug|x64.Build.0 = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.DebugEditor|x64.Build.0 = Debug|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Release|x64.ActiveCfg = Release|Any CPU
+		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
