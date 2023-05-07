@@ -10,6 +10,7 @@
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              xmlns:physics="clr-namespace:CasaEngine.Engine.Physics;assembly=CasaEngine"
              xmlns:worldControls="clr-namespace:EditorWpf.Controls.WorldControls"
+             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
@@ -26,19 +27,13 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Width" />
-                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Width, Mode=TwoWay}" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Height" />
-                <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Increment="0.1" Value="{Binding Height, Mode=TwoWay}" />
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Length" />
-                <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Increment="0.1" Value="{Binding Length, Mode=TwoWay}" />
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Size" />
+                <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Size}" />
             </Grid>
         </DataTemplate>
 
@@ -150,7 +145,6 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
@@ -158,30 +152,31 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0"/>
-                <local:Vector3Control Grid.Row="0" Grid.Column="1" X="{Binding DataContext.Position, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Target" Margin="0,0,5,0"/>
-                <local:Vector3Control Grid.Row="1" Grid.Column="1" X="{Binding DataContext.Target, RelativeSource={RelativeSource AncestorType=Grid}}" HorizontalAlignment="Stretch"/>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Distance}" />
+                <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1"  Value="{Binding Position, Mode=OneWay}"></wpfControls:Vector3Editor>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding FieldOfView}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Distance}" />
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
-                <xctk:DecimalUpDown Grid.Row="3" Grid.Column="1" Value="{Binding FieldOfView, Mode=TwoWay}" Increment="0.05"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding FieldOfView, Mode=TwoWay}" Increment="0.05"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Viewport X" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Viewport.X, Mode=TwoWay}" Increment="10"/>
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Viewport Y" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Viewport.Y, Mode=TwoWay}" Increment="10"/>
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Viewport Width" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Viewport.Width, Mode=TwoWay}" Increment="10"/>
-                <TextBlock Grid.Row="7" Grid.Column="0" Text="Viewport Height" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Viewport.Height, Mode=TwoWay}" Increment="10"/>
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="Viewport Min Depth" Margin="0,0,5,0"/>
-                <xctk:DecimalUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Viewport.MinDepth, Mode=TwoWay}" Increment="10"/>
-                <TextBlock Grid.Row="9" Grid.Column="0" Text="Viewport Max Depth" Margin="0,0,5,0"/>
-                <xctk:DecimalUpDown Grid.Row="9" Grid.Column="1" Value="{Binding Viewport.MaxDepth, Mode=TwoWay}" Increment="10"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Viewport X" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Viewport.X, Mode=TwoWay}" Increment="10"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Viewport Y" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Viewport.Y, Mode=TwoWay}" Increment="10"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Viewport Width" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Viewport.Width, Mode=TwoWay}" Increment="10"/>
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Viewport Height" Margin="0,0,5,0"/>
+                <xctk:IntegerUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Viewport.Height, Mode=TwoWay}" Increment="10"/>
+
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Viewport Min Depth" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Viewport.MinDepth, Mode=TwoWay}" Increment="10"/>
+
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Viewport Max Depth" Margin="0,0,5,0"/>
+                <xctk:DecimalUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Viewport.MaxDepth, Mode=TwoWay}" Increment="10"/>
 
             </Grid>
         </DataTemplate>
@@ -208,16 +203,19 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <local:Vector3Control x:Name="Vector3ControlPosition" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch"/>
+                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Shape.Location}"/>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Mass" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Mass}" Increment="0.1" HorizontalAlignment="Stretch"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Orientation" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <wpfControls:RotationEditor Grid.Row="1" Grid.Column="1" Value="{Binding Shape.Orientation}"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Type" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="comboBoxType" Grid.Row="2" Grid.Column="1" SelectedItem="{Binding Path=PhysicsType}" 
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Mass" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Mass}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Type" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="comboBoxType" Grid.Row="3" Grid.Column="1" SelectedItem="{Binding Path=PhysicsType}" 
                               ItemsSource="{Binding Source={StaticResource PhysicsTypeEnumValues}}"/>
 
-                    <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
+                    <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
                             HorizontalAlignment="Right"/>
                 </Grid>
 

@@ -1,10 +1,13 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Text.Json;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Physics.Shapes;
 
 public class Box : Shape
 {
+    public Vector3 Size { get; set; }
+
     private float _width;
     private float _height;
     private float _length;

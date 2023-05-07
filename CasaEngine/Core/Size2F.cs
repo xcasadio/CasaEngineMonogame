@@ -2,7 +2,7 @@ namespace CasaEngine.Core;
 
 public struct Size2F : IEquatable<Size2F>
 {
-    public static readonly Size2F Zero = new Size2F(0, 0);
+    public static readonly Size2F Zero = new(0, 0);
     public static readonly Size2F Empty = Zero;
 
     public float Width;

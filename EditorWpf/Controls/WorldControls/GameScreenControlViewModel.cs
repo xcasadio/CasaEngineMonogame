@@ -69,7 +69,7 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
         gameEditorWorld.GameStarted += OnGameGameStarted;
     }
 
-    private void OnGameGameStarted(object? sender, System.EventArgs e)
+    private void OnGameGameStarted(object? sender, EventArgs e)
     {
         CasaEngineGame game = (CasaEngineGame)sender;
         _gizmoComponent = game.GetGameComponent<GizmoComponent>();
@@ -80,14 +80,14 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
         OnTransformSpaceChangedEvent(this, EventArgs.Empty);
     }
 
-    private void OnGizmoModeChangedEvent(object? sender, System.EventArgs e)
+    private void OnGizmoModeChangedEvent(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(IsTranslationMode));
         OnPropertyChanged(nameof(IsRotationMode));
         OnPropertyChanged(nameof(IsScaleMode));
     }
 
-    private void OnTransformSpaceChangedEvent(object? sender, System.EventArgs e)
+    private void OnTransformSpaceChangedEvent(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(IsTransformSpaceLocal));
         OnPropertyChanged(nameof(IsTransformSpaceWorld));

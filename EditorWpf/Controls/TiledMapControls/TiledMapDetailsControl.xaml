@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              mc:Ignorable="d" 
              d:DesignHeight="50" d:DesignWidth="200">
     <Grid>
@@ -17,7 +18,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Row="0" Grid.Column="0" Text="Map Size" />
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MapSize}" />
+        <wpfControls:SizeEditor Grid.Row="0" Grid.Column="1" Value="{Binding MapSize}" />
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="TileSet File Name" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TileSetFileName}" />

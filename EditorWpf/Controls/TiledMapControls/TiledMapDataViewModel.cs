@@ -13,7 +13,7 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
 
     public ObservableCollection<TiledMapLayerDataViewModel> Layers { get; } = new();
 
-    public string TileSetFileName
+    public string? TileSetFileName
     {
         get => TiledMapData?.TileSetFileName;
         set
@@ -24,12 +24,12 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
         }
     }
 
-    public CasaEngine.Core.Size MapSize
+    public Size MapSize
     {
-        get => TiledMapData == null ? Size.Zero : TiledMapData.MapSize;
+        get => TiledMapData?.MapSize ?? Size.Zero;
         set
         {
-            if (EqualityComparer<CasaEngine.Core.Size>.Default.Equals(TiledMapData.MapSize, value)) return;
+            if (EqualityComparer<Size>.Default.Equals(TiledMapData.MapSize, value)) return;
             TiledMapData.MapSize = value;
             OnPropertyChanged();
         }
@@ -47,6 +47,9 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
         {
             Layers.Add(new TiledMapLayerDataViewModel(layer));
         }
+
+        OnPropertyChanged(nameof(MapSize));
+        OnPropertyChanged(nameof(TileSetFileName));
     }
 
     public void Clear()

@@ -56,5 +56,14 @@ public abstract class GameEditor2d : GameEditor
             _entity.Coordinates.LocalPosition += new Vector3(-delta.X, -delta.Y, _entity.Coordinates.LocalPosition.Z);
             _lastMousePosition = _inputComponent.MousePos;
         }
+
+        if (_inputComponent.MouseWheelDelta > 0 && _scale < 8.0f)
+        {
+            _scale *= 2.0f;
+        }
+        else if (_inputComponent.MouseWheelDelta > 0 && _scale > 1.0f)
+        {
+            _scale /= 2.0f;
+        }
     }
 }

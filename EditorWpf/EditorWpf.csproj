@@ -88,9 +88,6 @@
     <Compile Update="Controls\Common\InputTextBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Controls\PropertyGridTypeEditor\PointTypeEditorControl.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
 
 </Project>
