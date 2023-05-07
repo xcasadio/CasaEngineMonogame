@@ -5,10 +5,10 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
+using CasaEngine.Core.Helper;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MathHelper = CasaEngine.Core.Helper.MathHelper;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
@@ -70,7 +70,7 @@ public class MenuEntry
         //double time = gameTime.TotalGameTime.TotalSeconds;
         var time = elapsedTime;
 
-        var pulsate = MathHelper.Sin(time * 6) + 1;
+        var pulsate = MathUtils.Sin(time * 6) + 1;
 
         var scale = 1 + pulsate * 0.05f * _selectionFade;
 

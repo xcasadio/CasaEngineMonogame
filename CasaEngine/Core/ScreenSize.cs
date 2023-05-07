@@ -28,7 +28,7 @@ Authors: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 using Screen = CasaEngine.Framework.UserInterface.Screen;
 
-namespace CasaEngine.Core.Helpers;
+namespace CasaEngine.Core;
 
 public struct ScreenSize
 {

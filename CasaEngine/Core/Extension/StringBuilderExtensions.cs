@@ -124,7 +124,7 @@ public static class StringBuilderExtensions
         else
         {
             int intNumber =
-                (int)(number * MathHelper.Pow(10, decimalCount) + 0.5f);
+                (int)(number * MathUtils.Pow(10, decimalCount) + 0.5f);
 
             AppendNumbernternal(builder, intNumber, decimalCount, options);
         }

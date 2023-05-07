@@ -10,6 +10,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
+using CasaEngine.Core;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.UserInterface.Controls.Auxiliary;
@@ -1309,7 +1310,7 @@ public class Control : Disposable
                     //AssetContentManager userContentManager = AssetContentManager.CurrentContentManager;
                     //AssetContentManager.CurrentContentManager = UserInterfaceManager.UserInterfaceContentManager;
                     _renderTarget = new RenderTarget(UserInterfaceManager.AssetContentManager,
-                        UserInterfaceManager.GraphicsDevice, new Core.Helpers.ScreenSize(w, h, UserInterfaceManager.Screen),
+                        UserInterfaceManager.GraphicsDevice, new ScreenSize(w, h, UserInterfaceManager.Screen),
                         SurfaceFormat.Color, false)
                     {
                         Name = "User Interface Render Target"

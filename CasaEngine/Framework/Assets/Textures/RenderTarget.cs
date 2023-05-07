@@ -26,6 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
+using CasaEngine.Core;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework.Graphics;
 

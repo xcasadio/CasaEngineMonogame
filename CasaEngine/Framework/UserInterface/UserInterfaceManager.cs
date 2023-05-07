@@ -12,6 +12,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 #if (!XBOX)
 #endif
+using CasaEngine.Core;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Game;
@@ -261,7 +262,7 @@ public class UserInterfaceManager
             /*AssetContentManager userContentManager = AssetContentManager.CurrentContentManager;
             UserInterfaceContentManager = new AssetContentManager { Name = "User Interface Content Manager", Hidden = true };
             AssetContentManager.CurrentContentManager = UserInterfaceContentManager;*/
-            var size = new Core.Helpers.ScreenSize(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, Screen);
+            var size = new ScreenSize(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, Screen);
             _renderTarget = new RenderTarget(Game.GameManager.AssetContentManager, Game.GraphicsDevice, size.FullScreen,
                 SurfaceFormat.Color, false)
             {

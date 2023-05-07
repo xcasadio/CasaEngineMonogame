@@ -5,11 +5,123 @@ namespace CasaEngine.Core.Helper;
 
 using MathXna = Microsoft.Xna.Framework.MathHelper;
 
-/// <summary>
-/// Encapsulates common mathematical functions.
-/// </summary>
-public static class MathHelper
+public static class MathUtils
 {
+    public const float ZeroTolerance = 1e-6f; // Value a 8x higher than 1.19209290E-07F
+
+    public static bool NearEqual(float a, float b)
+    {
+        if (IsZero(a - b))
+            return true;
+
+        return Math.Abs(a - b) < ZeroTolerance;
+    }
+
+
+    //public static unsafe bool NearEqual(float a, float b)
+    //{
+    //    // Check if the numbers are really close -- needed
+    //    // when comparing numbers near zero.
+    //    if (IsZero(a - b))
+    //        return true;
+    //
+    //    // Original from Bruce Dawson: http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+    //    int aInt = *(int*)&a;
+    //    int bInt = *(int*)&b;
+    //
+    //    // Different signs means they do not match.
+    //    if ((aInt < 0) != (bInt < 0))
+    //        return false;
+    //
+    //    // Find the difference in ULPs.
+    //    int ulp = Math.Abs(aInt - bInt);
+    //
+    //    // Choose of maxUlp = 4
+    //    // according to http://code.google.com/p/googletest/source/browse/trunk/include/gtest/internal/gtest-internal.h
+    //    const int maxUlp = 4;
+    //    return (ulp <= maxUlp);
+    //}
+
+    public static bool IsZero(float a)
+    {
+        return Math.Abs(a) < ZeroTolerance;
+    }
+
+    public static bool IsOne(float a)
+    {
+        return IsZero(a - 1.0f);
+    }
+
+    public static bool WithinEpsilon(float a, float b, float epsilon)
+    {
+        float num = a - b;
+        return ((-epsilon <= num) && (num <= epsilon));
+    }
+
+    public static T[] Array<T>(T value, int length)
+    {
+        var result = new T[length];
+        for (var i = 0; i < length; i++)
+            result[i] = value;
+
+        return result;
+    }
+
+    public static float RevolutionsToDegrees(float revolution)
+    {
+        return revolution * 360.0f;
+    }
+
+    public static float RevolutionsToRadians(float revolution)
+    {
+        return revolution * MathXna.TwoPi;
+    }
+
+    public static float RevolutionsToGradians(float revolution)
+    {
+        return revolution * 400.0f;
+    }
+
+    public static float DegreesToRevolutions(float degree)
+    {
+        return degree / 360.0f;
+    }
+
+    public static float DegreesToRadians(float degree)
+    {
+        return degree * (MathXna.Pi / 180.0f);
+    }
+
+    public static float RadiansToRevolutions(float radian)
+    {
+        return radian / MathXna.TwoPi;
+    }
+
+    public static float RadiansToGradians(float radian)
+    {
+        return radian * (200.0f / MathXna.Pi);
+    }
+
+    public static float GradiansToRevolutions(float gradian)
+    {
+        return gradian / 400.0f;
+    }
+
+    public static float GradiansToDegrees(float gradian)
+    {
+        return gradian * (9.0f / 10.0f);
+    }
+
+    public static float GradiansToRadians(float gradian)
+    {
+        return gradian * (MathXna.Pi / 200.0f);
+    }
+
+    public static float RadiansToDegrees(float radian)
+    {
+        return radian * (180.0f / MathXna.Pi);
+    }
+
 
     // CalculateCursorRay Calculates a world space ray starting at the camera's
     // "eye" and pointing in the direction of the cursor. Viewport.Unproject is used

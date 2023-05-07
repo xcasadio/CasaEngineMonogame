@@ -27,7 +27,7 @@ public static class Vector3Helper
         // for help and check out the Dot Product section ^^
         // Both vectors are normalized so we can save deviding through the
         // lengths.
-        return MathHelper.Acos(Vector3.Dot(vec1, vec2));
+        return MathUtils.Acos(Vector3.Dot(vec1, vec2));
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public static class Vector3Helper
             coeff = -1.0f;
         }
 
-        return coeff * MathHelper.Acos(Vector3.Dot(vec1, vec2));
+        return coeff * MathUtils.Acos(Vector3.Dot(vec1, vec2));
     }
 
     /// <summary>

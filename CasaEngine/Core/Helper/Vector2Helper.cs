@@ -17,6 +17,6 @@ public static class Vector2Helper
         // for help and check out the Dot Product section ^^
         // Both vectors are normalized so we can save deviding through the
         // lengths.
-        return MathHelper.Acos(Vector2.Dot(vec1, vec2));
+        return MathUtils.Acos(Vector2.Dot(vec1, vec2));
     }
 }

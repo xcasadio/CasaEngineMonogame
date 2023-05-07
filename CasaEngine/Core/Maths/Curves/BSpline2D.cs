@@ -1,5 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using MathHelper = CasaEngine.Core.Helper.MathHelper;
+﻿using CasaEngine.Core.Helper;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Core.Maths.Curves;
 
@@ -213,7 +213,7 @@ public class BSpline2D
                     else
                     {
                         t = _modalNodes[i - 1] + (_modalNodes[i - 1] - _modalNodes[i - 2]);
-                        t *= MathHelper.Sqrt(Vector2.Distance(ptControl[i], ptControl[i - 1]) / Vector2.Distance(ptControl[i - 1], ptControl[i - 2]));
+                        t *= MathUtils.Sqrt(Vector2.Distance(ptControl[i], ptControl[i - 1]) / Vector2.Distance(ptControl[i - 1], ptControl[i - 2]));
                     }
 
                     _modalNodes.Add(t);
