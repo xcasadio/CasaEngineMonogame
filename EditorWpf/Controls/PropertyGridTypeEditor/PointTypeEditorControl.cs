@@ -11,8 +11,8 @@ public class PointTypeEditorControl : ITypeEditor
     public FrameworkElement ResolveEditor(PropertyItem propertyItem)
     {
         var pointEditor = new PointEditor { DataContext = propertyItem.Instance };
-        var binding = new Binding(propertyItem.PropertyName) { Source = pointEditor };
-        pointEditor.SetBinding(RectangleEditor.ValueProperty, binding);
+        var binding = new Binding("DataContext." + propertyItem.PropertyName) { Source = pointEditor };
+        pointEditor.SetBinding(PointEditor.ValueProperty, binding);
         pointEditor.Value = (Microsoft.Xna.Framework.Point?)propertyItem.Value;
         return pointEditor;
     }

@@ -6,11 +6,11 @@
              xmlns:local="clr-namespace:EditorWpf.Controls"
              xmlns:components="clr-namespace:CasaEngine.Framework.Entities.Components;assembly=CasaEngine"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:shapes="clr-namespace:CasaEngine.Engine.Physics.Shapes;assembly=CasaEngine"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              xmlns:physics="clr-namespace:CasaEngine.Engine.Physics;assembly=CasaEngine"
              xmlns:worldControls="clr-namespace:EditorWpf.Controls.WorldControls"
              xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
+             xmlns:shapes="clr-namespace:CasaEngine.Core.Shapes;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
@@ -91,10 +91,10 @@
                                      CapsuleTemplate="{StaticResource CapsuleTemplate}"
                                      CylinderTemplate="{StaticResource CylinderTemplate}"/>
 
-        <DataTemplate x:Key="CompoundTemplate" DataType="{x:Type shapes:ShapeCompound}">
+        <DataTemplate x:Key="CompoundTemplate" DataType="{x:Type shapes:Shape3dCompound}">
             <ItemsControl ItemsSource="{Binding Shapes}" >
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="shapes:Shape">
+                    <DataTemplate DataType="shapes:Shape3d">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />
@@ -203,7 +203,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Shape.Location}"/>
+                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Shape.Position}"/>
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Orientation" Margin="0,0,5,0" VerticalAlignment="Center"/>
                     <wpfControls:RotationEditor Grid.Row="1" Grid.Column="1" Value="{Binding Shape.Orientation}"/>

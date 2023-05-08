@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.Text.Json;
 using BepuPhysics;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Engine.Physics.Shapes;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using Microsoft.Xna.Framework;
@@ -16,7 +16,7 @@ namespace CasaEngine.Framework.Entities.Components;
 public class PhysicsComponent : Component
 {
     public static readonly int ComponentId = (int)ComponentIds.Physics;
-    private Shape? _shape;
+    private Shape3d? _shape;
     private PhysicsEngineComponent _physicsEngineComponent;
     private PhysicsType _physicsType;
 
@@ -108,7 +108,7 @@ public class PhysicsComponent : Component
         }
     }
 
-    public Shape? Shape
+    public Shape3d? Shape
     {
         get => _shape;
         set
@@ -158,7 +158,7 @@ public class PhysicsComponent : Component
         //TODO : remove this
         if (_shape != null)
         {
-            _shape.Location = Owner.Coordinates.LocalPosition;
+            _shape.Position = Owner.Coordinates.LocalPosition;
             _shape.Orientation = Owner.Coordinates.Rotation;
         }
 
@@ -197,21 +197,7 @@ public class PhysicsComponent : Component
         var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "null")
         {
-            var shapeType = shapeElement.GetProperty("shape_type").GetEnum<ShapeType>();
-
-            Shape shape = shapeType switch
-            {
-                ShapeType.Compound => new ShapeCompound(),
-                ShapeType.Box => new Box(),
-                ShapeType.Capsule => new Capsule(),
-                ShapeType.Cylinder => new Cylinder(),
-                ShapeType.Sphere => new Sphere(),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-
-            shape.Load(shapeElement);
-
-            Shape = shape;
+            Shape = ShapeLoader.LoadShape3d(shapeElement);
         }
     }
 

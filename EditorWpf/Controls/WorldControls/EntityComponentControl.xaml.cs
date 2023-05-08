@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Engine.Physics.Shapes;
+using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using EditorWpf.Windows;
+using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.WorldControls
 {
@@ -50,39 +51,41 @@ namespace EditorWpf.Controls.WorldControls
             {
                 var physicsComponent = button.DataContext as PhysicsComponent;
 
-                var shape = (Shape)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
+                var shape = (Shape3d)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
                 SetParametersFromBoundingBox(shape, physicsComponent.Owner);
-                shape.Location = physicsComponent.Owner.Position;
+                shape.Position = physicsComponent.Owner.Position;
                 shape.Orientation = physicsComponent.Owner.Orientation;
 
                 physicsComponent.Shape = shape;
             }
         }
 
-        private void SetParametersFromBoundingBox(Shape shape, Entity entity)
+        private void SetParametersFromBoundingBox(Shape3d shape, Entity entity)
         {
             switch (shape.Type)
             {
-                case ShapeType.Compound:
+                case Shape3dType.Compound:
                     throw new ArgumentOutOfRangeException();
                     break;
-                case ShapeType.Box:
+                case Shape3dType.Box:
                     var box = shape as Box;
-                    box.Width = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
-                    box.Height = entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y;
-                    box.Length = entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z;
+                    var x = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
+                    var y = entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y;
+                    var z = entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z;
+                    box.Size = new Vector3(x, y, z);
+
                     break;
-                case ShapeType.Capsule:
+                case Shape3dType.Capsule:
                     var capsule = shape as Capsule;
                     capsule.Length = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
                     capsule.Radius = Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z);
                     break;
-                case ShapeType.Cylinder:
+                case Shape3dType.Cylinder:
                     var cylinder = shape as Cylinder;
                     cylinder.Length = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
                     cylinder.Radius = Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z);
                     break;
-                case ShapeType.Sphere:
+                case Shape3dType.Sphere:
                     var sphere = shape as Sphere;
                     sphere.Radius = Math.Min(entity.BoundingBox.Max.X - entity.BoundingBox.Min.X,
                         Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z));

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows;
-using CasaEngine.Engine.Physics.Shapes;
+using CasaEngine.Core.Shapes;
 
 namespace EditorWpf.Windows
 {
@@ -38,7 +38,7 @@ namespace EditorWpf.Windows
 
         private void ButtonCompound_Click(object sender, RoutedEventArgs e)
         {
-            SetType(typeof(ShapeCompound));
+            SetType(typeof(Shape3dCompound));
         }
 
         private void SetType(Type typeSelected)

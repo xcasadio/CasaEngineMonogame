@@ -2,7 +2,8 @@
   "profiles": {
     "CasaEngineLauncher": {
       "commandName": "Project",
-      "commandLineArgs": "ProjectSettings.json"
+      "commandLineArgs": "ProjectTest.json",
+      "workingDirectory": "C:\\Users\\casad\\Documents\\CasaEngineProjects\\ProjectTest"
     }
   }
 }

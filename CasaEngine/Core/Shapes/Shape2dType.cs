@@ -1,7 +1,8 @@
-﻿namespace CasaEngine.Core.Maths.Shape2D;
+﻿namespace CasaEngine.Core.Shapes;
 
 public enum Shape2dType
 {
+    Compound,
     Polygone,
     Rectangle,
     Circle,

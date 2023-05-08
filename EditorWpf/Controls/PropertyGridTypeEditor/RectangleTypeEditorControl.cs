@@ -12,7 +12,7 @@ public class RectangleTypeEditorControl : ITypeEditor
     public FrameworkElement ResolveEditor(PropertyItem propertyItem)
     {
         var rectangleEditor = new RectangleEditor { DataContext = propertyItem.Instance };
-        var binding = new Binding(propertyItem.PropertyName) { Source = rectangleEditor };
+        var binding = new Binding("DataContext." + propertyItem.PropertyName) { Source = rectangleEditor };
         rectangleEditor.SetBinding(RectangleEditor.ValueProperty, binding);
         rectangleEditor.Value = (Rectangle)propertyItem.Value;
         return rectangleEditor;

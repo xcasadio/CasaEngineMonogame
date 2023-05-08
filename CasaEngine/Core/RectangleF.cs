@@ -25,38 +25,23 @@ public struct RectangleF
 
     public float Left
     {
-        get { return X; }
-        set { X = value; }
+        get => X;
+        set => X = value;
     }
 
     public float Top
     {
-        get { return Y; }
-        set { Y = value; }
+        get => Y;
+        set => Y = value;
     }
 
-    public float Right
-    {
-        get
-        {
-            return X + Width;
-        }
-    }
+    public float Right => X + Width;
 
-    public float Bottom
-    {
-        get
-        {
-            return Y + Height;
-        }
-    }
+    public float Bottom => Y + Height;
 
     public Vector2 Location
     {
-        get
-        {
-            return new Vector2(X, Y);
-        }
+        get => new(X, Y);
         set
         {
             X = value.X;
@@ -64,28 +49,13 @@ public struct RectangleF
         }
     }
 
-    public Vector2 Center
-    {
-        get
-        {
-            return new Vector2(X + (Width / 2), Y + (Height / 2));
-        }
-    }
+    public Vector2 Center => new(X + (Width / 2), Y + (Height / 2));
 
-    public bool IsEmpty
-    {
-        get
-        {
-            return (Width == 0.0f) && (Height == 0.0f) && (X == 0.0f) && (Y == 0.0f);
-        }
-    }
+    public bool IsEmpty => (Width == 0.0f) && (Height == 0.0f) && (X == 0.0f) && (Y == 0.0f);
 
     public Size2F Size
     {
-        get
-        {
-            return new Size2F(Width, Height);
-        }
+        get => new(Width, Height);
         set
         {
             Width = value.Width;
@@ -93,13 +63,13 @@ public struct RectangleF
         }
     }
 
-    public Vector2 TopLeft { get { return new Vector2(X, Y); } }
+    public Vector2 TopLeft => new(X, Y);
 
-    public Vector2 TopRight { get { return new Vector2(Right, Y); } }
+    public Vector2 TopRight => new(Right, Y);
 
-    public Vector2 BottomLeft { get { return new Vector2(X, Bottom); } }
+    public Vector2 BottomLeft => new(X, Bottom);
 
-    public Vector2 BottomRight { get { return new Vector2(Right, Bottom); } }
+    public Vector2 BottomRight => new(Right, Bottom);
 
     public void Offset(Point amount)
     {

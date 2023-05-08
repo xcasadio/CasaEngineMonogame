@@ -1,13 +1,13 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
+using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Engine.Physics.Shapes;
 using Microsoft.Xna.Framework;
-using Box = CasaEngine.Engine.Physics.Shapes.Box;
-using Capsule = CasaEngine.Engine.Physics.Shapes.Capsule;
-using Cylinder = CasaEngine.Engine.Physics.Shapes.Cylinder;
+using Box = CasaEngine.Core.Shapes.Box;
+using Capsule = CasaEngine.Core.Shapes.Capsule;
+using Cylinder = CasaEngine.Core.Shapes.Cylinder;
 using Quaternion = System.Numerics.Quaternion;
-using Sphere = CasaEngine.Engine.Physics.Shapes.Sphere;
+using Sphere = CasaEngine.Core.Shapes.Sphere;
 using Vector3 = System.Numerics.Vector3;
 
 namespace CasaEngine.Framework.Game.Components;
@@ -35,27 +35,27 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.Update(gameTime);
     }
 
-    public StaticHandle AddStaticObject(Shape shape)
+    public StaticHandle AddStaticObject(Shape3d shape)
     {
         /*
          var listenedBody1 = Simulation.Bodies.Add(BodyDescription.CreateConvexDynamic(new Vector3(0, 5, 0), 1, Simulation.Shapes, new Box(1, 2, 3)));
         events.Register(Simulation.Bodies[listenedBody1].CollidableReference, eventHandler);
          */
 
-        Vector3 position = ConvertToVector3(shape.Location);
+        Vector3 position = ConvertToVector3(shape.Position);
         Quaternion orientation = CreateQuaternion(shape.Orientation);
         var physicsInfo = ConvertToShape(shape);
         return PhysicsEngine.Simulation.Statics.Add(new StaticDescription(position, orientation, physicsInfo.Item1));
     }
 
-    public BodyHandle AddBodyObject(Shape shape, float mass)
+    public BodyHandle AddBodyObject(Shape3d shape, float mass)
     {
         /*
          var listenedBody1 = Simulation.Bodies.Add(BodyDescription.CreateConvexDynamic(new Vector3(0, 5, 0), 1, Simulation.Shapes, new Box(1, 2, 3)));
         events.Register(Simulation.Bodies[listenedBody1].CollidableReference, eventHandler);
          */
 
-        Vector3 position = ConvertToVector3(shape.Location);
+        Vector3 position = ConvertToVector3(shape.Position);
         Quaternion orientation = CreateQuaternion(shape.Orientation);
         var physicsInfo = ConvertToShape(shape);
 
@@ -69,34 +69,34 @@ public class PhysicsEngineComponent : GameComponent
         return PhysicsEngine.Simulation.Bodies.Add(BodyDescription.CreateDynamic(rigidPose, bodyVelocity, bodyInertia, collidableDescription, bodyActivityDescription));
     }
 
-    private (TypedIndex TypedIndex, IConvexShape ConvexShape) ConvertToShape(Shape shape)
+    private (TypedIndex TypedIndex, IConvexShape ConvexShape) ConvertToShape(Shape3d shape)
     {
         TypedIndex typeIndex;
         IConvexShape convexShape;
 
         switch (shape.Type)
         {
-            case ShapeType.Compound:
+            case Shape3dType.Compound:
                 throw new ArgumentOutOfRangeException();
-            case ShapeType.Box:
+            case Shape3dType.Box:
                 var box = (shape as Box);
-                var physicsBox = new BepuPhysics.Collidables.Box(box.Width, box.Height, box.Length);
+                var physicsBox = new BepuPhysics.Collidables.Box(box.Size.X, box.Size.Y, box.Size.Z);
                 typeIndex = PhysicsEngine.Simulation.Shapes.Add(physicsBox);
                 convexShape = physicsBox;
                 break;
-            case ShapeType.Capsule:
+            case Shape3dType.Capsule:
                 var capsule = (shape as Capsule);
                 var physicsCapsule = new BepuPhysics.Collidables.Capsule(capsule.Radius, capsule.Length);
                 typeIndex = PhysicsEngine.Simulation.Shapes.Add(physicsCapsule);
                 convexShape = physicsCapsule;
                 break;
-            case ShapeType.Cylinder:
+            case Shape3dType.Cylinder:
                 var cylinder = (shape as Cylinder);
                 var physicsCylinder = new BepuPhysics.Collidables.Cylinder(cylinder.Radius, cylinder.Length);
                 typeIndex = PhysicsEngine.Simulation.Shapes.Add(physicsCylinder);
                 convexShape = physicsCylinder;
                 break;
-            case ShapeType.Sphere:
+            case Shape3dType.Sphere:
                 var sphere = (shape as Sphere);
                 var physicsSphere = new BepuPhysics.Collidables.Sphere(sphere.Radius);
                 typeIndex = PhysicsEngine.Simulation.Shapes.Add(physicsSphere);

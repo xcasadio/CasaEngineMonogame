@@ -1,10 +1,7 @@
-﻿using System.Linq;
-using System.Text.Json;
-using CasaEngine.Core.Maths.Shape2D;
-using CasaEngine.Framework;
+﻿using System.Text.Json;
+using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 

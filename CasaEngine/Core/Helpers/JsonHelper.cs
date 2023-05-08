@@ -87,8 +87,8 @@ public static class JsonHelper
         var viewport = new Viewport();
         viewport.X = element.GetProperty("x").GetInt32();
         viewport.Y = element.GetProperty("y").GetInt32();
-        viewport.Width = element.GetProperty("width").GetInt32();
-        viewport.Height = element.GetProperty("height").GetInt32();
+        viewport.Width = element.GetProperty("w").GetInt32();
+        viewport.Height = element.GetProperty("h").GetInt32();
         viewport.MinDepth = element.GetProperty("min_depth").GetSingle();
         viewport.MaxDepth = element.GetProperty("max_depth").GetSingle();
         return viewport;
@@ -181,8 +181,8 @@ public static class JsonHelper
     {
         jObject.Add("x", obj.X);
         jObject.Add("y", obj.Y);
-        jObject.Add("width", obj.Width);
-        jObject.Add("height", obj.Height);
+        jObject.Add("w", obj.Width);
+        jObject.Add("h", obj.Height);
         jObject.Add("min_depth", obj.MinDepth);
         jObject.Add("max_depth", obj.MaxDepth);
     }

@@ -32,6 +32,8 @@ public class SpriteLoader
             spriteDatas.Add(spriteData);
         }
 
+        //SaveToFile(fileName, spriteDatas);
+
         return spriteDatas;
     }
 

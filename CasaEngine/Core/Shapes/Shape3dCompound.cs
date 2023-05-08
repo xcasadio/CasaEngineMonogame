@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Engine.Physics.Shapes;
+namespace CasaEngine.Core.Shapes;
 
-public class ShapeCompound : Shape
+public class Shape3dCompound : Shape3d
 {
-    public List<Shape> Shapes { get; } = new();
+    public List<Shape3d> Shapes { get; } = new();
 
-    public ShapeCompound() : base(ShapeType.Compound)
+    public Shape3dCompound() : base(Shape3dType.Compound)
     {
 
     }
