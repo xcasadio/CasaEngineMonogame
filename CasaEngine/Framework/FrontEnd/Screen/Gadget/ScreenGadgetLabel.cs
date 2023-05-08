@@ -21,7 +21,7 @@ public class ScreenGadgetLabel
 #endif
     override void DrawGadget(float elapsedTime)
     {
-        Renderer2dComponent.AddSprite(
+        Renderer2dComponent.DrawSprite(
             WhiteTexture,
             Location,
             0.0f,
@@ -30,7 +30,7 @@ public class ScreenGadgetLabel
             0.0001f,
             SpriteEffects.None);
 
-        Renderer2dComponent.AddText2d(
+        Renderer2dComponent.DrawText(
             Font,
             Text,
             Location + Vector2.One * 5,

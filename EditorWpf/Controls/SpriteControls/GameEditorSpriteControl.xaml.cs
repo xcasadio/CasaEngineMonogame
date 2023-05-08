@@ -27,19 +27,19 @@ namespace EditorWpf.Controls.SpriteControls
         private void ButtonHotSpot_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            gameEditor.Game.GetGameComponent<Renderer2dComponent>().DrawSpriteOrigin = checkBox.IsChecked ?? false;
+            gameEditor.Game.GetGameComponent<Renderer2dComponent>().IsDrawSpriteOriginEnabled = checkBox.IsChecked ?? false;
         }
 
         private void ButtonSpriteBorder_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            gameEditor.Game.GetGameComponent<Renderer2dComponent>().DrawSpriteBorder = checkBox.IsChecked ?? false;
+            gameEditor.Game.GetGameComponent<Renderer2dComponent>().IsDrawSpriteBorderEnabled = checkBox.IsChecked ?? false;
         }
 
         private void ButtonDisplaySpriteSheet_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            gameEditor.Game.GetGameComponent<Renderer2dComponent>().DrawSpriteSheet = checkBox.IsChecked ?? false;
+            gameEditor.Game.GetGameComponent<Renderer2dComponent>().IsDrawSpriteSheetEnabled = checkBox.IsChecked ?? false;
         }
 
         private void Transparency_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -51,6 +51,18 @@ namespace EditorWpf.Controls.SpriteControls
 
             var slider = (sender as Slider);
             gameEditor.Game.GetGameComponent<Renderer2dComponent>().SpriteSheetTransparency = (int)slider.Value;
+        }
+
+        private void ButtonDisplayCollisions_OnClick(object sender, RoutedEventArgs e)
+        {
+            var checkBox = (sender as CheckBox);
+            gameEditor.Game.GetGameComponent<Renderer2dComponent>().IsDrawCollisionsEnabled = checkBox.IsChecked ?? false;
+        }
+
+        private void ButtonDisplaySockets_OnClick(object sender, RoutedEventArgs e)
+        {
+            //var checkBox = (sender as CheckBox);
+            //gameEditor.Game.GetGameComponent<Renderer2dComponent>().IsDrawSpriteSheetEnabled = checkBox.IsChecked ?? false;
         }
     }
 }

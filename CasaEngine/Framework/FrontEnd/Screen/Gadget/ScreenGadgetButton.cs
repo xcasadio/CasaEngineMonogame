@@ -42,7 +42,7 @@ public class ScreenGadgetButton : ScreenGadget
     {
         var area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
 
-        Renderer2dComponent.AddSprite(
+        Renderer2dComponent.DrawSprite(
             WhiteTexture,
             Location,
             0.0f,
@@ -51,7 +51,7 @@ public class ScreenGadgetButton : ScreenGadget
             0.0003f,
             SpriteEffects.None);
 
-        Renderer2dComponent.AddBox(
+        Renderer2dComponent.DrawRectangle(
             Location.X,
             Location.Y,
             Width,
@@ -72,7 +72,7 @@ public class ScreenGadgetButton : ScreenGadget
         //        area);
         //}
 
-        Renderer2dComponent.AddText2d(
+        Renderer2dComponent.DrawText(
             Font,
             Text,
             Location + Vector2.One * 5,

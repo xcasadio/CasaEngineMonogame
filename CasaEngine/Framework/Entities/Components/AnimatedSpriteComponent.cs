@@ -158,15 +158,13 @@ public class AnimatedSpriteComponent : Component
 
             var sprite = Sprite.Create(spriteData, _assetContentManager);
             var worldMatrix = Owner.Coordinates.WorldMatrix;
-            _renderer2dComponent.AddSprite(sprite.Texture.Resource, //TODO : load all sprites in a dictionary<name, sprite>
-                spriteData.PositionInTexture,
-                spriteData.Origin,
+            _renderer2dComponent.DrawSprite(sprite, //TODO : load all sprites in a dictionary<name, sprite>
+                spriteData,
                 new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
                 0.0f,
                 new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
                 Color.White,
-                Owner.Coordinates.Position.Z,
-                SpriteEffects.None);
+                Owner.Coordinates.Position.Z);
         }
     }
 

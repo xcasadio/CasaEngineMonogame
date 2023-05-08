@@ -206,9 +206,6 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
         jObject.Add("points", pointListNode);
     }
 
-    public override string ToString()
-    {
-        return $"Polygone {_points.Count} point(s)";
-    }
+    public override string ToString() => $"{Enum.GetName(Type)} {_points.Count} point(s)";
 #endif
 }

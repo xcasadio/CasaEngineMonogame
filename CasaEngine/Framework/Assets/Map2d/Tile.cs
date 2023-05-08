@@ -33,7 +33,7 @@ public abstract class Tile
             uvOffset.Width,
             uvOffset.Height);
 
-        _renderer2dComponent.AddSprite(
+        _renderer2dComponent.DrawSprite(
             sprite.Texture.Resource,
             texUV,
             sprite.SpriteData.Origin,

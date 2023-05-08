@@ -32,6 +32,8 @@ public class ShapeLine : Shape2d, IEquatable<ShapeLine>
         return HashCode.Combine(Start, End);
     }
 
+    public override string ToString() => $"{Enum.GetName(Type)} {{Start: {Start} End:{End}}}";
+
     public override void Load(JsonElement element)
     {
         base.Load(element);
@@ -51,11 +53,6 @@ public class ShapeLine : Shape2d, IEquatable<ShapeLine>
         newObject = new JObject();
         End.Save(newObject);
         jObject.Add("end", newObject);
-    }
-
-    public override string ToString()
-    {
-        return "Line - " + Start.ToString() + " - " + End.ToString();
     }
 #endif
 }

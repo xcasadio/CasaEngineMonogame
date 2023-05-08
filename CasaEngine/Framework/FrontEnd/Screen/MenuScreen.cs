@@ -139,7 +139,7 @@ public class MenuScreen : Screen
 
         titlePosition.Y -= transitionOffset * 100;
 
-        _renderer2dComponent.AddText2d(_font, _menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
+        _renderer2dComponent.DrawText(_font, _menuTitle, titlePosition, 0.0f, new Vector2(titleScale), titleColor, 0.99f);
         //spriteBatch.DrawString(font, menuTitle, titlePosition, titleColor, 0,
         //					   titleOrigin, titleScale, SpriteEffects.None, 0);
 

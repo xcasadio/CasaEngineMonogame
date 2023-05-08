@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Xml.Linq;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using Newtonsoft.Json.Linq;
@@ -11,8 +10,8 @@ public class SpriteData : Asset
     public string SpriteSheetFileName { get; set; }
     public Rectangle PositionInTexture { get; set; }
     public Point Origin { get; set; }
-    private List<Socket> Sockets { get; } = new();
-    List<Collision2d> CollisionShapes { get; } = new();
+    public List<Socket> Sockets { get; } = new();
+    public List<Collision2d> CollisionShapes { get; } = new();
 
     public override void Load(JsonElement element)
     {
@@ -114,6 +113,11 @@ public class Collision2d
     {
         jObject.Add("collision_type", CollisionHitType.ConvertToString());
         Shape.Save(jObject);
+    }
+
+    public override string ToString()
+    {
+        return $"{Shape} {CollisionHitType}";
     }
 }
 

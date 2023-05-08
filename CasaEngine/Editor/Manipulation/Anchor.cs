@@ -208,7 +208,7 @@ public class Anchor
 
     public void Draw(Renderer2dComponent r)
     {
-        r.AddBox(_position.X + Offset.X, _position.Y + Offset.Y, Width, Height, Color.Black);
+        r.DrawRectangle(_position.X + Offset.X, _position.Y + Offset.Y, Width, Height, Color.Black);
     }
 
     public void Draw(Line2dRenderer lineRenderer, SpriteBatch spriteBatch, Color color)

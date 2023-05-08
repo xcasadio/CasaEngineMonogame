@@ -56,9 +56,6 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         jObject.Add("h", Height);
     }
 
-    public override string ToString()
-    {
-        return "Rectangle " + Width + " - " + Height;
-    }
+    public override string ToString() => $"{Enum.GetName(Type)} {{X: {Location.X} Y:{Location.Y} Width:{Width} Height:{Height}}}";
 #endif
 }

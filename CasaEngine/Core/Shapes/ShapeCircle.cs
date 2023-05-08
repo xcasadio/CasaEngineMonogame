@@ -32,6 +32,8 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
         return Radius;
     }
 
+    public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";
+
     public override void Load(JsonElement element)
     {
         base.Load(element);
@@ -43,11 +45,6 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
     {
         base.Save(jObject);
         jObject.Add("radius", Radius);
-    }
-
-    public override string ToString()
-    {
-        return "Circle - " + Location + " - " + Radius;
     }
 #endif
 }

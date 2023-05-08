@@ -93,7 +93,7 @@ public class LoadingScreen : Screen
             /*spriteBatch.Begin();
             spriteBatch.DrawString(font, message, textPosition, color);
             spriteBatch.End();*/
-            Renderer2dComponent.AddText2d(Font, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
+            Renderer2dComponent.DrawText(Font, message, textPosition, 0.0f, Vector2.One, color, 0.99f);
         }
     }
 

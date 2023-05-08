@@ -58,8 +58,9 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         }
     }
 
-    public SpriteDataViewModel(SpriteData spriteSpriteData)
+    public SpriteDataViewModel(SpriteData spriteData)
     {
-        SpriteData = spriteSpriteData;
+        SpriteData = spriteData;
+        //spriteData.
     }
 }

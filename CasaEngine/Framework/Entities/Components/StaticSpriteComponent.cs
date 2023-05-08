@@ -56,15 +56,13 @@ public class StaticSpriteComponent : Component
         }
 
         var worldMatrix = Owner.Coordinates.WorldMatrix;
-        _renderer2dComponent.AddSprite(_sprite.Texture.Resource, //TODO : load all sprites in a dictionary<name, sprite>
-            _spriteData.PositionInTexture,
-            _spriteData.Origin,
+        _renderer2dComponent.DrawSprite(_sprite,
+            _spriteData,
             new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
             0.0f,
             new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
             Color.White,
-            Owner.Coordinates.Position.Z,
-            SpriteEffects.None);
+            Owner.Coordinates.Position.Z);
     }
 
     public override void Load(JsonElement element)

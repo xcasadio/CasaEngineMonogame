@@ -107,7 +107,7 @@ public class ScreenLogComponent
 
         for (var i = _logText.Count - 1; i >= 0; i--)
         {
-            _renderer2dComponent.AddText2d(_logText[i].SpriteFont, _logText[i].Text, pos, 0.0f, Vector2.One, _logText[i].Color, 0.99f);
+            _renderer2dComponent.DrawText(_logText[i].SpriteFont, _logText[i].Text, pos, 0.0f, Vector2.One, _logText[i].Color, 0.99f);
             pos.Y -= _logText[i].SpriteFont.MeasureString(_logText[i].Text).Y + 5;
         }
 

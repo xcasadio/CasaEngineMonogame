@@ -12,13 +12,19 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
-            <Button Content="+" />
-            <Button Content="-" />
-            <Button Content="C" />
-            <Button Content="S" />
-            <Button Content="P" />
+            <Button ToolTip="Add collision shape">
+                <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
+            </Button>
+            <Button ToolTip="Remove collision shape">
+                <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
+            </Button>
+            <Button ToolTip="Add rectangle shape" Content="R" />
+            <Button ToolTip="Add circle shape" Content="C" />
+            <Button ToolTip="Add polygon shape" Content="P" />
         </StackPanel>
 
-        <ListBox Grid.Row="0" Grid.Column="0"/>
+        <ListBox Grid.Row="0" Grid.Column="0" ItemsSource="{Binding SpriteData.CollisionShapes}">
+
+        </ListBox>
     </Grid>
 </UserControl>

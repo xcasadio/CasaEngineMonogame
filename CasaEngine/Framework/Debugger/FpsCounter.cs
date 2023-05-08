@@ -192,8 +192,8 @@ public class FpsCounter : DrawableGameComponent
         var pos = layout.Place(size, 0, 0.1f, Alignment.Center);
 
         // Draw
-        _renderer2dComponent.AddSprite(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
-        _renderer2dComponent.AddText2d(_font, _stringBuilder.ToString(),
+        _renderer2dComponent.DrawSprite(_debugManager.WhiteTexture, rc, Point.Zero, pos, 0.0f, Vector2.One, _colorBackground, 0.001f, SpriteEffects.None);
+        _renderer2dComponent.DrawText(_font, _stringBuilder.ToString(),
             pos, 0.0f, Vector2.One, Color.White, 0f);
 
         base.Draw(gameTime);

@@ -34,6 +34,8 @@ public class Capsule : Shape3d, IEquatable<Capsule>
         return HashCode.Combine((int)Type, Position, Orientation, Radius, Length);
     }
 
+    public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius} Length:{Length}}}";
+
     public override void Load(JsonElement element)
     {
         base.Load(element);

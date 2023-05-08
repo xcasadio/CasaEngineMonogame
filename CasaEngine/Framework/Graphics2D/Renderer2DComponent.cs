@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Core.Shapes;
+using CasaEngine.Framework.Assets.Map2d;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
 
@@ -42,10 +44,11 @@ public class Renderer2dComponent : DrawableGameComponent
         public Rectangle ScissorRectangle;
     }
 
-    public bool DrawSpriteOrigin = false;
-    public bool DrawSpriteBorder = false;
-    public bool DrawSpriteSheet = false;
+    public bool IsDrawSpriteOriginEnabled = false;
+    public bool IsDrawSpriteBorderEnabled = false;
+    public bool IsDrawSpriteSheetEnabled = false;
     public int SpriteSheetTransparency = 124;
+    public bool IsDrawCollisionsEnabled = false;
 
     private readonly List<SpriteDisplayData> _spritesData = new(50);
     //used to create a resource pool
@@ -142,12 +145,12 @@ public class Renderer2dComponent : DrawableGameComponent
                     break;
             }
 
-            if (DrawSpriteOrigin)
+            if (IsDrawSpriteOriginEnabled)
             {
                 DrawCross(sprite.Position, 6, Color.Violet);
             }
 
-            if (DrawSpriteBorder)
+            if (IsDrawSpriteBorderEnabled)
             {
                 Rectangle temp = new Rectangle
                 {
@@ -156,10 +159,10 @@ public class Renderer2dComponent : DrawableGameComponent
                     Width = (int)(sprite.PositionInTexture.Width * sprite.Scale.X),
                     Height = (int)(sprite.PositionInTexture.Height * sprite.Scale.Y)
                 };
-                AddBox(ref temp, Color.BlueViolet);
+                DrawRectangle(ref temp, Color.BlueViolet);
             }
 
-            if (DrawSpriteSheet)
+            if (IsDrawSpriteSheetEnabled)
             {
                 var position = sprite.Position - new Vector2(
                     sprite.PositionInTexture.Left + hotspot.X,
@@ -237,34 +240,64 @@ public class Renderer2dComponent : DrawableGameComponent
         Clear();
     }
 
-    //public void AddSprite(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
-    //{
-    //    AddSprite(spriteId, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
-    //}
-
-    //public void AddSprite(int spriteId, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
-    //{
-    //    //var sprite = (Sprite2D)((CasaEngineGame)Game).GameManager.AssetContentManager.GetAsset<>(SpriteId);
-    //    //AddSprite2D(sprite.Texture2D, sprite.PositionInTexture, sprite.HotSpot, pos, rot, scale, color, zOrder, effects, scissorRectangle);
-    //}
-    //
-    public void AddSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
+    public void DrawSprite(Sprite sprite, SpriteData spriteData, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects = SpriteEffects.None)
     {
-        AddSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
+        DrawSprite(sprite, spriteData, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
+    public void DrawSprite(Sprite sprite, SpriteData spriteData, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
-        AddSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+        DrawSprite(sprite.Texture.Resource, spriteData.PositionInTexture, spriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+
+        if (IsDrawCollisionsEnabled)
+        {
+            foreach (var collision2d in spriteData.CollisionShapes)
+            {
+                DrawCollision(collision2d, new Vector2(pos.X - spriteData.Origin.X * scale.X, pos.Y - spriteData.Origin.Y * scale.Y), scale, zOrder);
+            }
+        }
     }
 
-    public void AddSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
+    private void DrawCollision(Collision2d collision2d, Vector2 position, Vector2 scale, float z)
+    {
+        var color = collision2d.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Blue;
+
+        switch (collision2d.Shape.Type)
+        {
+            case Shape2dType.Compound:
+                break;
+            case Shape2dType.Polygone:
+                break;
+            case Shape2dType.Rectangle:
+                var rectangle = collision2d.Shape as ShapeRectangle;
+                DrawRectangle(position.X + rectangle.Location.X * scale.X, position.Y + rectangle.Location.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
+                break;
+            case Shape2dType.Circle:
+                break;
+            case Shape2dType.Line:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    public void DrawSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
+    {
+        DrawSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
+    }
+
+    public void DrawSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
+    {
+        DrawSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+    }
+
+    public void DrawSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
         Vector2 scale, Color color, float zOrder, SpriteEffects effects)
     {
-        AddSprite(tex, src, origin, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
+        DrawSprite(tex, src, origin, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
+    public void DrawSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
         Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
         if (tex == null)
@@ -292,27 +325,12 @@ public class Renderer2dComponent : DrawableGameComponent
         _spritesData.Add(sprite);
     }
 
-    /*public void AddText2d(PoolItem<Text2D> text2D_)
+    public void DrawText(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder)
     {
-        if (text2D_ == null)
-        {
-            throw new ArgumentException("Graphic2DComponent.AddText2d() : Text2D is null");
-        }
-
-        if (text2D_.Resource.SpriteFont == null)
-        {
-            throw new ArgumentException("Graphic2DComponent.AddText2d() : SpriteFont is null");
-        }
-
-        _ListText2D.Add(text2D_);
-    }*/
-
-    public void AddText2d(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder)
-    {
-        AddText2d(font, text, pos, rot, scale, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawText(font, text, pos, rot, scale, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddText2d(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, Rectangle scissorRectangle)
+    public void DrawText(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, Rectangle scissorRectangle)
     {
         if (font == null)
         {
@@ -337,7 +355,7 @@ public class Renderer2dComponent : DrawableGameComponent
         _textsData.Add(text2D);
     }
 
-    public void AddLine2d(Vector2 start, Vector2 end, Color color, float zOrder, Rectangle scissorRectangle)
+    public void DrawLine(Vector2 start, Vector2 end, Color color, float zOrder, Rectangle scissorRectangle)
     {
         var line2D = GetLine2dDisplayData();
         line2D.Start = start;
@@ -349,37 +367,43 @@ public class Renderer2dComponent : DrawableGameComponent
         _lines.Add(line2D);
     }
 
-    public void AddLine2d(Vector2 start, Vector2 end, Color color, float zOrder = 0.0f)
+    public void DrawLine(Vector2 start, Vector2 end, Color color, float zOrder = 0.0f)
     {
-        AddLine2d(start, end, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawLine(start, end, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddLine2d(float startX, float startY, float endX, float endY, Color color, float zOrder, Rectangle scissorRectangle)
+    public void DrawLine(float startX, float startY, float endX, float endY, Color color, float zOrder, Rectangle scissorRectangle)
     {
-        AddLine2d(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, scissorRectangle);
+        DrawLine(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, scissorRectangle);
     }
 
-    public void AddLine2d(float startX, float startY, float endX, float endY, Color color, float zOrder = 0.0f)
+    public void DrawLine(float startX, float startY, float endX, float endY, Color color, float zOrder = 0.0f)
     {
-        AddLine2d(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawLine(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddBox(ref Rectangle rectangle, Color color, float zOrder = 0.0f)
+    public void DrawRectangle(ref Rectangle rectangle, Color color, float zOrder = 0.0f)
     {
-        AddBox(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddBox(float x, float y, float width, float height, Color color, float zOrder = 0.0f)
+    public void DrawRectangle(float x, float y, float width, float height, Color color, float zOrder = 0.0f)
     {
-        AddBox(x, y, width, height, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawRectangle(x, y, width, height, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
-    public void AddBox(float x, float y, float width, float height, Color color, float zOrder, Rectangle scissorRectangle)
+    public void DrawRectangle(float x, float y, float width, float height, Color color, float zOrder, Rectangle scissorRectangle)
     {
-        AddLine2d(x, y, x + width, y, color, zOrder, GraphicsDevice.ScissorRectangle);
-        AddLine2d(x, y, x, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
-        AddLine2d(x + width, y, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
-        AddLine2d(x, y + height, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawLine(x, y, x + width, y, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawLine(x, y, x, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawLine(x + width, y, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
+        DrawLine(x, y + height, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
+    }
+
+    private void DrawCross(Vector2 pos, int size, Color color)
+    {
+        DrawLine(pos.X - size, pos.Y, pos.X + size - 1, pos.Y, color);
+        DrawLine(pos.X, pos.Y - size, pos.X, pos.Y + size, color);
     }
 
     private SpriteDisplayData GetSpriteDisplayData()
@@ -419,12 +443,5 @@ public class Renderer2dComponent : DrawableGameComponent
         }
 
         _lines.Clear();
-    }
-
-
-    private void DrawCross(Vector2 pos, int size, Color color)
-    {
-        AddLine2d(pos.X - size, pos.Y, pos.X + size - 1, pos.Y, color);
-        AddLine2d(pos.X, pos.Y - size, pos.X, pos.Y + size, color);
     }
 }

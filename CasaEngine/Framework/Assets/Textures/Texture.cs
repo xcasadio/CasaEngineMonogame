@@ -1,11 +1,9 @@
 ﻿using System.Text.Json;
 using System.Xml;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
-using Screen = CasaEngine.Framework.UserInterface.Screen;
 
 namespace CasaEngine.Framework.Assets.Textures;
 

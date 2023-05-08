@@ -26,10 +26,14 @@
                     <ComboBoxItem Content="x8"/>
                 </ComboBox>
                 <Separator />
-                <TextBlock Text="Display" VerticalAlignment="Center"/>
-                <CheckBox Content="HotSpot" Click="ButtonHotSpot_OnClick" ToolTip="Display the origin of the sprite"/>
+                <TextBlock VerticalAlignment="Center">
+                    <Bold>Display</Bold>
+                </TextBlock>
+                <CheckBox Content="Origin" Click="ButtonHotSpot_OnClick" ToolTip="Display the origin of the sprite"/>
                 <CheckBox Content="Border" Click="ButtonSpriteBorder_OnClick" ToolTip="Display border of the sprite"/>
                 <CheckBox Content="SpriteSheet" Click="ButtonDisplaySpriteSheet_OnClick" ToolTip="Display all the sprite sheet behind the sprite"/>
+                <CheckBox Content="Collisions" Click="ButtonDisplayCollisions_OnClick" ToolTip="Display all collisions"/>
+                <CheckBox Content="Sockets" Click="ButtonDisplaySockets_OnClick" ToolTip="Display all sockets"/>
                 <Separator />
                 <TextBlock Text="SpriteSheet Transparency" VerticalAlignment="Center"/>
                 <Slider TickFrequency="1" Value="124" Minimum="0" Maximum="255" Width="150" ValueChanged="Transparency_OnValueChanged" ToolTip="SpriteSheet transparency"/>

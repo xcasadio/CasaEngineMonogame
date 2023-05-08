@@ -32,6 +32,8 @@ public class Sphere : Shape3d
         return HashCode.Combine((int)Type, Position, Orientation, Radius);
     }
 
+    public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";
+
     public override void Load(JsonElement element)
     {
         base.Load(element);

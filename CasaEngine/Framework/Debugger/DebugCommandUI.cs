@@ -559,7 +559,7 @@ namespace CasaEngine.Framework.Debugger
             //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState, mtx);
 
             //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
-            _renderer2dComponent.AddSprite(
+            _renderer2dComponent.DrawSprite(
                 whiteTexture,
                 new Vector2(leftMargin, topMargin), // position
                 0.0f,
@@ -571,7 +571,7 @@ namespace CasaEngine.Framework.Debugger
             foreach (var line in _lines)
             {
                 //spriteBatch.DrawString(font, line, pos, Color.White);
-                _renderer2dComponent.AddText2d(_font, line, pos, 0.0f, Vector2.One, Color.White, depth);
+                _renderer2dComponent.DrawText(_font, line, pos, 0.0f, Vector2.One, Color.White, depth);
                 pos.Y += _font.LineSpacing;
             }
 
@@ -582,9 +582,9 @@ namespace CasaEngine.Framework.Debugger
 
             // spriteBatch.DrawString(font,
             //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
-            _renderer2dComponent.AddText2d(_font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2dComponent.DrawText(_font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
             //spriteBatch.DrawString(font, Cursor, cursorPos, Color.White);
-            _renderer2dComponent.AddText2d(_font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
+            _renderer2dComponent.DrawText(_font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
 
             //spriteBatch.End();
         }

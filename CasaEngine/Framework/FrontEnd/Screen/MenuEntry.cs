@@ -84,7 +84,7 @@ public class MenuEntry
 
         position = Vector2.Subtract(position, origin);
 
-        _renderer2dComponent.AddText2d(_font, _text, position, 0.0f, new Vector2(scale), color, 0.99f);
+        _renderer2dComponent.DrawText(_font, _text, position, 0.0f, new Vector2(scale), color, 0.99f);
     }
 
     public virtual int GetHeight(MenuScreen screen)

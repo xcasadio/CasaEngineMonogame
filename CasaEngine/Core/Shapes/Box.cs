@@ -33,6 +33,8 @@ public class Box : Shape3d, IEquatable<Box>
         return HashCode.Combine((int)Type, Position, Orientation, Size);
     }
 
+    public override string ToString() => $"{Enum.GetName(Type)} {{Width: {Size.X} Height:{Size.Y} Length:{Size}}}";
+
     public override void Load(JsonElement element)
     {
         base.Load(element);
