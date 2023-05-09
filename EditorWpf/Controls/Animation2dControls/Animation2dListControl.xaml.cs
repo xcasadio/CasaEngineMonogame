@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using EditorWpf.Controls.Common;
@@ -19,6 +20,7 @@ namespace EditorWpf.Controls.Animation2dControls
         public Animation2dListControl()
         {
             InitializeComponent();
+            SortAnimations();
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -51,8 +53,16 @@ namespace EditorWpf.Controls.Animation2dControls
                 {
                     _gameEditor.Game.GameManager.AssetContentManager.Rename(animation2dDataViewModel.Name, inputTextBox.Text);
                     animation2dDataViewModel.Name = inputTextBox.Text;
+                    SortAnimations();
+                    listBox.ScrollIntoView(listBox.SelectedItem);
                 }
             }
+        }
+
+        private void SortAnimations()
+        {
+            ListBox.Items.SortDescriptions.Clear();
+            ListBox.Items.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
         }
 
         public void LoadAnimations2d(string fileName)

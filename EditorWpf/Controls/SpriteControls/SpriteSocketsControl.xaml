@@ -20,6 +20,7 @@
             </Button>
         </StackPanel>
 
-        <ListBox Grid.Row="0" Grid.Column="0" ItemsSource="{Binding SpriteData.Sockets}"/>
+        <ListBox Grid.Row="0" Grid.Column="0" x:Name="ListBox" ItemsSource="{Binding Sockets}" SelectionChanged="ListBox_OnSelectionChanged" 
+                 DisplayMemberPath="Name"/>
     </Grid>
 </UserControl>

@@ -29,6 +29,7 @@ public abstract class VectorEditorBase<T> : VectorEditorBase
         get => (T)GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
     }
+
     public T DefaultValue
     {
         get => (T)GetValue(DefaultValueProperty);

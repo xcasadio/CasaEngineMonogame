@@ -1,11 +1,10 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Assets.Animations;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using CasaEngine.Framework.Game;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Assets.Map2d;
+namespace CasaEngine.Framework.Assets.Animations;
 
 public class Animation2dLoader
 {

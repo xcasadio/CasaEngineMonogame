@@ -2,6 +2,7 @@
 using System.IO;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
 using EditorWpf.Controls.Animation2dControls;
 

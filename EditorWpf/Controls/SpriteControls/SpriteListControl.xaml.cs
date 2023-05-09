@@ -8,6 +8,7 @@ namespace EditorWpf.Controls.SpriteControls
     public partial class SpriteListControl : UserControl
     {
         public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(SpriteDataViewModel), typeof(SpriteListControl));
+
         private GameEditorSprite _gameEditor;
 
         public SpriteDataViewModel SelectedItem

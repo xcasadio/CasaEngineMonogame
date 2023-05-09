@@ -12,6 +12,11 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
 
     }
 
+    public ShapeCircle(int radius) : this()
+    {
+        Radius = radius;
+    }
+
     public bool Equals(ShapeCircle? other)
     {
         if (ReferenceEquals(null, other)) return false;

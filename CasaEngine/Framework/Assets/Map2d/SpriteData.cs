@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Shapes;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Map2d;
@@ -77,53 +76,3 @@ public class SpriteData : Asset
     }
 #endif
 };
-
-public class Socket
-{
-    public string Name;
-    public Point Position;
-
-    public void Load(JsonElement jsonElement)
-    {
-        Name = jsonElement.GetJsonPropertyByName("name").Value.GetString();
-        Position = jsonElement.GetJsonPropertyByName("position").Value.GetPoint();
-    }
-
-    public void Save(JObject jObject)
-    {
-        jObject.Add("name", Name);
-        var newjObject = new JObject();
-        Position.Save(newjObject);
-        jObject.Add("position", newjObject);
-    }
-}
-
-public class Collision2d
-{
-    public CollisionHitType CollisionHitType;
-    public Shape2d Shape;
-
-    public void Load(JsonElement jsonElement)
-    {
-        CollisionHitType = jsonElement.GetJsonPropertyByName("collision_type").Value.GetEnum<CollisionHitType>();
-        Shape = ShapeLoader.LoadShape2d(jsonElement);
-    }
-
-    public void Save(JObject jObject)
-    {
-        jObject.Add("collision_type", CollisionHitType.ConvertToString());
-        Shape.Save(jObject);
-    }
-
-    public override string ToString()
-    {
-        return $"{Shape} {CollisionHitType}";
-    }
-}
-
-public enum CollisionHitType
-{
-    Unknown = 0,
-    Attack = 1,
-    Defense
-}

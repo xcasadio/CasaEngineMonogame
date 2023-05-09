@@ -1,15 +1,27 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
+using CasaEngine.Framework.Assets.Map2d;
 
 namespace EditorWpf.Controls.SpriteControls
 {
-    /// <summary>
-    /// Interaction logic for SpriteSocketsControl.xaml
-    /// </summary>
     public partial class SpriteSocketsControl : UserControl
     {
+        public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(SocketViewModel), typeof(SpriteSocketsControl));
+
+        public SocketViewModel? SelectedItem
+        {
+            get => (SocketViewModel?)GetValue(SelectedItemProperty);
+            set => SetValue(SelectedItemProperty, value);
+        }
+
         public SpriteSocketsControl()
         {
             InitializeComponent();
+        }
+
+        private void ListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectedItem = ListBox.SelectedItem as SocketViewModel;
         }
     }
 }

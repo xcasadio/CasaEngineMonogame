@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CasaEngine.Framework.Assets.Map2d;
 using EditorWpf.Controls.PropertyGridTypeEditor;
 using Microsoft.Xna.Framework;
@@ -7,17 +9,16 @@ namespace EditorWpf.Controls.SpriteControls;
 
 public class SpriteDataViewModel : NotifyPropertyChangeBase
 {
-    [Browsable(false)]
-    public SpriteData SpriteData { get; }
+    private readonly SpriteData _spriteData;
 
     [ReadOnly(true)]
     public string Name
     {
-        get => SpriteData.Name;
+        get => _spriteData.Name;
         set
         {
-            if (value == SpriteData.Name) return;
-            SpriteData.Name = value;
+            if (value == _spriteData.Name) return;
+            _spriteData.Name = value;
             OnPropertyChanged();
         }
     }
@@ -25,11 +26,11 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
     [ReadOnly(true)]
     public string SpriteSheetFileName
     {
-        get => SpriteData.SpriteSheetFileName;
+        get => _spriteData.SpriteSheetFileName;
         set
         {
-            if (value == SpriteData.SpriteSheetFileName) return;
-            SpriteData.SpriteSheetFileName = value;
+            if (value == _spriteData.SpriteSheetFileName) return;
+            _spriteData.SpriteSheetFileName = value;
             OnPropertyChanged();
         }
     }
@@ -37,11 +38,11 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
     [Editor(typeof(RectangleTypeEditorControl), typeof(RectangleTypeEditorControl))]
     public Rectangle PositionInTexture
     {
-        get => SpriteData.PositionInTexture;
+        get => _spriteData.PositionInTexture;
         set
         {
-            if (value.Equals(SpriteData.PositionInTexture)) return;
-            SpriteData.PositionInTexture = value;
+            if (value.Equals(_spriteData.PositionInTexture)) return;
+            _spriteData.PositionInTexture = value;
             OnPropertyChanged();
         }
     }
@@ -49,18 +50,30 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
     [Editor(typeof(PointTypeEditorControl), typeof(PointTypeEditorControl))]
     public Point Origin
     {
-        get => SpriteData.Origin;
+        get => _spriteData.Origin;
         set
         {
-            if (value.Equals(SpriteData.Origin)) return;
-            SpriteData.Origin = value;
+            if (value.Equals(_spriteData.Origin)) return;
+            _spriteData.Origin = value;
             OnPropertyChanged();
         }
     }
 
+    public ObservableCollection<Collision2dViewModel> CollisionShapes { get; } = new();
+    public ObservableCollection<SocketViewModel> Sockets { get; } = new();
+
     public SpriteDataViewModel(SpriteData spriteData)
     {
-        SpriteData = spriteData;
-        //spriteData.
+        _spriteData = spriteData;
+
+        foreach (var collision2d in spriteData.CollisionShapes)
+        {
+            CollisionShapes.Add(new Collision2dViewModel(collision2d));
+        }
+
+        foreach (var socket in spriteData.Sockets)
+        {
+            Sockets.Add(new SocketViewModel(socket));
+        }
     }
 }
