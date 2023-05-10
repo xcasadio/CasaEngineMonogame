@@ -2,6 +2,7 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;

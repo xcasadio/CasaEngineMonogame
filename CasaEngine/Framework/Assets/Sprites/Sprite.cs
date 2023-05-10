@@ -1,6 +1,6 @@
 ﻿using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
-namespace CasaEngine.Framework.Assets.Map2d;
+namespace CasaEngine.Framework.Assets.Sprites;
 
 public class Sprite
 {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 
 namespace EditorWpf.Controls.SpriteControls;
 

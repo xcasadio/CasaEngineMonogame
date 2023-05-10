@@ -4,6 +4,7 @@ using CasaEngine.WpfControls;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
+using CasaEngine.Framework.Assets.Sprites;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using Xceed.Wpf.Toolkit.PropertyGrid.Editors;
 

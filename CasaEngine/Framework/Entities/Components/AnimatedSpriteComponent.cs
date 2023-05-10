@@ -4,6 +4,7 @@ using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;

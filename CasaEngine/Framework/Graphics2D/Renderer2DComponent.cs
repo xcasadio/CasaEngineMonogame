@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;

@@ -2,7 +2,7 @@
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Assets.Map2d;
+namespace CasaEngine.Framework.Assets.Sprites;
 
 public class Socket
 {

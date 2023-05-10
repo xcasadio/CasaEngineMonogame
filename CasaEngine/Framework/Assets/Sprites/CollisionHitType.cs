@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Framework.Assets.Map2d;
+﻿namespace CasaEngine.Framework.Assets.Sprites;
 
 public enum CollisionHitType
 {

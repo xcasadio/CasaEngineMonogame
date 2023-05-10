@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Assets.Map2d;
+namespace CasaEngine.Framework.Assets.Sprites;
 
 public class SpriteLoader
 {

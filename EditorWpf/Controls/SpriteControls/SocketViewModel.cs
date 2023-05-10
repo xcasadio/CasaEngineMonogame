@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.SpriteControls;

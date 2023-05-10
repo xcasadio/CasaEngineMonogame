@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;

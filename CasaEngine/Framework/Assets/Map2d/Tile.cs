@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

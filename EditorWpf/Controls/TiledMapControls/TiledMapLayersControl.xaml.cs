@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls.TiledMapControls;

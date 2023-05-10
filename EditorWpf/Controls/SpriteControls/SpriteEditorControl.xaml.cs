@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.WpfControls;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;

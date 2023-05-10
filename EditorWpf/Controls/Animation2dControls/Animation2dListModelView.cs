@@ -4,6 +4,7 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using EditorWpf.Controls.Animation2dControls;
 
 public class Animation2dListModelView

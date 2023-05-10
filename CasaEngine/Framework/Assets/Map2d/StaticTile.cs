@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Framework.Assets.Sprites;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 

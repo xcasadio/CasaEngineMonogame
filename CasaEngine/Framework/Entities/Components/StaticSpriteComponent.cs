@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
