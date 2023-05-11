@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using EditorWpf.Windows;
@@ -38,9 +40,7 @@ namespace EditorWpf.Controls.WorldControls
 
                 staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
                 staticMeshComponent.Mesh.Initialize(graphicsDevice);
-                staticMeshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(
-                    graphicsDevice, "Content\\checkboard.png", staticMeshComponent.Game.GameManager.AssetContentManager);
-                //GameEditor.Game.Content.Load<Texture2D>("checkboard"));
+                staticMeshComponent.Mesh.Texture = staticMeshComponent.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             }
         }
 

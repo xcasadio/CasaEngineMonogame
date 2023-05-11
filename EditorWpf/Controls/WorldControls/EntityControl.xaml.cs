@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.WorldControls
 {
@@ -15,9 +16,14 @@ namespace EditorWpf.Controls.WorldControls
             InitializeComponent();
         }
 
-        public void InitializeFromGameEditor(CasaEngineGame game)
+        public void InitializeFromGameEditor(GameEditor gameEditor)
         {
-            entityComponentsControl.Game = game;
+            gameEditor.GameStarted += OnGameStarted;
+        }
+
+        private void OnGameStarted(object? sender, EventArgs e)
+        {
+            entityComponentsControl.Game = (CasaEngineGame)sender;
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)

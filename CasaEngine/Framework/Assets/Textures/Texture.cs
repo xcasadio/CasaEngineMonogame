@@ -11,7 +11,6 @@ public class Texture : Asset
 {
     protected Texture2D? Texture2d;
     private SamplerState _preferedSamplerState = SamplerState.AnisotropicWrap;
-    //private static Texture _blackTexture, _greyTexture, _whiteTexture;
 
     public GraphicsDevice GraphicsDevice { get; private set; }
 
@@ -49,12 +48,12 @@ public class Texture : Asset
 
     public Texture()
     {
+        Name = "Empty Texture";
     }
 
-    public Texture(GraphicsDevice graphicsDevice)
+    public Texture(GraphicsDevice graphicsDevice) : this()
     {
         GraphicsDevice = graphicsDevice;
-        Name = "Empty Texture";
     }
 
     public Texture(Texture2D texture2d) : this(texture2d.GraphicsDevice)
@@ -157,6 +156,8 @@ public class Texture : Asset
     }
 
 #if EDITOR
+    public static readonly string DefaultTextureName = "defaultTexture";
+
     public override void Save(JObject jObject)
     {
         base.Save(jObject);

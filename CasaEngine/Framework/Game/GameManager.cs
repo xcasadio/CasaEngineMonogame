@@ -1,3 +1,4 @@
+using System.Data;
 using CasaEngine.Core.Helper;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
@@ -22,7 +23,6 @@ public class GameManager
 
     public string[] Arguments { get; set; }
     private string ProjectFile { get; set; } = string.Empty;
-    public GraphicsDeviceManager GraphicsDeviceManager { get; }
     public AssetContentManager AssetContentManager { get; internal set; } = new();
     public ScreenManager ScreenManager { get; } = new();
     public UserInterfaceManager UiManager { get; } = new();
@@ -82,9 +82,8 @@ public class GameManager
                 game.Services.RemoveService(typeof(IGraphicsDeviceService));
             }
             game.Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
+            game.Services.AddService(typeof(IGraphicsDeviceManager), graphicsDeviceService as IGraphicsDeviceManager);
         }
-
-        GraphicsDeviceManager = (GraphicsDeviceManager)game.GetService<IGraphicsDeviceManager>();
     }
 
     private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
@@ -154,6 +153,18 @@ public class GameManager
 
     public void BeginLoadContent()
     {
+#if EDITOR
+        CreateDefaultTexture();
+#endif
+    }
+
+    private void CreateDefaultTexture()
+    {
+        var texture2D = new Texture2D(_game.GraphicsDevice, 128, 128, true, SurfaceFormat.Color);
+        texture2D.SetData(Enumerable.Repeat(Color.Orange, texture2D.Width * texture2D.Height).ToArray());
+        var texture = new Assets.Textures.Texture(texture2D);
+        texture.Name = Assets.Textures.Texture.DefaultTextureName;
+        AssetContentManager.AddAsset(Assets.Textures.Texture.DefaultTextureName, texture);
     }
 
     public void EndLoadContent()
@@ -199,7 +210,7 @@ public class GameManager
         //var meshComponent = new StaticMeshComponent(entity);
         //entity.ComponentManager.Components.Add(meshComponent);
         //meshComponent.Mesh = new BoxPrimitive(Game.GraphicsDevice).CreateMesh();
-        //meshComponent.Mesh.Texture = Game.Content.Load<Texture2D>("checkboard");
+        //meshComponent.Mesh.Texture = AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         ////
         //entity.ComponentManager.Components.Add(new PhysicsComponent(entity)
         //{
@@ -215,7 +226,7 @@ public class GameManager
         //meshComponent = new MeshComponent(entity);
         //entity.ComponentManager.Components.Add(meshComponent);
         //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
-        //meshComponent.Mesh.Texture = Content.Load<Texture2D>("checkboard");
+        //meshComponent.Mesh.Texture = AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         //world.AddEntityImmediately(entity);
 
     }

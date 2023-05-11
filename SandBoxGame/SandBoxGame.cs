@@ -2,6 +2,7 @@
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -39,8 +40,7 @@ namespace SandBoxGame
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
             meshComponent.Mesh.Initialize(GraphicsDevice);
-            meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(
-                GraphicsDevice, "Content\\checkboard.png", GameManager.AssetContentManager);
+            meshComponent.Mesh.Texture = GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             world.AddEntityImmediately(entity);
 
             //test tiledMap

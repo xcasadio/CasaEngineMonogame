@@ -20,7 +20,7 @@ namespace EditorWpf.Controls.WorldControls
 
             GameScreenControl.gameEditor.GameStarted += OnGameStarted;
             EntitiesControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
-            EntityControl.InitializeFromGameEditor(GameScreenControl.gameEditor.Game);
+            EntityControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
         }
 
         private void OnGameStarted(object? sender, EventArgs e)
