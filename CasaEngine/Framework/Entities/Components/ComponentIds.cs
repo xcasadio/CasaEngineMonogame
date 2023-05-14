@@ -9,7 +9,7 @@ public enum ComponentIds
     Physics,
     AnimatedSprite,
     StaticSprite,
-    Tile,
+    TiledMap,
 
     Custom = 1000
 }

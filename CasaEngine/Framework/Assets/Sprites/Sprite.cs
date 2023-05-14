@@ -21,4 +21,4 @@ public class Sprite
         var texture = new Texture(assetContentManager.GraphicsDevice, spriteData.SpriteSheetFileName, assetContentManager);
         return new Sprite(spriteData, texture);
     }
-};
+}

@@ -4,6 +4,7 @@ using CasaEngine.Engine;
 using CasaEngine.Engine.Physics2D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

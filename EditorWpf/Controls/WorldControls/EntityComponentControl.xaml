@@ -224,6 +224,19 @@
                                 ContentTemplateSelector="{StaticResource ShapeTemplateSelector}"/>
             </Grid>
         </DataTemplate>
+
+        <DataTemplate x:Key="tiledMapComponentTemplate" DataType="{x:Type components:TiledMapComponent}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0" Text="{Binding TiledMapDataFileName}"/>
+                <Button Grid.Column="1" Content="..." ToolTip="Put Selected Item in Content Browser"/>
+            </Grid>
+        </DataTemplate>
+
     </Control.Resources>
 
     <Grid>
@@ -233,7 +246,8 @@
                     ArcBallCameraComponenTemplate="{StaticResource arcBallCameraComponentTemplate}"
                     MeshComponenTemplate="{StaticResource meshComponentTemplate}"
                     GamePlayComponenTemplate="{StaticResource gamePlayComponentTemplate}"
-                    PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"/>
+                    PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
+                    TiledMapComponentTemplate="{StaticResource tiledMapComponentTemplate}" />
             </ContentControl.ContentTemplateSelector>
         </ContentControl>
     </Grid>

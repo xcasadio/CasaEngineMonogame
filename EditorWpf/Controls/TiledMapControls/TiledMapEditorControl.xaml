@@ -33,14 +33,14 @@
 
                         <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
                             <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
-                                <xcad:LayoutAnchorable x:Name="TiledMapLayout" Title="Layers">
-                                    <tiledMapControls:TiledMapLayersControl x:Name="TiledMapLayersControl"/>
+                                <xcad:LayoutAnchorable x:Name="TiledMapLayout" Title="Map Details">
+                                    <tiledMapControls:TiledMapDetailsControl x:Name="TiledMapDetailsControl"/>
                                 </xcad:LayoutAnchorable>
                             </xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                 <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-                                    <xcad:LayoutAnchorable x:Name="tiledMapDetailsLayout" Title="Details">
-                                        <tiledMapControls:TiledMapDetailsControl x:Name="TiledMapDetailsControl"/>
+                                    <xcad:LayoutAnchorable x:Name="tiledMapDetailsLayout" Title="Tiles Definition">
+                                        <tiledMapControls:TilesDefinitionControl x:Name="TilesDefinitionControl"/>
                                     </xcad:LayoutAnchorable>
                                 </xcad:LayoutAnchorablePane>
                             </xcad:LayoutAnchorablePaneGroup>

@@ -8,21 +8,9 @@ namespace EditorWpf.Controls.TiledMapControls;
 public class TiledMapDataViewModel : NotifyPropertyChangeBase
 {
     public TiledMapData? TiledMapData { get; private set; }
-    public TileSetData? TileSetData { get; private set; }
     public AutoTileSetData? AutoTileSetData { get; private set; }
 
     public ObservableCollection<TiledMapLayerDataViewModel> Layers { get; } = new();
-
-    public string? TileSetFileName
-    {
-        get => TiledMapData?.TileSetFileName;
-        set
-        {
-            if (EqualityComparer<string>.Default.Equals(TiledMapData.TileSetFileName, value)) return;
-            TiledMapData.TileSetFileName = value;
-            OnPropertyChanged();
-        }
-    }
 
     public Size MapSize
     {
@@ -35,13 +23,22 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
         }
     }
 
+    public Size TileSize
+    {
+        get => TiledMapData?.TileSize ?? Size.Zero;
+        set
+        {
+            if (EqualityComparer<Size>.Default.Equals(TiledMapData.TileSize, value)) return;
+            TiledMapData.TileSize = value;
+            OnPropertyChanged();
+        }
+    }
+
     public void LoadMap(string fileName)
     {
-        var (tiledMapData, tileSetData, autoTileSetData) = TiledMapLoader.LoadMapFromFile(fileName);
+        var tiledMapData = TiledMapLoader.LoadMapFromFile(fileName);
 
         TiledMapData = tiledMapData;
-        TileSetData = tileSetData;
-        AutoTileSetData = autoTileSetData;
 
         foreach (var layer in TiledMapData.Layers)
         {
@@ -49,7 +46,7 @@ public class TiledMapDataViewModel : NotifyPropertyChangeBase
         }
 
         OnPropertyChanged(nameof(MapSize));
-        OnPropertyChanged(nameof(TileSetFileName));
+        OnPropertyChanged(nameof(TileSize));
     }
 
     public void Clear()

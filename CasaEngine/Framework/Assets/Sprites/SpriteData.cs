@@ -75,4 +75,4 @@ public class SpriteData : Asset
         jObject.Add("sockets", jArray);
     }
 #endif
-};
+}

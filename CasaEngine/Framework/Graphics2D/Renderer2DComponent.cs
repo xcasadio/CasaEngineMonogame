@@ -1,4 +1,5 @@
-﻿using CasaEngine.Core.Shapes;
+﻿using System.Runtime.CompilerServices;
+using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
@@ -241,11 +242,13 @@ public class Renderer2dComponent : DrawableGameComponent
         Clear();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, SpriteData spriteData, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects = SpriteEffects.None)
     {
         DrawSprite(sprite, spriteData, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, SpriteData spriteData, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
         DrawSprite(sprite.Texture.Resource, spriteData.PositionInTexture, spriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle);
@@ -259,45 +262,26 @@ public class Renderer2dComponent : DrawableGameComponent
         }
     }
 
-    private void DrawCollision(Collision2d collision2d, Vector2 position, Vector2 scale, float z)
-    {
-        var color = collision2d.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Blue;
-
-        switch (collision2d.Shape.Type)
-        {
-            case Shape2dType.Compound:
-                break;
-            case Shape2dType.Polygone:
-                break;
-            case Shape2dType.Rectangle:
-                var rectangle = collision2d.Shape as ShapeRectangle;
-                DrawRectangle(position.X + rectangle.Location.X * scale.X, position.Y + rectangle.Location.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
-                break;
-            case Shape2dType.Circle:
-                break;
-            case Shape2dType.Line:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects)
     {
         DrawSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Texture2D tex, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
         DrawSprite(tex, tex.Bounds, Point.Zero, pos, rot, scale, color, zOrder, effects, scissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
         Vector2 scale, Color color, float zOrder, SpriteEffects effects)
     {
         DrawSprite(tex, src, origin, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Texture2D tex, Rectangle src, Point origin, Vector2 pos, float rot,
         Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
@@ -326,11 +310,13 @@ public class Renderer2dComponent : DrawableGameComponent
         _spritesData.Add(sprite);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawText(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder)
     {
         DrawText(font, text, pos, rot, scale, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawText(SpriteFont font, string text, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, Rectangle scissorRectangle)
     {
         if (font == null)
@@ -356,6 +342,7 @@ public class Renderer2dComponent : DrawableGameComponent
         _textsData.Add(text2D);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawLine(Vector2 start, Vector2 end, Color color, float zOrder, Rectangle scissorRectangle)
     {
         var line2D = GetLine2dDisplayData();
@@ -368,31 +355,37 @@ public class Renderer2dComponent : DrawableGameComponent
         _lines.Add(line2D);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawLine(Vector2 start, Vector2 end, Color color, float zOrder = 0.0f)
     {
         DrawLine(start, end, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawLine(float startX, float startY, float endX, float endY, Color color, float zOrder, Rectangle scissorRectangle)
     {
         DrawLine(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, scissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawLine(float startX, float startY, float endX, float endY, Color color, float zOrder = 0.0f)
     {
         DrawLine(new Vector2(startX, startY), new Vector2(endX, endY), color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawRectangle(ref Rectangle rectangle, Color color, float zOrder = 0.0f)
     {
         DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawRectangle(float x, float y, float width, float height, Color color, float zOrder = 0.0f)
     {
         DrawRectangle(x, y, width, height, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawRectangle(float x, float y, float width, float height, Color color, float zOrder, Rectangle scissorRectangle)
     {
         DrawLine(x, y, x + width, y, color, zOrder, GraphicsDevice.ScissorRectangle);
@@ -401,22 +394,49 @@ public class Renderer2dComponent : DrawableGameComponent
         DrawLine(x, y + height, x + width, y + height, color, zOrder, GraphicsDevice.ScissorRectangle);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawCross(Vector2 pos, int size, Color color)
     {
         DrawLine(pos.X - size, pos.Y, pos.X + size - 1, pos.Y, color);
         DrawLine(pos.X, pos.Y - size, pos.X, pos.Y + size, color);
     }
 
+    private void DrawCollision(Collision2d collision2d, Vector2 position, Vector2 scale, float z)
+    {
+        var color = collision2d.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+
+        switch (collision2d.Shape.Type)
+        {
+            case Shape2dType.Compound:
+                break;
+            case Shape2dType.Polygone:
+                break;
+            case Shape2dType.Rectangle:
+                var rectangle = collision2d.Shape as ShapeRectangle;
+                DrawRectangle(position.X + rectangle.Location.X * scale.X, position.Y + rectangle.Location.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
+                break;
+            case Shape2dType.Circle:
+                break;
+            case Shape2dType.Line:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SpriteDisplayData GetSpriteDisplayData()
     {
         return _freeSpritesData.Count > 0 ? _freeSpritesData.Pop() : new SpriteDisplayData();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Text2dDisplayData GetText2dDisplayData()
     {
         return _freeTextsData.Count > 0 ? _freeTextsData.Pop() : new Text2dDisplayData();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Line2dDisplayData GetLine2dDisplayData()
     {
         return _linesData.Count > 0 ? _linesData.Pop() : new Line2dDisplayData();

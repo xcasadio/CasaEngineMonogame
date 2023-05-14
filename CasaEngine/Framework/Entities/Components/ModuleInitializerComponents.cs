@@ -14,6 +14,6 @@ internal static class ModuleInitializerComponents
         ComponentLoader.Register<Physics2dComponent>(Physics2dComponent.ComponentId, owner => new Physics2dComponent(owner));
         ComponentLoader.Register<PhysicsComponent>(PhysicsComponent.ComponentId, owner => new PhysicsComponent(owner));
         ComponentLoader.Register<StaticSpriteComponent>(StaticSpriteComponent.ComponentId, owner => new StaticSpriteComponent(owner));
-        ComponentLoader.Register<TileComponent>(TileComponent.ComponentId, owner => new TileComponent(owner));
+        ComponentLoader.Register<TiledMapComponent>(TiledMapComponent.ComponentId, owner => new TiledMapComponent(owner));
     }
 }

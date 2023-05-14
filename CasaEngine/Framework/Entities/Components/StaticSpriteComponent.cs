@@ -1,10 +1,15 @@
 ﻿using System.Text.Json;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
+using Genbox.VelcroPhysics.Collision.ContactSystem;
+using Genbox.VelcroPhysics.Dynamics;
+using Genbox.VelcroPhysics.Factories;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -12,25 +17,10 @@ public class StaticSpriteComponent : Component
 {
     public static readonly int ComponentId = (int)ComponentIds.StaticSprite;
 
-    private string? _spriteId;
     private Sprite? _sprite;
     private SpriteData? _spriteData;
     private CasaEngineGame _game;
     private Renderer2dComponent? _renderer2dComponent;
-
-    public string? SpriteId
-    {
-        get => _spriteId;
-        set
-        {
-            _spriteId = value;
-            if (_spriteId != null)
-            {
-                _spriteData = _game.GameManager.AssetContentManager.GetAsset<SpriteData>(_spriteId);
-                _sprite = Sprite.Create(_spriteData, _game.GameManager.AssetContentManager);
-            }
-        }
-    }
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
@@ -46,7 +36,7 @@ public class StaticSpriteComponent : Component
 
     public override void Update(float elapsedTime)
     {
-
+        //update collision objects
     }
 
     public override void Draw()
@@ -68,6 +58,55 @@ public class StaticSpriteComponent : Component
 
     public override void Load(JsonElement element)
     {
-        throw new NotImplementedException();
+        var spriteDataName = element.GetProperty("spriteDataName").GetString();
+
+        if (!string.Equals(spriteDataName, "null", StringComparison.CurrentCultureIgnoreCase))
+        {
+            LoadSpriteData(spriteDataName);
+        }
     }
-};
+
+    private void LoadSpriteData(string? spriteDataName)
+    {
+        _spriteData = _game.GameManager.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
+        _sprite = Sprite.Create(_spriteData, _game.GameManager.AssetContentManager);
+
+        //create collision objects
+        //_game.GameManager.PhysicsEngine.AddBodyObject()
+
+        //var _rectangle = BodyFactory.CreateRectangle(World, 5f, 5f, 1f);
+        //_rectangle.OnCollision = OnCollision2d;
+        //_rectangle.OnSeparation = OnSeparation2d;
+        //_rectangle.BodyType = BodyType.Kinematic;
+    }
+
+    private void OnSeparation2d(Fixture fixturea, Fixture fixtureb, Contact contact)
+    {
+        //fixturea.Body.UserData
+    }
+
+    private void OnCollision2d(Fixture fixturea, Fixture fixtureb, Contact contact)
+    {
+
+    }
+
+#if EDITOR
+
+    public void TryLoadSpriteData(string? spriteDataName)
+    {
+        if (spriteDataName == null)
+        {
+            return;
+        }
+
+        LoadSpriteData(spriteDataName);
+    }
+
+    public override void Save(JObject jObject)
+    {
+        jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.Name);
+        base.Save(jObject);
+    }
+
+#endif
+}

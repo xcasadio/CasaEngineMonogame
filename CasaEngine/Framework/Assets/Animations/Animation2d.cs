@@ -61,4 +61,4 @@ public class Animation2d : Animation
 
         base.Reset();
     }
-};
+}

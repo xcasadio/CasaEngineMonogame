@@ -9,6 +9,8 @@ namespace CasaEngine.Framework.Assets.Textures;
 
 public class Texture : Asset
 {
+    public static readonly string DefaultTextureName = "defaultTexture";
+
     protected Texture2D? Texture2d;
     private SamplerState _preferedSamplerState = SamplerState.AnisotropicWrap;
 
@@ -156,7 +158,6 @@ public class Texture : Asset
     }
 
 #if EDITOR
-    public static readonly string DefaultTextureName = "defaultTexture";
 
     public override void Save(JObject jObject)
     {

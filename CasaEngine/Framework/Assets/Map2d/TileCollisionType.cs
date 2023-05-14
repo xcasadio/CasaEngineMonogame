@@ -5,4 +5,4 @@ public enum TileCollisionType
     None = 0,
     Blocked,
     NoContactResponse
-};
+}

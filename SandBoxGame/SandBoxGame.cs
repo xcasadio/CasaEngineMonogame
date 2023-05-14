@@ -27,6 +27,7 @@ namespace SandBoxGame
             var world = new World();
             GameManager.CurrentWorld = world;
 
+            //============ Camera ===============
             var entity = new Entity();
             var camera = new ArcBallCameraComponent(entity);
             entity.ComponentManager.Components.Add(camera);
@@ -40,18 +41,29 @@ namespace SandBoxGame
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
             meshComponent.Mesh.Initialize(GraphicsDevice);
-            meshComponent.Mesh.Texture = GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
+            meshComponent.Mesh.Texture = new Texture(GraphicsDevice, @"Content\checkboard.png", GameManager.AssetContentManager);
+            //meshComponent.Mesh.Texture = GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             world.AddEntityImmediately(entity);
 
-            //test tiledMap
+            //============ tiledMap ===============
             //SpriteLoader.LoadFromFile(@"Content\TiledMap\Outside_A2_sprites.json", GameManager.AssetContentManager);
-            //TiledMapCreator.LoadMapFromFile(@"Content\TiledMap\tileMap.json", world, GameManager.AssetContentManager);
+            //var (tiledMapData, tileSetData, autoTileSetData) = TiledMapLoader.LoadMapFromFile(@"Content\TiledMap\tileMap.json");
+            //SpriteLoader.LoadFromFile(tileSetData.SpriteSheetFileName, GameManager.AssetContentManager);
+            //SpriteLoader.LoadFromFile(autoTileSetData.SpriteSheetFileName, GameManager.AssetContentManager);
 
-            //Test animated sprite
-            SpriteLoader.LoadFromFile("Content\\sprites.json", GameManager.AssetContentManager);
-            var animations = Animation2dLoader.LoadFromFile("Content\\animations.json", GameManager.AssetContentManager);
+            var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
 
-            //Entity
+            entity = new Entity();
+            var tiledMapComponent = new TiledMapComponent(entity);
+            tiledMapComponent.TiledMapData = tiledMapData;
+            entity.ComponentManager.Components.Add(tiledMapComponent);
+
+            world.AddEntityImmediately(entity);
+
+            //============ animated sprite ===============
+            SpriteLoader.LoadFromFile("Content\\ryu.spritesheet", GameManager.AssetContentManager);
+            var animations = Animation2dLoader.LoadFromFile("Content\\ryu.anims2d", GameManager.AssetContentManager);
+
             entity = new Entity();
             entity.Coordinates.LocalPosition = new Vector3(250, 250, 0.0f);
             var scale = 2.0f;

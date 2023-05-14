@@ -15,7 +15,7 @@ namespace EditorWpf.Controls.SpriteControls
     {
         private string _spriteSheetFileName;
 
-        protected override string LayoutFileName { get; } = "spriteEditorLayout.xml";
+        protected override string LayoutFileName => "spriteEditorLayout.xml";
         protected override DockingManager DockingManager => dockingManagerSprite;
 
         public SpriteEditorControl()

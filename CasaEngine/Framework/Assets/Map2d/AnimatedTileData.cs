@@ -15,4 +15,4 @@ public class AnimatedTileData : TileData
         base.Load(jObject);
         Animation2dId = jObject.GetJsonPropertyByName("animation_2d_id").Value.GetString();
     }
-};
+}

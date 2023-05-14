@@ -3,37 +3,61 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using Microsoft.Xna.Framework;
+using Size = CasaEngine.Core.Size;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
 public class TiledMapLoader
 {
-    public static (TiledMapData tiledMapData, TileSetData tileSetData, AutoTileSetData autoTileSetData) LoadMapFromFile(string fileName)
+    public static TiledMapData LoadMapFromFile(string fileName)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
         var rootElement = jsonDocument.RootElement;
-
-        var tiledMapData = LoadTiledMapData(rootElement);
-        var tileSetData = LoadTileSetData(tiledMapData);
-        var autoTileSetData = LoadAutoTileSetData(tiledMapData);
-
-        return (tiledMapData, tileSetData, autoTileSetData);
-    }
-
-    private static TiledMapData LoadTiledMapData(JsonElement rootElement)
-    {
         var tiledMapData = new TiledMapData();
-        tiledMapData.TileSetFileName = rootElement.GetJsonPropertyByName("tile_set_file_name").Value.GetString();
-        tiledMapData.AutoTileSetFileName = rootElement.GetJsonPropertyByName("auto_tile_set_file_name").Value.GetString();
-        tiledMapData.Coordinates.Load(rootElement.GetJsonPropertyByName("coordinates").Value);
         tiledMapData.MapSize = rootElement.GetJsonPropertyByName("map_size").Value.GetSize();
+        tiledMapData.TileSize = rootElement.GetJsonPropertyByName("tile_size").Value.GetSize();
+
+        foreach (var jObject in rootElement.GetJsonPropertyByName("auto_tile_set_file_names").Value.EnumerateArray())
+        {
+            tiledMapData.AutoTileSetFileNames.Add(jObject.GetString());
+        }
+
+        foreach (var jObject in rootElement.GetJsonPropertyByName("sprite_sheet_file_names").Value.EnumerateArray())
+        {
+            tiledMapData.SpriteSheetFileNames.Add(jObject.GetString());
+        }
+
+        foreach (var jObject in rootElement.GetJsonPropertyByName("tilesDefinition").Value.EnumerateArray())
+        {
+            var type = jObject.GetJsonPropertyByName("type").Value.GetEnum<TileType>();
+            TileData tileData;
+            switch (type)
+            {
+                case TileType.Static:
+                    tileData = new StaticTileData();
+                    break;
+                case TileType.Animated:
+                    tileData = new AnimatedTileData();
+                    break;
+                case TileType.Auto:
+                    tileData = new AutoTileData();
+                    break;
+                default: throw new Exception("TiledMapCreator.LoadMapFromFile() : TileSetData, tile type");
+            }
+
+            tileData.Load(jObject);
+            tiledMapData.TileDefinitions.Add(tileData);
+        }
 
         foreach (var jObject in rootElement.GetJsonPropertyByName("layers").Value.EnumerateArray())
         {
             tiledMapData.Layers.Add(LoadTiledMapLayerData(jObject));
+        }
+
+        foreach (var autoTileSetFileName in tiledMapData.AutoTileSetFileNames)
+        {
+            var autoTileSetData = LoadAutoTileSetData(autoTileSetFileName);
+            tiledMapData.AutoTileSetDatas.Add(autoTileSetData);
         }
 
         return tiledMapData;
@@ -48,54 +72,13 @@ public class TiledMapLoader
         return tiledMapLayerData;
     }
 
-    private static TileSetData LoadTileSetData(TiledMapData tiledMapData)
+    private static AutoTileSetData LoadAutoTileSetData(string fileName)
     {
-        JsonDocument jsonDocument;
-        JsonElement rootElement;
-        var tileSetData = new TileSetData();
-        jsonDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(Game.GameSettings.ProjectSettings.ProjectPath, tiledMapData.TileSetFileName)));
-        rootElement = jsonDocument.RootElement;
-
-        tileSetData.SpriteSheetFileName = rootElement.GetJsonPropertyByName("sprite_sheet_file_name").Value.GetString();
-        tileSetData.TileSize = rootElement.GetJsonPropertyByName("tile_size").Value.GetSize();
-        //TODO : create template with factory
-        foreach (var jObject in rootElement.GetJsonPropertyByName("tiles").Value.EnumerateArray())
-        {
-            var type = jObject.GetJsonPropertyByName("type").Value.GetEnum<TileType>();
-
-            switch (type)
-            {
-                case TileType.Static:
-                    {
-                        var tile = new StaticTileData();
-                        tile.Load(jObject);
-                        tileSetData.Tiles.Add(tile);
-                    }
-                    break;
-                case TileType.Animated:
-                    {
-                        var tile = new AnimatedTileData();
-                        tile.Load(jObject);
-                        tileSetData.Tiles.Add(tile);
-                    }
-                    break;
-                default: throw new Exception("TiledMapCreator.LoadMapFromFile() : TileSetData, tile type");
-            }
-        }
-
-        return tileSetData;
-    }
-
-    private static AutoTileSetData LoadAutoTileSetData(TiledMapData tiledMapData)
-    {
-        JsonDocument jsonDocument;
-        JsonElement rootElement;
         AutoTileSetData autoTileSetData = new();
 
-        jsonDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(Game.GameSettings.ProjectSettings.ProjectPath, tiledMapData.AutoTileSetFileName)));
-        rootElement = jsonDocument.RootElement;
+        var jsonDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(Game.GameSettings.ProjectSettings.ProjectPath, fileName)));
+        var rootElement = jsonDocument.RootElement;
         autoTileSetData.SpriteSheetFileName = rootElement.GetJsonPropertyByName("sprite_sheet_file_name").Value.GetString();
-        autoTileSetData.TileSize = rootElement.GetJsonPropertyByName("tile_size").Value.GetSize();
 
         foreach (var jObject in rootElement.GetJsonPropertyByName("sets").Value.EnumerateArray())
         {
@@ -132,28 +115,7 @@ public class TiledMapLoader
         return autoTileSetData;
     }
 
-    public static void LoadMapFromFileAndCreateEntities(string fileName, World.World world, AssetContentManager assetContentManager)
-    {
-        var (tiledMapData, tileSetData, autoTileSetData) = LoadMapFromFile(fileName);
-        Create(Path.GetFileNameWithoutExtension(fileName), autoTileSetData, tileSetData, tiledMapData, world, assetContentManager);
-    }
-
-    public static void Create(string prefixName, AutoTileSetData autoTileSetData, TileSetData tileSetData, TiledMapData tiledMapData, World.World world, AssetContentManager assetContentManager)
-    {
-        var mapEntity = new Entity();
-        mapEntity.Name = "map_" + prefixName;
-        mapEntity.Coordinates.LocalPosition = tiledMapData.Coordinates.LocalPosition;
-        mapEntity.Coordinates.LocalRotation = tiledMapData.Coordinates.LocalRotation;
-        mapEntity.Coordinates.LocalScale = tiledMapData.Coordinates.LocalScale;
-        mapEntity.Coordinates.LocalCenterOfRotation = tiledMapData.Coordinates.LocalCenterOfRotation;
-        // TODO : Add tile map component : does nothing, here only for saving purpose
-        //mapEntity.IsTemporary = true;
-        world.AddEntityImmediately(mapEntity);
-
-        Create(mapEntity, prefixName, autoTileSetData, tileSetData, tiledMapData, world, assetContentManager);
-    }
-
-    public static void Create(Entity mapEntity, string prefixName, AutoTileSetData autoTileSetData, TileSetData tileSetData, TiledMapData tiledMapData, World.World world, AssetContentManager assetContentManager)
+    public static void Create(TiledMapData tiledMapData, AssetContentManager assetContentManager)
     {
         var layerIndex = 0;
 
@@ -165,40 +127,39 @@ public class TiledMapLoader
             {
                 var x = index % tiledMapData.MapSize.Width;
                 var y = index / tiledMapData.MapSize.Width;
-                var posX = x * tileSetData.TileSize.Width;
-                var posY = y * tileSetData.TileSize.Height;
+                var posX = x * tiledMapData.TileSize.Width;
+                var posY = y * tiledMapData.TileSize.Height;
 
-                var tileEntity = new Entity();
-                tileEntity.Name = "tile_" + index + "_" + layerIndex + "_" + prefixName;
-#if EDITOR
-                tileEntity.IsTemporary = true;
-#endif
-                tileEntity.Coordinates.Parent = mapEntity.Coordinates;
-                tileEntity.Coordinates.LocalPosition = new Vector3(posX, posY, layer.zOffset);
                 Tile? tile;
                 var collisionType = TileCollisionType.None;
+
                 if (tileId == -1)
                 {
                     tile = new EmptyTile();
                 }
                 else
                 {
-                    if (layer.type == TileType.Auto)
+                    var tileData = GetTileById(tiledMapData.TileDefinitions, tileId);
+
+                    if (tileData.Type == TileType.Auto)
                     {
-                        var autoTileTileSetData = autoTileSetData.GetTileSetById(tileId);
-                        tile = CreateTile(autoTileTileSetData, tileSetData, layer, tiledMapData, x, y, assetContentManager);
+                        var autoTileTileSetData = GetAutoTileTileSetData(tiledMapData, (tileData as AutoTileData).AutoTileSetId);
+                        if (autoTileTileSetData == null)
+                        {
+                            LogManager.Instance.WriteLineWarning($"Can't find autoTileTileSetData with Id {tileId}");
+                        }
+
+                        tile = CreateTile(x, y, autoTileTileSetData.Tiles, layer, tiledMapData.MapSize, tiledMapData.TileSize, assetContentManager);
                         collisionType = autoTileTileSetData.Tiles[0].CollisionType;
                     }
                     else
                     {
-                        var tileData = tileSetData.GetTileById(tileId);
                         tile = CreateTile(tileData, assetContentManager);
                         collisionType = tileData.CollisionType;
 
                         if (tileData == null)
                         {
-                            LogManager.Instance.WriteLineWarning($"TileData with Id {tileId} is null");
-                            continue;
+                            LogManager.Instance.WriteLineWarning($"Can't find tileData with Id {tileId}");
                         }
                     }
                 }
@@ -220,10 +181,6 @@ public class TiledMapLoader
                 //    world.Physic2dWorld.AddCollisionObject(collisionShape);
                 //}
 
-                var tileComponent = new TileComponent(tileEntity);
-                tileComponent.Tile = tile;
-                tileEntity.ComponentManager.Components.Add(tileComponent);
-                world.AddEntityImmediately(tileEntity);
                 index++;
             }
 
@@ -231,7 +188,49 @@ public class TiledMapLoader
         }
     }
 
-    private static Tile CreateTile(TileData tileData, AssetContentManager assetContentManager)
+    private static TileData? GetTileById(List<TileData> tileDefinitions, int tileId)
+    {
+        foreach (var tileDefinition in tileDefinitions)
+        {
+            if (tileDefinition.Id == tileId)
+            {
+                return tileDefinition;
+            }
+        }
+
+        return null;
+    }
+
+    private static AutoTileTileSetData? GetAutoTileTileSetData(TiledMapData tiledMapData, int tileId)
+    {
+        foreach (var autoTileSetData in tiledMapData.AutoTileSetDatas)
+        {
+            var autoTileTileSetData = autoTileSetData.GetTileSetById(tileId);
+
+            if (autoTileTileSetData != null)
+            {
+                return autoTileTileSetData;
+            }
+        }
+
+        return null;
+    }
+
+    public static Tile CreateAutoTile(int x, int y, List<TileData> autoTiles, TiledMapLayerData layer, Size mapSize, Size tileSize, AssetContentManager assetContentManager)
+    {
+        var tiles = new List<Tile>();
+
+        foreach (var tileData in autoTiles)
+        {
+            tiles.Add(CreateTile(tileData, assetContentManager));
+        }
+
+        var autoTile = new AutoTile(autoTiles[0]);
+        autoTile.SetTileInfo(tiles, tileSize, mapSize, layer, x, y);
+        return autoTile;
+    }
+
+    public static Tile? CreateTile(TileData tileData, AssetContentManager assetContentManager)
     {
         switch (tileData.Type)
         {
@@ -254,17 +253,17 @@ public class TiledMapLoader
         return null;
     }
 
-    private static Tile CreateTile(AutoTileTileSetData autoTileTileSetData, TileSetData tileSetData, TiledMapLayerData layer, TiledMapData map, int x, int y, AssetContentManager assetContentManager)
+    private static Tile CreateTile(int x, int y, List<TileData> autoTiles, TiledMapLayerData layer, Size mapSize, Size tileSize, AssetContentManager assetContentManager)
     {
         var tiles = new List<Tile>();
 
-        foreach (var tileData in autoTileTileSetData.Tiles)
+        foreach (var tileData in autoTiles)
         {
             tiles.Add(CreateTile(tileData, assetContentManager));
         }
 
-        var autoTile = new AutoTile(autoTileTileSetData.Tiles[0]);
-        autoTile.SetTileInfo(tiles, tileSetData.TileSize, map.MapSize, layer, x, y);
+        var autoTile = new AutoTile(autoTiles[0]);
+        autoTile.SetTileInfo(tiles, tileSize, mapSize, layer, x, y);
         return autoTile;
     }
 

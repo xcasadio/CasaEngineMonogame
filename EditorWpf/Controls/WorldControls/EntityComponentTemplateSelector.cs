@@ -11,6 +11,9 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
     public DataTemplate GamePlayComponenTemplate { get; set; }
     public DataTemplate ArcBallCameraComponenTemplate { get; set; }
     public DataTemplate PhysicsComponenTemplate { get; set; }
+    public DataTemplate TiledMapComponentTemplate { get; set; }
+
+
 
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
@@ -22,6 +25,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
                 case ComponentIds.ArcBallCamera: return ArcBallCameraComponenTemplate;
                 case ComponentIds.GamePlay: return GamePlayComponenTemplate;
                 case ComponentIds.Physics: return PhysicsComponenTemplate;
+                case ComponentIds.TiledMap: return TiledMapComponentTemplate;
             }
         }
 

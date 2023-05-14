@@ -206,7 +206,7 @@ public class ArcBallCameraComponent : Camera3dComponent
 
         const float step = 1.0f;
 
-        //Keyboard
+
         if (_inputComponent.IsKeyPressed(Keys.Right))
         {
             rightAxis = step;
@@ -218,11 +218,11 @@ public class ArcBallCameraComponent : Camera3dComponent
 
         if (_inputComponent.IsKeyPressed(Keys.Up))
         {
-            forwardAxis = step;
+            forwardAxis = -step;
         }
         else if (_inputComponent.IsKeyPressed(Keys.Down))
         {
-            forwardAxis = -step;
+            forwardAxis = step;
         }
 
         if (_inputComponent.IsKeyPressed(Keys.PageUp))
@@ -236,15 +236,14 @@ public class ArcBallCameraComponent : Camera3dComponent
 
         if (_inputComponent.MouseRightButtonPressed)
         {
-            horizontalOrbit = -_inputComponent.MouseXMovement;
+            horizontalOrbit = _inputComponent.MouseXMovement;
             verticalOrbit = -_inputComponent.MouseYMovement;
         }
 
 #if EDITOR
         rightAxis = -rightAxis;
-        forwardAxis = -forwardAxis;
         upAxis = -upAxis;
-        //horizontalOrbit = -horizontalOrbit;
+        horizontalOrbit = -horizontalOrbit;
         verticalOrbit = -verticalOrbit;
 #endif
 

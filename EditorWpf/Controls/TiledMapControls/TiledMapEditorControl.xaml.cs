@@ -10,23 +10,23 @@ public partial class TiledMapEditorControl : EditorControlBase
 {
     private string _tileMapFileName;
 
-    protected override string LayoutFileName { get; } = "tiledMapEditorLayout.xml";
+    protected override string LayoutFileName => "tiledMapEditorLayout.xml";
     protected override DockingManager DockingManager => dockingManagerTiledMap;
 
     public TiledMapEditorControl()
     {
         InitializeComponent();
         DataContext = new TiledMapDataViewModel();
-        TiledMapLayersControl.InitializeFromGameEditor(GameEditorControl.GameEditor);
+        TiledMapDetailsControl.InitializeFromGameEditor(GameEditorControl.GameEditor);
     }
 
     protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
     {
         e.Content = e.Model.Title switch
         {
-            "Layers" => TiledMapLayersControl,
+            "Map Details" => TiledMapDetailsControl,
             "Tiled Map View" => GameEditorControl,
-            "Details" => TiledMapDetailsControl,
+            "Tiles Definition" => TilesDefinitionControl,
             "Logs" => this.FindParent<MainWindow>().LogsControl,
             "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
             _ => e.Content
@@ -36,12 +36,12 @@ public partial class TiledMapEditorControl : EditorControlBase
     public void LoadTiledMap(string fileName)
     {
         _tileMapFileName = fileName;
-        TiledMapLayersControl.LoadTiledMap(fileName);
+        TiledMapDetailsControl.LoadTiledMap(fileName);
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
-        var tiledMapDataViewModel = TiledMapLayersControl.DataContext as TiledMapDataViewModel;
+        var tiledMapDataViewModel = TiledMapDetailsControl.DataContext as TiledMapDataViewModel;
         TiledMapLoader.Save(_tileMapFileName, tiledMapDataViewModel.TiledMapData);
 
         //tileset ??

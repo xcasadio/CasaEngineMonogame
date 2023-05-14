@@ -4,7 +4,7 @@ public enum DefuzzifyMethod
 {
     MaxAv,
     Centroid
-};
+}
 
 public class FuzzyModule
 {

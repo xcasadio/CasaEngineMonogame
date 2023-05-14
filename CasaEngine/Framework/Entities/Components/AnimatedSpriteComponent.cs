@@ -9,6 +9,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -212,4 +213,15 @@ public class AnimatedSpriteComponent : Component
     {
         throw new NotImplementedException();
     }
+
+
+#if EDITOR
+
+    public override void Save(JObject jObject)
+    {
+        throw new NotImplementedException();
+        base.Save(jObject);
+    }
+
+#endif
 }

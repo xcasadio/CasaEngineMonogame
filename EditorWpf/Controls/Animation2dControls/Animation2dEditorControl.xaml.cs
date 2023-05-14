@@ -11,7 +11,7 @@ namespace EditorWpf.Controls.Animation2dControls
     {
         private string _animation2dFileName;
 
-        protected override string LayoutFileName { get; } = "animation2dEditorLayout.xml";
+        protected override string LayoutFileName => "animation2dEditorLayout.xml";
         protected override DockingManager DockingManager => dockingManagerAnimation2d;
 
         public Animation2dEditorControl()
