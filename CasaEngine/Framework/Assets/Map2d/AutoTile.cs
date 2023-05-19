@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
+using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
@@ -24,9 +25,9 @@ public class AutoTileDrawingInfo
 
 public class AutoTile : Tile
 {
-    private CasaEngine.Core.Size _tileSize;
+    private Size _tileSize;
     private TiledMapLayerData? _tiledMapLayerData;
-    private CasaEngine.Core.Size _mapSize;
+    private Size _mapSize;
     private AutoTileDrawingInfo[] _drawingInfos = new AutoTileDrawingInfo[4];
     private Tile[] _tiles = new Tile[6];
     private int _x, _y;
@@ -73,7 +74,7 @@ public class AutoTile : Tile
         _drawingInfos[3].SetInfo(-1, 0, 0, 0, new Rectangle());
     }
 
-    uint getMask(CasaEngine.Core.Size mapSize, TiledMapLayerData layer, int x, int y, int offset)
+    uint getMask(Size mapSize, TiledMapLayerData layer, int x, int y, int offset)
     {
         if (x >= mapSize.Width || x < 0 || y >= mapSize.Height || y < 0)
         {
@@ -128,7 +129,7 @@ public class AutoTile : Tile
         }
     }
 
-    public void SetTileInfo(List<Tile> tiles, Core.Size tileSize, Core.Size mapSize, TiledMapLayerData layer, int x, int y)
+    public void SetTileInfo(List<Tile> tiles, Size tileSize, Size mapSize, TiledMapLayerData layer, int x, int y)
     {
         Debug.Assert(tiles.Count == 6, "SetTileInfo() : size is not 6");
 

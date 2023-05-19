@@ -2,7 +2,7 @@
 using System.Windows;
 using Microsoft.Xna.Framework;
 using CasaEngine.Core;
-using CasaEngine.Core.Helper;
+using CasaEngine.Core.Helpers;
 
 namespace CasaEngine.WpfControls;
 
@@ -66,15 +66,15 @@ public class RotationEditor : VectorEditorBase<Quaternion?>
         Vector3? newDecomposedRotation;
         if (property == XProperty)
         {
-            newDecomposedRotation = X.HasValue ? new Vector3(MathUtils.DegreesToRadians(X.Value), _decomposedRotation.Y, _decomposedRotation.Z) : null;
+            newDecomposedRotation = X.HasValue ? new Vector3(TrigonometryHelper.DegreesToRadians(X.Value), _decomposedRotation.Y, _decomposedRotation.Z) : null;
         }
         else if (property == YProperty)
         {
-            newDecomposedRotation = Y.HasValue ? new Vector3(_decomposedRotation.X, MathUtils.DegreesToRadians(Y.Value), _decomposedRotation.Z) : null;
+            newDecomposedRotation = Y.HasValue ? new Vector3(_decomposedRotation.X, TrigonometryHelper.DegreesToRadians(Y.Value), _decomposedRotation.Z) : null;
         }
         else if (property == ZProperty)
         {
-            newDecomposedRotation = Z.HasValue ? new Vector3(_decomposedRotation.X, _decomposedRotation.Y, MathUtils.DegreesToRadians(Z.Value)) : null;
+            newDecomposedRotation = Z.HasValue ? new Vector3(_decomposedRotation.X, _decomposedRotation.Y, TrigonometryHelper.DegreesToRadians(Z.Value)) : null;
         }
         else
         {
@@ -91,7 +91,7 @@ public class RotationEditor : VectorEditorBase<Quaternion?>
 
     protected override Quaternion? UpdateValueFromFloat(float value)
     {
-        var radian = MathUtils.DegreesToRadians(value);
+        var radian = TrigonometryHelper.DegreesToRadians(value);
         _decomposedRotation = new Vector3(radian);
         return Recompose(ref _decomposedRotation);
     }
@@ -103,7 +103,7 @@ public class RotationEditor : VectorEditorBase<Quaternion?>
 
     private static float GetDisplayValue(float angleRadians)
     {
-        var degrees = MathUtils.RadiansToDegrees(angleRadians);
+        var degrees = TrigonometryHelper.RadiansToDegrees(angleRadians);
         if (degrees == 0 && float.IsNegative(degrees))
         {
             // Matrix.DecomposeXYZ can give -0 when MathF.Asin(-0) == -0,

@@ -1,6 +1,6 @@
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;

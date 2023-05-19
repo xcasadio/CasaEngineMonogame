@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows;
-using Size = CasaEngine.Core.Size;
+using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.WpfControls;
 

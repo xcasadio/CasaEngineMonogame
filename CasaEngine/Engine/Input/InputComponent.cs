@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Core.Helpers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Game;
-using CasaEngine.Core.Helper;
 using CasaEngine.Engine.Input.InputSequence;
 
 namespace CasaEngine.Engine.Input;

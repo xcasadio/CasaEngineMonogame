@@ -1,4 +1,4 @@
-using CasaEngine.Core.Collection;
+using CasaEngine.Core.Collections;
 
 namespace CasaEngine.Framework.AI.Messaging;
 

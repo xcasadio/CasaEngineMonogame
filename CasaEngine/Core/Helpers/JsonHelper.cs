@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
+using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Core.Helpers;
 

@@ -2,6 +2,7 @@
 using System.Windows;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components.Physics;
 using EditorWpf.Inputs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -14,7 +15,6 @@ public class GameEditor : WpfGame
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
-    public Physics2dDebugViewRendererComponent Physics2dDebugViewRendererComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
     protected override bool CanRender => _isInitialized;
@@ -24,25 +24,12 @@ public class GameEditor : WpfGame
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
         Game = new CasaEngineGame(null, graphicsDeviceService);
         Game.GameManager.Initialize();
-        Game.GameManager.WorldChanged += OnWorldChanged;
-
         Game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)), new MouseStateProvider(new WpfMouse(this)));
 
         //In editor mode the game is in idle mode so we don't update physics
-        Game.GameManager.PhysicsEngine.Enabled = false;
-        PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(Game);
-        Physics2dDebugViewRendererComponent = new Physics2dDebugViewRendererComponent(Game);
+        Game.GameManager.PhysicsEngineComponent.Enabled = false;
 
         base.Initialize();
-    }
-
-    private void OnWorldChanged(object? sender, EventArgs e)
-    {
-        var world = Game.GameManager.CurrentWorld;
-        if (world.Physic2dWorld != null)
-        {
-            Physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(world.Physic2dWorld);
-        }
     }
 
     protected override void LoadContent()

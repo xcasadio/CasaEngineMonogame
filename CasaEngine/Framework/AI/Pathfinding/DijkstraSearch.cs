@@ -1,4 +1,4 @@
-using CasaEngine.Core.Collection;
+using CasaEngine.Core.Collections;
 using CasaEngine.Framework.AI.Graphs;
 
 namespace CasaEngine.Framework.AI.Pathfinding;

@@ -1,15 +1,19 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Core.Logger;
+using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
+using System.Transactions;
+using BulletSharp.SoftBody;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -22,9 +26,11 @@ public class AnimatedSpriteComponent : Component
     public event EventHandler<Animation2d>? AnimationFinished;
 
     //Dictionary<string, List<ICollisionObjectContainer>> _collisionObjectByFrameId;
-    private string _lastFrameId;
     private Renderer2dComponent _renderer2dComponent;
     private AssetContentManager _assetContentManager;
+    private Dictionary<string, Body> _collisionObjectByFrameId = new();
+    private PhysicsEngineComponent? _physicsEngineComponent;
+    private CasaEngineGame _game;
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
@@ -114,20 +120,28 @@ public class AnimatedSpriteComponent : Component
 
     public override void Initialize(CasaEngineGame game)
     {
-        base.Initialize(game);
-
+        _game = game;
         _renderer2dComponent = game.GetGameComponent<Renderer2dComponent>();
         _assetContentManager = game.GameManager.AssetContentManager;
+        _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
 
         foreach (var animation in Animations)
         {
             foreach (var frame in animation.Animation2dData.Frames)
             {
-                //if (_collisionObjectByFrameId.find(frame._spriteId) != _collisionObjectByFrameId.end())
+                if (_collisionObjectByFrameId.ContainsKey(frame.SpriteId))
                 {
-                    continue; // already added
+                    continue;
                 }
-                //_collisionObjectByFrameId[frame._spriteId] = SpritePhysicsHelper::CreateCollisionsFromSprite(frame._spriteId, GetEntity());
+
+                var spriteData = game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+                //var body = Physics2dHelper.CreateCollisionsFromSprite(spriteData, Owner, _physicsEngine2dProxyComponent.Physic2dWorld);
+                //if (body != null)
+                //{
+                //    body.OnCollision = OnCollision;
+                //    body.OnSeparation = OnSeparation;
+                //    _collisionObjectByFrameId[frame.SpriteId] = body;
+                //}
             }
         }
     }
@@ -138,13 +152,25 @@ public class AnimatedSpriteComponent : Component
         {
             CurrentAnimation.Update(elapsedTime);
 
-            //var pair = _collisionObjectByFrameId[_currentAnim.CurrentFrame];
-            //foreach (var collision_object_container in pair.second)
-            //{
-            //    Game::Instance().GetGameInfo().GetWorld().GetPhysicsWorld().ContactTest(collision_object_container);
-            //}
+            if (_collisionObjectByFrameId.TryGetValue(CurrentAnimation.CurrentFrame, out var body))
+            {
+                //UpdateBodyTransformation(body);
+            }
         }
     }
+
+    //private void UpdateBodyTransformation(Body body)
+    //{
+    //    var spriteData = GetCurrentSpriteData();
+    //
+    //
+    //
+    //    ShapeRectangle rect = spriteData.CollisionShapes[0].Shape as ShapeRectangle;
+    //    //body.FixtureList[0].Shape //scale : change the shape
+    //    //body.Position = new Vector2(Owner.Coordinates.Position.X, Owner.Coordinates.Position.Y);
+    //    body.Position = new Vector2(Owner.Coordinates.Position.X - spriteData.Origin.X + rect.Location.X + rect.Width / 2,
+    //        Owner.Coordinates.Position.Y - spriteData.Origin.Y + rect.Location.Y + rect.Height / 2);
+    //}
 
     public override void Draw()
     {
@@ -181,27 +207,36 @@ public class AnimatedSpriteComponent : Component
         Animations.Add(animation2d);
     }
 
-    public void RemoveCollisionsFromLastFrame()
+    private SpriteData? GetCurrentSpriteData()
     {
-        //if (_collisionObjectByFrameId.find(_lastFrameId) != _collisionObjectByFrameId.end())
-        //{
-        //    for (auto* collObj : _collisionObjectByFrameId[_lastFrameId])
-        //    {
-        //        Game::Instance().GetGameInfo().GetWorld().GetPhysicsWorld().RemoveCollisionObject(collObj);
-        //    }
-        //}
+        foreach (var frame in CurrentAnimation.Animation2dData.Frames)
+        {
+            if (frame.SpriteId == CurrentAnimation.CurrentFrame)
+            {
+                return _game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+            }
+        }
+        return null;
     }
 
-    private void OnFrameChanged(object? sender, string frameId)
+    public void RemoveCollisionsFromLastFrame(string frameId)
     {
-        RemoveCollisionsFromLastFrame();
-        //if (_collisionObjectByFrameId.find(args.ID()) != _collisionObjectByFrameId.end())
-        //{
-        //    SpritePhysicsHelper::AddCollisionsFromSprite(GetEntity().GetCoordinates().GetWorldMatrix().Translation(), event.ID(), _collisionObjectByFrameId[frameId]);
-        //}
+        if (_collisionObjectByFrameId.TryGetValue(frameId, out var body))
+        {
+            //body.Enabled = false;
+        }
+    }
 
-        _lastFrameId = frameId;
-        FrameChanged?.Invoke(this, frameId);
+    private void OnFrameChanged(object? sender, (string oldFrame, string newFrame) arg)
+    {
+        RemoveCollisionsFromLastFrame(arg.oldFrame);
+        if (_collisionObjectByFrameId.TryGetValue(arg.newFrame, out var body))
+        {
+            //UpdateBodyTransformation(body);
+            //body.Enabled = true;
+        }
+
+        FrameChanged?.Invoke(this, arg.newFrame);
     }
 
     private void OnAnimationFinished(object? sender, EventArgs args)
@@ -224,4 +259,42 @@ public class AnimatedSpriteComponent : Component
     }
 
 #endif
+}
+
+public class Physics2dHelper
+{
+    //public static Body? CreateCollisionsFromSprite(SpriteData spriteData, Entity entity, Genbox.VelcroPhysics.Dynamics.World world)
+    //{
+    //    Body? body = null;
+    //
+    //    foreach (var collisionShape in spriteData.CollisionShapes)
+    //    {
+    //        switch (collisionShape.Shape.Type)
+    //        {
+    //            case Shape2dType.Compound:
+    //                break;
+    //            case Shape2dType.Polygone:
+    //                break;
+    //            case Shape2dType.Rectangle:
+    //                var rectangle = collisionShape.Shape as ShapeRectangle;
+    //                body = BodyFactory.CreateRectangle(world, rectangle.Width, rectangle.Height, 1,
+    //                    new Vector2(rectangle.Location.X, rectangle.Location.Y),
+    //                    rectangle.Rotation, BodyType.Kinematic, entity);
+    //                break;
+    //            case Shape2dType.Circle:
+    //                break;
+    //            case Shape2dType.Line:
+    //                break;
+    //            default:
+    //                throw new ArgumentOutOfRangeException();
+    //        }
+    //    }
+    //
+    //    if (body != null)
+    //    {
+    //        body.Enabled = false;
+    //    }
+    //
+    //    return body;
+    //}
 }

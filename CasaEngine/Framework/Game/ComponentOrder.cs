@@ -5,6 +5,8 @@ public enum ComponentUpdateOrder
 {
     GameManager = 500,
     Renderer2dComponent,
+    Renderer3dComponent,
+    Line3dComponent,
     MeshComponent,
     Input = 510,
     Manipulator,
@@ -37,6 +39,8 @@ public enum ComponentDrawOrder
     Default = 5100,
     MeshComponent,
     Renderer2dComponent = 5150,
+    Renderer3dComponent,
+    Line3dComponent,
     DebugPhysics = 5200,
     Manipulator = 51000
 }

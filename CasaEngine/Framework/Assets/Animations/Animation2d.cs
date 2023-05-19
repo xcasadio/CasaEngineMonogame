@@ -1,10 +1,13 @@
-﻿namespace CasaEngine.Framework.Assets.Animations;
+﻿using CasaEngine.Framework.Assets.Sprites;
+
+namespace CasaEngine.Framework.Assets.Animations;
 
 public class Animation2d : Animation
 {
-    public event EventHandler<string>? FrameChanged;
+    public event EventHandler<(string oldFrame, string newFrame)>? FrameChanged;
 
     private Animation2dData _animation2DData;
+    private string _oldFrame;
     private string _currentFrame;
 
     public string CurrentFrame
@@ -12,10 +15,13 @@ public class Animation2d : Animation
         get => _currentFrame;
         set
         {
-            _currentFrame = value;
-            FrameChanged?.Invoke(this, _currentFrame);
+            if (_currentFrame != value)
+            {
+                _oldFrame = _currentFrame;
+                _currentFrame = value;
+                FrameChanged?.Invoke(this, (_oldFrame, _currentFrame));
+            }
         }
-
     }
 
     public Animation2dData Animation2dData => (Animation2dData)AnimationData;

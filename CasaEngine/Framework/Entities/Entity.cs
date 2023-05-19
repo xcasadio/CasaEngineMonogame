@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Xml;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Extension;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;

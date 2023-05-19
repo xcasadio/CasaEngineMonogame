@@ -11,9 +11,9 @@ public abstract class GeometricPrimitive : IDisposable
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<ushort> _indices = new();
 
-    private VertexBuffer _vertexBuffer;
-    private IndexBuffer _indexBuffer;
-    private BasicEffect _basicEffect;
+    private VertexBuffer? _vertexBuffer;
+    private IndexBuffer? _indexBuffer;
+    private BasicEffect? _basicEffect;
 
     protected int CurrentVertex => _vertices.Count;
 
@@ -78,20 +78,9 @@ public abstract class GeometricPrimitive : IDisposable
             return;
         }
 
-        if (_vertexBuffer != null)
-        {
-            _vertexBuffer.Dispose();
-        }
-
-        if (_indexBuffer != null)
-        {
-            _indexBuffer.Dispose();
-        }
-
-        if (_basicEffect != null)
-        {
-            _basicEffect.Dispose();
-        }
+        _vertexBuffer?.Dispose();
+        _indexBuffer?.Dispose();
+        _basicEffect?.Dispose();
     }
 
     /// <summary>

@@ -7,10 +7,10 @@
 
 using System.Diagnostics;
 using System.Text;
+using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
-using CasaEngine.Core.Extension;
 using CasaEngine.Framework.Graphics2D;
 
 #if EDITOR

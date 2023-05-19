@@ -15,12 +15,13 @@
         <StackPanel Grid.Row="0">
             <Button Click="ButtonCube_Click">Cube</Button>
             <Button Click="ButtonSphere_Click">Sphere</Button>
+            <Button Click="ButtonCapsule_Click">Capsule</Button>
             <Button Click="ButtonCylinder_Click">Cylinder</Button>
             <Button Click="ButtonPlane_Click">Plane</Button>
             <Button Click="ButtonTeapot_Click">Teapot</Button>
             <Button Click="ButtonTorus_Click">Torus</Button>
         </StackPanel>
-        
+
         <Button Grid.Row="2" Click="ButtonCancel_Click" HorizontalAlignment="Right" Width="100">Cancel</Button>
     </Grid>
 </Window>

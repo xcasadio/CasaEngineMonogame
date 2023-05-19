@@ -1,11 +1,11 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
-using CasaEngine.Engine.Physics2D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,15 +25,8 @@ public sealed class World : Asset
 #endif
 
     public IList<Entity> Entities => _entities;
-    public Genbox.VelcroPhysics.Dynamics.World? Physic2dWorld { get; }
-
-    public World(Physics2dSettings? physics2dSettings = null)
-    {
-        if (physics2dSettings != null)
-        {
-            Physic2dWorld = new Genbox.VelcroPhysics.Dynamics.World(physics2dSettings.Gravity);
-        }
-    }
+    public Vector2 Gravity2d { get; set; } = Vector2.UnitY * -9.81f;
+    public Vector3 Gravity { get; set; } = Vector3.UnitY * -9.81f;
 
     public void AddEntityImmediately(Entity entity)
     {
@@ -88,8 +81,6 @@ public sealed class World : Asset
 
     public void Update(float elapsedTime)
     {
-        Physic2dWorld?.Step(elapsedTime);
-
         var toRemove = new List<Entity>();
 
         _entities.AddRange(_baseObjectsToAdd);

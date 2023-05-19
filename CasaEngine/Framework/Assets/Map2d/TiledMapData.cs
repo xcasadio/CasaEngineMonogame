@@ -1,11 +1,11 @@
-﻿using CasaEngine.Framework.Entities;
+﻿using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 
 public class TiledMapData
 {
-    public Core.Size MapSize { get; set; }
-    public Core.Size TileSize { get; set; }
+    public Size MapSize { get; set; }
+    public Size TileSize { get; set; }
     public List<string> SpriteSheetFileNames { get; } = new();
     public List<string> AutoTileSetFileNames { get; } = new();
     public List<TiledMapLayerData> Layers { get; } = new();

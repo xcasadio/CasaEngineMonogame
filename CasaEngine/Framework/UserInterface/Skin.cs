@@ -15,7 +15,7 @@ using System.Xml.Linq;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Documents;
 using Cursor = CasaEngine.Framework.UserInterface.Cursors.Cursor;
-using Size = CasaEngine.Core.Size;
+using Size = CasaEngine.Core.Maths.Size;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 

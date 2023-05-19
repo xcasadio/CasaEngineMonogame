@@ -1,16 +1,9 @@
-﻿//-----------------------------------------------------------------------------
-// DebugCommandUI.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
-using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components.Physics;
 
 
 namespace CasaEngine.Framework.Debugger
@@ -24,7 +17,6 @@ namespace CasaEngine.Framework.Debugger
         private const string Cursor = "_";
 
         public const string DefaultPrompt = "CMD>";
-
 
         public bool CanSetVisible => true;
 
@@ -192,9 +184,8 @@ namespace CasaEngine.Framework.Debugger
                     }
                     else
                     {
-                        Physics2dDebugViewRendererComponent.DisplayPhysics = state;
+                        PhysicsDebugViewRendererComponent.DisplayPhysics = state;
                     }
-
                 });
 
             UpdateOrder = (int)ComponentUpdateOrder.DebugManager;

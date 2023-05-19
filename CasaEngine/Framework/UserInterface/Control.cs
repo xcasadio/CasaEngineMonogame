@@ -11,7 +11,9 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 using CasaEngine.Core;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.UserInterface.Controls.Auxiliary;
 using CasaEngine.Framework.UserInterface.Controls.Menu;

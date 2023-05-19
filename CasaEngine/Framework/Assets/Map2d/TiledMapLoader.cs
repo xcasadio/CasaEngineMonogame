@@ -3,7 +3,7 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
-using Size = CasaEngine.Core.Size;
+using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Framework.Assets.Map2d;
 

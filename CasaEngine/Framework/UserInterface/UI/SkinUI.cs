@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Design;
-using Size = CasaEngine.Core.Size;
+using Size = CasaEngine.Core.Maths.Size;
 
 #if EDITOR
 using System.ComponentModel;

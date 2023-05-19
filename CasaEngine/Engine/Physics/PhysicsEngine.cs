@@ -1,910 +1,1116 @@
-﻿using BepuPhysics;
-using BepuPhysics.Collidables;
-using BepuPhysics.CollisionDetection;
-using BepuPhysics.Constraints;
-using BepuUtilities;
-using BepuUtilities.Collections;
-using BepuUtilities.Memory;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Numerics;
+﻿using BulletSharp;
+using CasaEngine.Engine.Physics2D;
+using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
-using MathHelper = BepuUtilities.MathHelper;
-using Vector3 = System.Numerics.Vector3;
 
 namespace CasaEngine.Engine.Physics;
 
 public class PhysicsEngine
 {
-    private float _timeAccumulator;
+    const CollisionFilterGroups DefaultGroup = (CollisionFilterGroups)BulletSharp.CollisionFilterGroups.DefaultFilter;
 
-    struct ContactResponseParticle
+    public DiscreteDynamicsWorld World { get; }
+    private readonly BulletSharp.CollisionWorld collisionWorld;
+
+    private readonly BulletSharp.CollisionDispatcher dispatcher;
+    private readonly BulletSharp.CollisionConfiguration collisionConfiguration;
+    private readonly BulletSharp.DbvtBroadphase broadphase;
+
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private readonly BulletSharp.ContactSolverInfo solverInfo;
+
+    private readonly BulletSharp.DispatcherInfo dispatchInfo;
+
+    internal readonly bool CanCcd;
+
+    public bool ContinuousCollisionDetection
     {
-        public Vector3 Position;
-        public float Age;
-        public Vector3 Normal;
-    }
-
-    class EventHandler : IContactEventHandler
-    {
-        public Simulation Simulation;
-        public BufferPool Pool;
-        public QuickList<ContactResponseParticle> Particles;
-
-        public EventHandler(Simulation simulation, BufferPool pool)
+        get
         {
-            Simulation = simulation;
-            Particles = new QuickList<ContactResponseParticle>(128, pool);
-            Pool = pool;
-        }
-
-        public void OnContactAdded<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold,
-            Vector3 contactOffset, Vector3 contactNormal, float depth, int featureId, int contactIndex, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-        {
-            //Simply ignore any particles beyond the allocated space.
-            var index = Interlocked.Increment(ref Particles.Count) - 1;
-            if (index < Particles.Span.Length)
+            if (!CanCcd)
             {
-                ref var particle = ref Particles[index];
-
-                //Contact data is calibrated according to the order of the pair, so using A's position is important.
-                particle.Position = contactOffset + (pair.A.Mobility == CollidableMobility.Static ?
-                    new StaticReference(pair.A.StaticHandle, Simulation.Statics).Pose.Position :
-                    new BodyReference(pair.A.BodyHandle, Simulation.Bodies).Pose.Position);
-                particle.Age = 0;
-                particle.Normal = contactNormal;
+                throw new Exception("ContinuousCollisionDetection must be enabled at physics engine initialization using the proper flag.");
             }
+
+            return dispatchInfo.UseContinuous;
         }
-
-        public void Dispose()
+        set
         {
-            //In the demo we won't actually call this, since it's going to persist until the demo dies. At that point, the buffer pool will be dropped and all its allocations will be cleaned up anyway.
-            Particles.Dispose(Pool);
-        }
-
-    }
-
-    /// <summary>
-    /// Gets the simulation created by the demo's Initialize call.
-    /// </summary>
-    public Simulation Simulation { get; protected set; }
-
-    //Note that the buffer pool used by the simulation is not considered to be *owned* by the simulation. The simulation merely uses the pool.
-    //Disposing the simulation will not dispose or clear the buffer pool.
-    /// <summary>
-    /// Gets the buffer pool used by the demo's simulation.
-    /// </summary>
-    public BufferPool BufferPool { get; } = new();
-
-    /// <summary>
-    /// Gets the thread dispatcher available for use by the simulation.
-    /// </summary>
-    public ThreadDispatcher ThreadDispatcher { get; }
-
-    public PhysicsEngine()
-    {
-        //Generally, shoving as many threads as possible into the simulation won't produce the best results on systems with multiple logical cores per physical core.
-        //Environment.ProcessorCount reports logical core count only, so we'll use a simple heuristic here- it'll leave one or two logical cores idle.
-        //For the common Intel quad core with hyperthreading, this'll use six logical cores and leave two logical cores free to be used for other stuff.
-        //This is by no means perfect. To maximize performance, you'll need to profile your simulation and target hardware.
-        //Note that issues can be magnified on older operating systems like Windows 7 if all logical cores are given work.
-
-        //Generally, the more memory bandwidth you have relative to CPU compute throughput, and the more collision detection heavy the simulation is relative to solving,
-        //the more benefit you get out of SMT/hyperthreading. 
-        //For example, if you're using the 64 core quad memory channel AMD 3990x on a scene composed of thousands of ragdolls, 
-        //there won't be enough memory bandwidth to even feed half the physical cores. Using all 128 logical cores would just add overhead.
-
-        //It may be worth using something like hwloc or CPUID to extract extra information to reason about.
-        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
-        ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
-    }
-
-    public void Initialize()
-    {
-        var events = new ContactEvents(ThreadDispatcher, BufferPool);
-        var gravity = new Vector3(0, -10, 0); //TODO settings
-        Simulation = Simulation.Create(BufferPool,
-            new ContactEventCallbacks(events),
-            new DemoPoseIntegratorCallbacks(gravity),
-            new SolveDescription(8, 1));
-        //var eventHandler = new EventHandler(Simulation, BufferPool);
-    }
-
-    public void Update(GameTime gameTime)
-    {
-        //And here's an example of how to use an accumulator to take a number of timesteps of fixed length in response to variable update dt:
-        _timeAccumulator += (float)(gameTime.ElapsedGameTime.TotalMilliseconds / 1000d);
-        var targetTimestepDuration = 1 / 120f;
-        while (_timeAccumulator >= targetTimestepDuration)
-        {
-            Simulation.Timestep(targetTimestepDuration);//, ThreadDispatcher);
-            _timeAccumulator -= targetTimestepDuration;
-        }
-        //If you wanted to smooth out the positions of rendered objects to avoid the 'jitter' that an unpredictable number of time steps per update would cause,
-        //you can just interpolate the previous and current states using a weight based on the time remaining in the accumulator:
-        //var interpolationWeight = _timeAccumulator / targetTimestepDuration;
-    }
-
-    public bool NearBodyWorldRayCast(ref Microsoft.Xna.Framework.Vector3 position, ref Microsoft.Xna.Framework.Vector3 feelers,
-        out Microsoft.Xna.Framework.Vector3 contactPoint, out Microsoft.Xna.Framework.Vector3 contactNormal)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool WorldRayCast(ref Microsoft.Xna.Framework.Vector3 start, ref Microsoft.Xna.Framework.Vector3 end, Microsoft.Xna.Framework.Vector3 dir)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-/// <summary>
-/// Implements handlers for various collision events.
-/// </summary>
-public interface IContactEventHandler
-{
-    /// <summary>
-    /// Fires when a contact is added.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="contactOffset">Offset from the pair's local origin to the new contact.</param>
-    /// <param name="contactNormal">Normal of the new contact.</param>
-    /// <param name="depth">Depth of the new contact.</param>
-    /// <param name="featureId">Feature id of the new contact.</param>
-    /// <param name="contactIndex">Index of the new contact in the contact manifold.</param>
-    /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnContactAdded<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold,
-        Vector3 contactOffset, Vector3 contactNormal, float depth, int featureId, int contactIndex, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-    }
-
-    /// <summary>
-    /// Fires when a contact is removed.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="removedFeatureId">Feature id of the contact that was removed and is no longer present in the contact manifold.</param>
-    /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnContactRemoved<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int removedFeatureId, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-    }
-
-    /// <summary>
-    /// Fires the first time a pair is observed to be touching. Touching means that there are contacts with nonnegative depths in the manifold.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-    }
-
-    /// <summary>
-    /// Fires whenever a pair is observed to be touching. Touching means that there are contacts with nonnegative depths in the manifold. Will not fire for sleeping pairs.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-    }
-
-
-    /// <summary>
-    /// Fires when a pair stops touching. Touching means that there are contacts with nonnegative depths in the manifold.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-    }
-
-
-    /// <summary>
-    /// Fires when a pair is observed for the first time.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnPairCreated<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-    }
-
-    /// <summary>
-    /// Fires whenever a pair is updated. Will not fire for sleeping pairs.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
-    /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnPairUpdated<TManifold>(CollidableReference eventSource, CollidablePair pair, ref TManifold contactManifold, int workerIndex) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-    }
-
-    /// <summary>
-    /// Fires when a pair ends.
-    /// </summary>
-    /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
-    /// <param name="eventSource">Collidable that the event was attached to.</param>
-    /// <param name="pair">Collidable pair triggering the event.</param>
-    void OnPairEnded(CollidableReference eventSource, CollidablePair pair)
-    {
-    }
-}
-
-/// <summary>
-/// Watches a set of bodies and statics for contact changes and reports events.
-/// </summary>
-public class ContactEvents : IDisposable
-{
-    //To know what events to emit, we have to track the previous state of a collision. We don't need to keep around old positions/offets/normals/depths, so it's quite a bit lighter.
-    [StructLayout(LayoutKind.Sequential)]
-    struct PreviousCollision
-    {
-        public CollidableReference Collidable;
-        public bool Fresh;
-        public bool WasTouching;
-        public int ContactCount;
-        //FeatureIds are identifiers encoding what features on the involved shapes contributed to the contact. We store up to 4 feature ids, one for each potential contact.
-        //A "feature" is things like a face, vertex, or edge. There is no single interpretation for what a feature is- the mapping is defined on a per collision pair level.
-        //In this demo, we only care to check whether a given contact in the current frame maps onto a contact from a previous frame.
-        //We can use this to only emit 'contact added' events when a new contact with an unrecognized id is reported.
-        public int FeatureId0;
-        public int FeatureId1;
-        public int FeatureId2;
-        public int FeatureId3;
-    }
-
-    Simulation simulation;
-    IThreadDispatcher threadDispatcher;
-    //BepuUtilities.Memory.WorkerBufferPools threadPools;
-    BufferPool pool;
-
-    //We'll use a handle->index mapping in a CollidableProperty to point at our contiguously stored listeners (in the later listeners array).
-    //Note that there's also IndexSets for the statics and bodies; those will be checked first before accessing the listenerIndices.
-    //The CollidableProperty is quite barebones- it doesn't try to stop all invalid accesses, and the backing memory isn't guaranteed to be zero initialized.
-    //IndexSets are tightly bitpacked and are cheap to access, so they're an easy way to check if a collidable can trigger an event before doing any further processing.
-    CollidableProperty<int> listenerIndices;
-    IndexSet staticListenerFlags;
-    IndexSet bodyListenerFlags;
-    int listenerCount;
-
-    //For the purpose of this demo, we'll use some regular ol' interfaces rather than using the struct-implementing-interface for specialization.
-    //This array will be GC tracked as a result, but that should be mostly fine. If you've got hundreds of thousands of event handlers, you may want to consider alternatives.
-    struct Listener
-    {
-        public CollidableReference Source;
-        public IContactEventHandler Handler;
-        public QuickList<PreviousCollision> PreviousCollisions;
-    }
-    Listener[] listeners;
-
-    //The callbacks are invoked from a multithreaded context, and we don't know how many pairs will exist. 
-    //Rather than attempting to synchronize all accesses, every worker thread spits out the results into a worker-local list to be processed later by the main thread flush.
-    struct PendingWorkerAdd
-    {
-        public int ListenerIndex;
-        public PreviousCollision Collision;
-    }
-    QuickList<PendingWorkerAdd>[] pendingWorkerAdds;
-
-    /// <summary>
-    /// Creates a new contact events stream.
-    /// </summary>
-    /// <param name="threadDispatcher">Thread dispatcher to pull per-thread buffer pools from, if any.</param>
-    /// <param name="pool">Buffer pool used to manage resources internally. If null, the simulation's pool will be used.</param>
-    /// <param name="initialListenerCapacity">Number of listeners to allocate space for initially.</param>
-    public ContactEvents(IThreadDispatcher threadDispatcher = null, BufferPool pool = null, int initialListenerCapacity = 64)
-    {
-        this.threadDispatcher = threadDispatcher;
-        this.pool = pool;
-        listeners = new Listener[initialListenerCapacity];
-    }
-
-    IUnmanagedMemoryPool GetPoolForWorker(int workerIndex)
-    {
-        return pool;
-        //return threadDispatcher == null ? pool : threadPools[workerIndex];
-    }
-
-    /// <summary>
-    /// Initializes the contact events system with a simulation.
-    /// </summary>
-    /// <param name="simulation">Simulation to use with the contact events demo.</param>
-    /// <remarks>The constructor and initialization are split because of how this class is expected to be used. 
-    /// It will be passed into a simulation's constructor as a part of its contact callbacks, so there is no simulation available at the time of construction.</remarks>
-    public void Initialize(Simulation simulation)
-    {
-        this.simulation = simulation;
-        pool ??= simulation.BufferPool;
-        //threadPools = threadDispatcher != null ? new WorkerBufferPools(pool, threadDispatcher.ThreadCount) : null;
-        simulation.Timestepper.BeforeCollisionDetection += SetFreshnessForCurrentActivityStatus;
-        listenerIndices = new CollidableProperty<int>(simulation, pool);
-        pendingWorkerAdds = new QuickList<PendingWorkerAdd>[threadDispatcher == null ? 1 : threadDispatcher.ThreadCount];
-    }
-
-    /// <summary>
-    /// Begins listening for events related to the given collidable.
-    /// </summary>
-    /// <param name="collidable">Collidable to monitor for events.</param>
-    /// <param name="handler">Handlers to use for the collidable.</param>
-    public void Register(CollidableReference collidable, IContactEventHandler handler)
-    {
-        Debug.Assert(!IsListener(collidable), "Should only try to register listeners that weren't previously registered");
-        if (collidable.Mobility == CollidableMobility.Static)
-            staticListenerFlags.Add(collidable.RawHandleValue, pool);
-        else
-            bodyListenerFlags.Add(collidable.RawHandleValue, pool);
-        if (listenerCount > listeners.Length)
-        {
-            Array.Resize(ref listeners, listeners.Length * 2);
-        }
-        //Note that allocations for the previous collision list are deferred until they actually exist.
-        listeners[listenerCount] = new Listener { Handler = handler, Source = collidable };
-        listenerIndices[collidable] = listenerCount;
-        ++listenerCount;
-    }
-
-    /// <summary>
-    /// Begins listening for events related to the given body.
-    /// </summary>
-    /// <param name="body">Body to monitor for events.</param>
-    /// <param name="handler">Handlers to use for the body.</param>
-    public void Register(BodyHandle body, IContactEventHandler handler)
-    {
-        Register(simulation.Bodies[body].CollidableReference, handler);
-    }
-
-    /// <summary>
-    /// Begins listening for events related to the given static.
-    /// </summary>
-    /// <param name="staticHandle">Static to monitor for events.</param>
-    /// <param name="handler">Handlers to use for the static.</param>
-    public void Register(StaticHandle staticHandle, IContactEventHandler handler)
-    {
-        Register(new CollidableReference(staticHandle), handler);
-    }
-
-    /// <summary>
-    /// Stops listening for events related to the given collidable.
-    /// </summary>
-    /// <param name="collidable">Collidable to stop listening for.</param>
-    public void Unregister(CollidableReference collidable)
-    {
-        Debug.Assert(IsListener(collidable), "Should only try to unregister listeners that actually exist.");
-        if (collidable.Mobility == CollidableMobility.Static)
-        {
-            staticListenerFlags.Remove(collidable.RawHandleValue);
-        }
-        else
-        {
-            bodyListenerFlags.Remove(collidable.RawHandleValue);
-        }
-        var index = listenerIndices[collidable];
-        --listenerCount;
-        ref var removedSlot = ref listeners[index];
-        if (removedSlot.PreviousCollisions.Span.Allocated)
-            removedSlot.PreviousCollisions.Dispose(pool);
-        ref var lastSlot = ref listeners[listenerCount];
-        if (index < listenerCount)
-        {
-            listenerIndices[lastSlot.Source] = index;
-            removedSlot = lastSlot;
-        }
-        lastSlot = default;
-    }
-
-    /// <summary>
-    /// Stops listening for events related to the given body.
-    /// </summary>
-    /// <param name="body">Body to stop listening for.</param>
-    public void Unregister(BodyHandle body)
-    {
-        Unregister(simulation.Bodies[body].CollidableReference);
-    }
-
-    /// <summary>
-    /// Stops listening for events related to the given static.
-    /// </summary>
-    /// <param name="staticHandle">Static to stop listening for.</param>
-    public void Unregister(StaticHandle staticHandle)
-    {
-        Unregister(new CollidableReference(staticHandle));
-    }
-
-    /// <summary>
-    /// Checks if a collidable is registered as a listener.
-    /// </summary>
-    /// <param name="collidable">Collidable to check.</param>
-    /// <returns>True if the collidable has been registered as a listener, false otherwise.</returns>
-    public bool IsListener(CollidableReference collidable)
-    {
-        if (collidable.Mobility == CollidableMobility.Static)
-        {
-            return staticListenerFlags.Contains(collidable.RawHandleValue);
-        }
-        else
-        {
-            return bodyListenerFlags.Contains(collidable.RawHandleValue);
-        }
-    }
-
-    /// <summary>
-    /// Callback attached to the simulation's ITimestepper which executes just prior to collision detection to take a snapshot of activity states to determine which pairs we should expect updates in.
-    /// </summary>
-    void SetFreshnessForCurrentActivityStatus(float dt, IThreadDispatcher threadDispatcher)
-    {
-        //Every single pair tracked by the contact events has a 'freshness' flag. If the final flush sees a pair that is stale, it'll remove it
-        //and any necessary events to represent the end of that pair are reported.
-        //HandleManifoldForCollidable sets 'Fresh' to true for any processed pair, but pairs between sleeping or static bodies will not show up in HandleManifoldForCollidable since they're not active.
-        //We don't want Flush to report that sleeping pairs have stopped colliding, so we pre-initialize any such sleeping/static pair as 'fresh'.
-
-        //This could be multithreaded reasonably easily if there are a ton of listeners or collisions, but that would be a pretty high bar.
-        //For simplicity, the demo will keep it single threaded.
-        var bodyHandleToLocation = simulation.Bodies.HandleToLocation;
-        for (int listenerIndex = 0; listenerIndex < listenerCount; ++listenerIndex)
-        {
-            ref var listener = ref listeners[listenerIndex];
-            var source = listener.Source;
-            //If it's a body, and it's in the active set (index 0), then every pair associated with the listener should expect updates.
-            var sourceExpectsUpdates = source.Mobility != CollidableMobility.Static && bodyHandleToLocation[source.BodyHandle.Value].SetIndex == 0;
-            if (sourceExpectsUpdates)
+            if (!CanCcd)
             {
-                var previousCollisions = listeners[listenerIndex].PreviousCollisions;
-                for (int j = 0; j < previousCollisions.Count; ++j)
-                {
-                    //Pair updates will set the 'freshness' to true when they happen, so that they won't be considered 'stale' in the flush and removed.
-                    previousCollisions[j].Fresh = false;
-                }
+                throw new Exception("ContinuousCollisionDetection must be enabled at physics engine initialization using the proper flag.");
+            }
+
+            dispatchInfo.UseContinuous = value;
+        }
+    }
+
+    /// <summary>
+    /// Totally disable the simulation if set to true
+    /// </summary>
+    public static bool DisableSimulation = false;
+
+    private readonly Dictionary<Collision, (CollisionObject, CollisionObject)> collisions = new();
+    private readonly Dictionary<(CollisionObject, CollisionObject), Collision> outdatedCollisions = new();
+
+    private readonly Stack<System.Threading.Channels.Channel<HashSet<ContactPoint>>> channelsPool = new();
+    private readonly Dictionary<Collision, (System.Threading.Channels.Channel<HashSet<ContactPoint>> Channel, HashSet<ContactPoint> PreviousContacts)> contactChangedChannels = new();
+
+    private readonly Stack<HashSet<ContactPoint>> contactsPool = new();
+    private readonly Dictionary<Collision, HashSet<ContactPoint>> contactsUpToDate = new();
+
+    private readonly List<Collision> markedAsNewColl = new();
+    private readonly List<Collision> markedAsDeprecatedColl = new();
+    internal readonly HashSet<Collision> EndedFromComponentRemoval = new();
+
+    /// <summary>
+    /// Every pair of components currently colliding with each other
+    /// </summary>
+    public ICollection<Collision> CurrentCollisions => collisions.Keys;
+
+    /// <summary>
+    /// Should static - static collisions of StaticColliderComponent yield
+    /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.NewCollision()"/> and added to
+    /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.Collisions"/> ?
+    /// </summary>
+    /// <remarks>
+    /// Regardless of the state of this value you can still retrieve static-static collisions
+    /// through <see cref="CurrentCollisions"/>.
+    /// </remarks>
+    public bool IncludeStaticAgainstStaticCollisions { get; set; } = false;
+
+
+    /// <summary>
+    /// Gets or sets the gravity.
+    /// </summary>
+    /// <value>
+    /// The gravity.
+    /// </value>
+    /// <exception cref="System.Exception">
+    /// Cannot perform this action when the physics engine is set to CollisionsOnly
+    /// </exception>
+    public Vector3 Gravity
+    {
+        get
+        {
+            if (World == null)
+            {
+                throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+            }
+
+            return World.Gravity;
+        }
+        set
+        {
+            if (World == null)
+            {
+                throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+            }
+
+            World.Gravity = value;
+        }
+    }
+
+    /// <summary>
+    /// The maximum number of steps that the Simulation is allowed to take each tick.
+    /// If the engine is running slow (large deltaTime), then you must increase the number of maxSubSteps to compensate for this, otherwise your simulation is “losing” time.
+    /// It's important that frame DeltaTime is always less than MaxSubSteps*FixedTimeStep, otherwise you are losing time.
+    /// </summary>
+    public int MaxSubSteps { get; set; }
+
+    /// <summary>
+    /// By decreasing the size of fixedTimeStep, you are increasing the “resolution” of the simulation.
+    /// Default is 1.0f / 60.0f or 60fps
+    /// </summary>
+    public float FixedTimeStep { get; set; }
+
+
+    public PhysicsEngine(Physics3dSettings configuration)
+    {
+        MaxSubSteps = configuration.MaxSubSteps;
+        FixedTimeStep = configuration.FixedTimeStep;
+
+        collisionConfiguration = new BulletSharp.DefaultCollisionConfiguration();
+        dispatcher = new BulletSharp.CollisionDispatcher(collisionConfiguration);
+        broadphase = new BulletSharp.DbvtBroadphase();
+
+        //this allows characters to have proper physics behavior
+        broadphase.OverlappingPairCache.SetInternalGhostPairCallback(new BulletSharp.GhostPairCallback());
+
+        //2D pipeline
+        var simplex = new BulletSharp.VoronoiSimplexSolver();
+        var pdSolver = new BulletSharp.MinkowskiPenetrationDepthSolver();
+        var convexAlgo = new BulletSharp.Convex2DConvex2DAlgorithm.CreateFunc(simplex, pdSolver);
+
+        dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Convex2DShape, BulletSharp.BroadphaseNativeType.Convex2DShape, convexAlgo);
+        //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Box2DShape, BulletSharp.BroadphaseNativeType.Convex2DShape, convexAlgo);
+        //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Convex2DShape, BulletSharp.BroadphaseNativeType.Box2DShape, convexAlgo);
+        //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Box2DShape, BulletSharp.BroadphaseNativeType.Box2DShape, new BulletSharp.Box2DBox2DCollisionAlgorithm.CreateFunc());
+        //~2D pipeline
+
+        //default solver
+        var solver = new BulletSharp.SequentialImpulseConstraintSolver();
+
+        if (configuration.Flags.HasFlag(PhysicsEngineFlags.CollisionsOnly))
+        {
+            collisionWorld = new BulletSharp.CollisionWorld(dispatcher, broadphase, collisionConfiguration);
+        }
+        else if (configuration.Flags.HasFlag(PhysicsEngineFlags.SoftBodySupport))
+        {
+            //mSoftRigidDynamicsWorld = new BulletSharp.SoftBody.SoftRigidDynamicsWorld(mDispatcher, mBroadphase, solver, mCollisionConf);
+            //mDiscreteDynamicsWorld = mSoftRigidDynamicsWorld;
+            //mCollisionWorld = mSoftRigidDynamicsWorld;
+            throw new NotImplementedException("SoftBody processing is not yet available");
+        }
+        else
+        {
+            World = new BulletSharp.DiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+            collisionWorld = World;
+        }
+
+        if (World != null)
+        {
+            solverInfo = World.SolverInfo; //we are required to keep this reference, or the GC will mess up
+            dispatchInfo = World.DispatchInfo;
+
+            solverInfo.SolverMode |= BulletSharp.SolverModes.CacheFriendly; //todo test if helps with performance or not
+
+            if (configuration.Flags.HasFlag(PhysicsEngineFlags.ContinuousCollisionDetection))
+            {
+                CanCcd = true;
+                solverInfo.SolverMode |= BulletSharp.SolverModes.Use2FrictionDirections | BulletSharp.SolverModes.RandomizeOrder;
+                dispatchInfo.UseContinuous = true;
             }
             else
             {
-                //The listener is either static or sleeping. We should only expect updates if the other collidable is awake.
-                var previousCollisions = listeners[listenerIndex].PreviousCollisions;
-                for (int j = 0; j < previousCollisions.Count; ++j)
-                {
-                    ref var previousCollision = ref previousCollisions[j];
-                    previousCollision.Fresh = previousCollision.Collidable.Mobility == CollidableMobility.Static || bodyHandleToLocation[previousCollision.Collidable.BodyHandle.Value].SetIndex > 0;
-                }
+                CanCcd = false;
+                dispatchInfo.UseContinuous = false;
             }
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void UpdatePreviousCollision<TManifold>(ref PreviousCollision collision, ref TManifold manifold, bool isTouching) where TManifold : unmanaged, IContactManifold<TManifold>
+    internal void UpdateContacts()
     {
-        Debug.Assert(manifold.Count <= 4, "This demo was built on the assumption that nonconvex manifolds will have a maximum of four contacts, but that might have changed.");
-        //If the above assert gets hit because of a change to nonconvex manifold capacities, the packed feature id representation this uses will need to be updated.
-        //I very much doubt the nonconvex manifold will ever use more than 8 contacts, so addressing this wouldn't require much of a change.
-        for (int j = 0; j < manifold.Count; ++j)
+        EndedFromComponentRemoval.Clear();
+        // Mark previous collisions as outdated,
+        // we'll iterate through bullet's actives and remove them from here
+        // to be left with only the outdated ones.
+        foreach (var collision in collisions)
         {
-            Unsafe.Add(ref collision.FeatureId0, j) = manifold.GetFeatureId(j);
+            outdatedCollisions.Add(collision.Value, collision.Key);
         }
-        collision.ContactCount = manifold.Count;
-        collision.Fresh = true;
-        collision.WasTouching = isTouching;
-    }
 
-    void HandleManifoldForCollidable<TManifold>(int workerIndex, CollidableReference source, CollidableReference other, CollidablePair pair, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-        //The "source" refers to the object that an event handler was (potentially) attached to, so we look for listeners registered for it.
-        //(This function is called for both orders of the pair, so we'll catch listeners for either.)
-        if (IsListener(source))
+        // If this needs to be even faster, look into btPersistentManifold.ContactStartedCallback,
+        // not yet covered by the wrapper
+
+        int numManifolds = collisionWorld.Dispatcher.NumManifolds;
+        for (int i = 0; i < numManifolds; i++)
         {
-            var listenerIndex = listenerIndices[source];
-            //This collidable is registered. Is the opposing collidable present?
-            ref var listener = ref listeners[listenerIndex];
+            var persistentManifold = collisionWorld.Dispatcher.GetManifoldByIndexInternal(i);
 
-            int previousCollisionIndex = -1;
-            bool isTouching = false;
-            for (int i = 0; i < listener.PreviousCollisions.Count; ++i)
+            int numContacts = persistentManifold.NumContacts;
+            if (numContacts == 0)
             {
-                ref var collision = ref listener.PreviousCollisions[i];
-                //Since the 'Packed' field contains both the handle type (dynamic, kinematic, or static) and the handle index packed into a single bitfield, an equal value guarantees we are dealing with the same collidable.
-                if (collision.Collidable.Packed == other.Packed)
-                {
-                    previousCollisionIndex = i;
-                    //This manifold is associated with an existing collision.
-                    //For every contact in the old collsion still present (by feature id), set a flag in this bitmask so we can know when a contact is removed.
-                    int previousContactsStillExist = 0;
-                    for (int contactIndex = 0; contactIndex < manifold.Count; ++contactIndex)
-                    {
-                        //We can check if each contact was already present in the previous frame by looking at contact feature ids. See the 'PreviousCollision' type for a little more info on FeatureIds.
-                        var featureId = manifold.GetFeatureId(contactIndex);
-                        var featureIdWasInPreviousCollision = false;
-                        for (int previousContactIndex = 0; previousContactIndex < collision.ContactCount; ++previousContactIndex)
-                        {
-                            if (featureId == Unsafe.Add(ref collision.FeatureId0, previousContactIndex))
-                            {
-                                featureIdWasInPreviousCollision = true;
-                                previousContactsStillExist |= 1 << previousContactIndex;
-                                break;
-                            }
-                        }
-                        if (!featureIdWasInPreviousCollision)
-                        {
-                            manifold.GetContact(contactIndex, out var offset, out var normal, out var depth, out _);
-                            listener.Handler.OnContactAdded(source, pair, ref manifold, offset, normal, depth, featureId, contactIndex, workerIndex);
-                        }
-                        if (manifold.GetDepth(ref manifold, contactIndex) >= 0)
-                            isTouching = true;
-                    }
-                    if (previousContactsStillExist != (1 << collision.ContactCount) - 1)
-                    {
-                        //At least one contact that used to exist no longer does.
-                        for (int previousContactIndex = 0; previousContactIndex < collision.ContactCount; ++previousContactIndex)
-                        {
-                            if ((previousContactsStillExist & (1 << previousContactIndex)) == 0)
-                            {
-                                listener.Handler.OnContactRemoved(source, pair, ref manifold, Unsafe.Add(ref collision.FeatureId0, previousContactIndex), workerIndex);
-                            }
-                        }
-                    }
-                    if (!collision.WasTouching && isTouching)
-                    {
-                        listener.Handler.OnStartedTouching(source, pair, ref manifold, workerIndex);
-                    }
-                    else if (collision.WasTouching && !isTouching)
-                    {
-                        listener.Handler.OnStoppedTouching(source, pair, ref manifold, workerIndex);
-                    }
-                    if (isTouching)
-                    {
-                        listener.Handler.OnTouching(source, pair, ref manifold, workerIndex);
-                    }
-                    UpdatePreviousCollision(ref collision, ref manifold, isTouching);
-                    break;
-                }
+                continue;
             }
-            if (previousCollisionIndex < 0)
-            {
-                //There was no collision previously.
-                ref var addsforWorker = ref pendingWorkerAdds[workerIndex];
-                //EnsureCapacity will create the list if it doesn't already exist.
-                addsforWorker.EnsureCapacity(Math.Max(addsforWorker.Count + 1, 64), GetPoolForWorker(workerIndex));
-                ref var pendingAdd = ref addsforWorker.AllocateUnsafely();
-                pendingAdd.ListenerIndex = listenerIndex;
-                pendingAdd.Collision.Collidable = other;
-                listener.Handler.OnPairCreated(source, pair, ref manifold, workerIndex);
-                //Dispatch events for all contacts in this new manifold.
-                for (int i = 0; i < manifold.Count; ++i)
-                {
-                    manifold.GetContact(i, out var offset, out var normal, out var depth, out var featureId);
-                    listener.Handler.OnContactAdded(source, pair, ref manifold, offset, normal, depth, featureId, i, workerIndex);
-                    if (depth >= 0)
-                        isTouching = true;
-                }
-                if (isTouching)
-                {
-                    listener.Handler.OnStartedTouching(source, pair, ref manifold, workerIndex);
-                    listener.Handler.OnTouching(source, pair, ref manifold, workerIndex);
-                }
-                UpdatePreviousCollision(ref pendingAdd.Collision, ref manifold, isTouching);
-            }
-            listener.Handler.OnPairUpdated(source, pair, ref manifold, workerIndex);
 
+            var ptrA = persistentManifold.Body0;
+            var ptrB = persistentManifold.Body1;
+            bool aFirst = ptrA.GetHashCode() > ptrB.GetHashCode();
+            (CollisionObject, CollisionObject) collId = aFirst ? (ptrA, ptrB) : (ptrB, ptrA);
+
+            // This collision is up-to-date, remove it from the outdated collisions
+            if (outdatedCollisions.Remove(collId))
+            {
+                continue;
+            }
+
+            // Likely a new collision, or a duplicate
+
+            var a = collId.Item1;
+            var b = collId.Item2;
+            var collision = new Collision(a.UserObject as PhysicsComponent, b.UserObject as PhysicsComponent);
+            // PairCachingGhostObject has two identical manifolds when colliding, not 100% sure why that is,
+            // CompoundColliderShape shapes all map to the same PhysicsComponent but create unique manifolds.
+            if (collisions.TryAdd(collision, collId))
+            {
+                markedAsNewColl.Add(collision);
+            }
         }
-    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void HandleManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-        HandleManifoldForCollidable(workerIndex, pair.A, pair.B, pair, ref manifold);
-        HandleManifoldForCollidable(workerIndex, pair.B, pair.A, pair, ref manifold);
-    }
-
-    //For final events fired by the flush that still expect a manifold, we'll provide a special empty type.
-    struct EmptyManifold : IContactManifold<EmptyManifold>
-    {
-        public int Count => 0;
-        public bool Convex => true;
-        //This type never has any contacts, so there's no need for any property grabbers.
-        public void GetContact(int contactIndex, out Vector3 offset, out Vector3 normal, out float depth, out int featureId) { throw new NotImplementedException(); }
-        public ref float GetDepth(ref EmptyManifold manifold, int contactIndex) { throw new NotImplementedException(); }
-        public int GetFeatureId(int contactIndex) { throw new NotImplementedException(); }
-        public ref int GetFeatureId(ref EmptyManifold manifold, int contactIndex) { throw new NotImplementedException(); }
-        public ref Vector3 GetNormal(ref EmptyManifold manifold, int contactIndex) { throw new NotImplementedException(); }
-        public ref Vector3 GetOffset(ref EmptyManifold manifold, int contactIndex) { throw new NotImplementedException(); }
-    }
-
-    public void Flush()
-    {
-        //For simplicity, this is completely sequential. Note that it's technically possible to extract more parallelism, but the complexity cost is high and you would need
-        //very large numbers of events being processed to make it worth it.
-
-        //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
-        for (int i = 0; i < listenerCount; ++i)
+        // This set only contains outdated collisions by now,
+        // mark them as out of date for events and remove them from current collisions
+        foreach (var (_, outdatedCollision) in outdatedCollisions)
         {
-            ref var listener = ref listeners[i];
-            //Note reverse order. We remove during iteration.
-            for (int j = listener.PreviousCollisions.Count - 1; j >= 0; --j)
-            {
-                ref var collision = ref listener.PreviousCollisions[j];
-                if (!collision.Fresh)
-                {
-                    //Sort the references to be consistent with the direct narrow phase results.
-                    CollidablePair pair;
-                    NarrowPhase.SortCollidableReferencesForPair(listener.Source, collision.Collidable, out _, out _, out pair.A, out pair.B);
-                    if (collision.ContactCount > 0)
-                    {
-                        var emptyManifold = new EmptyManifold();
-                        for (int previousContactCount = 0; previousContactCount < collision.ContactCount; ++previousContactCount)
-                        {
-                            listener.Handler.OnContactRemoved(listener.Source, pair, ref emptyManifold, Unsafe.Add(ref collision.FeatureId0, previousContactCount), 0);
-                        }
-                        if (collision.WasTouching)
-                            listener.Handler.OnStoppedTouching(listener.Source, pair, ref emptyManifold, 0);
-                    }
-                    listener.Handler.OnPairEnded(collision.Collidable, pair);
-                    //This collision was not updated since the last flush despite being active. It should be removed.
-                    listener.PreviousCollisions.FastRemoveAt(j);
-                    if (listener.PreviousCollisions.Count == 0)
-                    {
-                        listener.PreviousCollisions.Dispose(pool);
-                        listener.PreviousCollisions = default;
-                    }
-                }
-                else
-                {
-                    collision.Fresh = false;
-                }
-            }
+            markedAsDeprecatedColl.Add(outdatedCollision);
+            collisions.Remove(outdatedCollision);
         }
 
-        for (int i = 0; i < pendingWorkerAdds.Length; ++i)
-        {
-            ref var pendingAdds = ref pendingWorkerAdds[i];
-            for (int j = 0; j < pendingAdds.Count; ++j)
-            {
-                ref var add = ref pendingAdds[j];
-                ref var collisions = ref listeners[add.ListenerIndex].PreviousCollisions;
-                //Ensure capacity will initialize the slot if necessary.
-                collisions.EnsureCapacity(Math.Max(8, collisions.Count + 1), pool);
-                collisions.AllocateUnsafely() = pendingAdds[j].Collision;
-            }
-            if (pendingAdds.Span.Allocated)
-                pendingAdds.Dispose(GetPoolForWorker(i));
-            //We rely on zeroing out the count for lazy initialization.
-            pendingAdds = default;
-        }
-        //threadPools?.Clear();
+        outdatedCollisions.Clear();
     }
 
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
     public void Dispose()
     {
-        if (bodyListenerFlags.Flags.Allocated)
-            bodyListenerFlags.Dispose(pool);
-        if (staticListenerFlags.Flags.Allocated)
-            staticListenerFlags.Dispose(pool);
-        listenerIndices.Dispose();
-        simulation.Timestepper.BeforeCollisionDetection -= SetFreshnessForCurrentActivityStatus;
-        //threadPools?.Dispose();
-        for (int i = 0; i < pendingWorkerAdds.Length; ++i)
+        //if (mSoftRigidDynamicsWorld != null) mSoftRigidDynamicsWorld.Dispose();
+        if (World != null)
         {
-            Debug.Assert(!pendingWorkerAdds[i].Span.Allocated, "The pending worker adds should have been disposed by the previous flush.");
+            World.Dispose();
+        }
+        else
+        {
+            collisionWorld?.Dispose();
+        }
+
+        broadphase?.Dispose();
+        dispatcher?.Dispose();
+        collisionConfiguration?.Dispose();
+    }
+
+    //internal void AddCollider(PhysicsComponent component, CollisionFilterGroups group, CollisionFilterGroups mask)
+    //{
+    //    collisionWorld.AddCollisionObject(component.NativeCollisionObject, (BulletSharp.CollisionFilterGroups)group, (BulletSharp.CollisionFilterGroups)mask);
+    //}
+    //
+    //internal void RemoveCollider(PhysicsComponent component)
+    //{
+    //    collisionWorld.RemoveCollisionObject(component.NativeCollisionObject);
+    //}
+    //
+    //internal void AddRigidBody(RigidbodyComponent rigidBody, CollisionFilterGroups group, CollisionFilterGroups mask)
+    //{
+    //    if (discreteDynamicsWorld == null) throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+    //
+    //    discreteDynamicsWorld.AddRigidBody(rigidBody.InternalRigidBody, (short)group, (short)mask);
+    //}
+    //
+    //internal void RemoveRigidBody(RigidbodyComponent rigidBody)
+    //{
+    //    if (discreteDynamicsWorld == null) throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+    //
+    //    discreteDynamicsWorld.RemoveRigidBody(rigidBody.InternalRigidBody);
+    //}
+    //
+    //internal void AddCharacter(CharacterComponent character, CollisionFilterGroups group, CollisionFilterGroups mask)
+    //{
+    //    if (discreteDynamicsWorld == null) throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+    //
+    //    var collider = character.NativeCollisionObject;
+    //    var action = character.KinematicCharacter;
+    //    discreteDynamicsWorld.AddCollisionObject(collider, (BulletSharp.CollisionFilterGroups)group, (BulletSharp.CollisionFilterGroups)mask);
+    //    discreteDynamicsWorld.AddAction(action);
+    //
+    //    character.Simulation = this;
+    //}
+    //
+    //internal void RemoveCharacter(CharacterComponent character)
+    //{
+    //    if (discreteDynamicsWorld == null) throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+    //
+    //    var collider = character.NativeCollisionObject;
+    //    var action = character.KinematicCharacter;
+    //    discreteDynamicsWorld.RemoveCollisionObject(collider);
+    //    discreteDynamicsWorld.RemoveAction(action);
+    //
+    //    character.Simulation = null;
+    //}
+
+    /// <summary>
+    /// Creates the constraint.
+    /// </summary>
+    /// <param name="type">The type.</param>
+    /// <param name="rigidBodyA">The rigid body a.</param>
+    /// <param name="frameA">The frame a.</param>
+    /// <param name="useReferenceFrameA">if set to <c>true</c> [use reference frame a].</param>
+    /// <returns></returns>
+    /// <exception cref="System.Exception">
+    /// Cannot perform this action when the physics engine is set to CollisionsOnly
+    /// or
+    /// Both RigidBodies must be valid
+    /// or
+    /// A Gear constraint always needs two rigidbodies to be created.
+    /// </exception>
+    //public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, bool useReferenceFrameA = false)
+    //{
+    //    return CreateConstraintInternal(type, rigidBodyA, frameA, useReferenceFrameA: useReferenceFrameA);
+    //}
+
+    /// <summary>
+    /// Creates the constraint.
+    /// </summary>
+    /// <param name="type">The type.</param>
+    /// <param name="rigidBodyA">The rigid body a.</param>
+    /// <param name="rigidBodyB">The rigid body b.</param>
+    /// <param name="frameA">The frame a.</param>
+    /// <param name="frameB">The frame b.</param>
+    /// <param name="useReferenceFrameA">if set to <c>true</c> [use reference frame a].</param>
+    /// <returns></returns>
+    /// <exception cref="System.Exception">
+    /// Cannot perform this action when the physics engine is set to CollisionsOnly
+    /// or
+    /// Both RigidBodies must be valid
+    /// </exception>
+    //public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, RigidbodyComponent rigidBodyB, Matrix frameA, Matrix frameB, bool useReferenceFrameA = false)
+    //{
+    //    if (rigidBodyA == null || rigidBodyB == null) throw new Exception("Both RigidBodies must be valid");
+    //    return CreateConstraintInternal(type, rigidBodyA, frameA, rigidBodyB, frameB, useReferenceFrameA);
+    //}
+
+    /// <summary>
+    /// Creates a hinge constraint using a specialized constructor.
+    /// </summary>
+    /// <param name="rigidBodyA">The rigid body a.</param>
+    /// <param name="pivotInA">Pivot point in body a.</param>
+    /// <param name="axisInA">Axis in body a.</param>
+    /// <param name="useReferenceFrameA">if set to <c>true</c> [use reference frame a].</param>
+    /// <exception cref="System.Exception">
+    /// Cannot perform this action when the physics engine is set to CollisionsOnly
+    /// or
+    /// RigidBody must be valid
+    /// </exception>
+    //public static HingeConstraint CreateHingeConstraint(RigidbodyComponent rigidBodyA, Vector3 pivotInA, Vector3 axisInA, bool useReferenceFrameA = false)
+    //{
+    //    if (rigidBodyA == null) throw new Exception("RigidBody must be valid");
+    //    return CreateHingeConstraintInternal(rigidBodyA, null, pivotInA, default, axisInA, default, useReferenceFrameA);
+    //}
+
+    /// <summary>
+    /// Creates a hinge constraint using a specialized constructor.
+    /// </summary>
+    /// <param name="rigidBodyA">The rigid body a.</param>
+    /// <param name="pivotInA">Pivot point in body a.</param>
+    /// <param name="axisInA">Axis in body a.</param>
+    /// <param name="rigidBodyB">The rigid body b.</param>
+    /// <param name="pivotInB">Pivot point in body b.</param>
+    /// <param name="axisInB">Axis in body b.</param>
+    /// <param name="useReferenceFrameA">if set to <c>true</c> [use reference frame a].</param>
+    /// <exception cref="System.Exception">
+    /// Cannot perform this action when the physics engine is set to CollisionsOnly
+    /// or
+    /// Both RigidBodies must be valid
+    /// </exception>
+    //public static HingeConstraint CreateHingeConstraint(RigidbodyComponent rigidBodyA, Vector3 pivotInA, Vector3 axisInA, RigidbodyComponent rigidBodyB, Vector3 pivotInB, Vector3 axisInB, bool useReferenceFrameA = false)
+    //{
+    //    if (rigidBodyA == null || rigidBodyB == null) throw new Exception("Both RigidBodies must be valid");
+    //    return CreateHingeConstraintInternal(rigidBodyA, rigidBodyB, pivotInA, pivotInB, axisInA, axisInB, useReferenceFrameA);
+    //}
+
+
+    //static TypedConstraint CreateConstraintInternal(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, RigidbodyComponent rigidBodyB = null, Matrix frameB = default, bool useReferenceFrameA = false)
+    //{
+    //    if (rigidBodyA == null) throw new Exception($"{nameof(rigidBodyA)} must be valid");
+    //    if (rigidBodyB != null && rigidBodyB.Simulation != rigidBodyA.Simulation) throw new Exception("Both RigidBodies must be on the same simulation");
+    //
+    //    TypedConstraint constraintBase = null;
+    //    var rbA = rigidBodyA.InternalRigidBody;
+    //    var rbB = rigidBodyB?.InternalRigidBody;
+    //    switch (type)
+    //    {
+    //        case ConstraintTypes.Point2Point:
+    //        {
+    //            var constraint = rigidBodyB == null
+    //                ? new BulletSharp.Point2PointConstraint(rbA, frameA.Translation)
+    //                : new BulletSharp.Point2PointConstraint(rbA, rbB, frameA.Translation, frameB.Translation);
+    //                constraintBase = constraint;
+    //                break;
+    //        }
+    //        case ConstraintTypes.Hinge:
+    //        {
+    //            var constraint = rigidBodyB == null
+    //                    ? new BulletSharp.HingeConstraint(rbA, frameA)
+    //                    : new BulletSharp.HingeConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA);
+    //                constraintBase = constraint;
+    //                break;
+    //            }
+    //        case ConstraintTypes.Slider:
+    //        {
+    //            var constraint = rigidBodyB == null
+    //                ? new BulletSharp.SliderConstraint(rbA, frameA, useReferenceFrameA)
+    //                : new BulletSharp.SliderConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA);
+    //                break;
+    //            }
+    //        case ConstraintTypes.ConeTwist:
+    //            {
+    //                var constraint = rigidBodyB == null ?
+    //                            new BulletSharp.ConeTwistConstraint(rbA, frameA) :
+    //                            new BulletSharp.ConeTwistConstraint(rbA, rbB, frameA, frameB);
+    //                break;
+    //            }
+    //        case ConstraintTypes.Generic6DoF:
+    //            {
+    //                var constraint = rigidBodyB == null ?
+    //                            new BulletSharp.Generic6DofConstraint(rbA, frameA, useReferenceFrameA) :
+    //                            new BulletSharp.Generic6DofConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA);
+    //                break;
+    //            }
+    //        case ConstraintTypes.Generic6DoFSpring:
+    //        {
+    //            var constraint = rigidBodyB == null
+    //                ? new BulletSharp.Generic6DofSpringConstraint(rbA, frameA, useReferenceFrameA)
+    //                : new BulletSharp.Generic6DofSpringConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA);
+    //                break;
+    //            }
+    //        case ConstraintTypes.Gear:
+    //            {
+    //                var constraint = rigidBodyB == null ?
+    //                            throw new Exception("A Gear constraint always needs two rigidbodies to be created.") :
+    //                            new BulletSharp.GearConstraint(rbA, rbB, frameA.Translation, frameB.Translation);
+    //                constraintBase = constraint;
+    //                break;
+    //            }
+    //        default:
+    //            throw new ArgumentException(type.ToString());
+    //    }
+    //
+    //    //if (rigidBodyB != null)
+    //    //{
+    //    //    constraintBase.RigidBodyB = rigidBodyB;
+    //    //    rigidBodyB.LinkedConstraints.Add(constraintBase);
+    //    //}
+    //    //constraintBase.RigidBodyA = rigidBodyA;
+    //    //rigidBodyA.LinkedConstraints.Add(constraintBase);
+    //
+    //    return constraintBase;
+    //}
+    //
+    //static HingeConstraint CreateHingeConstraintInternal(RigidbodyComponent rigidBodyA, RigidbodyComponent rigidBodyB, Vector3 pivotInA, Vector3 pivotInB, Vector3 axisInA, Vector3 axisInB, bool useReferenceFrameA = false)
+    //{
+    //    if (rigidBodyB != null && rigidBodyB.Simulation != rigidBodyA.Simulation)
+    //        throw new Exception("Both RigidBodies must be on the same simulation");
+    //
+    //    var rbA = rigidBodyA.InternalRigidBody;
+    //    var rbB = rigidBodyB?.InternalRigidBody;
+    //
+    //    var constraint = rigidBodyB == null
+    //        ? new BulletSharp.HingeConstraint(rbA, pivotInA, axisInA, useReferenceFrameA)
+    //        : new BulletSharp.HingeConstraint(rbA, rbB, pivotInA, pivotInB, axisInA, axisInB, useReferenceFrameA);
+    //
+    //    if (rigidBodyB != null)
+    //    {
+    //        constraint.RigidBodyB = rigidBodyB;
+    //        rigidBodyB.LinkedConstraints.Add(constraint);
+    //    }
+    //    constraint.RigidBodyA = rigidBodyA;
+    //    rigidBodyA.LinkedConstraints.Add(constraint);
+    //
+    //    return constraint;
+    //}
+
+
+    /// <summary>
+    /// Adds the constraint to the engine processing pipeline.
+    /// </summary>
+    /// <param name="constraint">The constraint.</param>
+    /// <exception cref="System.Exception">Cannot perform this action when the physics engine is set to CollisionsOnly</exception>
+    public void AddConstraint(TypedConstraint constraint)
+    {
+        if (World == null)
+        {
+            throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+        }
+
+        World.AddConstraint(constraint);
+        //constraint.Simulation = this;
+    }
+
+    /// <summary>
+    /// Adds the constraint to the engine processing pipeline.
+    /// </summary>
+    /// <param name="constraint">The constraint.</param>
+    /// <param name="disableCollisionsBetweenLinkedBodies">if set to <c>true</c> [disable collisions between linked bodies].</param>
+    /// <exception cref="System.Exception">Cannot perform this action when the physics engine is set to CollisionsOnly</exception>
+    public void AddConstraint(TypedConstraint constraint, bool disableCollisionsBetweenLinkedBodies)
+    {
+        if (World == null)
+        {
+            throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+        }
+
+        World.AddConstraint(constraint, disableCollisionsBetweenLinkedBodies);
+        //constraint.Simulation = this;
+    }
+
+    /// <summary>
+    /// Removes the constraint from the engine processing pipeline.
+    /// </summary>
+    /// <param name="constraint">The constraint.</param>
+    /// <exception cref="System.Exception">Cannot perform this action when the physics engine is set to CollisionsOnly</exception>
+    public void RemoveConstraint(TypedConstraint constraint)
+    {
+        if (World == null)
+        {
+            throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+        }
+
+        World.RemoveConstraint(constraint);
+        //constraint.Simulation = null;
+    }
+
+    /// <summary>
+    /// Raycasts and returns the closest hit
+    /// </summary>
+    /// <param name="from">The starting point of this raycast</param>
+    /// <param name="to">The end point of this raycast</param>
+    /// <param name="filterGroup">The collision group of this raycast</param>
+    /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+    /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
+    /// <returns>The result of this test</returns>
+    public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    {
+        var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
+        collisionWorld.RayTest(from, to, callback);
+        return callback.Result;
+    }
+
+    /// <summary>
+    /// Raycasts, returns true when it hit something
+    /// </summary>
+    /// <param name="from">The starting point of this raycast</param>
+    /// <param name="to">The end point of this raycast</param>
+    /// <param name="result">Information about this test</param>
+    /// <param name="filterGroup">The collision group of this raycast</param>
+    /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+    /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
+    /// <returns>True if the test collided with an object in the simulation</returns>
+    public bool Raycast(Vector3 from, Vector3 to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    {
+        var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
+        collisionWorld.RayTest(from, to, callback);
+        result = callback.Result;
+        return result.Succeeded;
+    }
+
+    /// <summary>
+    /// Raycasts penetrating any shape the ray encounters.
+    /// Filtering by CollisionGroup
+    /// </summary>
+    /// <param name="from">The starting point of this raycast</param>
+    /// <param name="to">The end point of this raycast</param>
+    /// <param name="resultsOutput">The collection to add intersections to</param>
+    /// <param name="filterGroup">The collision group of this raycast</param>
+    /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+    /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
+    public void RaycastPenetrating(Vector3 from, Vector3 to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    {
+        var callback = StrideAllHitsRayResultCallback.Shared(ref from, ref to, hitTriggers, resultsOutput, filterGroup, filterFlags);
+        collisionWorld.RayTest(from, to, callback);
+    }
+
+    /// <summary>
+    /// Performs a sweep test using a collider shape and returns the closest hit
+    /// </summary>
+    /// <param name="shape">The shape used when testing collisions with colliders in the simulation</param>
+    /// <param name="from">The starting point of this sweep</param>
+    /// <param name="to">The end point of this sweep</param>
+    /// <param name="filterGroup">The collision group of this shape sweep</param>
+    /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
+    /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
+    /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
+    /// <returns>The result of this test</returns>
+    //public HitResult ShapeSweep(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    //{
+    //    var sh = shape.InternalShape as BulletSharp.ConvexShape;
+    //    if (sh == null)
+    //    {
+    //        throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.");
+    //    }
+    //
+    //    var callback = StrideClosestConvexResultCallback.Shared(hitTriggers, filterGroup, filterFlags);
+    //    collisionWorld.ConvexSweepTest(sh, from, to, callback);
+    //    return callback.Result;
+    //}
+
+    /// <summary>
+    /// Performs a sweep test using a collider shape and never stops until "to"
+    /// </summary>
+    /// <param name="shape">The shape against which colliders in the simulation will be tested</param>
+    /// <param name="from">The starting point of this sweep</param>
+    /// <param name="to">The end point of this sweep</param>
+    /// <param name="resultsOutput">The collection to add hit results to</param>
+    /// <param name="filterGroup">The collision group of this shape sweep</param>
+    /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
+    /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
+    /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
+    //public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    //{
+    //    var sh = shape.InternalShape as BulletSharp.ConvexShape;
+    //    if (sh == null)
+    //    {
+    //        throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.");
+    //    }
+    //
+    //    var rcb = StrideAllHitsConvexResultCallback.Shared(resultsOutput, hitTriggers, filterGroup, filterFlags);
+    //    collisionWorld.ConvexSweepTest(sh, from, to, rcb);
+    //}
+
+
+
+
+    public void ClearForces()
+    {
+        if (World == null)
+        {
+            throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+        }
+
+        World.ClearForces();
+    }
+
+    public bool SpeculativeContactRestitution
+    {
+        get
+        {
+            if (World == null)
+            {
+                throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+            }
+
+            return World.ApplySpeculativeContactRestitution;
+        }
+        set
+        {
+            if (World == null)
+            {
+                throw new Exception("Cannot perform this action when the physics engine is set to CollisionsOnly");
+            }
+
+            World.ApplySpeculativeContactRestitution = value;
         }
     }
-}
 
-//The narrow phase needs a way to tell our contact events system about changes to contacts, so they'll need to be a part of the INarrowPhaseCallbacks.
-public struct ContactEventCallbacks : INarrowPhaseCallbacks
-{
-    ContactEvents events;
-
-    public ContactEventCallbacks(ContactEvents events)
+    public class SimulationArgs : EventArgs
     {
-        this.events = events;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
-    {
-        return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
-    {
-        return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
-    {
-        pairMaterial.FrictionCoefficient = 1f;
-        pairMaterial.MaximumRecoveryVelocity = 2f;
-        pairMaterial.SpringSettings = new SpringSettings(30, 1);
-        events.HandleManifold(workerIndex, pair, ref manifold);
-        return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold)
-    {
-        return true;
-    }
-
-    public void Initialize(Simulation simulation)
-    {
-        events.Initialize(simulation);
-    }
-
-    public void Dispose()
-    {
-    }
-
-}
-public struct DemoPoseIntegratorCallbacks : IPoseIntegratorCallbacks
-{
-    /// <summary>
-    /// Gravity to apply to dynamic bodies in the simulation.
-    /// </summary>
-    public Vector3 Gravity;
-    /// <summary>
-    /// Fraction of dynamic body linear velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.
-    /// </summary>
-    public float LinearDamping;
-    /// <summary>
-    /// Fraction of dynamic body angular velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.
-    /// </summary>
-    public float AngularDamping;
-
-
-    /// <summary>
-    /// Gets how the pose integrator should handle angular velocity integration.
-    /// </summary>
-    public readonly AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
-
-    /// <summary>
-    /// Gets whether the integrator should use substepping for unconstrained bodies when using a substepping solver.
-    /// If true, unconstrained bodies will be integrated with the same number of substeps as the constrained bodies in the solver.
-    /// If false, unconstrained bodies use a single step of length equal to the dt provided to Simulation.Timestep. 
-    /// </summary>
-    public readonly bool AllowSubstepsForUnconstrainedBodies => false;
-
-    /// <summary>
-    /// Gets whether the velocity integration callback should be called for kinematic bodies.
-    /// If true, IntegrateVelocity will be called for bundles including kinematic bodies.
-    /// If false, kinematic bodies will just continue using whatever velocity they have set.
-    /// Most use cases should set this to false.
-    /// </summary>
-    public readonly bool IntegrateVelocityForKinematics => false;
-
-    public void Initialize(Simulation simulation)
-    {
-        //In this demo, we don't need to initialize anything.
-        //If you had a simulation with per body gravity stored in a CollidableProperty<T> or something similar, having the simulation provided in a callback can be helpful.
+        public float DeltaTime;
     }
 
     /// <summary>
-    /// Creates a new set of simple callbacks for the demos.
+    /// Called right before the physics simulation.
+    /// This event might not be fired by the main thread.
     /// </summary>
-    /// <param name="gravity">Gravity to apply to dynamic bodies in the simulation.</param>
-    /// <param name="linearDamping">Fraction of dynamic body linear velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.</param>
-    /// <param name="angularDamping">Fraction of dynamic body angular velocity to remove per unit of time. Values range from 0 to 1. 0 is fully undamped, while values very close to 1 will remove most velocity.</param>
-    public DemoPoseIntegratorCallbacks(Vector3 gravity, float linearDamping = .03f, float angularDamping = .03f) : this()
+    public event EventHandler<SimulationArgs> SimulationBegin;
+
+    protected virtual void OnSimulationBegin(SimulationArgs e)
     {
-        Gravity = gravity;
-        LinearDamping = linearDamping;
-        AngularDamping = angularDamping;
+        var handler = SimulationBegin;
+        handler?.Invoke(this, e);
     }
 
-    Vector3Wide gravityWideDt;
-    Vector<float> linearDampingDt;
-    Vector<float> angularDampingDt;
+    //internal int UpdatedRigidbodies;
 
-    /// <summary>
-    /// Callback invoked ahead of dispatches that may call into <see cref="IntegrateVelocity"/>.
-    /// It may be called more than once with different values over a frame. For example, when performing bounding box prediction, velocity is integrated with a full frame time step duration.
-    /// During substepped solves, integration is split into substepCount steps, each with fullFrameDuration / substepCount duration.
-    /// The final integration pass for unconstrained bodies may be either fullFrameDuration or fullFrameDuration / substepCount, depending on the value of AllowSubstepsForUnconstrainedBodies. 
-    /// </summary>
-    /// <param name="dt">Current integration time step duration.</param>
-    /// <remarks>This is typically used for precomputing anything expensive that will be used across velocity integration.</remarks>
-    public void PrepareForIntegration(float dt)
-    {
-        //No reason to recalculate gravity * dt for every body; just cache it ahead of time.
-        //Since these callbacks don't use per-body damping values, we can precalculate everything.
-        linearDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - LinearDamping, 0, 1), dt));
-        angularDampingDt = new Vector<float>(MathF.Pow(MathHelper.Clamp(1 - AngularDamping, 0, 1), dt));
-        gravityWideDt = Vector3Wide.Broadcast(Gravity * dt);
-    }
+    private readonly SimulationArgs simulationArgs = new SimulationArgs();
 
-    /// <summary>
-    /// Callback for a bundle of bodies being integrated.
-    /// </summary>
-    /// <param name="bodyIndices">Indices of the bodies being integrated in this bundle.</param>
-    /// <param name="position">Current body positions.</param>
-    /// <param name="orientation">Current body orientations.</param>
-    /// <param name="localInertia">Body's current local inertia.</param>
-    /// <param name="integrationMask">Mask indicating which lanes are active in the bundle. Active lanes will contain 0xFFFFFFFF, inactive lanes will contain 0.</param>
-    /// <param name="workerIndex">Index of the worker thread processing this bundle.</param>
-    /// <param name="dt">Durations to integrate the velocity over. Can vary over lanes.</param>
-    /// <param name="velocity">Velocity of bodies in the bundle. Any changes to lanes which are not active by the integrationMask will be discarded.</param>
-    public void IntegrateVelocity(Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation, BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
+    internal void Update(float deltaTime)
     {
-        //This is a handy spot to implement things like position dependent gravity or per-body damping.
-        //This implementation uses a single damping value for all bodies that allows it to be precomputed.
-        //We don't have to check for kinematics; IntegrateVelocityForKinematics returns false, so we'll never see them in this callback.
-        //Note that these are SIMD operations and "Wide" types. There are Vector<float>.Count lanes of execution being evaluated simultaneously.
-        //The types are laid out in array-of-structures-of-arrays (AOSOA) format. That's because this function is frequently called from vectorized contexts within the solver.
-        //Transforming to "array of structures" (AOS) format for the callback and then back to AOSOA would involve a lot of overhead, so instead the callback works on the AOSOA representation directly.
-        velocity.Linear = (velocity.Linear + gravityWideDt) * linearDampingDt;
-        velocity.Angular = velocity.Angular * angularDampingDt;
-    }
-}
-public struct DemoNarrowPhaseCallbacks : INarrowPhaseCallbacks
-{
-    public SpringSettings ContactSpringiness;
-    public float MaximumRecoveryVelocity;
-    public float FrictionCoefficient;
-
-    public DemoNarrowPhaseCallbacks(SpringSettings contactSpringiness, float maximumRecoveryVelocity = 2f, float frictionCoefficient = 1f)
-    {
-        ContactSpringiness = contactSpringiness;
-        MaximumRecoveryVelocity = maximumRecoveryVelocity;
-        FrictionCoefficient = frictionCoefficient;
-    }
-
-    public void Initialize(Simulation simulation)
-    {
-        //Use a default if the springiness value wasn't initialized... at least until struct field initializers are supported outside of previews.
-        if (ContactSpringiness.AngularFrequency == 0 && ContactSpringiness.TwiceDampingRatio == 0)
+        if (collisionWorld == null)
         {
-            ContactSpringiness = new(30, 1);
-            MaximumRecoveryVelocity = 2f;
-            FrictionCoefficient = 1f;
+            return;
+        }
+
+        simulationArgs.DeltaTime = deltaTime;
+
+        //UpdatedRigidbodies = 0;
+
+        OnSimulationBegin(simulationArgs);
+
+        if (World != null)
+        {
+            World.StepSimulation(deltaTime, MaxSubSteps, FixedTimeStep);
+        }
+        else
+        {
+            collisionWorld.PerformDiscreteCollisionDetection();
+        }
+
+        OnSimulationEnd(simulationArgs);
+    }
+
+    /// <summary>
+    /// Called right after the physics simulation.
+    /// This event might not be fired by the main thread.
+    /// </summary>
+    public event EventHandler<SimulationArgs> SimulationEnd;
+
+    protected virtual void OnSimulationEnd(SimulationArgs e)
+    {
+        SimulationEnd?.Invoke(this, e);
+    }
+
+    private class StrideAllHitsConvexResultCallback : StrideReusableConvexResultCallback
+    {
+        [ThreadStatic]
+        private static StrideAllHitsConvexResultCallback shared;
+
+        private ICollection<HitResult> resultsList;
+
+        public override float AddSingleResult(BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+        {
+            resultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
+            return convexResult.HitFraction;
+        }
+
+        public static StrideAllHitsConvexResultCallback Shared(ICollection<HitResult> buffer, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        {
+            shared ??= new StrideAllHitsConvexResultCallback();
+            shared.resultsList = buffer;
+            shared.Recycle(hitTriggers, filterGroup, filterMask);
+            return shared;
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
+    private class StrideClosestConvexResultCallback : StrideReusableConvexResultCallback
     {
-        //While the engine won't even try creating pairs between statics at all, it will ask about kinematic-kinematic pairs.
-        //Those pairs cannot emit constraints since both involved bodies have infinite inertia. Since most of the demos don't need
-        //to collect information about kinematic-kinematic pairs, we'll require that at least one of the bodies needs to be dynamic.
-        return a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic;
+        [ThreadStatic]
+        private static StrideClosestConvexResultCallback shared;
+
+        private BulletSharp.LocalConvexResult closestHit;
+        private bool normalInWorldSpace;
+
+        public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
+
+        public override float AddSingleResult(BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpaceParam)
+        {
+            float fraction = convexResult.HitFraction;
+
+            // This is 'm_closestHitFraction', Bullet will look at this value to ignore hits further away,
+            // this method will only be called for hits closer than the last.
+            // See btCollisionWorld::rayTestSingleInternal
+            System.Diagnostics.Debug.Assert(convexResult.HitFraction <= ClosestHitFraction);
+            ClosestHitFraction = fraction;
+
+            closestHit = convexResult;
+            normalInWorldSpace = normalInWorldSpaceParam;
+            return fraction;
+        }
+
+        protected override void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterMask = (CollisionFilterGroups)(-1))
+        {
+            base.Recycle(hitNoContResp, filterGroup, filterMask);
+            closestHit = default;
+        }
+
+        public static StrideClosestConvexResultCallback Shared(bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        {
+            shared ??= new StrideClosestConvexResultCallback();
+            shared.Recycle(hitTriggers, filterGroup, filterMask);
+            return shared;
+        }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
+    private class StrideAllHitsRayResultCallback : StrideReusableRayResultCallback
     {
-        return true;
+        [ThreadStatic]
+        private static StrideAllHitsRayResultCallback shared;
+
+        private ICollection<HitResult> resultsList;
+
+        public override float AddSingleResult(BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+        {
+            resultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
+            return rayResult.HitFraction;
+        }
+
+        public static StrideAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, ICollection<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        {
+            shared ??= new StrideAllHitsRayResultCallback();
+            shared.resultsList = buffer;
+            shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+            return shared;
+        }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
+    private class StrideClosestRayResultCallback : StrideReusableRayResultCallback
     {
-        pairMaterial.FrictionCoefficient = FrictionCoefficient;
-        pairMaterial.MaximumRecoveryVelocity = MaximumRecoveryVelocity;
-        pairMaterial.SpringSettings = ContactSpringiness;
-        return true;
+        [ThreadStatic]
+        private static StrideClosestRayResultCallback shared;
+
+        private BulletSharp.LocalRayResult closestHit;
+        private bool normalInWorldSpace;
+
+        public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
+
+        public override float AddSingleResult(BulletSharp.LocalRayResult rayResult, bool normalInWorldSpaceParam)
+        {
+            float fraction = rayResult.HitFraction;
+
+            // This is 'm_closestHitFraction', Bullet will look at this value to ignore hits further away,
+            // this method will only be called for hits closer than the last.
+            // See btCollisionWorld::rayTestSingleInternal
+            System.Diagnostics.Debug.Assert(rayResult.HitFraction <= ClosestHitFraction);
+            ClosestHitFraction = fraction;
+
+            closestHit = rayResult;
+            normalInWorldSpace = normalInWorldSpaceParam;
+            return fraction;
+        }
+
+        protected override void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        {
+            base.Recycle(ref from, ref to, hitNoContResp, filterGroup, filterMask);
+            closestHit = default;
+        }
+
+        public static StrideClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        {
+            shared ??= new StrideClosestRayResultCallback();
+            shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+            return shared;
+        }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold)
+    private abstract class StrideReusableRayResultCallback : BulletSharp.RayResultCallback
     {
-        return true;
+        /// <summary>
+        /// Our <see cref="PhysicsTriggerComponentBase"/> have <see cref="BulletSharp.CollisionFlags.NoContactResponse"/>
+        /// set to let objects pass through them.
+        /// By default we want intersection test to reflect that behavior to avoid throwing off our users.
+        /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
+        /// </summary>
+        private bool hitNoContactResponseObjects;
+        private Vector3 rayFromWorld;
+        private Vector3 rayToWorld;
+
+        protected HitResult ComputeHitResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+        {
+            var obj = rayResult.CollisionObject;
+            if (obj == null)
+            {
+                return new HitResult { Succeeded = false };
+            }
+
+            Vector3 normal = rayResult.HitNormalLocal;
+            if (!normalInWorldSpace)
+            {
+                normal = Vector3.TransformNormal(normal, obj.WorldTransform);
+            }
+
+            return new HitResult
+            {
+                Succeeded = true,
+                //Collider = obj.UserObject as PhysicsComponent,
+                Point = Vector3.Lerp(rayFromWorld, rayToWorld, rayResult.HitFraction),
+                Normal = normal,
+                HitFraction = rayResult.HitFraction,
+            };
+        }
+
+        protected virtual void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        {
+            rayFromWorld = from;
+            rayToWorld = to;
+            ClosestHitFraction = float.PositiveInfinity;
+            Flags = 0;
+            CollisionFilterGroup = filterGroup;
+            CollisionFilterMask = filterMask;
+            hitNoContactResponseObjects = hitNoContResp;
+        }
+
+        public override bool NeedsCollision(BulletSharp.BroadphaseProxy proxy0)
+        {
+            if (hitNoContactResponseObjects == false
+                && proxy0.ClientObject is BulletSharp.CollisionObject co
+                && (co.CollisionFlags & BulletSharp.CollisionFlags.NoContactResponse) != 0)
+            {
+                return false;
+            }
+
+            return base.NeedsCollision(proxy0);
+        }
     }
 
-    public void Dispose()
+    private abstract class StrideReusableConvexResultCallback : BulletSharp.ConvexResultCallback
     {
+        /// <summary>
+        /// Our <see cref="PhysicsTriggerComponentBase"/> have <see cref="BulletSharp.CollisionFlags.NoContactResponse"/>
+        /// set to let objects pass through them.
+        /// By default we want intersection test to reflect that behavior to avoid throwing off our users.
+        /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
+        /// </summary>
+        private bool hitNoContactResponseObjects;
+
+        protected static HitResult ComputeHitResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+        {
+            var obj = convexResult.HitCollisionObject;
+            if (obj == null)
+            {
+                return new HitResult { Succeeded = false };
+            }
+
+            Vector3 normal = convexResult.HitNormalLocal;
+            if (!normalInWorldSpace)
+            {
+                normal = Vector3.TransformNormal(normal, obj.WorldTransform);
+            }
+
+            return new HitResult
+            {
+                Succeeded = true,
+                //Collider = obj.UserObject as PhysicsComponent,
+                Point = convexResult.HitPointLocal,
+                Normal = normal,
+                HitFraction = convexResult.HitFraction,
+            };
+        }
+
+        protected virtual void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        {
+            ClosestHitFraction = float.PositiveInfinity;
+            CollisionFilterGroup = filterGroup;
+            CollisionFilterMask = filterMask;
+            hitNoContactResponseObjects = hitNoContResp;
+        }
+
+        public override bool NeedsCollision(BulletSharp.BroadphaseProxy proxy0)
+        {
+            if (hitNoContactResponseObjects == false
+                && proxy0.ClientObject is BulletSharp.CollisionObject co
+                && (co.CollisionFlags & BulletSharp.CollisionFlags.NoContactResponse) != 0)
+            {
+                return false;
+            }
+
+            return base.NeedsCollision(proxy0);
+        }
+    }
+
+    public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers,
+        out Vector3 contactPoint, out Vector3 contactNormal)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir)
+    {
+        throw new NotImplementedException();
     }
 }
 
 
+public struct HitResult
+{
+    public Vector3 Normal;
+
+    public Vector3 Point;
+
+    public float HitFraction;
+
+    public bool Succeeded;
+
+    /// <summary>
+    /// The Collider hit if Succeeded
+    /// </summary>
+    //public PhysicsComponent Collider;
+}
+
+[Flags]
+public enum PhysicsEngineFlags
+{
+    None = 0x0,
+
+    CollisionsOnly = 0x1,
+
+    SoftBodySupport = 0x2,
+
+    MultiThreaded = 0x4,
+
+    UseHardwareWhenPossible = 0x8,
+
+    ContinuousCollisionDetection = 0x10,
+}
+
+/// <summary>
+/// A pair of component colliding with each other.
+/// Pair of [b,a] is considered equal to [a,b].
+/// </summary>
+public readonly struct Collision : IEquatable<Collision>
+{
+    public readonly PhysicsComponent ColliderA;
+
+    public readonly PhysicsComponent ColliderB;
+
+    public Collision(PhysicsComponent a, PhysicsComponent b)
+    {
+        ColliderA = a;
+        ColliderB = b;
+    }
+
+    public static bool operator ==(in Collision a, in Collision b)
+    {
+        return (Equals(a.ColliderA, b.ColliderA) && Equals(a.ColliderB, b.ColliderB))
+               || (Equals(a.ColliderB, b.ColliderA) && Equals(a.ColliderA, b.ColliderB));
+    }
+
+    public static bool operator !=(in Collision a, in Collision b) => (a == b) == false;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Collision other && Equals(other);
+    }
+
+    public bool Equals(Collision other) => this == other;
+
+    public override int GetHashCode()
+    {
+        int aH = ColliderA.GetHashCode();
+        int bH = ColliderB.GetHashCode();
+        // This ensures that a pair of components will return the same hash regardless
+        // of if they are setup as [b,a] or [a,b]
+        return aH > bH ? HashCode.Combine(aH, bH) : HashCode.Combine(bH, aH);
+    }
+}
+
+public struct ContactPoint : IEquatable<ContactPoint>
+{
+    public PhysicsComponent ColliderA;
+    public PhysicsComponent ColliderB;
+    public float Distance;
+    public Vector3 Normal;
+    public Vector3 PositionOnA;
+    public Vector3 PositionOnB;
+
+
+    public bool Equals(ContactPoint other)
+    {
+        return ((ColliderA == other.ColliderA && ColliderB == other.ColliderB)
+                || (ColliderA == other.ColliderB && ColliderB == other.ColliderA))
+               && Distance == other.Distance
+               && Normal == other.Normal
+               && PositionOnA == other.PositionOnA
+               && PositionOnB == other.PositionOnB;
+    }
+
+
+    public override bool Equals(object obj) => obj is ContactPoint other && Equals(other);
+
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(ColliderA, ColliderB, Distance, Normal, PositionOnA, PositionOnB);
+    }
+}
+
+public enum ConstraintTypes
+{
+    /// <summary>
+    ///     The translation vector of the matrix to create this will represent the pivot, the rest is ignored
+    /// </summary>
+    Point2Point,
+
+    Hinge,
+
+    Slider,
+
+    ConeTwist,
+
+    Generic6DoF,
+
+    Generic6DoFSpring,
+
+    /// <summary>
+    ///     The translation vector of the matrix to create this will represent the axis, the rest is ignored
+    /// </summary>
+    Gear,
+}

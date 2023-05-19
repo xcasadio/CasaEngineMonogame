@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 
 using System.Diagnostics;
-using CasaEngine.Core.Helper;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;

@@ -4,9 +4,6 @@ using CasaEngine.Engine.Primitives3D;
 
 namespace EditorWpf.Windows
 {
-    /// <summary>
-    /// Interaction logic for SelectStaticMeshWindow.xaml
-    /// </summary>
     public partial class SelectStaticMeshWindow : Window
     {
         public Type? SelectedType { get; set; }
@@ -24,6 +21,11 @@ namespace EditorWpf.Windows
         private void ButtonSphere_Click(object sender, RoutedEventArgs e)
         {
             SetType(typeof(SpherePrimitive));
+        }
+
+        private void ButtonCapsule_Click(object sender, RoutedEventArgs e)
+        {
+            SetType(typeof(CapsulePrimitive));
         }
 
         private void ButtonCylinder_Click(object sender, RoutedEventArgs e)

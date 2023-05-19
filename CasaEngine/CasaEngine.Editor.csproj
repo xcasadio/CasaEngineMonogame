@@ -15,8 +15,8 @@
 		<Optimize>False</Optimize>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|x64'">
-	  <DefineConstants>$(DefineConstants);DEBUG;EDITOR</DefineConstants>
-	  <Optimize>False</Optimize>
+		<DefineConstants>$(DefineConstants);DEBUG;EDITOR</DefineConstants>
+		<Optimize>False</Optimize>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' ">
 		<DefineConstants>$(DefineConstants)</DefineConstants>
@@ -26,24 +26,24 @@
 		<DefineConstants>$(DefineConstants);DEBUG;EDITOR;UNITTEST</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <DefineConstants>$(DefineConstants)</DefineConstants>
+		<DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|AnyCPU'">
-	  <DefineConstants>$(DefineConstants);DEBUG;EDITOR</DefineConstants>
+		<DefineConstants>$(DefineConstants);DEBUG;EDITOR</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <DefineConstants>$(DefineConstants)</DefineConstants>
+		<DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="BepuPhysics" Version="2.4.0" />
-		<PackageReference Include="BepuUtilities" Version="2.4.0" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
-		<ProjectReference Include="..\PhysicsDebug\PhysicsDebug.csproj" />
-		<ProjectReference Include="..\VelcroPhysics\VelcroPhysics.MonoGame.DebugView\VelcroPhysics.MonoGame.DebugView.csproj" />
-		<ProjectReference Include="..\VelcroPhysics\VelcroPhysics\VelcroPhysics.MonoGame.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="BulletSharp">
+			<HintPath>..\ThirdParties\BulletSharp\BulletSharp.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
 		<Message Text="Restoring dotnet tools" Importance="High" />

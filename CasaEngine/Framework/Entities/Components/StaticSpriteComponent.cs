@@ -1,12 +1,7 @@
 ﻿using System.Text.Json;
-using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
-using Genbox.VelcroPhysics.Collision.ContactSystem;
-using Genbox.VelcroPhysics.Dynamics;
-using Genbox.VelcroPhysics.Factories;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -78,16 +73,6 @@ public class StaticSpriteComponent : Component
         //_rectangle.OnCollision = OnCollision2d;
         //_rectangle.OnSeparation = OnSeparation2d;
         //_rectangle.BodyType = BodyType.Kinematic;
-    }
-
-    private void OnSeparation2d(Fixture fixturea, Fixture fixtureb, Contact contact)
-    {
-        //fixturea.Body.UserData
-    }
-
-    private void OnCollision2d(Fixture fixturea, Fixture fixtureb, Contact contact)
-    {
-
     }
 
 #if EDITOR

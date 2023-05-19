@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core.Helper;
+﻿using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Core.Maths.Curves;

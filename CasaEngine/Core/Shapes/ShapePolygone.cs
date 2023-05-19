@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Helpers;
-using Genbox.VelcroPhysics.Shared;
-using Genbox.VelcroPhysics.Tools.PolygonManipulation;
+using CasaEngine.Core.Maths;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -130,9 +129,9 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
 
     private void VerticesCorrection()
     {
-        var v = new Vertices(_points);
-        v = SimplifyTools.MergeIdenticalPoints(v);
-        v = SimplifyTools.CollinearSimplify(v);
+        var v = new List<Vector2>(_points);
+        v = PolygonSimplifyTools.MergeIdenticalPoints(v);
+        v = PolygonSimplifyTools.CollinearSimplify(v);
         _points.Clear();
         _points.AddRange(v);
 

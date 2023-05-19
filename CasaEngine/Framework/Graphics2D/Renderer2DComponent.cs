@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using CasaEngine.Core.Shapes;
-using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -120,6 +119,9 @@ public class Renderer2dComponent : DrawableGameComponent
         var tmpVec2 = Vector2.Zero;
         var hotspot = Vector2.Zero;
 
+        Game.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        Game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
         SpriteBatch.Begin(
             GameSettings.GraphicsSettings.SpriteSortMode,
             GameSettings.GraphicsSettings.BlendState,
@@ -236,8 +238,6 @@ public class Renderer2dComponent : DrawableGameComponent
         //_RoundLineManager.Draw(_RoundLines, 1.0f, Color.Red, GameInfo);
 
         //GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-        base.Draw(gameTime);
 
         Clear();
     }

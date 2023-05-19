@@ -6,6 +6,7 @@ using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -46,19 +47,14 @@ namespace SandBoxGame
             world.AddEntityImmediately(entity);
 
             //============ tiledMap ===============
-            //SpriteLoader.LoadFromFile(@"Content\TiledMap\Outside_A2_sprites.json", GameManager.AssetContentManager);
-            //var (tiledMapData, tileSetData, autoTileSetData) = TiledMapLoader.LoadMapFromFile(@"Content\TiledMap\tileMap.json");
-            //SpriteLoader.LoadFromFile(tileSetData.SpriteSheetFileName, GameManager.AssetContentManager);
-            //SpriteLoader.LoadFromFile(autoTileSetData.SpriteSheetFileName, GameManager.AssetContentManager);
-
-            var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
-
-            entity = new Entity();
-            var tiledMapComponent = new TiledMapComponent(entity);
-            tiledMapComponent.TiledMapData = tiledMapData;
-            entity.ComponentManager.Components.Add(tiledMapComponent);
-
-            world.AddEntityImmediately(entity);
+            //var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
+            //
+            //entity = new Entity();
+            //var tiledMapComponent = new TiledMapComponent(entity);
+            //tiledMapComponent.TiledMapData = tiledMapData;
+            //entity.ComponentManager.Components.Add(tiledMapComponent);
+            //
+            //world.AddEntityImmediately(entity);
 
             //============ animated sprite ===============
             SpriteLoader.LoadFromFile("Content\\ryu.spritesheet", GameManager.AssetContentManager);
@@ -66,8 +62,8 @@ namespace SandBoxGame
 
             entity = new Entity();
             entity.Coordinates.LocalPosition = new Vector3(250, 250, 0.0f);
-            var scale = 2.0f;
-            entity.Coordinates.LocalScale = new Vector3(scale, scale, 0.0f);
+            var scale = 1.0f;
+            entity.Coordinates.LocalScale = new Vector3(scale, scale, 1.0f);
 
             var animatedSprite = new AnimatedSpriteComponent(entity);
             entity.ComponentManager.Components.Add(animatedSprite);
@@ -76,21 +72,34 @@ namespace SandBoxGame
                 animatedSprite.AddAnimation(new Animation2d(animation));
             }
 
-            animatedSprite.SetCurrentAnimation("idle", true); //0, true);
+            //animatedSprite.SetCurrentAnimation(10, true);
+            animatedSprite.SetCurrentAnimation("idle", true);
+            _animatedSpriteComponent = animatedSprite;
 
             world.AddEntityImmediately(entity);
-
-
-
+            PhysicsDebugViewRendererComponent.DisplayPhysics = true;
 
             base.LoadContent();
         }
+
+        private AnimatedSpriteComponent _animatedSpriteComponent;
+        private int index = 0;
 
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Add))
+            {
+                _animatedSpriteComponent.SetCurrentAnimation(index++, true);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
+            {
+                _animatedSpriteComponent.SetCurrentAnimation(index--, true);
             }
 
             base.Update(gameTime);

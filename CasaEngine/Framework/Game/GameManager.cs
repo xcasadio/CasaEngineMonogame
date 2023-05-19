@@ -1,6 +1,6 @@
-using System.Data;
-using CasaEngine.Core.Helper;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
+using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
@@ -8,6 +8,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.FrontEnd.Screen;
 using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.UserInterface;
 using Microsoft.Xna.Framework;
@@ -39,9 +40,11 @@ public class GameManager
 
     public InputComponent InputComponent { get; private set; }
     public Renderer2dComponent Renderer2dComponent { get; private set; }
+    public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
     public ScreenManagerComponent ManagerComponent { get; private set; }
-    public PhysicsEngineComponent PhysicsEngine { get; private set; }
+    public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
+    public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
     // Game running infos
     private World.World? _currentWorld;
@@ -52,9 +55,7 @@ public class GameManager
         set
         {
             _currentWorld = value;
-#if EDITOR
-            WorldChanged?.Invoke(this, EventArgs.Empty);
-#endif
+            OnWorldChange();
         }
     }
 
@@ -121,13 +122,14 @@ public class GameManager
 
         DebugSystem.Initialize(_game);
 
-        Renderer2dComponent = new Renderer2dComponent(_game);
+        Line3dRendererComponent = new Line3dRendererComponent(_game);
         SpriteBatch = new SpriteBatch(_game.GraphicsDevice);
-        Renderer2dComponent.SpriteBatch = SpriteBatch;
+        Renderer2dComponent = new Renderer2dComponent(_game) { SpriteBatch = SpriteBatch };
         InputComponent = new InputComponent(_game);
         ManagerComponent = new ScreenManagerComponent(_game);
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
-        PhysicsEngine = new PhysicsEngineComponent(_game);
+        PhysicsEngineComponent = new PhysicsEngineComponent(_game);
+        PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(_game);
 
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
@@ -286,6 +288,14 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.EndMark("Draw");
 #endif
     }
+
+    private void OnWorldChange()
+    {
+#if EDITOR
+        WorldChanged?.Invoke(this, EventArgs.Empty);
+#endif
+    }
+
 
 #if EDITOR
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)

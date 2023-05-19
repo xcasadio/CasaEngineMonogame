@@ -11,23 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pong", "Pong\Pong.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngineLauncher", "CasaEngineLauncher\CasaEngineLauncher.csproj", "{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics2d", "Physics2d", "{EFF5418E-2F3B-4218-A17A-1000F2599AFA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VelcroPhysics.MonoGame", "VelcroPhysics\VelcroPhysics\VelcroPhysics.MonoGame.csproj", "{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VelcroPhysics.MonoGame.DebugView", "VelcroPhysics\VelcroPhysics.MonoGame.DebugView\VelcroPhysics.MonoGame.DebugView.csproj", "{60F6D253-871D-441D-8975-C80303363C03}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandBoxGame", "SandBoxGame\SandBoxGame.csproj", "{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GizmoTools", "GizmoTool\GizmoTools.csproj", "{84B4E8B0-D285-4545-95A1-41EF0724FC42}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Framework.Wpf.Core", "MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj", "{F4427058-1115-4E5D-BC90-DCD97AD99622}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics", "Physics", "{4B5C319D-728A-47E5-9D44-98EA7F9E24C2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhysicsDebug", "PhysicsDebug\PhysicsDebug.csproj", "{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CasaEngine.WpfControls", "CasaEngine.WpfControls\CasaEngine.WpfControls.csproj", "{DFF1902F-E282-423D-80A0-4A3DEE29796F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.WpfControls", "CasaEngine.WpfControls\CasaEngine.WpfControls.csproj", "{DFF1902F-E282-423D-80A0-4A3DEE29796F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,30 +72,6 @@ Global
 		{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}.Release|x64.ActiveCfg = Release|Any CPU
 		{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}.Release|x64.Build.0 = Release|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Debug|x64.Build.0 = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.DebugEditor|x64.Build.0 = Debug|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Release|x64.ActiveCfg = Release|Any CPU
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83}.Release|x64.Build.0 = Release|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Debug|x64.Build.0 = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.DebugEditor|x64.Build.0 = Debug|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Release|Any CPU.Build.0 = Release|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Release|x64.ActiveCfg = Release|Any CPU
-		{60F6D253-871D-441D-8975-C80303363C03}.Release|x64.Build.0 = Release|Any CPU
 		{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -136,18 +102,6 @@ Global
 		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|x64.ActiveCfg = Release|Any CPU
 		{F4427058-1115-4E5D-BC90-DCD97AD99622}.Release|x64.Build.0 = Release|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Debug|x64.Build.0 = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.DebugEditor|x64.Build.0 = Debug|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|x64.ActiveCfg = Release|Any CPU
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61}.Release|x64.Build.0 = Release|Any CPU
 		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -163,11 +117,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{BB04FACE-5955-4FA8-95B2-D770FF6FAF83} = {EFF5418E-2F3B-4218-A17A-1000F2599AFA}
-		{60F6D253-871D-441D-8975-C80303363C03} = {EFF5418E-2F3B-4218-A17A-1000F2599AFA}
-		{D1E7601B-AA5F-442B-9CFE-D839F59ECF61} = {4B5C319D-728A-47E5-9D44-98EA7F9E24C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B283C82B-7056-4E8E-9E9C-CEE7633F41D1}

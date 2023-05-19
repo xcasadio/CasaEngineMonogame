@@ -1,12 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Shapes;
-using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
-using Genbox.VelcroPhysics.Collision.Shapes;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -143,8 +139,12 @@ public class TiledMapComponent : Component
 
     public override void Load(JsonElement element)
     {
-        TiledMapDataFileName = element.GetProperty("tiledMapDataFileName").GetString();
-        TiledMapData = TiledMapLoader.LoadMapFromFile(Path.Combine(GameSettings.ProjectSettings.ProjectPath, TiledMapDataFileName));
+        var fileName = element.GetProperty("tiledMapDataFileName").GetString();
+        TiledMapData = TiledMapLoader.LoadMapFromFile(Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName));
+
+#if EDITOR
+        TiledMapDataFileName = fileName;
+#endif
     }
 
 #if EDITOR

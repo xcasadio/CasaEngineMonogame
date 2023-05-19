@@ -1,19 +1,25 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Core.Helpers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
-using CasaEngine.Core.Helper;
 
 namespace CasaEngine.Framework.Graphics2D;
 
-public class ScreenLogComponent
-    : DrawableGameComponent
+public class ScreenLogComponent : DrawableGameComponent
 {
+    private class LogText
+    {
+        public string Text = string.Empty;
+        public SpriteFont SpriteFont;
+        public Color Color = Color.White;
+        public float Time;
+    }
+
     private readonly List<LogText> _logText = new();
     private Renderer2dComponent _renderer2dComponent;
     private SpriteFont? _font;
 
-    public ScreenLogComponent(Microsoft.Xna.Framework.Game game)
-        : base(game)
+    public ScreenLogComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         if (game == null)
         {
@@ -33,7 +39,6 @@ public class ScreenLogComponent
         {
             lock (this)
             {
-                // IsRemoved self from the service container.
                 Game.RemoveGameComponent<ScreenLogComponent>();
             }
         }
@@ -58,10 +63,12 @@ public class ScreenLogComponent
 
     public void AddText(string text, SpriteFont spriteFont, Color color)
     {
-        var log = new LogText();
-        log.Color = color;
-        log.Text = text;
-        log.SpriteFont = spriteFont;
+        var log = new LogText
+        {
+            Color = color,
+            Text = text,
+            SpriteFont = spriteFont
+        };
         _logText.Add(log);
     }
 
@@ -114,12 +121,4 @@ public class ScreenLogComponent
         base.Draw(gameTime);
     }
 
-}
-
-internal class LogText
-{
-    public string Text = string.Empty;
-    public SpriteFont SpriteFont;
-    public Color Color = Color.White;
-    public float Time;
 }

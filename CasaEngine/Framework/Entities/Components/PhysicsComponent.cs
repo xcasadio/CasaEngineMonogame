@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
-using BepuPhysics;
+using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -26,10 +26,10 @@ public class PhysicsComponent : Component
     private float _maxSpeed;
     private float _maxForce;
     private float _maxTurnRate;
-    private BodyHandle? _bodyHandle;
+    private RigidBody? _rigidBody;
 
     //static
-    private StaticHandle? _staticHandle;
+    private CollisionObject? _collisionObject;
 
     public PhysicsType PhysicsType
     {
@@ -143,15 +143,15 @@ public class PhysicsComponent : Component
             return;
         }
 
-        if (_staticHandle.HasValue)
+        if (_collisionObject != null)
         {
-            _physicsEngineComponent.RemoveStaticObject(_staticHandle.Value);
-            _staticHandle = null;
+            _physicsEngineComponent.RemoveStaticObject(_collisionObject);
+            _collisionObject = null;
         }
-        if (_bodyHandle.HasValue)
+        if (_rigidBody != null)
         {
-            _physicsEngineComponent.RemoveBodyObject(_bodyHandle.Value);
-            _bodyHandle = null;
+            _physicsEngineComponent.RemoveBodyObject(_rigidBody);
+            _rigidBody = null;
         }
 #endif
 
@@ -162,13 +162,19 @@ public class PhysicsComponent : Component
             _shape.Orientation = Owner.Coordinates.Rotation;
         }
 
-        if (PhysicsType == PhysicsType.Static)
+        var worldMatrix = Matrix.CreateFromQuaternion(Owner.Coordinates.LocalRotation) * Matrix.CreateTranslation(Owner.Coordinates.LocalPosition);
+
+        switch (PhysicsType)
         {
-            _staticHandle = _physicsEngineComponent.AddStaticObject(_shape);
-        }
-        else
-        {
-            _bodyHandle = _physicsEngineComponent.AddBodyObject(_shape, Mass);
+            case PhysicsType.Static:
+                _collisionObject = _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix);
+                break;
+            case PhysicsType.Kinetic:
+                _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix);
+                break;
+            default:
+                _rigidBody = _physicsEngineComponent.AddRigibBody(_shape, Mass, ref worldMatrix);
+                break;
         }
     }
 
@@ -176,11 +182,24 @@ public class PhysicsComponent : Component
     {
         //In editor mode the game is in idle mode so we don't update physics
 #if !EDITOR
-        if (_bodyHandle != null)
+        CollisionObject? collisionObject = null;
+
+        if (_collisionObject != null)
         {
-            var transformations = _physicsEngineComponent.GetTransformations(_bodyHandle.Value);
-            Owner.Coordinates.LocalPosition = transformations.Position;
-            Owner.Coordinates.LocalRotation = transformations.Orientation;
+            collisionObject = _collisionObject;
+        }
+        else if (_rigidBody != null)
+        {
+            collisionObject = _rigidBody;
+        }
+
+        if (collisionObject != null)
+        {
+            collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
+            Owner.Coordinates.LocalPosition = position;
+            Owner.Coordinates.LocalRotation = rotation;
+            //Owner.Coordinates.LocalPosition = collisionObject.WorldTransform.Translation;
+            //Owner.Coordinates.LocalRotation = Quaternion.CreateFromRotationMatrix(collisionObject.WorldTransform);
         }
 #endif
     }
@@ -234,37 +253,25 @@ public class PhysicsComponent : Component
 
     private void OnPositionChanged(object? sender, EventArgs e)
     {
-        if (PhysicsType == PhysicsType.Static)
+        if (_collisionObject != null)
         {
-            if (_staticHandle.HasValue)
-            {
-                _physicsEngineComponent.UpdatePositionAndOrientation(Owner.Position, Owner.Orientation, _staticHandle.Value);
-            }
+            _collisionObject.WorldTransform = Owner.Coordinates.WorldMatrix;
         }
-        else
+        if (_rigidBody != null)
         {
-            if (_bodyHandle.HasValue)
-            {
-                _physicsEngineComponent.UpdatePositionAndOrientation(Owner.Position, Owner.Orientation, _bodyHandle.Value);
-            }
+            _rigidBody.WorldTransform = Owner.Coordinates.WorldMatrix;
         }
     }
 
     private void OnOrientationChanged(object? sender, EventArgs e)
     {
-        if (PhysicsType == PhysicsType.Static)
+        if (_collisionObject != null)
         {
-            if (_staticHandle.HasValue)
-            {
-                _physicsEngineComponent.UpdatePositionAndOrientation(Owner.Position, Owner.Orientation, _staticHandle.Value);
-            }
+            _collisionObject.WorldTransform = Owner.Coordinates.WorldMatrix;
         }
-        else
+        if (_rigidBody != null)
         {
-            if (_bodyHandle.HasValue)
-            {
-                _physicsEngineComponent.UpdatePositionAndOrientation(Owner.Position, Owner.Orientation, _bodyHandle.Value);
-            }
+            _rigidBody.WorldTransform = Owner.Coordinates.WorldMatrix;
         }
     }
 #endif

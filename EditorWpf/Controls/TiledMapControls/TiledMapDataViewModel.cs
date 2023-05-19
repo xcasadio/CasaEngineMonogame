@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CasaEngine.Core;
+using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets.Map2d;
 
 namespace EditorWpf.Controls.TiledMapControls;
