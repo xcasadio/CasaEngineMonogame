@@ -118,8 +118,8 @@ public class TiledMapComponent : Component
         var scale = new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
         var mapWidth = TiledMapData.MapSize.Width;
         var mapHeight = TiledMapData.MapSize.Height;
-        var tileWidth = TiledMapData.TileSize.Width;
-        var tileHeight = TiledMapData.TileSize.Height;
+        var tileWidth = TiledMapData.TileSize.Width * Owner.Coordinates.Scale.X;
+        var tileHeight = TiledMapData.TileSize.Height * Owner.Coordinates.Scale.Y;
         var mapPosX = translation.X;
         var mapPosY = translation.Y;
 
