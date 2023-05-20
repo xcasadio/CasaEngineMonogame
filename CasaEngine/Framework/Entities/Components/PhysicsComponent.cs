@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Logger;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
@@ -120,6 +121,8 @@ public class PhysicsComponent : Component
         }
     }
 
+    public HashSet<Collision> Collisions { get; } = new();
+
     public PhysicsComponent(Entity entity) : base(entity, ComponentId)
     {
         _physicsType = PhysicsType.Static;
@@ -167,13 +170,13 @@ public class PhysicsComponent : Component
         switch (PhysicsType)
         {
             case PhysicsType.Static:
-                _collisionObject = _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix);
+                _collisionObject = _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this);
                 break;
             case PhysicsType.Kinetic:
-                _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix);
+                _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
                 break;
             default:
-                _rigidBody = _physicsEngineComponent.AddRigibBody(_shape, Mass, ref worldMatrix);
+                _rigidBody = _physicsEngineComponent.AddRigibBody(_shape, Mass, ref worldMatrix, this);
                 break;
         }
     }
@@ -198,10 +201,21 @@ public class PhysicsComponent : Component
             collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
             Owner.Coordinates.LocalPosition = position;
             Owner.Coordinates.LocalRotation = rotation;
-            //Owner.Coordinates.LocalPosition = collisionObject.WorldTransform.Translation;
-            //Owner.Coordinates.LocalRotation = Quaternion.CreateFromRotationMatrix(collisionObject.WorldTransform);
         }
 #endif
+    }
+
+    public void OnHit(Collision collision)
+    {
+        LogManager.Instance.WriteLineTrace($"Collision : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+
+        //var scriptComponent = Owner.ComponentManager.GetComponent<ScriptComponent>();
+        //scriptComponent.TriggerEvent<OnHit>(collision);
+    }
+
+    public void OnHitEnded(Collision collision)
+    {
+        LogManager.Instance.WriteLineTrace($"Collision ended : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
     }
 
     public override void Load(JsonElement element)

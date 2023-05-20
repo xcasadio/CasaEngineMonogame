@@ -2,6 +2,8 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Game.Components.Physics;
@@ -25,14 +27,16 @@ public class PhysicsEngineComponent : GameComponent
     public override void Update(GameTime gameTime)
     {
         PhysicsEngine.Update(GameTimeHelper.GameTimeToMilliseconds(gameTime));
+        PhysicsEngine.UpdateContacts();
+        PhysicsEngine.SendEvents();
     }
 
-    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix)
+    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix, PhysicsComponent physicsComponent)
     {
         var ghostObject = new BulletSharp.PairCachingGhostObject
         {
             CollisionShape = ConvertToCollisionShape(shape),
-            UserObject = this,
+            UserObject = physicsComponent,
             WorldTransform = worldMatrix
         };
         ghostObject.CollisionFlags = CollisionFlags.NoContactResponse;
@@ -42,32 +46,32 @@ public class PhysicsEngineComponent : GameComponent
         return ghostObject;
     }
 
-    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix)
+    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, PhysicsComponent physicsComponent)
     {
-        return AddRigibBody(shape3d, 0.0f, ref worldMatrix);
+        return AddRigibBody(shape3d, 0.0f, ref worldMatrix, physicsComponent);
     }
 
-    public RigidBody AddRigibBody(Shape3d shape3d, float mass, ref Matrix worldMatrix)
+    public RigidBody AddRigibBody(Shape3d shape3d, float mass, ref Matrix worldMatrix, PhysicsComponent physicsComponent)
     {
         var collisionShape = ConvertToCollisionShape(shape3d);
-        using (var rbInfo = new RigidBodyConstructionInfo(mass, null, collisionShape))
+        using var rbInfo = new RigidBodyConstructionInfo(mass, null, collisionShape);
+        bool isDynamic = mass != 0.0f;
+        if (isDynamic)
         {
-            bool isDynamic = mass != 0.0f;
-            if (isDynamic)
-            {
-                rbInfo.LocalInertia = collisionShape.CalculateLocalInertia(mass);
-                rbInfo.MotionState = new DefaultMotionState(worldMatrix);
-            }
-
-            var body = new RigidBody(rbInfo);
-
-            body.CollisionFlags = mass != 0.0f ? CollisionFlags.None : CollisionFlags.StaticObject;
-            body.Gravity = GameSettings.Physics3dSettings.Gravity;
-
-            body.WorldTransform = worldMatrix;
-            PhysicsEngine.World.AddRigidBody(body);
-            return body;
+            rbInfo.LocalInertia = collisionShape.CalculateLocalInertia(mass);
+            rbInfo.MotionState = new DefaultMotionState(worldMatrix);
         }
+
+        var body = new RigidBody(rbInfo)
+        {
+            CollisionFlags = mass != 0.0f ? CollisionFlags.None : CollisionFlags.StaticObject,
+            Gravity = GameSettings.Physics3dSettings.Gravity,
+            UserObject = physicsComponent,
+            WorldTransform = worldMatrix
+        };
+
+        PhysicsEngine.World.AddRigidBody(body);
+        return body;
     }
 
     private CollisionShape ConvertToCollisionShape(Shape3d shape)

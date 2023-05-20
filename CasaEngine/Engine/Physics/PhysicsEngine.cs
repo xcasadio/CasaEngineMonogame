@@ -1,27 +1,26 @@
 ﻿using BulletSharp;
 using CasaEngine.Engine.Physics2D;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
+using System.Threading.Channels;
 
 namespace CasaEngine.Engine.Physics;
 
 public class PhysicsEngine
 {
-    const CollisionFilterGroups DefaultGroup = (CollisionFilterGroups)BulletSharp.CollisionFilterGroups.DefaultFilter;
+    const CollisionFilterGroups DefaultGroup = CollisionFilterGroups.DefaultFilter;
 
-    public DiscreteDynamicsWorld World { get; }
-    private readonly BulletSharp.CollisionWorld collisionWorld;
+    public DiscreteDynamicsWorld? World { get; }
 
-    private readonly BulletSharp.CollisionDispatcher dispatcher;
-    private readonly BulletSharp.CollisionConfiguration collisionConfiguration;
-    private readonly BulletSharp.DbvtBroadphase broadphase;
+    private readonly CollisionWorld _collisionWorld;
 
-    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private readonly BulletSharp.ContactSolverInfo solverInfo;
+    private readonly CollisionDispatcher _dispatcher;
+    private readonly CollisionConfiguration _collisionConfiguration;
+    private readonly DbvtBroadphase _broadphase;
 
-    private readonly BulletSharp.DispatcherInfo dispatchInfo;
+    private readonly ContactSolverInfo _solverInfo;
+
+    private readonly DispatcherInfo _dispatchInfo;
 
     internal readonly bool CanCcd;
 
@@ -34,7 +33,7 @@ public class PhysicsEngine
                 throw new Exception("ContinuousCollisionDetection must be enabled at physics engine initialization using the proper flag.");
             }
 
-            return dispatchInfo.UseContinuous;
+            return _dispatchInfo.UseContinuous;
         }
         set
         {
@@ -43,32 +42,27 @@ public class PhysicsEngine
                 throw new Exception("ContinuousCollisionDetection must be enabled at physics engine initialization using the proper flag.");
             }
 
-            dispatchInfo.UseContinuous = value;
+            _dispatchInfo.UseContinuous = value;
         }
     }
 
-    /// <summary>
-    /// Totally disable the simulation if set to true
-    /// </summary>
-    public static bool DisableSimulation = false;
+    private readonly Dictionary<Collision, (CollisionObject, CollisionObject)> _collisions = new();
+    private readonly Dictionary<(CollisionObject, CollisionObject), Collision> _outdatedCollisions = new();
 
-    private readonly Dictionary<Collision, (CollisionObject, CollisionObject)> collisions = new();
-    private readonly Dictionary<(CollisionObject, CollisionObject), Collision> outdatedCollisions = new();
+    //private readonly Stack<System.Threading.Channels.Channel<HashSet<ContactPoint>>> _channelsPool = new();
+    //private readonly Dictionary<Collision, (System.Threading.Channels.Channel<HashSet<ContactPoint>> Channel, HashSet<ContactPoint> PreviousContacts)> _contactChangedChannels = new();
 
-    private readonly Stack<System.Threading.Channels.Channel<HashSet<ContactPoint>>> channelsPool = new();
-    private readonly Dictionary<Collision, (System.Threading.Channels.Channel<HashSet<ContactPoint>> Channel, HashSet<ContactPoint> PreviousContacts)> contactChangedChannels = new();
+    private readonly Stack<HashSet<ContactPoint>> _contactsPool = new();
+    private readonly Dictionary<Collision, HashSet<ContactPoint>> _contactsUpToDate = new();
 
-    private readonly Stack<HashSet<ContactPoint>> contactsPool = new();
-    private readonly Dictionary<Collision, HashSet<ContactPoint>> contactsUpToDate = new();
-
-    private readonly List<Collision> markedAsNewColl = new();
-    private readonly List<Collision> markedAsDeprecatedColl = new();
+    private readonly List<Collision> _markedAsNewColl = new();
+    private readonly List<Collision> _markedAsDeprecatedColl = new();
     internal readonly HashSet<Collision> EndedFromComponentRemoval = new();
 
     /// <summary>
     /// Every pair of components currently colliding with each other
     /// </summary>
-    public ICollection<Collision> CurrentCollisions => collisions.Keys;
+    public ICollection<Collision> CurrentCollisions => _collisions.Keys;
 
     /// <summary>
     /// Should static - static collisions of StaticColliderComponent yield
@@ -80,7 +74,6 @@ public class PhysicsEngine
     /// through <see cref="CurrentCollisions"/>.
     /// </remarks>
     public bool IncludeStaticAgainstStaticCollisions { get; set; } = false;
-
 
     /// <summary>
     /// Gets or sets the gravity.
@@ -126,36 +119,35 @@ public class PhysicsEngine
     /// </summary>
     public float FixedTimeStep { get; set; }
 
-
     public PhysicsEngine(Physics3dSettings configuration)
     {
         MaxSubSteps = configuration.MaxSubSteps;
         FixedTimeStep = configuration.FixedTimeStep;
 
-        collisionConfiguration = new BulletSharp.DefaultCollisionConfiguration();
-        dispatcher = new BulletSharp.CollisionDispatcher(collisionConfiguration);
-        broadphase = new BulletSharp.DbvtBroadphase();
+        _collisionConfiguration = new DefaultCollisionConfiguration();
+        _dispatcher = new CollisionDispatcher(_collisionConfiguration);
+        _broadphase = new DbvtBroadphase();
 
         //this allows characters to have proper physics behavior
-        broadphase.OverlappingPairCache.SetInternalGhostPairCallback(new BulletSharp.GhostPairCallback());
+        _broadphase.OverlappingPairCache.SetInternalGhostPairCallback(new GhostPairCallback());
 
         //2D pipeline
-        var simplex = new BulletSharp.VoronoiSimplexSolver();
-        var pdSolver = new BulletSharp.MinkowskiPenetrationDepthSolver();
-        var convexAlgo = new BulletSharp.Convex2DConvex2DAlgorithm.CreateFunc(simplex, pdSolver);
+        var simplex = new VoronoiSimplexSolver();
+        var pdSolver = new MinkowskiPenetrationDepthSolver();
+        var convexAlgo = new Convex2DConvex2DAlgorithm.CreateFunc(simplex, pdSolver);
 
-        dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Convex2DShape, BulletSharp.BroadphaseNativeType.Convex2DShape, convexAlgo);
+        _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Convex2DShape, BroadphaseNativeType.Convex2DShape, convexAlgo);
         //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Box2DShape, BulletSharp.BroadphaseNativeType.Convex2DShape, convexAlgo);
         //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Convex2DShape, BulletSharp.BroadphaseNativeType.Box2DShape, convexAlgo);
         //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Box2DShape, BulletSharp.BroadphaseNativeType.Box2DShape, new BulletSharp.Box2DBox2DCollisionAlgorithm.CreateFunc());
         //~2D pipeline
 
         //default solver
-        var solver = new BulletSharp.SequentialImpulseConstraintSolver();
+        var solver = new SequentialImpulseConstraintSolver();
 
         if (configuration.Flags.HasFlag(PhysicsEngineFlags.CollisionsOnly))
         {
-            collisionWorld = new BulletSharp.CollisionWorld(dispatcher, broadphase, collisionConfiguration);
+            _collisionWorld = new CollisionWorld(_dispatcher, _broadphase, _collisionConfiguration);
         }
         else if (configuration.Flags.HasFlag(PhysicsEngineFlags.SoftBodySupport))
         {
@@ -166,27 +158,27 @@ public class PhysicsEngine
         }
         else
         {
-            World = new BulletSharp.DiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-            collisionWorld = World;
+            World = new DiscreteDynamicsWorld(_dispatcher, _broadphase, solver, _collisionConfiguration);
+            _collisionWorld = World;
         }
 
         if (World != null)
         {
-            solverInfo = World.SolverInfo; //we are required to keep this reference, or the GC will mess up
-            dispatchInfo = World.DispatchInfo;
+            _solverInfo = World.SolverInfo; //we are required to keep this reference, or the GC will mess up
+            _dispatchInfo = World.DispatchInfo;
 
-            solverInfo.SolverMode |= BulletSharp.SolverModes.CacheFriendly; //todo test if helps with performance or not
+            _solverInfo.SolverMode |= SolverModes.CacheFriendly; //todo test if helps with performance or not
 
             if (configuration.Flags.HasFlag(PhysicsEngineFlags.ContinuousCollisionDetection))
             {
                 CanCcd = true;
-                solverInfo.SolverMode |= BulletSharp.SolverModes.Use2FrictionDirections | BulletSharp.SolverModes.RandomizeOrder;
-                dispatchInfo.UseContinuous = true;
+                _solverInfo.SolverMode |= SolverModes.Use2FrictionDirections | SolverModes.RandomizeOrder;
+                _dispatchInfo.UseContinuous = true;
             }
             else
             {
                 CanCcd = false;
-                dispatchInfo.UseContinuous = false;
+                _dispatchInfo.UseContinuous = false;
             }
         }
     }
@@ -197,18 +189,18 @@ public class PhysicsEngine
         // Mark previous collisions as outdated,
         // we'll iterate through bullet's actives and remove them from here
         // to be left with only the outdated ones.
-        foreach (var collision in collisions)
+        foreach (var collision in _collisions)
         {
-            outdatedCollisions.Add(collision.Value, collision.Key);
+            _outdatedCollisions.Add(collision.Value, collision.Key);
         }
 
         // If this needs to be even faster, look into btPersistentManifold.ContactStartedCallback,
         // not yet covered by the wrapper
 
-        int numManifolds = collisionWorld.Dispatcher.NumManifolds;
+        int numManifolds = _collisionWorld.Dispatcher.NumManifolds;
         for (int i = 0; i < numManifolds; i++)
         {
-            var persistentManifold = collisionWorld.Dispatcher.GetManifoldByIndexInternal(i);
+            var persistentManifold = _collisionWorld.Dispatcher.GetManifoldByIndexInternal(i);
 
             int numContacts = persistentManifold.NumContacts;
             if (numContacts == 0)
@@ -222,7 +214,7 @@ public class PhysicsEngine
             (CollisionObject, CollisionObject) collId = aFirst ? (ptrA, ptrB) : (ptrB, ptrA);
 
             // This collision is up-to-date, remove it from the outdated collisions
-            if (outdatedCollisions.Remove(collId))
+            if (_outdatedCollisions.Remove(collId))
             {
                 continue;
             }
@@ -234,22 +226,253 @@ public class PhysicsEngine
             var collision = new Collision(a.UserObject as PhysicsComponent, b.UserObject as PhysicsComponent);
             // PairCachingGhostObject has two identical manifolds when colliding, not 100% sure why that is,
             // CompoundColliderShape shapes all map to the same PhysicsComponent but create unique manifolds.
-            if (collisions.TryAdd(collision, collId))
+            if (_collisions.TryAdd(collision, collId))
             {
-                markedAsNewColl.Add(collision);
+                _markedAsNewColl.Add(collision);
             }
         }
 
         // This set only contains outdated collisions by now,
         // mark them as out of date for events and remove them from current collisions
-        foreach (var (_, outdatedCollision) in outdatedCollisions)
+        foreach (var (_, outdatedCollision) in _outdatedCollisions)
         {
-            markedAsDeprecatedColl.Add(outdatedCollision);
-            collisions.Remove(outdatedCollision);
+            _markedAsDeprecatedColl.Add(outdatedCollision);
+            _collisions.Remove(outdatedCollision);
         }
 
-        outdatedCollisions.Clear();
+        _outdatedCollisions.Clear();
     }
+
+    internal void ClearCollisionDataOf(PhysicsComponent component)
+    {
+        foreach (var (collision, key) in _collisions)
+        {
+            if (ReferenceEquals(collision.ColliderA, component) || ReferenceEquals(collision.ColliderB, component))
+            {
+                _outdatedCollisions.Add(key, collision);
+                EndedFromComponentRemoval.Add(collision);
+            }
+        }
+
+        // Remove collision and update contact data
+        foreach (var (_, collision) in _outdatedCollisions)
+        {
+            /*if (_contactChangedChannels.TryGetValue(collision, out var tuple))
+            {
+                _contactChangedChannels[collision] = (tuple.Channel, LatestContactPointsFor(collision));
+                _contactsUpToDate[collision] = _contactsPool.Count == 0 ? new HashSet<ContactPoint>() : _contactsPool.Pop();
+            }
+            else if (_contactsUpToDate.TryGetValue(collision, out var set))
+            {
+                set.Clear();
+            }*/
+
+            _collisions.Remove(collision);
+        }
+
+        // Send contacts changed and cleanup channel-related pooled data
+        foreach (var (_, collision) in _outdatedCollisions)
+        {
+            /*if (_contactChangedChannels.TryGetValue(collision, out var tuple) == false)
+            {
+                continue;
+            }
+
+            var channel = tuple.Channel;
+            var previousContacts = tuple.PreviousContacts;
+            var newContacts = _contactsUpToDate[collision];
+
+            if (previousContacts.SetEquals(newContacts) == false)
+            {
+                while (channel.Balance < 0)
+                {
+                    channel.Send(previousContacts);
+                }
+            }
+
+            previousContacts.Clear();
+            _contactsPool.Push(previousContacts);
+            _channelsPool.Push(channel);
+            _contactChangedChannels.Remove(collision);*/
+        }
+
+        // Send collision ended
+        foreach (var (_, refCollision) in _outdatedCollisions)
+        {
+            var collision = new Collision(refCollision.ColliderA, refCollision.ColliderB);
+            // See: SendEvents()
+            if (IncludeStaticAgainstStaticCollisions == false
+                && collision.ColliderA.PhysicsType == PhysicsType.Static
+                && collision.ColliderB.PhysicsType == PhysicsType.Static
+                /*collision.ColliderA is StaticColliderComponent
+                && collision.ColliderB is StaticColliderComponent*/)
+            {
+                collision.ColliderA.Collisions.Remove(collision);
+                collision.ColliderB.Collisions.Remove(collision);
+                continue;
+            }
+
+            collision.ColliderA.OnHitEnded(collision);
+            collision.ColliderB.OnHitEnded(collision);
+
+            collision.ColliderA.Collisions.Remove(collision);
+            collision.ColliderB.Collisions.Remove(collision);
+        }
+
+        _outdatedCollisions.Clear();
+    }
+
+
+    internal void SendEvents()
+    {
+        // Move outdated contacts back to the pool, or into contact changed to be compared for changes
+        foreach (var (coll, hashset) in _contactsUpToDate)
+        {
+            //if (_contactChangedChannels.TryGetValue(coll, out var tuple))
+            //{
+            //    _contactChangedChannels[coll] = (tuple.Channel, hashset);
+            //}
+            //else
+            {
+                hashset.Clear();
+                _contactsPool.Push(hashset);
+            }
+        }
+
+        _contactsUpToDate.Clear();
+
+        foreach (var collision in _markedAsNewColl)
+        {
+            if (IncludeStaticAgainstStaticCollisions == false
+                && collision.ColliderA.PhysicsType == PhysicsType.Static
+                && collision.ColliderB.PhysicsType == PhysicsType.Static
+                /*collision.ColliderA is StaticColliderComponent
+                && collision.ColliderB is StaticColliderComponent*/)
+            {
+                continue;
+            }
+
+            collision.ColliderA.Collisions.Add(collision);
+            collision.ColliderB.Collisions.Add(collision);
+
+            collision.ColliderA.OnHit(collision);
+            collision.ColliderB.OnHit(collision);
+        }
+
+        // Deprecated collisions don't need to send contact changes, move channels to the pool
+        foreach (var collision in _markedAsDeprecatedColl)
+        {
+            //if (_contactChangedChannels.TryGetValue(collision, out var tuple))
+            //{
+            //    _channelsPool.Push(tuple.Channel);
+            //    _contactChangedChannels.Remove(collision);
+            //}
+        }
+
+        foreach (var collision in _markedAsDeprecatedColl)
+        {
+            if (IncludeStaticAgainstStaticCollisions == false
+                && collision.ColliderA.PhysicsType == PhysicsType.Static
+                && collision.ColliderB.PhysicsType == PhysicsType.Static
+                /*collision.ColliderA is StaticColliderComponent
+                && collision.ColliderB is StaticColliderComponent*/)
+            {
+                // Try to remove them still if they were added while
+                // 'IncludeStaticAgainstStaticCollisions' was true
+                collision.ColliderA.Collisions.Remove(collision);
+                collision.ColliderB.Collisions.Remove(collision);
+                continue;
+            }
+
+            // IncludeStaticAgainstStaticCollisions:
+            // Can't do much if something is awaiting the end of a specific
+            // static-static collision below though
+            collision.ColliderA.OnHitEnded(collision);
+            collision.ColliderB.OnHitEnded(collision);
+
+            collision.ColliderA.Collisions.Remove(collision);
+            collision.ColliderB.Collisions.Remove(collision);
+        }
+
+        _markedAsNewColl.Clear();
+        _markedAsDeprecatedColl.Clear();
+    }
+
+
+    internal HashSet<ContactPoint> LatestContactPointsFor(Collision coll)
+    {
+        if (_contactsUpToDate.TryGetValue(coll, out var buffer))
+        {
+            return buffer;
+        }
+
+        buffer = _contactsPool.Count == 0 ? new HashSet<ContactPoint>() : _contactsPool.Pop();
+        _contactsUpToDate[coll] = buffer;
+
+        if (_collisions.ContainsKey(coll) == false)
+        {
+            return buffer;
+        }
+
+        var dispatcher = _collisionWorld.Dispatcher;
+        int numManifolds = dispatcher.NumManifolds;
+        for (int i = 0; i < numManifolds; i++)
+        {
+            var persistentManifold = dispatcher.GetManifoldByIndexInternal(i);
+
+            int numContacts = persistentManifold.NumContacts;
+            if (numContacts == 0)
+            {
+                continue;
+            }
+
+            var collisionObjectA = persistentManifold.Body0;
+            var collisionObjectB = persistentManifold.Body1;
+
+            // Distinct bullet pointer can map to the same PhysicsComponent through CompoundColliderShapes
+            // We're retrieving all contacts for a pair of PhysicsComponent here, not for a unique collider
+            var collA = collisionObjectB.UserObject as PhysicsComponent;
+            var collB = collisionObjectB.UserObject as PhysicsComponent;
+
+            if (false == (coll.ColliderA == collA && coll.ColliderB == collB
+                          || coll.ColliderA == collB && coll.ColliderB == collA))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < numContacts; j++)
+            {
+                var point = persistentManifold.GetContactPoint(j);
+                buffer.Add(new ContactPoint
+                {
+                    ColliderA = collA,
+                    ColliderB = collB,
+                    Distance = point.Distance1,
+                    Normal = point.NormalWorldOnB,
+                    PositionOnA = point.PositionWorldOnA,
+                    PositionOnB = point.PositionWorldOnB,
+                });
+            }
+        }
+
+        return buffer;
+    }
+
+    //internal ChannelMicroThreadAwaiter<HashSet<ContactPoint>> ContactChanged(Collision coll)
+    //{
+    //    if (_collisions.ContainsKey(coll) == false)
+    //        throw new InvalidOperationException("The collision object has been destroyed.");
+    //
+    //    // Forces this frame's contact to be retrieved and stored so that we can compare it for changes
+    //    LatestContactPointsFor(coll);
+    //
+    //    if (_contactChangedChannels.TryGetValue(coll, out var tuple))
+    //        return tuple.Channel.Receive();
+    //
+    //    var channel = _channelsPool.Count == 0 ? new Channel<HashSet<ContactPoint>> { Preference = ChannelPreference.PreferSender } : channelsPool.Pop();
+    //    _contactChangedChannels[coll] = (channel, null);
+    //    return channel.Receive();
+    //}
 
     /// <summary>
     /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -257,18 +480,11 @@ public class PhysicsEngine
     public void Dispose()
     {
         //if (mSoftRigidDynamicsWorld != null) mSoftRigidDynamicsWorld.Dispose();
-        if (World != null)
-        {
-            World.Dispose();
-        }
-        else
-        {
-            collisionWorld?.Dispose();
-        }
-
-        broadphase?.Dispose();
-        dispatcher?.Dispose();
-        collisionConfiguration?.Dispose();
+        World?.Dispose();
+        _collisionWorld?.Dispose();
+        _broadphase?.Dispose();
+        _dispatcher?.Dispose();
+        _collisionConfiguration?.Dispose();
     }
 
     //internal void AddCollider(PhysicsComponent component, CollisionFilterGroups group, CollisionFilterGroups mask)
@@ -399,7 +615,6 @@ public class PhysicsEngine
     //    return CreateHingeConstraintInternal(rigidBodyA, rigidBodyB, pivotInA, pivotInB, axisInA, axisInB, useReferenceFrameA);
     //}
 
-
     //static TypedConstraint CreateConstraintInternal(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, RigidbodyComponent rigidBodyB = null, Matrix frameB = default, bool useReferenceFrameA = false)
     //{
     //    if (rigidBodyA == null) throw new Exception($"{nameof(rigidBodyA)} must be valid");
@@ -500,7 +715,6 @@ public class PhysicsEngine
     //    return constraint;
     //}
 
-
     /// <summary>
     /// Adds the constraint to the engine processing pipeline.
     /// </summary>
@@ -562,7 +776,7 @@ public class PhysicsEngine
     public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
     {
         var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
-        collisionWorld.RayTest(from, to, callback);
+        _collisionWorld.RayTest(from, to, callback);
         return callback.Result;
     }
 
@@ -579,7 +793,7 @@ public class PhysicsEngine
     public bool Raycast(Vector3 from, Vector3 to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
     {
         var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
-        collisionWorld.RayTest(from, to, callback);
+        _collisionWorld.RayTest(from, to, callback);
         result = callback.Result;
         return result.Succeeded;
     }
@@ -597,7 +811,7 @@ public class PhysicsEngine
     public void RaycastPenetrating(Vector3 from, Vector3 to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
     {
         var callback = StrideAllHitsRayResultCallback.Shared(ref from, ref to, hitTriggers, resultsOutput, filterGroup, filterFlags);
-        collisionWorld.RayTest(from, to, callback);
+        _collisionWorld.RayTest(from, to, callback);
     }
 
     /// <summary>
@@ -646,9 +860,6 @@ public class PhysicsEngine
     //    var rcb = StrideAllHitsConvexResultCallback.Shared(resultsOutput, hitTriggers, filterGroup, filterFlags);
     //    collisionWorld.ConvexSweepTest(sh, from, to, rcb);
     //}
-
-
-
 
     public void ClearForces()
     {
@@ -701,20 +912,20 @@ public class PhysicsEngine
 
     //internal int UpdatedRigidbodies;
 
-    private readonly SimulationArgs simulationArgs = new SimulationArgs();
+    private readonly SimulationArgs _simulationArgs = new();
 
     internal void Update(float deltaTime)
     {
-        if (collisionWorld == null)
+        if (_collisionWorld == null)
         {
             return;
         }
 
-        simulationArgs.DeltaTime = deltaTime;
+        _simulationArgs.DeltaTime = deltaTime;
 
         //UpdatedRigidbodies = 0;
 
-        OnSimulationBegin(simulationArgs);
+        OnSimulationBegin(_simulationArgs);
 
         if (World != null)
         {
@@ -722,10 +933,10 @@ public class PhysicsEngine
         }
         else
         {
-            collisionWorld.PerformDiscreteCollisionDetection();
+            _collisionWorld.PerformDiscreteCollisionDetection();
         }
 
-        OnSimulationEnd(simulationArgs);
+        OnSimulationEnd(_simulationArgs);
     }
 
     /// <summary>
@@ -742,36 +953,36 @@ public class PhysicsEngine
     private class StrideAllHitsConvexResultCallback : StrideReusableConvexResultCallback
     {
         [ThreadStatic]
-        private static StrideAllHitsConvexResultCallback shared;
+        private static StrideAllHitsConvexResultCallback _shared;
 
-        private ICollection<HitResult> resultsList;
+        private ICollection<HitResult> _resultsList;
 
-        public override float AddSingleResult(BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+        public override float AddSingleResult(LocalConvexResult convexResult, bool normalInWorldSpace)
         {
-            resultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
+            _resultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
             return convexResult.HitFraction;
         }
 
         public static StrideAllHitsConvexResultCallback Shared(ICollection<HitResult> buffer, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
         {
-            shared ??= new StrideAllHitsConvexResultCallback();
-            shared.resultsList = buffer;
-            shared.Recycle(hitTriggers, filterGroup, filterMask);
-            return shared;
+            _shared ??= new StrideAllHitsConvexResultCallback();
+            _shared._resultsList = buffer;
+            _shared.Recycle(hitTriggers, filterGroup, filterMask);
+            return _shared;
         }
     }
 
     private class StrideClosestConvexResultCallback : StrideReusableConvexResultCallback
     {
         [ThreadStatic]
-        private static StrideClosestConvexResultCallback shared;
+        private static StrideClosestConvexResultCallback _shared;
 
-        private BulletSharp.LocalConvexResult closestHit;
-        private bool normalInWorldSpace;
+        private LocalConvexResult _closestHit;
+        private bool _normalInWorldSpace;
 
-        public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
+        public HitResult Result => ComputeHitResult(ref _closestHit, _normalInWorldSpace);
 
-        public override float AddSingleResult(BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpaceParam)
+        public override float AddSingleResult(LocalConvexResult convexResult, bool normalInWorldSpaceParam)
         {
             float fraction = convexResult.HitFraction;
 
@@ -781,58 +992,58 @@ public class PhysicsEngine
             System.Diagnostics.Debug.Assert(convexResult.HitFraction <= ClosestHitFraction);
             ClosestHitFraction = fraction;
 
-            closestHit = convexResult;
-            normalInWorldSpace = normalInWorldSpaceParam;
+            _closestHit = convexResult;
+            _normalInWorldSpace = normalInWorldSpaceParam;
             return fraction;
         }
 
         protected override void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterMask = (CollisionFilterGroups)(-1))
         {
             base.Recycle(hitNoContResp, filterGroup, filterMask);
-            closestHit = default;
+            _closestHit = default;
         }
 
         public static StrideClosestConvexResultCallback Shared(bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
         {
-            shared ??= new StrideClosestConvexResultCallback();
-            shared.Recycle(hitTriggers, filterGroup, filterMask);
-            return shared;
+            _shared ??= new StrideClosestConvexResultCallback();
+            _shared.Recycle(hitTriggers, filterGroup, filterMask);
+            return _shared;
         }
     }
 
     private class StrideAllHitsRayResultCallback : StrideReusableRayResultCallback
     {
         [ThreadStatic]
-        private static StrideAllHitsRayResultCallback shared;
+        private static StrideAllHitsRayResultCallback _shared;
 
-        private ICollection<HitResult> resultsList;
+        private ICollection<HitResult> _resultsList;
 
-        public override float AddSingleResult(BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+        public override float AddSingleResult(LocalRayResult rayResult, bool normalInWorldSpace)
         {
-            resultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
+            _resultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
             return rayResult.HitFraction;
         }
 
         public static StrideAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, ICollection<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
         {
-            shared ??= new StrideAllHitsRayResultCallback();
-            shared.resultsList = buffer;
-            shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
-            return shared;
+            _shared ??= new StrideAllHitsRayResultCallback();
+            _shared._resultsList = buffer;
+            _shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+            return _shared;
         }
     }
 
     private class StrideClosestRayResultCallback : StrideReusableRayResultCallback
     {
         [ThreadStatic]
-        private static StrideClosestRayResultCallback shared;
+        private static StrideClosestRayResultCallback _shared;
 
-        private BulletSharp.LocalRayResult closestHit;
-        private bool normalInWorldSpace;
+        private LocalRayResult _closestHit;
+        private bool _normalInWorldSpace;
 
-        public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
+        public HitResult Result => ComputeHitResult(ref _closestHit, _normalInWorldSpace);
 
-        public override float AddSingleResult(BulletSharp.LocalRayResult rayResult, bool normalInWorldSpaceParam)
+        public override float AddSingleResult(LocalRayResult rayResult, bool normalInWorldSpaceParam)
         {
             float fraction = rayResult.HitFraction;
 
@@ -842,26 +1053,26 @@ public class PhysicsEngine
             System.Diagnostics.Debug.Assert(rayResult.HitFraction <= ClosestHitFraction);
             ClosestHitFraction = fraction;
 
-            closestHit = rayResult;
-            normalInWorldSpace = normalInWorldSpaceParam;
+            _closestHit = rayResult;
+            _normalInWorldSpace = normalInWorldSpaceParam;
             return fraction;
         }
 
         protected override void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
         {
             base.Recycle(ref from, ref to, hitNoContResp, filterGroup, filterMask);
-            closestHit = default;
+            _closestHit = default;
         }
 
         public static StrideClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
         {
-            shared ??= new StrideClosestRayResultCallback();
-            shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
-            return shared;
+            _shared ??= new StrideClosestRayResultCallback();
+            _shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+            return _shared;
         }
     }
 
-    private abstract class StrideReusableRayResultCallback : BulletSharp.RayResultCallback
+    private abstract class StrideReusableRayResultCallback : RayResultCallback
     {
         /// <summary>
         /// Our <see cref="PhysicsTriggerComponentBase"/> have <see cref="BulletSharp.CollisionFlags.NoContactResponse"/>
@@ -869,11 +1080,11 @@ public class PhysicsEngine
         /// By default we want intersection test to reflect that behavior to avoid throwing off our users.
         /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
         /// </summary>
-        private bool hitNoContactResponseObjects;
-        private Vector3 rayFromWorld;
-        private Vector3 rayToWorld;
+        private bool _hitNoContactResponseObjects;
+        private Vector3 _rayFromWorld;
+        private Vector3 _rayToWorld;
 
-        protected HitResult ComputeHitResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+        protected HitResult ComputeHitResult(ref LocalRayResult rayResult, bool normalInWorldSpace)
         {
             var obj = rayResult.CollisionObject;
             if (obj == null)
@@ -890,8 +1101,8 @@ public class PhysicsEngine
             return new HitResult
             {
                 Succeeded = true,
-                //Collider = obj.UserObject as PhysicsComponent,
-                Point = Vector3.Lerp(rayFromWorld, rayToWorld, rayResult.HitFraction),
+                Collider = obj.UserObject as PhysicsComponent,
+                Point = Vector3.Lerp(_rayFromWorld, _rayToWorld, rayResult.HitFraction),
                 Normal = normal,
                 HitFraction = rayResult.HitFraction,
             };
@@ -899,20 +1110,20 @@ public class PhysicsEngine
 
         protected virtual void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
         {
-            rayFromWorld = from;
-            rayToWorld = to;
+            _rayFromWorld = from;
+            _rayToWorld = to;
             ClosestHitFraction = float.PositiveInfinity;
             Flags = 0;
             CollisionFilterGroup = filterGroup;
             CollisionFilterMask = filterMask;
-            hitNoContactResponseObjects = hitNoContResp;
+            _hitNoContactResponseObjects = hitNoContResp;
         }
 
-        public override bool NeedsCollision(BulletSharp.BroadphaseProxy proxy0)
+        public override bool NeedsCollision(BroadphaseProxy proxy0)
         {
-            if (hitNoContactResponseObjects == false
-                && proxy0.ClientObject is BulletSharp.CollisionObject co
-                && (co.CollisionFlags & BulletSharp.CollisionFlags.NoContactResponse) != 0)
+            if (_hitNoContactResponseObjects == false
+                && proxy0.ClientObject is CollisionObject co
+                && (co.CollisionFlags & CollisionFlags.NoContactResponse) != 0)
             {
                 return false;
             }
@@ -921,7 +1132,7 @@ public class PhysicsEngine
         }
     }
 
-    private abstract class StrideReusableConvexResultCallback : BulletSharp.ConvexResultCallback
+    private abstract class StrideReusableConvexResultCallback : ConvexResultCallback
     {
         /// <summary>
         /// Our <see cref="PhysicsTriggerComponentBase"/> have <see cref="BulletSharp.CollisionFlags.NoContactResponse"/>
@@ -929,9 +1140,9 @@ public class PhysicsEngine
         /// By default we want intersection test to reflect that behavior to avoid throwing off our users.
         /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
         /// </summary>
-        private bool hitNoContactResponseObjects;
+        private bool _hitNoContactResponseObjects;
 
-        protected static HitResult ComputeHitResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+        protected static HitResult ComputeHitResult(ref LocalConvexResult convexResult, bool normalInWorldSpace)
         {
             var obj = convexResult.HitCollisionObject;
             if (obj == null)
@@ -948,7 +1159,7 @@ public class PhysicsEngine
             return new HitResult
             {
                 Succeeded = true,
-                //Collider = obj.UserObject as PhysicsComponent,
+                Collider = obj.UserObject as PhysicsComponent,
                 Point = convexResult.HitPointLocal,
                 Normal = normal,
                 HitFraction = convexResult.HitFraction,
@@ -960,14 +1171,14 @@ public class PhysicsEngine
             ClosestHitFraction = float.PositiveInfinity;
             CollisionFilterGroup = filterGroup;
             CollisionFilterMask = filterMask;
-            hitNoContactResponseObjects = hitNoContResp;
+            _hitNoContactResponseObjects = hitNoContResp;
         }
 
-        public override bool NeedsCollision(BulletSharp.BroadphaseProxy proxy0)
+        public override bool NeedsCollision(BroadphaseProxy proxy0)
         {
-            if (hitNoContactResponseObjects == false
-                && proxy0.ClientObject is BulletSharp.CollisionObject co
-                && (co.CollisionFlags & BulletSharp.CollisionFlags.NoContactResponse) != 0)
+            if (_hitNoContactResponseObjects == false
+                && proxy0.ClientObject is CollisionObject co
+                && (co.CollisionFlags & CollisionFlags.NoContactResponse) != 0)
             {
                 return false;
             }
@@ -976,8 +1187,7 @@ public class PhysicsEngine
         }
     }
 
-    public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers,
-        out Vector3 contactPoint, out Vector3 contactNormal)
+    public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers, out Vector3 contactPoint, out Vector3 contactNormal)
     {
         throw new NotImplementedException();
     }
@@ -986,131 +1196,4 @@ public class PhysicsEngine
     {
         throw new NotImplementedException();
     }
-}
-
-
-public struct HitResult
-{
-    public Vector3 Normal;
-
-    public Vector3 Point;
-
-    public float HitFraction;
-
-    public bool Succeeded;
-
-    /// <summary>
-    /// The Collider hit if Succeeded
-    /// </summary>
-    //public PhysicsComponent Collider;
-}
-
-[Flags]
-public enum PhysicsEngineFlags
-{
-    None = 0x0,
-
-    CollisionsOnly = 0x1,
-
-    SoftBodySupport = 0x2,
-
-    MultiThreaded = 0x4,
-
-    UseHardwareWhenPossible = 0x8,
-
-    ContinuousCollisionDetection = 0x10,
-}
-
-/// <summary>
-/// A pair of component colliding with each other.
-/// Pair of [b,a] is considered equal to [a,b].
-/// </summary>
-public readonly struct Collision : IEquatable<Collision>
-{
-    public readonly PhysicsComponent ColliderA;
-
-    public readonly PhysicsComponent ColliderB;
-
-    public Collision(PhysicsComponent a, PhysicsComponent b)
-    {
-        ColliderA = a;
-        ColliderB = b;
-    }
-
-    public static bool operator ==(in Collision a, in Collision b)
-    {
-        return (Equals(a.ColliderA, b.ColliderA) && Equals(a.ColliderB, b.ColliderB))
-               || (Equals(a.ColliderB, b.ColliderA) && Equals(a.ColliderA, b.ColliderB));
-    }
-
-    public static bool operator !=(in Collision a, in Collision b) => (a == b) == false;
-
-    public override bool Equals(object obj)
-    {
-        return obj is Collision other && Equals(other);
-    }
-
-    public bool Equals(Collision other) => this == other;
-
-    public override int GetHashCode()
-    {
-        int aH = ColliderA.GetHashCode();
-        int bH = ColliderB.GetHashCode();
-        // This ensures that a pair of components will return the same hash regardless
-        // of if they are setup as [b,a] or [a,b]
-        return aH > bH ? HashCode.Combine(aH, bH) : HashCode.Combine(bH, aH);
-    }
-}
-
-public struct ContactPoint : IEquatable<ContactPoint>
-{
-    public PhysicsComponent ColliderA;
-    public PhysicsComponent ColliderB;
-    public float Distance;
-    public Vector3 Normal;
-    public Vector3 PositionOnA;
-    public Vector3 PositionOnB;
-
-
-    public bool Equals(ContactPoint other)
-    {
-        return ((ColliderA == other.ColliderA && ColliderB == other.ColliderB)
-                || (ColliderA == other.ColliderB && ColliderB == other.ColliderA))
-               && Distance == other.Distance
-               && Normal == other.Normal
-               && PositionOnA == other.PositionOnA
-               && PositionOnB == other.PositionOnB;
-    }
-
-
-    public override bool Equals(object obj) => obj is ContactPoint other && Equals(other);
-
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(ColliderA, ColliderB, Distance, Normal, PositionOnA, PositionOnB);
-    }
-}
-
-public enum ConstraintTypes
-{
-    /// <summary>
-    ///     The translation vector of the matrix to create this will represent the pivot, the rest is ignored
-    /// </summary>
-    Point2Point,
-
-    Hinge,
-
-    Slider,
-
-    ConeTwist,
-
-    Generic6DoF,
-
-    Generic6DoFSpring,
-
-    /// <summary>
-    ///     The translation vector of the matrix to create this will represent the axis, the rest is ignored
-    /// </summary>
-    Gear,
 }
