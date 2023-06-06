@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Physics")]
-public class PhysicsComponent : Component
+public class PhysicsComponent : Component, ICollideableComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.Physics;
     private Shape3d? _shape;

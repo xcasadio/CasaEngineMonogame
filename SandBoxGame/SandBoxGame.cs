@@ -94,12 +94,14 @@ namespace SandBoxGame
 
             if (Keyboard.GetState().IsKeyDown(Keys.Add))
             {
-                _animatedSpriteComponent.SetCurrentAnimation(index++, true);
+                index = MathHelper.Min(index + 1, _animatedSpriteComponent.Animations.Count);
+                _animatedSpriteComponent.SetCurrentAnimation(index, true);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
             {
-                _animatedSpriteComponent.SetCurrentAnimation(index--, true);
+                index = MathHelper.Max(index - 1, 0);
+                _animatedSpriteComponent.SetCurrentAnimation(index, true);
             }
 
             base.Update(gameTime);

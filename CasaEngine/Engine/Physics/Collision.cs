@@ -8,11 +8,11 @@ namespace CasaEngine.Engine.Physics;
 /// </summary>
 public readonly struct Collision : IEquatable<Collision>
 {
-    public readonly PhysicsComponent ColliderA;
+    public readonly ICollideableComponent ColliderA;
 
-    public readonly PhysicsComponent ColliderB;
+    public readonly ICollideableComponent ColliderB;
 
-    public Collision(PhysicsComponent a, PhysicsComponent b)
+    public Collision(ICollideableComponent a, ICollideableComponent b)
     {
         ColliderA = a;
         ColliderB = b;

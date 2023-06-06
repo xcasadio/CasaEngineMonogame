@@ -6,7 +6,6 @@ public class Animation2d : Animation
 {
     public event EventHandler<(string oldFrame, string newFrame)>? FrameChanged;
 
-    private Animation2dData _animation2DData;
     private string _oldFrame;
     private string _currentFrame;
 
@@ -31,20 +30,22 @@ public class Animation2d : Animation
         float timeEventFired = 0.0f;
         foreach (var frame in animation2dData.Frames)
         {
-            var pFrameEvent = new SetFrameEvent();
-            pFrameEvent.FrameId = frame.SpriteId;
-            pFrameEvent.Time = timeEventFired;
+            var frameEvent = new SetFrameEvent
+            {
+                FrameId = frame.SpriteId,
+                Time = timeEventFired
+            };
             timeEventFired += frame.Duration;
-            AddEvent(pFrameEvent);
+            AddEvent(frameEvent);
         }
 
         if (animation2dData.Frames.Count >= 1)
         {
-            var pEndEvent = new AnimationEndEvent
+            var animationEndEvent = new AnimationEndEvent
             {
                 Time = timeEventFired
             };
-            AddEvent(pEndEvent);
+            AddEvent(animationEndEvent);
         }
     }
 

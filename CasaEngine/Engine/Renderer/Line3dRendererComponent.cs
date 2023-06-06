@@ -22,8 +22,8 @@ public class Line3dRendererComponent : DrawableGameComponent
 
     private const int NbLines = 1024;
     private readonly List<Line3d> _lines = new(NbLines);
-    private readonly VertexPositionColor[] _vertices = new VertexPositionColor[NbLines];
-    private readonly Stack<Line3d> _freeLines = new(1024);
+    private readonly VertexPositionColor[] _vertices = new VertexPositionColor[NbLines * 2];
+    private readonly Stack<Line3d> _freeLines = new(NbLines);
 
     private VertexBuffer? _vertexBuffer;
     private BasicEffect? _basicEffect;
@@ -45,7 +45,7 @@ public class Line3dRendererComponent : DrawableGameComponent
 
     public override void Update(GameTime gameTime)
     {
-        for (var index = 0; index < _lines.Count; index++)
+        for (var index = 0; index < _lines.Count && index < NbLines; index++)
         {
             var line = _lines[index];
             _vertices[index * 2].Position = line.Start;
@@ -68,11 +68,13 @@ public class Line3dRendererComponent : DrawableGameComponent
             return;
         }
 
-        _vertexBuffer.SetData(_vertices, 0, _lines.Count * 2);
+        _vertexBuffer.SetData(_vertices, 0, Math.Min(_lines.Count * 2, NbLines * 2));
         //Game.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         Game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         var camera = _game.GameManager.ActiveCamera;
-        Draw(Matrix.Identity, camera.ViewMatrix, camera.ProjectionMatrix);
+        //Draw(Matrix.Identity, camera.ViewMatrix, camera.ProjectionMatrix);
+        Draw(Matrix.Identity, Matrix.Identity,
+            Matrix.CreateOrthographic(_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Height, 1.0f, 0.0f));
 
         Clear();
     }

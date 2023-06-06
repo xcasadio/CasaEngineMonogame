@@ -223,7 +223,7 @@ public class PhysicsEngine
 
             var a = collId.Item1;
             var b = collId.Item2;
-            var collision = new Collision(a.UserObject as PhysicsComponent, b.UserObject as PhysicsComponent);
+            var collision = new Collision(a.UserObject as ICollideableComponent, b.UserObject as ICollideableComponent);
             // PairCachingGhostObject has two identical manifolds when colliding, not 100% sure why that is,
             // CompoundColliderShape shapes all map to the same PhysicsComponent but create unique manifolds.
             if (_collisions.TryAdd(collision, collId))

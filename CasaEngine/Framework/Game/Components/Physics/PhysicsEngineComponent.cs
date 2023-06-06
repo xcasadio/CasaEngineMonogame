@@ -31,18 +31,43 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.SendEvents();
     }
 
-    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix, PhysicsComponent physicsComponent)
+    public CollisionObject CreateGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent)
+    {
+        var collisionShape = ConvertToCollisionShape(shape);
+        return CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
+    }
+
+    public CollisionObject AddGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent)
+    {
+        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape);
+        return collisionObject;
+    }
+
+    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent)
+    {
+        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape);
+        return collisionObject;
+    }
+
+    private PairCachingGhostObject AddGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent,
+        CollisionShape collisionShape)
+    {
+        var collisionObject = CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
+        PhysicsEngine.World.AddCollisionObject(collisionObject);
+        return collisionObject;
+    }
+
+    private PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape)
     {
         var ghostObject = new BulletSharp.PairCachingGhostObject
         {
-            CollisionShape = ConvertToCollisionShape(shape),
-            UserObject = physicsComponent,
+            CollisionShape = collisionShape,
+            UserObject = collideableComponent,
             WorldTransform = worldMatrix
         };
         ghostObject.CollisionFlags = CollisionFlags.NoContactResponse;
-
-        PhysicsEngine.World.AddCollisionObject(ghostObject);
-
         return ghostObject;
     }
 
@@ -72,6 +97,35 @@ public class PhysicsEngineComponent : GameComponent
 
         PhysicsEngine.World.AddRigidBody(body);
         return body;
+    }
+
+    private CollisionShape ConvertToCollisionShape(Shape2d shape)
+    {
+        CollisionShape collisionShape;
+
+        switch (shape.Type)
+        {
+            case Shape2dType.Compound:
+            case Shape2dType.Line:
+                throw new ArgumentOutOfRangeException();
+            case Shape2dType.Rectangle:
+                var rectangle = (shape as ShapeRectangle);
+                collisionShape = new BulletSharp.BoxShape(rectangle.Width / 2.0f, rectangle.Height / 2.0f, 0.5f);
+                break;
+            case Shape2dType.Circle:
+                var circle = (shape as ShapeCircle);
+                collisionShape = new BulletSharp.CapsuleShape(circle.Radius, 1.0f);
+                break;
+            //case Shape2dType.Polygone:
+            //    var polygone = (shape as ShapePolygone);
+            //    collisionShape = new BulletSharp.CylinderShape(cylinder.Radius, cylinder.Radius, cylinder.Length);
+            //    break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        collisionShape.UserObject = this;
+        return collisionShape;
     }
 
     private CollisionShape ConvertToCollisionShape(Shape3d shape)
@@ -106,10 +160,22 @@ public class PhysicsEngineComponent : GameComponent
         return collisionShape;
     }
 
-    public void RemoveStaticObject(CollisionObject collisionObject)
+    public void AddCollisionObject(CollisionObject collisionObject)
+    {
+        //TODO : remove shape
+        PhysicsEngine.World.AddCollisionObject(collisionObject);
+    }
+
+    public void RemoveCollisionObject(CollisionObject collisionObject)
     {
         //TODO : remove shape
         PhysicsEngine.World.RemoveCollisionObject(collisionObject);
+    }
+
+    public void AddBodyObject(RigidBody rigidBody)
+    {
+        //TODO : remove shape
+        PhysicsEngine.World.AddRigidBody(rigidBody);
     }
 
     public void RemoveBodyObject(RigidBody rigidBody)

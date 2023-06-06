@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -8,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
-public class StaticSpriteComponent : Component
+public class StaticSpriteComponent : Component, ICollideableComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.StaticSprite;
 
@@ -16,6 +18,9 @@ public class StaticSpriteComponent : Component
     private SpriteData? _spriteData;
     private CasaEngineGame _game;
     private Renderer2dComponent? _renderer2dComponent;
+
+    public PhysicsType PhysicsType { get; }
+    public HashSet<Collision> Collisions { get; }
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
@@ -51,6 +56,16 @@ public class StaticSpriteComponent : Component
             Owner.Coordinates.Position.Z);
     }
 
+    public void OnHit(Collision collision)
+    {
+
+    }
+
+    public void OnHitEnded(Collision collision)
+    {
+
+    }
+
     public override void Load(JsonElement element)
     {
         var spriteDataName = element.GetProperty("spriteDataName").GetString();
@@ -66,13 +81,13 @@ public class StaticSpriteComponent : Component
         _spriteData = _game.GameManager.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
         _sprite = Sprite.Create(_spriteData, _game.GameManager.AssetContentManager);
 
-        //create collision objects
-        //_game.GameManager.PhysicsEngine.AddBodyObject()
-
-        //var _rectangle = BodyFactory.CreateRectangle(World, 5f, 5f, 1f);
-        //_rectangle.OnCollision = OnCollision2d;
-        //_rectangle.OnSeparation = OnSeparation2d;
-        //_rectangle.BodyType = BodyType.Kinematic;
+        var physicsEngineComponent = _game.GetGameComponent<PhysicsEngineComponent>();
+        var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(_spriteData, Owner, physicsEngineComponent, this);
+        if (collisionObject != null)
+        {
+            //_collisionObjectByFrameId[frame.SpriteId] = collisionObject;
+            physicsEngineComponent.AddCollisionObject(collisionObject);
+        }
     }
 
 #if EDITOR

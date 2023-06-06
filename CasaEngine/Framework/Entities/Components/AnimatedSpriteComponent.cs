@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Core.Logger;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
@@ -13,22 +12,24 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using System.Transactions;
+using BulletSharp;
 using BulletSharp.SoftBody;
+using CasaEngine.Core.Shapes;
+using CasaEngine.Engine.Physics;
 
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Animated Sprite")]
-public class AnimatedSpriteComponent : Component
+public class AnimatedSpriteComponent : Component, ICollideableComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.AnimatedSprite;
 
     public event EventHandler<string>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
+    private readonly Dictionary<string, CollisionObject> _collisionObjectByFrameId = new();
 
-    //Dictionary<string, List<ICollisionObjectContainer>> _collisionObjectByFrameId;
     private Renderer2dComponent _renderer2dComponent;
     private AssetContentManager _assetContentManager;
-    private Dictionary<string, Body> _collisionObjectByFrameId = new();
     private PhysicsEngineComponent? _physicsEngineComponent;
     private CasaEngineGame _game;
 
@@ -36,6 +37,9 @@ public class AnimatedSpriteComponent : Component
     public SpriteEffects SpriteEffect { get; set; }
     public Animation2d? CurrentAnimation { get; private set; }
     public List<Animation2d> Animations { get; } = new();
+
+    public PhysicsType PhysicsType => PhysicsType.Kinetic;
+    public HashSet<Collision> Collisions { get; } = new();
 
     public AnimatedSpriteComponent(Entity entity) : base(entity, ComponentId)
     {
@@ -57,6 +61,7 @@ public class AnimatedSpriteComponent : Component
 
         if (CurrentAnimation != null)
         {
+            RemoveCollisionsFromLastFrame(CurrentAnimation.CurrentFrame);
             CurrentAnimation.FrameChanged -= OnFrameChanged;
             CurrentAnimation.AnimationFinished -= OnAnimationFinished;
         }
@@ -135,13 +140,11 @@ public class AnimatedSpriteComponent : Component
                 }
 
                 var spriteData = game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
-                //var body = Physics2dHelper.CreateCollisionsFromSprite(spriteData, Owner, _physicsEngine2dProxyComponent.Physic2dWorld);
-                //if (body != null)
-                //{
-                //    body.OnCollision = OnCollision;
-                //    body.OnSeparation = OnSeparation;
-                //    _collisionObjectByFrameId[frame.SpriteId] = body;
-                //}
+                var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(spriteData, Owner, _physicsEngineComponent, this);
+                if (collisionObject != null)
+                {
+                    _collisionObjectByFrameId[frame.SpriteId] = collisionObject;
+                }
             }
         }
     }
@@ -151,26 +154,8 @@ public class AnimatedSpriteComponent : Component
         if (CurrentAnimation != null)
         {
             CurrentAnimation.Update(elapsedTime);
-
-            if (_collisionObjectByFrameId.TryGetValue(CurrentAnimation.CurrentFrame, out var body))
-            {
-                //UpdateBodyTransformation(body);
-            }
         }
     }
-
-    //private void UpdateBodyTransformation(Body body)
-    //{
-    //    var spriteData = GetCurrentSpriteData();
-    //
-    //
-    //
-    //    ShapeRectangle rect = spriteData.CollisionShapes[0].Shape as ShapeRectangle;
-    //    //body.FixtureList[0].Shape //scale : change the shape
-    //    //body.Position = new Vector2(Owner.Coordinates.Position.X, Owner.Coordinates.Position.Y);
-    //    body.Position = new Vector2(Owner.Coordinates.Position.X - spriteData.Origin.X + rect.Location.X + rect.Width / 2,
-    //        Owner.Coordinates.Position.Y - spriteData.Origin.Y + rect.Location.Y + rect.Height / 2);
-    //}
 
     public override void Draw()
     {
@@ -221,19 +206,32 @@ public class AnimatedSpriteComponent : Component
 
     public void RemoveCollisionsFromLastFrame(string frameId)
     {
-        if (_collisionObjectByFrameId.TryGetValue(frameId, out var body))
+        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObject))
         {
-            //body.Enabled = false;
+            _physicsEngineComponent.RemoveCollisionObject(collisionObject);
         }
+    }
+    private void UpdateBodyTransformation(CollisionObject collisionObject)
+    {
+        var spriteData = GetCurrentSpriteData();
+
+        var rect = spriteData.CollisionShapes[0].Shape as ShapeRectangle;
+        //body.FixtureList[0].Shape //scale : change the shape
+        //body.Position = new Vector2(Owner.Coordinates.Position.X, Owner.Coordinates.Position.Y);
+        var worldTransform = collisionObject.WorldTransform;
+        worldTransform.Translation = new Vector3(Owner.Coordinates.Position.X - spriteData.Origin.X + rect.Location.X + rect.Width / 2.0f,
+            Owner.Coordinates.Position.Y - spriteData.Origin.Y + rect.Location.Y + rect.Height / 2.0f,
+            Owner.Coordinates.Position.Z);
+        collisionObject.WorldTransform = worldTransform;
     }
 
     private void OnFrameChanged(object? sender, (string oldFrame, string newFrame) arg)
     {
         RemoveCollisionsFromLastFrame(arg.oldFrame);
-        if (_collisionObjectByFrameId.TryGetValue(arg.newFrame, out var body))
+        if (_collisionObjectByFrameId.TryGetValue(arg.newFrame, out var collisionObject))
         {
-            //UpdateBodyTransformation(body);
-            //body.Enabled = true;
+            UpdateBodyTransformation(collisionObject);
+            _physicsEngineComponent.AddCollisionObject(collisionObject);
         }
 
         FrameChanged?.Invoke(this, arg.newFrame);
@@ -244,11 +242,20 @@ public class AnimatedSpriteComponent : Component
         AnimationFinished?.Invoke(this, (Animation2d)sender);
     }
 
+    public void OnHit(Collision collision)
+    {
+
+    }
+
+    public void OnHitEnded(Collision collision)
+    {
+
+    }
+
     public override void Load(JsonElement element)
     {
         throw new NotImplementedException();
     }
-
 
 #if EDITOR
 
@@ -259,42 +266,4 @@ public class AnimatedSpriteComponent : Component
     }
 
 #endif
-}
-
-public class Physics2dHelper
-{
-    //public static Body? CreateCollisionsFromSprite(SpriteData spriteData, Entity entity, Genbox.VelcroPhysics.Dynamics.World world)
-    //{
-    //    Body? body = null;
-    //
-    //    foreach (var collisionShape in spriteData.CollisionShapes)
-    //    {
-    //        switch (collisionShape.Shape.Type)
-    //        {
-    //            case Shape2dType.Compound:
-    //                break;
-    //            case Shape2dType.Polygone:
-    //                break;
-    //            case Shape2dType.Rectangle:
-    //                var rectangle = collisionShape.Shape as ShapeRectangle;
-    //                body = BodyFactory.CreateRectangle(world, rectangle.Width, rectangle.Height, 1,
-    //                    new Vector2(rectangle.Location.X, rectangle.Location.Y),
-    //                    rectangle.Rotation, BodyType.Kinematic, entity);
-    //                break;
-    //            case Shape2dType.Circle:
-    //                break;
-    //            case Shape2dType.Line:
-    //                break;
-    //            default:
-    //                throw new ArgumentOutOfRangeException();
-    //        }
-    //    }
-    //
-    //    if (body != null)
-    //    {
-    //        body.Enabled = false;
-    //    }
-    //
-    //    return body;
-    //}
 }
