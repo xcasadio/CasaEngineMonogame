@@ -82,11 +82,16 @@ public class StaticSpriteComponent : Component, ICollideableComponent
         _sprite = Sprite.Create(_spriteData, _game.GameManager.AssetContentManager);
 
         var physicsEngineComponent = _game.GetGameComponent<PhysicsEngineComponent>();
-        var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(_spriteData, Owner, physicsEngineComponent, this);
-        if (collisionObject != null)
+
+        foreach (var collisionShape in _spriteData.CollisionShapes)
         {
-            //_collisionObjectByFrameId[frame.SpriteId] = collisionObject;
-            physicsEngineComponent.AddCollisionObject(collisionObject);
+            var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, Owner, physicsEngineComponent, this, color);
+            if (collisionObject != null)
+            {
+                physicsEngineComponent.AddCollisionObject(collisionObject);
+                //_collisionObjectByFrameId[frame.SpriteId].Add(collisionObject);
+            }
         }
     }
 

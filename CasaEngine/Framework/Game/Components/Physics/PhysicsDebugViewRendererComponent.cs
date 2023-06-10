@@ -9,11 +9,11 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
 {
     public static bool DisplayPhysics = true;
     private PhysicsDebugDraw _physicsDebugRenderer;
-    private CasaEngineGame _game;
+    private readonly CasaEngineGame _game;
 
     public PhysicsDebugViewRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
-        _game = game as CasaEngineGame;
+        _game = (game as CasaEngineGame)!;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.DebugPhysics;
         DrawOrder = (int)ComponentDrawOrder.DebugPhysics;
@@ -24,7 +24,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
         base.LoadContent();
         var line3dRendererComponent = Game.GetGameComponent<Line3dRendererComponent>();
         var physicsEngineComponent = Game.GetGameComponent<PhysicsEngineComponent>();
-        _physicsDebugRenderer = new PhysicsDebugDraw(line3dRendererComponent) { DebugMode = DebugDrawModes.DrawWireframe };
+        _physicsDebugRenderer = new PhysicsDebugDraw(line3dRendererComponent) { DebugMode = DebugDrawModes.MaxDebugDrawMode };
         physicsEngineComponent.PhysicsEngine.World.DebugDrawer = _physicsDebugRenderer;
     }
 

@@ -20,7 +20,7 @@ public class Line3dRendererComponent : DrawableGameComponent
         }
     }
 
-    private const int NbLines = 1024;
+    private const int NbLines = 50000;
     private readonly List<Line3d> _lines = new(NbLines);
     private readonly VertexPositionColor[] _vertices = new VertexPositionColor[NbLines * 2];
     private readonly Stack<Line3d> _freeLines = new(NbLines);
@@ -69,12 +69,13 @@ public class Line3dRendererComponent : DrawableGameComponent
         }
 
         _vertexBuffer.SetData(_vertices, 0, Math.Min(_lines.Count * 2, NbLines * 2));
-        //Game.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         Game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         var camera = _game.GameManager.ActiveCamera;
-        //Draw(Matrix.Identity, camera.ViewMatrix, camera.ProjectionMatrix);
-        Draw(Matrix.Identity, Matrix.Identity,
-            Matrix.CreateOrthographic(_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Height, 1.0f, 0.0f));
+        Draw(Matrix.Identity, camera.ViewMatrix, camera.ProjectionMatrix);
+        //Draw(Matrix.Identity, Matrix.CreateTranslation(-_game.Window.ClientBounds.Width / 2f, 0, 0.0f),
+        //    Matrix.CreateOrthographic(_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Height,
+        //    //Matrix.CreateOrthographicOffCenter(-_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Width, -_game.Window.ClientBounds.Height, _game.Window.ClientBounds.Height,
+        //    0.0f, 1.0f));
 
         Clear();
     }
@@ -84,7 +85,7 @@ public class Line3dRendererComponent : DrawableGameComponent
         _basicEffect.World = world;
         _basicEffect.View = view;
         _basicEffect.Projection = projection;
-        _basicEffect.DiffuseColor = Color.White.ToVector3();
+        _basicEffect.VertexColorEnabled = true;
         _basicEffect.Alpha = 1.0f;
 
         Draw(_basicEffect);
@@ -95,8 +96,7 @@ public class Line3dRendererComponent : DrawableGameComponent
         var graphicsDevice = effect.GraphicsDevice;
 
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
-
-        //effect.Parameters["WorldViewProj"] = ;
+        graphicsDevice.DepthStencilState = DepthStencilState.None;
 
         foreach (var effectPass in effect.CurrentTechnique.Passes)
         {

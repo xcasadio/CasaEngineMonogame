@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Framework.Wpf.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.WpfControls", "CasaEngine.WpfControls\CasaEngine.WpfControls.csproj", "{DFF1902F-E282-423D-80A0-4A3DEE29796F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemosGame", "DemosGame\DemosGame.csproj", "{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,6 +116,18 @@ Global
 		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Release|x64.ActiveCfg = Release|Any CPU
 		{DFF1902F-E282-423D-80A0-4A3DEE29796F}.Release|x64.Build.0 = Release|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Debug|x64.Build.0 = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.DebugEditor|Any CPU.ActiveCfg = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.DebugEditor|Any CPU.Build.0 = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.DebugEditor|x64.ActiveCfg = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.DebugEditor|x64.Build.0 = Debug|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|x64.ActiveCfg = Release|Any CPU
+		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -26,7 +26,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public event EventHandler<string>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
-    private readonly Dictionary<string, CollisionObject> _collisionObjectByFrameId = new();
+    private readonly Dictionary<string, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
 
     private Renderer2dComponent _renderer2dComponent;
     private AssetContentManager _assetContentManager;
@@ -61,7 +61,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
         if (CurrentAnimation != null)
         {
-            RemoveCollisionsFromLastFrame(CurrentAnimation.CurrentFrame);
+            RemoveCollisionsFromFrame(CurrentAnimation.CurrentFrame);
             CurrentAnimation.FrameChanged -= OnFrameChanged;
             CurrentAnimation.AnimationFinished -= OnAnimationFinished;
         }
@@ -71,6 +71,8 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
         CurrentAnimation.FrameChanged += OnFrameChanged;
         CurrentAnimation.AnimationFinished += OnAnimationFinished;
+        CurrentAnimation.FrameChanged += OnFrameChanged;
+        AddCollisionFromFrame(CurrentAnimation.CurrentFrame);
     }
 
     public void SetCurrentAnimation(int index, bool forceReset)
@@ -134,16 +136,25 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         {
             foreach (var frame in animation.Animation2dData.Frames)
             {
-                if (_collisionObjectByFrameId.ContainsKey(frame.SpriteId))
+                var spriteData = game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+                if (spriteData.CollisionShapes.Count == 0)
                 {
                     continue;
                 }
 
-                var spriteData = game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
-                var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(spriteData, Owner, _physicsEngineComponent, this);
-                if (collisionObject != null)
+                if (!_collisionObjectByFrameId.ContainsKey(frame.SpriteId))
                 {
-                    _collisionObjectByFrameId[frame.SpriteId] = collisionObject;
+                    _collisionObjectByFrameId.Add(frame.SpriteId, new List<(Shape2d, CollisionObject)>(1));
+                }
+
+                foreach (var collisionShape in spriteData.CollisionShapes)
+                {
+                    var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, Owner, _physicsEngineComponent, this, color);
+                    if (collisionObject != null)
+                    {
+                        _collisionObjectByFrameId[frame.SpriteId].Add(new(collisionShape.Shape, collisionObject));
+                    }
                 }
             }
         }
@@ -151,10 +162,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public override void Update(float elapsedTime)
     {
-        if (CurrentAnimation != null)
-        {
-            CurrentAnimation.Update(elapsedTime);
-        }
+        //CurrentAnimation?.Update(elapsedTime);
     }
 
     public override void Draw()
@@ -204,18 +212,11 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         return null;
     }
 
-    public void RemoveCollisionsFromLastFrame(string frameId)
-    {
-        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObject))
-        {
-            _physicsEngineComponent.RemoveCollisionObject(collisionObject);
-        }
-    }
-    private void UpdateBodyTransformation(CollisionObject collisionObject)
+    private void UpdateBodyTransformation(CollisionObject collisionObject, Shape2d shape2d)
     {
         var spriteData = GetCurrentSpriteData();
 
-        var rect = spriteData.CollisionShapes[0].Shape as ShapeRectangle;
+        var rect = shape2d as ShapeRectangle;
         //body.FixtureList[0].Shape //scale : change the shape
         //body.Position = new Vector2(Owner.Coordinates.Position.X, Owner.Coordinates.Position.Y);
         var worldTransform = collisionObject.WorldTransform;
@@ -227,14 +228,33 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     private void OnFrameChanged(object? sender, (string oldFrame, string newFrame) arg)
     {
-        RemoveCollisionsFromLastFrame(arg.oldFrame);
-        if (_collisionObjectByFrameId.TryGetValue(arg.newFrame, out var collisionObject))
-        {
-            UpdateBodyTransformation(collisionObject);
-            _physicsEngineComponent.AddCollisionObject(collisionObject);
-        }
+        RemoveCollisionsFromFrame(arg.oldFrame);
+        AddCollisionFromFrame(arg.newFrame);
 
         FrameChanged?.Invoke(this, arg.newFrame);
+    }
+
+    private void AddCollisionFromFrame(string frameId)
+    {
+        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
+        {
+            foreach (var (shape2d, collisionObject) in collisionObjects)
+            {
+                UpdateBodyTransformation(collisionObject, shape2d);
+                _physicsEngineComponent.AddCollisionObject(collisionObject);
+            }
+        }
+    }
+
+    public void RemoveCollisionsFromFrame(string frameId)
+    {
+        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
+        {
+            foreach (var (shape2d, collisionObject) in collisionObjects)
+            {
+                _physicsEngineComponent.RemoveCollisionObject(collisionObject);
+            }
+        }
     }
 
     private void OnAnimationFinished(object? sender, EventArgs args)

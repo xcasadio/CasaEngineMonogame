@@ -86,7 +86,7 @@ public class Animation
         // _events must be sorted by time
         foreach (var @event in Events)
         {
-            if (lastTime >= @event.Time && @event.Time < currentTime)
+            if ((lastTime < @event.Time || lastTime == 0.0f) && @event.Time <= currentTime)
             {
                 @event.Activate(this);
             }

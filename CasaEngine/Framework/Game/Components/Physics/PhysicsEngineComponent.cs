@@ -31,35 +31,34 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.SendEvents();
     }
 
-    public CollisionObject CreateGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent)
+    public CollisionObject CreateGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color color)
     {
         var collisionShape = ConvertToCollisionShape(shape);
-        return CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
+        return CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
     }
 
-    public CollisionObject AddGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent)
+    public CollisionObject AddGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
         var collisionShape = ConvertToCollisionShape(shape);
-        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape);
+        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         return collisionObject;
     }
 
-    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent)
+    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
         var collisionShape = ConvertToCollisionShape(shape);
-        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape);
+        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         return collisionObject;
     }
 
-    private PairCachingGhostObject AddGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent,
-        CollisionShape collisionShape)
+    private PairCachingGhostObject AddGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
     {
-        var collisionObject = CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
+        var collisionObject = CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         PhysicsEngine.World.AddCollisionObject(collisionObject);
         return collisionObject;
     }
 
-    private PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape)
+    private PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color)
     {
         var ghostObject = new BulletSharp.PairCachingGhostObject
         {
@@ -67,16 +66,22 @@ public class PhysicsEngineComponent : GameComponent
             UserObject = collideableComponent,
             WorldTransform = worldMatrix
         };
-        ghostObject.CollisionFlags = CollisionFlags.NoContactResponse;
+        ghostObject.CollisionFlags |= CollisionFlags.NoContactResponse;
+
+        if (color.HasValue)
+        {
+            ghostObject.SetCustomDebugColor(color.Value.ToVector3());
+        }
+
         return ghostObject;
     }
 
-    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, PhysicsComponent physicsComponent)
+    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, PhysicsComponent physicsComponent, Color? color = null)
     {
-        return AddRigibBody(shape3d, 0.0f, ref worldMatrix, physicsComponent);
+        return AddRigidBody(shape3d, 0.0f, ref worldMatrix, physicsComponent, color);
     }
 
-    public RigidBody AddRigibBody(Shape3d shape3d, float mass, ref Matrix worldMatrix, PhysicsComponent physicsComponent)
+    public RigidBody AddRigidBody(Shape3d shape3d, float mass, ref Matrix worldMatrix, PhysicsComponent physicsComponent, Color? color = null)
     {
         var collisionShape = ConvertToCollisionShape(shape3d);
         using var rbInfo = new RigidBodyConstructionInfo(mass, null, collisionShape);
@@ -89,11 +94,20 @@ public class PhysicsEngineComponent : GameComponent
 
         var body = new RigidBody(rbInfo)
         {
-            CollisionFlags = mass != 0.0f ? CollisionFlags.None : CollisionFlags.StaticObject,
             Gravity = GameSettings.Physics3dSettings.Gravity,
             UserObject = physicsComponent,
             WorldTransform = worldMatrix
         };
+
+        if (!isDynamic)
+        {
+            body.CollisionFlags |= CollisionFlags.StaticObject;
+        }
+
+        if (color.HasValue)
+        {
+            body.SetCustomDebugColor(color.Value.ToVector3());
+        }
 
         PhysicsEngine.World.AddRigidBody(body);
         return body;

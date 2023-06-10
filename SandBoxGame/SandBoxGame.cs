@@ -73,13 +73,14 @@ namespace SandBoxGame
             }
 
             //animatedSprite.SetCurrentAnimation(10, true);
-            animatedSprite.SetCurrentAnimation("idle", true);
             _animatedSpriteComponent = animatedSprite;
 
             world.AddEntityImmediately(entity);
             PhysicsDebugViewRendererComponent.DisplayPhysics = true;
 
             base.LoadContent();
+
+            animatedSprite.SetCurrentAnimation("run_forward", true);
         }
 
         private AnimatedSpriteComponent _animatedSpriteComponent;
@@ -94,7 +95,7 @@ namespace SandBoxGame
 
             if (Keyboard.GetState().IsKeyDown(Keys.Add))
             {
-                index = MathHelper.Min(index + 1, _animatedSpriteComponent.Animations.Count);
+                index = MathHelper.Min(index + 1, _animatedSpriteComponent.Animations.Count - 1);
                 _animatedSpriteComponent.SetCurrentAnimation(index, true);
             }
 

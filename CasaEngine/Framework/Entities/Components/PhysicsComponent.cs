@@ -148,7 +148,7 @@ public class PhysicsComponent : Component, ICollideableComponent
 
         if (_collisionObject != null)
         {
-            _physicsEngineComponent.RemoveStaticObject(_collisionObject);
+            _physicsEngineComponent.RemoveCollisionObject(_collisionObject);
             _collisionObject = null;
         }
         if (_rigidBody != null)
@@ -176,7 +176,7 @@ public class PhysicsComponent : Component, ICollideableComponent
                 _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
                 break;
             default:
-                _rigidBody = _physicsEngineComponent.AddRigibBody(_shape, Mass, ref worldMatrix, this);
+                _rigidBody = _physicsEngineComponent.AddRigidBody(_shape, Mass, ref worldMatrix, this);
                 break;
         }
     }

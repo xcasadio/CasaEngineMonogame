@@ -109,7 +109,17 @@ public class GameManager
 
     private void OnDeviceReset(object? sender, EventArgs e)
     {
-        var graphicsDevice = (GraphicsDevice)sender!;
+        GraphicsDevice graphicsDevice;
+
+        if (sender is GraphicsDeviceManager graphicsDeviceManager)
+        {
+            graphicsDevice = graphicsDeviceManager.GraphicsDevice;
+        }
+        else
+        {
+            graphicsDevice = (GraphicsDevice)sender!;
+        }
+
         OnScreenResized(graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
     }
 
@@ -130,6 +140,7 @@ public class GameManager
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
         PhysicsEngineComponent = new PhysicsEngineComponent(_game);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(_game);
+        PhysicsDebugViewRendererComponent.DisplayPhysics = true;
 
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');

@@ -102,7 +102,7 @@ public class Coordinates
             Matrix translationRotation = Matrix.CreateTranslation(LocalCenterOfRotation);
             Matrix scale = Matrix.CreateScale(LocalScale);
             Matrix rotation = Matrix.CreateFromQuaternion(LocalRotation);
-            LocalMatrix = scale * translation * rotation * translationRotation;
+            LocalMatrix = scale * rotation * translation * translationRotation;
             _localMatrixChanged = false;
         }
     }
