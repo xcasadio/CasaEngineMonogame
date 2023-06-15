@@ -43,18 +43,6 @@ public class Line3dRendererComponent : DrawableGameComponent
         DrawOrder = (int)ComponentDrawOrder.Line3dComponent;
     }
 
-    public override void Update(GameTime gameTime)
-    {
-        for (var index = 0; index < _lines.Count && index < NbLines; index++)
-        {
-            var line = _lines[index];
-            _vertices[index * 2].Position = line.Start;
-            _vertices[index * 2].Color = line.Color;
-            _vertices[index * 2 + 1].Position = line.End;
-            _vertices[index * 2 + 1].Color = line.Color;
-        }
-    }
-
     protected override void LoadContent()
     {
         _vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), NbLines * 2, BufferUsage.None);
@@ -66,6 +54,15 @@ public class Line3dRendererComponent : DrawableGameComponent
         if (_lines.Count == 0)
         {
             return;
+        }
+
+        for (var index = 0; index < _lines.Count && index < NbLines; index++)
+        {
+            var line = _lines[index];
+            _vertices[index * 2 + 0].Position = line.Start;
+            _vertices[index * 2 + 0].Color = line.Color;
+            _vertices[index * 2 + 1].Position = line.End;
+            _vertices[index * 2 + 1].Color = line.Color;
         }
 
         _vertexBuffer.SetData(_vertices, 0, Math.Min(_lines.Count * 2, NbLines * 2));

@@ -14,7 +14,7 @@ namespace EditorWpf.Controls
         private void SettingsControl_OnGotFocus(object sender, RoutedEventArgs e)
         {
             PropertyGridProjectSettings.SelectedObject = GameSettings.ProjectSettings;
-            PropertyGridPhysiscSettings.SelectedObject = GameSettings.Physics2dSettings;
+            PropertyGridPhysiscSettings.SelectedObject = GameSettings.PhysicsSettings;
             PropertyGridGraphicsSettings.SelectedObject = GameSettings.GraphicsSettings;
         }
     }

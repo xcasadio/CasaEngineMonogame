@@ -13,7 +13,7 @@ public class GraphicsSettings
     public SpriteSortMode SpriteSortMode { get; set; } = SpriteSortMode.BackToFront;
 
     [Category(Spritebatch)]
-    public BlendState BlendState { get; set; } = BlendState.NonPremultiplied;
+    public BlendState BlendState { get; set; } = BlendState.AlphaBlend;
 
     [Category(Spritebatch)]
     public SamplerState SamplerState { get; set; } = SamplerState.PointClamp;

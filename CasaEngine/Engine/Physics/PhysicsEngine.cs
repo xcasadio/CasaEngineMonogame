@@ -1,5 +1,4 @@
 ﻿using BulletSharp;
-using CasaEngine.Engine.Physics2D;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 using System.Threading.Channels;
@@ -119,7 +118,7 @@ public class PhysicsEngine
     /// </summary>
     public float FixedTimeStep { get; set; }
 
-    public PhysicsEngine(Physics3dSettings configuration)
+    public PhysicsEngine(PhysicsSettings configuration)
     {
         MaxSubSteps = configuration.MaxSubSteps;
         FixedTimeStep = configuration.FixedTimeStep;
@@ -132,15 +131,17 @@ public class PhysicsEngine
         _broadphase.OverlappingPairCache.SetInternalGhostPairCallback(new GhostPairCallback());
 
         //2D pipeline
-        var simplex = new VoronoiSimplexSolver();
-        var pdSolver = new MinkowskiPenetrationDepthSolver();
-        var convexAlgo = new Convex2DConvex2DAlgorithm.CreateFunc(simplex, pdSolver);
+        if (configuration.IsPhysics2dActivated)
+        {
+            var simplex = new VoronoiSimplexSolver();
+            var pdSolver = new MinkowskiPenetrationDepthSolver();
+            var convexAlgo = new Convex2DConvex2DAlgorithm.CreateFunc(simplex, pdSolver);
 
-        _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Convex2DShape, BroadphaseNativeType.Convex2DShape, convexAlgo);
-        //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Box2DShape, BulletSharp.BroadphaseNativeType.Convex2DShape, convexAlgo);
-        //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Convex2DShape, BulletSharp.BroadphaseNativeType.Box2DShape, convexAlgo);
-        //dispatcher.RegisterCollisionCreateFunc(BulletSharp.BroadphaseNativeType.Box2DShape, BulletSharp.BroadphaseNativeType.Box2DShape, new BulletSharp.Box2DBox2DCollisionAlgorithm.CreateFunc());
-        //~2D pipeline
+            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Convex2DShape, BroadphaseNativeType.Convex2DShape, convexAlgo);
+            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Box2DShape, BroadphaseNativeType.Convex2DShape, convexAlgo);
+            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Convex2DShape, BroadphaseNativeType.Box2DShape, convexAlgo);
+            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Box2DShape, BroadphaseNativeType.Box2DShape, new Box2DBox2DCollisionAlgorithm.CreateFunc());
+        }
 
         //default solver
         var solver = new SequentialImpulseConstraintSolver();

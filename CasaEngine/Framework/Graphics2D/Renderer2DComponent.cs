@@ -18,7 +18,7 @@ public class Renderer2dComponent : DrawableGameComponent
         public Point Origin;
         public Vector2 Scale;
         public Color Color;
-        public float ZOrder; // 0 being the frontmost layer, and 1 being the backmost layer.
+        public float ZOrder; // 0 being the front layer, and 1 being the back layer.
         public SpriteEffects SpriteEffect;
         public Rectangle ScissorRectangle;
     }
@@ -48,8 +48,8 @@ public class Renderer2dComponent : DrawableGameComponent
     public bool IsDrawSpriteOriginEnabled = false;
     public bool IsDrawSpriteBorderEnabled = false;
     public bool IsDrawSpriteSheetEnabled = false;
-    public int SpriteSheetTransparency = 124;
     public bool IsDrawCollisionsEnabled = false;
+    public int SpriteSheetTransparency = 124;
 
     private readonly List<SpriteDisplayData> _spritesData = new(50);
     //used to create a resource pool
@@ -395,13 +395,13 @@ public class Renderer2dComponent : DrawableGameComponent
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void DrawCross(Vector2 pos, int size, Color color)
+    public void DrawCross(Vector2 pos, int size, Color color)
     {
         DrawLine(pos.X - size, pos.Y, pos.X + size - 1, pos.Y, color);
         DrawLine(pos.X, pos.Y - size, pos.X, pos.Y + size, color);
     }
 
-    private void DrawCollision(Collision2d collision2d, Vector2 position, Vector2 scale, float z)
+    public void DrawCollision(Collision2d collision2d, Vector2 position, Vector2 scale, float z)
     {
         var color = collision2d.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
 

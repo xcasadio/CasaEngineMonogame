@@ -10,6 +10,9 @@ public enum ComponentIds
     AnimatedSprite,
     StaticSprite,
     TiledMap,
+    LookAtCamera,
+    CameraTarget2d,
+    Camera3dIn2dAxis,
 
     Custom = 1000
 }

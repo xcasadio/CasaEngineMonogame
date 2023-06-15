@@ -162,7 +162,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public override void Update(float elapsedTime)
     {
-        //CurrentAnimation?.Update(elapsedTime);
+        CurrentAnimation?.Update(elapsedTime);
     }
 
     public override void Draw()
@@ -217,11 +217,10 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         var spriteData = GetCurrentSpriteData();
 
         var rect = shape2d as ShapeRectangle;
-        //body.FixtureList[0].Shape //scale : change the shape
-        //body.Position = new Vector2(Owner.Coordinates.Position.X, Owner.Coordinates.Position.Y);
-        var worldTransform = collisionObject.WorldTransform;
-        worldTransform.Translation = new Vector3(Owner.Coordinates.Position.X - spriteData.Origin.X + rect.Location.X + rect.Width / 2.0f,
-            Owner.Coordinates.Position.Y - spriteData.Origin.Y + rect.Location.Y + rect.Height / 2.0f,
+        var worldTransform = collisionObject.WorldTransform; //TODO : manage scale
+        worldTransform.Translation = new Vector3(
+            Owner.Coordinates.Position.X,
+            Owner.Coordinates.Position.Y - rect.Location.Y - (rect.Height / 2.0f) * Owner.Coordinates.LocalScale.Y,
             Owner.Coordinates.Position.Z);
         collisionObject.WorldTransform = worldTransform;
     }

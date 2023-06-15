@@ -20,7 +20,7 @@ public class PhysicsEngineComponent : GameComponent
 
     public override void Initialize()
     {
-        PhysicsEngine = new PhysicsEngine(GameSettings.Physics3dSettings);
+        PhysicsEngine = new PhysicsEngine(GameSettings.PhysicsSettings);
         base.Initialize();
     }
 
@@ -94,7 +94,7 @@ public class PhysicsEngineComponent : GameComponent
 
         var body = new RigidBody(rbInfo)
         {
-            Gravity = GameSettings.Physics3dSettings.Gravity,
+            Gravity = GameSettings.PhysicsSettings.Gravity,
             UserObject = physicsComponent,
             WorldTransform = worldMatrix
         };
@@ -176,25 +176,27 @@ public class PhysicsEngineComponent : GameComponent
 
     public void AddCollisionObject(CollisionObject collisionObject)
     {
-        //TODO : remove shape
-        PhysicsEngine.World.AddCollisionObject(collisionObject);
+        if (!PhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
+        {
+            PhysicsEngine.World.AddCollisionObject(collisionObject);
+        }
     }
 
     public void RemoveCollisionObject(CollisionObject collisionObject)
     {
-        //TODO : remove shape
-        PhysicsEngine.World.RemoveCollisionObject(collisionObject);
+        if (PhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
+        {
+            PhysicsEngine.World.RemoveCollisionObject(collisionObject);
+        }
     }
 
-    public void AddBodyObject(RigidBody rigidBody)
+    public void AddRigidBody(RigidBody rigidBody)
     {
-        //TODO : remove shape
         PhysicsEngine.World.AddRigidBody(rigidBody);
     }
 
-    public void RemoveBodyObject(RigidBody rigidBody)
+    public void RemoveRigidBody(RigidBody rigidBody)
     {
-        //TODO : remove shape
         PhysicsEngine.World.RemoveRigidBody(rigidBody);
     }
 }

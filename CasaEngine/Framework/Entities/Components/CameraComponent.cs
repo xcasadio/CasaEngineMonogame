@@ -15,6 +15,7 @@ public abstract class CameraComponent : Component
     protected float _viewDistance; // distance between the camera and the near far clip plane
     protected bool _needToComputeProjectionMatrix;
     protected bool _needToComputeViewMatrix;
+    protected CasaEngineGame _game;
 
     public abstract Vector3 Position { get; }
 
@@ -58,7 +59,7 @@ public abstract class CameraComponent : Component
 
     public override void Initialize(CasaEngineGame game)
     {
-        base.Initialize(game);
+        _game = game;
 
         _viewport.Width = game.GraphicsDevice.PresentationParameters.BackBufferWidth;
         _viewport.Height = game.GraphicsDevice.PresentationParameters.BackBufferHeight;
