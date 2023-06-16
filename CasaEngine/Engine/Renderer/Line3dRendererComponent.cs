@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Game;
+﻿using System.Runtime.CompilerServices;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -102,9 +103,49 @@ public class Line3dRendererComponent : DrawableGameComponent
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddLine(Vector3 start, Vector3 end, Color color)
     {
+        AddLine(ref start, ref end, ref color);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddLine(ref Vector3 start, ref Vector3 end, ref Color color)
+    {
         _lines.Add(new Line3d(start, end, color));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawCross(Vector2 pos, float z, int size, Color color)
+    {
+        AddLine(new Vector3(pos.X - size, pos.Y, z), new Vector3(pos.X + size, pos.Y, z), color);
+        AddLine(new Vector3(pos.X, pos.Y - size, z), new Vector3(pos.X, pos.Y + size, z), color);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawRectangle(Rectangle rectangle, Color color, float z)
+    {
+        DrawRectangle(ref rectangle, color, z);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawRectangle(ref Rectangle rectangle, Color color, float z)
+    {
+        DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, z);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawRectangle(float x, float y, float width, float height, Color color, float z)
+    {
+        var topLeft = new Vector3(x, y, z);
+        var topRight = new Vector3(x + width, y, z);
+        var bottomLeft = new Vector3(x, y + height, z);
+        var bottomRight = new Vector3(x + width, y + height, z);
+
+        AddLine(topLeft, topRight, color);
+        AddLine(topLeft, bottomLeft, color);
+        AddLine(topRight, bottomRight, color);
+        AddLine(bottomLeft, bottomRight, color);
     }
 
     private void Clear()

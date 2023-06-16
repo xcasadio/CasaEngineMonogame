@@ -1,8 +1,7 @@
-﻿using System.Numerics;
-using System.Text.Json;
+﻿using System.Text.Json;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
-using SharpDX.Direct3D9;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -12,7 +11,6 @@ public abstract class Camera3dComponent : CameraComponent
 
     protected Camera3dComponent(Entity entity, int type) : base(entity, type)
     {
-        _fieldOfView = MathHelper.PiOver4;
     }
 
     public float FieldOfView
@@ -26,6 +24,12 @@ public abstract class Camera3dComponent : CameraComponent
             OnPropertyChanged();
 #endif
         }
+    }
+
+    public override void Initialize(CasaEngineGame game)
+    {
+        base.Initialize(game);
+        ComputeFieldOfView();
     }
 
     protected override void ComputeProjectionMatrix()
@@ -42,7 +46,14 @@ public abstract class Camera3dComponent : CameraComponent
     public override void ScreenResized(int width, int height)
     {
         base.ScreenResized(width, height);
-        FieldOfView = MathHelper.PiOver4 * 1.777777777f / Viewport.AspectRatio; //1920 / 1080 = 1.777777777 => in angle = MathHelper.PiOver4
+        ComputeFieldOfView();
+    }
+
+    private void ComputeFieldOfView()
+    {
+        FieldOfView =
+            MathHelper.PiOver4 * 1.777777777f /
+            Viewport.AspectRatio; //1920 / 1080 = 1.777777777 => in angle = MathHelper.PiOver4
     }
 
     public override void Load(JsonElement element)

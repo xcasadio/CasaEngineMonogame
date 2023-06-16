@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 
@@ -8,7 +9,7 @@ namespace EditorWpf.Controls.SpriteControls
     public partial class GameEditorSpriteControl : UserControl
     {
         public GameEditorSprite GameEditor => gameEditor;
-        private Renderer2dComponent? Renderer2dComponent => gameEditor.Game.GetGameComponent<Renderer2dComponent>();
+        private SpriteRendererComponent? SpriteRendererComponent => gameEditor.Game.GetGameComponent<SpriteRendererComponent>();
 
         public GameEditorSpriteControl()
         {
@@ -28,19 +29,19 @@ namespace EditorWpf.Controls.SpriteControls
         private void ButtonHotSpot_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            Renderer2dComponent.IsDrawSpriteOriginEnabled = checkBox.IsChecked ?? false;
+            SpriteRendererComponent.IsDrawSpriteOriginEnabled = checkBox.IsChecked ?? false;
         }
 
         private void ButtonSpriteBorder_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            Renderer2dComponent.IsDrawSpriteBorderEnabled = checkBox.IsChecked ?? false;
+            SpriteRendererComponent.IsDrawSpriteBorderEnabled = checkBox.IsChecked ?? false;
         }
 
         private void ButtonDisplaySpriteSheet_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            Renderer2dComponent.IsDrawSpriteSheetEnabled = checkBox.IsChecked ?? false;
+            SpriteRendererComponent.IsDrawSpriteSheetEnabled = checkBox.IsChecked ?? false;
         }
 
         private void Transparency_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -51,13 +52,13 @@ namespace EditorWpf.Controls.SpriteControls
             }
 
             var slider = (sender as Slider);
-            Renderer2dComponent.SpriteSheetTransparency = (int)slider.Value;
+            SpriteRendererComponent.SpriteSheetTransparency = (int)slider.Value;
         }
 
         private void ButtonDisplayCollisions_OnClick(object sender, RoutedEventArgs e)
         {
             var checkBox = (sender as CheckBox);
-            Renderer2dComponent.IsDrawCollisionsEnabled = checkBox.IsChecked ?? false;
+            SpriteRendererComponent.IsDrawCollisionsEnabled = checkBox.IsChecked ?? false;
         }
 
         private void ButtonDisplaySockets_OnClick(object sender, RoutedEventArgs e)

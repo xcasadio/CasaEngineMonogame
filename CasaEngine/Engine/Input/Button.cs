@@ -28,7 +28,6 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 
 namespace CasaEngine.Engine.Input;
 

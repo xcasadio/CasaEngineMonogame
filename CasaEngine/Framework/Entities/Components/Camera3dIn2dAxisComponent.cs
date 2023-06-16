@@ -9,9 +9,8 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.Camera3dIn2dAxis;
 
-    private Vector3 _up = -Vector3.Up;
+    private Vector3 _up = Vector3.Up;
     private Vector3 _target;
-
 
     public override Vector3 Position
     {
@@ -24,7 +23,7 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
             float h = (float)_game.Window.ClientBounds.Height;
 
             var fov = FieldOfView * 0.5f;
-            float z = -(h * 0.5f) / MathUtils.Tan(fov);
+            float z = (h * 0.5f) / MathUtils.Tan(fov);
             return new(_target.X, _target.Y, _target.Z + z);
         }
     }
@@ -61,6 +60,6 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
 
     protected override void ComputeViewMatrix()
     {
-        _viewMatrix = Matrix.CreateLookAt(Position, _target, Up); //Vector3 up = -Vector3::UnitY();
+        _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
     }
 }

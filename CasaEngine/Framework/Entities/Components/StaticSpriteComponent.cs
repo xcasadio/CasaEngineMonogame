@@ -1,9 +1,12 @@
 ﻿using System.Text.Json;
+using BulletSharp;
+using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -17,7 +20,8 @@ public class StaticSpriteComponent : Component, ICollideableComponent
     private Sprite? _sprite;
     private SpriteData? _spriteData;
     private CasaEngineGame _game;
-    private Renderer2dComponent? _renderer2dComponent;
+    private SpriteRendererComponent? _spriteRendererComponent;
+    private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
 
     public PhysicsType PhysicsType { get; }
     public HashSet<Collision> Collisions { get; }
@@ -31,12 +35,15 @@ public class StaticSpriteComponent : Component, ICollideableComponent
     public override void Initialize(CasaEngineGame game)
     {
         _game = game;
-        _renderer2dComponent = _game.GetGameComponent<Renderer2dComponent>();
+        _spriteRendererComponent = _game.GetGameComponent<SpriteRendererComponent>();
     }
 
     public override void Update(float elapsedTime)
     {
-        //update collision objects
+        foreach (var (shape2d, collisionObject) in _collisionObjects)
+        {
+            Physics2dHelper.UpdateBodyTransformation(Owner, collisionObject, shape2d, _spriteData.Origin, _spriteData.PositionInTexture);
+        }
     }
 
     public override void Draw()
@@ -47,8 +54,7 @@ public class StaticSpriteComponent : Component, ICollideableComponent
         }
 
         var worldMatrix = Owner.Coordinates.WorldMatrix;
-        _renderer2dComponent.DrawSprite(_sprite,
-            _spriteData,
+        _spriteRendererComponent.DrawSprite(_sprite,
             new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
             0.0f,
             new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
@@ -83,14 +89,20 @@ public class StaticSpriteComponent : Component, ICollideableComponent
 
         var physicsEngineComponent = _game.GetGameComponent<PhysicsEngineComponent>();
 
+        foreach (var (shape2d, collisionObject) in _collisionObjects)
+        {
+            physicsEngineComponent.RemoveCollisionObject(collisionObject);
+        }
+
         foreach (var collisionShape in _spriteData.CollisionShapes)
         {
             var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
             var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, Owner, physicsEngineComponent, this, color);
             if (collisionObject != null)
             {
+                Physics2dHelper.UpdateBodyTransformation(Owner, collisionObject, collisionShape.Shape, _spriteData.Origin, _spriteData.PositionInTexture);
                 physicsEngineComponent.AddCollisionObject(collisionObject);
-                //_collisionObjectByFrameId[frame.SpriteId].Add(collisionObject);
+                _collisionObjects.Add(new(collisionShape.Shape, collisionObject));
             }
         }
     }

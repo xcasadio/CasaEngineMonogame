@@ -1,7 +1,6 @@
 ﻿using System.Xml;
 using CasaEngine.Core.Design;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.FrontEnd.Screen.Gadget;
 
@@ -21,14 +20,7 @@ public class ScreenGadgetLabel
 #endif
     override void DrawGadget(float elapsedTime)
     {
-        Renderer2dComponent.DrawSprite(
-            WhiteTexture,
-            Location,
-            0.0f,
-            Scale,
-            BackgroundColor,
-            0.0001f,
-            SpriteEffects.None);
+        Renderer2dComponent.DrawRectangle(Location.X, Location.Y, Scale.X, Scale.Y, BackgroundColor, 0.0001f);
 
         Renderer2dComponent.DrawText(
             Font,

@@ -1,7 +1,9 @@
 ﻿using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 
@@ -29,12 +31,22 @@ public abstract class GameEditor2d : GameEditor
     protected override void LoadContent()
     {
         base.LoadContent();
+
+        var entity = new Entity();
+        var camera = new Camera3dIn2dAxisComponent(entity);
+        entity.ComponentManager.Components.Add(camera);
+        var screenXBy2 = Game.Window.ClientBounds.Width / 2f;
+        var screenYBy2 = Game.Window.ClientBounds.Height / 2f;
+        camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
+        Game.GameManager.ActiveCamera = camera;
+        entity.Initialize(Game);
+
         _inputComponent = Game.GetGameComponent<InputComponent>();
         Game.Components.Remove(Game.GetGameComponent<GridComponent>());
         Game.GameManager.CurrentWorld = new World();
 
         _entity = new Entity();
-        _entity.Coordinates.LocalPosition = new Vector3(300f, 300f, 0.0f);
+        _entity.Coordinates.LocalPosition = new Vector3(screenXBy2, screenYBy2, 0.0f);
 
         CreateEntityComponents(_entity);
 
@@ -53,7 +65,7 @@ public abstract class GameEditor2d : GameEditor
         else if (_inputComponent.MouseRightButtonPressed)
         {
             var delta = _lastMousePosition - _inputComponent.MousePos;
-            _entity.Coordinates.LocalPosition += new Vector3(-delta.X, -delta.Y, _entity.Coordinates.LocalPosition.Z);
+            _entity.Coordinates.LocalPosition += new Vector3(-delta.X, delta.Y, _entity.Coordinates.LocalPosition.Z);
             _lastMousePosition = _inputComponent.MousePos;
         }
 

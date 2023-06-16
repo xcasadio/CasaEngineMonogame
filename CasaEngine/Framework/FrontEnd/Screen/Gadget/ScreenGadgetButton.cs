@@ -2,7 +2,6 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.FrontEnd.Screen.Gadget;
 
@@ -42,22 +41,8 @@ public class ScreenGadgetButton : ScreenGadget
     {
         var area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
 
-        Renderer2dComponent.DrawSprite(
-            WhiteTexture,
-            Location,
-            0.0f,
-            new Vector2(Width, Height) /* * Scale*/,
-            BackgroundColor,
-            0.0003f,
-            SpriteEffects.None);
-
-        Renderer2dComponent.DrawRectangle(
-            Location.X,
-            Location.Y,
-            Width,
-            Height,
-            Color.Black,
-            0.0002f);
+        Renderer2dComponent.DrawRectangle(Location.X, Location.Y, Width, Height, BackgroundColor, 0.0003f);
+        Renderer2dComponent.DrawRectangle(Location.X, Location.Y, Width, Height, Color.Black, 0.0002f);
 
         //if (Image != null)
         //{

@@ -131,7 +131,7 @@ public class TiledMapComponent : Component
             {
                 for (var x = 0; x < mapWidth; x++)
                 {
-                    layer.Tiles[x + y * mapWidth].Draw(mapPosX + tileWidth * x, mapPosY + tileHeight * y, translation.Z + layerZ, scale);
+                    layer.Tiles[x + y * mapWidth].Draw(mapPosX + tileWidth * x, mapPosY - tileHeight * y, translation.Z + layerZ, scale);
                 }
             }
         }

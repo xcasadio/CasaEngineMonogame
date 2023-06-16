@@ -2,7 +2,6 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 

@@ -15,7 +15,6 @@ public class GameEditor : WpfGame
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
-    public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
     protected override bool CanRender => _isInitialized;
 
@@ -50,8 +49,11 @@ public class GameEditor : WpfGame
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         //in editor the camera is an element of the world
-        Game?.GameManager.ActiveCamera?.ScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
-        Game?.GameManager.OnScreenResized((int)sizeInfo.NewSize.Width, (int)sizeInfo.NewSize.Height);
+        var newSizeWidth = (int)sizeInfo.NewSize.Width;
+        var newSizeHeight = (int)sizeInfo.NewSize.Height;
+        Game?.ScreenResize(newSizeWidth, newSizeHeight);
+        Game?.GameManager.ActiveCamera?.ScreenResized(newSizeWidth, newSizeHeight);
+        Game?.GameManager.OnScreenResized(newSizeWidth, newSizeHeight);
         base.OnRenderSizeChanged(sizeInfo);
     }
 

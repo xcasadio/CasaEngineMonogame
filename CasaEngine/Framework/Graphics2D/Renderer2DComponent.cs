@@ -178,37 +178,37 @@ public class Renderer2dComponent : DrawableGameComponent
 
             Rectangle? rect = sprite.PositionInTexture;
 
-            /*Rectangle temp = new Rectangle();
-            temp.X = (int)(sprite.position.X - hotspot.X);
-            temp.Y = (int)(sprite.position.Y - hotspot.Y);
-            temp.Width = sprite.PositionInTexture.Width;
-            temp.Height = sprite.PositionInTexture.Height;
-
-            if (temp.Intersects(sprite.ScissorRectangle) == true)
-            {
-                temp.X = System.System.Math.Max(temp.X, sprite.ScissorRectangle.X);
-                temp.Y = System.System.Math.Max(temp.Y, sprite.ScissorRectangle.Y);
-                temp.Width = System.System.Math.Min(
-                    sprite.ScissorRectangle.X + sprite.ScissorRectangle.Width, 
-                    (int)sprite.position.X + sprite.PositionInTexture.Width) - temp.X;
-                temp.Height = System.System.Math.Min(
-                    sprite.ScissorRectangle.Y + sprite.ScissorRectangle.Height,
-                    (int)sprite.position.Y + sprite.PositionInTexture.Height) - temp.Y;
-
-                temp.X += sprite.PositionInTexture.X - (int)(sprite.position.X - sprite.Origin.X);
-                temp.Y += sprite.PositionInTexture.Y - (int)(sprite.position.Y - sprite.Origin.Y);
-
-                temp.Width = (int)((float)temp.Width / sprite.Scale.X);
-                temp.Height = (int)((float)temp.Height / sprite.Scale.Y);
-
-                rect = temp;
-
-                hotspot = Vector2.Zero;
-            }
-            else
-            {
-                continue;
-            }*/
+            //Rectangle temp = new Rectangle();
+            //temp.X = (int)(sprite.position.X - hotspot.X);
+            //temp.Y = (int)(sprite.position.Y - hotspot.Y);
+            //temp.Width = sprite.PositionInTexture.Width;
+            //temp.Height = sprite.PositionInTexture.Height;
+            //
+            //if (temp.Intersects(sprite.ScissorRectangle) == true)
+            //{
+            //    temp.X = System.System.Math.Max(temp.X, sprite.ScissorRectangle.X);
+            //    temp.Y = System.System.Math.Max(temp.Y, sprite.ScissorRectangle.Y);
+            //    temp.Width = System.System.Math.Min(
+            //        sprite.ScissorRectangle.X + sprite.ScissorRectangle.Width, 
+            //        (int)sprite.position.X + sprite.PositionInTexture.Width) - temp.X;
+            //    temp.Height = System.System.Math.Min(
+            //        sprite.ScissorRectangle.Y + sprite.ScissorRectangle.Height,
+            //        (int)sprite.position.Y + sprite.PositionInTexture.Height) - temp.Y;
+            //
+            //    temp.X += sprite.PositionInTexture.X - (int)(sprite.position.X - sprite.Origin.X);
+            //    temp.Y += sprite.PositionInTexture.Y - (int)(sprite.position.Y - sprite.Origin.Y);
+            //
+            //    temp.Width = (int)((float)temp.Width / sprite.Scale.X);
+            //    temp.Height = (int)((float)temp.Height / sprite.Scale.Y);
+            //
+            //    rect = temp;
+            //
+            //    hotspot = Vector2.Zero;
+            //}
+            //else
+            //{
+            //    continue;
+            //}
 
             //GraphicsDevice.ScissorRectangle = sprite.ScissorRectangle;
 

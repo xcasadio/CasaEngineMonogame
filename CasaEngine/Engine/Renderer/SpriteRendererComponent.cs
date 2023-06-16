@@ -5,9 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Runtime.CompilerServices;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Graphics2D;
-using BulletSharp.SoftBody;
-using SharpDX.Direct2D1.Effects;
-using static System.Net.Mime.MediaTypeNames;
+using CasaEngine.Core.Shapes;
 
 namespace CasaEngine.Engine.Renderer;
 
@@ -23,10 +21,6 @@ public class SpriteRendererComponent : DrawableGameComponent
         public Texture2D Texture;
         public Matrix WorldMatrix;
         public Rectangle ScissorRectangle;
-        //Debug Datas
-        public Vector2 Origin { get; set; }
-        public Rectangle Border { get; set; }
-        public Vector2 Scale { get; set; }
     }
 
     private const int NbSprites = 5000;
@@ -44,6 +38,7 @@ public class SpriteRendererComponent : DrawableGameComponent
     public bool IsDrawCollisionsEnabled = false;
     public int SpriteSheetTransparency = 124;
     private Renderer2dComponent? _renderer2dComponent;
+    private Line3dRendererComponent? _line3dRendererComponent;
 
     public SpriteRendererComponent(Game game) : base(game)
     {
@@ -67,6 +62,7 @@ public class SpriteRendererComponent : DrawableGameComponent
         _effect = _game.Content.Load<Effect>("Shaders\\spritebatch");
 
         _renderer2dComponent = _game.GetGameComponent<Renderer2dComponent>();
+        _line3dRendererComponent = _game.GetGameComponent<Line3dRendererComponent>();
     }
 
     public override void Draw(GameTime gameTime)
@@ -107,8 +103,6 @@ public class SpriteRendererComponent : DrawableGameComponent
         {
             var spriteDisplayData = _spriteDatas[i];
 
-            DrawDebug(ref spriteDisplayData);
-
             _effect.Parameters["Texture"].SetValue(spriteDisplayData.Texture);
             _effect.Parameters["Color"].SetValue(spriteDisplayData.Color.ToVector4());
             _effect.Parameters["World"].SetValue(spriteDisplayData.WorldMatrix);
@@ -122,36 +116,36 @@ public class SpriteRendererComponent : DrawableGameComponent
         }
     }
 
-    private void DrawDebug(ref SpriteDisplayData spriteDisplayData)
+    private void DrawDebug(Vector3 position, Vector2 scale, Vector2 origin, Texture2D texture2d, Rectangle sourceInTexture)
     {
-        var position = spriteDisplayData.WorldMatrix.Translation;
-
         if (IsDrawSpriteOriginEnabled)
         {
-            _renderer2dComponent.DrawCross(spriteDisplayData.Origin, 6, Color.Red);
+            _line3dRendererComponent.DrawCross(
+                new Vector2(position.X + origin.X - sourceInTexture.Width / 2f, position.Y - origin.Y + sourceInTexture.Height / 2f),
+                position.Z, 6, Color.Red);
         }
 
         if (IsDrawSpriteBorderEnabled)
         {
             var temp = new Rectangle
             {
-                X = (int)(position.X - (spriteDisplayData.Border.Width / 2f) * spriteDisplayData.Scale.X),
-                Y = (int)(position.Y - (spriteDisplayData.Border.Height / 2f) * spriteDisplayData.Scale.Y),
-                Width = (int)(spriteDisplayData.Border.Width * spriteDisplayData.Scale.X),
-                Height = (int)(spriteDisplayData.Border.Height * spriteDisplayData.Scale.Y)
+                X = (int)(position.X - (sourceInTexture.Width / 2f) * scale.X),
+                Y = (int)(position.Y - (sourceInTexture.Height / 2f) * scale.Y),
+                Width = (int)(sourceInTexture.Width * scale.X),
+                Height = (int)(sourceInTexture.Height * scale.Y)
             };
-            _renderer2dComponent.DrawRectangle(ref temp, Color.BlueViolet);
+            _line3dRendererComponent.DrawRectangle(ref temp, Color.BlueViolet, position.Z);
         }
 
         if (IsDrawSpriteSheetEnabled)
         {
-            var position2 = new Vector2(
-                position.X - spriteDisplayData.Border.X - spriteDisplayData.Border.Width / 2f,
-                position.Y - spriteDisplayData.Border.Y - spriteDisplayData.Border.Height / 2f) * spriteDisplayData.Scale;
+            var texturePosition = new Vector2(
+                position.X - sourceInTexture.X - sourceInTexture.Width / 2f,
+                position.Y + sourceInTexture.Y + sourceInTexture.Height / 2f) * scale;
 
-            _renderer2dComponent.DrawSprite(spriteDisplayData.Texture, position2, 0.0f, spriteDisplayData.Scale,
+            DrawSprite(texture2d, texture2d.Bounds, Point.Zero, texturePosition, 0.0f, scale,
                 Color.FromNonPremultiplied(255, 255, 255, SpriteSheetTransparency),
-                position.Z, SpriteEffects.None);
+                position.Z, SpriteEffects.None, GraphicsDevice.ScissorRectangle, false);
         }
     }
 
@@ -206,8 +200,38 @@ public class SpriteRendererComponent : DrawableGameComponent
         {
             foreach (var collision2d in sprite.SpriteData.CollisionShapes)
             {
-                //DrawCollision(collision2d, new Vector2(pos.X - spriteData.Origin.X * scale.X, pos.Y - spriteData.Origin.Y * scale.Y), scale, zOrder);
+                DrawCollision(collision2d, pos, zOrder, sprite.SpriteData.Origin, scale);
             }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void DrawCollision(Collision2d collision2d, Vector2 position, float z, Point origin, Vector2 scale)
+    {
+        var color = collision2d.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+
+        switch (collision2d.Shape.Type)
+        {
+            case Shape2dType.Compound:
+                break;
+            case Shape2dType.Polygone:
+                break;
+            case Shape2dType.Rectangle:
+                var rectangle = collision2d.Shape as ShapeRectangle;
+                _line3dRendererComponent.DrawRectangle(
+                    position.X + (rectangle.Location.X - origin.X) * scale.X,
+                    position.Y - (rectangle.Location.Y - origin.Y + rectangle.Height) * scale.Y,
+                    rectangle.Width * scale.X,
+                    rectangle.Height * scale.Y,
+                    color,
+                    z - 0.001f);
+                break;
+            case Shape2dType.Circle:
+                break;
+            case Shape2dType.Line:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 
@@ -224,15 +248,22 @@ public class SpriteRendererComponent : DrawableGameComponent
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DrawSprite(Texture2D texture2d, Rectangle uv, Point origin, Vector2 position, float rotation,
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects)
     {
-        DrawSprite(texture2d, uv, origin, position, rotation, scale, color, z, effects, GraphicsDevice.ScissorRectangle);
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects, GraphicsDevice.ScissorRectangle);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DrawSprite(Texture2D texture2d, Rectangle uv, Point origin, Vector2 position, float rotation,
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects, scissorRectangle, true);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug)
     {
         if (texture2d == null)
         {
@@ -244,10 +275,10 @@ public class SpriteRendererComponent : DrawableGameComponent
             throw new ArgumentException($"{nameof(texture2d)} is disposed");
         }
 
-        var uvTopLeft = new Vector2(effects == SpriteEffects.FlipHorizontally ? uv.Right : uv.Left, effects == SpriteEffects.FlipVertically ? uv.Bottom : uv.Top);
-        var uvTopRight = new Vector2(effects == SpriteEffects.FlipHorizontally ? uv.Left : uv.Right, effects == SpriteEffects.FlipHorizontally ? uv.Bottom : uv.Top);
-        var uvBottomRight = new Vector2(effects == SpriteEffects.FlipHorizontally ? uv.Left : uv.Right, effects == SpriteEffects.FlipVertically ? uv.Top : uv.Bottom);
-        var uvBottomLeft = new Vector2(effects == SpriteEffects.FlipHorizontally ? uv.Right : uv.Left, effects == SpriteEffects.FlipHorizontally ? uv.Top : uv.Bottom);
+        var uvTopLeft = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Right : sourceInTexture.Left, effects == SpriteEffects.FlipVertically ? sourceInTexture.Bottom : sourceInTexture.Top);
+        var uvTopRight = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Left : sourceInTexture.Right, effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Bottom : sourceInTexture.Top);
+        var uvBottomRight = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Left : sourceInTexture.Right, effects == SpriteEffects.FlipVertically ? sourceInTexture.Top : sourceInTexture.Bottom);
+        var uvBottomLeft = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Right : sourceInTexture.Left, effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Top : sourceInTexture.Bottom);
 
         var textureSize = new Vector2(texture2d.Width, texture2d.Height);
         uvTopLeft /= textureSize;
@@ -256,22 +287,23 @@ public class SpriteRendererComponent : DrawableGameComponent
         uvBottomLeft /= textureSize;
 
         GetSpriteDisplayData(out var spriteDisplayData);
-        spriteDisplayData.TopLeft = new(new Vector3(-0.5f, -0.5f, z), uvTopLeft);
-        spriteDisplayData.TopRight = new(new Vector3(0.5f, -0.5f, z), uvTopRight);
-        spriteDisplayData.BottomRight = new(new Vector3(0.5f, 0.5f, z), uvBottomRight);
-        spriteDisplayData.BottomLeft = new(new Vector3(-0.5f, 0.5f, z), uvBottomLeft);
+        spriteDisplayData.TopLeft = new(new Vector3(-0.5f, 0.5f, z), uvTopLeft);
+        spriteDisplayData.TopRight = new(new Vector3(0.5f, 0.5f, z), uvTopRight);
+        spriteDisplayData.BottomRight = new(new Vector3(0.5f, -0.5f, z), uvBottomRight);
+        spriteDisplayData.BottomLeft = new(new Vector3(-0.5f, -0.5f, z), uvBottomLeft);
         spriteDisplayData.Texture = texture2d;
         spriteDisplayData.Color = color;
         spriteDisplayData.WorldMatrix = MatrixExtensions.Transformation(
-            new Vector3(scale.X * uv.Width, scale.Y * uv.Height, 1.0f),
+            new Vector3(scale.X * sourceInTexture.Width, scale.Y * sourceInTexture.Height, 1.0f),
             Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation),
-            new Vector3(position.X - origin.X + uv.Width / 2f, position.Y - origin.Y * scale.Y + (uv.Height / 2f) * scale.Y, 0));
+            new Vector3(position.X - origin.X + sourceInTexture.Width / 2f, position.Y + origin.Y * scale.Y - (sourceInTexture.Height / 2f) * scale.Y, 0));
         spriteDisplayData.ScissorRectangle = scissorRectangle;
-        //Debug Datas
-        spriteDisplayData.Origin = new Vector2(position.X - origin.X + uv.Width / 2f, position.Y + origin.Y - uv.Height);
-        spriteDisplayData.Border = uv;
-        spriteDisplayData.Scale = scale;
         _spriteDatas.Add(spriteDisplayData);
+
+        if (drawDebug)
+        {
+            DrawDebug(spriteDisplayData.WorldMatrix.Translation, scale, origin.ToVector2(), texture2d, sourceInTexture);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

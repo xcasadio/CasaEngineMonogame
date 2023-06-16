@@ -2,5 +2,5 @@
 
 public interface IGameComponentResizable
 {
-    void OnResize();
+    void OnResize(int width, int height);
 }

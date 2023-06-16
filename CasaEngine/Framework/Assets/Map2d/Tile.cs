@@ -1,6 +1,6 @@
-﻿using CasaEngine.Framework.Assets.Sprites;
+﻿using CasaEngine.Engine.Renderer;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Assets.Map2d;
 
 public abstract class Tile
 {
-    private Renderer2dComponent _renderer2dComponent;
+    private SpriteRendererComponent _spriteRendererComponent;
 
     public TileData? TileData { get; }
 
@@ -19,7 +19,7 @@ public abstract class Tile
 
     public virtual void Initialize(CasaEngineGame game)
     {
-        _renderer2dComponent = game.GetGameComponent<Renderer2dComponent>();
+        _spriteRendererComponent = game.GetGameComponent<SpriteRendererComponent>();
     }
 
     public abstract void Update(float elapsedTime);
@@ -34,7 +34,7 @@ public abstract class Tile
             uvOffset.Width,
             uvOffset.Height);
 
-        _renderer2dComponent.DrawSprite(
+        _spriteRendererComponent.DrawSprite(
             sprite.Texture.Resource,
             texUV,
             sprite.SpriteData.Origin,

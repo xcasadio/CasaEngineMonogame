@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets;
@@ -11,11 +10,11 @@ using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
-using System.Transactions;
 using BulletSharp;
-using BulletSharp.SoftBody;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Engine.Renderer;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -32,6 +31,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     private AssetContentManager _assetContentManager;
     private PhysicsEngineComponent? _physicsEngineComponent;
     private CasaEngineGame _game;
+    private SpriteRendererComponent _spriteRenderer;
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
@@ -72,7 +72,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         CurrentAnimation.FrameChanged += OnFrameChanged;
         CurrentAnimation.AnimationFinished += OnAnimationFinished;
         CurrentAnimation.FrameChanged += OnFrameChanged;
-        AddCollisionFromFrame(CurrentAnimation.CurrentFrame);
+        AddCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
     }
 
     public void SetCurrentAnimation(int index, bool forceReset)
@@ -129,6 +129,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     {
         _game = game;
         _renderer2dComponent = game.GetGameComponent<Renderer2dComponent>();
+        _spriteRenderer = game.GetGameComponent<SpriteRendererComponent>();
         _assetContentManager = game.GameManager.AssetContentManager;
         _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
 
@@ -162,7 +163,11 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public override void Update(float elapsedTime)
     {
-        CurrentAnimation?.Update(elapsedTime);
+        if (CurrentAnimation != null)
+        {
+            CurrentAnimation?.Update(elapsedTime);
+            UpdateCollisionFromFrame(CurrentAnimation.CurrentFrame);
+        }
     }
 
     public override void Draw()
@@ -179,8 +184,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
             var sprite = Sprite.Create(spriteData, _assetContentManager);
             var worldMatrix = Owner.Coordinates.WorldMatrix;
-            _renderer2dComponent.DrawSprite(sprite, //TODO : load all sprites in a dictionary<name, sprite>
-                spriteData,
+            _spriteRenderer.DrawSprite(sprite,
                 new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
                 0.0f,
                 new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
@@ -212,35 +216,32 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         return null;
     }
 
-    private void UpdateBodyTransformation(CollisionObject collisionObject, Shape2d shape2d)
-    {
-        var spriteData = GetCurrentSpriteData();
-
-        var rect = shape2d as ShapeRectangle;
-        var worldTransform = collisionObject.WorldTransform; //TODO : manage scale
-        worldTransform.Translation = new Vector3(
-            Owner.Coordinates.Position.X,
-            Owner.Coordinates.Position.Y - rect.Location.Y - (rect.Height / 2.0f) * Owner.Coordinates.LocalScale.Y,
-            Owner.Coordinates.Position.Z);
-        collisionObject.WorldTransform = worldTransform;
-    }
-
     private void OnFrameChanged(object? sender, (string oldFrame, string newFrame) arg)
     {
         RemoveCollisionsFromFrame(arg.oldFrame);
-        AddCollisionFromFrame(arg.newFrame);
+        AddCollisionFromFrame(arg.newFrame, true);
 
         FrameChanged?.Invoke(this, arg.newFrame);
     }
 
-    private void AddCollisionFromFrame(string frameId)
+    private void UpdateCollisionFromFrame(string frameId)
+    {
+        AddCollisionFromFrame(frameId, false);
+    }
+
+    private void AddCollisionFromFrame(string frameId, bool addCollision)
     {
         if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
         {
+            var spriteData = _assetContentManager.GetAsset<SpriteData>(frameId);
+
             foreach (var (shape2d, collisionObject) in collisionObjects)
             {
-                UpdateBodyTransformation(collisionObject, shape2d);
-                _physicsEngineComponent.AddCollisionObject(collisionObject);
+                Physics2dHelper.UpdateBodyTransformation(Owner, collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
+                if (addCollision)
+                {
+                    _physicsEngineComponent.AddCollisionObject(collisionObject);
+                }
             }
         }
     }

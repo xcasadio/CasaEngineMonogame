@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Framework.Game.Components;
+namespace CasaEngine.Framework.Game.Components.Editor;
 
 public class GridComponent : DrawableGameComponent
 {

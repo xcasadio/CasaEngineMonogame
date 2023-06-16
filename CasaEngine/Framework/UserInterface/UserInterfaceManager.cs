@@ -12,7 +12,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 #if (!XBOX)
 #endif
-using CasaEngine.Core;
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;

@@ -537,11 +537,11 @@ namespace CasaEngine.Framework.Debugger
             var topMargin = h * 0.1f;
             var leftMargin = w * 0.1f;
 
-            /*Rectangle rect = new Rectangle();
+            Rectangle rect = new Rectangle();
             rect.X = (int)leftMargin;
             rect.Y = (int)topMargin;
             rect.Width = (int)(w * 0.8f);
-            rect.Height = (int)(MaxLineCount * font.LineSpacing);*/
+            rect.Height = (int)(MaxLineCount * _font.LineSpacing);
 
             //Todo : add transformation to add transition when closing/opening
             /*Matrix mtx = Matrix.CreateTranslation(
@@ -550,12 +550,7 @@ namespace CasaEngine.Framework.Debugger
             //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState, mtx);
 
             //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
-            _renderer2dComponent.DrawSprite(
-                whiteTexture,
-                new Vector2(leftMargin, topMargin), // position
-                0.0f,
-                new Vector2(w * 0.8f, MaxLineCount * _font.LineSpacing), // scale
-                _backgroundColor, depth + 0.001f, SpriteEffects.None);
+            _renderer2dComponent.DrawRectangle(ref rect, _backgroundColor, depth + 0.001f);
 
             // Draw each lines.
             var pos = new Vector2(leftMargin, topMargin);
@@ -581,7 +576,7 @@ namespace CasaEngine.Framework.Debugger
         }
 
 
-        public void OnResize()
+        public void OnResize(int width, int height)
         {
 
         }

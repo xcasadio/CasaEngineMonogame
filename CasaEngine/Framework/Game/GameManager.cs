@@ -40,6 +40,7 @@ public class GameManager
 
     public InputComponent InputComponent { get; private set; }
     public Renderer2dComponent Renderer2dComponent { get; private set; }
+    public SpriteRendererComponent SpriteRendererComponent { get; private set; }
     public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
     public ScreenManagerComponent ManagerComponent { get; private set; }
@@ -135,6 +136,7 @@ public class GameManager
         Line3dRendererComponent = new Line3dRendererComponent(_game);
         SpriteBatch = new SpriteBatch(_game.GraphicsDevice);
         Renderer2dComponent = new Renderer2dComponent(_game) { SpriteBatch = SpriteBatch };
+        SpriteRendererComponent = new SpriteRendererComponent(_game);
         InputComponent = new InputComponent(_game);
         ManagerComponent = new ScreenManagerComponent(_game);
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
@@ -205,43 +207,6 @@ public class GameManager
         camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         camera.Initialize(_game);
 #endif
-
-        //TEST
-        //var world = CurrentWorld;
-        //
-        //var entity = new Entity();
-        //entity.Name = "Entity camera";
-        //var camera = new ArcBallCameraComponent(entity);
-        //entity.ComponentManager.Components.Add(camera);
-        //ActiveCamera = camera;
-        //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        //world.AddEntityImmediately(entity);
-        //
-        //entity = new Entity();
-        //entity.Name = "Entity box";
-        ////entity.Coordinates.LocalPosition += Vector3.Up * 0.5f;
-        //var meshComponent = new StaticMeshComponent(entity);
-        //entity.ComponentManager.Components.Add(meshComponent);
-        //meshComponent.Mesh = new BoxPrimitive(Game.GraphicsDevice).CreateMesh();
-        //meshComponent.Mesh.Texture = AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
-        ////
-        //entity.ComponentManager.Components.Add(new PhysicsComponent(entity)
-        //{
-        //    Shape = new Box { Height = 1f, Width = 1f, Length = 1f }
-        //});
-        ////
-        //world.AddEntityImmediately(entity);
-
-        //
-        //entity = new Entity();
-        //entity.Name = "Entity box 2";
-        //entity.Coordinates.LocalPosition += Vector3.UnitX * 2.0f;
-        //meshComponent = new MeshComponent(entity);
-        //entity.ComponentManager.Components.Add(meshComponent);
-        //meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
-        //meshComponent.Mesh.Texture = AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
-        //world.AddEntityImmediately(entity);
-
     }
 
     public void BeginUpdate(GameTime gameTime)

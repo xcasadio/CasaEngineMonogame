@@ -37,6 +37,12 @@
 /processorParam:TextureFormat=Color
 /build:checkboard.png
 
+#begin Shaders/axisComponent.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/axisComponent.fx
+
 #begin Shaders/spritebatch.fx
 /importer:EffectImporter
 /processor:EffectProcessor

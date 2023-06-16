@@ -249,10 +249,7 @@ public class ScreenManagerComponent : DrawableGameComponent
     {
         var viewport = GraphicsDevice.Viewport;
 
-        _renderer2dComponent.DrawSprite(_blankTexture,
-            new Rectangle(0, 0, viewport.Width, viewport.Height),
-            Point.Zero, Vector2.Zero, 0.0f, Vector2.One,
-            new Color(0, 0, 0, alpha), 0.99f, SpriteEffects.None);
+        _renderer2dComponent.DrawRectangle(0, 0, viewport.Width, viewport.Height, new Color(0, 0, 0, alpha), 0.99f);
     }
 
 }

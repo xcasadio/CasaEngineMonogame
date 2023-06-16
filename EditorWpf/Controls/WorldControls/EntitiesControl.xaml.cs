@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components.Editor;
 using XNAGizmo;
 
 namespace EditorWpf.Controls.WorldControls

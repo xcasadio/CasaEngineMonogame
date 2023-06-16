@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Assets.Sprites;
-
-namespace CasaEngine.Framework.Assets.Animations;
+﻿namespace CasaEngine.Framework.Assets.Animations;
 
 public class Animation2d : Animation
 {

@@ -153,7 +153,7 @@ public class PhysicsComponent : Component, ICollideableComponent
         }
         if (_rigidBody != null)
         {
-            _physicsEngineComponent.RemoveBodyObject(_rigidBody);
+            _physicsEngineComponent.RemoveRigidBody(_rigidBody);
             _rigidBody = null;
         }
 #endif
