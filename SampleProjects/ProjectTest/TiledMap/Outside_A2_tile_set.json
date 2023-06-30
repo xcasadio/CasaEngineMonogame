@@ -1,0 +1,16 @@
+{
+    "sprite_sheet_file_name": "Outside_A2.png",
+    "tile_size": {
+        "x": 48,
+        "y": 48
+    },
+    "tiles": [
+        {
+            "collision_type": "none",
+            "id": 0,
+            "is_breakable": false,
+            "sprite_id": "outside_a2_0_0",
+            "type": "static"
+        }
+    ]
+}
