@@ -93,18 +93,29 @@ namespace SandBoxGame
             _animatedSpriteComponent = animatedSprite;
 
             world.AddEntityImmediately(entity);
+
+            //============ animated sprite 2 ===============
+            entity = new Entity();
+            entity.Coordinates.LocalPosition = new Vector3(450, 250, 0.0f);
+            animatedSprite = new AnimatedSpriteComponent(entity);
+            entity.ComponentManager.Components.Add(animatedSprite);
+            animatedSprite.AddAnimation(new Animation2d(animations.First(x => x.Name == "idle")));
+            animatedSprite.SetCurrentAnimation("idle", true);
+            world.AddEntityImmediately(entity);
+
+
             PhysicsDebugViewRendererComponent.DisplayPhysics = true;
 
             //////**********************
-            _spriteData = GameManager.AssetContentManager.GetAsset<SpriteData>("100_0");
+            _spriteData = GameManager.AssetContentManager.GetAsset<SpriteData>("100_4");
             _sprite = Sprite.Create(_spriteData, GameManager.AssetContentManager);
             _texture2D = new Texture2D(GraphicsDevice, 2, 2, false, SurfaceFormat.Color);
             _texture2D.SetData(new Color[] { Color.Red, Color.Green, Color.Blue, Color.White });
 
             base.LoadContent();
 
-            //animatedSprite.SetCurrentAnimation("run_forward", true);
-            animatedSprite.SetCurrentAnimation("idle", true);
+            //_animatedSpriteComponent.SetCurrentAnimation("run_forward", true);
+            _animatedSpriteComponent.SetCurrentAnimation("run_forward", true);
         }
 
         private AnimatedSpriteComponent _animatedSpriteComponent;
@@ -157,10 +168,22 @@ namespace SandBoxGame
                 position.Y -= 1;
                 _animatedSpriteComponent.Owner.Coordinates.LocalPosition = position;
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            else if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
                 var position = _animatedSpriteComponent.Owner.Coordinates.LocalPosition;
                 position.Y += 1;
+                _animatedSpriteComponent.Owner.Coordinates.LocalPosition = position;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                var position = _animatedSpriteComponent.Owner.Coordinates.LocalPosition;
+                position.X -= 1;
+                _animatedSpriteComponent.Owner.Coordinates.LocalPosition = position;
+            }
+            else if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                var position = _animatedSpriteComponent.Owner.Coordinates.LocalPosition;
+                position.X += 1;
                 _animatedSpriteComponent.Owner.Coordinates.LocalPosition = position;
             }
 

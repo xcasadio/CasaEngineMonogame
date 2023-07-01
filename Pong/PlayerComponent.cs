@@ -1,15 +1,19 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Component = CasaEngine.Framework.Entities.Component;
 
 namespace Pong;
 
+[DisplayName("PlayerComponent")]
 public class PlayerComponent : Component
 {
-    public static readonly int ComponentId = 1001;
+    public static readonly int ComponentId = (int)ComponentIds.Custom + 1;
 
     private readonly ShapeRectangle _shapeRectangle;
     private readonly int _width;

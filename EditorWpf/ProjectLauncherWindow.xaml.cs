@@ -1,17 +1,21 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using CasaEngine.Core.Logger;
 using EditorWpf.Windows;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
 using CasaEngine.Engine;
 using Newtonsoft.Json;
 using CasaEngine.Framework.Game;
+using MessageBox = System.Windows.MessageBox;
 
 namespace EditorWpf
 {
     public partial class ProjectLauncherWindow : Window
     {
+        private ObservableCollection<string> _projects = new();
         private const string MostRecentProjectsFileName = "mostRecentProjects.json";
 
         public ProjectLauncherWindow()
@@ -23,7 +27,7 @@ namespace EditorWpf
 
         private void LoadMostRecentProjects()
         {
-            listBoxRecentProjects.ItemsSource = new List<string>();
+            listBoxRecentProjects.ItemsSource = _projects;
 
             if (!File.Exists(MostRecentProjectsFileName))
             {
@@ -33,19 +37,19 @@ namespace EditorWpf
             JsonSerializer serializer = new JsonSerializer();
             using StreamReader sw = new StreamReader(MostRecentProjectsFileName);
             using JsonReader reader = new JsonTextReader(sw);
-            var projectList = serializer.Deserialize<List<string>>(reader);
-            listBoxRecentProjects.ItemsSource = projectList;
+            foreach (var file in serializer.Deserialize<List<string>>(reader))
+            {
+                _projects.Add(file);
+            }
+            listBoxRecentProjects.ItemsSource = _projects;
         }
 
 
-        private void SaveMostRecentProjects(string projectOpenedFileName)
+        private void SaveMostRecentProjects()
         {
-            var list = listBoxRecentProjects.ItemsSource;
-
             var projects = new HashSet<string>();
-            projects.Add(projectOpenedFileName);
 
-            foreach (string projectFileName in listBoxRecentProjects.ItemsSource)
+            foreach (string projectFileName in _projects)
             {
                 projects.Add(projectFileName);
             }
@@ -74,8 +78,24 @@ namespace EditorWpf
             {
                 //create default settings
                 GameSettings.ProjectSettings.CreateProject(dialog.ProjectName, dialog.ProjectPath);
+                var projectFileName = Path.Combine(dialog.ProjectPath, dialog.ProjectName + Constants.FileNameExtensions.Project);
+                _projects.Add(projectFileName);
                 LogManager.Instance.WriteLineInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
-                OpenEditor(Path.Combine(dialog.ProjectPath, dialog.ProjectName + Constants.FileNameExtensions.Project));
+                OpenEditor(projectFileName);
+            }
+        }
+        private void ButtonOpenProject_Click(object sender, RoutedEventArgs e)
+        {
+            var fileDialog = new OpenFileDialog();
+            fileDialog.Title = "Open a project";
+            fileDialog.CheckFileExists = true;
+            fileDialog.Filter = "json files|*.json";
+
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                _projects.Add(fileDialog.FileName);
+                SaveMostRecentProjects();
+                OpenEditor(fileDialog.FileName);
             }
         }
 
@@ -86,17 +106,25 @@ namespace EditorWpf
                 return;
             }
 
-            if (!File.Exists(fileName))
-            {
-                return;
-            }
-
             OpenEditor(fileName);
         }
 
         private void OpenEditor(string projectFileName)
         {
-            SaveMostRecentProjects(projectFileName);
+            if (!File.Exists(projectFileName))
+            {
+                if (MessageBox.Show(this,
+                        $"The project file {projectFileName} doesn't exist. Remove it from the project list ?", "Error",
+                        MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    _projects.Remove(projectFileName);
+                    SaveMostRecentProjects();
+                }
+
+                return;
+            }
+
+            SaveMostRecentProjects();
             var mainWindow = new MainWindow(projectFileName);
             mainWindow.Show();
             Close();

@@ -31,7 +31,13 @@ VS_OUTPUT VS(VS_INPUT vertex)
 
 float4 PS(VS_OUTPUT input) : COLOR
 {
-    return 	tex2D(TextureSampler, input.textureCoordinates) * Color;
+    float4 texel = tex2D(TextureSampler, input.textureCoordinates) * Color;
+    if (texel.a <= 0.01f)
+    {
+	    discard;
+    }
+
+    return texel;
 }
 
 technique Simple

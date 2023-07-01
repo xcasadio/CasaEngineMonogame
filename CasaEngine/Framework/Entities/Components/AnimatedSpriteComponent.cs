@@ -264,7 +264,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public void OnHit(Collision collision)
     {
-
+        //Owner.OnHit(collision)
     }
 
     public void OnHitEnded(Collision collision)

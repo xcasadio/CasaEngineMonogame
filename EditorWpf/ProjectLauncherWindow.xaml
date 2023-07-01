@@ -14,7 +14,17 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="CasaEngine version x.x.x" Height="20"/>
-        <Button Grid.Row="1" Content="Create a new project" HorizontalAlignment="Right" Click="ButtonCreateProject_Click"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" Content="Open project" Click="ButtonOpenProject_Click"/>
+            <Button Grid.Column="2" Content="Create project" Click="ButtonCreateProject_Click"/>
+        </Grid>
+
         <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

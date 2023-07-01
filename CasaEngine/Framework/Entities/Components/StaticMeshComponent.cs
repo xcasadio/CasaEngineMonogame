@@ -3,12 +3,13 @@ using System.Text.Json;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Static Mesh")]
-public class StaticMeshComponent : Component
+public class StaticMeshComponent : Component, IBoundingBoxComputable
 {
     public static readonly int ComponentId = (int)ComponentIds.Mesh;
     private StaticMeshRendererComponent? _meshRendererComponent;
@@ -79,6 +80,37 @@ public class StaticMeshComponent : Component
         else
         {
             jObject.Add("mesh", "null");
+        }
+    }
+
+    public BoundingBox BoundingBox
+    {
+        get
+        {
+            var min = Vector3.One * int.MaxValue;
+            var max = Vector3.One * int.MinValue;
+
+            if (Mesh != null)
+            {
+                var vertices = Mesh.GetVertices();
+
+                foreach (var vertex in vertices)
+                {
+                    min = Vector3.Min(min, vertex.Position);
+                    max = Vector3.Max(max, vertex.Position);
+                }
+            }
+            else // default box
+            {
+                const float length = 0.5f;
+                min = Vector3.One * -length;
+                max = Vector3.One * length;
+            }
+
+            min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
+            max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+
+            return new BoundingBox(min, max);
         }
     }
 #endif

@@ -39,6 +39,12 @@ public class SpriteRendererComponent : DrawableGameComponent
     public int SpriteSheetTransparency = 124;
     private Renderer2dComponent? _renderer2dComponent;
     private Line3dRendererComponent? _line3dRendererComponent;
+    private DepthStencilState _depthStencilState;
+    private BlendState _blendState;
+    private Vector3 _verticeTopLeft;
+    private Vector3 _verticeTopRight;
+    private Vector3 _verticeBottomRight;
+    private Vector3 _verticeBottomLeft;
 
     public SpriteRendererComponent(Game game) : base(game)
     {
@@ -52,6 +58,27 @@ public class SpriteRendererComponent : DrawableGameComponent
 
         UpdateOrder = (int)ComponentUpdateOrder.Line3dComponent;
         DrawOrder = (int)ComponentDrawOrder.Line3dComponent;
+
+        _depthStencilState = new DepthStencilState
+        {
+            DepthBufferEnable = true,
+            DepthBufferWriteEnable = true,
+            DepthBufferFunction = CompareFunction.LessEqual,
+        };
+
+        _blendState = new BlendState
+        {
+            ColorSourceBlend = Blend.SourceColor,
+            AlphaSourceBlend = Blend.SourceAlpha,
+            ColorDestinationBlend = Blend.DestinationColor,
+            AlphaDestinationBlend = Blend.DestinationAlpha,
+            AlphaBlendFunction = BlendFunction.Add,
+        };
+
+        _verticeTopLeft = new Vector3(-0.5f, 0.5f, 0);
+        _verticeTopRight = new Vector3(0.5f, 0.5f, 0);
+        _verticeBottomRight = new Vector3(0.5f, -0.5f, 0);
+        _verticeBottomLeft = new Vector3(-0.5f, -0.5f, 0);
     }
 
     protected override void LoadContent()
@@ -83,9 +110,10 @@ public class SpriteRendererComponent : DrawableGameComponent
     private void Draw(Matrix view, Matrix projection)
     {
         var graphicsDevice = _effect.GraphicsDevice;
-        graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        graphicsDevice.RasterizerState = RasterizerState.CullNone;
-        graphicsDevice.BlendState = BlendState.AlphaBlend;
+
+        graphicsDevice.DepthStencilState = _depthStencilState;
+        graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+        graphicsDevice.BlendState = _blendState;
         graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
@@ -287,16 +315,16 @@ public class SpriteRendererComponent : DrawableGameComponent
         uvBottomLeft /= textureSize;
 
         GetSpriteDisplayData(out var spriteDisplayData);
-        spriteDisplayData.TopLeft = new(new Vector3(-0.5f, 0.5f, z), uvTopLeft);
-        spriteDisplayData.TopRight = new(new Vector3(0.5f, 0.5f, z), uvTopRight);
-        spriteDisplayData.BottomRight = new(new Vector3(0.5f, -0.5f, z), uvBottomRight);
-        spriteDisplayData.BottomLeft = new(new Vector3(-0.5f, -0.5f, z), uvBottomLeft);
+        spriteDisplayData.TopLeft = new(_verticeTopLeft, uvTopLeft);
+        spriteDisplayData.TopRight = new(_verticeTopRight, uvTopRight);
+        spriteDisplayData.BottomRight = new(_verticeBottomRight, uvBottomRight);
+        spriteDisplayData.BottomLeft = new(_verticeBottomLeft, uvBottomLeft);
         spriteDisplayData.Texture = texture2d;
         spriteDisplayData.Color = color;
         spriteDisplayData.WorldMatrix = MatrixExtensions.Transformation(
             new Vector3(scale.X * sourceInTexture.Width, scale.Y * sourceInTexture.Height, 1.0f),
             Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation),
-            new Vector3(position.X - origin.X + sourceInTexture.Width / 2f, position.Y + origin.Y * scale.Y - (sourceInTexture.Height / 2f) * scale.Y, 0));
+            new Vector3(position.X - origin.X + sourceInTexture.Width / 2f, position.Y + origin.Y * scale.Y - (sourceInTexture.Height / 2f) * scale.Y, z));
         spriteDisplayData.ScissorRectangle = scissorRectangle;
         _spriteDatas.Add(spriteDisplayData);
 

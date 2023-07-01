@@ -1,4 +1,7 @@
-﻿namespace CasaEngine.Framework.Entities;
+﻿using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Entities.Components;
+
+namespace CasaEngine.Framework.Entities;
 
 public interface IExternalComponent
 {
@@ -11,4 +14,7 @@ public interface IExternalComponent
     public void Update(float elapsedTime);
 
     public void Draw();
+
+    public void OnHit(Collision collision);
+    public void OnHitEnded(Collision collision);
 }

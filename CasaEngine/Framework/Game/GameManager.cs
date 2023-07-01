@@ -73,8 +73,14 @@ public class GameManager
         if (graphicsDeviceService == null)
         {
             var graphicsDeviceManager = new GraphicsDeviceManager(game);
-            graphicsDeviceManager.PreparingDeviceSettings += PreparingDeviceSettings;
             graphicsDeviceManager.DeviceReset += OnDeviceReset;
+
+            graphicsDeviceManager.PreferredBackBufferWidth = GameSettings.ProjectSettings.DebugWidth;
+            graphicsDeviceManager.PreferredBackBufferHeight = GameSettings.ProjectSettings.DebugHeight;
+            graphicsDeviceManager.PreferMultiSampling = false;
+            graphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
+            graphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24;
+            graphicsDeviceManager.GraphicsProfile = GraphicsProfile.HiDef;
         }
         else
         {
@@ -86,15 +92,6 @@ public class GameManager
             game.Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
             game.Services.AddService(typeof(IGraphicsDeviceManager), graphicsDeviceService as IGraphicsDeviceManager);
         }
-    }
-
-    private void PreparingDeviceSettings(object? sender, PreparingDeviceSettingsEventArgs e)
-    {
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth = GameSettings.ProjectSettings.DebugWidth;
-        e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight = GameSettings.ProjectSettings.DebugHeight;
-
-        e.GraphicsDeviceInformation.GraphicsProfile = GraphicsAdapter.Adapters
-            .Any(x => x.IsProfileSupported(GraphicsProfile.HiDef)) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
     }
 
     public void OnScreenResized(int width, int height)
@@ -215,7 +212,7 @@ public class GameManager
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
             CurrentWorld = new World.World();
-            CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded);
+            CurrentWorld.Load(Path.Combine(GameSettings.ProjectSettings.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded));
             CurrentWorld.Initialize(_game);
         }
 

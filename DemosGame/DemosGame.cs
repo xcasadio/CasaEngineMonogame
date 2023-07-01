@@ -16,8 +16,11 @@ namespace DemosGame
 
         protected override void Initialize()
         {
+            GameSettings.ProjectSettings.IsMouseVisible = true;
+            GameSettings.ProjectSettings.WindowTitle = "CasaEngine demos";
+            GameSettings.ProjectSettings.AllowUserResizing = true;
+
             base.Initialize();
-            IsMouseVisible = true;
         }
 
         protected override void LoadContent()

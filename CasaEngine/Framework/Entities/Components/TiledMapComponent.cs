@@ -9,14 +9,11 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Tiled Map")]
-public class TiledMapComponent : Component
+public class TiledMapComponent : Component, IBoundingBoxComputable
 {
     public static readonly int ComponentId = (int)ComponentIds.TiledMap;
 
     public TiledMapData TiledMapData { get; set; }
-#if EDITOR
-    public string TiledMapDataFileName { get; set; }
-#endif
     private List<TiledMapLayer> Layers { get; } = new();
 
     public TiledMapComponent(Entity entity) : base(entity, ComponentId)
@@ -125,7 +122,7 @@ public class TiledMapComponent : Component
 
         foreach (var layer in Layers)
         {
-            var layerZ = layer.TiledMapLayerData.zOffset;
+            var layerZ = layer.TiledMapLayerData.zOffset * 10;
 
             for (var y = 0; y < mapHeight; y++)
             {
@@ -148,12 +145,43 @@ public class TiledMapComponent : Component
     }
 
 #if EDITOR
+    public string TiledMapDataFileName { get; set; }
 
     public override void Save(JObject jObject)
     {
         base.Save(jObject);
 
         jObject.Add("tiledMapDataFileName", TiledMapDataFileName);
+    }
+
+
+    public BoundingBox BoundingBox
+    {
+        get
+        {
+            var min = Vector3.One * int.MaxValue;
+            var max = Vector3.One * int.MinValue;
+
+            if (TiledMapData != null)
+            {
+                min = Vector3.Min(min, new Vector3(0, 0, TiledMapData.Layers.Min(x => x.zOffset)));
+                max = Vector3.Max(max, new Vector3(
+                    TiledMapData.MapSize.Width * TiledMapData.TileSize.Width,
+                    -TiledMapData.MapSize.Height * TiledMapData.TileSize.Height,
+                    TiledMapData.Layers.Max(x => x.zOffset)));
+            }
+            else // default box
+            {
+                const float length = 0.5f;
+                min = Vector3.One * -length;
+                max = Vector3.One * length;
+            }
+
+            min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
+            max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+
+            return new BoundingBox(min, max);
+        }
     }
 
 #endif

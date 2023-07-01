@@ -16,12 +16,13 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
     protected override void Initialize()
     {
-        GameManager.Initialize();
-
         if (!string.IsNullOrWhiteSpace(_projectFileName))
         {
             GameSettings.ProjectSettings.Load(_projectFileName);
         }
+
+        GameManager.Initialize();
+
 
         base.Initialize();
     }

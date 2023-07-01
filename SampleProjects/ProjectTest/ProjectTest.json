@@ -6,7 +6,7 @@
   "AllowUserResizing": false,
   "IsFixedTimeStep": false,
   "IsMouseVisible": false,
-  "FirstWorldLoaded": "C:\\Users\\casad\\Documents\\CasaEngineProjects\\ProjectTest\\DefaultWorld.world",
+  "FirstWorldLoaded": "DefaultWorld.world",
   "GameplayDllName": "",
   "DebugIsFullScreen": false,
   "DebugWidth": 1024,

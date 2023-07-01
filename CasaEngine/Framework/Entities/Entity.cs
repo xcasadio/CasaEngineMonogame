@@ -5,9 +5,12 @@ using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.UserInterface.Controls;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using XNAGizmo;
+using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Entities;
 
@@ -201,29 +204,17 @@ public class Entity : ISaveLoad
 
     private BoundingBox ComputeBoundingBox()
     {
-        Vector3 min = Vector3.One * int.MaxValue, max = Vector3.One * int.MinValue;
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
 
-        var meshComponent = ComponentManager.GetComponent<StaticMeshComponent>();
-
-        if (meshComponent?.Mesh != null)
+        foreach (var component in ComponentManager.Components)
         {
-            var vertices = meshComponent.Mesh.GetVertices();
-
-            foreach (var vertex in vertices)
+            if (component is IBoundingBoxComputable boundingBoxComputable)
             {
-                var positionTransformed = Vector3.Transform(vertex.Position, Coordinates.WorldMatrix);
-                //var positionTransformed = Position - Vector3.Transform(vertex.Position, Orientation) * Scale;
-                min = Vector3.Min(min, positionTransformed);
-                max = Vector3.Max(max, positionTransformed);
+                var boundingBox = boundingBoxComputable.BoundingBox;
+                min = Vector3.Min(min, boundingBox.Min);
+                max = Vector3.Max(max, boundingBox.Max);
             }
-        }
-        else // default box
-        {
-            const float length = 0.5f;
-            //var min = Position - Vector3.Transform(Vector3.One * length, Orientation) * Scale;
-            //var max = Position + Vector3.Transform(Vector3.One * length, Orientation) * Scale;
-            min = Vector3.Transform(-(Vector3.One * length), Coordinates.WorldMatrix);
-            max = Vector3.Transform((Vector3.One * length), Coordinates.WorldMatrix);
         }
 
         return new BoundingBox(min, max);
