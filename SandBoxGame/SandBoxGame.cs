@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets;
@@ -25,32 +27,35 @@ namespace SandBoxGame
     {
         protected override void Initialize()
         {
-            new GridComponent(this);
+            //new GridComponent(this);
             new AxisComponent(this);
             base.Initialize();
 
-            IsMouseVisible = true;
+            //IsMouseVisible = true;
 
-            GameManager.SpriteRendererComponent.IsDrawCollisionsEnabled = true;
-            GameManager.SpriteRendererComponent.IsDrawSpriteOriginEnabled = true;
+            //GameManager.SpriteRendererComponent.IsDrawCollisionsEnabled = true;
+            //GameManager.SpriteRendererComponent.IsDrawSpriteOriginEnabled = true;
 
-            GameManager.Renderer2dComponent.IsDrawCollisionsEnabled = true;
-            GameManager.Renderer2dComponent.IsDrawSpriteOriginEnabled = true;
+            //GameManager.Renderer2dComponent.IsDrawCollisionsEnabled = true;
+            //GameManager.Renderer2dComponent.IsDrawSpriteOriginEnabled = true;
+
+            //PhysicsDebugViewRendererComponent.DisplayPhysics = true;
         }
 
         protected override void LoadContent()
         {
+            GameManager.DefaultSpriteFont = Content.Load<SpriteFont>("GizmoFont");
+
             var world = new World();
             GameManager.CurrentWorld = world;
 
             //============ Camera ===============
             var entity = new Entity();
-            var camera = new ArcBallCameraComponent(entity);
-            camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-            //var camera = new Camera3dIn2dAxisComponent(entity);
-            //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
+            //var camera = new ArcBallCameraComponent(entity);
+            //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+            var camera = new Camera3dIn2dAxisComponent(entity);
+            camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
             entity.ComponentManager.Components.Add(camera);
-            GameManager.ActiveCamera = camera;
             world.AddEntityImmediately(entity);
 
             //============ Box ===============
@@ -68,6 +73,7 @@ namespace SandBoxGame
             var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
 
             entity = new Entity();
+            entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
             var tiledMapComponent = new TiledMapComponent(entity);
             tiledMapComponent.TiledMapData = tiledMapData;
             entity.ComponentManager.Components.Add(tiledMapComponent);
@@ -103,9 +109,6 @@ namespace SandBoxGame
             animatedSprite.SetCurrentAnimation("idle", true);
             world.AddEntityImmediately(entity);
 
-
-            PhysicsDebugViewRendererComponent.DisplayPhysics = true;
-
             //////**********************
             _spriteData = GameManager.AssetContentManager.GetAsset<SpriteData>("100_4");
             _sprite = Sprite.Create(_spriteData, GameManager.AssetContentManager);
@@ -114,6 +117,7 @@ namespace SandBoxGame
 
             base.LoadContent();
 
+            GameManager.ActiveCamera = camera;
             //_animatedSpriteComponent.SetCurrentAnimation("run_forward", true);
             _animatedSpriteComponent.SetCurrentAnimation("run_forward", true);
         }
@@ -124,6 +128,13 @@ namespace SandBoxGame
         private Sprite _sprite;
         private Texture2D _texture2D;
 
+
+        private int _blendFunctionIndex = 0;
+        private int _colorSourceBlendIndex = 0;
+        private int _alphaSourceBlendIndex = 0;
+        private int _colorDestinationBlendIndex = 0;
+        private int _alphaDestinationBlendIndex = 0;
+
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -131,35 +142,83 @@ namespace SandBoxGame
                 Exit();
             }
 
-            //if (Keyboard.GetState().IsKeyDown(Keys.Left))
-            //{
-            //    var camera = GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
-            //    var target = camera.Target;
-            //    target.X -= 1;
-            //    camera.Target = target;
-            //}
-            //if (Keyboard.GetState().IsKeyDown(Keys.Right))
-            //{
-            //    var camera = GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
-            //    var target = camera.Target;
-            //    target.X += 1;
-            //    camera.Target = target;
-            //}
-            //
-            //if (Keyboard.GetState().IsKeyDown(Keys.Up))
-            //{
-            //    var camera = GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
-            //    var target = camera.Target;
-            //    target.Y -= 1;
-            //    camera.Target = target;
-            //}
-            //if (Keyboard.GetState().IsKeyDown(Keys.Down))
-            //{
-            //    var camera = GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
-            //    var target = camera.Target;
-            //    target.Y += 1;
-            //    camera.Target = target;
-            //}
+            var millisecondsTimeout = 300;
+            if (Keyboard.GetState().IsKeyDown(Keys.X))
+            {
+                var values = Enum.GetValues<BlendFunction>();
+                _blendFunctionIndex = _blendFunctionIndex + 1 >= values.Length ? 0 : _blendFunctionIndex + 1;
+
+                GameManager.SpriteRendererComponent._blendState = new BlendState
+                {
+                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+                    AlphaBlendFunction = values[_blendFunctionIndex]
+                };
+
+                Thread.Sleep(millisecondsTimeout);
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.C))
+            {
+                var values = Enum.GetValues<Blend>();
+                _colorSourceBlendIndex = _colorSourceBlendIndex + 1 >= values.Length ? 0 : _colorSourceBlendIndex + 1;
+
+                GameManager.SpriteRendererComponent._blendState = new BlendState
+                {
+                    ColorSourceBlend = values[_colorSourceBlendIndex],
+                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                };
+                Thread.Sleep(millisecondsTimeout);
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.V))
+            {
+                var values = Enum.GetValues<Blend>();
+                _alphaSourceBlendIndex = _alphaSourceBlendIndex + 1 >= values.Length ? 0 : _alphaSourceBlendIndex + 1;
+
+                GameManager.SpriteRendererComponent._blendState = new BlendState
+                {
+                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+                    AlphaSourceBlend = values[_alphaSourceBlendIndex],
+                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                };
+                Thread.Sleep(millisecondsTimeout);
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.B))
+            {
+                var values = Enum.GetValues<Blend>();
+                _colorDestinationBlendIndex = _colorDestinationBlendIndex + 1 >= values.Length ? 0 : _colorDestinationBlendIndex + 1;
+
+                GameManager.SpriteRendererComponent._blendState = new BlendState
+                {
+                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+                    ColorDestinationBlend = values[_colorDestinationBlendIndex],
+                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                };
+                Thread.Sleep(millisecondsTimeout);
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.N))
+            {
+                var values = Enum.GetValues<Blend>();
+                _alphaDestinationBlendIndex = _alphaDestinationBlendIndex + 1 >= values.Length ? 0 : _alphaDestinationBlendIndex + 1;
+
+                GameManager.SpriteRendererComponent._blendState = new BlendState
+                {
+                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+                    AlphaDestinationBlend = values[_alphaDestinationBlendIndex],
+                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                };
+                Thread.Sleep(millisecondsTimeout);
+            }
 
 
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
@@ -213,6 +272,13 @@ namespace SandBoxGame
 
         protected override void Draw(GameTime gameTime)
         {
+            var blendState = GameManager.SpriteRendererComponent._blendState;
+            var message =
+                $"{blendState.ColorBlendFunction} - {blendState.AlphaBlendFunction} - {blendState.ColorSourceBlend} - {blendState.AlphaSourceBlend} - {blendState.ColorDestinationBlend} - {blendState.AlphaDestinationBlend}";
+
+            GameManager.Renderer2dComponent.DrawText(GameManager.DefaultSpriteFont, message, Vector2.One, 0, Vector2.One, Color.White, 0.1f);
+
+
             base.Draw(gameTime);
         }
     }

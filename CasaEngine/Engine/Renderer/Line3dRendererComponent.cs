@@ -93,10 +93,11 @@ public class Line3dRendererComponent : DrawableGameComponent
         var graphicsDevice = effect.GraphicsDevice;
 
         //graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        graphicsDevice.DepthStencilState = DepthStencilState.None;
+        graphicsDevice.DepthStencilState = DepthStencilState.Default;
         graphicsDevice.RasterizerState = RasterizerState.CullNone;
-        graphicsDevice.BlendState = BlendState.AlphaBlend;
+        graphicsDevice.BlendState = BlendState.Opaque;
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        GraphicsDevice.Indices = null;
 
         foreach (var effectPass in effect.CurrentTechnique.Passes)
         {

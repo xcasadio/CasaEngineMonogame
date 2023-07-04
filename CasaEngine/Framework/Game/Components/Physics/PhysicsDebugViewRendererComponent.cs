@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Game.Components.Physics;
 
 public class PhysicsDebugViewRendererComponent : DrawableGameComponent
 {
-    public static bool DisplayPhysics = true;
+    public static bool DisplayPhysics;
     private PhysicsDebugDraw _physicsDebugRenderer;
     private readonly CasaEngineGame _game;
 

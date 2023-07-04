@@ -69,7 +69,8 @@ public class GameManager
             _activeCamera = value;
             if (_activeCamera != null)
             {
-                _game.GraphicsDevice.Viewport = _activeCamera.Viewport;
+                //TODO: why change min an max depth create bugs ?
+                _game.GraphicsDevice.Viewport = new Viewport(_activeCamera.Viewport.Bounds);
             }
         }
     }
@@ -151,7 +152,6 @@ public class GameManager
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
         PhysicsEngineComponent = new PhysicsEngineComponent(_game);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(_game);
-        PhysicsDebugViewRendererComponent.DisplayPhysics = true;
 
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');

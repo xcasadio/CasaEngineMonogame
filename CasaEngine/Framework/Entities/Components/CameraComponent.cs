@@ -63,7 +63,7 @@ public abstract class CameraComponent : Component
 
         _viewport.Width = game.GraphicsDevice.PresentationParameters.BackBufferWidth;
         _viewport.Height = game.GraphicsDevice.PresentationParameters.BackBufferHeight;
-        _viewport.MinDepth = 0.1f;
+        _viewport.MinDepth = 0.00001f;
         _viewport.MaxDepth = 100000.0f;
     }
 

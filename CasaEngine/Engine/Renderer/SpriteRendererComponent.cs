@@ -40,7 +40,7 @@ public class SpriteRendererComponent : DrawableGameComponent
     private Renderer2dComponent? _renderer2dComponent;
     private Line3dRendererComponent? _line3dRendererComponent;
     private DepthStencilState _depthStencilState;
-    private BlendState _blendState;
+    public BlendState _blendState;
     private Vector3 _verticeTopLeft;
     private Vector3 _verticeTopRight;
     private Vector3 _verticeBottomRight;
@@ -70,7 +70,7 @@ public class SpriteRendererComponent : DrawableGameComponent
         {
             ColorSourceBlend = Blend.SourceColor,
             AlphaSourceBlend = Blend.SourceAlpha,
-            ColorDestinationBlend = Blend.DestinationColor,
+            ColorDestinationBlend = Blend.InverseSourceAlpha,
             AlphaDestinationBlend = Blend.DestinationAlpha,
             AlphaBlendFunction = BlendFunction.Add,
         };
@@ -112,18 +112,12 @@ public class SpriteRendererComponent : DrawableGameComponent
         var graphicsDevice = _effect.GraphicsDevice;
 
         graphicsDevice.DepthStencilState = _depthStencilState;
-        graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;//CullClockwise;
+        graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         graphicsDevice.BlendState = _blendState;
         graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
-
-        //RasterizerState rasterizerState = new RasterizerState();
-        //rasterizerState.FillMode = FillMode.WireFrame;
-        //rasterizerState.CullMode = CullMode.None;
-        //rasterizerState.MultiSampleAntiAlias = true;
-        //GraphicsDevice.RasterizerState = rasterizerState;
 
         _effect.Parameters["ViewProj"].SetValue(view * projection);
 

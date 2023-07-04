@@ -51,6 +51,7 @@ public class AxisComponent : DrawableGameComponent, IGameComponentResizable
             GraphicsDevice.RasterizerState = RasterizerState.CullNone;
             GraphicsDevice.BlendState = BlendState.Opaque;
             GraphicsDevice.SetVertexBuffer(_vertexBuffer);
+            GraphicsDevice.Indices = null;
 
             //TODO : compute with screen height/width and aspect ratio
             var screenSize = _game.Window.ClientBounds.Size;

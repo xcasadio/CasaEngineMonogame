@@ -87,8 +87,10 @@ public class GridComponent : DrawableGameComponent
         GridEffect.View = camera.ViewMatrix;
         GridEffect.Projection = camera.ProjectionMatrix;
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-        GraphicsDevice.RasterizerState = RasterizerState.CullNone;
-        GraphicsDevice.BlendState = BlendState.AlphaBlend;
+        GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        GraphicsDevice.BlendState = BlendState.Opaque;
+        GraphicsDevice.Indices = null;
+        GraphicsDevice.SetVertexBuffer(null);
 
         foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
         {
