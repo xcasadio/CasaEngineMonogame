@@ -2,6 +2,7 @@
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.TiledMapControls;
 

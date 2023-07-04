@@ -122,7 +122,7 @@ public class TiledMapComponent : Component, IBoundingBoxComputable
 
         foreach (var layer in Layers)
         {
-            var layerZ = layer.TiledMapLayerData.zOffset * 10;
+            var layerZ = layer.TiledMapLayerData.zOffset;
 
             for (var y = 0; y < mapHeight; y++)
             {

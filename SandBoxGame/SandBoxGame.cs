@@ -45,10 +45,10 @@ namespace SandBoxGame
 
             //============ Camera ===============
             var entity = new Entity();
-            //var camera = new ArcBallCameraComponent(entity);
-            //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-            var camera = new Camera3dIn2dAxisComponent(entity);
-            camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
+            var camera = new ArcBallCameraComponent(entity);
+            camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+            //var camera = new Camera3dIn2dAxisComponent(entity);
+            //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
             entity.ComponentManager.Components.Add(camera);
             GameManager.ActiveCamera = camera;
             world.AddEntityImmediately(entity);
@@ -65,14 +65,14 @@ namespace SandBoxGame
             world.AddEntityImmediately(entity);
 
             //============ tiledMap ===============
-            //var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
-            //
-            //entity = new Entity();
-            //var tiledMapComponent = new TiledMapComponent(entity);
-            //tiledMapComponent.TiledMapData = tiledMapData;
-            //entity.ComponentManager.Components.Add(tiledMapComponent);
-            //
-            //world.AddEntityImmediately(entity);
+            var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
+
+            entity = new Entity();
+            var tiledMapComponent = new TiledMapComponent(entity);
+            tiledMapComponent.TiledMapData = tiledMapData;
+            entity.ComponentManager.Components.Add(tiledMapComponent);
+
+            world.AddEntityImmediately(entity);
 
             //============ animated sprite ===============
             SpriteLoader.LoadFromFile("Content\\ryu.spritesheet", GameManager.AssetContentManager);

@@ -3,7 +3,7 @@
     "version": 1,
     "id": 0,
     "name": "DefaultWorld",
-    "file_name": "C:\\Users\\casad\\Documents\\CasaEngineProjects\\RPG\\DefaultWorld.world"
+    "file_name": "DefaultWorld.world"
   },
   "version": 1,
   "entities": [
@@ -39,6 +39,50 @@
           "version": 1,
           "type": 8,
           "tiledMapDataFileName": "Maps\\map_1_1_tile_set.tiledMap"
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "id": -1,
+      "name": "Camera player target",
+      "coordinates": {
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "center_of_rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "components": [
+        {
+          "version": 1,
+          "type": 11,
+          "view_distance": 0.0,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 800,
+            "h": 480,
+            "min_depth": 0.1,
+            "max_depth": 100000.0
+          },
+          "fieldOfView": 0.8377581
         }
       ]
     }

@@ -104,9 +104,9 @@ public sealed class World : Asset
 
     public void Draw(float elapsedTime)
     {
-        foreach (var baseObject in _entities)
+        foreach (var entity in _entities)
         {
-            baseObject.Draw();
+            entity.Draw();
         }
     }
 
@@ -131,8 +131,9 @@ public sealed class World : Asset
 #if EDITOR
     public void Save(string path)
     {
-        var fullFileName = Path.Combine(path, Name + Constants.FileNameExtensions.World);
-        FileName = fullFileName;
+        var relativePath = Name + Constants.FileNameExtensions.World;
+        var fullFileName = Path.Combine(path, relativePath);
+        FileName = relativePath;
 
         JObject worldJson = new();
         base.Save(worldJson);

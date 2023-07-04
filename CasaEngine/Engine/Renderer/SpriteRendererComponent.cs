@@ -112,7 +112,7 @@ public class SpriteRendererComponent : DrawableGameComponent
         var graphicsDevice = _effect.GraphicsDevice;
 
         graphicsDevice.DepthStencilState = _depthStencilState;
-        graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+        graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;//CullClockwise;
         graphicsDevice.BlendState = _blendState;
         graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
@@ -191,7 +191,7 @@ public class SpriteRendererComponent : DrawableGameComponent
                 return 0;
             }
 
-            return xZ < yZ ? -1 : 1;
+            return xZ > yZ ? -1 : 1;
         });
 
         for (var i = 0; i < _spriteDatas.Count; i++)

@@ -49,6 +49,7 @@ public class GameManager
 
     // Game running infos
     private World.World? _currentWorld;
+    private CameraComponent? _activeCamera;
 
     public World.World? CurrentWorld
     {
@@ -60,7 +61,18 @@ public class GameManager
         }
     }
 
-    public CameraComponent? ActiveCamera { get; set; }
+    public CameraComponent? ActiveCamera
+    {
+        get => _activeCamera;
+        set
+        {
+            _activeCamera = value;
+            if (_activeCamera != null)
+            {
+                _game.GraphicsDevice.Viewport = _activeCamera.Viewport;
+            }
+        }
+    }
 
 #if EDITOR
     public event EventHandler? WorldChanged;

@@ -31,6 +31,7 @@
                 <MenuItem Command="Paste" />
             </MenuItem>
             <MenuItem Header="_Windows">
+                <MenuItem Header="Hidden Windows" Name="MenuItemHiddenWindows" SubmenuOpened="MenuItemWindows_OnSubmenuOpened"/>
                 <Separator/>
                 <MenuItem Header="Save Layout" Click="ButtonSaveLayout_Click"/>
                 <MenuItem Header="Load Layout" Click="ButtonLoadLayout_Click"/>

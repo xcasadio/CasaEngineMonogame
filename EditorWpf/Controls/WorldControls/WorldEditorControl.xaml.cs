@@ -8,7 +8,7 @@ namespace EditorWpf.Controls.WorldControls
     public partial class WorldEditorControl : EditorControlBase
     {
         protected override string LayoutFileName => "worldEditorLayout.xml";
-        protected override DockingManager DockingManager => dockingManagerWorld;
+        public override DockingManager DockingManager => dockingManagerWorld;
 
         public event EventHandler GameStarted;
 

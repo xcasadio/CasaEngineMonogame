@@ -14,7 +14,7 @@ namespace EditorWpf.Controls;
 public abstract class EditorControlBase : UserControl, IEditorControl
 {
     protected abstract string LayoutFileName { get; }
-    protected abstract DockingManager DockingManager { get; }
+    public abstract DockingManager DockingManager { get; }
 
     public void ShowControl(UserControl control, string panelTitle)
     {

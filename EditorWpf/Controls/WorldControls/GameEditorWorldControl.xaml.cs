@@ -3,12 +3,15 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Logger;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls.WorldControls
 {
     public partial class GameEditorWorldControl : UserControl
     {
+        private GameScreenControlViewModel? ScreenControlViewModel => DataContext as GameScreenControlViewModel;
+
         public GameEditorWorldControl()
         {
             InitializeComponent();
@@ -30,33 +33,33 @@ namespace EditorWpf.Controls.WorldControls
 
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
         {
-            gameEditor.Game.GameManager.CurrentWorld.Save(Path.GetDirectoryName(gameEditor.Game.GameManager.CurrentWorld.FileName));
-            LogManager.Instance.WriteLineInfo($"World {gameEditor.Game.GameManager.CurrentWorld.Name} saved '{Path.Combine(GameSettings.ProjectSettings.ProjectPath, gameEditor.Game.GameManager.CurrentWorld.Name + ".json")}'");
+            gameEditor.Game.GameManager.CurrentWorld.Save(GameSettings.ProjectSettings.ProjectPath);
+            LogManager.Instance.WriteLineInfo($"World {gameEditor.Game.GameManager.CurrentWorld.Name} saved ({gameEditor.Game.GameManager.CurrentWorld.FileName})");
         }
 
         private void ButtonTranslate_Click(object sender, RoutedEventArgs e)
         {
-            (DataContext as GameScreenControlViewModel).IsTranslationMode = true;
+            ScreenControlViewModel.IsTranslationMode = true;
         }
 
         private void ButtonRotate_Click(object sender, RoutedEventArgs e)
         {
-            (DataContext as GameScreenControlViewModel).IsRotationMode = true;
+            ScreenControlViewModel.IsRotationMode = true;
         }
 
         private void ButtonScale_Click(object sender, RoutedEventArgs e)
         {
-            (DataContext as GameScreenControlViewModel).IsScaleMode = true;
+            ScreenControlViewModel.IsScaleMode = true;
         }
 
         private void ButtonLocalSpace_Click(object sender, RoutedEventArgs e)
         {
-            (DataContext as GameScreenControlViewModel).IsTransformSpaceLocal = true;
+            ScreenControlViewModel.IsTransformSpaceLocal = true;
         }
 
         private void ButtonWorldSpace_Click(object sender, RoutedEventArgs e)
         {
-            (DataContext as GameScreenControlViewModel).IsTransformSpaceWorld = true;
+            ScreenControlViewModel.IsTransformSpaceWorld = true;
         }
     }
 }

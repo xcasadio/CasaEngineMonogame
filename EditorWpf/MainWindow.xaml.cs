@@ -7,6 +7,8 @@ using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
 using EditorWpf.Controls.ContentBrowser;
 using EditorWpf.Windows;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
+using TabItem = System.Windows.Controls.TabItem;
 
 namespace EditorWpf
 {
@@ -214,6 +216,39 @@ namespace EditorWpf
                     }
                 });
             }
+        }
+
+        private void MenuItemWindows_OnSubmenuOpened(object sender, RoutedEventArgs e)
+        {
+            MenuItemHiddenWindows.Items.Clear();
+
+            if (tabControl.SelectedItem is TabItem tabItem)
+            {
+                if (tabItem.Content is EditorControlBase editorControlBase)
+                {
+                    foreach (var layoutAnchorable in editorControlBase.DockingManager.Layout.Hidden)
+                    {
+                        var menuItem = new MenuItem
+                        {
+                            Header = layoutAnchorable.Title,
+                            IsCheckable = true,
+                            IsChecked = false,
+                            DataContext = layoutAnchorable
+                        };
+                        menuItem.Checked += (o, args) =>
+                        {
+                            menuItem.IsChecked = true;
+                            layoutAnchorable.IsVisible = true;
+                        };
+                        MenuItemHiddenWindows.Items.Add(menuItem);
+                    }
+                }
+            }
+        }
+
+        private void MenuItem_Checked(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -67,7 +67,6 @@ public class Line3dRendererComponent : DrawableGameComponent
         }
 
         _vertexBuffer.SetData(_vertices, 0, Math.Min(_lines.Count * 2, NbLines * 2));
-        Game.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         var camera = _game.GameManager.ActiveCamera;
         Draw(Matrix.Identity, camera.ViewMatrix, camera.ProjectionMatrix);
         //Draw(Matrix.Identity, Matrix.CreateTranslation(-_game.Window.ClientBounds.Width / 2f, 0, 0.0f),
@@ -93,8 +92,11 @@ public class Line3dRendererComponent : DrawableGameComponent
     {
         var graphicsDevice = effect.GraphicsDevice;
 
-        graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        //graphicsDevice.DepthStencilState = DepthStencilState.Default;
         graphicsDevice.DepthStencilState = DepthStencilState.None;
+        graphicsDevice.RasterizerState = RasterizerState.CullNone;
+        graphicsDevice.BlendState = BlendState.AlphaBlend;
+        graphicsDevice.SetVertexBuffer(_vertexBuffer);
 
         foreach (var effectPass in effect.CurrentTechnique.Passes)
         {

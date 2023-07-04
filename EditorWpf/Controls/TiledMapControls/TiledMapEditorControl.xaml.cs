@@ -11,7 +11,7 @@ public partial class TiledMapEditorControl : EditorControlBase
     private string _tileMapFileName;
 
     protected override string LayoutFileName => "tiledMapEditorLayout.xml";
-    protected override DockingManager DockingManager => dockingManagerTiledMap;
+    public override DockingManager DockingManager => dockingManagerTiledMap;
 
     public TiledMapEditorControl()
     {
