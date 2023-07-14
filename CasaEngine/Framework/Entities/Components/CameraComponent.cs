@@ -19,6 +19,8 @@ public abstract class CameraComponent : Component
 
     public abstract Vector3 Position { get; }
 
+    public bool IsInitialized { get; private set; }
+
     public Matrix ViewMatrix
     {
         get
@@ -59,12 +61,13 @@ public abstract class CameraComponent : Component
 
     public override void Initialize(CasaEngineGame game)
     {
+        IsInitialized = true;
         _game = game;
 
         _viewport.Width = game.GraphicsDevice.PresentationParameters.BackBufferWidth;
         _viewport.Height = game.GraphicsDevice.PresentationParameters.BackBufferHeight;
-        _viewport.MinDepth = 0.00001f;
-        _viewport.MaxDepth = 100000.0f;
+        _viewport.MinDepth = 1.0f;
+        _viewport.MaxDepth = 1000.0f;
     }
 
     public override void Load(JsonElement element)

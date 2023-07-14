@@ -38,8 +38,8 @@ public abstract class GameEditor2d : GameEditor
         var screenXBy2 = Game.Window.ClientBounds.Width / 2f;
         var screenYBy2 = Game.Window.ClientBounds.Height / 2f;
         camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
-        Game.GameManager.ActiveCamera = camera;
         entity.Initialize(Game);
+        Game.GameManager.ActiveCamera = camera;
 
         _inputComponent = Game.GetGameComponent<InputComponent>();
         Game.Components.Remove(Game.GetGameComponent<GridComponent>());

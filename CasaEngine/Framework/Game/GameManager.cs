@@ -69,6 +69,11 @@ public class GameManager
             _activeCamera = value;
             if (_activeCamera != null)
             {
+                if (_activeCamera.IsInitialized == false)
+                {
+                    throw new InvalidOperationException("Initialize the camera before activate it");
+                }
+
                 //TODO: why change min an max depth create bugs ?
                 _game.GraphicsDevice.Viewport = new Viewport(_activeCamera.Viewport.Bounds);
             }
@@ -212,9 +217,9 @@ public class GameManager
         var entity = new Entity { Name = "Camera" };
         var camera = new ArcBallCameraComponent(entity);
         entity.ComponentManager.Components.Add(camera);
-        ActiveCamera = camera;
         camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         camera.Initialize(_game);
+        ActiveCamera = camera;
 #endif
     }
 

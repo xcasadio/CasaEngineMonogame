@@ -47,11 +47,11 @@ namespace DemosGame
             var entity = new Entity();
             var camera = new ArcBallCameraComponent(entity);
             entity.ComponentManager.Components.Add(camera);
-            GameManager.ActiveCamera = camera;
             camera.SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
             GameManager.CurrentWorld.AddEntityImmediately(entity);
 
             GameManager.CurrentWorld.Initialize(this);
+            GameManager.ActiveCamera = camera;
         }
 
         protected override void Update(GameTime gameTime)

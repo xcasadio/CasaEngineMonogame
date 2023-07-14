@@ -240,12 +240,12 @@ public class ArcBallCameraComponent : Camera3dComponent
             verticalOrbit = -_inputComponent.MouseYMovement;
         }
 
-#if EDITOR
+        //#if EDITOR
         rightAxis = -rightAxis;
         upAxis = -upAxis;
         horizontalOrbit = -horizontalOrbit;
         verticalOrbit = -verticalOrbit;
-#endif
+        //#endif
 
         //Touch
         //if (_inputComponent.IsTouchMove(0) == true)
