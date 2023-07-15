@@ -143,7 +143,8 @@ public class SpriteRendererComponent : DrawableGameComponent
         if (IsDrawSpriteOriginEnabled)
         {
             _line3dRendererComponent.DrawCross(
-                new Vector2(position.X + origin.X - sourceInTexture.Width / 2f, position.Y - origin.Y + sourceInTexture.Height / 2f),
+                new Vector2(position.X + (origin.X - sourceInTexture.Width / 2f) * scale.X,
+                    position.Y - (origin.Y - sourceInTexture.Height / 2f) * scale.Y),
                 position.Z, 6, Color.Red);
         }
 
@@ -162,8 +163,8 @@ public class SpriteRendererComponent : DrawableGameComponent
         if (IsDrawSpriteSheetEnabled)
         {
             var texturePosition = new Vector2(
-                position.X - sourceInTexture.X - sourceInTexture.Width / 2f,
-                position.Y + sourceInTexture.Y + sourceInTexture.Height / 2f) * scale;
+                position.X - (sourceInTexture.X + sourceInTexture.Width / 2f) * scale.X,
+                position.Y + (sourceInTexture.Y + sourceInTexture.Height / 2f) * scale.Y);
 
             DrawSprite(texture2d, texture2d.Bounds, Point.Zero, texturePosition, 0.0f, scale,
                 Color.FromNonPremultiplied(255, 255, 255, SpriteSheetTransparency),
@@ -318,7 +319,10 @@ public class SpriteRendererComponent : DrawableGameComponent
         spriteDisplayData.WorldMatrix = MatrixExtensions.Transformation(
             new Vector3(scale.X * sourceInTexture.Width, scale.Y * sourceInTexture.Height, 1.0f),
             Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation),
-            new Vector3(position.X - origin.X + sourceInTexture.Width / 2f, position.Y + origin.Y * scale.Y - (sourceInTexture.Height / 2f) * scale.Y, z));
+            new Vector3(
+                position.X - origin.X * scale.X + (sourceInTexture.Width / 2f) * scale.X,
+                position.Y + origin.Y * scale.Y - (sourceInTexture.Height / 2f) * scale.Y,
+                z));
         spriteDisplayData.ScissorRectangle = scissorRectangle;
         _spriteDatas.Add(spriteDisplayData);
 
