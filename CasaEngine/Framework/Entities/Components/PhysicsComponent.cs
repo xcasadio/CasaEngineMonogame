@@ -207,15 +207,12 @@ public class PhysicsComponent : Component, ICollideableComponent
 
     public void OnHit(Collision collision)
     {
-        LogManager.Instance.WriteLineTrace($"Collision : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
-
-        //var scriptComponent = Owner.ComponentManager.GetComponent<ScriptComponent>();
-        //scriptComponent.TriggerEvent<OnHit>(collision);
+        Owner.Hit(collision, this);
     }
 
     public void OnHitEnded(Collision collision)
     {
-        LogManager.Instance.WriteLineTrace($"Collision ended : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+        Owner.HitEnded(collision, this);
     }
 
     public override void Load(JsonElement element)

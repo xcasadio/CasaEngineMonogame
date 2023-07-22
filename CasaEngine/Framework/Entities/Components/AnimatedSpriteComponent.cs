@@ -264,12 +264,12 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public void OnHit(Collision collision)
     {
-        //Owner.OnHit(collision)
+        Owner.Hit(collision, this);
     }
 
     public void OnHitEnded(Collision collision)
     {
-
+        Owner.HitEnded(collision, this);
     }
 
     public override void Load(JsonElement element)

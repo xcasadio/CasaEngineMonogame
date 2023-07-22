@@ -7,7 +7,6 @@ using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
 using EditorWpf.Controls.ContentBrowser;
 using EditorWpf.Windows;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 using TabItem = System.Windows.Controls.TabItem;
 
 namespace EditorWpf
@@ -170,6 +169,11 @@ namespace EditorWpf
             // use full ??
         }
 
+        private void Exit_OnClick(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
         private void ButtonOpenContentBrowser_OnClick(object sender, RoutedEventArgs e)
         {
             if (tabControl.SelectedItem is TabItem { Content: IEditorControl editorControl })
@@ -244,11 +248,6 @@ namespace EditorWpf
                     }
                 }
             }
-        }
-
-        private void MenuItem_Checked(object sender, RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
         }
     }
 }

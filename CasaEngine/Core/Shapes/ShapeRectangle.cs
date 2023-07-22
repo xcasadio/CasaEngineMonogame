@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
@@ -16,7 +17,7 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
     public ShapeRectangle(int x, int y, int w, int h)
         : this()
     {
-        Location = new Point(x, y);
+        Position = new Vector2(x, y);
         Width = w;
         Height = h;
     }
@@ -56,6 +57,6 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         jObject.Add("h", Height);
     }
 
-    public override string ToString() => $"{Enum.GetName(Type)} {{X: {Location.X} Y:{Location.Y} Width:{Width} Height:{Height}}}";
+    public override string ToString() => $"{Enum.GetName(Type)} {{X: {Position.X} Y:{Position.Y} Width:{Width} Height:{Height}}}";
 #endif
 }

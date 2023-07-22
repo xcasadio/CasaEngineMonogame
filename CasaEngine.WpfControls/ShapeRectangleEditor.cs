@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using CasaEngine.Core.Shapes;
-using Point = Microsoft.Xna.Framework.Point;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.WpfControls;
 
@@ -45,8 +45,8 @@ public class ShapeRectangleEditor : VectorEditorBase<ShapeRectangle?>
     {
         if (value != null)
         {
-            SetCurrentValue(RectangleXProperty, value.Location.X);
-            SetCurrentValue(RectangleYProperty, value.Location.Y);
+            SetCurrentValue(RectangleXProperty, value.Position.X);
+            SetCurrentValue(RectangleYProperty, value.Position.Y);
             SetCurrentValue(RectangleWidthProperty, value.Width);
             SetCurrentValue(RectangleHeightProperty, value.Height);
         }
@@ -58,7 +58,7 @@ public class ShapeRectangleEditor : VectorEditorBase<ShapeRectangle?>
         {
             if (RectangleX.HasValue && Value != null)
             {
-                Value.Location = new Point(RectangleX.Value, Value.Location.Y);
+                Value.Position = new Vector2(RectangleX.Value, Value.Position.Y);
             }
 
             return Value;
@@ -68,7 +68,7 @@ public class ShapeRectangleEditor : VectorEditorBase<ShapeRectangle?>
         {
             if (RectangleY.HasValue && Value != null)
             {
-                Value.Location = new Point(Value.Location.X, RectangleY.Value);
+                Value.Position = new Vector2(Value.Position.X, RectangleY.Value);
             }
 
             return Value;

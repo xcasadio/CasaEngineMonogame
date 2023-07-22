@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using CasaEngine.Engine.Primitives3D;
@@ -85,7 +86,8 @@ namespace SandBoxGame
             var animations = Animation2dLoader.LoadFromFile("Content\\ryu.anims2d", GameManager.AssetContentManager);
 
             entity = new Entity();
-            entity.Coordinates.LocalPosition = new Vector3(250, 250, 0.0f);
+            entity.Name = "Ryu 1";
+            entity.Coordinates.LocalPosition = new Vector3(250, 300, 1.0f);
             var scale = 1.0f;
             entity.Coordinates.LocalScale = new Vector3(scale, scale, 1.0f);
 
@@ -102,34 +104,39 @@ namespace SandBoxGame
 
             //============ animated sprite 2 ===============
             entity = new Entity();
-            entity.Coordinates.LocalPosition = new Vector3(450, 250, 0.0f);
+            entity.Name = "Ryu 2";
+            entity.OnHit += Entity_OnHit;
+            //entity.OnHitEnded += Entity_OnHitEnded;
+            entity.Coordinates.LocalPosition = new Vector3(450, 300, 1.0f);
             animatedSprite = new AnimatedSpriteComponent(entity);
             entity.ComponentManager.Components.Add(animatedSprite);
             animatedSprite.AddAnimation(new Animation2d(animations.First(x => x.Name == "idle")));
             animatedSprite.SetCurrentAnimation("idle", true);
             world.AddEntityImmediately(entity);
 
-            //////**********************
-            _spriteData = GameManager.AssetContentManager.GetAsset<SpriteData>("100_4");
-            _sprite = Sprite.Create(_spriteData, GameManager.AssetContentManager);
-            _texture2D = new Texture2D(GraphicsDevice, 2, 2, false, SurfaceFormat.Color);
-            _texture2D.SetData(new Color[] { Color.Red, Color.Green, Color.Blue, Color.White });
-
             base.LoadContent();
 
             GameManager.ActiveCamera = camera;
             //_animatedSpriteComponent.SetCurrentAnimation("run_forward", true);
-            _animatedSpriteComponent.SetCurrentAnimation("run_forward", true);
+            _animatedSpriteComponent.SetCurrentAnimation("230", true);
+        }
+
+        private void Entity_OnHit(object sender, EventCollisionArgs e)
+        {
+            Debug.WriteLine($"OnHit {e.Collision.ColliderA.Owner.Name} {e.Collision.ColliderB.Owner.Name}");
+        }
+        private void Entity_OnHitEnded(object sender, EventCollisionArgs e)
+        {
+            Debug.WriteLine($"OnHitEnded {e.Collision.ColliderA.Owner.Name} {e.Collision.ColliderB.Owner.Name}");
         }
 
         private AnimatedSpriteComponent _animatedSpriteComponent;
         private int index = 0;
-        private SpriteData _spriteData;
-        private Sprite _sprite;
         private Texture2D _texture2D;
 
 
-        private int _blendFunctionIndex = 0;
+        private int _colorBlendFunctionIndex = 0;
+        private int _alphaBlendFunctionIndex = 0;
         private int _colorSourceBlendIndex = 0;
         private int _alphaSourceBlendIndex = 0;
         private int _colorDestinationBlendIndex = 0;
@@ -142,11 +149,12 @@ namespace SandBoxGame
                 Exit();
             }
 
-            var millisecondsTimeout = 300;
-            if (Keyboard.GetState().IsKeyDown(Keys.X))
+            var millisecondsTimeout = 200;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
                 var values = Enum.GetValues<BlendFunction>();
-                _blendFunctionIndex = _blendFunctionIndex + 1 >= values.Length ? 0 : _blendFunctionIndex + 1;
+                _colorBlendFunctionIndex = _colorBlendFunctionIndex + 1 >= values.Length ? 0 : _colorBlendFunctionIndex + 1;
 
                 GameManager.SpriteRendererComponent._blendState = new BlendState
                 {
@@ -154,7 +162,25 @@ namespace SandBoxGame
                     AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
                     ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
                     AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
-                    AlphaBlendFunction = values[_blendFunctionIndex]
+                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction,
+                    ColorBlendFunction = values[_colorBlendFunctionIndex]
+                };
+
+                Thread.Sleep(millisecondsTimeout);
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.X))
+            {
+                var values = Enum.GetValues<BlendFunction>();
+                _alphaBlendFunctionIndex = _alphaBlendFunctionIndex + 1 >= values.Length ? 0 : _alphaBlendFunctionIndex + 1;
+
+                GameManager.SpriteRendererComponent._blendState = new BlendState
+                {
+                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+                    AlphaBlendFunction = values[_alphaBlendFunctionIndex],
+                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
                 };
 
                 Thread.Sleep(millisecondsTimeout);
@@ -171,6 +197,7 @@ namespace SandBoxGame
                     ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
                     AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
                     AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
                 };
                 Thread.Sleep(millisecondsTimeout);
             }
@@ -186,6 +213,7 @@ namespace SandBoxGame
                     ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
                     AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
                     AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
                 };
                 Thread.Sleep(millisecondsTimeout);
             }
@@ -201,6 +229,7 @@ namespace SandBoxGame
                     ColorDestinationBlend = values[_colorDestinationBlendIndex],
                     AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
                     AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
                 };
                 Thread.Sleep(millisecondsTimeout);
             }
@@ -216,6 +245,7 @@ namespace SandBoxGame
                     ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
                     AlphaDestinationBlend = values[_alphaDestinationBlendIndex],
                     AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
                 };
                 Thread.Sleep(millisecondsTimeout);
             }
@@ -250,18 +280,12 @@ namespace SandBoxGame
             {
                 index = MathHelper.Min(index + 1, _animatedSpriteComponent.Animations.Count - 1);
                 _animatedSpriteComponent.SetCurrentAnimation(index, true);
-
-                _spriteData = GameManager.AssetContentManager.GetAsset<SpriteData>(_animatedSpriteComponent.CurrentAnimation.CurrentFrame);
-                _sprite = Sprite.Create(_spriteData, GameManager.AssetContentManager);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
             {
                 index = MathHelper.Max(index - 1, 0);
                 _animatedSpriteComponent.SetCurrentAnimation(index, true);
-
-                _spriteData = GameManager.AssetContentManager.GetAsset<SpriteData>(_animatedSpriteComponent.CurrentAnimation.CurrentFrame);
-                _sprite = Sprite.Create(_spriteData, GameManager.AssetContentManager);
             }
 
             //GameManager.SpriteRendererComponent.DrawSprite(_sprite, new Vector2(100, 100), 0f, Vector2.One, Color.White, 0.0f, SpriteEffects.None);

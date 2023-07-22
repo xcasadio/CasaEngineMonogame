@@ -45,7 +45,7 @@ public class PlayerComponent : Component
 
         Owner.Coordinates.LocalPosition =
             new Vector3(Owner.Coordinates.LocalPosition.X, y, Owner.Coordinates.LocalPosition.Z);
-        _shapeRectangle.Location = new Point((int)Owner.Coordinates.LocalPosition.X + _width / 2, (int)Owner.Coordinates.LocalPosition.Y + _height / 2);
+        _shapeRectangle.Position = new Vector2((int)Owner.Coordinates.LocalPosition.X + _width / 2, (int)Owner.Coordinates.LocalPosition.Y + _height / 2);
     }
 
     public override void Draw()

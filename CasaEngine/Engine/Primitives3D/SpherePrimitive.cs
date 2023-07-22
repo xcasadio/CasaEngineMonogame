@@ -10,11 +10,7 @@ public class SpherePrimitive : GeometricPrimitive
     private int _tessellation;
 #endif
 
-    public SpherePrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 16)
-    {
-    }
-
-    public SpherePrimitive(GraphicsDevice graphicsDevice, float diameter, int tessellation) : base(GeometricPrimitiveType.Sphere)
+    public SpherePrimitive(GraphicsDevice graphicsDevice, float diameter, int tessellation = 16) : base(GeometricPrimitiveType.Sphere)
     {
         if (tessellation < 3)
         {

@@ -42,8 +42,8 @@ public static class Physics2dHelper
         var scale = entity.Coordinates.Scale;
         var position = entity.Coordinates.Position;
         var translation = new Vector3(
-            position.X + (rect.Location.X - origin.X + rect.Width / 2f) * scale.X,
-            position.Y - (rect.Location.Y - origin.Y + rect.Height / 2f) * scale.Y,
+            position.X + (rect.Position.X - origin.X + rect.Width / 2f) * scale.X,
+            position.Y - (rect.Position.Y - origin.Y + rect.Height / 2f) * scale.Y,
             position.Z);
         var rotation = entity.Coordinates.Rotation;
         collisionObject.WorldTransform = MatrixExtensions.Transformation(scale, rotation, translation);

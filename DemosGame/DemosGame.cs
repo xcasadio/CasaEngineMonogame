@@ -2,6 +2,7 @@
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
@@ -12,13 +13,15 @@ namespace DemosGame
     public class DemosGame : CasaEngineGame
     {
         private readonly List<Demo> _demos = new();
-        private Demo? _currentDemo;
+        private Demo _currentDemo;
 
         protected override void Initialize()
         {
             GameSettings.ProjectSettings.IsMouseVisible = true;
             GameSettings.ProjectSettings.WindowTitle = "CasaEngine demos";
             GameSettings.ProjectSettings.AllowUserResizing = true;
+
+            new AxisComponent(this);
 
             base.Initialize();
         }
@@ -30,8 +33,8 @@ namespace DemosGame
             PhysicsDebugViewRendererComponent.DisplayPhysics = true;
             base.LoadContent();
 
-            _demos.Add(new BasicDemo());
-            _demos.Add(new Basic2dDemo());
+            _demos.Add(new Collision3dBasicDemo());
+            _demos.Add(new Collision2dBasicDemo());
 
             ChangeDemo(0);
         }

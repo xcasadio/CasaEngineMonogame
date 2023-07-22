@@ -9,8 +9,10 @@ using System.Collections.Generic;
 
 namespace DemosGame;
 
-public class Basic2dDemo : Demo
+public class Collision2dBasicDemo : Demo
 {
+    public override string Name => "Collision 2d basic demo";
+
     const int ARRAY_SIZE_X = 5;
     const int ARRAY_SIZE_Y = 5;
     const int ARRAY_SIZE_Z = 5;
@@ -24,20 +26,18 @@ public class Basic2dDemo : Demo
     const int START_POS_Y = 20;
     const int START_POS_Z = -3;
 
-    public override string Name => "Basic 2d Demo";
-
     public override void Initialize(CasaEngineGame game)
     {
         var world = game.GameManager.CurrentWorld;
 
         //============ Create ground ===============
         var entity = new Entity();
-        entity.Coordinates.LocalPosition = new Vector3(0, -43, 0);
-        var physicsComponent = new PhysicsComponent(entity);
+        entity.Coordinates.LocalPosition = new Vector3(0, 0, 0);
+        var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsType = PhysicsType.Static;
-        var size = new Vector3(150, 50, 150);
-        physicsComponent.Shape = new Box { Size = size };
+        var size = new Vector3(150, 1, 1f);
+        physicsComponent.Shape = new ShapeRectangle(0, 0, (int)size.X, (int)size.Y);
         physicsComponent.Mass = 0.0f;
         var meshComponent = new StaticMeshComponent(entity);
         entity.ComponentManager.Components.Add(meshComponent);
@@ -72,7 +72,7 @@ public class Basic2dDemo : Demo
             //boxShape.CalculateLocalInertia(mass, out localInertia);
         }
 
-        Vector3 x = new Vector3(-ARRAY_SIZE_X, 8f, -20f);
+        Vector3 x = new Vector3(-ARRAY_SIZE_X, 8f, 0f);
         Vector3 y = Vector3.Zero;
         Vector3 deltaX = new Vector3(SCALING * 1, SCALING * 2, 0f);
         Vector3 deltaY = new Vector3(SCALING * 2, 0.0f, 0f);
@@ -108,20 +108,34 @@ public class Basic2dDemo : Demo
                 //m_dynamicsWorld.AddRigidBody(body);
                 //body.SetActivationState(ActivationState.ISLAND_SLEEPING);
 
+                const int boxSize = 2;
+
                 //TODO
-                //entity = new Entity();
-                //entity.Coordinates.LocalPosition = y - new Vector3(-10, 0, 0);
-                //physicsComponent = new PhysicsComponent(entity);
-                //entity.ComponentManager.Components.Add(physicsComponent);
-                //physicsComponent.PhysicsType = PhysicsType.Dynamic;
-                //physicsComponent.Shape = new Box { Size = Vector3.One };
-                //physicsComponent.Mass = mass;
-                //meshComponent = new StaticMeshComponent(entity);
-                //entity.ComponentManager.Components.Add(meshComponent);
-                //meshComponent.Mesh = boxPrimitive;
-                //meshComponent.Mesh.Initialize(game.GraphicsDevice);
-                //meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"Content\paper_box_texture.jpg", game.GameManager.AssetContentManager);
-                //world.AddEntityImmediately(entity);
+                entity = new Entity();
+                entity.Coordinates.LocalPosition = new Vector3(i + boxSize + 1, 8 + j * boxSize, 0);
+                physicsComponent = new Physics2dComponent(entity);
+                entity.ComponentManager.Components.Add(physicsComponent);
+                physicsComponent.PhysicsType = PhysicsType.Dynamic;
+                physicsComponent.Mass = mass;
+                meshComponent = new StaticMeshComponent(entity);
+                entity.ComponentManager.Components.Add(meshComponent);
+
+                switch (j % 2)
+                {
+                    case 0:
+                        physicsComponent.Shape = new ShapeRectangle(0, 0, boxSize, boxSize);
+                        meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, boxSize, boxSize, 1.0f).CreateMesh();
+                        break;
+
+                    case 1:
+                        physicsComponent.Shape = new ShapeCircle(boxSize);
+                        meshComponent.Mesh = new SpherePrimitive(game.GraphicsDevice, boxSize).CreateMesh();
+                        break;
+                }
+
+                meshComponent.Mesh.Initialize(game.GraphicsDevice);
+                meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"Content\paper_box_texture.jpg", game.GameManager.AssetContentManager);
+                world.AddEntityImmediately(entity);
 
                 y += deltaY;
             }

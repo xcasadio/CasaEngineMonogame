@@ -210,7 +210,7 @@ public class PhysicsEngine
 
             var ptrA = persistentManifold.Body0;
             var ptrB = persistentManifold.Body1;
-            bool aFirst = ptrA.GetHashCode() > ptrB.GetHashCode();
+            bool aFirst = ptrA.UserObject.GetHashCode() > ptrB.UserObject.GetHashCode();
             (CollisionObject, CollisionObject) collId = aFirst ? (ptrA, ptrB) : (ptrB, ptrA);
 
             // This collision is up-to-date, remove it from the outdated collisions
@@ -223,6 +223,12 @@ public class PhysicsEngine
 
             var a = collId.Item1;
             var b = collId.Item2;
+
+            if (a.UserObject == b.UserObject)
+            {
+                continue;
+            }
+
             var collision = new Collision(a.UserObject as ICollideableComponent, b.UserObject as ICollideableComponent);
             // PairCachingGhostObject has two identical manifolds when colliding, not 100% sure why that is,
             // CompoundColliderShape shapes all map to the same PhysicsComponent but create unique manifolds.

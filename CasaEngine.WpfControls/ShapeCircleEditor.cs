@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using CasaEngine.Core.Shapes;
-using Point = Microsoft.Xna.Framework.Point;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.WpfControls;
 
@@ -38,8 +38,8 @@ public class ShapeCircleEditor : VectorEditorBase<ShapeCircle?>
     {
         if (value != null)
         {
-            SetCurrentValue(CircleXProperty, value.Location.X);
-            SetCurrentValue(CircleYProperty, value.Location.Y);
+            SetCurrentValue(CircleXProperty, value.Position.X);
+            SetCurrentValue(CircleYProperty, value.Position.Y);
             SetCurrentValue(CircleRadiusProperty, value.Radius);
         }
     }
@@ -51,7 +51,7 @@ public class ShapeCircleEditor : VectorEditorBase<ShapeCircle?>
         {
             if (CircleX.HasValue && Value != null)
             {
-                Value.Location = new Point(CircleX.Value, Value.Location.Y);
+                Value.Position = new Vector2(CircleX.Value, Value.Position.Y);
             }
 
             return Value;
@@ -61,7 +61,7 @@ public class ShapeCircleEditor : VectorEditorBase<ShapeCircle?>
         {
             if (CircleY.HasValue && Value != null)
             {
-                Value.Location = new Point(Value.Location.X, CircleY.Value);
+                Value.Position = new Vector2(Value.Position.X, CircleY.Value);
             }
 
             return Value;

@@ -37,7 +37,6 @@ public class SpriteRendererComponent : DrawableGameComponent
     public bool IsDrawSpriteSheetEnabled = false;
     public bool IsDrawCollisionsEnabled = false;
     public int SpriteSheetTransparency = 124;
-    private Renderer2dComponent? _renderer2dComponent;
     private Line3dRendererComponent? _line3dRendererComponent;
     private DepthStencilState _depthStencilState;
     public BlendState _blendState;
@@ -68,11 +67,12 @@ public class SpriteRendererComponent : DrawableGameComponent
 
         _blendState = new BlendState
         {
-            ColorSourceBlend = Blend.SourceColor,
-            AlphaSourceBlend = Blend.SourceAlpha,
-            ColorDestinationBlend = Blend.InverseSourceAlpha,
-            AlphaDestinationBlend = Blend.DestinationAlpha,
-            AlphaBlendFunction = BlendFunction.Add,
+            ColorBlendFunction = BlendFunction.Add,
+            AlphaBlendFunction = BlendFunction.Max,
+            ColorSourceBlend = Blend.One,
+            AlphaSourceBlend = Blend.SourceColor,
+            ColorDestinationBlend = Blend.Zero,
+            AlphaDestinationBlend = Blend.DestinationAlpha
         };
 
         _verticeTopLeft = new Vector3(-0.5f, 0.5f, 0);
@@ -88,7 +88,6 @@ public class SpriteRendererComponent : DrawableGameComponent
         _indexBuffer.SetData(new short[] { 0, 1, 2, 0, 2, 3 });
         _effect = _game.Content.Load<Effect>("Shaders\\spritebatch");
 
-        _renderer2dComponent = _game.GetGameComponent<Renderer2dComponent>();
         _line3dRendererComponent = _game.GetGameComponent<Line3dRendererComponent>();
     }
 
@@ -242,8 +241,8 @@ public class SpriteRendererComponent : DrawableGameComponent
             case Shape2dType.Rectangle:
                 var rectangle = collision2d.Shape as ShapeRectangle;
                 _line3dRendererComponent.DrawRectangle(
-                    position.X + (rectangle.Location.X - origin.X) * scale.X,
-                    position.Y - (rectangle.Location.Y - origin.Y + rectangle.Height) * scale.Y,
+                    position.X + (rectangle.Position.X - origin.X) * scale.X,
+                    position.Y - (rectangle.Position.Y - origin.Y + rectangle.Height) * scale.Y,
                     rectangle.Width * scale.X,
                     rectangle.Height * scale.Y,
                     color,

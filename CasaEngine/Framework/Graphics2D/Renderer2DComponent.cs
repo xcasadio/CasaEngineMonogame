@@ -413,7 +413,7 @@ public class Renderer2dComponent : DrawableGameComponent
                 break;
             case Shape2dType.Rectangle:
                 var rectangle = collision2d.Shape as ShapeRectangle;
-                DrawRectangle(position.X + rectangle.Location.X * scale.X, position.Y + rectangle.Location.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
+                DrawRectangle(position.X + rectangle.Position.X * scale.X, position.Y + rectangle.Position.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
                 break;
             case Shape2dType.Circle:
                 break;

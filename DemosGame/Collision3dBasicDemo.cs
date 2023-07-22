@@ -8,9 +8,9 @@ using Microsoft.Xna.Framework;
 
 namespace DemosGame;
 
-public class BasicDemo : Demo
+public class Collision3dBasicDemo : Demo
 {
-    public override string Name => "Basic Demo";
+    public override string Name => "Collision 3d basic demo";
 
     public override void Initialize(CasaEngineGame game)
     {

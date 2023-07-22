@@ -1,9 +1,12 @@
-﻿using BulletSharp;
+﻿using System.Numerics;
+using BulletSharp;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Maths.Curves;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Game.Components.Physics;
 
@@ -33,7 +36,7 @@ public class PhysicsEngineComponent : GameComponent
     public CollisionObject CreateGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color color)
     {
         var collisionShape = ConvertToCollisionShape(shape);
-        return CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
+        return CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
     }
 
     public CollisionObject AddGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
@@ -57,9 +60,9 @@ public class PhysicsEngineComponent : GameComponent
         return collisionObject;
     }
 
-    private PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color)
+    private PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
     {
-        var ghostObject = new BulletSharp.PairCachingGhostObject
+        var ghostObject = new PairCachingGhostObject
         {
             CollisionShape = collisionShape,
             UserObject = collideableComponent,
@@ -80,9 +83,28 @@ public class PhysicsEngineComponent : GameComponent
         return AddRigidBody(shape3d, 0.0f, ref worldMatrix, physicsComponent, color);
     }
 
+    public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, Physics2dComponent physics2dComponent, Color? color = null,
+        Vector3? linearFactor = null, Vector3? angularFactor = null)
+    {
+        return AddRigidBody(shape2d, 0.0f, ref worldMatrix, physics2dComponent, color, linearFactor, angularFactor);
+    }
+
     public RigidBody AddRigidBody(Shape3d shape3d, float mass, ref Matrix worldMatrix, PhysicsComponent physicsComponent, Color? color = null)
     {
         var collisionShape = ConvertToCollisionShape(shape3d);
+        return AddRigidBody(collisionShape, mass, ref worldMatrix, physicsComponent, color);
+    }
+
+    public RigidBody AddRigidBody(Shape2d shape2d, float mass, ref Matrix worldMatrix, object physicsComponent, Color? color = null,
+        Vector3? linearFactor = null, Vector3? angularFactor = null)
+    {
+        var collisionShape = ConvertToCollisionShape(shape2d);
+        return AddRigidBody(collisionShape, mass, ref worldMatrix, physicsComponent, color, linearFactor, angularFactor);
+    }
+
+    public RigidBody AddRigidBody(CollisionShape collisionShape, float mass, ref Matrix worldMatrix, object physicsComponent, Color? color = null,
+        Vector3? linearFactor = null, Vector3? angularFactor = null)
+    {
         using var rbInfo = new RigidBodyConstructionInfo(mass, null, collisionShape);
         bool isDynamic = mass != 0.0f;
         if (isDynamic)
@@ -95,7 +117,9 @@ public class PhysicsEngineComponent : GameComponent
         {
             Gravity = GameSettings.PhysicsSettings.Gravity,
             UserObject = physicsComponent,
-            WorldTransform = worldMatrix
+            WorldTransform = worldMatrix,
+            LinearFactor = linearFactor ?? Vector3.One,
+            AngularFactor = angularFactor ?? Vector3.One
         };
 
         if (!isDynamic)
@@ -118,16 +142,13 @@ public class PhysicsEngineComponent : GameComponent
 
         switch (shape.Type)
         {
-            case Shape2dType.Compound:
-            case Shape2dType.Line:
-                throw new ArgumentOutOfRangeException();
             case Shape2dType.Rectangle:
                 var rectangle = (shape as ShapeRectangle);
-                collisionShape = new BulletSharp.BoxShape(rectangle.Width / 2.0f, rectangle.Height / 2.0f, 0.5f);
+                collisionShape = new BoxShape(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
                 break;
             case Shape2dType.Circle:
                 var circle = (shape as ShapeCircle);
-                collisionShape = new BulletSharp.CapsuleShape(circle.Radius, 1.0f);
+                collisionShape = new SphereShape(circle.Radius / 2f);
                 break;
             //case Shape2dType.Polygone:
             //    var polygone = (shape as ShapePolygone);
@@ -151,19 +172,19 @@ public class PhysicsEngineComponent : GameComponent
                 throw new ArgumentOutOfRangeException();
             case Shape3dType.Box:
                 var box = (shape as Box);
-                collisionShape = new BulletSharp.BoxShape(box.Size.X / 2.0f, box.Size.Y / 2.0f, box.Size.Z / 2.0f);
+                collisionShape = new BoxShape(box.Size.X / 2.0f, box.Size.Y / 2.0f, box.Size.Z / 2.0f);
                 break;
             case Shape3dType.Capsule:
                 var capsule = (shape as Capsule);
-                collisionShape = new BulletSharp.CapsuleShape(capsule.Radius, capsule.Length);
+                collisionShape = new CapsuleShape(capsule.Radius, capsule.Length);
                 break;
             case Shape3dType.Cylinder:
                 var cylinder = (shape as Cylinder);
-                collisionShape = new BulletSharp.CylinderShape(cylinder.Radius, cylinder.Radius, cylinder.Length);
+                collisionShape = new CylinderShape(cylinder.Radius, cylinder.Radius, cylinder.Length);
                 break;
             case Shape3dType.Sphere:
                 var sphere = (shape as Sphere);
-                collisionShape = new BulletSharp.SphereShape(sphere.Radius);
+                collisionShape = new SphereShape(sphere.Radius);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

@@ -23,7 +23,7 @@
                 <MenuItem Header="_Open" Click="OpenProject_OnClick"/>
                 <MenuItem Header="_Save" Click="SaveProject_OnClick"/>
                 <Separator />
-                <MenuItem Header="_Exit" />
+                <MenuItem Header="_Exit" Click="Exit_OnClick"/>
             </MenuItem>
             <MenuItem Header="_Edit">
                 <MenuItem Command="Cut" />

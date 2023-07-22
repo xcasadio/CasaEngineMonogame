@@ -3,6 +3,8 @@ using System.Text.Json;
 using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Logger;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Controls;
@@ -47,6 +49,9 @@ public class Entity : ISaveLoad
 
     [Category("Object"), ReadOnly(true)]
     public bool IsTemporary { get; internal set; }
+
+    public event EventHandler<EventCollisionArgs> OnHit;
+    public event EventHandler<EventCollisionArgs> OnHitEnded;
 
     public Entity()
     {
@@ -124,6 +129,20 @@ public class Entity : ISaveLoad
         {
             component.ScreenResized(width, height);
         }
+    }
+
+    public void Hit(Collision collision, Component component)
+    {
+        LogManager.Instance.WriteLineTrace($"OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+        //var scriptComponent = Owner.ComponentManager.GetComponent<ScriptComponent>();
+        //scriptComponent.TriggerEvent<OnHit>(collision);
+        OnHit?.Invoke(this, new EventCollisionArgs(collision, component));
+    }
+
+    public void HitEnded(Collision collision, Component component)
+    {
+        LogManager.Instance.WriteLineTrace($"OnHitEnded : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+        OnHitEnded?.Invoke(this, new EventCollisionArgs(collision, component));
     }
 
 #if EDITOR
