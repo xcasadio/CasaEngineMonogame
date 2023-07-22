@@ -1,9 +1,11 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Maths.Curves;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -78,31 +80,31 @@ public class PhysicsEngineComponent : GameComponent
         return ghostObject;
     }
 
-    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, PhysicsComponent physicsComponent, Color? color = null)
+    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, object component, Color? color = null)
     {
-        return AddRigidBody(shape3d, 0.0f, ref worldMatrix, physicsComponent, color);
+        return AddRigidBody(shape3d, 0.0f, ref worldMatrix, component, color);
     }
 
-    public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, Physics2dComponent physics2dComponent, Color? color = null,
+    public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, object component, Color? color = null,
         Vector3? linearFactor = null, Vector3? angularFactor = null)
     {
-        return AddRigidBody(shape2d, 0.0f, ref worldMatrix, physics2dComponent, color, linearFactor, angularFactor);
+        return AddRigidBody(shape2d, 0.0f, ref worldMatrix, component, color, linearFactor, angularFactor);
     }
 
-    public RigidBody AddRigidBody(Shape3d shape3d, float mass, ref Matrix worldMatrix, PhysicsComponent physicsComponent, Color? color = null)
+    public RigidBody AddRigidBody(Shape3d shape3d, float mass, ref Matrix worldMatrix, object component, Color? color = null)
     {
         var collisionShape = ConvertToCollisionShape(shape3d);
-        return AddRigidBody(collisionShape, mass, ref worldMatrix, physicsComponent, color);
+        return AddRigidBody(collisionShape, mass, ref worldMatrix, component, color);
     }
 
-    public RigidBody AddRigidBody(Shape2d shape2d, float mass, ref Matrix worldMatrix, object physicsComponent, Color? color = null,
+    public RigidBody AddRigidBody(Shape2d shape2d, float mass, ref Matrix worldMatrix, object component, Color? color = null,
         Vector3? linearFactor = null, Vector3? angularFactor = null)
     {
         var collisionShape = ConvertToCollisionShape(shape2d);
-        return AddRigidBody(collisionShape, mass, ref worldMatrix, physicsComponent, color, linearFactor, angularFactor);
+        return AddRigidBody(collisionShape, mass, ref worldMatrix, component, color, linearFactor, angularFactor);
     }
 
-    public RigidBody AddRigidBody(CollisionShape collisionShape, float mass, ref Matrix worldMatrix, object physicsComponent, Color? color = null,
+    public RigidBody AddRigidBody(CollisionShape collisionShape, float mass, ref Matrix worldMatrix, object component, Color? color = null,
         Vector3? linearFactor = null, Vector3? angularFactor = null)
     {
         using var rbInfo = new RigidBodyConstructionInfo(mass, null, collisionShape);
@@ -116,7 +118,7 @@ public class PhysicsEngineComponent : GameComponent
         var body = new RigidBody(rbInfo)
         {
             Gravity = GameSettings.PhysicsSettings.Gravity,
-            UserObject = physicsComponent,
+            UserObject = component,
             WorldTransform = worldMatrix,
             LinearFactor = linearFactor ?? Vector3.One,
             AngularFactor = angularFactor ?? Vector3.One

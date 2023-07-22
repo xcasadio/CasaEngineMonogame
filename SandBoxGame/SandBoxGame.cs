@@ -74,6 +74,7 @@ namespace SandBoxGame
             var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
 
             entity = new Entity();
+            entity.Name = "TiledMap";
             entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
             var tiledMapComponent = new TiledMapComponent(entity);
             tiledMapComponent.TiledMapData = tiledMapData;
@@ -107,7 +108,7 @@ namespace SandBoxGame
             entity.Name = "Ryu 2";
             entity.OnHit += Entity_OnHit;
             //entity.OnHitEnded += Entity_OnHitEnded;
-            entity.Coordinates.LocalPosition = new Vector3(450, 300, 1.0f);
+            entity.Coordinates.LocalPosition = new Vector3(450, 100, 1.0f);
             animatedSprite = new AnimatedSpriteComponent(entity);
             entity.ComponentManager.Components.Add(animatedSprite);
             animatedSprite.AddAnimation(new Animation2d(animations.First(x => x.Name == "idle")));

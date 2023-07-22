@@ -23,7 +23,6 @@ public static class Physics2dHelper
                 var rectangle = collisionShape.Shape as ShapeRectangle;
                 var worldMatrix = entity.Coordinates.WorldMatrix;
                 return physicsEngineComponent.CreateGhostObject(rectangle, ref worldMatrix, collideableComponent, color);
-                break;
             case Shape2dType.Circle:
                 break;
             case Shape2dType.Line:

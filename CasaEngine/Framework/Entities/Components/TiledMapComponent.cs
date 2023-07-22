@@ -1,20 +1,38 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Text.Json;
+using CasaEngine.Core.Logger;
+using CasaEngine.Core.Shapes;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Tiled Map")]
-public class TiledMapComponent : Component, IBoundingBoxComputable
+public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideableComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.TiledMap;
 
     public TiledMapData TiledMapData { get; set; }
     private List<TiledMapLayer> Layers { get; } = new();
+
+    public PhysicsType PhysicsType { get; }
+    public HashSet<Collision> Collisions { get; } = new();
+
+    public void OnHit(Collision collision)
+    {
+        Debug.WriteLine($"TiledMapComponent OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+    }
+
+    public void OnHitEnded(Collision collision)
+    {
+
+    }
 
     public TiledMapComponent(Entity entity) : base(entity, ComponentId)
     {
@@ -65,6 +83,20 @@ public class TiledMapComponent : Component, IBoundingBoxComputable
                         else
                         {
                             tile = TiledMapLoader.CreateTile(tileData, game.GameManager.AssetContentManager);
+                        }
+
+                        switch (tileData.CollisionType)
+                        {
+                            case TileCollisionType.Blocked:
+                                var physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
+                                var worldMatrix = Owner.Coordinates.WorldMatrix;
+                                worldMatrix.Translation += new Vector3(
+                                    x * TiledMapData.TileSize.Width + TiledMapData.TileSize.Width / 2f,
+                                    -y * TiledMapData.TileSize.Height - TiledMapData.TileSize.Height / 2f,
+                                    0f);
+                                var rectangle = new ShapeRectangle(0, 0, TiledMapData.TileSize.Width, TiledMapData.TileSize.Height);
+                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, this);
+                                break;
                         }
                     }
 
