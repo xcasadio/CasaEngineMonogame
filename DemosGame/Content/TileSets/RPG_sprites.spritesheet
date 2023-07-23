@@ -1,0 +1,5784 @@
+{
+  "sprites": [
+    {
+      "asset_name": "octopus_0",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 28
+      },
+      "hotspot": {
+        "x": 13,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_1",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 32,
+        "y": 0,
+        "w": 28,
+        "h": 30
+      },
+      "hotspot": {
+        "x": 12,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_10",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 315,
+        "y": 0,
+        "w": 32,
+        "h": 29
+      },
+      "hotspot": {
+        "x": 13,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_11",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 347,
+        "y": 0,
+        "w": 31,
+        "h": 31
+      },
+      "hotspot": {
+        "x": 14,
+        "y": 16
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_12",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 378,
+        "y": 0,
+        "w": 38,
+        "h": 29
+      },
+      "hotspot": {
+        "x": 22,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_13",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 416,
+        "y": 0,
+        "w": 32,
+        "h": 29
+      },
+      "hotspot": {
+        "x": 17,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_14",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 448,
+        "y": 0,
+        "w": 32,
+        "h": 28
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 16
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_15",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 480,
+        "y": 0,
+        "w": 32,
+        "h": 29
+      },
+      "hotspot": {
+        "x": 15,
+        "y": 10
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_16",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 0,
+        "y": 31,
+        "w": 32,
+        "h": 30
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_17",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 32,
+        "y": 31,
+        "w": 32,
+        "h": 24
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 11
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_18",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 64,
+        "y": 31,
+        "w": 32,
+        "h": 30
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 18
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_19",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 96,
+        "y": 31,
+        "w": 32,
+        "h": 30
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 17
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_2",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 60,
+        "y": 0,
+        "w": 32,
+        "h": 27
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 13
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_3",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 92,
+        "y": 0,
+        "w": 32,
+        "h": 29
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_4",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 124,
+        "y": 0,
+        "w": 32,
+        "h": 28
+      },
+      "hotspot": {
+        "x": 19,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_5",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 156,
+        "y": 0,
+        "w": 28,
+        "h": 30
+      },
+      "hotspot": {
+        "x": 17,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_6",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 184,
+        "y": 0,
+        "w": 31,
+        "h": 29
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_7",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 215,
+        "y": 0,
+        "w": 31,
+        "h": 31
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 13
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_8",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 246,
+        "y": 0,
+        "w": 31,
+        "h": 31
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 16
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "octopus_9",
+      "sprite_sheet": "TileSets\\octopus_0_0.png",
+      "location": {
+        "x": 277,
+        "y": 0,
+        "w": 38,
+        "h": 29
+      },
+      "hotspot": {
+        "x": 13,
+        "y": 14
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 24,
+          "h": 24
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_0",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_1",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_10",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_100",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_101",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_102",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_103",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_104",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_105",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_11",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_12",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_13",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_14",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_15",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_16",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_17",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_18",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_19",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_2",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_20",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_21",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_22",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_23",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_24",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_25",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_26",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_27",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_28",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_29",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_3",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_30",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_31",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_32",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_33",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_34",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_35",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_36",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_37",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_38",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_39",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_4",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_40",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_41",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_42",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_43",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_44",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_45",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_46",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_47",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_48",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_49",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_5",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_50",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_51",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_52",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_53",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_54",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_55",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_56",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_57",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_58",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_59",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_6",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_60",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_61",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_62",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_63",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_64",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_65",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 288,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_66",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_67",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_68",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_69",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_7",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_70",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_71",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_72",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_73",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_74",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_75",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_76",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_77",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_78",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_79",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 336,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_8",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_80",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_81",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_82",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_83",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_84",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_85",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_86",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_87",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_88",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_89",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 384,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_9",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [
+        {
+          "collision_type": "Attack",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 6.0
+          },
+          "orientation": 0.0,
+          "w": 28,
+          "h": 36
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_90",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 0,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_91",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 48,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_92",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 96,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_93",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 144,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_94",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 192,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_95",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 240,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_96",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 288,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_97",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 336,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_98",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 384,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "player_99",
+      "sprite_sheet": "TileSets\\Swordman_1.png",
+      "location": {
+        "x": 432,
+        "y": 432,
+        "w": 48,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 23,
+        "y": 35
+      },
+      "collisions": [],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_0",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 50,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 11,
+        "y": 62
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_1",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 39,
+        "y": 42
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 9,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 9.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_10",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 50,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 20,
+        "y": 61
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_11",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 40,
+        "y": 40
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 9,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 9.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_12",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 298,
+        "y": 0,
+        "w": 48,
+        "h": 27
+      },
+      "hotspot": {
+        "x": 56,
+        "y": 26
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 14.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 18,
+          "h": 8
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_13",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": 64,
+        "y": 17
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_14",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": 44,
+        "y": 20
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_15",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 133,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 28,
+        "y": 9
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 15.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 7.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_16",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 244,
+        "y": 0,
+        "w": 27,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 7,
+        "y": 4
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 30.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_17",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 73,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 2,
+        "y": -5
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_18",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 207,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": -8,
+        "y": 3
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 12.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 20.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_19",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 298,
+        "y": 27,
+        "w": 48,
+        "h": 27
+      },
+      "hotspot": {
+        "x": -12,
+        "y": 15
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 18,
+          "h": 8
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 30.0,
+            "y": 19.0
+          },
+          "orientation": 0.0,
+          "w": 18,
+          "h": 8
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_2",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 298,
+        "y": 0,
+        "w": 48,
+        "h": 27
+      },
+      "hotspot": {
+        "x": 56,
+        "y": 24
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 14.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 18,
+          "h": 8
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_20",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 23,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": -14,
+        "y": 19
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 16.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_21",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 50,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 3,
+        "y": 67
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_22",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 170,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": -10,
+        "y": 45
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 13.0,
+            "y": 15.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 21.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_23",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 271,
+        "y": 0,
+        "w": 27,
+        "h": 48
+      },
+      "hotspot": {
+        "x": -10,
+        "y": 60
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 11.0,
+            "y": 14.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 19.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_24",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 23,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": -10,
+        "y": 20
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 16.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_25",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 298,
+        "y": 27,
+        "w": 48,
+        "h": 27
+      },
+      "hotspot": {
+        "x": 2,
+        "y": 7
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 18,
+          "h": 8
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 30.0,
+            "y": 19.0
+          },
+          "orientation": 0.0,
+          "w": 18,
+          "h": 8
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_26",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 207,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 6,
+        "y": 4
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 12.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 20.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_27",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 73,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 14,
+        "y": 4
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_28",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 207,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 1,
+        "y": 7
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 12.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 20.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_29",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 23,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": -15,
+        "y": 17
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 16.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_3",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": 62,
+        "y": 17
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_30",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 170,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 6,
+        "y": 40
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 13.0,
+            "y": 15.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 21.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_31",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 50,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 6,
+        "y": 55
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_32",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 133,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 34,
+        "y": 8
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 15.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 7.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_33",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": 61,
+        "y": 17
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_34",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 42,
+        "y": 42
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 9,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 9.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_35",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 50,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 19,
+        "y": 55
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_36",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 42,
+        "y": 39
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 9,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 9.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_37",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 50,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 20,
+        "y": 59
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_38",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 170,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 3,
+        "y": 47
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 13.0,
+            "y": 15.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 21.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_39",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 23,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": -6,
+        "y": 18
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 16.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_4",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 133,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 35,
+        "y": 5
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 15.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 7.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_40",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 207,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": -12,
+        "y": 12
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 12.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 20.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_41",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 73,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 2,
+        "y": -2
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_42",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 133,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 26,
+        "y": 10
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 15.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 7.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_43",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": 41,
+        "y": 19
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_44",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 170,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": -5,
+        "y": 41
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 13.0,
+            "y": 15.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 21.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_45",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 23,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": -13,
+        "y": 16
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 16.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_46",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 207,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 3,
+        "y": 7
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 12.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 20.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_47",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 73,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 13,
+        "y": 6
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_48",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 42,
+        "y": 42
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 9,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 9.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_49",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": 61,
+        "y": 17
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_5",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 244,
+        "y": 0,
+        "w": 27,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 17,
+        "y": 6
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 30.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_50",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 133,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 34,
+        "y": 8
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 15.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 7.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_51",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 73,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 10,
+        "y": 7
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_52",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 170,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 3,
+        "y": 47
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 13.0,
+            "y": 15.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 21.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_53",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 50,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 20,
+        "y": 59
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_54",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 42,
+        "y": 39
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 17.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 9,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 9.0,
+            "y": 9.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_55",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": 54,
+        "y": 18
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_56",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 133,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": 26,
+        "y": 10
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 15.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 7.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 0.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_57",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 73,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 2,
+        "y": -2
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_58",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 207,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": -12,
+        "y": 12
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 12.0,
+            "y": 12.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 20.0,
+            "y": 20.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 27.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_59",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 23,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": -9,
+        "y": 19
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 16.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_6",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 73,
+        "y": 0,
+        "w": 23,
+        "h": 50
+      },
+      "hotspot": {
+        "x": 8,
+        "y": 4
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 8.0,
+            "y": 16.0
+          },
+          "orientation": 0.0,
+          "w": 7,
+          "h": 34
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_7",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 0,
+        "y": 23,
+        "w": 50,
+        "h": 23
+      },
+      "hotspot": {
+        "x": -10,
+        "y": 18
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 16.0,
+            "y": 8.0
+          },
+          "orientation": 0.0,
+          "w": 34,
+          "h": 7
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_8",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 170,
+        "y": 0,
+        "w": 37,
+        "h": 37
+      },
+      "hotspot": {
+        "x": -5,
+        "y": 43
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 13.0,
+            "y": 15.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 21.0,
+            "y": 7.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 27.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 10,
+          "h": 10
+        }
+      ],
+      "sockets": []
+    },
+    {
+      "asset_name": "sword_9",
+      "sprite_sheet": "TileSets\\Epee_en_bois.png",
+      "location": {
+        "x": 271,
+        "y": 0,
+        "w": 27,
+        "h": 48
+      },
+      "hotspot": {
+        "x": 16,
+        "y": 54
+      },
+      "collisions": [
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 11.0,
+            "y": 14.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        },
+        {
+          "collision_type": "Defense",
+          "version": 1,
+          "shape_type": "Rectangle",
+          "location": {
+            "x": 19.0,
+            "y": 0.0
+          },
+          "orientation": 0.0,
+          "w": 8,
+          "h": 18
+        }
+      ],
+      "sockets": []
+    }
+  ]
+}

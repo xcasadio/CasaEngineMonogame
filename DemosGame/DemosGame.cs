@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -17,6 +19,7 @@ namespace DemosGame
 
         protected override void Initialize()
         {
+            GameSettings.ProjectSettings.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
             GameSettings.ProjectSettings.IsMouseVisible = true;
             GameSettings.ProjectSettings.WindowTitle = "CasaEngine demos";
             GameSettings.ProjectSettings.AllowUserResizing = true;
@@ -35,8 +38,9 @@ namespace DemosGame
 
             _demos.Add(new Collision3dBasicDemo());
             _demos.Add(new Collision2dBasicDemo());
+            _demos.Add(new TiledMapDemo());
 
-            ChangeDemo(0);
+            ChangeDemo(2);
         }
 
         private void ChangeDemo(int index)
@@ -45,14 +49,7 @@ namespace DemosGame
 
             _currentDemo = _demos[index];
             _currentDemo.Initialize(this);
-
-            //============ Camera ===============
-            var entity = new Entity();
-            var camera = new ArcBallCameraComponent(entity);
-            entity.ComponentManager.Components.Add(camera);
-            camera.SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
-            GameManager.CurrentWorld.AddEntityImmediately(entity);
-
+            var camera = _currentDemo.CreateCamera(this);
             GameManager.CurrentWorld.Initialize(this);
             GameManager.ActiveCamera = camera;
         }

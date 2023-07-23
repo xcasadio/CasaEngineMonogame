@@ -1,45 +1,45 @@
 {
     "sets": [
         {
-            "id": 2,
+            "id": 0,
             "tiles": [
                 {
-                    "collision_type": "no_contact_response",
+                    "collision_type": "NoContactResponse",
                     "id": 0,
                     "is_breakable": true,
                     "sprite_id": "auto_tile1_0_0",
                     "type": "static"
                 },
                 {
-                    "collision_type": "no_contact_response",
+                    "collision_type": "NoContactResponse",
                     "id": 1,
                     "is_breakable": true,
                     "sprite_id": "auto_tile1_1_0",
                     "type": "static"
                 },
                 {
-                    "collision_type": "no_contact_response",
+                    "collision_type": "NoContactResponse",
                     "id": 2,
                     "is_breakable": true,
                     "sprite_id": "auto_tile1_0_1",
                     "type": "static"
                 },
                 {
-                    "collision_type": "no_contact_response",
+                    "collision_type": "NoContactResponse",
                     "id": 3,
                     "is_breakable": true,
                     "sprite_id": "auto_tile1_1_1",
                     "type": "static"
                 },
                 {
-                    "collision_type": "no_contact_response",
+                    "collision_type": "NoContactResponse",
                     "id": 4,
                     "is_breakable": true,
                     "sprite_id": "auto_tile1_0_2",
                     "type": "static"
                 },
                 {
-                    "collision_type": "no_contact_response",
+                    "collision_type": "NoContactResponse",
                     "id": 5,
                     "is_breakable": true,
                     "sprite_id": "auto_tile1_1_2",
@@ -48,9 +48,5 @@
             ]
         }
     ],
-    "sprite_sheet_file_name": "Tile1.png",
-    "tile_size": {
-        "x": 32,
-        "y": 32
-    }
+    "sprite_sheet_file_name": "Maps\\tile1_auto_tile_sprites.spritesheet"
 }

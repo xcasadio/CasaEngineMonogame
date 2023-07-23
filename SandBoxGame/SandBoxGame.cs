@@ -40,7 +40,7 @@ namespace SandBoxGame
             //GameManager.Renderer2dComponent.IsDrawCollisionsEnabled = true;
             //GameManager.Renderer2dComponent.IsDrawSpriteOriginEnabled = true;
 
-            //PhysicsDebugViewRendererComponent.DisplayPhysics = true;
+            PhysicsDebugViewRendererComponent.DisplayPhysics = true;
         }
 
         protected override void LoadContent()

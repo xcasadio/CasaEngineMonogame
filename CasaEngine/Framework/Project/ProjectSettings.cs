@@ -55,15 +55,17 @@ public class ProjectSettings
     [Browsable(false), JsonIgnore]
     public string? ProjectPath
     {
+#if EDITOR
         get
         {
-#if EDITOR
             return Path.GetDirectoryName(ProjectFileOpened);
-#else
-            return Environment.CurrentDirectory;
-#endif
         }
     }
+#else
+        get;
+        set;
+    } = Environment.CurrentDirectory;
+#endif
 
     public void Load(string fileName)
     {

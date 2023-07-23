@@ -1,0 +1,59 @@
+{
+  "weapon": {
+    "tile_set": "Epee_en_bois.png",
+    "name": "baton en bois",
+    "strength": 1,
+    "spirit": 1,
+    "speed": 0,
+    "animations": [
+      {
+        "id": "baton_attack1_right",
+        "name": "baton_attack1_right"
+      },
+      {
+        "id": "baton_attack1_left",
+        "name": "baton_attack1_left"
+      },
+      {
+        "id": "baton_attack1_up",
+        "name": "baton_attack1_up"
+      },
+      {
+        "id": "baton_attack1_down",
+        "name": "baton_attack1_down"
+      },
+      {
+        "id": "baton_attack2_right",
+        "name": "baton_attack2_right"
+      },
+      {
+        "id": "baton_attack2_left",
+        "name": "baton_attack2_left"
+      },
+      {
+        "id": "baton_attack2_up",
+        "name": "baton_attack2_up"
+      },
+      {
+        "id": "baton_attack2_down",
+        "name": "baton_attack2_down"
+      },
+      {
+        "id": "baton_attack3_right",
+        "name": "baton_attack3_right"
+      },
+      {
+        "id": "baton_attack3_left",
+        "name": "baton_attack3_left"
+      },
+      {
+        "id": "baton_attack3_up",
+        "name": "baton_attack3_up"
+      },
+      {
+        "id": "baton_attack3_down",
+        "name": "baton_attack3_down"
+      }
+    ]
+  }
+}

@@ -3,6 +3,7 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Game;
 using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Framework.Assets.Map2d;
@@ -11,6 +12,7 @@ public class TiledMapLoader
 {
     public static TiledMapData LoadMapFromFile(string fileName)
     {
+        fileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName);
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
         var rootElement = jsonDocument.RootElement;
         var tiledMapData = new TiledMapData();

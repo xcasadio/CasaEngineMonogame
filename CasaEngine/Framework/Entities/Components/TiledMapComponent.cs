@@ -169,7 +169,7 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
     public override void Load(JsonElement element)
     {
         var fileName = element.GetProperty("tiledMapDataFileName").GetString();
-        TiledMapData = TiledMapLoader.LoadMapFromFile(Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName));
+        TiledMapData = TiledMapLoader.LoadMapFromFile(fileName);
 
 #if EDITOR
         TiledMapDataFileName = fileName;

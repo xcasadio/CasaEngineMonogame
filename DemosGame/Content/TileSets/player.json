@@ -1,0 +1,164 @@
+{
+  "swordman": {
+    "tile_set": "Swordman_1.png",
+    "hp_max": 50,
+    "mp_max": 10,
+    "exp": 0,
+    "level": 1,
+    "speed": 2,
+    "spirit": 1,
+    "strength": 2,
+    "defense": 2,
+    "defense_magic": 1,
+    "animations": [
+      {
+        "id": "stand_right",
+        "name": "swordman_stand_right"
+      },
+      {
+        "id": "stand_left",
+        "name": "swordman_stand_left"
+      },
+      {
+        "id": "stand_up",
+        "name": "swordman_stand_up"
+      },
+      {
+        "id": "stand_down",
+        "name": "swordman_stand_down"
+      },
+      {
+        "id": "walk_right",
+        "name": "swordman_walk_right"
+      },
+      {
+        "id": "walk_left",
+        "name": "swordman_walk_left"
+      },
+      {
+        "id": "walk_up",
+        "name": "swordman_walk_up"
+      },
+      {
+        "id": "walk_down",
+        "name": "swordman_walk_down"
+      },
+      {
+        "id": "magic_right",
+        "name": "swordman_magic_right"
+      },
+      {
+        "id": "magic_left",
+        "name": "swordman_magic_left"
+      },
+      {
+        "id": "magic_up",
+        "name": "swordman_magic_up"
+      },
+      {
+        "id": "magic_down",
+        "name": "swordman_magic_down"
+      },
+      {
+        "id": "attack_right",
+        "name": "swordman_attack_right"
+      },
+      {
+        "id": "attack_left",
+        "name": "swordman_attack_left"
+      },
+      {
+        "id": "attack_up",
+        "name": "swordman_attack_up"
+      },
+      {
+        "id": "attack_down",
+        "name": "swordman_attack_down"
+      },
+      {
+        "id": "object_right",
+        "name": "swordman_object_right"
+      },
+      {
+        "id": "object_left",
+        "name": "swordman_object_left"
+      },
+      {
+        "id": "object_up",
+        "name": "swordman_object_up"
+      },
+      {
+        "id": "object_down",
+        "name": "swordman_object_down"
+      },
+      {
+        "id": "dying",
+        "name": "swordman_dying"
+      },
+      {
+        "id": "dead_idle_right",
+        "name": "swordman_dead_idle_right"
+      },
+      {
+        "id": "dead_idle_left",
+        "name": "swordman_dead_idle_left"
+      },
+      {
+        "id": "dead_idle_up",
+        "name": "swordman_dead_idle_up"
+      },
+      {
+        "id": "dead_idle_down",
+        "name": "swordman_dead_idle_down"
+      },
+      {
+        "id": "dead_walking_right",
+        "name": "swordman_dead_walking_right"
+      },
+      {
+        "id": "dead_walking_left",
+        "name": "swordman_dead_walking_left"
+      },
+      {
+        "id": "dead_walking_up",
+        "name": "swordman_dead_walking_up"
+      },
+      {
+        "id": "dead_walking_down",
+        "name": "swordman_dead_walking_down"
+      },
+      {
+        "id": "attack2_right",
+        "name": "swordman_attack2_right"
+      },
+      {
+        "id": "attack2_left",
+        "name": "swordman_attack2_left"
+      },
+      {
+        "id": "attack2_up",
+        "name": "swordman_attack2_up"
+      },
+      {
+        "id": "attack2_down",
+        "name": "swordman_attack2_down"
+      },
+      {
+        "id": "attack3_right",
+        "name": "swordman_attack3_right"
+      },
+      {
+        "id": "attack3_left",
+        "name": "swordman_attack3_left"
+      },
+      {
+        "id": "attack3_up",
+        "name": "swordman_attack3_up"
+      },
+      {
+        "id": "attack3_down",
+        "name": "swordman_attack3_down"
+      }
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "sprites": [
+    {
+      "asset_name": "auto_tile1_0_0",
+      "sprite_sheet": "Maps\\auto_grass.png",
+      "location": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "hotspot": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "asset_name": "auto_tile1_1_0",
+      "sprite_sheet": "Maps\\auto_grass.png",
+      "location": {
+        "x": 32,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "hotspot": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "asset_name": "auto_tile1_0_1",
+      "sprite_sheet": "Maps\\auto_grass.png",
+      "location": {
+        "x": 0,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      },
+      "hotspot": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "asset_name": "auto_tile1_1_1",
+      "sprite_sheet": "Maps\\auto_grass.png",
+      "location": {
+        "x": 32,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      },
+      "hotspot": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "asset_name": "auto_tile1_0_2",
+      "sprite_sheet": "Maps\\auto_grass.png",
+      "location": {
+        "x": 0,
+        "y": 64,
+        "w": 32,
+        "h": 32
+      },
+      "hotspot": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "asset_name": "auto_tile1_1_2",
+      "sprite_sheet": "Maps\\auto_grass.png",
+      "location": {
+        "x": 32,
+        "y": 64,
+        "w": 32,
+        "h": 32
+      },
+      "hotspot": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}
