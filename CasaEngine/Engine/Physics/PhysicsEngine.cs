@@ -117,7 +117,7 @@ public class PhysicsEngine
     /// </summary>
     public float FixedTimeStep { get; set; }
 
-    public PhysicsEngine(PhysicsSettings configuration)
+    public PhysicsEngine(PhysicsEngineSettings configuration)
     {
         MaxSubSteps = configuration.MaxSubSteps;
         FixedTimeStep = configuration.FixedTimeStep;

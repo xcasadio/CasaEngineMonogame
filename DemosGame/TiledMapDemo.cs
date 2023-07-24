@@ -36,13 +36,14 @@ public class TiledMapDemo : Demo
         //============ player ===============
         entity = new Entity();
         entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(50, 500, 0);
+        entity.Coordinates.LocalPosition = new Vector3(50, 500, 0.2f);
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
-        physicsComponent.PhysicsType = PhysicsType.Dynamic;
-        physicsComponent.Mass = 1.0f;
+        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+        physicsComponent.PhysicsDefinition.Mass = 1.0f;
         physicsComponent.Shape = new ShapeCircle(25);
-
+        physicsComponent.PhysicsDefinition.ApplyGravity = false;
+        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
         var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", game.GameManager.AssetContentManager);
         var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG_animations.anims2d", game.GameManager.AssetContentManager);
         var animatedSprite = new AnimatedSpriteComponent(entity);
@@ -51,6 +52,9 @@ public class TiledMapDemo : Demo
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
+        animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
+
+        entity.ComponentManager.Components.Add(new PlayerComponent(entity));
 
         world.AddEntityImmediately(entity);
     }

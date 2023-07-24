@@ -20,9 +20,9 @@ public class Collision3dBasicDemo : Demo
         var entity = new Entity();
         var physicsComponent = new PhysicsComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
-        physicsComponent.PhysicsType = PhysicsType.Static;
+        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         physicsComponent.Shape = new Box { Size = new Vector3(50, 1, 50) };
-        physicsComponent.Mass = 0.0f;
+        physicsComponent.PhysicsDefinition.Mass = 0.0f;
         var meshComponent = new StaticMeshComponent(entity);
         entity.ComponentManager.Components.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
@@ -50,9 +50,9 @@ public class Collision3dBasicDemo : Demo
                     entity.Coordinates.LocalPosition = start + new Vector3(i, k, j);
                     physicsComponent = new PhysicsComponent(entity);
                     entity.ComponentManager.Components.Add(physicsComponent);
-                    physicsComponent.PhysicsType = PhysicsType.Dynamic;
+                    physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
                     physicsComponent.Shape = new Box { Size = Vector3.One };
-                    physicsComponent.Mass = mass;
+                    physicsComponent.PhysicsDefinition.Mass = mass;
                     meshComponent = new StaticMeshComponent(entity);
                     entity.ComponentManager.Components.Add(meshComponent);
                     meshComponent.Mesh = boxPrimitive;

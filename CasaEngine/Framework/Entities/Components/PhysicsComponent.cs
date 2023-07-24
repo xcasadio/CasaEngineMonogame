@@ -32,82 +32,9 @@ public class PhysicsComponent : Component, ICollideableComponent
     //static
     private CollisionObject? _collisionObject;
 
-    public PhysicsType PhysicsType
-    {
-        get => _physicsType;
-        set
-        {
-            _physicsType = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }
-
-    public Vector3 Velocity
-    {
-        get => _velocity;
-        set
-        {
-            _velocity = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }
-
-    public float Mass
-    {
-        get => _mass;
-        set
-        {
-            _mass = value;
-#if EDITOR
-            OnPropertyChanged();
-            //TODO : change physics
-#endif
-        }
-    }
-
-    //the maximum speed this entity may travel at.
-    public float MaxSpeed
-    {
-        get => _maxSpeed;
-        set
-        {
-            _maxSpeed = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }
-
-    //the maximum force this entity can produce to power itself 
-    //(think rockets and thrust)
-    public float MaxForce
-    {
-        get => _maxForce;
-        set
-        {
-            _maxForce = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }
-
-    //the maximum rate (radians per second)this vehicle can rotate         
-    public float MaxTurnRate
-    {
-        get => _maxTurnRate;
-        set
-        {
-            _maxTurnRate = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }
+    public HashSet<Collision> Collisions { get; } = new();
+    public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
+    public PhysicsDefinition PhysicsDefinition { get; } = new();
 
     public Shape3d? Shape
     {
@@ -120,8 +47,6 @@ public class PhysicsComponent : Component, ICollideableComponent
 #endif
         }
     }
-
-    public HashSet<Collision> Collisions { get; } = new();
 
     public PhysicsComponent(Entity entity) : base(entity, ComponentId)
     {
@@ -170,13 +95,13 @@ public class PhysicsComponent : Component, ICollideableComponent
         switch (PhysicsType)
         {
             case PhysicsType.Static:
-                _collisionObject = _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this);
+                _collisionObject = _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
                 break;
             case PhysicsType.Kinetic:
                 _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
                 break;
             default:
-                _rigidBody = _physicsEngineComponent.AddRigidBody(_shape, Mass, ref worldMatrix, this);
+                _rigidBody = _physicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
                 break;
         }
     }

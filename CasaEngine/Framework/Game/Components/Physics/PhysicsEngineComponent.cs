@@ -24,7 +24,7 @@ public class PhysicsEngineComponent : GameComponent
 
     public override void Initialize()
     {
-        PhysicsEngine = new PhysicsEngine(GameSettings.PhysicsSettings);
+        PhysicsEngine = new PhysicsEngine(GameSettings.PhysicsEngineSettings);
         base.Initialize();
     }
 
@@ -80,48 +80,46 @@ public class PhysicsEngineComponent : GameComponent
         return ghostObject;
     }
 
-    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, object component, Color? color = null)
+    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        return AddRigidBody(shape3d, 0.0f, ref worldMatrix, component, color);
+        return AddRigidBody(shape3d, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, object component, Color? color = null,
-        Vector3? linearFactor = null, Vector3? angularFactor = null)
+    public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        return AddRigidBody(shape2d, 0.0f, ref worldMatrix, component, color, linearFactor, angularFactor);
+        physicsDefinition.Mass = null;
+        return AddRigidBody(shape2d, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(Shape3d shape3d, float mass, ref Matrix worldMatrix, object component, Color? color = null)
+    public RigidBody AddRigidBody(Shape3d shape3d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
         var collisionShape = ConvertToCollisionShape(shape3d);
-        return AddRigidBody(collisionShape, mass, ref worldMatrix, component, color);
+        return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(Shape2d shape2d, float mass, ref Matrix worldMatrix, object component, Color? color = null,
-        Vector3? linearFactor = null, Vector3? angularFactor = null)
+    public RigidBody AddRigidBody(Shape2d shape2d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
         var collisionShape = ConvertToCollisionShape(shape2d);
-        return AddRigidBody(collisionShape, mass, ref worldMatrix, component, color, linearFactor, angularFactor);
+        return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(CollisionShape collisionShape, float mass, ref Matrix worldMatrix, object component, Color? color = null,
-        Vector3? linearFactor = null, Vector3? angularFactor = null)
+    public RigidBody AddRigidBody(CollisionShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
     {
-        using var rbInfo = new RigidBodyConstructionInfo(mass, null, collisionShape);
-        bool isDynamic = mass != 0.0f;
+        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass ?? 0f, null, collisionShape);
+        bool isDynamic = physicsDefinition.Mass.HasValue && physicsDefinition.Mass != 0.0f;
         if (isDynamic)
         {
-            rbInfo.LocalInertia = collisionShape.CalculateLocalInertia(mass);
+            rbInfo.LocalInertia = collisionShape.CalculateLocalInertia(physicsDefinition.Mass.Value);
             rbInfo.MotionState = new DefaultMotionState(worldMatrix);
         }
 
         var body = new RigidBody(rbInfo)
         {
-            Gravity = GameSettings.PhysicsSettings.Gravity,
-            UserObject = component,
+            Gravity = physicsDefinition.ApplyGravity is true ? GameSettings.PhysicsEngineSettings.Gravity : Vector3.Zero,
+            UserObject = userObject,
             WorldTransform = worldMatrix,
-            LinearFactor = linearFactor ?? Vector3.One,
-            AngularFactor = angularFactor ?? Vector3.One
+            LinearFactor = physicsDefinition.LinearFactor ?? Vector3.One,
+            AngularFactor = physicsDefinition.AngularFactor ?? Vector3.One
         };
 
         if (!isDynamic)
@@ -129,12 +127,18 @@ public class PhysicsEngineComponent : GameComponent
             body.CollisionFlags |= CollisionFlags.StaticObject;
         }
 
-        if (color.HasValue)
+        if (physicsDefinition.DebugColor.HasValue)
         {
-            body.SetCustomDebugColor(color.Value.ToVector3());
+            body.SetCustomDebugColor(physicsDefinition.DebugColor.Value.ToVector3());
         }
 
         PhysicsEngine.World.AddRigidBody(body);
+
+        if (physicsDefinition.ApplyGravity is false)
+        {
+            body.Gravity = Vector3.Zero;
+        }
+
         return body;
     }
 

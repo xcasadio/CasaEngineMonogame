@@ -95,7 +95,7 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
                                     -y * TiledMapData.TileSize.Height - TiledMapData.TileSize.Height / 2f,
                                     0f);
                                 var rectangle = new ShapeRectangle(0, 0, TiledMapData.TileSize.Width, TiledMapData.TileSize.Height);
-                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, this);
+                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, this, new PhysicsDefinition());
                                 break;
                         }
                     }

@@ -11,7 +11,7 @@ public class GameSettings
     public static PluginManager PluginManager { get; } = new();
 
     public static GraphicsSettings GraphicsSettings { get; } = new();
-    public static PhysicsSettings PhysicsSettings { get; } = new();
+    public static PhysicsEngineSettings PhysicsEngineSettings { get; } = new();
 
 #if EDITOR
     public static ExternalToolManager ExternalToolManager { get; } = new();

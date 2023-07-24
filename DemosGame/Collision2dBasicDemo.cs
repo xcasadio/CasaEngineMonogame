@@ -35,10 +35,10 @@ public class Collision2dBasicDemo : Demo
         entity.Coordinates.LocalPosition = new Vector3(0, 0, 0);
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
-        physicsComponent.PhysicsType = PhysicsType.Static;
+        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         var size = new Vector3(150, 1, 1f);
         physicsComponent.Shape = new ShapeRectangle(0, 0, (int)size.X, (int)size.Y);
-        physicsComponent.Mass = 0.0f;
+        physicsComponent.PhysicsDefinition.Mass = 0.0f;
         var meshComponent = new StaticMeshComponent(entity);
         entity.ComponentManager.Components.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, size.X, size.Y, size.Z).CreateMesh();
@@ -115,8 +115,8 @@ public class Collision2dBasicDemo : Demo
                 entity.Coordinates.LocalPosition = new Vector3(i + boxSize + 1, 8 + j * boxSize, 0);
                 physicsComponent = new Physics2dComponent(entity);
                 entity.ComponentManager.Components.Add(physicsComponent);
-                physicsComponent.PhysicsType = PhysicsType.Dynamic;
-                physicsComponent.Mass = mass;
+                physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+                physicsComponent.PhysicsDefinition.Mass = mass;
                 meshComponent = new StaticMeshComponent(entity);
                 entity.ComponentManager.Components.Add(meshComponent);
 

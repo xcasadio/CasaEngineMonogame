@@ -33,7 +33,7 @@ namespace DemosGame
         {
             var world = new World();
             GameManager.CurrentWorld = world;
-            PhysicsDebugViewRendererComponent.DisplayPhysics = true;
+            //PhysicsDebugViewRendererComponent.DisplayPhysics = true;
             base.LoadContent();
 
             _demos.Add(new Collision3dBasicDemo());

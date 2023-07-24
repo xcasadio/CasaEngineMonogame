@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Engine.Physics;
 
-public class PhysicsSettings
+public class PhysicsEngineSettings
 {
     public PhysicsEngineFlags Flags = PhysicsEngineFlags.ContinuousCollisionDetection;
 
@@ -14,8 +14,4 @@ public class PhysicsSettings
 
     public Vector3 Gravity { get; set; } = new(0, -9.87f, 0f);
     public bool IsPhysics2dActivated { get; set; } = true;
-
-    public PhysicsSettings()
-    {
-    }
 }

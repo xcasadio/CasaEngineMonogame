@@ -5,6 +5,7 @@ namespace CasaEngine.Framework.Assets.Animations;
 public class Animation
 {
     protected readonly List<AnimationEvent> Events = new();
+    protected readonly HashSet<AnimationEvent> ActivatedEvents = new();
     private bool _isInitialized;
 
     public event EventHandler? AnimationFinished;
@@ -45,7 +46,7 @@ public class Animation
             while (CurrentTime > totalTime)
             {
                 CurrentTime -= totalTime;
-                //isFinished = true;
+                ActivatedEvents.Clear();
             }
             currentTime = CurrentTime;
         }
@@ -66,6 +67,7 @@ public class Animation
             {
                 currentTime -= totalTime;
                 pingPongState = 1 - pingPongState;
+                ActivatedEvents.Clear();
             }
 
             if (pingPongState == 1)
@@ -86,9 +88,19 @@ public class Animation
         // _events must be sorted by time
         foreach (var @event in Events)
         {
-            if ((lastTime < @event.Time || lastTime == 0.0f) && @event.Time <= currentTime)
+            if (ActivatedEvents.Contains(@event))
+            {
+                continue;
+            }
+
+            if (@event.Time <= currentTime)
             {
                 @event.Activate(this);
+                ActivatedEvents.Add(@event);
+            }
+            else
+            {
+                break;
             }
         }
     }
