@@ -1,0 +1,63 @@
+{
+  "octopus": {
+    "tile_set": "octopus_0_0.png",
+    "hp_max": 50,
+    "mp_max": 0,
+    "speed": 0,
+    "spirit": 0,
+    "strength": 1,
+    "defense": 0,
+    "defense_magic": 0,
+    "exp": 2,
+    "animations": [
+      {
+        "id": "stand_right",
+        "name": "octopus_stand_right"
+      },
+      {
+        "id": "stand_left",
+        "name": "octopus_stand_left"
+      },
+      {
+        "id": "stand_up",
+        "name": "octopus_stand_up"
+      },
+      {
+        "id": "stand_down",
+        "name": "octopus_stand_down"
+      },
+      {
+        "id": "walk_right",
+        "name": "octopus_walk_right"
+      },
+      {
+        "id": "walk_left",
+        "name": "octopus_walk_left"
+      },
+      {
+        "id": "walk_up",
+        "name": "octopus_walk_up"
+      },
+      {
+        "id": "walk_down",
+        "name": "octopus_walk_down"
+      },
+      {
+        "id": "attack_right",
+        "name": "octopus_attack_right"
+      },
+      {
+        "id": "attack_left",
+        "name": "octopus_attack_left"
+      },
+      {
+        "id": "attack_down",
+        "name": "octopus_attack_down"
+      },
+      {
+        "id": "attack_up",
+        "name": "octopus_attack_up"
+      }
+    ]
+  }
+}

@@ -1,0 +1,799 @@
+{
+    "map_size": {
+        "w": 30,
+        "h": 11
+    },    
+	"tile_size": {
+        "w": 32,
+        "h": 32
+    },
+	"auto_tile_set_file_names": ["Maps\\tile1_auto_tile_set.json"],
+	"sprite_sheet_file_names": [ "Maps\\tile1_sprites.spritesheet", "Maps\\tile1_auto_tile_sprites.spritesheet"	],
+    "layers": [
+        {
+            "tiles": [
+                23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,76,23,76,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,76,23,23,76,76,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,76,23,76,76,76,76,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,76,23,76,76,76,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,76,76,76,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,76,23,23,23,76,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,76,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
+				23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23
+            ],
+            "z_offset": 0.0,
+			"type": "static"
+        },
+        {
+            "tiles": [
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 98, 98, 98, 98, 98, 98, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 98, 98, 98, 98, -1, 98, -1, -1, -1, -1, -1, 98, 98, 98, 98, 98, 98, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, -1, 98, 98, 98, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, -1, -1, -1, -1, 98, -1,
+				-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, -1, -1, -1, -1, -1, 98, -1	
+            ],
+            "z_offset": 0.1,
+			"type": "auto"
+        },
+        {
+            "tiles": [
+				80,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,81,82,
+				22,22, 5,13, 5,13,13, 0, 5,13,13,21,22, 5,13,21,21,22,13, 5,21, 0,21, 5,22, 5,21, 0, 5,13,
+				22, 5, 0,13, 0,10,21,21, 0,13,21,21,13, 0,21, 0,21, 5,13, 0,21,21, 0,13,13, 0, 0, 0,21, 0,
+				22,13,21,21, 0, 0,13, 0, 0,21, 5, 0, 0, 0, 0, 0,21, 0, 0, 0,21, 0, 0, 0, 0, 0, 0, 0, 0,93,
+				 5,13,21, 0,14,14, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,94,
+				13, 0, 0, 0, 0, 0, 0, 0,12, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,95,
+				 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,90,
+				 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,47, 0, 0, 0, 0, 0, 0, 7, 0, 0,29,30, 0, 0, 0, 0, 0, 0, 0,
+				73,74, 8, 0, 0, 0,15, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0,12, 0, 0, 0, 0, 0,12,27, 0, 0, 0,
+				 0, 0,15,72,73,74,75, 0, 7,20,20, 0, 0,29,30, 0, 0, 0, 0, 0, 0, 0, 0, 0,37,38,37,38, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 3,72,73,74,75, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0,12,37,38,37,38, 0,12	
+            ],
+            "z_offset": 0.2,
+			"type": "static"
+        },
+        {
+            "tiles": [
+				 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				41,42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				49,50,51, 0,41,42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				57,58,59,48,49,50,51, 0, 0,41,42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				65,66,67,56,57,58,59, 0,48,49,50,51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				 0,41,42,64,65,66,67, 0,56,57,58,59, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				48,49,50,51, 0, 0,41,42,64,65,66,67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,31,31,31,31, 0, 0,
+				56,57,58,59, 0,48,49,50,51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,39,39,39,39, 0, 0 
+            ],
+            "z_offset": 0.3,
+			"type": "static"
+        }
+    ],
+	"tilesDefinition": [
+        {
+            "collision_type": "none",
+            "id": 0,
+            "is_breakable": false,
+            "sprite_id": "tile1_0_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 1,
+            "is_breakable": false,
+            "sprite_id": "tile1_1_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 2,
+            "is_breakable": false,
+            "sprite_id": "tile1_2_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 3,
+            "is_breakable": false,
+            "sprite_id": "tile1_3_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 4,
+            "is_breakable": false,
+            "sprite_id": "tile1_4_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 5,
+            "is_breakable": false,
+            "sprite_id": "tile1_5_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 6,
+            "is_breakable": false,
+            "sprite_id": "tile1_6_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 7,
+            "is_breakable": false,
+            "sprite_id": "tile1_7_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 8,
+            "is_breakable": false,
+            "sprite_id": "tile1_8_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 9,
+            "is_breakable": false,
+            "sprite_id": "tile1_9_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 10,
+            "is_breakable": false,
+            "sprite_id": "tile1_10_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 11,
+            "is_breakable": false,
+            "sprite_id": "tile1_11_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 12,
+            "is_breakable": false,
+            "sprite_id": "tile1_12_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 13,
+            "is_breakable": false,
+            "sprite_id": "tile1_13_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 14,
+            "is_breakable": false,
+            "sprite_id": "tile1_14_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 15,
+            "is_breakable": false,
+            "sprite_id": "tile1_15_0",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 16,
+            "is_breakable": false,
+            "sprite_id": "tile1_0_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 17,
+            "is_breakable": false,
+            "sprite_id": "tile1_1_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 18,
+            "is_breakable": false,
+            "sprite_id": "tile1_2_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 19,
+            "is_breakable": false,
+            "sprite_id": "tile1_3_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 20,
+            "is_breakable": false,
+            "sprite_id": "tile1_4_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 21,
+            "is_breakable": false,
+            "sprite_id": "tile1_5_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 22,
+            "is_breakable": false,
+            "sprite_id": "tile1_6_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 23,
+            "is_breakable": false,
+            "sprite_id": "tile1_7_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 24,
+            "is_breakable": false,
+            "sprite_id": "tile1_8_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 25,
+            "is_breakable": false,
+            "sprite_id": "tile1_9_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 26,
+            "is_breakable": false,
+            "sprite_id": "tile1_10_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 27,
+            "is_breakable": false,
+            "sprite_id": "tile1_11_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 28,
+            "is_breakable": false,
+            "sprite_id": "tile1_12_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 29,
+            "is_breakable": false,
+            "sprite_id": "tile1_13_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 30,
+            "is_breakable": false,
+            "sprite_id": "tile1_14_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 31,
+            "is_breakable": false,
+            "sprite_id": "tile1_15_1",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 32,
+            "is_breakable": false,
+            "sprite_id": "tile1_0_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 33,
+            "is_breakable": false,
+            "sprite_id": "tile1_1_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 34,
+            "is_breakable": false,
+            "sprite_id": "tile1_2_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 35,
+            "is_breakable": false,
+            "sprite_id": "tile1_3_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 36,
+            "is_breakable": false,
+            "sprite_id": "tile1_4_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 37,
+            "is_breakable": false,
+            "sprite_id": "tile1_5_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 38,
+            "is_breakable": false,
+            "sprite_id": "tile1_6_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 39,
+            "is_breakable": false,
+            "sprite_id": "tile1_7_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 40,
+            "is_breakable": false,
+            "sprite_id": "tile1_8_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 41,
+            "is_breakable": false,
+            "sprite_id": "tile1_9_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 42,
+            "is_breakable": false,
+            "sprite_id": "tile1_10_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 43,
+            "is_breakable": false,
+            "sprite_id": "tile1_11_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 44,
+            "is_breakable": false,
+            "sprite_id": "tile1_12_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 45,
+            "is_breakable": false,
+            "sprite_id": "tile1_13_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 46,
+            "is_breakable": false,
+            "sprite_id": "tile1_14_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 47,
+            "is_breakable": false,
+            "sprite_id": "tile1_15_2",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 48,
+            "is_breakable": false,
+            "sprite_id": "tile1_0_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 49,
+            "is_breakable": false,
+            "sprite_id": "tile1_1_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 50,
+            "is_breakable": false,
+            "sprite_id": "tile1_2_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 51,
+            "is_breakable": false,
+            "sprite_id": "tile1_3_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 52,
+            "is_breakable": false,
+            "sprite_id": "tile1_4_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 53,
+            "is_breakable": false,
+            "sprite_id": "tile1_5_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 54,
+            "is_breakable": false,
+            "sprite_id": "tile1_6_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 55,
+            "is_breakable": false,
+            "sprite_id": "tile1_7_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 56,
+            "is_breakable": false,
+            "sprite_id": "tile1_8_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 57,
+            "is_breakable": false,
+            "sprite_id": "tile1_9_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 58,
+            "is_breakable": false,
+            "sprite_id": "tile1_10_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 59,
+            "is_breakable": false,
+            "sprite_id": "tile1_11_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 60,
+            "is_breakable": false,
+            "sprite_id": "tile1_12_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 61,
+            "is_breakable": false,
+            "sprite_id": "tile1_13_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 62,
+            "is_breakable": false,
+            "sprite_id": "tile1_14_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 63,
+            "is_breakable": false,
+            "sprite_id": "tile1_15_3",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 64,
+            "is_breakable": false,
+            "sprite_id": "tile1_0_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 65,
+            "is_breakable": false,
+            "sprite_id": "tile1_1_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 66,
+            "is_breakable": false,
+            "sprite_id": "tile1_2_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 67,
+            "is_breakable": false,
+            "sprite_id": "tile1_3_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 68,
+            "is_breakable": false,
+            "sprite_id": "tile1_4_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 69,
+            "is_breakable": false,
+            "sprite_id": "tile1_5_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 70,
+            "is_breakable": false,
+            "sprite_id": "tile1_6_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 71,
+            "is_breakable": false,
+            "sprite_id": "tile1_7_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 72,
+            "is_breakable": false,
+            "sprite_id": "tile1_8_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 73,
+            "is_breakable": false,
+            "sprite_id": "tile1_9_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 74,
+            "is_breakable": false,
+            "sprite_id": "tile1_10_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 75,
+            "is_breakable": false,
+            "sprite_id": "tile1_11_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 76,
+            "is_breakable": false,
+            "sprite_id": "tile1_12_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 77,
+            "is_breakable": false,
+            "sprite_id": "tile1_13_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 78,
+            "is_breakable": false,
+            "sprite_id": "tile1_14_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 79,
+            "is_breakable": false,
+            "sprite_id": "tile1_15_4",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 80,
+            "is_breakable": false,
+            "sprite_id": "tile1_0_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 81,
+            "is_breakable": false,
+            "sprite_id": "tile1_1_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "blocked",
+            "id": 82,
+            "is_breakable": false,
+            "sprite_id": "tile1_2_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 83,
+            "is_breakable": false,
+            "sprite_id": "tile1_3_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 84,
+            "is_breakable": false,
+            "sprite_id": "tile1_4_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 85,
+            "is_breakable": false,
+            "sprite_id": "tile1_5_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 86,
+            "is_breakable": false,
+            "sprite_id": "tile1_6_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 87,
+            "is_breakable": false,
+            "sprite_id": "tile1_7_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 88,
+            "is_breakable": false,
+            "sprite_id": "tile1_8_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 89,
+            "is_breakable": false,
+            "sprite_id": "tile1_9_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 90,
+            "is_breakable": false,
+            "sprite_id": "tile1_10_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 91,
+            "is_breakable": false,
+            "sprite_id": "tile1_11_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 92,
+            "is_breakable": false,
+            "sprite_id": "tile1_12_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 93,
+            "is_breakable": false,
+            "sprite_id": "tile1_13_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 94,
+            "is_breakable": false,
+            "sprite_id": "tile1_14_5",
+            "type": "static"
+        },
+        {
+            "collision_type": "none",
+            "id": 95,
+            "is_breakable": false,
+            "sprite_id": "tile1_15_5",
+            "type": "static"
+        },
+		{
+                    "collision_type": "NoContactResponse",
+                    "id": 96,
+                    "is_breakable": true,
+                    "autoTileSetId": 0,					
+                    "type": "Auto"
+                },
+                {
+                    "collision_type": "NoContactResponse",
+                    "id": 97,
+                    "is_breakable": true,
+                    "autoTileSetId": 0,	
+                    "type": "Auto"
+                },
+                {
+                    "collision_type": "NoContactResponse",
+                    "id": 98,
+                    "is_breakable": true,
+                    "autoTileSetId": 0,	
+                    "type": "Auto"
+                },
+                {
+                    "collision_type": "NoContactResponse",
+                    "id": 99,
+                    "is_breakable": true,
+                    "autoTileSetId": 0,	
+                    "type": "Auto"
+                },
+                {
+                    "collision_type": "NoContactResponse",
+                    "id": 100,
+                    "is_breakable": true,
+                    "autoTileSetId": 0,	
+                    "type": "Auto"
+                },
+                {
+                    "collision_type": "NoContactResponse",
+                    "id": 101,
+                    "is_breakable": true,
+                    "autoTileSetId": 0,	
+                    "type": "Auto"
+                }
+	
+    ]
+}

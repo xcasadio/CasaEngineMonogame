@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Editor", "CasaEn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EditorWpf", "EditorWpf\EditorWpf.csproj", "{F2707E78-7C71-43AC-A27A-0E2FB32BB684}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pong", "Pong\Pong.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RPGDemo", "RPGDemo\RPGDemo.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngineLauncher", "CasaEngineLauncher\CasaEngineLauncher.csproj", "{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}"
 EndProject
@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Framework.Wpf.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.WpfControls", "CasaEngine.WpfControls\CasaEngine.WpfControls.csproj", "{DFF1902F-E282-423D-80A0-4A3DEE29796F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemosGame", "DemosGame\DemosGame.csproj", "{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemosGame", "DemosGame\DemosGame.csproj", "{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

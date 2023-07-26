@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Engine.Plugin;
 using CasaEngine.Framework.Entities;
 
-namespace Pong;
+namespace RPGDemo;
 
 public class Plugin : IPlugin
 {
