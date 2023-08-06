@@ -113,6 +113,7 @@ public class Animation
     public virtual void Reset()
     {
         CurrentTime = 0.0f;
+        ActivatedEvents.Clear();
     }
 
 #if EDITOR
