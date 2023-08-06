@@ -27,7 +27,7 @@ public class PlayerIdleState : IState<Controller>
         HumanPlayerController c = (HumanPlayerController)controller;
         //PlayerIndex playerIndex = c.PlayerIndex;
 
-        if (c.IsAttackButtonPressed() == true)
+        if (c.IsAttackButtonPressed())
         {
             controller.StateMachine.Transition(controller.GetState((int)PlayerControllerState.Attack));
             return;

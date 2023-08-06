@@ -78,7 +78,7 @@ public class TiledMapLoader
     {
         AutoTileSetData autoTileSetData = new();
 
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(Game.GameSettings.ProjectSettings.ProjectPath, fileName)));
+        var jsonDocument = JsonDocument.Parse(File.ReadAllText(Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName)));
         var rootElement = jsonDocument.RootElement;
         autoTileSetData.SpriteSheetFileName = rootElement.GetJsonPropertyByName("sprite_sheet_file_name").Value.GetString();
 

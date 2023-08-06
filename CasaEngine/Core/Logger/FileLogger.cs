@@ -23,7 +23,7 @@ public class FileLogger : ILog
 
     private void Write(string msg, bool displayTime)
     {
-        if (displayTime == true)
+        if (displayTime)
         {
             _stream.Write(DateTime.Now.ToString("T") + " : ");
         }

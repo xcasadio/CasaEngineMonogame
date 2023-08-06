@@ -97,7 +97,7 @@ public struct RectangleF
 
     public void Contains(ref Vector2 value, out bool result)
     {
-        result = value.X >= this.X && value.X <= Right && value.Y >= this.Y && value.Y <= Bottom;
+        result = value.X >= X && value.X <= Right && value.Y >= Y && value.Y <= Bottom;
     }
 
     public bool Contains(Rectangle value)
@@ -112,7 +112,7 @@ public struct RectangleF
 
     public bool Contains(float x, float y)
     {
-        return x >= this.X && x <= Right && y >= this.Y && y <= Bottom;
+        return x >= X && x <= Right && y >= Y && y <= Bottom;
     }
 
     public bool Contains(Vector2 vector2D)

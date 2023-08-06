@@ -51,7 +51,7 @@ namespace EditorWpf.Controls.SpriteControls
                 return;
             }
 
-            spriteDetailsControl.SetBinding(SpriteEditorControl.DataContextProperty, binding);
+            spriteDetailsControl.SetBinding(DataContextProperty, binding);
         }
 
         protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)

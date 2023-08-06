@@ -48,26 +48,26 @@ public class HumanPlayerController : PlayerController
     {
         direction = Vector2.Zero;
 
-        if (_inputComponent.IsGamePadConnected(_playerIndex) == true)
+        if (_inputComponent.IsGamePadConnected(_playerIndex))
         {
             direction = _inputComponent.GamePadState(_playerIndex).ThumbSticks.Left;
         }
         else
         {
-            if (_inputComponent.IsKeyPressed(Keys.Up) == true)
+            if (_inputComponent.IsKeyPressed(Keys.Up))
             {
                 direction.Y = 1.0f;
             }
-            else if (_inputComponent.IsKeyPressed(Keys.Down) == true)
+            else if (_inputComponent.IsKeyPressed(Keys.Down))
             {
                 direction.Y = -1.0f;
             }
 
-            if (_inputComponent.IsKeyPressed(Keys.Right) == true)
+            if (_inputComponent.IsKeyPressed(Keys.Right))
             {
                 direction.X = 1.0f;
             }
-            else if (_inputComponent.IsKeyPressed(Keys.Left) == true)
+            else if (_inputComponent.IsKeyPressed(Keys.Left))
             {
                 direction.X = -1.0f;
             }
@@ -108,12 +108,12 @@ public class HumanPlayerController : PlayerController
         _vector2 = direction;
         _vector2.Y = -_vector2.Y; //inverse to be on screen coordinate
 
-        return Controllers.Character.GetCharacterDirectionFromVector2(_vector2);
+        return GetCharacterDirectionFromVector2(_vector2);
     }
 
     public bool IsAttackButtonPressed()
     {
-        if (_inputComponent.IsGamePadConnected(_playerIndex) == true)
+        if (_inputComponent.IsGamePadConnected(_playerIndex))
         {
             return _inputComponent.IsButtonJustPressed(_playerIndex, Buttons.A);
         }

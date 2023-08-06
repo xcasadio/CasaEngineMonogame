@@ -21,7 +21,7 @@ public class Shape2dCompound : Shape2d, IEquatable<Shape2dCompound>
     {
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != this.GetType()) return false;
+        if (obj.GetType() != GetType()) return false;
         return Equals((Shape2dCompound)obj);
     }
 
