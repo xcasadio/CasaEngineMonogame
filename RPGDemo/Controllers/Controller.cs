@@ -9,7 +9,6 @@ public abstract class Controller : IFsmCapable<Controller>
 {
     private readonly FiniteStateMachine<Controller> _fsm;
     private readonly Dictionary<int, IState<Controller>> _states = new();
-    private readonly Character _character;
 
     public IFiniteStateMachine<Controller> StateMachine
     {
@@ -17,11 +16,7 @@ public abstract class Controller : IFsmCapable<Controller>
         set => throw new NotImplementedException();
     }
 
-    public Character Character
-    {
-        get => _character;
-        private init => _character = value;
-    }
+    public Character Character { get; }
 
     protected Controller(Character character)
     {
@@ -44,5 +39,6 @@ public abstract class Controller : IFsmCapable<Controller>
     public virtual void Update(float elapsedTime)
     {
         _fsm.Update(elapsedTime);
+        Character.Update(elapsedTime);
     }
 }

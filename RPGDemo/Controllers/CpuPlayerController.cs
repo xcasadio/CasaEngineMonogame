@@ -33,11 +33,8 @@ public class CpuPlayerController : AiController
     {
         base.Update(elapsedTime);
 
-        Vector2 dir;
-        Character2dDirection character2dDirection;
-
-        dir = Vector2.UnitX;
-        character2dDirection = Character2dDirection.Right;
+        var dir = Vector2.UnitX;
+        var character2dDirection = Character2dDirection.Right;
 
         if (Character.Position.X > _game.GraphicsDevice.Viewport.Width - 50)
         {

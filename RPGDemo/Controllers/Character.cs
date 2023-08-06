@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
@@ -11,6 +12,8 @@ namespace RPGDemo.Controllers;
 
 public class Character
 {
+    public const float DeadZone = 0.2f;
+
     public enum AnimationIndices
     {
         Idle = 0,
@@ -75,7 +78,7 @@ public class Character
 
     public void Update(float elapsedTime)
     {
-        throw new NotImplementedException();
+        MoveCharacter(elapsedTime);
     }
 
     public void Load(JsonElement element)
@@ -107,9 +110,11 @@ public class Character
         {
             //always when Vector2.Zero to stop movement
             //else if contact the character will continue to move
-            //m_Body.ResetDynamics();
+            _physics2dComponent.Velocity = dir;
         }
 
+        _physics2dComponent.Velocity = dir * 120f;
+        //_physics2dComponent.ApplyLinearImpulse(dir * 10f);
         //m_MovementDirection = dir_ * m_Spd * 10f;
     }
 
@@ -148,7 +153,14 @@ public class Character
     {
         var prefix = "swordman";
         var animationName = $"{prefix}_{Enum.GetName(animationIndex)}_{Enum.GetName(CurrentDirection)}".ToLower();
+
+        if (_animatedSpriteComponent?.CurrentAnimation?.Animation2dData.Name == animationName)
+        {
+            return;
+        }
+
         _animatedSpriteComponent.SetCurrentAnimation(animationName, true);
+        //Debug.WriteLine($"SetAnimation : {animationName}");
     }
 
     private int GetAnimationDirectionOffset()
@@ -231,25 +243,24 @@ public class Character
 
     public static Character2dDirection GetCharacterDirectionFromVector2(Vector2 v)
     {
-        float deadzone = 0.2f;
         Character2dDirection dir = 0;
 
-        if (v.X < -deadzone)
+        if (v.X < -DeadZone)
         {
-            dir |= Character2dDirection.Left;
+            dir = Character2dDirection.Left;
         }
-        else if (v.X > deadzone)
+        else if (v.X > DeadZone)
         {
-            dir |= Character2dDirection.Right;
+            dir = Character2dDirection.Right;
         }
 
-        if (v.Y < -deadzone)
+        if (v.Y < -DeadZone)
         {
-            dir |= Character2dDirection.Up;
+            dir = Character2dDirection.Up;
         }
-        else if (v.Y > deadzone)
+        else if (v.Y > DeadZone)
         {
-            dir |= Character2dDirection.Down;
+            dir = Character2dDirection.Down;
         }
 
         return dir;

@@ -26,7 +26,7 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
 
     public void OnHit(Collision collision)
     {
-        Debug.WriteLine($"TiledMapComponent OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+        //Debug.WriteLine($"TiledMapComponent OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
     }
 
     public void OnHitEnded(Collision collision)
@@ -95,7 +95,7 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
                                     -y * TiledMapData.TileSize.Height - TiledMapData.TileSize.Height / 2f,
                                     0f);
                                 var rectangle = new ShapeRectangle(0, 0, TiledMapData.TileSize.Width, TiledMapData.TileSize.Height);
-                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, this, new PhysicsDefinition());
+                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, this, new PhysicsDefinition { Friction = 0f });
                                 break;
                         }
                     }

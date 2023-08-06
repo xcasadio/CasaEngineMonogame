@@ -12,9 +12,6 @@ public class HumanPlayerController : PlayerController
     private InputComponent _inputComponent;
     private readonly PlayerIndex _playerIndex;
 
-    //to avoid GC
-    private Vector2 _vector2;
-
     public HumanPlayerController(Character character, PlayerIndex index)
         : base(character)
     {
@@ -51,16 +48,17 @@ public class HumanPlayerController : PlayerController
         if (_inputComponent.IsGamePadConnected(_playerIndex))
         {
             direction = _inputComponent.GamePadState(_playerIndex).ThumbSticks.Left;
+            ClampDirection(ref direction);
         }
         else
         {
             if (_inputComponent.IsKeyPressed(Keys.Up))
             {
-                direction.Y = 1.0f;
+                direction.Y = -1.0f;
             }
             else if (_inputComponent.IsKeyPressed(Keys.Down))
             {
-                direction.Y = -1.0f;
+                direction.Y = 1.0f;
             }
 
             if (_inputComponent.IsKeyPressed(Keys.Right))
@@ -73,11 +71,22 @@ public class HumanPlayerController : PlayerController
             }
         }
 
-        if (direction.X < -0.2f)
+        if (direction.X != 0.0f
+            || direction.Y != 0.0f)
+        {
+            direction.Normalize();
+        }
+
+        return GetCharacterDirectionFromVector2(direction);
+    }
+
+    private static void ClampDirection(ref Vector2 direction)
+    {
+        if (direction.X < -DeadZone)
         {
             direction.X = -1.0f;
         }
-        else if (direction.X > 0.2f)
+        else if (direction.X > DeadZone)
         {
             direction.X = 1.0f;
         }
@@ -86,11 +95,11 @@ public class HumanPlayerController : PlayerController
             direction.X = 0;
         }
 
-        if (direction.Y < -0.2f)
+        if (direction.Y < -DeadZone)
         {
             direction.Y = -1.0f;
         }
-        else if (direction.Y > 0.2f)
+        else if (direction.Y > DeadZone)
         {
             direction.Y = 1.0f;
         }
@@ -98,17 +107,6 @@ public class HumanPlayerController : PlayerController
         {
             direction.Y = 0;
         }
-
-        if (direction.X != 0.0f
-            || direction.Y != 0.0f)
-        {
-            direction.Normalize();
-        }
-
-        _vector2 = direction;
-        _vector2.Y = -_vector2.Y; //inverse to be on screen coordinate
-
-        return GetCharacterDirectionFromVector2(_vector2);
     }
 
     public bool IsAttackButtonPressed()

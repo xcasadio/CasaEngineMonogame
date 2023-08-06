@@ -22,8 +22,6 @@ public class PlayerIdleState : IState<Controller>
 
     public void Update(Controller controller, float elapsedTime)
     {
-        Character2dDirection dir;
-        Vector2 joyDir;
         HumanPlayerController c = (HumanPlayerController)controller;
         //PlayerIndex playerIndex = c.PlayerIndex;
 
@@ -33,7 +31,7 @@ public class PlayerIdleState : IState<Controller>
             return;
         }
 
-        dir = c.GetDirectionFromInput(out joyDir);
+        var dir = c.GetDirectionFromInput(out var joyDir);
 
         if (dir != 0)
         {
@@ -44,7 +42,6 @@ public class PlayerIdleState : IState<Controller>
             || joyDir.Y != 0.0f)
         {
             controller.StateMachine.Transition(controller.GetState((int)PlayerControllerState.Moving));
-            return;
         }
         else // used to immobilized the character
         {

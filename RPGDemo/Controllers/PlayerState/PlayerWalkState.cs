@@ -22,8 +22,6 @@ public class PlayerWalkState : IState<Controller>
 
     public void Update(Controller controller, float elapsedTime)
     {
-        Character2dDirection dir;
-        Vector2 joyDir;
         HumanPlayerController c = (HumanPlayerController)controller;
         //PlayerIndex playerIndex = c.PlayerIndex;
 
@@ -33,7 +31,7 @@ public class PlayerWalkState : IState<Controller>
             return;
         }
 
-        dir = c.GetDirectionFromInput(out joyDir);
+        var dir = c.GetDirectionFromInput(out var joyDir);
 
         if (joyDir.X == 0.0f
             && joyDir.Y == 0.0f)

@@ -35,7 +35,7 @@ public class RpgGame : CasaEngineGame
         //GameManager.Renderer2dComponent.IsDrawCollisionsEnabled = true;
         //GameManager.Renderer2dComponent.IsDrawSpriteOriginEnabled = true;
 
-        PhysicsDebugViewRendererComponent.DisplayPhysics = false;
+        PhysicsDebugViewRendererComponent.DisplayPhysics = true;
     }
 
     protected override void LoadContent()
@@ -77,6 +77,9 @@ public class RpgGame : CasaEngineGame
         physicsComponent.Shape = new ShapeCircle(25);
         physicsComponent.PhysicsDefinition.ApplyGravity = false;
         physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
+        physicsComponent.PhysicsDefinition.Friction = 0f;
+        physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
+        physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
         var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", GameManager.AssetContentManager);
         var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG_animations.anims2d", GameManager.AssetContentManager);
         var animatedSprite = new AnimatedSpriteComponent(entity);

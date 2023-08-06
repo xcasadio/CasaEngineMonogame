@@ -105,7 +105,21 @@ public class PhysicsEngineComponent : GameComponent
 
     public RigidBody AddRigidBody(CollisionShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
     {
-        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass ?? 0f, null, collisionShape);
+        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass ?? 0f, physicsDefinition.MotionState, collisionShape);
+        rbInfo.AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
+        rbInfo.AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
+        rbInfo.AdditionalDamping = physicsDefinition.AdditionalDamping;
+        rbInfo.AdditionalDampingFactor = physicsDefinition.AdditionalDampingFactor;
+        rbInfo.AdditionalLinearDampingThresholdSqr = physicsDefinition.AdditionalLinearDampingThresholdSqr;
+        rbInfo.AngularDamping = physicsDefinition.AngularDamping;
+        rbInfo.AngularSleepingThreshold = physicsDefinition.AngularSleepingThreshold;
+        rbInfo.Friction = physicsDefinition.Friction;
+        rbInfo.LinearDamping = physicsDefinition.LinearDamping;
+        rbInfo.LinearSleepingThreshold = physicsDefinition.LinearSleepingThreshold;
+        //rbInfo.LocalInertia = physicsDefinition.LocalInertia;
+        rbInfo.Restitution = physicsDefinition.Restitution;
+        rbInfo.RollingFriction = physicsDefinition.RollingFriction;
+
         bool isDynamic = physicsDefinition.Mass.HasValue && physicsDefinition.Mass != 0.0f;
         if (isDynamic)
         {
@@ -118,8 +132,8 @@ public class PhysicsEngineComponent : GameComponent
             Gravity = physicsDefinition.ApplyGravity is true ? GameSettings.PhysicsEngineSettings.Gravity : Vector3.Zero,
             UserObject = userObject,
             WorldTransform = worldMatrix,
-            LinearFactor = physicsDefinition.LinearFactor ?? Vector3.One,
-            AngularFactor = physicsDefinition.AngularFactor ?? Vector3.One
+            LinearFactor = physicsDefinition.LinearFactor,
+            AngularFactor = physicsDefinition.AngularFactor
         };
 
         if (!isDynamic)
