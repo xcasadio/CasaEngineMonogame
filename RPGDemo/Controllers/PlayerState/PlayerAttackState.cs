@@ -14,7 +14,7 @@ public class PlayerAttackState : IState<Controller>
         controller.Character.ComboNumber = 0;
         Vector2 joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
-        controller.Character.SetAnimation((int)Character.AnimationIndices.Attack);
+        controller.Character.SetAnimation(Character.AnimationIndices.Attack);
     }
 
     public void Exit(Controller controller)

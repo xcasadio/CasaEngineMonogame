@@ -36,7 +36,7 @@ public class EnemyMoveToState : IState<Controller>
 
                 ec.Character.Move(ref dir);
                 ec.Character.CurrentDirection = Character.GetCharacterDirectionFromVector2(dir);
-                ec.Character.SetAnimation((int)Character.AnimationIndices.Walk);
+                ec.Character.SetAnimation(Character.AnimationIndices.Walk);
             }
         }
     }

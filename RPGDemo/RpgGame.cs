@@ -69,7 +69,7 @@ public class RpgGame : CasaEngineGame
         //============ player ===============
         entity = new Entity();
         entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(50, 500, 0.2f);
+        entity.Coordinates.LocalPosition = new Vector3(60, 600, 0.2f);
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;

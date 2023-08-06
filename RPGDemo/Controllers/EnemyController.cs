@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Framework.Game;
 using RPGDemo.Controllers.EnemyState;
+using static RPGDemo.Controllers.Character;
 
 namespace RPGDemo.Controllers;
 
@@ -36,7 +37,7 @@ public class EnemyController
         StateMachine.GlobalState = new EnemyGlobalState();
 
         Character.CurrentDirection = Character2dDirection.Down;
-        Character.SetAnimation((int)AnimationIndex.IdleDown);
+        Character.SetAnimation(AnimationIndices.Idle);
     }
 
     public override void Update(float elapsedTime)

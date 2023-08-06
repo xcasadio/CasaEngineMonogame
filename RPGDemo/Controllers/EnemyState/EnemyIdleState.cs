@@ -16,7 +16,7 @@ public class EnemyIdleState : IState<Controller>
     {
         Vector2 joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
-        controller.Character.SetAnimation((int)Character.AnimationIndices.Idle);
+        controller.Character.SetAnimation(Character.AnimationIndices.Idle);
         _elapsedTime = 0;
         Random rand = new Random(Environment.TickCount);
         _timeMaxBeforeHunt = (float)rand.NextDouble() * 5.0f;
@@ -47,7 +47,7 @@ public class EnemyIdleState : IState<Controller>
                 Vector2 dir = (ec.PlayerHunted.Position - controller.Character.Position).ToVector2(); //inverse
                 dir.Normalize();
                 controller.Character.CurrentDirection = Character.GetCharacterDirectionFromVector2(dir);
-                controller.Character.SetAnimation((int)Character.AnimationIndices.Idle);
+                controller.Character.SetAnimation(Character.AnimationIndices.Idle);
             }
         }
     }

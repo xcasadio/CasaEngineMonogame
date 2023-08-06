@@ -12,7 +12,7 @@ public class PlayerWalkState : IState<Controller>
     {
         Vector2 joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
-        controller.Character.SetAnimation((int)Character.AnimationIndices.Walk);
+        controller.Character.SetAnimation(Character.AnimationIndices.Walk);
     }
 
     public void Exit(Controller controller)
@@ -47,7 +47,7 @@ public class PlayerWalkState : IState<Controller>
             controller.Character.CurrentDirection = dir;
         }
 
-        controller.Character.SetAnimation((int)Character.AnimationIndices.Walk);
+        controller.Character.SetAnimation(Character.AnimationIndices.Walk);
 
         joyDir.Y = -joyDir.Y;
 

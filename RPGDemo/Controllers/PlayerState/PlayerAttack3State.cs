@@ -14,7 +14,7 @@ public class PlayerAttack3State : IState<Controller>
 
         Vector2 joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
-        controller.Character.SetAnimation((int)Character.AnimationIndices.Attack3);
+        controller.Character.SetAnimation(Character.AnimationIndices.Attack3);
     }
 
     public void Exit(Controller controller)

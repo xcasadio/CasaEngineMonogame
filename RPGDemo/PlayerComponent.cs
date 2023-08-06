@@ -14,7 +14,7 @@ public class PlayerComponent : Component
 {
     public static readonly int ComponentId = (int)ComponentIds.Custom + 1;
 
-    private PlayerController _playerController;
+    private readonly HumanPlayerController _playerController;
 
     public PlayerComponent(Entity owner) : base(owner, ComponentId)
     {
@@ -23,7 +23,6 @@ public class PlayerComponent : Component
 
     public override void Initialize(CasaEngineGame game)
     {
-
         _playerController.Initialize(game);
     }
 

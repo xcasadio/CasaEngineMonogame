@@ -3,11 +3,11 @@ using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using RPGDemo.Controllers.PlayerState;
+using static RPGDemo.Controllers.Character;
 
 namespace RPGDemo.Controllers;
 
-public class HumanPlayerController
-    : PlayerController
+public class HumanPlayerController : PlayerController
 {
     private InputComponent _inputComponent;
     private readonly PlayerIndex _playerIndex;
@@ -24,6 +24,8 @@ public class HumanPlayerController
 
     public override void Initialize(CasaEngineGame game)
     {
+        base.Initialize(game);
+
         _inputComponent = game.GetGameComponent<InputComponent>();
 
         AddState((int)PlayerControllerState.Idle, new PlayerIdleState());
@@ -33,7 +35,7 @@ public class HumanPlayerController
         AddState((int)PlayerControllerState.Attack3, new PlayerAttack3State());
 
         Character.CurrentDirection = Character2dDirection.Right;
-        Character.SetAnimation((int)AnimationIndex.IdleRight);
+        Character.SetAnimation(AnimationIndices.Idle);
         StateMachine.Transition(GetState((int)PlayerControllerState.Idle));
     }
 

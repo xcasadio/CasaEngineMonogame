@@ -65,7 +65,7 @@ public class EnemyHuntState : IState<Controller>
                 //to delete
                 /*dir = Vector2.Zero;
                 controller.Character.Move(ref dir);
-                controller.Character.SetAnimation((int)Character.AnimationIndices.Attack);*/
+                controller.Character.SetAnimation(Character.AnimationIndices.Attack);*/
                 enemyController.Character.CurrentDirection = Character.GetCharacterDirectionFromVector2(dir);
                 enemyController.StateMachine.Transition(enemyController.GetState((int)EnemyControllerState.Attack));
             }
@@ -73,7 +73,7 @@ public class EnemyHuntState : IState<Controller>
             {
                 enemyController.Character.Move(ref dir);
                 enemyController.Character.CurrentDirection = Character.GetCharacterDirectionFromVector2(dir);
-                enemyController.Character.SetAnimation((int)Character.AnimationIndices.Walk);
+                enemyController.Character.SetAnimation(Character.AnimationIndices.Walk);
 
                 //ec.TargetPosition = NodePath.Position
                 //controller.StateMachine.Transition("MoveTo");

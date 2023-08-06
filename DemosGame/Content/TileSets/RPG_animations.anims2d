@@ -458,7 +458,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "octopus_stand_down",
+            "asset_name": "octopus_idle_down",
             "frames": [
                 {
                     "asset_name": "",
@@ -474,7 +474,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "octopus_stand_left",
+            "asset_name": "octopus_idle_left",
             "frames": [
                 {
                     "asset_name": "",
@@ -490,7 +490,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "octopus_stand_right",
+            "asset_name": "octopus_idle_right",
             "frames": [
                 {
                     "asset_name": "",
@@ -506,7 +506,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "octopus_stand_up",
+            "asset_name": "octopus_idle_up",
             "frames": [
                 {
                     "asset_name": "",
@@ -1210,7 +1210,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "swordman_stand_down",
+            "asset_name": "swordman_idle_down",
             "frames": [
                 {
                     "asset_name": "",
@@ -1226,7 +1226,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "swordman_stand_left",
+            "asset_name": "swordman_idle_left",
             "frames": [
                 {
                     "asset_name": "",
@@ -1242,7 +1242,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "swordman_stand_right",
+            "asset_name": "swordman_idle_right",
             "frames": [
                 {
                     "asset_name": "",
@@ -1258,7 +1258,7 @@
         },
         {
             "animation_type": "loop",
-            "asset_name": "swordman_stand_up",
+            "asset_name": "swordman_idle_up",
             "frames": [
                 {
                     "asset_name": "",

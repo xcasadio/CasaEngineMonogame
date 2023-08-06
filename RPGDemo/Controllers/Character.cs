@@ -39,41 +39,32 @@ public class Character
         DownLeft = 7,
     }
 
-    private CharacterType _type;
-    private int _numberOfDirection = 8;
-    private int _animationDirectioMask = 0;
-    private Dictionary<int, int> _animationDirectionOffset = new();
+    private int _numberOfDirection = 4;
+    private int _animationDirectionMask = 0;
+    private readonly Dictionary<int, int> _animationDirectionOffset = new();
 
     private Physics2dComponent _physics2dComponent;
     private AnimatedSpriteComponent _animatedSpriteComponent;
 
     public Character2dDirection CurrentDirection { get; set; } = Character2dDirection.Right;
-
     public Entity Owner { get; }
-
-
-    public CharacterType Type
-    {
-        get => _type;
-        set => _type = value;
-    }
-
+    public CharacterType Type { get; set; }
     public int ComboNumber { get; set; }
-    public Vector3 Position { get; }
+    public Vector3 Position => Owner.Coordinates.Position;
 
     public Character(Entity entity)
     {
         Owner = entity;
 
         SetAnimationDirectionOffset(Character2dDirection.Down, (int)AnimationDirectionOffset.Down);
-        SetAnimationDirectionOffset(Character2dDirection.DownLeft, (int)AnimationDirectionOffset.DownLeft);
-        SetAnimationDirectionOffset(Character2dDirection.DownRight, (int)AnimationDirectionOffset.DownRight);
+        //SetAnimationDirectionOffset(Character2dDirection.DownLeft, (int)AnimationDirectionOffset.DownLeft);
+        //SetAnimationDirectionOffset(Character2dDirection.DownRight, (int)AnimationDirectionOffset.DownRight);
         SetAnimationDirectionOffset(Character2dDirection.Right, (int)AnimationDirectionOffset.Right);
         SetAnimationDirectionOffset(Character2dDirection.Left, (int)AnimationDirectionOffset.Left);
         SetAnimationDirectionOffset(Character2dDirection.Up, (int)AnimationDirectionOffset.Up);
-        SetAnimationDirectionOffset(Character2dDirection.UpLeft, (int)AnimationDirectionOffset.UpLeft);
-        SetAnimationDirectionOffset(Character2dDirection.UpRight, (int)AnimationDirectionOffset.UpRight);
-        SetAnimationParameters(8, -1);
+        //SetAnimationDirectionOffset(Character2dDirection.UpLeft, (int)AnimationDirectionOffset.UpLeft);
+        //SetAnimationDirectionOffset(Character2dDirection.UpRight, (int)AnimationDirectionOffset.UpRight);
+        SetAnimationParameters(4, -1);
     }
 
     public void Initialize(CasaEngineGame game)
@@ -131,7 +122,7 @@ public class Character
     public void SetAnimationParameters(int numberOfDirectionAnimation, int animationDirectionMask)
     {
         _numberOfDirection = numberOfDirectionAnimation;
-        _animationDirectioMask = animationDirectionMask;
+        _animationDirectionMask = animationDirectionMask;
     }
 
     public void SetAnimationDirectionOffset(Character2dDirection dir, int offset)
@@ -144,14 +135,25 @@ public class Character
     /// See AnimationDirectionMask, CharacterDirection, AnimationIndices, NumberCharacterDriection
     /// </summary>
     /// <param name="index"></param>
-    public void SetAnimation(int index)
+    //public void SetAnimation(int index)
+    //{
+    //    _animatedSpriteComponent.SetCurrentAnimation(index * _numberOfDirection + GetAnimationDirectionOffset(), true);
+    //}
+    //public void SetAnimation(string animationName)
+    //{
+    //    _animatedSpriteComponent.SetCurrentAnimation(animationName, true);
+    //}
+
+    public void SetAnimation(AnimationIndices animationIndex)
     {
-        _animatedSpriteComponent.SetCurrentAnimation(index * _numberOfDirection + GetAnimationDirectionOffset(), true);
+        var prefix = "swordman";
+        var animationName = $"{prefix}_{Enum.GetName(animationIndex)}_{Enum.GetName(CurrentDirection)}".ToLower();
+        _animatedSpriteComponent.SetCurrentAnimation(animationName, true);
     }
 
     private int GetAnimationDirectionOffset()
     {
-        return _animationDirectionOffset[(int)CurrentDirection & _animationDirectioMask];
+        return _animationDirectionOffset[(int)CurrentDirection & _animationDirectionMask];
     }
 
     //public void Hit(HitInfo info_)

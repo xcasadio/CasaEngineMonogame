@@ -9,7 +9,7 @@ public class PlayerHitState : IState<Controller>
 
     public void Enter(Controller controller)
     {
-        controller.Character.SetAnimation((int)Character.AnimationIndices.Hit);
+        controller.Character.SetAnimation(Character.AnimationIndices.Hit);
     }
 
     public void Exit(Controller controller)
