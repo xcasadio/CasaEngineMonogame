@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using BulletSharp;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
 
@@ -25,6 +26,17 @@ public class Animation2dData : AnimationData
 
     public override void Save(JObject jObject)
     {
+        jObject.Add("asset_name", Name);
+
+        var jArray = new JArray();
+        foreach (var frame in Frames)
+        {
+            var newJObject = new JObject();
+            frame.Save(newJObject);
+            jArray.Add(newJObject);
+        }
+        jObject.Add("frames", jArray);
+
         base.Save(jObject);
     }
 #endif

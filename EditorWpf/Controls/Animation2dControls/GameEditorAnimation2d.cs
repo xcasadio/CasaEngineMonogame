@@ -15,10 +15,13 @@ public class GameEditorAnimation2d : GameEditor2d
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
-        var animation2dDataViewModel = DataContext as Animation2dDataViewModel;
-        var animation2d = new Animation2d(animation2dDataViewModel.Animation2dData);
-        animation2d.Initialize();
-        AnimatedSpriteComponent.SetCurrentAnimation(animation2d, true);
+        if (DataContext != null)
+        {
+            var animation2dDataViewModel = DataContext as Animation2dDataViewModel;
+            var animation2d = new Animation2d(animation2dDataViewModel.Animation2dData);
+            animation2d.Initialize();
+            AnimatedSpriteComponent.SetCurrentAnimation(animation2d, true);
+        }
     }
 
     protected override void CreateEntityComponents(Entity entity)

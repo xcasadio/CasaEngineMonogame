@@ -22,6 +22,9 @@ public class FrameData
 
     public void Save(JObject jObject)
     {
+        jObject.Add("duration", Duration);
+        jObject.Add("sprite_id", SpriteId);
+
     }
 #endif
 }

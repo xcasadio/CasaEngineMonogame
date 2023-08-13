@@ -18,7 +18,8 @@ public class AnimationData : Asset
 
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
+        jObject.Add("animation_type", AnimationType.ConvertToString());
+        //base.Save(jObject);
     }
 #endif
 }

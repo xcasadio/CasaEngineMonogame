@@ -45,8 +45,8 @@ public class ShapeRectangleEditor : VectorEditorBase<ShapeRectangle?>
     {
         if (value != null)
         {
-            SetCurrentValue(RectangleXProperty, value.Position.X);
-            SetCurrentValue(RectangleYProperty, value.Position.Y);
+            SetCurrentValue(RectangleXProperty, (int)value.Position.X);
+            SetCurrentValue(RectangleYProperty, (int)value.Position.Y);
             SetCurrentValue(RectangleWidthProperty, value.Width);
             SetCurrentValue(RectangleHeightProperty, value.Height);
         }
