@@ -32,7 +32,6 @@ public class HumanPlayerController : PlayerController
         AddState((int)PlayerControllerState.Attack3, new PlayerAttack3State());
 
         Character.CurrentDirection = Character2dDirection.Right;
-        Character.SetAnimation(AnimationIndices.Idle);
         StateMachine.Transition(GetState((int)PlayerControllerState.Idle));
     }
 
@@ -49,6 +48,7 @@ public class HumanPlayerController : PlayerController
         {
             direction = _inputComponent.GamePadState(_playerIndex).ThumbSticks.Left;
             ClampDirection(ref direction);
+            direction.Y = -direction.Y;
         }
         else
         {

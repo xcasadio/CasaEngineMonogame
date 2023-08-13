@@ -11,6 +11,6 @@ public class PlayerController : Controller
 
     public override void Initialize(CasaEngineGame game)
     {
-        Character.Initialize(game);
+        base.Initialize(game);
     }
 }

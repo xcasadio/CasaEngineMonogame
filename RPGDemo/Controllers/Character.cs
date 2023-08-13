@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
@@ -47,7 +46,7 @@ public class Character
     private readonly Dictionary<int, int> _animationDirectionOffset = new();
 
     private Physics2dComponent _physics2dComponent;
-    private AnimatedSpriteComponent _animatedSpriteComponent;
+    public AnimatedSpriteComponent AnimatedSpriteComponent { get; private set; }
 
     public Character2dDirection CurrentDirection { get; set; } = Character2dDirection.Right;
     public Entity Owner { get; }
@@ -73,7 +72,7 @@ public class Character
     public void Initialize(CasaEngineGame game)
     {
         _physics2dComponent = Owner.ComponentManager.GetComponent<Physics2dComponent>();
-        _animatedSpriteComponent = Owner.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        AnimatedSpriteComponent = Owner.ComponentManager.GetComponent<AnimatedSpriteComponent>();
     }
 
     public void Update(float elapsedTime)
@@ -154,12 +153,12 @@ public class Character
         var prefix = "swordman";
         var animationName = $"{prefix}_{Enum.GetName(animationIndex)}_{Enum.GetName(CurrentDirection)}".ToLower();
 
-        if (_animatedSpriteComponent?.CurrentAnimation?.Animation2dData.Name == animationName)
+        if (AnimatedSpriteComponent?.CurrentAnimation?.Animation2dData.Name == animationName)
         {
             return;
         }
 
-        _animatedSpriteComponent.SetCurrentAnimation(animationName, true);
+        AnimatedSpriteComponent.SetCurrentAnimation(animationName, true);
         //Debug.WriteLine($"SetAnimation : {animationName}");
     }
 
