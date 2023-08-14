@@ -40,7 +40,7 @@ namespace SandBoxGame
             //GameManager.Renderer2dComponent.IsDrawCollisionsEnabled = true;
             //GameManager.Renderer2dComponent.IsDrawSpriteOriginEnabled = true;
 
-            PhysicsDebugViewRendererComponent.DisplayPhysics = true;
+            PhysicsDebugViewRendererComponent.DisplayPhysics = false;
         }
 
         protected override void LoadContent()
@@ -152,104 +152,104 @@ namespace SandBoxGame
 
             var millisecondsTimeout = 200;
 
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                var values = Enum.GetValues<BlendFunction>();
-                _colorBlendFunctionIndex = _colorBlendFunctionIndex + 1 >= values.Length ? 0 : _colorBlendFunctionIndex + 1;
-
-                GameManager.SpriteRendererComponent._blendState = new BlendState
-                {
-                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
-                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
-                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
-                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
-                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction,
-                    ColorBlendFunction = values[_colorBlendFunctionIndex]
-                };
-
-                Thread.Sleep(millisecondsTimeout);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.X))
-            {
-                var values = Enum.GetValues<BlendFunction>();
-                _alphaBlendFunctionIndex = _alphaBlendFunctionIndex + 1 >= values.Length ? 0 : _alphaBlendFunctionIndex + 1;
-
-                GameManager.SpriteRendererComponent._blendState = new BlendState
-                {
-                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
-                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
-                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
-                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
-                    AlphaBlendFunction = values[_alphaBlendFunctionIndex],
-                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
-                };
-
-                Thread.Sleep(millisecondsTimeout);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.C))
-            {
-                var values = Enum.GetValues<Blend>();
-                _colorSourceBlendIndex = _colorSourceBlendIndex + 1 >= values.Length ? 0 : _colorSourceBlendIndex + 1;
-
-                GameManager.SpriteRendererComponent._blendState = new BlendState
-                {
-                    ColorSourceBlend = values[_colorSourceBlendIndex],
-                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
-                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
-                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
-                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
-                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
-                };
-                Thread.Sleep(millisecondsTimeout);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.V))
-            {
-                var values = Enum.GetValues<Blend>();
-                _alphaSourceBlendIndex = _alphaSourceBlendIndex + 1 >= values.Length ? 0 : _alphaSourceBlendIndex + 1;
-
-                GameManager.SpriteRendererComponent._blendState = new BlendState
-                {
-                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
-                    AlphaSourceBlend = values[_alphaSourceBlendIndex],
-                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
-                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
-                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
-                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
-                };
-                Thread.Sleep(millisecondsTimeout);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.B))
-            {
-                var values = Enum.GetValues<Blend>();
-                _colorDestinationBlendIndex = _colorDestinationBlendIndex + 1 >= values.Length ? 0 : _colorDestinationBlendIndex + 1;
-
-                GameManager.SpriteRendererComponent._blendState = new BlendState
-                {
-                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
-                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
-                    ColorDestinationBlend = values[_colorDestinationBlendIndex],
-                    AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
-                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
-                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
-                };
-                Thread.Sleep(millisecondsTimeout);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.N))
-            {
-                var values = Enum.GetValues<Blend>();
-                _alphaDestinationBlendIndex = _alphaDestinationBlendIndex + 1 >= values.Length ? 0 : _alphaDestinationBlendIndex + 1;
-
-                GameManager.SpriteRendererComponent._blendState = new BlendState
-                {
-                    ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
-                    AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
-                    ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
-                    AlphaDestinationBlend = values[_alphaDestinationBlendIndex],
-                    AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
-                    ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
-                };
-                Thread.Sleep(millisecondsTimeout);
-            }
+            //if (Keyboard.GetState().IsKeyDown(Keys.W))
+            //{
+            //    var values = Enum.GetValues<BlendFunction>();
+            //    _colorBlendFunctionIndex = _colorBlendFunctionIndex + 1 >= values.Length ? 0 : _colorBlendFunctionIndex + 1;
+            //
+            //    GameManager.SpriteRendererComponent._blendState = new BlendState
+            //    {
+            //        ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+            //        AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+            //        ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+            //        AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+            //        AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction,
+            //        ColorBlendFunction = values[_colorBlendFunctionIndex]
+            //    };
+            //
+            //    Thread.Sleep(millisecondsTimeout);
+            //}
+            //if (Keyboard.GetState().IsKeyDown(Keys.X))
+            //{
+            //    var values = Enum.GetValues<BlendFunction>();
+            //    _alphaBlendFunctionIndex = _alphaBlendFunctionIndex + 1 >= values.Length ? 0 : _alphaBlendFunctionIndex + 1;
+            //
+            //    GameManager.SpriteRendererComponent._blendState = new BlendState
+            //    {
+            //        ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+            //        AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+            //        ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+            //        AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+            //        AlphaBlendFunction = values[_alphaBlendFunctionIndex],
+            //        ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
+            //    };
+            //
+            //    Thread.Sleep(millisecondsTimeout);
+            //}
+            //if (Keyboard.GetState().IsKeyDown(Keys.C))
+            //{
+            //    var values = Enum.GetValues<Blend>();
+            //    _colorSourceBlendIndex = _colorSourceBlendIndex + 1 >= values.Length ? 0 : _colorSourceBlendIndex + 1;
+            //
+            //    GameManager.SpriteRendererComponent._blendState = new BlendState
+            //    {
+            //        ColorSourceBlend = values[_colorSourceBlendIndex],
+            //        AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+            //        ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+            //        AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+            //        AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+            //        ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
+            //    };
+            //    Thread.Sleep(millisecondsTimeout);
+            //}
+            //if (Keyboard.GetState().IsKeyDown(Keys.V))
+            //{
+            //    var values = Enum.GetValues<Blend>();
+            //    _alphaSourceBlendIndex = _alphaSourceBlendIndex + 1 >= values.Length ? 0 : _alphaSourceBlendIndex + 1;
+            //
+            //    GameManager.SpriteRendererComponent._blendState = new BlendState
+            //    {
+            //        ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+            //        AlphaSourceBlend = values[_alphaSourceBlendIndex],
+            //        ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+            //        AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+            //        AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+            //        ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
+            //    };
+            //    Thread.Sleep(millisecondsTimeout);
+            //}
+            //if (Keyboard.GetState().IsKeyDown(Keys.B))
+            //{
+            //    var values = Enum.GetValues<Blend>();
+            //    _colorDestinationBlendIndex = _colorDestinationBlendIndex + 1 >= values.Length ? 0 : _colorDestinationBlendIndex + 1;
+            //
+            //    GameManager.SpriteRendererComponent._blendState = new BlendState
+            //    {
+            //        ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+            //        AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+            //        ColorDestinationBlend = values[_colorDestinationBlendIndex],
+            //        AlphaDestinationBlend = GameManager.SpriteRendererComponent._blendState.AlphaDestinationBlend,
+            //        AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+            //        ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
+            //    };
+            //    Thread.Sleep(millisecondsTimeout);
+            //}
+            //if (Keyboard.GetState().IsKeyDown(Keys.N))
+            //{
+            //    var values = Enum.GetValues<Blend>();
+            //    _alphaDestinationBlendIndex = _alphaDestinationBlendIndex + 1 >= values.Length ? 0 : _alphaDestinationBlendIndex + 1;
+            //
+            //    GameManager.SpriteRendererComponent._blendState = new BlendState
+            //    {
+            //        ColorSourceBlend = GameManager.SpriteRendererComponent._blendState.ColorSourceBlend,
+            //        AlphaSourceBlend = GameManager.SpriteRendererComponent._blendState.AlphaSourceBlend,
+            //        ColorDestinationBlend = GameManager.SpriteRendererComponent._blendState.ColorDestinationBlend,
+            //        AlphaDestinationBlend = values[_alphaDestinationBlendIndex],
+            //        AlphaBlendFunction = GameManager.SpriteRendererComponent._blendState.AlphaBlendFunction,
+            //        ColorBlendFunction = GameManager.SpriteRendererComponent._blendState.ColorBlendFunction
+            //    };
+            //    Thread.Sleep(millisecondsTimeout);
+            //}
 
 
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
@@ -297,11 +297,11 @@ namespace SandBoxGame
 
         protected override void Draw(GameTime gameTime)
         {
-            var blendState = GameManager.SpriteRendererComponent._blendState;
-            var message =
-                $"{blendState.ColorBlendFunction} - {blendState.AlphaBlendFunction} - {blendState.ColorSourceBlend} - {blendState.AlphaSourceBlend} - {blendState.ColorDestinationBlend} - {blendState.AlphaDestinationBlend}";
-
-            GameManager.Renderer2dComponent.DrawText(GameManager.DefaultSpriteFont, message, Vector2.One, 0, Vector2.One, Color.White, 0.1f);
+            //var blendState = GameManager.SpriteRendererComponent._blendState;
+            //var message =
+            //    $"{blendState.ColorBlendFunction} - {blendState.AlphaBlendFunction} - {blendState.ColorSourceBlend} - {blendState.AlphaSourceBlend} - {blendState.ColorDestinationBlend} - {blendState.AlphaDestinationBlend}";
+            //
+            //GameManager.Renderer2dComponent.DrawText(GameManager.DefaultSpriteFont, message, Vector2.One, 0, Vector2.One, Color.White, 0.1f);
 
 
             base.Draw(gameTime);

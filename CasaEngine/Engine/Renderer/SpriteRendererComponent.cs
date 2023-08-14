@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Runtime.CompilerServices;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Core.Shapes;
 
 namespace CasaEngine.Engine.Renderer;
@@ -38,12 +37,12 @@ public class SpriteRendererComponent : DrawableGameComponent
     public bool IsDrawCollisionsEnabled = false;
     public int SpriteSheetTransparency = 124;
     private Line3dRendererComponent? _line3dRendererComponent;
-    private DepthStencilState _depthStencilState;
-    public BlendState _blendState;
-    private Vector3 _verticeTopLeft;
-    private Vector3 _verticeTopRight;
-    private Vector3 _verticeBottomRight;
-    private Vector3 _verticeBottomLeft;
+    private readonly DepthStencilState _depthStencilState;
+    private readonly BlendState _blendState;
+    private readonly Vector3 _verticeTopLeft;
+    private readonly Vector3 _verticeTopRight;
+    private readonly Vector3 _verticeBottomRight;
+    private readonly Vector3 _verticeBottomLeft;
 
     public SpriteRendererComponent(Game game) : base(game)
     {
