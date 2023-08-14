@@ -128,7 +128,39 @@
         {
           "version": 1,
           "type": 5,
-          "physics_type": "Static",
+          "physics_definition": {
+            "physics_type": "Static",
+            "additional_angular_damping_factor": 0.01,
+            "additional_angular_damping_threshold_sqr": 0.01,
+            "additional_damping": false,
+            "additional_damping_factor": 0.005,
+            "additional_linear_damping_threshold_sqr": 0.01,
+            "angular_damping": 0.0,
+            "angular_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "angular_sleeping_threshold": 1.0,
+            "friction": 0.5,
+            "linear_damping": 0.0,
+            "linear_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "linear_sleeping_threshold": 0.8,
+            "local_inertia": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "mass": 0.0,
+            "restitution": 0.0,
+            "rolling_friction": 0.0,
+            "apply_gravity": true,
+            "debug_color": "null"
+          },
           "shape": {
             "version": 1,
             "shape_type": "Box",
@@ -621,8 +653,39 @@
         {
           "version": 1,
           "type": 5,
-          "physics_type": "Dynamic",
-          "mass": 10.0,
+          "physics_definition": {
+            "physics_type": "Dynamic",
+            "additional_angular_damping_factor": 0.01,
+            "additional_angular_damping_threshold_sqr": 0.01,
+            "additional_damping": false,
+            "additional_damping_factor": 0.005,
+            "additional_linear_damping_threshold_sqr": 0.01,
+            "angular_damping": 0.0,
+            "angular_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "angular_sleeping_threshold": 1.0,
+            "friction": 0.5,
+            "linear_damping": 0.0,
+            "linear_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "linear_sleeping_threshold": 0.8,
+            "local_inertia": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "mass": 10.0,
+            "restitution": 0.0,
+            "rolling_friction": 0.0,
+            "apply_gravity": true,
+            "debug_color": "null"
+          },
           "shape": {
             "version": 1,
             "shape_type": "Box",
@@ -646,13 +709,538 @@
     },
     {
       "version": 1,
-      "id": -1,
-      "name": "camera 1",
+      "id": 24,
+      "name": "Box_24",
+      "coordinates": {
+        "position": {
+          "x": 1.7408562,
+          "y": 3.0,
+          "z": 0.0
+        },
+        "center_of_rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "components": [
+        {
+          "version": 1,
+          "type": 2,
+          "mesh": {
+            "version": 1,
+            "primitive_type": "TriangleList",
+            "vertices": [
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "indices": [
+              0,
+              2,
+              1,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              5,
+              7,
+              6,
+              8,
+              9,
+              10,
+              9,
+              11,
+              10,
+              12,
+              14,
+              13,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              17,
+              19,
+              18,
+              20,
+              22,
+              21,
+              21,
+              22,
+              23
+            ],
+            "texture": {
+              "asset": {
+                "version": 1,
+                "id": 3,
+                "name": "checkboard",
+                "file_name": "Content\\checkboard.png"
+              }
+            }
+          }
+        },
+        {
+          "version": 1,
+          "type": 5,
+          "physics_definition": {
+            "physics_type": "Dynamic",
+            "additional_angular_damping_factor": 0.01,
+            "additional_angular_damping_threshold_sqr": 0.01,
+            "additional_damping": false,
+            "additional_damping_factor": 0.005,
+            "additional_linear_damping_threshold_sqr": 0.01,
+            "angular_damping": 0.0,
+            "angular_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "angular_sleeping_threshold": 1.0,
+            "friction": 0.5,
+            "linear_damping": 0.0,
+            "linear_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "linear_sleeping_threshold": 0.8,
+            "local_inertia": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "mass": 10.0,
+            "restitution": 0.0,
+            "rolling_friction": 0.0,
+            "apply_gravity": true,
+            "debug_color": "null"
+          },
+          "shape": {
+            "version": 1,
+            "shape_type": "Box",
+            "position": {
+              "x": 1.7408562,
+              "y": 3.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "w": 1.0,
+            "h": 1.0,
+            "l": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "id": 24,
+      "name": "camera",
       "coordinates": {
         "position": {
           "x": 0.0,
-          "y": 10.0,
-          "z": -10.0
+          "y": 5.0,
+          "z": -5.0
         },
         "center_of_rotation": {
           "x": 0.0,
@@ -681,24 +1269,549 @@
             "y": 0,
             "w": 800,
             "h": 480,
-            "min_depth": 0.1,
-            "max_depth": 100000.0
+            "min_depth": 1.0,
+            "max_depth": 1000.0
           },
-          "fieldOfView": 0.91200143,
+          "fieldOfView": 0.8377581,
           "target": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+            "x": -1.5988554,
+            "y": -0.14407796,
+            "z": -2.2009566
           },
           "orientation": {
-            "x": 0.0,
-            "y": 1.0,
-            "z": 0.0,
-            "w": -4.371139E-08
+            "x": -0.0017593744,
+            "y": -0.99822736,
+            "z": -0.03941202,
+            "w": 0.04456142
           },
-          "distance": 20.0,
-          "yaw": 3.1415927,
-          "pitch": 0.0
+          "distance": 5.0,
+          "yaw": 3.0523708,
+          "pitch": -0.078923024
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "id": 25,
+      "name": "Box_24_25",
+      "coordinates": {
+        "position": {
+          "x": 1.3648462,
+          "y": 4.996814,
+          "z": 0.0
+        },
+        "center_of_rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      },
+      "components": [
+        {
+          "version": 1,
+          "type": 2,
+          "mesh": {
+            "version": 1,
+            "primitive_type": "TriangleList",
+            "vertices": [
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": -1.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -0.0,
+                  "y": -1.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": -0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.5,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": -1.0,
+                  "y": -0.0,
+                  "z": -0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "indices": [
+              0,
+              2,
+              1,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              5,
+              7,
+              6,
+              8,
+              9,
+              10,
+              9,
+              11,
+              10,
+              12,
+              14,
+              13,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              17,
+              19,
+              18,
+              20,
+              22,
+              21,
+              21,
+              22,
+              23
+            ],
+            "texture": {
+              "asset": {
+                "version": 1,
+                "id": 3,
+                "name": "checkboard",
+                "file_name": "Content\\checkboard.png"
+              }
+            }
+          }
+        },
+        {
+          "version": 1,
+          "type": 5,
+          "physics_definition": {
+            "physics_type": "Dynamic",
+            "additional_angular_damping_factor": 0.01,
+            "additional_angular_damping_threshold_sqr": 0.01,
+            "additional_damping": false,
+            "additional_damping_factor": 0.005,
+            "additional_linear_damping_threshold_sqr": 0.01,
+            "angular_damping": 0.0,
+            "angular_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "angular_sleeping_threshold": 1.0,
+            "friction": 0.5,
+            "linear_damping": 0.0,
+            "linear_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "linear_sleeping_threshold": 0.8,
+            "local_inertia": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "mass": 10.0,
+            "restitution": 0.0,
+            "rolling_friction": 0.0,
+            "apply_gravity": true,
+            "debug_color": "null"
+          },
+          "shape": {
+            "version": 1,
+            "shape_type": "Box",
+            "position": {
+              "x": 1.7408562,
+              "y": 3.0,
+              "z": 0.0
+            },
+            "orientation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "w": 1.0,
+            "h": 1.0,
+            "l": 1.0
+          }
         }
       ]
     }
