@@ -83,6 +83,17 @@ public static class JsonHelper
         };
     }
 
+    public static Color GetColor(this JsonElement element)
+    {
+        return new Color
+        {
+            R = element.GetProperty("x").GetByte(),
+            G = element.GetProperty("y").GetByte(),
+            B = element.GetProperty("z").GetByte(),
+            A = element.GetProperty("a").GetByte()
+        };
+    }
+
     public static Viewport GetViewPort(this JsonElement element)
     {
         var viewport = new Viewport();
@@ -157,6 +168,14 @@ public static class JsonHelper
         jObject.Add("y", obj.Y);
         jObject.Add("z", obj.Z);
         jObject.Add("w", obj.W);
+    }
+
+    public static void Save(this Color obj, JObject jObject)
+    {
+        jObject.Add("r", obj.R);
+        jObject.Add("g", obj.G);
+        jObject.Add("b", obj.B);
+        jObject.Add("a", obj.A);
     }
 
     public static void Save(this Matrix obj, JObject jObject)

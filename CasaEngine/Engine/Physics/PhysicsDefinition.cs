@@ -1,6 +1,11 @@
 ﻿using System.ComponentModel;
+using System.Text.Json;
 using BulletSharp;
+using BulletSharp.SoftBody;
+using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Shapes;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Engine.Physics;
 
@@ -21,7 +26,7 @@ public class PhysicsDefinition
     public Vector3 LinearFactor { get; set; } = Vector3.One;
     public float LinearSleepingThreshold { get; set; } = 0.8f;
     public Vector3 LocalInertia { get; set; }
-    public float? Mass { get; set; } = 0f;
+    public float Mass { get; set; } = 0f;
 
     [Browsable(false)]
     public MotionState? MotionState { get; set; }
@@ -29,4 +34,104 @@ public class PhysicsDefinition
     public float RollingFriction { get; set; } = 0f;
     public bool ApplyGravity { get; set; } = true;
     public Color? DebugColor { get; set; }
+
+    public void CopyFrom(PhysicsDefinition physicsDefinition)
+    {
+        PhysicsType = physicsDefinition.PhysicsType;
+        AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
+        AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
+        AdditionalDamping = physicsDefinition.AdditionalDamping;
+        AdditionalDampingFactor = physicsDefinition.AdditionalDampingFactor;
+        AdditionalLinearDampingThresholdSqr = physicsDefinition.AdditionalLinearDampingThresholdSqr;
+        AngularDamping = physicsDefinition.AngularDamping;
+        AngularFactor = physicsDefinition.AngularFactor;
+        AngularSleepingThreshold = physicsDefinition.AngularSleepingThreshold;
+        //CollisionShape = physicsDefinition.CollisionShape?.Clone();
+        Friction = physicsDefinition.Friction;
+        LinearDamping = physicsDefinition.LinearDamping;
+        LinearFactor = physicsDefinition.LinearFactor;
+        LinearSleepingThreshold = physicsDefinition.LinearSleepingThreshold;
+        LocalInertia = physicsDefinition.LocalInertia;
+        Mass = physicsDefinition.Mass;
+        Restitution = physicsDefinition.Restitution;
+        RollingFriction = physicsDefinition.RollingFriction;
+        ApplyGravity = physicsDefinition.ApplyGravity;
+        DebugColor = physicsDefinition.DebugColor;
+    }
+
+    public void Load(JsonElement element)
+    {
+        PhysicsType = element.GetJsonPropertyByName("physics_type").Value.GetEnum<PhysicsType>();
+        AdditionalAngularDampingFactor = element.GetJsonPropertyByName("additional_angular_damping_factor").Value.GetSingle();
+        AdditionalAngularDampingThresholdSqr = element.GetJsonPropertyByName("additional_angular_damping_threshold_sqr").Value.GetSingle();
+        AdditionalDamping = element.GetJsonPropertyByName("additional_damping").Value.GetBoolean();
+        AdditionalDampingFactor = element.GetJsonPropertyByName("additional_damping_factor").Value.GetSingle();
+        AdditionalLinearDampingThresholdSqr = element.GetJsonPropertyByName("additional_linear_damping_threshold_sqr").Value.GetSingle();
+        AngularDamping = element.GetJsonPropertyByName("angular_damping").Value.GetSingle();
+        AngularFactor = element.GetJsonPropertyByName("angular_factor").Value.GetVector3();
+        AngularSleepingThreshold = element.GetJsonPropertyByName("angular_sleeping_threshold").Value.GetSingle();
+        Friction = element.GetJsonPropertyByName("friction").Value.GetSingle();
+        LinearDamping = element.GetJsonPropertyByName("linear_damping").Value.GetSingle();
+        LinearFactor = element.GetJsonPropertyByName("linear_factor").Value.GetVector3();
+        LinearSleepingThreshold = element.GetJsonPropertyByName("linear_sleeping_threshold").Value.GetSingle();
+        LocalInertia = element.GetJsonPropertyByName("local_inertia").Value.GetVector3();
+        Mass = element.GetProperty("mass").GetSingle();
+        Restitution = element.GetJsonPropertyByName("restitution").Value.GetSingle();
+        RollingFriction = element.GetJsonPropertyByName("rolling_friction").Value.GetSingle();
+        ApplyGravity = element.GetJsonPropertyByName("apply_gravity").Value.GetBoolean();
+
+        var debugColorElement = element.GetProperty("debug_color");
+        if (debugColorElement.GetString() != "null")
+        {
+            DebugColor = element.GetJsonPropertyByName("debug_color").Value.GetColor();
+        }
+    }
+
+#if EDITOR
+
+    public void Save(JObject jObject)
+    {
+        jObject.Add("physics_type", PhysicsType.ConvertToString());
+        jObject.Add("additional_angular_damping_factor", AdditionalAngularDampingFactor);
+        jObject.Add("additional_angular_damping_threshold_sqr", AdditionalAngularDampingThresholdSqr);
+        jObject.Add("additional_damping", AdditionalDamping);
+        jObject.Add("additional_damping_factor", AdditionalDampingFactor);
+        jObject.Add("additional_linear_damping_threshold_sqr", AdditionalLinearDampingThresholdSqr);
+        jObject.Add("angular_damping", AngularDamping);
+
+        JObject newJObject = new();
+        AngularFactor.Save(newJObject);
+        jObject.Add("angular_factor", newJObject);
+
+        jObject.Add("angular_sleeping_threshold", AngularSleepingThreshold);
+        jObject.Add("friction", Friction);
+        jObject.Add("linear_damping", LinearDamping);
+
+        newJObject = new();
+        LinearFactor.Save(newJObject);
+        jObject.Add("linear_factor", newJObject);
+
+        jObject.Add("linear_sleeping_threshold", LinearSleepingThreshold);
+
+        newJObject = new();
+        LocalInertia.Save(newJObject);
+        jObject.Add("local_inertia", newJObject);
+
+        jObject.Add("mass", Mass);
+        jObject.Add("restitution", Restitution);
+        jObject.Add("rolling_friction", RollingFriction);
+        jObject.Add("apply_gravity", ApplyGravity);
+
+        if (DebugColor != null)
+        {
+            newJObject = new();
+            DebugColor.Value.Save(newJObject);
+            jObject.Add("debug_color", newJObject);
+        }
+        else
+        {
+            jObject.Add("debug_color", "null");
+        }
+    }
+#endif
 }
