@@ -23,7 +23,6 @@ public class PhysicsComponent : Component, ICollideableComponent
 
     //body
     private Vector3 _velocity;
-    private float _mass;
     private float _maxSpeed;
     private float _maxForce;
     private float _maxTurnRate;
@@ -32,7 +31,10 @@ public class PhysicsComponent : Component, ICollideableComponent
     //static
     private CollisionObject? _collisionObject;
 
+    [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
+
+    [Browsable(false)]
     public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
     public PhysicsDefinition PhysicsDefinition { get; } = new();
 
@@ -146,7 +148,7 @@ public class PhysicsComponent : Component, ICollideableComponent
 
         if (PhysicsType == PhysicsType.Dynamic)
         {
-            _mass = element.GetProperty("mass").GetSingle();
+            PhysicsDefinition.Mass = element.GetProperty("mass").GetSingle();
         }
 
         var shapeElement = element.GetProperty("shape");
@@ -166,7 +168,7 @@ public class PhysicsComponent : Component, ICollideableComponent
 
         if (PhysicsType == PhysicsType.Dynamic)
         {
-            jObject.Add("mass", _mass);
+            jObject.Add("mass", PhysicsDefinition.Mass);
         }
 
         if (_shape != null)

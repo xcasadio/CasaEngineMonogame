@@ -1,4 +1,5 @@
-﻿using BulletSharp;
+﻿using System.ComponentModel;
+using BulletSharp;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Physics;
@@ -21,9 +22,11 @@ public class PhysicsDefinition
     public float LinearSleepingThreshold { get; set; } = 0.8f;
     public Vector3 LocalInertia { get; set; }
     public float? Mass { get; set; } = 0f;
+
+    [Browsable(false)]
     public MotionState? MotionState { get; set; }
     public float Restitution { get; set; } = 0f;
     public float RollingFriction { get; set; } = 0f;
-    public bool? ApplyGravity { get; set; }
+    public bool ApplyGravity { get; set; } = true;
     public Color? DebugColor { get; set; }
 }

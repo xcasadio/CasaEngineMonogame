@@ -23,6 +23,95 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
+        <DataTemplate x:Key="physicsDefinitionComponentTemplate" DataType="{x:Type physics:PhysicsDefinition}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Type" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <ComboBox x:Name="comboBoxType" Grid.Row="0" Grid.Column="1" SelectedItem="{Binding Path=PhysicsType}" 
+                              ItemsSource="{Binding Source={StaticResource PhysicsTypeEnumValues}}"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Mass" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Mass}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Additional Angular Damping Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding AdditionalAngularDampingFactor}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Additional Angular Damping Threshold Sqr" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="3" Grid.Column="1" Value="{Binding AdditionalAngularDampingThresholdSqr}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Additional Damping" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="4" Grid.Column="1" Value="{Binding AdditionalDamping}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Additional Damping Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="5" Grid.Column="1" Value="{Binding AdditionalDampingFactor}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Additional LinearDamping Threshold Sqr" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="6" Grid.Column="1" Value="{Binding AdditionalLinearDampingThresholdSqr}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Angular Damping" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="7" Grid.Column="1" Value="{Binding AngularDamping}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Angular Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor Grid.Row="8" Grid.Column="1" Value="{Binding AngularFactor}"/>
+
+                <TextBlock Grid.Row="9" Grid.Column="0" Text="Angular Sleeping Threshold" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="9" Grid.Column="1" Value="{Binding AngularSleepingThreshold}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="10" Grid.Column="0" Text="Friction" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="10" Grid.Column="1" Value="{Binding Friction}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="11" Grid.Column="0" Text="Linear Damping" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="11" Grid.Column="1" Value="{Binding LinearDamping}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="12" Grid.Column="0" Text="Linear Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor Grid.Row="12" Grid.Column="1" Value="{Binding LinearFactor}"/>
+
+                <TextBlock Grid.Row="13" Grid.Column="0" Text="Linear Sleeping Threshold" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="13" Grid.Column="1" Value="{Binding LinearSleepingThreshold}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="14" Grid.Column="0" Text="Local Inertia" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor Grid.Row="14" Grid.Column="1" Value="{Binding LocalInertia}"/>
+
+                <TextBlock Grid.Row="15" Grid.Column="0" Text="Restitution" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="15" Grid.Column="1" Value="{Binding Restitution}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="16" Grid.Column="0" Text="Rolling Friction" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <xctk:DecimalUpDown Grid.Row="16" Grid.Column="1" Value="{Binding RollingFriction}" Increment="0.1" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="17" Grid.Column="0" Text="Apply Gravity" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <CheckBox Grid.Row="17" Grid.Column="1" IsChecked="{Binding ApplyGravity}" HorizontalAlignment="Stretch"/>
+
+                <TextBlock Grid.Row="18" Grid.Column="0" Text="Debug Color" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:ColorEditor Grid.Row="18" Grid.Column="1" Value="{Binding DebugColor}"/>
+
+            </Grid>
+        </DataTemplate>
+
         <DataTemplate x:Key="BoxTemplate" DataType="{x:Type shapes:Box}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -208,15 +297,12 @@
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Orientation" Margin="0,0,5,0" VerticalAlignment="Center"/>
                     <wpfControls:RotationEditor Grid.Row="1" Grid.Column="1" Value="{Binding Shape.Orientation}"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Mass" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Mass}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Type" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="comboBoxType" Grid.Row="3" Grid.Column="1" SelectedItem="{Binding Path=PhysicsType}" 
-                              ItemsSource="{Binding Source={StaticResource PhysicsTypeEnumValues}}"/>
-
-                    <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
+                    <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
                             HorizontalAlignment="Right"/>
+
+                    <ContentControl Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding PhysicsDefinition}"
+                                    ContentTemplate="{StaticResource physicsDefinitionComponentTemplate}"/>
+
                 </Grid>
 
                 <TextBlock Grid.Row="2" Text="{Binding Shape.Type}"/>
