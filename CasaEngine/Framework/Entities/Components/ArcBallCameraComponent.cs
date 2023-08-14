@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -424,6 +425,23 @@ public class ArcBallCameraComponent : Camera3dComponent
         //the forward direction, then subtracting PI / 2, since 
         //we pitch is zero at Forward, not Up.
         Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, zAxis)) - MathHelper.PiOver2);
+    }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new ArcBallCameraComponent(owner);
+
+        component._target = _target;
+        component._orientation = _orientation;
+        component._distance = _distance;
+        component._yaw = _yaw;
+        component._pitch = _pitch;
+        component._inputTurnRate = _inputTurnRate;
+        component._inputDistanceRate = _inputDistanceRate;
+        component._inputDisplacementRate = _inputDisplacementRate;
+        component._inputComponent = _inputComponent;
+
+        return component;
     }
 
     public override void Load(JsonElement element)

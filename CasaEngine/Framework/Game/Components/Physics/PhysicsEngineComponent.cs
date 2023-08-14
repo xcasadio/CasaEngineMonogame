@@ -87,7 +87,7 @@ public class PhysicsEngineComponent : GameComponent
 
     public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        physicsDefinition.Mass = null;
+        physicsDefinition.Mass = 0f;
         return AddRigidBody(shape2d, ref worldMatrix, component, physicsDefinition);
     }
 
@@ -105,7 +105,7 @@ public class PhysicsEngineComponent : GameComponent
 
     public RigidBody AddRigidBody(CollisionShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
     {
-        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass ?? 0f, physicsDefinition.MotionState, collisionShape);
+        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass, physicsDefinition.MotionState, collisionShape);
         rbInfo.AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
         rbInfo.AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
         rbInfo.AdditionalDamping = physicsDefinition.AdditionalDamping;
@@ -120,10 +120,10 @@ public class PhysicsEngineComponent : GameComponent
         rbInfo.Restitution = physicsDefinition.Restitution;
         rbInfo.RollingFriction = physicsDefinition.RollingFriction;
 
-        bool isDynamic = physicsDefinition.Mass.HasValue && physicsDefinition.Mass != 0.0f;
+        bool isDynamic = physicsDefinition.Mass != 0.0f;
         if (isDynamic)
         {
-            rbInfo.LocalInertia = collisionShape.CalculateLocalInertia(physicsDefinition.Mass.Value);
+            rbInfo.LocalInertia = collisionShape.CalculateLocalInertia(physicsDefinition.Mass);
             rbInfo.MotionState = new DefaultMotionState(worldMatrix);
         }
 

@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Framework.Game;
+using SharpDX.MediaFoundation;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -34,6 +35,15 @@ public class GamePlayComponent : Component
     public override void Draw()
     {
         ExternalComponent?.Draw();
+    }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new GamePlayComponent(owner);
+
+        component._externalComponent = _externalComponent;
+
+        return component;
     }
 
     public override void Load(JsonElement element)

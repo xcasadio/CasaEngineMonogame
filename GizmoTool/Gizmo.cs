@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -192,6 +193,9 @@ namespace XNAGizmo
         private Vector3 _lastIntersectionPosition;
         private Vector3 _intersectPosition;
 
+        // copy
+        private bool _copyActivated;
+
         public bool SnapEnabled = false;
         public bool PrecisionModeEnabled;
         public readonly float TranslationSnapValue = 5;
@@ -212,6 +216,7 @@ namespace XNAGizmo
         private MouseState _lastMouseState, _currentMouseState;
 
         public event EventHandler<List<ITransformable>> SelectionChanged;
+        public event EventHandler<List<ITransformable>> CopyTriggered;
 
         public Gizmo(GraphicsDevice graphics, SpriteBatch spriteBatch, SpriteFont font)
             : this(graphics, spriteBatch, font, Matrix.Identity) { }
@@ -424,6 +429,20 @@ namespace XNAGizmo
 
                 if (WasButtonHeld(MouseButtons.Left) && ActiveAxis != GizmoAxis.None)
                 {
+                    if (IsCopyKeyPressed())
+                    {
+                        if (!_copyActivated)
+                        {
+                            _copyActivated = true;
+                            //Debug.WriteLine($"{DateTime.Now.TimeOfDay} copy {Selection.Count} entities");
+                            CopyTriggered?.Invoke(this, Selection);
+                        }
+                    }
+                    else
+                    {
+                        _copyActivated = false;
+                    }
+
                     switch (ActiveMode)
                     {
                         case GizmoMode.UniformScale:
@@ -613,12 +632,13 @@ namespace XNAGizmo
                     {
                         SelectAxis(mousePosition);
                     }
+
+                    _copyActivated = false;
                 }
 
                 SetGizmoPosition();
 
-                // -- Trigger Translation, Rotation & Scale events -- //
-                if (WasButtonHeld(MouseButtons.Left) /*&& !IsAnyModifierPressed()*/)
+                if (WasButtonHeld(MouseButtons.Left))
                 {
                     if (_translationDelta != Vector3.Zero)
                     {
@@ -724,11 +744,16 @@ namespace XNAGizmo
         /// Returns true is any of the modifier keys is pressed.
         /// </summary>
         /// <returns></returns>
-        private bool IsAnyModifierPressed()
+        //private bool IsAnyModifierPressed()
+        //{
+        //    return _currentKeys.IsKeyDown(Keys.LeftControl) || _currentKeys.IsKeyDown(Keys.RightControl) ||
+        //           _currentKeys.IsKeyDown(Keys.LeftShift) || _currentKeys.IsKeyDown(Keys.RightShift) ||
+        //           _currentKeys.IsKeyDown(Keys.LeftAlt) || _currentKeys.IsKeyDown(Keys.RightAlt);
+        //}
+
+        private bool IsCopyKeyPressed()
         {
-            return _currentKeys.IsKeyDown(Keys.LeftControl) || _currentKeys.IsKeyDown(Keys.RightControl) ||
-                   _currentKeys.IsKeyDown(Keys.LeftShift) || _currentKeys.IsKeyDown(Keys.RightShift) ||
-                   _currentKeys.IsKeyDown(Keys.LeftAlt) || _currentKeys.IsKeyDown(Keys.RightAlt);
+            return _currentKeys.IsKeyDown(Keys.LeftControl) || _currentKeys.IsKeyDown(Keys.RightControl);
         }
 
         private bool WasButtonHeld(MouseButtons button)

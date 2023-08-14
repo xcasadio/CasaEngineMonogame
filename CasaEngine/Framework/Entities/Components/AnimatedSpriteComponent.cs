@@ -30,15 +30,18 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     private Renderer2dComponent _renderer2dComponent;
     private AssetContentManager _assetContentManager;
     private PhysicsEngineComponent? _physicsEngineComponent;
-    private CasaEngineGame _game;
     private SpriteRendererComponent _spriteRenderer;
+    private CasaEngineGame _game;
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
     public Animation2d? CurrentAnimation { get; private set; }
     public List<Animation2d> Animations { get; } = new();
 
+    [Browsable(false)]
     public PhysicsType PhysicsType => PhysicsType.Kinetic;
+
+    [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
 
     public AnimatedSpriteComponent(Entity entity) : base(entity, ComponentId)
@@ -275,6 +278,18 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     public override void Load(JsonElement element)
     {
         throw new NotImplementedException();
+    }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new AnimatedSpriteComponent(owner);
+
+        component.Color = Color;
+        component.SpriteEffect = SpriteEffect;
+        component.CurrentAnimation = CurrentAnimation;
+        component.Animations.AddRange(Animations);
+
+        return component;
     }
 
 #if EDITOR

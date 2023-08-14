@@ -53,6 +53,15 @@ public class CameraLookAtComponent : Camera3dComponent
     {
         _viewMatrix = Matrix.CreateLookAt(Position, Target, Up);
     }
-}
 
-//Follow a target and the view matrix is compute to have coordinates match with pixel of the screen (use to display sprite)
+    public override Component Clone(Entity owner)
+    {
+        var component = new CameraLookAtComponent(owner);
+
+        component._up = _up;
+        component._target = _target;
+        component._lastPosition = _lastPosition;
+
+        return component;
+    }
+}

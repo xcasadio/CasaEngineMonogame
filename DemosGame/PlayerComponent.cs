@@ -3,11 +3,13 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Core.Shapes;
+using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using SharpDX.Direct2D1;
 using Component = CasaEngine.Framework.Entities.Component;
 
 namespace DemosGame;
@@ -89,6 +91,12 @@ public class PlayerComponent : Component
     public override void Draw()
     {
 
+    }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new PlayerComponent(owner);
+        return component;
     }
 
     public override void Load(JsonElement element)

@@ -84,7 +84,7 @@ public class GizmoComponent : DrawableGameComponent
             Gizmo.ActiveMode = GizmoMode.UniformScale;
         }
 
-        if (_inputComponent.IsKeyPressed(Keys.LeftControl) || _inputComponent.IsKeyPressed(Keys.RightControl))
+        if (_inputComponent.IsKeyPressed(Keys.LeftShift) || _inputComponent.IsKeyPressed(Keys.RightShift))
         {
             Gizmo.PrecisionModeEnabled = true;
         }

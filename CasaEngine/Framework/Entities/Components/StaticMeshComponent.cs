@@ -54,6 +54,15 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         _meshRendererComponent.AddMesh(Mesh, worldViewProj);
     }
 
+    public override Component Clone(Entity owner)
+    {
+        var component = new StaticMeshComponent(owner);
+
+        component._mesh = _mesh;
+
+        return component;
+    }
+
     public override void Load(JsonElement element)
     {
         var meshElement = element.GetProperty("mesh");

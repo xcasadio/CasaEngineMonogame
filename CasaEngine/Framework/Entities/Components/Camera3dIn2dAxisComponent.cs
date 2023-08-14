@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Engine.Input;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -61,5 +63,15 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
     protected override void ComputeViewMatrix()
     {
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
+    }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new Camera3dIn2dAxisComponent(owner);
+
+        component._up = _up;
+        component._target = _target;
+
+        return component;
     }
 }

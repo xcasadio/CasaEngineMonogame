@@ -21,7 +21,10 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
     public TiledMapData TiledMapData { get; set; }
     private List<TiledMapLayer> Layers { get; } = new();
 
+    [Browsable(false)]
     public PhysicsType PhysicsType { get; }
+
+    [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
 
     public void OnHit(Collision collision)
@@ -164,6 +167,19 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
                 }
             }
         }
+    }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new TiledMapComponent(owner);
+
+        component.Layers.AddRange(Layers);
+        component.TiledMapData = TiledMapData;
+#if EDITOR
+        component.TiledMapDataFileName = TiledMapDataFileName;
+#endif
+
+        return component;
     }
 
     public override void Load(JsonElement element)

@@ -118,4 +118,15 @@ public class CameraTargeted2dComponent : Camera3dComponent
         _target = new(-_offset.X, -_offset.Y, 0.0f);
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up); //Vector3 up = -Vector3::UnitY();
     }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new CameraTargeted2dComponent(owner);
+
+        component._up = _up;
+        component._target = _target;
+        component._offset = _offset;
+
+        return component;
+    }
 }

@@ -76,4 +76,12 @@ public class ComponentManager
 
         return null;
     }
+
+    public void CopyFrom(ComponentManager componentManager)
+    {
+        foreach (var component in componentManager.Components)
+        {
+            Components.Add(component.Clone(Owner));
+        }
+    }
 }

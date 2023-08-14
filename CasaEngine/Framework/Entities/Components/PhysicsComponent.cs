@@ -19,7 +19,6 @@ public class PhysicsComponent : Component, ICollideableComponent
     public static readonly int ComponentId = (int)ComponentIds.Physics;
     private Shape3d? _shape;
     private PhysicsEngineComponent _physicsEngineComponent;
-    private PhysicsType _physicsType;
 
     //body
     private Vector3 _velocity;
@@ -52,7 +51,7 @@ public class PhysicsComponent : Component, ICollideableComponent
 
     public PhysicsComponent(Entity entity) : base(entity, ComponentId)
     {
-        _physicsType = PhysicsType.Static;
+        PhysicsDefinition.PhysicsType = PhysicsType.Static;
 
 #if EDITOR
         entity.PositionChanged += OnPositionChanged;
@@ -142,14 +141,23 @@ public class PhysicsComponent : Component, ICollideableComponent
         Owner.HitEnded(collision, this);
     }
 
+    public override Component Clone(Entity owner)
+    {
+        var component = new PhysicsComponent(owner);
+
+        component._shape = _shape;
+        component._velocity = _velocity;
+        component._maxSpeed = _maxSpeed;
+        component._maxForce = _maxForce;
+        component._maxTurnRate = _maxTurnRate;
+        component.PhysicsDefinition.CopyFrom(PhysicsDefinition);
+
+        return component;
+    }
+
     public override void Load(JsonElement element)
     {
-        _physicsType = element.GetJsonPropertyByName("physics_type").Value.GetEnum<PhysicsType>();
-
-        if (PhysicsType == PhysicsType.Dynamic)
-        {
-            PhysicsDefinition.Mass = element.GetProperty("mass").GetSingle();
-        }
+        PhysicsDefinition.Load(element.GetProperty("physics_definition"));
 
         var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "null")
@@ -164,16 +172,13 @@ public class PhysicsComponent : Component, ICollideableComponent
     {
         base.Save(jObject);
 
-        jObject.Add("physics_type", _physicsType.ConvertToString());
-
-        if (PhysicsType == PhysicsType.Dynamic)
-        {
-            jObject.Add("mass", PhysicsDefinition.Mass);
-        }
+        JObject newJObject = new();
+        PhysicsDefinition.Save(newJObject);
+        jObject.Add("physics_definition", newJObject);
 
         if (_shape != null)
         {
-            JObject newJObject = new();
+            newJObject = new();
             _shape.Save(newJObject);
             jObject.Add("shape", newJObject);
         }

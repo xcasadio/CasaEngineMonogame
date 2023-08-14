@@ -5,6 +5,7 @@ using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Controls;
@@ -84,15 +85,24 @@ public class Entity : ISaveLoad
 
     public Entity Clone()
     {
-        throw new NotImplementedException();
+        var entity = new Entity();
+        entity.CopyFrom(this);
+        return entity;
+    }
+
+    public void CopyFrom(Entity entity)
+    {
+        IsTemporary = entity.IsTemporary;
+        Name = entity.Name + $"_{Id}";
+        Parent = entity.Parent;
+        IsEnabled = entity.IsEnabled;
+        IsVisible = entity.IsVisible;
+
+        ComponentManager.CopyFrom(entity.ComponentManager);
+        Coordinates.CopyFrom(entity.Coordinates);
     }
 
     public void Destroy() { }
-
-    public void CopyFrom(Entity ob)
-    {
-        IsTemporary = ob.IsTemporary;
-    }
 
     public void Load(JsonElement element)
     {

@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media.TextFormatting;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Editor;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using XNAGizmo;
 
 namespace EditorWpf.Controls.WorldControls
@@ -41,9 +47,44 @@ namespace EditorWpf.Controls.WorldControls
             var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
             gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
             gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
+
+            gizmoComponent.Gizmo.CopyTriggered -= OnCopyTriggered;
+            gizmoComponent.Gizmo.CopyTriggered += OnCopyTriggered;
         }
 
-        private void OnEntitiesSelectionChanged(object? sender, System.Collections.Generic.List<ITransformable> e)
+        private void OnCopyTriggered(object? sender, List<ITransformable> entities)
+        {
+            if (!_isSelectionTriggerFromGizmoActive)
+            {
+                return;
+            }
+
+            _isSelectionTriggerActive = false;
+
+            var newEntities = new List<Entity>();
+
+            foreach (var entity in entities.Cast<Entity>())
+            {
+                var newEntity = entity.Clone();
+                newEntity.Initialize(Game);
+                Game.GameManager.CurrentWorld.AddEntityImmediately(newEntity);
+                newEntities.Add(newEntity);
+            }
+
+            var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
+            gizmoComponent.Gizmo.Clear();
+            foreach (var entity in newEntities)
+            {
+                gizmoComponent.Gizmo.Selection.Add(entity);
+            }
+
+            OnEntitiesChanged(this, EventArgs.Empty);
+            SetSelectedItem(newEntities[0]);
+
+            _isSelectionTriggerActive = true;
+        }
+
+        private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)
         {
             if (!_isSelectionTriggerFromGizmoActive)
             {
@@ -123,6 +164,18 @@ namespace EditorWpf.Controls.WorldControls
                     {
                         treeViewItem.IsSelected = false;
                     }
+                }
+            }
+        }
+
+        private void TreeView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete && e.IsToggled)
+            {
+                if (TreeView.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem)
+                {
+                    Game.GameManager.CurrentWorld.Entities.Remove(treeViewItem.DataContext as Entity);
+                    OnEntitiesChanged(this, EventArgs.Empty);
                 }
             }
         }

@@ -9,7 +9,6 @@ namespace CasaEngine.Framework.Entities;
 public class Coordinates
 {
     private Matrix _worldMatrix;
-
     private Vector3 _localCenterOfRotation;
     private Vector3 _localPosition;
     private Quaternion _localRotation;
@@ -119,6 +118,17 @@ public class Coordinates
         {
             WorldMatrix = LocalMatrix;
         }
+    }
+
+    public void CopyFrom(Coordinates coordinates)
+    {
+        Parent = coordinates.Parent;
+        _worldMatrix = coordinates._worldMatrix;
+        _localCenterOfRotation = coordinates._localCenterOfRotation;
+        _localPosition = coordinates._localPosition;
+        _localRotation = coordinates._localRotation;
+        _localScale = coordinates._localScale;
+        _localMatrixChanged = true;
     }
 
     public void Load(JsonElement element)

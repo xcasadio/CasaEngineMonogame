@@ -44,6 +44,8 @@ public abstract class Component
 
     }
 
+    public abstract Component Clone(Entity owner);
+
 
 #if EDITOR
     public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
@@ -23,7 +24,10 @@ public class StaticSpriteComponent : Component, ICollideableComponent
     private SpriteRendererComponent? _spriteRendererComponent;
     private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
 
+    [Browsable(false)]
     public PhysicsType PhysicsType { get; }
+
+    [Browsable(false)]
     public HashSet<Collision> Collisions { get; }
 
     public Color Color { get; set; }
@@ -70,6 +74,15 @@ public class StaticSpriteComponent : Component, ICollideableComponent
     public void OnHitEnded(Collision collision)
     {
 
+    }
+
+    public override Component Clone(Entity owner)
+    {
+        var component = new StaticSpriteComponent(owner);
+
+        component._spriteData = _spriteData;
+
+        return component;
     }
 
     public override void Load(JsonElement element)
