@@ -28,7 +28,7 @@ public sealed class MessageManagerRouter : IMessageManager
         MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
     }
 
-    public void SendMessage(int senderId, int recieverId, double delayTime, int type, object extraInfo)
+    public void SendMessage(long senderId, long recieverId, double delayTime, int type, object extraInfo)
     {
         Message message;
         //IMessageable entity;

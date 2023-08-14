@@ -9,7 +9,7 @@ public sealed class MessageManagerHandler : IMessageManager
 
     internal UniquePriorityQueue<Message> MessageQueue;
 
-    internal Dictionary<int, Dictionary<int, MessageHandlerDelegate>> RegisteredEntities;
+    internal Dictionary<int, Dictionary<long, MessageHandlerDelegate>> RegisteredEntities;
 
 
 
@@ -18,7 +18,7 @@ public sealed class MessageManagerHandler : IMessageManager
     private MessageManagerHandler()
     {
         MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
-        RegisteredEntities = new Dictionary<int, Dictionary<int, MessageHandlerDelegate>>();
+        RegisteredEntities = new Dictionary<int, Dictionary<long, MessageHandlerDelegate>>();
     }
 
 
@@ -29,7 +29,7 @@ public sealed class MessageManagerHandler : IMessageManager
     public void ResetManager(double precision)
     {
         MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
-        RegisteredEntities = new Dictionary<int, Dictionary<int, MessageHandlerDelegate>>();
+        RegisteredEntities = new Dictionary<int, Dictionary<long, MessageHandlerDelegate>>();
     }
 
     public void RegisterForMessage(int type, int entityId, MessageHandlerDelegate handler)
@@ -37,7 +37,7 @@ public sealed class MessageManagerHandler : IMessageManager
         //If the table for this type of message didn´t exist we set it up and register ourselves
         if (RegisteredEntities[type] == null)
         {
-            RegisteredEntities[type] = new Dictionary<int, MessageHandlerDelegate>();
+            RegisteredEntities[type] = new Dictionary<long, MessageHandlerDelegate>();
             RegisteredEntities[type][entityId] = handler;
             return;
         }
@@ -56,7 +56,7 @@ public sealed class MessageManagerHandler : IMessageManager
         RegisteredEntities[type].Remove(entityId);
     }
 
-    public void SendMessage(int senderId, int recieverId, double delayTime, int type, object extraInfo)
+    public void SendMessage(long senderId, long recieverId, double delayTime, int type, object extraInfo)
     {
         Message message;
 

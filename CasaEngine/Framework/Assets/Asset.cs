@@ -11,8 +11,6 @@ public abstract class Asset : Disposable
 {
     //public event EventHandler? Disposed;
 
-    private static int _uniqueIdCounter;
-
     private string _name;
 
     public long Id { get; private set; }
@@ -33,8 +31,7 @@ public abstract class Asset : Disposable
 
     protected Asset()
     {
-        Id = _uniqueIdCounter;
-        _uniqueIdCounter++;
+        Id = IdManager.GetId();
     }
 
     internal virtual void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)

@@ -21,10 +21,8 @@ public class Entity : ISaveLoad
     , ITransformable
 #endif
 {
-    public const int EntityNotRegistered = -1;
-
     [Category("Object"), ReadOnly(true)]
-    public int Id { get; set; } = EntityNotRegistered;
+    public long Id { get; private set; }
 
     [Category("Object")]
     public string Name { get; set; } = string.Empty;
@@ -56,6 +54,7 @@ public class Entity : ISaveLoad
     public Entity()
     {
         ComponentManager = new ComponentManager(this);
+        Id = IdManager.GetId();
     }
 
     public void Initialize(CasaEngineGame game)
