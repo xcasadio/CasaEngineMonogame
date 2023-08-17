@@ -9,22 +9,24 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
 {
     private readonly List<SkinnedMeshInfo> _meshInfos = new();
     private Effect _effect;
+    private CasaEngineGame _game;
 
-    public SkinnedMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public SkinnedMeshRendererComponent(CasaEngineGame game) : base(game)
     {
+        _game = game;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.MeshComponent;
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(SkinModel mesh, Matrix world, Matrix view, Matrix projection, Vector3 cameraPosition)
+    public void AddMesh(RiggedModel mesh, Matrix world, Matrix view, Matrix projection, Vector3 cameraPosition)
     {
         _meshInfos.Add(new SkinnedMeshInfo
         {
             SkinnedMesh = mesh,
             World = world,
             View = view,
-            Projection = projection,
+            ViewProjection = view * projection,
             CameraPosition = cameraPosition
         });
     }
@@ -39,17 +41,39 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
         graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        GraphicsDevice.RasterizerState = RasterizerState.CullNone;
         //GraphicsDevice.RasterizerState = new RasterizerState() { CullMode = CullMode.CullClockwiseFace, FillMode = FillMode.WireFrame };
         GraphicsDevice.BlendState = BlendState.NonPremultiplied;
         //GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
-        //GraphicsDevice.SetVertexBuffer(null);
-        //GraphicsDevice.Indices = null;
+        GraphicsDevice.SetVertexBuffer(null);
+        GraphicsDevice.Indices = null;
+
+        var camera = _game.GameManager.ActiveCamera;
+        if (camera == null)
+        {
+            return;
+        }
+
+        _effect.CurrentTechnique = _effect.Techniques["RiggedModelDraw"];
+
+        _effect.Parameters["View"].SetValue(camera.ViewMatrix);
+        _effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
+        _effect.Parameters["CameraPosition"].SetValue(camera.Position);
+
+        // set up the effect initially to change how you want the shader to behave
+        _effect.Parameters["AmbientAmt"].SetValue(.15f);
+        _effect.Parameters["DiffuseAmt"].SetValue(.6f);
+        _effect.Parameters["SpecularAmt"].SetValue(.25f);
+        _effect.Parameters["SpecularSharpness"].SetValue(.88f);
+        _effect.Parameters["SpecularLightVsTexelInfluence"].SetValue(.40f);
+
+        _effect.Parameters["WorldLightPosition"].SetValue(new Vector3(0f, 0f, 1200f));
+        _effect.Parameters["LightColor"].SetValue(new Vector4(.099f, .099f, .999f, 1.0f));
 
         foreach (var meshInfo in _meshInfos)
         {
-            //meshInfo.SkinnedMesh.DrawMesh(0, meshInfo.View * meshInfo.Projection, meshInfo.View, meshInfo.CameraPosition, meshInfo.World);
-            meshInfo.SkinnedMesh.Draw(meshInfo.View * meshInfo.Projection, meshInfo.View, meshInfo.CameraPosition, meshInfo.World);
+            meshInfo.SkinnedMesh.effect = _effect;
+            meshInfo.SkinnedMesh.Draw(GraphicsDevice, meshInfo.World);
         }
 
         _meshInfos.Clear();
@@ -57,10 +81,10 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
 
     private class SkinnedMeshInfo
     {
-        public SkinModel? SkinnedMesh;
+        public RiggedModel? SkinnedMesh;
         public Matrix World { get; set; }
         public Matrix View { get; set; }
-        public Matrix Projection { get; set; }
+        public Matrix ViewProjection { get; set; }
         public Vector3 CameraPosition { get; set; }
     }
 }

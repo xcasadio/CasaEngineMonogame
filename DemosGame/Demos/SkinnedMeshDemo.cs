@@ -26,15 +26,14 @@ public class SkinnedMeshDemo : Demo
         var skinnedMeshComponent = new SkinnedMeshComponent(entity);
         entity.ComponentManager.Components.Add(skinnedMeshComponent);
 
-        var skinModelLoader = new SkinModelLoader(game.Content, game.GraphicsDevice);
+        var skinModelLoader = new RiggedModelLoader(game.Content, game.Content.Load<Effect>("Shaders\\skinEffect"));
         // pad the animation a bit for smooth looping, set a debug texture (if no texture on a mesh)
-        skinModelLoader.SetDefaultOptions(0.1f, game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName).Resource);
-
-        var skinFx = new SkinFx(game.GameManager.AssetContentManager, game.Content.Load<Effect>("Shaders\\skinEffect"));
-        var skinModel = skinModelLoader.Load("Content/SkinnedMesh/kid_walk.fbx",
-            "SkinnedMesh", false, 3, skinFx, rescale: 0.35f);
+        var debugTexture = game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName).Resource;
+        RiggedModelLoader.DefaultTexture = debugTexture;
+        var skinModel = skinModelLoader.LoadAsset("Content/SkinnedMesh/kid_walk.fbx");//dude
         skinnedMeshComponent.SkinnedMesh = skinModel;
         skinModel.BeginAnimation(0);
+
         //skinnedMeshComponent.Mesh.Initialize(game.GraphicsDevice);
         world.AddEntityImmediately(entity);
     }

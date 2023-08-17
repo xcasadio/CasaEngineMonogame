@@ -44,7 +44,7 @@ public class GameManager
     public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
     public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
-    public ScreenManagerComponent ManagerComponent { get; private set; }
+    public ScreenManagerComponent ScreenManagerComponent { get; private set; }
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
@@ -154,7 +154,7 @@ public class GameManager
         Renderer2dComponent = new Renderer2dComponent(_game) { SpriteBatch = SpriteBatch };
         SpriteRendererComponent = new SpriteRendererComponent(_game);
         InputComponent = new InputComponent(_game);
-        ManagerComponent = new ScreenManagerComponent(_game);
+        ScreenManagerComponent = new ScreenManagerComponent(_game);
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
         SkinnedMeshRendererComponent = new SkinnedMeshRendererComponent(_game);
         PhysicsEngineComponent = new PhysicsEngineComponent(_game);
@@ -267,7 +267,7 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-        _game.GraphicsDevice.Clear(Color.Black);
+        _game.GraphicsDevice.Clear(Color.CornflowerBlue);
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         CurrentWorld?.Draw(elapsedTime);

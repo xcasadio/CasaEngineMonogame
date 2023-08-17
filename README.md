@@ -15,7 +15,7 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
 * 3D
   - Models
   - Textures
-  - Skinned Models & animations (from [AlienScribble/FBXLoader](https://github.com/AlienScribble/FBXLoader))
+  - Skinned Models & animations (from [willmotil/MonoGameAssimpModelLoader](https://github.com/willmotil/MonoGameAssimpModelLoader))
 * Physics
   - RigidBody
 

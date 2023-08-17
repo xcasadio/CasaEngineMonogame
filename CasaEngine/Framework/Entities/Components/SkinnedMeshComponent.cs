@@ -15,12 +15,12 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
 {
     public static readonly int ComponentId = (int)ComponentIds.SkinnedMesh;
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
-    private SkinModel? _skinnedMesh;
+    private RiggedModel? _skinnedMesh;
 
     //TODO remove : use only in editor mode to retrieve the game. Very ugly....
     public CasaEngineGame Game { get; private set; }
 
-    public SkinModel? SkinnedMesh
+    public RiggedModel? SkinnedMesh
     {
         get { return _skinnedMesh; }
         set
@@ -53,7 +53,7 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
 
         if (!MathUtils.IsZero(elapsedTime))
         {
-            //SkinnedMesh.Update(elapsedTime);
+            SkinnedMesh.Update(elapsedTime);
         }
 
         var camera = Game.GameManager.ActiveCamera;
