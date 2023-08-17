@@ -15,8 +15,10 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
 * 3D
   - Models
   - Textures
+  - Skinned Models & animations (from [AlienScribble/FBXLoader](https://github.com/AlienScribble/FBXLoader))
 * Physics
   - RigidBody
 
 ## 3rd parties
 * Physics : BulletSharp
+* Models & animations: AssimpNET

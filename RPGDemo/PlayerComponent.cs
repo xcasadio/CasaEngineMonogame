@@ -40,4 +40,9 @@ public class PlayerComponent : Component
     {
 
     }
+
+    public override Component Clone(Entity owner)
+    {
+        return new PlayerComponent(owner);
+    }
 }

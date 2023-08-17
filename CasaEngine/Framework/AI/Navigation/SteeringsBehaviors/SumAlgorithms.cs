@@ -15,10 +15,12 @@ public static class SumAlgorithms
         totalForce = Vector3.Zero;
 
         foreach (var behavior in behaviors)
+        {
             if (behavior.Active)
             {
                 totalForce += behavior.Calculate() * behavior.Modifier;
             }
+        }
 
         return totalForce;
     }

@@ -3,7 +3,7 @@
     "CasaEngineLauncher": {
       "commandName": "Project",
       "commandLineArgs": "ProjectTest.json",
-      "workingDirectory": "C:\\Users\\casad\\Documents\\CasaEngineProjects\\ProjectTest"
+      "workingDirectory": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest"
     }
   }
 }

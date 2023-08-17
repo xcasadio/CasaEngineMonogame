@@ -29,10 +29,12 @@ public class Steeringbehaviors
         object[] parametters;
 
         foreach (var behavior in behaviors)
+        {
             if (behavior is T && behavior.Name == name)
             {
                 return;
             }
+        }
 
         parametters = new object[3];
         parametters[0] = name;
@@ -72,28 +74,34 @@ public class Steeringbehaviors
     public void ActivateBehavior<T>(string name)
     {
         foreach (var behavior in behaviors)
+        {
             if (behavior is T && behavior.Name == name)
             {
                 behavior.Active = true;
             }
+        }
     }
 
     public void DeactivateBehavior<T>(string name)
     {
         foreach (var behavior in behaviors)
+        {
             if (behavior is T && behavior.Name == name)
             {
                 behavior.Active = false;
             }
+        }
     }
 
     public T GetBehavior<T>(string name) where T : SteeringBehavior
     {
         foreach (var behavior in behaviors)
+        {
             if (behavior is T && behavior.Name == name)
             {
                 return (T)behavior;
             }
+        }
 
         return null;
     }

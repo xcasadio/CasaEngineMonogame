@@ -112,7 +112,9 @@ public class ScreenManagerComponent : DrawableGameComponent
         _screensToUpdate.Clear();
 
         foreach (var screen in _screens)
+        {
             _screensToUpdate.Add(screen);
+        }
 
         var otherScreenHasFocus = !Game.IsActive;
         var coveredByOtherScreen = false;
@@ -162,7 +164,9 @@ public class ScreenManagerComponent : DrawableGameComponent
         var screenNames = new List<string>();
 
         foreach (var screen in _screens)
+        {
             screenNames.Add(screen.GetType().Name);
+        }
 
         Trace.WriteLine(string.Join(", ", screenNames.ToArray()));
     }

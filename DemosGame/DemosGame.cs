@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.World;
+using DemosGame.Demos;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -19,6 +21,8 @@ namespace DemosGame
 
         protected override void Initialize()
         {
+            LogManager.Instance.AddLogger(new FileLogger("log.txt"));
+
             GameSettings.ProjectSettings.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
             GameSettings.ProjectSettings.IsMouseVisible = true;
             GameSettings.ProjectSettings.WindowTitle = "CasaEngine demos";
@@ -39,8 +43,9 @@ namespace DemosGame
             _demos.Add(new Collision3dBasicDemo());
             _demos.Add(new Collision2dBasicDemo());
             _demos.Add(new TiledMapDemo());
+            _demos.Add(new SkinnedMeshDemo());
 
-            ChangeDemo(2);
+            ChangeDemo(3);
         }
 
         private void ChangeDemo(int index)
@@ -52,6 +57,8 @@ namespace DemosGame
             var camera = _currentDemo.CreateCamera(this);
             GameManager.CurrentWorld.Initialize(this);
             GameManager.ActiveCamera = camera;
+
+            Window.Title = _currentDemo.Title;
         }
 
         protected override void Update(GameTime gameTime)

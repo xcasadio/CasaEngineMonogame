@@ -23,7 +23,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
 
     protected override void LoadContent()
     {
-        _effect = Game.Content.Load<Effect>("simple");
+        _effect = Game.Content.Load<Effect>("Shaders\\simple");
 
         base.LoadContent();
     }

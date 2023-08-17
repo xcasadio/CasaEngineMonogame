@@ -13,6 +13,7 @@ public enum ComponentIds
     LookAtCamera,
     CameraTarget2d,
     Camera3dIn2dAxis,
+    SkinnedMesh,
 
     Custom = 1000
 }

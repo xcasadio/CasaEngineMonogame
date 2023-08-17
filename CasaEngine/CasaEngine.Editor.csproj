@@ -35,6 +35,7 @@
 		<DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="AssimpNet" Version="4.1.0" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

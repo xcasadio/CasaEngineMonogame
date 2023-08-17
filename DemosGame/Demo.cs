@@ -8,7 +8,7 @@ namespace DemosGame;
 
 public abstract class Demo
 {
-    public abstract string Name { get; }
+    public abstract string Title { get; }
 
     public abstract void Initialize(CasaEngineGame game);
 

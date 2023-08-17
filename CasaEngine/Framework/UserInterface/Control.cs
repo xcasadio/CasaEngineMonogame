@@ -1249,7 +1249,9 @@ public class Control : Disposable
             // This is the alternative that produces garbage but it does not have out of range problems.
             var childrenControlsAuxList = new ControlsList(_childrenControls);
             foreach (var control in childrenControlsAuxList)
+            {
                 control.Update(elapsedTime);
+            }
             //}
         }
     } // Update

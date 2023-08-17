@@ -3,11 +3,11 @@
 public class FileLogger : ILog
 {
     private StreamWriter _stream;
-    private readonly string _trace = "Trace : ";
-    private readonly string _debug = "Debug : ";
-    private readonly string _info = "Info : ";
-    private readonly string _warning = "Warning : ";
-    private readonly string _error = "Error : ";
+    private readonly string _trace = "[Trace] ";
+    private readonly string _debug = "[Debug] ";
+    private readonly string _info = "[Info] ";
+    private readonly string _warning = "[Warning] ";
+    private readonly string _error = "[Error] ";
 
     public FileLogger(string fileName)
     {
@@ -25,7 +25,7 @@ public class FileLogger : ILog
     {
         if (displayTime)
         {
-            _stream.Write(DateTime.Now.ToString("T") + " : ");
+            _stream.Write(DateTime.Now.ToString("T") + " ");
         }
 
         _stream.Write(msg);

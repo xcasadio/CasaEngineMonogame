@@ -43,16 +43,22 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/axisComponent.fx
 
+#begin Shaders/simple.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/simple.fx
+
+#begin Shaders/skinEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/skinEffect.fx
+
 #begin Shaders/spritebatch.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /build:Shaders/spritebatch.fx
-
-#begin simple.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:simple.fx
 

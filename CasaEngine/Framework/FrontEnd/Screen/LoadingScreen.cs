@@ -25,7 +25,9 @@ public class LoadingScreen : Screen
     {
         // Tell all the current screens to transition off.
         foreach (var screen in screenManager.GetScreens())
+        {
             screen.ExitScreen();
+        }
 
         // Create and activate the loading screen.
         var loadingScreen = new LoadingScreen(screenManager, loadingIsSlow, screensToLoad);

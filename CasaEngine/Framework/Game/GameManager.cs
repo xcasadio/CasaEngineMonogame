@@ -43,6 +43,7 @@ public class GameManager
     public SpriteRendererComponent SpriteRendererComponent { get; private set; }
     public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
+    public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
     public ScreenManagerComponent ManagerComponent { get; private set; }
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
@@ -155,6 +156,7 @@ public class GameManager
         InputComponent = new InputComponent(_game);
         ManagerComponent = new ScreenManagerComponent(_game);
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
+        SkinnedMeshRendererComponent = new SkinnedMeshRendererComponent(_game);
         PhysicsEngineComponent = new PhysicsEngineComponent(_game);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(_game);
 
@@ -182,9 +184,9 @@ public class GameManager
 
     public void BeginLoadContent()
     {
-#if EDITOR
+        //#if EDITOR
         CreateDefaultTexture();
-#endif
+        //#endif
     }
 
     private void CreateDefaultTexture()
