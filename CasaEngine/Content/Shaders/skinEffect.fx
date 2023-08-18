@@ -140,7 +140,7 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     float4 texelColor = tex2D(TextureSamplerA, input.TexureCoordinateA) * input.Color;
     float specular = saturate(reflectionTheta - SpecularSharpness) * (1.0f / (1.0f - SpecularSharpness)) * IsFrontFace * SpecularAmt; // screw that phong shading and power its nice but it also sucks.
     float4 result = (texelColor * AmbientAmt) + (texelColor * diffuse) + ((texelColor * (1.0f - SpecularLightVsTexelInfluence) + LightColor * SpecularLightVsTexelInfluence) * specular);
-    return result;
+    return tex2D(TextureSamplerA, input.TexureCoordinateA);
 }
 
 technique RiggedModelDraw
@@ -172,7 +172,7 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
     //float specular = saturate(reflectionTheta - specularSharpness) * (1.0f / (1.0f - specularSharpness)) * IsFrontFace; // screw that phong shading and power its nice but it also sucks.
     float4 lightColor = float4(0.99f, .99f, 0.99f, 1.0f) * IsFrontFace + float4(0.99f, 0.09f, 0.09f, 1.0f) * (1.0f - IsFrontFace);
     float4 result = (lightColor * 0.60f + texelColor * 0.40f) * (diffuse * 0.75f + 0.25f);
-    return result;
+    return tex2D(TextureSamplerA, input.TexureCoordinateA);
 }
 
 technique RiggedModelNormalDraw

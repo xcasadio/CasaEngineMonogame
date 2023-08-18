@@ -27,7 +27,6 @@ public class SkinnedMeshDemo : Demo
         entity.ComponentManager.Components.Add(skinnedMeshComponent);
 
         var skinModelLoader = new RiggedModelLoader(game.Content, game.Content.Load<Effect>("Shaders\\skinEffect"));
-        // pad the animation a bit for smooth looping, set a debug texture (if no texture on a mesh)
         var debugTexture = game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName).Resource;
         RiggedModelLoader.DefaultTexture = debugTexture;
         var skinModel = skinModelLoader.LoadAsset("Content/SkinnedMesh/kid_walk.fbx");//dude

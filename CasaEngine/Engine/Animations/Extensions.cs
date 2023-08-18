@@ -50,7 +50,7 @@ public static class Extensions
         int pamt = 8;
         return (v.X.ToString(d).PadRight(pamt) + ", " + v.Y.ToString(d).PadRight(pamt) + ", " + v.Z.ToString(d).PadRight(pamt) + ", " + v.W.ToString(d).PadRight(pamt));
     }
-    public static string ToStringTrimed(this Microsoft.Xna.Framework.Quaternion q)
+    public static string ToStringTrimed(this Quaternion q)
     {
         string d = "+0.000;-0.000"; // "0.00";
         int pamt = 8;

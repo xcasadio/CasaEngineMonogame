@@ -41,7 +41,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
         graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+        GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         //GraphicsDevice.RasterizerState = new RasterizerState() { CullMode = CullMode.CullClockwiseFace, FillMode = FillMode.WireFrame };
         GraphicsDevice.BlendState = BlendState.NonPremultiplied;
         //GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
@@ -72,7 +72,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
 
         foreach (var meshInfo in _meshInfos)
         {
-            meshInfo.SkinnedMesh.effect = _effect;
+            meshInfo.SkinnedMesh.Effect = _effect;
             meshInfo.SkinnedMesh.Draw(GraphicsDevice, meshInfo.World);
         }
 
