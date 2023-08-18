@@ -1,9 +1,4 @@
-﻿using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using Texture = CasaEngine.Framework.Assets.Textures.Texture;
+﻿using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Animations;
 

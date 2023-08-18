@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using CasaEngine.Core.Logger;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -49,17 +49,17 @@ public class RiggedModel
     public Effect Effect;
     public int NumberOfBonesInUse = 0;
     public int NumberOfNodesInUse = 0;
-    public int MaxGlobalBones = 128; // 78       
-    public Matrix[] GlobalShaderMatrixs; // these are the real final bone matrices they end up on the shader.
-    public List<RiggedModelNode> FlatListToBoneNodes = new List<RiggedModelNode>();
-    public List<RiggedModelNode> FlatListToAllNodes = new List<RiggedModelNode>();
+    public readonly int MaxGlobalBones = 128; // 78       
+    public readonly Matrix[] GlobalShaderMatrixs; // these are the real final bone matrices they end up on the shader.
+    public readonly List<RiggedModelNode> FlatListToBoneNodes = new();
+    public readonly List<RiggedModelNode> FlatListToAllNodes = new();
     public RiggedModelMesh[] Meshes;
     public RiggedModelNode RootNodeOfTree; // The actual model root node the base node of the model from here we can locate any node in the chain.
     public RiggedModelNode FirstRealBoneInTree; // unused as of yet. The actual first bone in the scene the basis of the users skeletal model he created.
                                                 //public RiggedModelNode globalPreTransformNode; // the accumulated orientations and scalars prior to the first bone acts as a scalar to the actual bone local transforms from assimp.
 
     // initial assimp animations
-    public List<RiggedAnimation> OriginalAnimations = new List<RiggedAnimation>();
+    public readonly List<RiggedAnimation> OriginalAnimations = new();
     int _currentAnimation = 0;
     public int CurrentFrame = 0;
     public bool AnimationRunning = false;
@@ -69,7 +69,7 @@ public class RiggedModel
     /// <summary>
     /// Uses static animation frames instead of interpolated frames.
     /// </summary>
-    public bool UseStaticGeneratedFrames = false;
+    public readonly bool UseStaticGeneratedFrames = false;
 
     // mainly for testing to step thru each frame.
     public float OverrideAnimationFrameTime = -1;
@@ -239,7 +239,9 @@ public class RiggedModel
 
         // call children
         foreach (RiggedModelNode n in node.Children)
+        {
             IterateUpdate(n);
+        }
     }
 
     // ok ... in draw we should now be able to call on this in relation to the world transform.
@@ -288,7 +290,7 @@ public class RiggedModel
 
     public int CurrentPlayingAnimationIndex
     {
-        get { return _currentAnimation; }
+        get => _currentAnimation;
         set
         {
             var n = value;
@@ -306,8 +308,10 @@ public class RiggedModel
     /// </summary>
     public void CreateStaticAnimationLookUpFrames(int fps, bool addLoopingTime)
     {
-        foreach (var anim in OriginalAnimations)
-            anim.SetAnimationFpsCreateFrames(fps, this, addLoopingTime);
+        for (var index = 0; index < OriginalAnimations.Count; index++)
+        {
+            OriginalAnimations[index].SetAnimationFpsCreateFrames(fps, this, addLoopingTime);
+        }
     }
 
     public void BeginAnimation(int animationIndex)
@@ -340,8 +344,10 @@ public class RiggedModel
         public VertexPositionTextureNormalTangentWeights[] Vertices;
         public int[] Indices;
         public string NameOfMesh = "";
-        public int NumberOfIndices { get { return Indices.Length; } }
-        public int NumberOfVertices { get { return Vertices.Length; } }
+        public int NumberOfIndices => Indices.Length;
+
+        public int NumberOfVertices => Vertices.Length;
+
         public int MaterialIndex { get; set; }
         public Matrix LinkedNodesOffsetMg { get; set; }
         public Matrix MeshInitialTransformFromNodeMg { get; set; }
@@ -368,7 +374,7 @@ public class RiggedModel
         public string Name = "";
         public int BoneShaderFinalTransformIndex = -1;
         public RiggedModelNode Parent;
-        public List<RiggedModelNode> Children = new List<RiggedModelNode>();
+        public readonly List<RiggedModelNode> Children = new();
 
         // probably don't need most of these they are from the debug phase.
         public bool IsTheRootNode = false;
@@ -378,33 +384,38 @@ public class RiggedModel
         public bool IsANodeAlongTheBoneRoute = false; // similar to is isThisNodeTransformNecessary but can include the nodes after bones.
         public bool IsThisNodeTransformNecessary = false; // has a requisite transformation in this node that a bone will need later.
         public bool IsThisAMeshNode = false; // is this actually a mesh node.
-        public bool IsThisTheFirstMeshNode = false;
+        public readonly bool IsThisTheFirstMeshNode = false;
         //public RiggedModelMesh meshRef; // no point in this as there can be many refs per node we link in the opposite direction.
 
         /// <summary>
         /// The inverse offset takes one from model space to bone space to say it will have a position were the bone is in the world.
         /// It is of the world space transform type from model space.
         /// </summary>
-        public Matrix InvOffsetMatrixMg { get { return Matrix.Invert(OffsetMatrixMg); } set { OffsetMatrixMg = Matrix.Invert(value); } }
+        public Matrix InvOffsetMatrixMg
+        {
+            get => Matrix.Invert(OffsetMatrixMg);
+            set => OffsetMatrixMg = Matrix.Invert(value);
+        }
+
         /// <summary>
         /// Typically a chain of local transforms from bone to bone allow one bone to build off the next. 
         /// This is the inverse bind pose position and orientation of a bone or the local inverted bind pose e.g. inverse bone position at a node.
         /// The multiplication of this value by a full transformation chain at that specific node reveals the difference of its current model space orientations to its bind pose orientations.
         /// This is a tranformation from world space towards model space.
         /// </summary>
-        public Matrix OffsetMatrixMg { get; set; }
+        public Matrix OffsetMatrixMg { get; set; } = Matrix.Identity;
         /// <summary>
         /// The simplest one to understand this is a transformation of a specific bone in relation to the previous bone.
         /// This is a world transformation that has local properties.
         /// </summary>
-        public Matrix LocalTransformMg { get; set; }
+        public Matrix LocalTransformMg { get; set; } = Matrix.Identity;
         /// <summary>
         /// The multiplication of transforms down the tree accumulate this value tracks those accumulations.
         /// While the local transforms affect the particular orientation of a specific bone.
         /// While blender or other apps my allow some scaling or other adjustments from special matrices can be combined with this.
         /// This is a world space transformation. Basically the final world space transform that can be uploaded to the shader after all nodes are processed.
         /// </summary>
-        public Matrix CombinedTransformMg { get; set; }
+        public Matrix CombinedTransformMg { get; set; } = Matrix.Identity;
     }
 
     /// <summary>
@@ -433,8 +444,8 @@ public class RiggedModel
 
         public void SetAnimationFpsCreateFrames(int animationFramesPerSecond, RiggedModel model, bool loopAnimation)
         {
-            Console.WriteLine("________________________________________________________");
-            Console.WriteLine("Animation name: " + AnimationName + "  DurationInSeconds: " + DurationInSeconds + "  DurationInSecondsLooping: " + DurationInSecondsLooping);
+            LogManager.Instance.WriteLineTrace("________________________________________________________");
+            LogManager.Instance.WriteLineTrace("Animation name: " + AnimationName + "  DurationInSeconds: " + DurationInSeconds + "  DurationInSecondsLooping: " + DurationInSecondsLooping);
             _fps = animationFramesPerSecond;
             TotalFrames = (int)(DurationInSeconds * (double)(animationFramesPerSecond));
             TicksPerFramePerSecond = TicksPerSecond / (double)(animationFramesPerSecond);
@@ -452,7 +463,7 @@ public class RiggedModel
                 AnimatedNodes[i].FrameOrientationTimes = new double[TotalFrames];
 
                 // print name of node as we loop
-                Console.WriteLine("name " + AnimatedNodes[i].NodeName);
+                LogManager.Instance.WriteLineTrace("name " + AnimatedNodes[i].NodeName);
 
                 // Loop destination frames.
                 for (int j = 0; j < TotalFrames; j++)
@@ -501,11 +512,11 @@ public class RiggedModel
             int pindex2 = 0; int pindex1 = 0;
             int sindex2 = 0; int sindex1 = 0;
             //
-            var qiat = nodeAnim.QrotTime[nodeAnim.QrotTime.Count - 1];
+            var qiat = nodeAnim.QrotTime[^1];
             if (animTime > qiat)
             {
-                tq1 = nodeAnim.QrotTime[nodeAnim.QrotTime.Count - 1];
-                q1 = nodeAnim.Qrot[nodeAnim.Qrot.Count - 1];
+                tq1 = nodeAnim.QrotTime[^1];
+                q1 = nodeAnim.Qrot[^1];
                 tq2 = nodeAnim.QrotTime[0] + durationSecs;
                 q2 = nodeAnim.Qrot[0];
                 qindex1 = nodeAnim.Qrot.Count - 1;
@@ -540,11 +551,11 @@ public class RiggedModel
                 }
             }
             //
-            var piat = nodeAnim.PositionTime[nodeAnim.PositionTime.Count - 1];
+            var piat = nodeAnim.PositionTime[^1];
             if (animTime > piat)
             {
-                tp1 = nodeAnim.PositionTime[nodeAnim.PositionTime.Count - 1];
-                p1 = nodeAnim.Position[nodeAnim.Position.Count - 1];
+                tp1 = nodeAnim.PositionTime[^1];
+                p1 = nodeAnim.Position[^1];
                 tp2 = nodeAnim.PositionTime[0] + durationSecs;
                 p2 = nodeAnim.Position[0];
                 pindex1 = nodeAnim.Position.Count - 1;
@@ -578,11 +589,11 @@ public class RiggedModel
                 }
             }
             // scale
-            var siat = nodeAnim.ScaleTime[nodeAnim.ScaleTime.Count - 1];
+            var siat = nodeAnim.ScaleTime[^1];
             if (animTime > siat)
             {
-                ts1 = nodeAnim.ScaleTime[nodeAnim.ScaleTime.Count - 1];
-                s1 = nodeAnim.Scale[nodeAnim.Scale.Count - 1];
+                ts1 = nodeAnim.ScaleTime[^1];
+                s1 = nodeAnim.Scale[^1];
                 ts2 = nodeAnim.ScaleTime[0] + durationSecs;
                 s2 = nodeAnim.Scale[0];
                 sindex1 = nodeAnim.Scale.Count - 1;
@@ -617,9 +628,9 @@ public class RiggedModel
             }
 
 
-            float tqi = 0;
-            float tpi = 0;
-            float tsi = 0;
+            float tqi;
+            float tpi;
+            float tsi;
 
             Quaternion q;
             if (qindex1 != qindex2)
@@ -659,10 +670,10 @@ public class RiggedModel
 
             ////if (targetNodeConsoleName == n.nodeName || targetNodeConsoleName == "")
             ////{
-            //    Console.WriteLine("" + "AnimationTime: " + animTime.ToStringTrimed());
-            //    Console.WriteLine(" q : " + " index1: " + qindex1 + " index2: " + qindex2 + " time1: " + tq1.ToStringTrimed() + "  time2: " + tq2.ToStringTrimed() + "  interpolationTime: " + tqi.ToStringTrimed() + "  quaternion: " + q.ToStringTrimed());
-            //    Console.WriteLine(" p : " + " index1: " + pindex1 + " index2: " + pindex2 + " time1: " + tp1.ToStringTrimed() + "  time2: " + tp2.ToStringTrimed() + "  interpolationTime: " + tpi.ToStringTrimed() + "  position: " + p.ToStringTrimed());
-            //    Console.WriteLine(" s : " + " index1: " + sindex1 + " index2: " + sindex2 + " time1: " + ts1.ToStringTrimed() + "  time2: " + ts2.ToStringTrimed() + "  interpolationTime: " + tsi.ToStringTrimed() + "  scale: " + s.ToStringTrimed());
+            //    LogManager.Instance.WriteLineTrace("" + "AnimationTime: " + animTime.ToStringTrimed());
+            //    LogManager.Instance.WriteLineTrace(" q : " + " index1: " + qindex1 + " index2: " + qindex2 + " time1: " + tq1.ToStringTrimed() + "  time2: " + tq2.ToStringTrimed() + "  interpolationTime: " + tqi.ToStringTrimed() + "  quaternion: " + q.ToStringTrimed());
+            //    LogManager.Instance.WriteLineTrace(" p : " + " index1: " + pindex1 + " index2: " + pindex2 + " time1: " + tp1.ToStringTrimed() + "  time2: " + tp2.ToStringTrimed() + "  interpolationTime: " + tpi.ToStringTrimed() + "  position: " + p.ToStringTrimed());
+            //    LogManager.Instance.WriteLineTrace(" s : " + " index1: " + sindex1 + " index2: " + sindex2 + " time1: " + ts1.ToStringTrimed() + "  time2: " + ts2.ToStringTrimed() + "  interpolationTime: " + tsi.ToStringTrimed() + "  scale: " + s.ToStringTrimed());
             ////}
 
             //s *= .01f;
@@ -698,12 +709,12 @@ public class RiggedModel
         public RiggedModelNode NodeRef;
         public string NodeName = "";
         // in model tick time
-        public List<double> PositionTime = new List<double>();
-        public List<double> ScaleTime = new List<double>();
-        public List<double> QrotTime = new List<double>();
-        public List<Vector3> Position = new List<Vector3>();
-        public List<Vector3> Scale = new List<Vector3>();
-        public List<Quaternion> Qrot = new List<Quaternion>();
+        public readonly List<double> PositionTime = new();
+        public readonly List<double> ScaleTime = new();
+        public readonly List<double> QrotTime = new();
+        public readonly List<Vector3> Position = new();
+        public readonly List<Vector3> Scale = new();
+        public readonly List<Quaternion> Qrot = new();
 
         // the actual calculated interpolation orientation matrice based on time.
         public double[] FrameOrientationTimes;
@@ -726,18 +737,17 @@ public struct VertexPositionTextureNormalTangentWeights : IVertexType
     public Vector4 BlendIndices;
     public Vector4 BlendWeights;
 
-    public static VertexDeclaration VertexDeclaration = new VertexDeclaration
-    (
-          new VertexElement(VertexElementByteOffset.PositionStartOffset(), VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
-          new VertexElement(VertexElementByteOffset.OffsetVector4(), VertexElementFormat.Vector4, VertexElementUsage.Color, 0),
-          new VertexElement(VertexElementByteOffset.OffsetVector3(), VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
-          new VertexElement(VertexElementByteOffset.OffsetVector2(), VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
-          new VertexElement(VertexElementByteOffset.OffsetVector3(), VertexElementFormat.Vector3, VertexElementUsage.Normal, 1),
-          new VertexElement(VertexElementByteOffset.OffsetVector3(), VertexElementFormat.Vector3, VertexElementUsage.Normal, 2),
-          new VertexElement(VertexElementByteOffset.OffsetVector4(), VertexElementFormat.Vector4, VertexElementUsage.BlendIndices, 0),
-          new VertexElement(VertexElementByteOffset.OffsetVector4(), VertexElementFormat.Vector4, VertexElementUsage.BlendWeight, 0)
+    public static readonly VertexDeclaration VertexDeclaration = new(
+          new VertexElement(VertexElementByteOffset.StartVector3(), VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
+          new VertexElement(VertexElementByteOffset.Vector4(), VertexElementFormat.Vector4, VertexElementUsage.Color, 0),
+          new VertexElement(VertexElementByteOffset.Vector3(), VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
+          new VertexElement(VertexElementByteOffset.Vector2(), VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
+          new VertexElement(VertexElementByteOffset.Vector3(), VertexElementFormat.Vector3, VertexElementUsage.Normal, 1),
+          new VertexElement(VertexElementByteOffset.Vector3(), VertexElementFormat.Vector3, VertexElementUsage.Normal, 2),
+          new VertexElement(VertexElementByteOffset.Vector4(), VertexElementFormat.Vector4, VertexElementUsage.BlendIndices, 0),
+          new VertexElement(VertexElementByteOffset.Vector4(), VertexElementFormat.Vector4, VertexElementUsage.BlendWeight, 0)
     );
-    VertexDeclaration IVertexType.VertexDeclaration { get { return VertexDeclaration; } }
+    VertexDeclaration IVertexType.VertexDeclaration => VertexDeclaration;
 }
 /// <summary>
 /// This is a helper struct for tallying byte offsets
@@ -746,18 +756,11 @@ public struct VertexElementByteOffset
 {
     public static int CurrentByteSize = 0;
     //[STAThread]
-    public static int PositionStartOffset() { CurrentByteSize = 0; var s = sizeof(float) * 3; CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int Offset(int n) { var s = sizeof(int); CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int Offset(float n) { var s = sizeof(float); CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int Offset(Vector2 n) { var s = sizeof(float) * 2; CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int Offset(Color n) { var s = sizeof(int); CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int Offset(Vector3 n) { var s = sizeof(float) * 3; CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int Offset(Vector4 n) { var s = sizeof(float) * 4; CurrentByteSize += s; return CurrentByteSize - s; }
-
-    public static int OffsetInt() { var s = sizeof(int); CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int OffsetFloat() { var s = sizeof(float); CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int OffsetColor() { var s = sizeof(int); CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int OffsetVector2() { var s = sizeof(float) * 2; CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int OffsetVector3() { var s = sizeof(float) * 3; CurrentByteSize += s; return CurrentByteSize - s; }
-    public static int OffsetVector4() { var s = sizeof(float) * 4; CurrentByteSize += s; return CurrentByteSize - s; }
+    public static int StartVector3() { CurrentByteSize = 0; var s = sizeof(float) * 3; CurrentByteSize += s; return CurrentByteSize - s; }
+    public static int Int() { var s = sizeof(int); CurrentByteSize += s; return CurrentByteSize - s; }
+    public static int Float() { var s = sizeof(float); CurrentByteSize += s; return CurrentByteSize - s; }
+    public static int Color() { var s = sizeof(int); CurrentByteSize += s; return CurrentByteSize - s; }
+    public static int Vector2() { var s = sizeof(float) * 2; CurrentByteSize += s; return CurrentByteSize - s; }
+    public static int Vector3() { var s = sizeof(float) * 3; CurrentByteSize += s; return CurrentByteSize - s; }
+    public static int Vector4() { var s = sizeof(float) * 4; CurrentByteSize += s; return CurrentByteSize - s; }
 }

@@ -1,5 +1,4 @@
 ﻿using Assimp;
-using Assimp.Configs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -46,28 +45,28 @@ public class RiggedModelLoader
     /// <summary>
     /// Reverses the models winding typically this will change the model vertices to counter clockwise winding ccw.
     /// </summary>
-    public bool ReverseVerticeWinding = false;
+    public readonly bool ReverseVerticeWinding = false;
 
     /// <summary>
     /// Adds a small amount of additional looping time at the end of the time duration.
     /// This can help fix animations that are not properly or smoothly looped. 
     /// used in concert with AddedLoopingDuration
     /// </summary>
-    public bool AddAdditionalLoopingTime = true;
+    public readonly bool AddAdditionalLoopingTime = true;
     /// <summary>
     /// Artificially adds a small amount of looping duration to the end of a animation. This helps to fix animations that aren't properly looped.
     /// Turn on AddAdditionalLoopingTime to use this.
     /// </summary>
-    public float AddedLoopingDuration = .5f;
+    public readonly float AddedLoopingDuration = .5f;
 
-    public bool StartupConsoleinfo = true;
-    public bool StartupMinimalConsoleinfo = true;
-    public bool StartUpMatrixInfo = true;
-    public bool StartupAnimationConsoleInfo = false;
-    public bool StartupMaterialConsoleInfo = true;
+    public readonly bool StartupConsoleinfo = true;
+    public readonly bool StartupMinimalConsoleinfo = true;
+    public readonly bool StartUpMatrixInfo = true;
+    public readonly bool StartupAnimationConsoleInfo = false;
+    public readonly bool StartupMaterialConsoleInfo = true;
     public bool StartupFlatBoneConsoleInfo = true;
-    public bool StartupNodeTreeConsoleInfo = true;
-    public string TargetNodeConsoleName = ""; //"L_Hand";
+    public readonly bool StartupNodeTreeConsoleInfo = true;
+    public readonly string TargetNodeConsoleName = ""; //"L_Hand";
 
 
 
@@ -912,7 +911,7 @@ public class RiggedModelLoader
         string f = tpathsplit[0];
         if (tpathsplit.Length > 1)
         {
-            f = tpathsplit[tpathsplit.Length - 2];
+            f = tpathsplit[^2];
         }
         if (useBothSeperators)
         {
@@ -923,7 +922,7 @@ public class RiggedModelLoader
             tpathsplit = f.Split(new char[] { '/' });
         }
 
-        s = tpathsplit[tpathsplit.Length - 1];
+        s = tpathsplit[^1];
         return s.TrimStart('\\');
     }
 
@@ -971,7 +970,9 @@ public class RiggedModelLoader
         else
         {
             foreach (var c in node.Children)
+            {
                 FindFirstBoneInModel(model, c);
+            }
         }
     }
 
@@ -1570,9 +1571,9 @@ public class RiggedModelLoader
 public class TempWeightVert
 {
     public int CountOfBoneEntrysForThisVertice = 0;
-    public List<float> VerticesFlatBoneId = new List<float>();
-    public List<int> VerticeIndexs = new List<int>();
-    public List<float> VerticeBoneWeights = new List<float>();
+    public readonly List<float> VerticesFlatBoneId = new();
+    public readonly List<int> VerticeIndexs = new();
+    public readonly List<float> VerticeBoneWeights = new();
 }
 
 public static class OpenAssimpToMgHelpers
