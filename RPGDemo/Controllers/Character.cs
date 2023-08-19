@@ -44,18 +44,21 @@ public class Character
     private int _numberOfDirection = 4;
     private int _animationDirectionMask = 0;
     private readonly Dictionary<int, int> _animationDirectionOffset = new();
+    private Entity _weapon;
+    private float _delayBeforeNewAttack;
 
     private Physics2dComponent _physics2dComponent;
+
     public AnimatedSpriteComponent AnimatedSpriteComponent { get; private set; }
 
     public Character2dDirection CurrentDirection { get; set; } = Character2dDirection.Right;
     public Entity Owner { get; }
     public CharacterType Type { get; set; }
     public int ComboNumber { get; set; }
-
-    private Entity _weapon;
     public Vector3 Position => Owner.Coordinates.Position;
     public string AnimatationPrefix { get; set; }
+
+    public bool CanAttack => _delayBeforeNewAttack <= 0.0f;
 
     public Character(Entity entity)
     {
@@ -80,6 +83,8 @@ public class Character
 
     public void Update(float elapsedTime)
     {
+        _delayBeforeNewAttack -= elapsedTime;
+
         MoveCharacter(elapsedTime);
     }
 
@@ -222,6 +227,7 @@ public class Character
 
     public void DoANewAttack()
     {
+        _delayBeforeNewAttack = 1.2f;
         //m_AlreadyAttacked.Clear();
     }
 

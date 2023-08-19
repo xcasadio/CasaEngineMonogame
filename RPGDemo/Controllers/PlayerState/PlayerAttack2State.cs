@@ -15,23 +15,24 @@ public class PlayerAttack2State : IState<Controller>
         Vector2 joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Attack2);
+        controller.Character.AttachWeapon();
     }
 
     public void Exit(Controller controller)
     {
-
+        controller.Character.UnAttachWeapon();
     }
 
     public void Update(Controller controller, float elapsedTime)
     {
         HumanPlayerController c = (HumanPlayerController)controller;
 
-        //if (controller.Character.ComboNumber == 1
-        //    && controller.Character.Animation2DPlayer.CurrentAnimation.CurrentFrameIndex >= 2
-        //    && c.IsAttackButtonPressed() == true)
-        //{
-        //    controller.Character.ComboNumber = 2;
-        //}
+        if (controller.Character.ComboNumber == 1
+            //&& controller.Character.AnimatedSpriteComponent.CurrentAnimation.CurrentFrameIndex >= 2
+            && c.IsAttackButtonPressed() == true)
+        {
+            controller.Character.ComboNumber = 2;
+        }
     }
 
     public bool HandleMessage(Controller controller, Message message)

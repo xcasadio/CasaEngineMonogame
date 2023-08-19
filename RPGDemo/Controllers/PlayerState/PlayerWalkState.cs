@@ -25,7 +25,7 @@ public class PlayerWalkState : IState<Controller>
         HumanPlayerController c = (HumanPlayerController)controller;
         //PlayerIndex playerIndex = c.PlayerIndex;
 
-        if (c.IsAttackButtonPressed())
+        if (c.IsAttackButtonPressed() && controller.Character.CanAttack)
         {
             controller.StateMachine.Transition(controller.GetState((int)PlayerControllerState.Attack));
             return;

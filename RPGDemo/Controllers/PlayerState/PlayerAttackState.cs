@@ -27,12 +27,12 @@ public class PlayerAttackState : IState<Controller>
     {
         HumanPlayerController c = (HumanPlayerController)controller;
 
-        //if (controller.Character.ComboNumber == 0
-        //    && controller.Character.Animation2DPlayer.CurrentAnimation.CurrentFrameIndex >= 2
-        //    && c.IsAttackButtonPressed() == true)
-        //{
-        //    controller.Character.ComboNumber = 1;
-        //}
+        if (controller.Character.ComboNumber == 0
+            //&& controller.Character.AnimatedSpriteComponent.CurrentAnimation.CurrentFrameIndex >= 2
+            && c.IsAttackButtonPressed() == true)
+        {
+            controller.Character.ComboNumber = 1;
+        }
     }
 
     public bool HandleMessage(Controller controller, Message message)
