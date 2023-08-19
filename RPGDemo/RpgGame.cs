@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Animations;
@@ -24,7 +25,7 @@ public class RpgGame : CasaEngineGame
     {
         GameSettings.ProjectSettings.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
         //new GridComponent(this);
-        new AxisComponent(this);
+        //new AxisComponent(this);
         base.Initialize();
 
         //IsMouseVisible = true;
@@ -52,6 +53,7 @@ public class RpgGame : CasaEngineGame
         var camera = new Camera3dIn2dAxisComponent(entity);
         camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
         entity.ComponentManager.Components.Add(camera);
+
         world.AddEntityImmediately(entity);
 
         //============ tiledMap ===============
@@ -63,6 +65,25 @@ public class RpgGame : CasaEngineGame
         var tiledMapComponent = new TiledMapComponent(entity);
         tiledMapComponent.TiledMapData = tiledMapData;
         entity.ComponentManager.Components.Add(tiledMapComponent);
+
+        world.AddEntityImmediately(entity);
+
+        //============ common ressources ===============
+        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", GameManager.AssetContentManager);
+        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG_animations.anims2d", GameManager.AssetContentManager);
+
+        //============ sword ===============
+        entity = new Entity();
+        var weaponEntity = entity;
+        entity.IsVisible = false;
+        entity.IsEnabled = false;
+        entity.Name = "link_sword";
+        var animatedSprite = new AnimatedSpriteComponent(entity);
+        entity.ComponentManager.Components.Add(animatedSprite);
+        foreach (var animation in animations.Where(x => x.Name.StartsWith("baton")))
+        {
+            animatedSprite.AddAnimation(new Animation2d(animation));
+        }
 
         world.AddEntityImmediately(entity);
 
@@ -80,16 +101,18 @@ public class RpgGame : CasaEngineGame
         physicsComponent.PhysicsDefinition.Friction = 0f;
         physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
         physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
-        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", GameManager.AssetContentManager);
-        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG_animations.anims2d", GameManager.AssetContentManager);
-        var animatedSprite = new AnimatedSpriteComponent(entity);
+        animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations)
+        foreach (var animation in animations.Where(x => x.Name.StartsWith("swordman")))
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
-        entity.ComponentManager.Components.Add(new PlayerComponent(entity));
+
+        var playerComponent = new PlayerComponent(entity);
+        playerComponent.Character.AnimatationPrefix = "swordman";
+        playerComponent.Character.SetWeapon(weaponEntity);
+        entity.ComponentManager.Components.Add(playerComponent);
 
         world.AddEntityImmediately(entity);
 

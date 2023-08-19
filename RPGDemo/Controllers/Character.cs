@@ -52,7 +52,10 @@ public class Character
     public Entity Owner { get; }
     public CharacterType Type { get; set; }
     public int ComboNumber { get; set; }
+
+    private Entity _weapon;
     public Vector3 Position => Owner.Coordinates.Position;
+    public string AnimatationPrefix { get; set; }
 
     public Character(Entity entity)
     {
@@ -150,8 +153,7 @@ public class Character
 
     public void SetAnimation(AnimationIndices animationIndex)
     {
-        var prefix = "swordman";
-        var animationName = $"{prefix}_{Enum.GetName(animationIndex)}_{Enum.GetName(CurrentDirection)}".ToLower();
+        var animationName = GetAnimationName(animationIndex);
 
         if (AnimatedSpriteComponent?.CurrentAnimation?.Animation2dData.Name == animationName)
         {
@@ -160,6 +162,11 @@ public class Character
 
         AnimatedSpriteComponent.SetCurrentAnimation(animationName, true);
         //Debug.WriteLine($"SetAnimation : {animationName}");
+    }
+
+    private string GetAnimationName(AnimationIndices animationIndex, string prefix = null)
+    {
+        return $"{(prefix == null ? AnimatationPrefix : prefix)}_{Enum.GetName(animationIndex)}_{Enum.GetName(CurrentDirection)}".ToLower();
     }
 
     private int GetAnimationDirectionOffset()
@@ -216,6 +223,31 @@ public class Character
     public void DoANewAttack()
     {
         //m_AlreadyAttacked.Clear();
+    }
+
+    public void SetWeapon(Entity weapon)
+    {
+        _weapon = weapon;
+        _weapon.Parent = Owner;
+        _weapon.Coordinates.Parent = Owner.Coordinates;
+    }
+
+    public void AttachWeapon()
+    {
+        _weapon.IsEnabled = true;
+        _weapon.IsVisible = true;
+        var animationName = AnimatedSpriteComponent.CurrentAnimation.AnimationData.Name;
+        var animationNameWithOrientation = animationName.Replace(AnimatationPrefix, "baton");
+        _weapon.ComponentManager.GetComponent<AnimatedSpriteComponent>().SetCurrentAnimation(animationNameWithOrientation, true);
+    }
+
+    public void UnAttachWeapon()
+    {
+        _weapon.IsEnabled = false;
+        _weapon.IsVisible = false;
+
+        var animatedSpriteComponent = _weapon.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        animatedSpriteComponent.RemoveCollisionsFromFrame(animatedSpriteComponent.CurrentAnimation.CurrentFrame);
     }
 
     public bool HandleMessage(Message message)

@@ -2,7 +2,7 @@
   "animations": [
     {
       "animation_type": "once",
-      "asset_name": "baton_attack1_down",
+      "asset_name": "baton_attack_down",
       "frames": [
         {
           "asset_name": "",
@@ -43,7 +43,7 @@
     },
     {
       "animation_type": "once",
-      "asset_name": "baton_attack1_left",
+      "asset_name": "baton_attack_left",
       "frames": [
         {
           "asset_name": "",
@@ -84,7 +84,7 @@
     },
     {
       "animation_type": "once",
-      "asset_name": "baton_attack1_right",
+      "asset_name": "baton_attack_right",
       "frames": [
         {
           "asset_name": "",
@@ -125,7 +125,7 @@
     },
     {
       "animation_type": "once",
-      "asset_name": "baton_attack1_up",
+      "asset_name": "baton_attack_up",
       "frames": [
         {
           "asset_name": "",

@@ -15,10 +15,12 @@ public class PlayerComponent : Component
     public static readonly int ComponentId = (int)ComponentIds.Custom + 1;
 
     private readonly HumanPlayerController _playerController;
+    public Character Character { get; }
 
     public PlayerComponent(Entity owner) : base(owner, ComponentId)
     {
-        _playerController = new HumanPlayerController(new Character(owner), PlayerIndex.One);
+        Character = new Character(owner);
+        _playerController = new HumanPlayerController(Character, PlayerIndex.One);
     }
 
     public override void Initialize(CasaEngineGame game)
