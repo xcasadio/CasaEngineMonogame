@@ -51,10 +51,7 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
             return;
         }
 
-        if (!MathUtils.IsZero(elapsedTime))
-        {
-            //SkinnedMesh.Update(elapsedTime);
-        }
+        SkinnedMesh.Update(elapsedTime);
 
         var camera = Game.GameManager.ActiveCamera;
         _skinnedMeshRendererComponent.AddMesh(

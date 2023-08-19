@@ -267,7 +267,7 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-        _game.GraphicsDevice.Clear(Color.CornflowerBlue);
+        _game.GraphicsDevice.Clear(Color.Black);
 
         var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         CurrentWorld?.Draw(elapsedTime);

@@ -1,4 +1,5 @@
-﻿using CasaEngine.Engine.Animations;
+﻿using System;
+using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -19,6 +20,7 @@ public class SkinnedMeshDemo : Demo
         //============ Create skinned mesh ===============
         var entity = new Entity();
         entity.Coordinates.LocalPosition = new Vector3(0, 0, 0);
+        entity.Coordinates.LocalRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
         entity.Coordinates.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
         var skinnedMeshComponent = new SkinnedMeshComponent(entity);
         entity.ComponentManager.Components.Add(skinnedMeshComponent);

@@ -33,7 +33,7 @@ public class TiledMapDemo : Demo
         //============ player ===============
         entity = new Entity();
         entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(50, 500, 0.2f);
+        entity.Coordinates.LocalPosition = new Vector3(100, 550, 0.2f);
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
