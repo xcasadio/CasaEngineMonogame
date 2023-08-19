@@ -43,6 +43,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/axisComponent.fx
 
+#begin Shaders/basicEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/basicEffect.fx
+
 #begin Shaders/simple.fx
 /importer:EffectImporter
 /processor:EffectProcessor

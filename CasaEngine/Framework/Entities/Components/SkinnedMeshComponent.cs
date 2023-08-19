@@ -53,7 +53,7 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
 
         if (!MathUtils.IsZero(elapsedTime))
         {
-            SkinnedMesh.Update(elapsedTime);
+            //SkinnedMesh.Update(elapsedTime);
         }
 
         var camera = Game.GameManager.ActiveCamera;
@@ -92,15 +92,15 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
         base.Save(jObject);
 
         JObject newJObject = new();
-        if (Mesh != null)
-        {
-            _mesh.Save(newJObject);
-            jObject.Add("skinned_mesh", newJObject);
-        }
-        else
-        {
-            jObject.Add("mesh", "null");
-        }
+        //if (SkinnedMesh != null)
+        //{
+        //    SkinnedMesh.Save(newJObject);
+        //    jObject.Add("skinned_mesh", newJObject);
+        //}
+        //else
+        //{
+        //    jObject.Add("mesh", "null");
+        //}
     }
 
     public BoundingBox BoundingBox
@@ -110,15 +110,15 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
             var min = Vector3.One * int.MaxValue;
             var max = Vector3.One * int.MinValue;
 
-            if (Mesh != null)
+            if (SkinnedMesh != null)
             {
-                var vertices = Mesh.GetVertices();
-
-                foreach (var vertex in vertices)
-                {
-                    min = Vector3.Min(min, vertex.Position);
-                    max = Vector3.Max(max, vertex.Position);
-                }
+                //var vertices = SkinnedMesh.GetVertices();
+                //
+                //foreach (var vertex in vertices)
+                //{
+                //    min = Vector3.Min(min, vertex.Position);
+                //    max = Vector3.Max(max, vertex.Position);
+                //}
             }
             else // default box
             {

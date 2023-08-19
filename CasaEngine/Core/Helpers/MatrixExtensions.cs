@@ -116,4 +116,14 @@ public static class MatrixExtensions
 
         return result;
     }
+
+    public static Matrix Invert(this Matrix m)
+    {
+        return Matrix.Invert(m);
+    }
+
+    public static Matrix Transpose(this Matrix m)
+    {
+        return Matrix.Transpose(m);
+    }
 }

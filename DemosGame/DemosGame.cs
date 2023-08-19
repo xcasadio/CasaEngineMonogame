@@ -45,7 +45,7 @@ namespace DemosGame
             _demos.Add(new TiledMapDemo());
             _demos.Add(new SkinnedMeshDemo());
 
-            ChangeDemo(3);
+            ChangeDemo(0);
         }
 
         private void ChangeDemo(int index)

@@ -1,4 +1,6 @@
-﻿using CasaEngine.Framework.Assets;
+﻿using CasaEngine.Core.Helpers;
+using CasaEngine.Engine.Animations;
+using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -16,14 +18,56 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(StaticMesh staticMesh, Matrix worldViewProj)
+    public void AddMesh(StaticMesh staticMesh, Matrix world, Matrix worldViewProj, Vector3 cameraPosition)
     {
-        _meshInfos.Add(new MeshInfo { StaticMesh = staticMesh, WorldViewProj = worldViewProj });
+        _meshInfos.Add(new MeshInfo
+        {
+            StaticMesh = staticMesh,
+            World = world,
+            WorldViewProj = worldViewProj,
+            CameraPosition = cameraPosition
+        });
     }
 
     protected override void LoadContent()
     {
-        _effect = Game.Content.Load<Effect>("Shaders\\simple");
+        _effect = Game.Content.Load<Effect>("Shaders\\basicEffect");
+        _effect.CurrentTechnique = _effect.Techniques["BasicEffect_PixelLighting_Texture"];
+
+        _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
+        _effect.Parameters["EmissiveColor"].SetValue(Vector3.Zero);
+        _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
+        _effect.Parameters["SpecularPower"].SetValue(5.0f);
+
+        _effect.Parameters["DirLight0Direction"].SetValue(new Vector3(-0.5265408f, -0.5735765f, -0.6275069f));
+        _effect.Parameters["DirLight0DiffuseColor"].SetValue(new Vector3(1, 0.9607844f, 0.8078432f));
+        _effect.Parameters["DirLight0SpecularColor"].SetValue(new Vector3(1, 0.9607844f, 0.8078432f));
+
+        _effect.Parameters["DirLight1Direction"].SetValue(new Vector3(0.7198464f, 0.3420201f, 0.6040227f));
+        _effect.Parameters["DirLight1DiffuseColor"].SetValue(new Vector3(0.9647059f, 0.7607844f, 0.4078432f));
+        _effect.Parameters["DirLight1SpecularColor"].SetValue(Vector3.Zero);
+
+        _effect.Parameters["DirLight2Direction"].SetValue(new Vector3(0.4545195f, -0.7660444f, 0.4545195f));
+        _effect.Parameters["DirLight2DiffuseColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
+        _effect.Parameters["DirLight2SpecularColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
+
+        //float alpha = 1.0f;
+        //Vector4 diffuse = new Vector4();
+        //Vector3 emissive = new Vector3();
+        //Vector3 ambientLightColor = new Vector3(0.75f, 0.75f, 0.75f); //new Vector3(0.05333332f, 0.09882354f, 0.1819608f);        
+        //
+        //
+        //diffuse.X = diffuseColor.X * alpha;
+        //diffuse.Y = diffuseColor.Y * alpha;
+        //diffuse.Z = diffuseColor.Z * alpha;
+        //diffuse.W = alpha;
+        //
+        //emissive.X = (emissiveColor.X + ambientLightColor.X * diffuseColor.X) * alpha;
+        //emissive.Y = (emissiveColor.Y + ambientLightColor.Y * diffuseColor.Y) * alpha;
+        //emissive.Z = (emissiveColor.Z + ambientLightColor.Z * diffuseColor.Z) * alpha;
+        //
+        //diffuseColorParam.SetValue(diffuse);
+        //emissiveColorParam.SetValue(emissive);
 
         base.LoadContent();
     }
@@ -44,6 +88,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent
             _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource);
             _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
 
+            _effect.Parameters["EyePosition"].SetValue(meshInfo.CameraPosition);
+            _effect.Parameters["World"].SetValue(meshInfo.World);
+            _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.World.Invert().Transpose());
+
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
@@ -58,6 +106,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent
     private class MeshInfo
     {
         public StaticMesh? StaticMesh;
+        public Vector3 CameraPosition;
+        public Matrix World;
         public Matrix WorldViewProj;
     }
 }

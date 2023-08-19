@@ -5,6 +5,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DemosGame.Demos;
 
@@ -27,7 +28,7 @@ public class Collision3dBasicDemo : Demo
         entity.ComponentManager.Components.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
         meshComponent.Mesh.Initialize(game.GraphicsDevice);
-        meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"Content\checkboard.png", game.GameManager.AssetContentManager);
+        meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"checkboard.png", game.GameManager.AssetContentManager);
         world.AddEntityImmediately(entity);
 
         //============ Create box ===============
@@ -57,7 +58,7 @@ public class Collision3dBasicDemo : Demo
                     entity.ComponentManager.Components.Add(meshComponent);
                     meshComponent.Mesh = boxPrimitive;
                     meshComponent.Mesh.Initialize(game.GraphicsDevice);
-                    meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"Content\paper_box_texture.jpg", game.GameManager.AssetContentManager);
+                    meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"paper_box_texture.jpg", game.GameManager.AssetContentManager);
                     world.AddEntityImmediately(entity);
                 }
             }

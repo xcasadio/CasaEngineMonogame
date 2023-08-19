@@ -51,10 +51,5 @@ public static class Extensions
         int pamt = 8;
         return ("x: " + q.X.ToString(d).PadRight(pamt) + "y: " + q.Y.ToString(d).PadRight(pamt) + "z: " + q.Z.ToString(d).PadRight(pamt) + "w: " + q.W.ToString(d).PadRight(pamt));
     }
-
-    public static Matrix Invert(this Matrix m)
-    {
-        return Matrix.Invert(m);
-    }
 }
 

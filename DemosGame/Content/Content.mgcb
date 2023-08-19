@@ -14,16 +14,7 @@
 #---------------------------------- Content ---------------------------------#
 
 #begin checkboard.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:checkboard.png
+/copy:checkboard.png
 
 #begin Maps/auto_grass.png
 /copy:Maps/auto_grass.png
@@ -44,16 +35,7 @@
 /copy:Maps/Tile1.png
 
 #begin paper_box_texture.jpg
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:paper_box_texture.jpg
+/copy:paper_box_texture.jpg
 
 #begin SkinnedMesh/dude.fbx
 /copy:SkinnedMesh/dude.fbx

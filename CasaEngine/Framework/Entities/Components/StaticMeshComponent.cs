@@ -52,7 +52,7 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
 
         var camera = Game.GameManager.ActiveCamera;
         var worldViewProj = Owner.Coordinates.WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
-        _meshRendererComponent.AddMesh(Mesh, worldViewProj);
+        _meshRendererComponent.AddMesh(Mesh, Owner.Coordinates.WorldMatrix, worldViewProj, camera.Position);
     }
 
     public override Component Clone(Entity owner)
