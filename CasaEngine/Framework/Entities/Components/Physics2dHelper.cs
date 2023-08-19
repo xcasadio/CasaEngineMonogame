@@ -4,7 +4,6 @@ using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
-using System.Drawing;
 
 namespace CasaEngine.Framework.Entities.Components;
 

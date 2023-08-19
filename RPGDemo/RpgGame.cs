@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Animations;
@@ -16,6 +17,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RPGDemo.Controllers;
+using RPGDemo.Scripts;
 
 namespace RPGDemo;
 
@@ -69,7 +71,7 @@ public class RpgGame : CasaEngineGame
         world.AddEntityImmediately(entity);
 
         //============ common ressources ===============
-        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", GameManager.AssetContentManager);
+        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", GameManager.AssetContentManager, SaveOption.Editor);
         var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG_animations.anims2d", GameManager.AssetContentManager);
 
         //============ sword ===============
@@ -84,6 +86,9 @@ public class RpgGame : CasaEngineGame
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
+        var gamePlayComponent = new GamePlayComponent(entity);
+        entity.ComponentManager.Components.Add(gamePlayComponent);
+        gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon(entity);
 
         world.AddEntityImmediately(entity);
 

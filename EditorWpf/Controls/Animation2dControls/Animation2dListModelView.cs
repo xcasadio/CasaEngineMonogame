@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
+using CasaEngine.Core.Design;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -22,7 +23,7 @@ public class Animation2dListModelView
     {
         var spriteSheetFileName = fileName.Replace(Path.GetExtension(fileName), Constants.FileNameExtensions.SpriteSheet);
 
-        var spriteDatas = SpriteLoader.LoadFromFile(spriteSheetFileName, _assetContentManager);
+        var spriteDatas = SpriteLoader.LoadFromFile(spriteSheetFileName, _assetContentManager, SaveOption.Editor);
         var animations = Animation2dLoader.LoadFromFile(fileName, _assetContentManager);
 
         Animation2dDatas.Clear();

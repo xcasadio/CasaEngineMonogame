@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Framework.Assets.Map2d;
 
 namespace EditorWpf.Controls.SpriteControls
 {

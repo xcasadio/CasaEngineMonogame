@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Framework.Game;
-using SharpDX.MediaFoundation;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -20,6 +19,8 @@ public class GamePlayComponent : Component
 
     public GamePlayComponent(Entity entity) : base(entity, ComponentId)
     {
+        entity.OnHit += OnHit;
+        entity.OnHitEnded += OnHitEnded;
     }
 
     public override void Initialize(CasaEngineGame game)
@@ -35,6 +36,16 @@ public class GamePlayComponent : Component
     public override void Draw()
     {
         ExternalComponent?.Draw();
+    }
+
+    private void OnHit(object? sender, EventCollisionArgs e)
+    {
+        ExternalComponent?.OnHit(e.Collision);
+    }
+
+    private void OnHitEnded(object? sender, EventCollisionArgs e)
+    {
+        ExternalComponent?.OnHitEnded(e.Collision);
     }
 
     public override Component Clone(Entity owner)

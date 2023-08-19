@@ -1,5 +1,6 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
@@ -14,12 +15,9 @@ public abstract class Parser
 
     private readonly List<string> _tokensValue = new();
 
-
-
     internal Calculator Calculator => _calculator;
 
     internal string[] TokensValue => _tokensValue.ToArray();
-
 
     public Parser()
     {
@@ -56,8 +54,6 @@ public abstract class Parser
 
         _calculator = new Calculator(this);
     }
-
-
 
     private void AddParserToken(ParserToken token, int priority)
     {
@@ -154,7 +150,6 @@ public abstract class Parser
 
     public abstract float EvaluateFunction(string functionName, string[] args);
 
-
     internal void AddToken(string token)
     {
         _tokensValue.Add(token);
@@ -224,27 +219,15 @@ public abstract class Parser
         return new CalculatorTokenBinaryOperator(_calculator, _mapBinaryOperator[@operator]);
     }
 
-
-
-    public void Save(XmlElement el, SaveOption option)
+#if EDITOR
+    public void Save(JObject jObject, SaveOption option)
     {
-        _calculator.Save(el, option);
+        _calculator.Save(jObject, option);
     }
+#endif
 
-    public void Load(XmlElement el, SaveOption option)
+    public void Load(JsonElement element, SaveOption option)
     {
-        _calculator.Load(el, option);
+        _calculator.Load(element, option);
     }
-
-    public void Save(BinaryWriter bw, SaveOption option)
-    {
-        _calculator.Save(bw, option);
-    }
-
-    public void Load(BinaryReader br, SaveOption option)
-    {
-        //_Calculator.Load(br_, option_);
-    }
-
-
 }

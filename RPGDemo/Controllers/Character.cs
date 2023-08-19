@@ -246,6 +246,7 @@ public class Character
         _weapon.IsEnabled = false;
         _weapon.IsVisible = false;
 
+        //collision from the last frame is not removed !!
         var animatedSpriteComponent = _weapon.ComponentManager.GetComponent<AnimatedSpriteComponent>();
         animatedSpriteComponent.RemoveCollisionsFromFrame(animatedSpriteComponent.CurrentAnimation.CurrentFrame);
     }

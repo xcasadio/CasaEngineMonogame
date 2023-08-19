@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
@@ -137,19 +136,9 @@ public class Texture : Asset
         GraphicsDevice = device;
     }
 
-    public override void Load(BinaryReader br, SaveOption option)
+    public override void Load(JsonElement element, SaveOption option)
     {
-
-    }
-
-    public override void Load(XmlElement el, SaveOption option)
-    {
-
-    }
-
-    public override void Load(JsonElement element)
-    {
-        base.Load(element.GetProperty("asset"));
+        base.Load(element.GetProperty("asset"), option);
 
         //if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
         //{
@@ -159,9 +148,9 @@ public class Texture : Asset
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
 
         //jObject.Add("preferredSamplerState", PreferredSamplerState);
         //

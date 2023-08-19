@@ -1,4 +1,4 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using Microsoft.Xna.Framework;
 
@@ -7,18 +7,13 @@ namespace CasaEngine.Framework.FrontEnd.Screen.Gadget;
 public class ScreenGadgetLabel
     : ScreenGadget
 {
-    public ScreenGadgetLabel(XmlElement el, SaveOption opt)
-        : base(el, opt)
+    public ScreenGadgetLabel(JsonElement element, SaveOption option)
+        : base(element, option)
     {
 
     }
 
-#if EDITOR
-    public
-#else
-    protected
-#endif
-    override void DrawGadget(float elapsedTime)
+    public override void DrawGadget(float elapsedTime)
     {
         Renderer2dComponent.DrawRectangle(Location.X, Location.Y, Scale.X, Scale.Y, BackgroundColor, 0.0001f);
 

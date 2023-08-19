@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
@@ -73,12 +74,12 @@ public partial class TiledMapDetailsControl : UserControl
 
         foreach (var spriteSheetFileName in tiledMapListModelView.TiledMapData.SpriteSheetFileNames)
         {
-            SpriteLoader.LoadFromFile(Path.Combine(projectPath, spriteSheetFileName), assetContentManager);
+            SpriteLoader.LoadFromFile(Path.Combine(projectPath, spriteSheetFileName), assetContentManager, SaveOption.Editor);
         }
 
         foreach (var autoTileSetData in tiledMapListModelView.TiledMapData.AutoTileSetDatas)
         {
-            SpriteLoader.LoadFromFile(Path.Combine(projectPath, autoTileSetData.SpriteSheetFileName), assetContentManager);
+            SpriteLoader.LoadFromFile(Path.Combine(projectPath, autoTileSetData.SpriteSheetFileName), assetContentManager, SaveOption.Editor);
         }
 
         if (tiledMapListModelView.Layers.Count > 0)

@@ -16,11 +16,7 @@ public class MoveManager
         // Store the list of moves in order of decreasing sequence length.
         // This greatly simplifies the logic of the DetectMove method.
 
-#if EDITOR
         _moves = moves.OrderByDescending(m => m.Sequence.Count).ToArray();
-#else
-            _moves = moves.OrderByDescending(m => m.Sequence.Length).ToArray();
-#endif
     }
 
     public Move DetectMove(InputManager input)
@@ -43,11 +39,7 @@ public class MoveManager
         {
             // Since they are in decreasing order,
             // the first move is the longest.
-#if EDITOR
             return _moves[0].Sequence.Count;
-#else
-                return _moves[0].Sequence.Length;
-#endif
         }
     }
 }

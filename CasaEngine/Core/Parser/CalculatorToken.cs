@@ -1,5 +1,6 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
@@ -12,22 +13,16 @@ internal enum CalculatorTokenType
     Function
 }
 
-internal abstract class CalculatorToken
-    : ISaveLoad
+internal abstract class CalculatorToken : ISaveLoad
 {
     private readonly Calculator _calculator;
 
-
-
     public Calculator Calculator => _calculator;
-
 
     protected CalculatorToken(Calculator calculator)
     {
         _calculator = calculator;
     }
-
-
 
     public abstract float Evaluate();
 
@@ -36,12 +31,9 @@ internal abstract class CalculatorToken
         return _calculator.Parser.EvaluateKeyword(keyword);
     }
 
+    public abstract void Load(JsonElement element, SaveOption option);
 
-    public abstract void Save(XmlElement el, SaveOption option);
-    public abstract void Load(XmlElement el, SaveOption option);
-
-    public abstract void Save(BinaryWriter bw, SaveOption option);
-    public abstract void Load(BinaryReader br, SaveOption option);
-
-
+#if EDITOR
+    public abstract void Save(JObject jObject, SaveOption option);
+#endif
 }

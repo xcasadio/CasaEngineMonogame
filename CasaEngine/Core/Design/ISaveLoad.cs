@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Design;
 
@@ -11,7 +12,7 @@ public enum SaveOption
 public interface ISaveLoad
 {
 #if EDITOR
-    void Save(XmlElement el_, SaveOption option_);
+    void Save(JObject jObject, SaveOption option);
 #endif
-    void Load(XmlElement el_, SaveOption option_);
+    void Load(JsonElement element, SaveOption option);
 }

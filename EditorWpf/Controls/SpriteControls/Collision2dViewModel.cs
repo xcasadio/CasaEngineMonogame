@@ -1,5 +1,4 @@
 ﻿using CasaEngine.Core.Shapes;
-using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.WpfControls;
 using System.ComponentModel;
 using System.Windows;

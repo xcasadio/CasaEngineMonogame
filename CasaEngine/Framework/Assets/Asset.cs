@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework.Graphics;
@@ -39,17 +38,7 @@ public abstract class Asset : Disposable
         //override
     }
 
-    public virtual void Load(BinaryReader br, SaveOption option)
-    {
-
-    }
-
-    public virtual void Load(XmlElement el, SaveOption option)
-    {
-
-    }
-
-    public virtual void Load(JsonElement element)
+    public virtual void Load(JsonElement element, SaveOption option)
     {
         var version = element.GetJsonPropertyByName("version").Value.GetInt32();
         Name = element.GetJsonPropertyByName("name").Value.GetString();
@@ -58,7 +47,7 @@ public abstract class Asset : Disposable
     }
 
 #if EDITOR
-    public virtual void Save(JObject jObject)
+    public virtual void Save(JObject jObject, SaveOption option)
     {
         var assetObject = new JObject(
             new JProperty("version", 1),

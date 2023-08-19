@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics2D;
 
 namespace EditorWpf.Controls.SpriteControls
 {

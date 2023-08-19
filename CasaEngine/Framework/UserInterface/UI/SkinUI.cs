@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
+using System.Xml;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Core.Design;
 using Size = CasaEngine.Core.Maths.Size;
@@ -9,14 +10,12 @@ using System.ComponentModel;
 
 namespace CasaEngine.Framework.UserInterface.UI
 {
-    public class SkinUi : Entity
+    public class SkinUi
     {
         private readonly SkinList<SkinControlInformation> _controls = new();
         private readonly SkinList<SkinImage> _images = new();
         private readonly SkinList<SkinFont> _fonts = new();
         private readonly SkinList<SkinCursor> _cursors = new();
-
-
 
 #if EDITOR
         [Category("Skin")]
@@ -50,27 +49,22 @@ namespace CasaEngine.Framework.UserInterface.UI
             get { return _cursors; }
         }
 
-
-
-        public SkinUi(XmlElement el, SaveOption option)
+        public SkinUi(JsonElement element, SaveOption option)
         {
-            Load(el, option);
+            Load(element, option);
         }
-
-
 
         public Entity Clone()
         {
             throw new NotImplementedException();
         }
 
-        public override void Load(XmlElement el, SaveOption option)
+        public virtual void Load(JsonElement element, SaveOption option)
         {
-            base.Load(el, option);
+            //base.Load(el, option);
 
-            foreach (XmlNode controlNode in el.SelectNodes("Skin/Controls/Control"))
+            foreach (var controlNode in element.GetProperty("controls/").EnumerateArray())
             {
-                XmlNode node;
                 SkinControlInformation skinControl;
                 Size size;
                 Margins margin;
@@ -78,7 +72,7 @@ namespace CasaEngine.Framework.UserInterface.UI
                 var inherit = false;
 
                 // Create skin control
-                parent = ReadAttribute(controlNode, "Inherits", null, false);
+                parent = controlNode.GetProperty("inherits").GetString();
                 inherit = false;
                 if (parent != null) // If there is a parent then it loads the information from it.
                 {
@@ -91,82 +85,83 @@ namespace CasaEngine.Framework.UserInterface.UI
                 }
 
                 // Load general information
-                var name = ""; node = controlNode.SelectSingleNode("DefaultSize");
-                ReadAttribute(ref name, inherit, controlNode, "Name", null, true);
-                skinControl.Name = name;
-
-                node = controlNode.SelectSingleNode("DefaultSize");
-                size = new Size();
-                ReadAttribute(ref size.Width, inherit, node, "Width", 0, false);
-                ReadAttribute(ref size.Height, inherit, node, "Height", 0, false);
-                skinControl.DefaultSize = size;
-
-                node = controlNode.SelectSingleNode("MinimumSize");
-                ReadAttribute(ref size.Width, inherit, node, "Width", 0, false);
-                ReadAttribute(ref size.Height, inherit, node, "Height", 0, false);
-                skinControl.MinimumSize = size;
-
-                node = controlNode.SelectSingleNode("OriginMargins");
-                margin = new Margins();
-                ReadAttribute(ref margin.Left, inherit, node, "Left", 0, false);
-                ReadAttribute(ref margin.Top, inherit, node, "Top", 0, false);
-                ReadAttribute(ref margin.Right, inherit, node, "Right", 0, false);
-                ReadAttribute(ref margin.Bottom, inherit, node, "Bottom", 0, false);
-                skinControl.OriginMargins = margin;
-
-                node = controlNode.SelectSingleNode("ClientMargins");
-                ReadAttribute(ref margin.Left, inherit, node, "Left", 0, false);
-                ReadAttribute(ref margin.Top, inherit, node, "Top", 0, false);
-                ReadAttribute(ref margin.Right, inherit, node, "Right", 0, false);
-                ReadAttribute(ref margin.Bottom, inherit, node, "Bottom", 0, false);
-                skinControl.ClientMargins = margin;
-
-                node = controlNode.SelectSingleNode("ResizerSize");
-                var resizerSize = 0;
-                ReadAttribute(ref resizerSize, inherit, node, "Value", 0, false);
-                skinControl.ResizerSize = resizerSize;
-
-                // Load control's layers
-                node = controlNode.SelectSingleNode("Layers");
-                if (node != null)
-                {
-                    foreach (XmlNode layer in node.SelectNodes("Layer"))
-                    {
-                        LoadLayer(skinControl, layer);
-                    }
-                }
+                //var name = ""; 
+                //node = controlNode.SelectSingleNode("DefaultSize");
+                //ReadAttribute(ref name, inherit, controlNode, "Name", null, true);
+                //skinControl.Name = name;
+                //
+                //node = controlNode.SelectSingleNode("DefaultSize");
+                //size = new Size();
+                //ReadAttribute(ref size.Width, inherit, node, "Width", 0, false);
+                //ReadAttribute(ref size.Height, inherit, node, "Height", 0, false);
+                //skinControl.DefaultSize = size;
+                //
+                //node = controlNode.SelectSingleNode("MinimumSize");
+                //ReadAttribute(ref size.Width, inherit, node, "Width", 0, false);
+                //ReadAttribute(ref size.Height, inherit, node, "Height", 0, false);
+                //skinControl.MinimumSize = size;
+                //
+                //node = controlNode.SelectSingleNode("OriginMargins");
+                //margin = new Margins();
+                //ReadAttribute(ref margin.Left, inherit, node, "Left", 0, false);
+                //ReadAttribute(ref margin.Top, inherit, node, "Top", 0, false);
+                //ReadAttribute(ref margin.Right, inherit, node, "Right", 0, false);
+                //ReadAttribute(ref margin.Bottom, inherit, node, "Bottom", 0, false);
+                //skinControl.OriginMargins = margin;
+                //
+                //node = controlNode.SelectSingleNode("ClientMargins");
+                //ReadAttribute(ref margin.Left, inherit, node, "Left", 0, false);
+                //ReadAttribute(ref margin.Top, inherit, node, "Top", 0, false);
+                //ReadAttribute(ref margin.Right, inherit, node, "Right", 0, false);
+                //ReadAttribute(ref margin.Bottom, inherit, node, "Bottom", 0, false);
+                //skinControl.ClientMargins = margin;
+                //
+                //node = controlNode.SelectSingleNode("ResizerSize");
+                //var resizerSize = 0;
+                //ReadAttribute(ref resizerSize, inherit, node, "Value", 0, false);
+                //skinControl.ResizerSize = resizerSize;
+                //
+                //// Load control's layers
+                //node = controlNode.SelectSingleNode("Layers");
+                //if (node != null)
+                //{
+                //    foreach (XmlNode layer in node.SelectNodes("Layer"))
+                //    {
+                //        LoadLayer(skinControl, layer);
+                //    }
+                //}
                 Controls.Add(skinControl);
             }
 
-            foreach (XmlNode controlNode in el.SelectNodes("Skin/Fonts/Font"))
-            {
-                var skinFont = new SkinFont
-                {
-                    Name = ReadAttribute(controlNode, "Name", null, true),
-                    Filename = ReadAttribute(controlNode, "Asset", null, true)
-                };
-                Fonts.Add(skinFont);
-            }
-
-            foreach (XmlNode controlNode in el.SelectNodes("Skin/Cursors/Cursor"))
-            {
-                var skinCursor = new SkinCursor
-                {
-                    Name = ReadAttribute(controlNode, "Name", null, true),
-                    Filename = ReadAttribute(controlNode, "Asset", null, true)
-                };
-                Cursors.Add(skinCursor);
-            }
-
-            foreach (XmlNode controlNode in el.SelectNodes("Skin/Images/Image"))
-            {
-                var skinImage = new SkinImage
-                {
-                    Name = ReadAttribute(controlNode, "Name", null, true),
-                    Filename = ReadAttribute(controlNode, "Asset", null, true)
-                };
-                Images.Add(skinImage);
-            }
+            //foreach (XmlNode controlNode in el.SelectNodes("Skin/Fonts/Font"))
+            //{
+            //    var skinFont = new SkinFont
+            //    {
+            //        Name = ReadAttribute(controlNode, "Name", null, true),
+            //        Filename = ReadAttribute(controlNode, "Asset", null, true)
+            //    };
+            //    Fonts.Add(skinFont);
+            //}
+            //
+            //foreach (XmlNode controlNode in el.SelectNodes("Skin/Cursors/Cursor"))
+            //{
+            //    var skinCursor = new SkinCursor
+            //    {
+            //        Name = ReadAttribute(controlNode, "Name", null, true),
+            //        Filename = ReadAttribute(controlNode, "Asset", null, true)
+            //    };
+            //    Cursors.Add(skinCursor);
+            //}
+            //
+            //foreach (XmlNode controlNode in el.SelectNodes("Skin/Images/Image"))
+            //{
+            //    var skinImage = new SkinImage
+            //    {
+            //        Name = ReadAttribute(controlNode, "Name", null, true),
+            //        Filename = ReadAttribute(controlNode, "Asset", null, true)
+            //    };
+            //    Images.Add(skinImage);
+            //}
         }
 
         private void LoadLayer(SkinControlInformation skinControl, XmlNode layerNode)
@@ -226,7 +221,6 @@ namespace CasaEngine.Framework.UserInterface.UI
             ReadAttribute(ref margin.Bottom, inherent, node, "Bottom", 0, false);
             skinLayer.ContentMargins = margin;
 
-
             node = layerNode.SelectSingleNode("States");
             if (node != null)
             {
@@ -271,8 +265,6 @@ namespace CasaEngine.Framework.UserInterface.UI
                 skinLayer.States = states;
             }
 
-
-
             node = layerNode.SelectSingleNode("Overlays");
             if (node != null)
             {
@@ -305,8 +297,6 @@ namespace CasaEngine.Framework.UserInterface.UI
                 skinLayer.Overlays = overlay;
             }
 
-
-
             node = layerNode.SelectSingleNode("Text");
             if (node != null)
             {
@@ -330,20 +320,16 @@ namespace CasaEngine.Framework.UserInterface.UI
                 skinLayer.Text = skinText;
             }
 
-
-
             foreach (XmlNode attribute in layerNode.SelectNodes("Attributes/Attribute"))
             {
                 LoadLayerAttribute(skinLayer, attribute);
             }
-
 
             if (!inherent)
             {
                 skinControl.Layers.Add(skinLayer);
             }
         } // LoadLayer
-
 
         private void LoadColors(bool inherited, XmlNode e, ref SkinStates<Color> colors)
         {
@@ -356,8 +342,6 @@ namespace CasaEngine.Framework.UserInterface.UI
                 ReadAttribute(ref colors.Disabled, inherited, e.SelectSingleNode("Colors/Disabled"), "Color", colors.Enabled, false);
             }
         } // LoadColors
-
-
 
         private void LoadLayerAttribute(SkinLayer skinLayer, XmlNode e)
         {
@@ -380,8 +364,6 @@ namespace CasaEngine.Framework.UserInterface.UI
                 skinLayer.Attributes.Add(skinAttribute);
             }
         } // LoadLayerAttribute
-
-
 
         private string ReadAttribute(XmlNode element, string attributeName, string defval, bool needed)
         {
@@ -446,17 +428,5 @@ namespace CasaEngine.Framework.UserInterface.UI
             ReadAttribute(ref tmp, inherited, element, attrib, ColorToString(defval), needed);
             retval = Utilities.ParseColor(tmp);
         } // ReadAttributeColor
-
-
-        public override void Load(BinaryReader br, SaveOption option)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
-        protected void CopyFrom(Entity ob)
-        {
-            throw new Exception("The method or operation is not implemented.");
-        }
-
     }
 }

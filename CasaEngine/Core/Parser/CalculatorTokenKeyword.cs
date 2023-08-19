@@ -1,17 +1,13 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
-internal class CalculatorTokenKeyword
-    : CalculatorToken
+internal class CalculatorTokenKeyword : CalculatorToken
 {
     private string _keyword;
-
-
-
-
 
     public CalculatorTokenKeyword(Calculator calculator, string keyword)
         : base(calculator)
@@ -19,51 +15,29 @@ internal class CalculatorTokenKeyword
         _keyword = keyword;
     }
 
-    public CalculatorTokenKeyword(Calculator calculator, XmlElement el, SaveOption option)
+    public CalculatorTokenKeyword(Calculator calculator, JsonElement element, SaveOption option)
         : base(calculator)
     {
-        Load(el, option);
+        Load(element, option);
     }
-
-    public CalculatorTokenKeyword(Calculator calculator, BinaryReader br, SaveOption option)
-        : base(calculator)
-    {
-        Load(br, option);
-    }
-
-
 
     public override float Evaluate()
     {
         return Calculator.Parser.EvaluateKeyword(_keyword);
     }
 
-
-    public override void Save(XmlElement el, SaveOption option)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        var node = el.OwnerDocument.CreateElement("Node");
-        el.AppendChild(node);
-        el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Keyword).ToString());
-        var valueNode = el.OwnerDocument.CreateElementWithText("Keyword", _keyword);
-        node.AppendChild(valueNode);
+        _keyword = element.GetProperty("keyword").GetString();
     }
 
-    public override void Load(XmlElement el, SaveOption option)
+#if EDITOR
+
+    public override void Save(JObject jObject, SaveOption option)
     {
-        _keyword = el.SelectSingleNode("Keyword").InnerText;
+        jObject.Add("type", CalculatorTokenType.Keyword.ConvertToString());
+        jObject.Add("keyword", _keyword);
     }
 
-    public override void Save(BinaryWriter bw, SaveOption option)
-    {
-        bw.Write((int)CalculatorTokenType.Keyword);
-        bw.Write(_keyword);
-    }
-
-    public override void Load(BinaryReader br, SaveOption option)
-    {
-        br.ReadInt32();
-        _keyword = br.ReadString();
-    }
-
-
+#endif
 }

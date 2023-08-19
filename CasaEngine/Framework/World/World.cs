@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -110,18 +111,18 @@ public sealed class World : Asset
         }
     }
 
-    public void Load(string fileName)
+    public void Load(string fileName, SaveOption option)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
-        Load(jsonDocument.RootElement);
+        Load(jsonDocument.RootElement, option);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
         Clear();
-        base.Load(element.GetProperty("asset"));
+        base.Load(element.GetProperty("asset"), option);
         var version = element.GetJsonPropertyByName("version").Value.GetInt32();
-        _entities.AddRange(EntityLoader.LoadFromArray(element.GetJsonPropertyByName("entities").Value));
+        _entities.AddRange(EntityLoader.LoadFromArray(element.GetJsonPropertyByName("entities").Value, option));
 
 #if EDITOR
         EntitiesChanged?.Invoke(this, EventArgs.Empty);
@@ -129,21 +130,21 @@ public sealed class World : Asset
     }
 
 #if EDITOR
-    public void Save(string path)
+    public void Save(string path, SaveOption option)
     {
         var relativePath = Name + Constants.FileNameExtensions.World;
         var fullFileName = Path.Combine(path, relativePath);
         FileName = relativePath;
 
         JObject worldJson = new();
-        base.Save(worldJson);
+        base.Save(worldJson, option);
         worldJson.Add("version", 1);
         var entitiesJArray = new JArray();
 
         foreach (var entity in Entities.Where(x => !x.IsTemporary))
         {
             JObject entityObject = new();
-            entity.Save(entityObject);
+            entity.Save(entityObject, option);
             entitiesJArray.Add(entityObject);
         }
 

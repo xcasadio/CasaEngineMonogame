@@ -1,3 +1,4 @@
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Renderer;
@@ -209,7 +210,7 @@ public class GameManager
             }
 
             CurrentWorld = new World.World();
-            CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded);
+            CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded, SaveOption.Editor);
         }
 
         CurrentWorld.Initialize(_game);
@@ -231,7 +232,8 @@ public class GameManager
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
             CurrentWorld = new World.World();
-            CurrentWorld.Load(Path.Combine(GameSettings.ProjectSettings.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded));
+            var fileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
+            CurrentWorld.Load(fileName, SaveOption.Editor);
             CurrentWorld.Initialize(_game);
         }
 

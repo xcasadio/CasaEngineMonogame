@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ public class Animation2dLoader
         foreach (var jsonElement in rootElement.GetJsonPropertyByName(Animation2dDatasNodeName).Value.EnumerateArray())
         {
             var animation2dData = new Animation2dData();
-            animation2dData.Load(jsonElement);
+            animation2dData.Load(jsonElement, SaveOption.Editor);
             animation2dData.FileName = fileName;
             assetContentManager.AddAsset(animation2dData.Name, animation2dData);
             animations.Add(animation2dData);
@@ -37,7 +38,7 @@ public class Animation2dLoader
         foreach (var data in animation2dDatas)
         {
             JObject entityObject = new();
-            data.Save(entityObject);
+            data.Save(entityObject, SaveOption.Editor);
             spriteJArray.Add(entityObject);
         }
 

@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using BulletSharp;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Renderer;

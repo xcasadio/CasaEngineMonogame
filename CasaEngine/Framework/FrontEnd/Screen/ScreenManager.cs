@@ -1,6 +1,6 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
@@ -8,17 +8,15 @@ public class ScreenManager
 {
     private readonly List<UiScreen> _screens = new();
 
-    public void Load(XmlElement el, SaveOption opt)
+    public void Load(JsonElement element, SaveOption opt)
     {
-        var version = int.Parse(el.Attributes["version"].Value);
-
-        var nodeList = el.SelectSingleNode("ScreenList");
+        var version = element.GetProperty("version").GetInt32();
 
         _screens.Clear();
 
-        foreach (XmlNode node in nodeList)
+        foreach (var node in element.GetProperty("screens").EnumerateArray())
         {
-            _screens.Add(new UiScreen((XmlElement)node, opt));
+            _screens.Add(new UiScreen(node, opt));
         }
     }
 
@@ -77,31 +75,22 @@ public class ScreenManager
         throw new InvalidOperationException("Screenmanager.RemoveScreen() : can't find the screen " + name);
     }
 
-    public void Save(XmlElement el, SaveOption opt)
+    public void Save(JObject jObject, SaveOption option)
     {
-        el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
+        jObject.Add("version", Version);
 
-        var nodeList = el.OwnerDocument.CreateElement("ScreenList");
-        el.AppendChild(nodeList);
+        var screensNode = new JArray();
 
         foreach (var screen in _screens)
         {
-            var node = el.OwnerDocument.CreateElement("Screen");
-            nodeList.AppendChild(node);
+            var screenObject = new JObject();
 
-            screen.Save(node, opt);
+            screen.Save(screenObject, option);
+            screensNode.Add(screenObject);
         }
+
+        jObject.Add("screens", screensNode);
     }
 
-    public void Save(BinaryWriter bw, SaveOption opt)
-    {
-        bw.Write(Version);
-        bw.Write(_screens.Count);
-
-        foreach (var screen in _screens)
-        {
-            screen.Save(bw, opt);
-        }
-    }
 #endif
 }

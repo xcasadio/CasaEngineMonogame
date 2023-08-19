@@ -1,4 +1,4 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
@@ -6,11 +6,11 @@ using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.FrontEnd.Screen.Gadget;
 
-public abstract class ScreenGadget
-    : ISaveLoad
+public abstract class ScreenGadget : ISaveLoad
 {
     private Texture2D _whiteTexture;
 
@@ -128,9 +128,9 @@ public abstract class ScreenGadget
         set;
     }
 
-    protected ScreenGadget(XmlElement el, SaveOption opt)
+    protected ScreenGadget(JsonElement element, SaveOption opt)
     {
-        Load(el, opt);
+        Load(element, opt);
     }
 
     public virtual void Initialize(Microsoft.Xna.Framework.Game game)
@@ -200,40 +200,23 @@ public abstract class ScreenGadget
         DrawGadget(elapsedTime);
     }
 
-#if EDITOR
-    public // used by ScreenGadgetManipulator
-#else
-        protected
-#endif
-        abstract void DrawGadget(float elapsedTime);
+    // public it used by ScreenGadgetManipulator
+    public abstract void DrawGadget(float elapsedTime);
 
-    public virtual void Load(XmlElement el, SaveOption opt)
+    public virtual void Load(JsonElement element, SaveOption option)
     {
-        var c = Color.White;
-        var v = Vector2.Zero;
-
-        var version = int.Parse(el.Attributes["version"].Value);
-
-        AutoSize = bool.Parse(el.SelectSingleNode("AutoSize").InnerText);
-        ((XmlElement)el.SelectSingleNode("BackgroundColor")).Read(ref c);
-        BackgroundColor = c;
-        FontName = el.SelectSingleNode("FontName").InnerText;
-        ((XmlElement)el.SelectSingleNode("FontColor")).Read(ref c);
-        FontColor = c;
-        Width = int.Parse(el.SelectSingleNode("Width").InnerText);
-        Height = int.Parse(el.SelectSingleNode("Height").InnerText);
-        TabIndex = int.Parse(el.SelectSingleNode("TabIndex").InnerText);
-        ((XmlElement)el.SelectSingleNode("Location")).Read(ref v);
-        Location = v;
-        ((XmlElement)el.SelectSingleNode("Scale")).Read(ref v);
-        Scale = v;
-        Name = el.SelectSingleNode("Name").InnerText;
-        Text = el.SelectSingleNode("Text").InnerText;
-    }
-
-    public virtual void Load(BinaryReader br, SaveOption opt)
-    {
-        throw new NotImplementedException();
+        var version = element.GetProperty("version").GetInt32();
+        AutoSize = element.GetProperty("auto_size").GetBoolean();
+        BackgroundColor = element.GetProperty("background_color").GetColor();
+        FontName = element.GetProperty("font_name").GetString();
+        FontColor = element.GetProperty("font_color").GetColor();
+        Width = element.GetProperty("width").GetInt32();
+        Height = element.GetProperty("height").GetInt32();
+        TabIndex = element.GetProperty("tab_index").GetInt32();
+        Location = element.GetProperty("location").GetVector2();
+        Scale = element.GetProperty("scale").GetVector2();
+        Name = element.GetProperty("name").GetString();
+        Text = element.GetProperty("text").GetString();
     }
 
     private void UpdateBounds()
@@ -257,17 +240,17 @@ public abstract class ScreenGadget
                && Scale == g.Scale;
     }
 
-    public static ScreenGadget LoadScreenGadget(XmlElement el, SaveOption opt)
+    public static ScreenGadget LoadScreenGadget(JsonElement element, SaveOption option)
     {
-        var typeName = el.Attributes["typeName"].Value;
+        var typeName = element.GetProperty("typeName").GetString();
 
         switch (typeName)
         {
             case "Label":
-                return new ScreenGadgetLabel(el, opt);
+                return new ScreenGadgetLabel(element, option);
 
             case "Button":
-                return new ScreenGadgetButton(el, opt);
+                return new ScreenGadgetButton(element, option);
 
             default:
                 throw new InvalidOperationException("ScreenGadget.LoadScreen() : the screen type " + typeName + " is not supported.");
@@ -284,52 +267,30 @@ public abstract class ScreenGadget
         Text = Name;
     }
 
-    public virtual void Save(XmlElement el, SaveOption opt)
+    public virtual void Save(JObject jObject, SaveOption option)
     {
-        XmlElement node;
-
-        el.OwnerDocument.AddAttribute(el, "type", GetType().Name);
-        el.OwnerDocument.AddAttribute(el, "version", Version.ToString());
-
-        node = el.OwnerDocument.CreateElementWithText("AutoSize", AutoSize.ToString());
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("BackgroundColor", BackgroundColor);
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("FontName", FontName);
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("FontColor", FontColor);
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("Width", Width.ToString());
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("Height", Height.ToString());
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("TabIndex", TabIndex.ToString());
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("Location", Location);
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("Scale", Scale);
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("Name", Name);
-        el.AppendChild(node);
-        node = el.OwnerDocument.CreateElement("Text", Text);
-        el.AppendChild(node);
+        jObject.Add("type", GetType().Name);
+        jObject.Add("version", Version);
+        jObject.Add("auto_size", AutoSize);
+        var newNode = new JObject();
+        BackgroundColor.Save(newNode);
+        jObject.Add("background_color", newNode);
+        jObject.Add("font_name", FontName);
+        newNode = new JObject();
+        FontColor.Save(newNode);
+        jObject.Add("font_color", newNode);
+        jObject.Add("width", Width);
+        jObject.Add("height", Height);
+        jObject.Add("tab_index", TabIndex);
+        newNode = new JObject();
+        Location.Save(newNode);
+        jObject.Add("location", newNode);
+        newNode = new JObject();
+        Scale.Save(newNode);
+        jObject.Add("scale", newNode);
+        jObject.Add("name", Name);
+        jObject.Add("text", Text);
     }
 
-    public virtual void Save(BinaryWriter bw, SaveOption opt)
-    {
-        bw.Write(GetType().Name);
-        bw.Write(Version);
-        bw.Write(AutoSize);
-        bw.Write(BackgroundColor);
-        bw.Write(FontName);
-        bw.Write(FontColor);
-        bw.Write(Width);
-        bw.Write(Height);
-        bw.Write(TabIndex);
-        bw.Write(Location);
-        bw.Write(Scale);
-        bw.Write(Name);
-        bw.Write(Text);
-    }
 #endif
 }

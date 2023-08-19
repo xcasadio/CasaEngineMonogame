@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using BulletSharp;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
 
@@ -9,9 +9,9 @@ public class Animation2dData : AnimationData
 {
     public List<FrameData> Frames { get; } = new();
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        base.Load(element);
+        base.Load(element, option);
         Name = element.GetJsonPropertyByName("asset_name").Value.GetString(); //TODO : in base.Load()
 
         foreach (var jsonElement in element.GetJsonPropertyByName("frames").Value.EnumerateArray())
@@ -24,7 +24,7 @@ public class Animation2dData : AnimationData
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("asset_name", Name);
 
@@ -37,7 +37,7 @@ public class Animation2dData : AnimationData
         }
         jObject.Add("frames", jArray);
 
-        base.Save(jObject);
+        base.Save(jObject, option);
     }
 #endif
 }

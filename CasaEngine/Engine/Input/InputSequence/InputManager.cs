@@ -371,11 +371,7 @@ public partial class InputManager
     {
         var moveSequencecount = 0;
 
-#if EDITOR
         moveSequencecount = move.Sequence.Count;
-#else
-            moveSequencecount = move.Sequence.Length;
-#endif
 
         // If the move is longer than the buffer, it can't possibly match.
         if (_buffer.Count < moveSequencecount)

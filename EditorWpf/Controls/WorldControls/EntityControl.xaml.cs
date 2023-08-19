@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.WorldControls
 {

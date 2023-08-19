@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Framework.Game;
 using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -149,7 +150,7 @@ public class ProjectSettings
         var projectPath = Path.GetDirectoryName(fullFileName);
         var world = new World.World { Name = "DefaultWorld" };
         world.FileName = world.Name;
-        world.Save(projectPath);
+        world.Save(projectPath, SaveOption.Editor);
         FirstWorldLoaded = world.FileName;
     }
 

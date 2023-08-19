@@ -1,9 +1,7 @@
 ﻿using System.Windows.Data;
 using System.Windows.Input;
-using CasaEngine.Core.Logger;
-using CasaEngine.Framework.Assets.Map2d;
+using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.WpfControls;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
@@ -78,7 +76,7 @@ namespace EditorWpf.Controls.SpriteControls
         private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var spriteDatas = GameEditorSpriteControl.GameEditor.Game.GameManager.AssetContentManager.GetAssets<SpriteData>();
-            SpriteLoader.SaveToFile(_spriteSheetFileName, spriteDatas);
+            SpriteLoader.SaveToFile(_spriteSheetFileName, spriteDatas, SaveOption.Editor);
             e.Handled = true;
         }
     }

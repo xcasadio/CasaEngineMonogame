@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ public class SpriteLoader
 {
     private const string SpriteDatasNodeName = "sprites";
 
-    public static List<SpriteData> LoadFromFile(string fileName, AssetContentManager assetContentManager)
+    public static List<SpriteData> LoadFromFile(string fileName, AssetContentManager assetContentManager, SaveOption option)
     {
         List<SpriteData> spriteDatas = new List<SpriteData>();
 
@@ -20,7 +21,7 @@ public class SpriteLoader
         foreach (var jsonElement in rootElement.GetJsonPropertyByName(SpriteDatasNodeName).Value.EnumerateArray())
         {
             var spriteData = new SpriteData();
-            spriteData.Load(jsonElement);
+            spriteData.Load(jsonElement, option);
             //var rect = spriteData.PositionInTexture;
             //rect.X -= 1;
             //rect.Width += 2;
@@ -38,7 +39,7 @@ public class SpriteLoader
     }
 
 #if EDITOR
-    public static void SaveToFile(string fileName, IEnumerable<SpriteData> spriteDatas)
+    public static void SaveToFile(string fileName, IEnumerable<SpriteData> spriteDatas, SaveOption option)
     {
         JObject rootJObject = new();
         var spriteJArray = new JArray();
@@ -46,7 +47,7 @@ public class SpriteLoader
         foreach (var spriteData in spriteDatas)
         {
             JObject entityObject = new();
-            spriteData.Save(entityObject);
+            spriteData.Save(entityObject, option);
             spriteJArray.Add(entityObject);
         }
 

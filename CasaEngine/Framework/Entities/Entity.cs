@@ -1,14 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
-using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.UserInterface.Controls;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using XNAGizmo;
@@ -104,7 +101,7 @@ public class Entity : ISaveLoad
 
     public void Destroy() { }
 
-    public void Load(JsonElement element)
+    public void Load(JsonElement element, SaveOption option)
     {
         var version = element.GetJsonPropertyByName("version").Value.GetInt32();
         Name = element.GetJsonPropertyByName("name").Value.GetString();
@@ -117,19 +114,6 @@ public class Entity : ISaveLoad
 
         var jsonCoordinate = element.GetJsonPropertyByName("coordinates").Value;
         Coordinates.Load(jsonCoordinate);
-    }
-
-    public virtual void Load(XmlElement el, SaveOption option)
-    {
-        var rootNode = el.SelectSingleNode("Entity");
-        var loadedVersion = int.Parse(rootNode.Attributes["version"].Value);
-    }
-
-    public virtual void Load(BinaryReader br, SaveOption option)
-    {
-        var loadedVersion = br.ReadUInt32();
-        //int id = br_.ReadInt32();
-        //TODO id
     }
 
     public void ScreenResized(int width, int height)
@@ -161,19 +145,7 @@ public class Entity : ISaveLoad
 
     private static readonly int Version = 1;
 
-    public virtual void Save(XmlElement el, SaveOption option)
-    {
-        var rootNode = el.OwnerDocument.CreateElement("Entity");
-        el.AppendChild(rootNode);
-        el.OwnerDocument.AddAttribute(rootNode, "version", Version.ToString());
-    }
-
-    public virtual void Save(BinaryWriter bw, SaveOption option)
-    {
-        bw.Write(Version);
-    }
-
-    public void Save(JObject jObject)
+    public void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("version", 1);
         jObject.Add("id", Id);

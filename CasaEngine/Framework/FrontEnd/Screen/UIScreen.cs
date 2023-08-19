@@ -1,7 +1,7 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.UserInterface;
+using Newtonsoft.Json.Linq;
 using Control = CasaEngine.Framework.UserInterface.Control;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
@@ -19,8 +19,8 @@ public class UiScreen : Screen
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
     }
 
-    public UiScreen(XmlElement el, SaveOption opt)
-        : base(el, opt)
+    public UiScreen(JsonElement element, SaveOption option)
+        : base(element, option)
     {
         TransitionOnTime = TimeSpan.FromSeconds(0.5);
         TransitionOffTime = TimeSpan.FromSeconds(0.5);
@@ -88,21 +88,19 @@ public class UiScreen : Screen
         }
     }
 
-    public override void Load(XmlElement el, SaveOption opt)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        base.Load(el, opt);
+        base.Load(element, option);
 
-        var nodeList = el.SelectSingleNode("GadgetList");
-
-        foreach (XmlNode node in nodeList.ChildNodes)
+        foreach (var gadgetElement in element.GetProperty("gadgets").EnumerateArray())
         {
-            _controls.Add(FactoryUiControl.LoadControl((XmlElement)node, opt));
+            _controls.Add(FactoryUiControl.LoadControl(gadgetElement, option));
         }
     }
 
 #if EDITOR
 
-    public bool CompareTo(Entity other)
+    public bool CompareTo(object other)
     {
         if (base.CompareTo(other) == false)
         {
@@ -135,14 +133,10 @@ public class UiScreen : Screen
         return res;
     }
 
-    public override void Save(XmlElement el, SaveOption opt)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(el, opt);
+        base.Save(jObject, option);
     }
 
-    public override void Save(BinaryWriter bw, SaveOption opt)
-    {
-        base.Save(bw, opt);
-    }
 #endif
 }

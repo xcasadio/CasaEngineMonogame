@@ -4,13 +4,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.TextFormatting;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Editor;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using XNAGizmo;
 
 namespace EditorWpf.Controls.WorldControls

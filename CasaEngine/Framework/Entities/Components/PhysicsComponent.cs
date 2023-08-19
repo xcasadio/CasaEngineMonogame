@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using System.Text.Json;
 using BulletSharp;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logger;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;

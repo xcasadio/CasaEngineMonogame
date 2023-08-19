@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
-using CasaEngine.Engine.Animations;
-using CasaEngine.Framework.Assets;
+using CasaEngine.Core.Design;
+using CasaEngine.Engine.Materials;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -15,6 +16,7 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
     public static readonly int ComponentId = (int)ComponentIds.Mesh;
     private StaticMeshRendererComponent? _meshRendererComponent;
     private StaticMesh? _mesh;
+    private Material? _material;
 
     //TODO remove : use only in editor mode to retrieve the game. Very ugly....
     public CasaEngineGame Game { get; private set; }
@@ -25,6 +27,18 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         set
         {
             _mesh = value;
+#if EDITOR
+            OnPropertyChanged();
+#endif
+        }
+    }
+
+    public Material Material
+    {
+        get { return _material; }
+        set
+        {
+            _material = value;
 #if EDITOR
             OnPropertyChanged();
 #endif
@@ -52,7 +66,7 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
 
         var camera = Game.GameManager.ActiveCamera;
         var worldViewProj = Owner.Coordinates.WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
-        _meshRendererComponent.AddMesh(Mesh, Owner.Coordinates.WorldMatrix, worldViewProj, camera.Position);
+        _meshRendererComponent.AddMesh(Mesh, Material, Owner.Coordinates.WorldMatrix, worldViewProj, camera.Position);
     }
 
     public override Component Clone(Entity owner)
@@ -84,7 +98,7 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         JObject newJObject = new();
         if (Mesh != null)
         {
-            _mesh.Save(newJObject);
+            _mesh.Save(newJObject, SaveOption.Editor);
             jObject.Add("mesh", newJObject);
         }
         else

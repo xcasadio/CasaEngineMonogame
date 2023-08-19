@@ -2,8 +2,8 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
-using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls.WorldControls
@@ -33,7 +33,7 @@ namespace EditorWpf.Controls.WorldControls
 
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
         {
-            gameEditor.Game.GameManager.CurrentWorld.Save(GameSettings.ProjectSettings.ProjectPath);
+            gameEditor.Game.GameManager.CurrentWorld.Save(GameSettings.ProjectSettings.ProjectPath, SaveOption.Editor);
             LogManager.Instance.WriteLineInfo($"World {gameEditor.Game.GameManager.CurrentWorld.Name} saved ({gameEditor.Game.GameManager.CurrentWorld.FileName})");
         }
 

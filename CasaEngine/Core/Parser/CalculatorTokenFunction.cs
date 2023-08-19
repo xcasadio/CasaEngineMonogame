@@ -1,18 +1,14 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
-internal class CalculatorTokenFunction
-    : CalculatorToken
+internal class CalculatorTokenFunction : CalculatorToken
 {
     private string _functionName;
     private string[] _args;
-
-
-
-
 
     public CalculatorTokenFunction(Calculator calculator, string functionName, string[] args)
         : base(calculator)
@@ -21,81 +17,44 @@ internal class CalculatorTokenFunction
         _args = args;
     }
 
-    public CalculatorTokenFunction(Calculator calculator, XmlElement el, SaveOption option)
+    public CalculatorTokenFunction(Calculator calculator, JsonElement element, SaveOption option)
         : base(calculator)
     {
-        Load(el, option);
+        Load(element, option);
     }
-
-    public CalculatorTokenFunction(Calculator calculator, BinaryReader br, SaveOption option)
-        : base(calculator)
-    {
-        Load(br, option);
-    }
-
-
 
     public override float Evaluate()
     {
         return Calculator.Parser.EvaluateFunction(_functionName, _args);
     }
 
-
-    public override void Save(XmlElement el, SaveOption option)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        var node = el.OwnerDocument.CreateElement("Node");
-        el.AppendChild(node);
-        el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Function).ToString());
-        var valueNode = el.OwnerDocument.CreateElementWithText("FunctionName", _functionName);
-        node.AppendChild(valueNode);
-
-        var argNode = el.OwnerDocument.CreateElement("ArgumentList");
-        node.AppendChild(argNode);
-
-        foreach (var a in _args)
-        {
-            valueNode = el.OwnerDocument.CreateElementWithText("Argument", a);
-            argNode.AppendChild(valueNode);
-        }
-    }
-
-    public override void Load(XmlElement el, SaveOption option)
-    {
-        _functionName = el.SelectSingleNode("FunctionName").InnerText;
+        _functionName = element.GetProperty("FunctionName").GetString();
         var args = new List<string>();
 
-        foreach (XmlNode n in el.SelectNodes("ArgumentList/Argument"))
+        foreach (var arrayElement in element.GetProperty("arguments").EnumerateArray())
         {
-            args.Add(n.InnerText);
+            args.Add(arrayElement.GetString());
         }
 
         _args = args.ToArray();
     }
 
-    public override void Save(BinaryWriter bw, SaveOption option)
-    {
-        bw.Write((int)CalculatorTokenType.Function);
-        bw.Write(_functionName);
-        bw.Write(_args.Length);
+#if EDITOR
 
-        foreach (var a in _args)
+    public override void Save(JObject jObject, SaveOption option)
+    {
+        jObject.Add("type", CalculatorTokenType.Value.ConvertToString());
+        jObject.Add("function_name", _functionName);
+
+        var argumentList = new JArray();
+        foreach (var argument in _args)
         {
-            bw.Write(a);
+            argumentList.Add(argument);
         }
+        jObject.Add("arguments", argumentList);
     }
 
-    public override void Load(BinaryReader br, SaveOption option)
-    {
-        br.ReadInt32();
-        _functionName = br.ReadString();
-        var count = br.ReadInt32();
-        _args = new string[count];
-
-        for (var i = 0; i < count; i++)
-        {
-            _args[i] = br.ReadString();
-        }
-    }
-
-
+#endif
 }

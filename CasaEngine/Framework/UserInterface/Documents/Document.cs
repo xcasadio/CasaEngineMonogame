@@ -26,9 +26,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using System.Xml;
 using System.Xml.Linq;
-using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -68,16 +66,5 @@ public class Document : Asset
     {
         Resource ??= assetContentManager.Load<XDocument>(FileName, device);
     } // RecreateResource
-
-    public override void Load(BinaryReader br, SaveOption option)
-    {
-
-    }
-
-    public override void Load(XmlElement el, SaveOption option)
-    {
-
-    }
-
 } // Document
 // XNAFinalEngine.Assets

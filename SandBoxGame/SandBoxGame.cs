@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using CasaEngine.Core.Design;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets;
@@ -83,7 +84,7 @@ namespace SandBoxGame
             world.AddEntityImmediately(entity);
 
             //============ animated sprite ===============
-            SpriteLoader.LoadFromFile("Content\\ryu.spritesheet", GameManager.AssetContentManager);
+            SpriteLoader.LoadFromFile("Content\\ryu.spritesheet", GameManager.AssetContentManager, SaveOption.Editor);
             var animations = Animation2dLoader.LoadFromFile("Content\\ryu.anims2d", GameManager.AssetContentManager);
 
             entity = new Entity();

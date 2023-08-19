@@ -6,9 +6,11 @@
 //-----------------------------------------------------------------------------
 
 
+using System.Text.Json;
 using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Engine.Input.InputSequence;
 
@@ -17,13 +19,7 @@ public class Move
     public string Name;
 
     // The sequence of button presses required to activate this move.
-    //public Buttons[] Sequence;
-    //public int[] Sequence;
-#if EDITOR
     public List<List<InputManager.KeyState>> Sequence = new();
-#else
-        public InputManager.KeyState[][] Sequence; 
-#endif
 
     // Set this to true if the input used to activate this move may
     // be reused as a component of longer moves.
@@ -34,101 +30,23 @@ public class Move
         Name = name;
     }
 
-    public Move(XmlElement el, SaveOption option)
+    public Move(JsonElement element, SaveOption option)
     {
-        Load(el, option);
+        Load(element, option);
     }
 
-    public void Load(XmlElement el, SaveOption option)
-    {
-        Name = el.Attributes["name"].Value;
-
-        var nodes = el.SelectSingleNode("SequenceList").ChildNodes;
-
-#if !EDITOR
-            Sequence = new InputManager.KeyState[nodes.Count][];
-#endif
-
-        for (var i = 0; i < nodes.Count; i++)
-        {
-            var seqNodes = nodes[i].SelectNodes("Button");
-#if EDITOR
-            Sequence.Add(new List<InputManager.KeyState>());
-#else
-                Sequence[i] = new InputManager.KeyState[seqNodes.Count];
-#endif
-
-            for (var j = 0; j < seqNodes.Count; j++)
-            {
-#if EDITOR
-                var k = new InputManager.KeyState();
-                k.Key = int.Parse(seqNodes[j].Attributes["key"].Value);
-                k.State = (ButtonState)Enum.Parse(typeof(ButtonState), seqNodes[j].Attributes["state"].Value);
-                k.Time = float.Parse(seqNodes[j].Attributes["time"].Value);
-
-                Sequence[i].Add(k);
-#else
-                    Sequence[i][j].Key = int.Parse(seqNodes[j].Attributes["key"].Value);
-                    Sequence[i][j].State = (ButtonState)Enum.Parse(typeof(ButtonState), seqNodes[j].Attributes["state"].Value);
-                    Sequence[i][j].Time = float.Parse(seqNodes[j].Attributes["time"].Value);
-#endif
-            }
-        }
-    }
-
-#if EDITOR
-
-    public void Save(XmlElement el, SaveOption option)
-    {
-        el.OwnerDocument.AddAttribute(el, "name", Name);
-
-        var seq = el.OwnerDocument.CreateElement("SequenceList");
-        el.AppendChild(seq);
-
-        foreach (var tab in Sequence)
-        {
-            var s = el.OwnerDocument.CreateElement("Sequence");
-            seq.AppendChild(s);
-
-            foreach (var k in tab)
-            {
-                var but = el.OwnerDocument.CreateElement("Button");
-                but.OwnerDocument.AddAttribute(but, "key", k.Key.ToString());
-                but.OwnerDocument.AddAttribute(but, "state", Enum.GetName(typeof(ButtonState), k.State));
-                but.OwnerDocument.AddAttribute(but, "time", k.Time.ToString());
-                s.AppendChild(but);
-            }
-        }
-    }
-
-    public void Save(BinaryWriter bw, SaveOption option)
-    {
-        bw.Write(Sequence.Count);
-
-        foreach (var tab in Sequence)
-        {
-            bw.Write(tab.Count);
-
-            foreach (var k in tab)
-            {
-                bw.Write(k.Key);
-                bw.Write((int)k.State);
-                bw.Write(k.Time);
-            }
-        }
-    }
-
-#endif
-
-    public bool Match(int i, InputManager.KeyState[] buttons)
+    public bool Match(int index, InputManager.KeyState[] buttons)
     {
         var x = 0;
 
-        foreach (var k in Sequence[i])
+        for (var keyIndex = 0; keyIndex < Sequence[index].Count; keyIndex++)
         {
-            foreach (var b in buttons)
+            var keyState = Sequence[index][keyIndex];
+
+            for (var buttonIndex = 0; buttonIndex < buttons.Length; buttonIndex++)
             {
-                if (b.Match(k))
+                var button = buttons[buttonIndex];
+                if (button.Match(keyState))
                 {
                     x++;
                     break;
@@ -136,10 +54,55 @@ public class Move
             }
         }
 
-#if EDITOR
-        return x == Sequence[i].Count;
-#else
-            return x == Sequence[i].Length;
-#endif
+        return x == Sequence[index].Count;
     }
+
+    public void Load(JsonElement element, SaveOption option)
+    {
+        Name = element.GetProperty("name").GetString();
+
+        foreach (var sequenceElement in element.GetProperty("sequences").EnumerateArray())
+        {
+            Sequence.Add(new List<InputManager.KeyState>());
+
+            foreach (var buttonElement in sequenceElement.EnumerateArray())
+            {
+                var keyState = new InputManager.KeyState();
+                keyState.Key = buttonElement.GetProperty("key").GetInt32();
+                keyState.State = buttonElement.GetProperty("key").GetEnum<ButtonState>();
+                keyState.Time = buttonElement.GetProperty("time").GetSingle();
+            }
+        }
+    }
+
+#if EDITOR
+
+    public void Save(JObject jObject, SaveOption option)
+    {
+        jObject.Add("name", Name);
+
+        var sequencesArray = new JArray();
+
+        foreach (var tab in Sequence)
+        {
+            var buttonsArray = new JArray();
+
+            foreach (var k in tab)
+            {
+                var buttonObject = new JObject
+                {
+                    { "key", k.Key },
+                    { "state", k.State.ConvertToString() },
+                    { "time", k.Time }
+                };
+                buttonsArray.Add(buttonObject);
+            }
+
+            sequencesArray.Add(buttonsArray);
+        }
+
+        jObject.Add("sequences", sequencesArray);
+    }
+
+#endif
 }

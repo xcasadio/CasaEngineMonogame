@@ -1,11 +1,11 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
-internal class CalculatorTokenBinaryOperator
-    : CalculatorToken
+internal class CalculatorTokenBinaryOperator : CalculatorToken
 {
     public enum BinaryOperator
     {
@@ -24,12 +24,9 @@ internal class CalculatorTokenBinaryOperator
         InfEqual,
     }
 
-
     private BinaryOperator _operator;
     private CalculatorToken _left;
     private CalculatorToken _right;
-
-
 
     public CalculatorToken Left
     {
@@ -43,27 +40,17 @@ internal class CalculatorTokenBinaryOperator
         set => _right = value;
     }
 
-
-
     public CalculatorTokenBinaryOperator(Calculator calculator, BinaryOperator @operator)
         : base(calculator)
     {
         _operator = @operator;
     }
 
-    public CalculatorTokenBinaryOperator(Calculator calculator, XmlElement el, SaveOption option)
+    public CalculatorTokenBinaryOperator(Calculator calculator, JsonElement element, SaveOption option)
         : base(calculator)
     {
-        Load(el, option);
+        Load(element, option);
     }
-
-    public CalculatorTokenBinaryOperator(Calculator calculator, BinaryReader br, SaveOption option)
-        : base(calculator)
-    {
-        Load(br, option);
-    }
-
-
 
     public override float Evaluate()
     {
@@ -126,50 +113,28 @@ internal class CalculatorTokenBinaryOperator
         return res;
     }
 
+#if EDITOR
 
-    public override void Save(XmlElement el, SaveOption option)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        var node = el.OwnerDocument.CreateElement("Node");
-        el.AppendChild(node);
-        el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.BinaryOperator).ToString());
-        el.OwnerDocument.AddAttribute(node, "operator", ((int)_operator).ToString());
+        jObject.Add("type", ((int)CalculatorTokenType.BinaryOperator).ToString());
+        jObject.Add("operator", ((int)_operator).ToString());
 
-        var child = el.OwnerDocument.CreateElement("Left");
-        node.AppendChild(child);
-        _left.Save(child, option);
+        var leftElement = new JObject();
+        _left.Save(leftElement, option);
+        jObject.Add("left", leftElement);
 
-        child = el.OwnerDocument.CreateElement("Right");
-        node.AppendChild(child);
-        _right.Save(child, option);
+        var rightElement = new JObject();
+        _right.Save(rightElement, option);
+        jObject.Add("right", rightElement);
     }
+#endif
 
-    public override void Load(XmlElement el, SaveOption option)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        _operator = (BinaryOperator)int.Parse(el.Attributes["operator"].Value);
-
-        var child = (XmlElement)el.SelectSingleNode("Left/Node");
-        _left = Calculator.CreateCalculatorToken(Calculator, child, option);
-
-        child = (XmlElement)el.SelectSingleNode("Right/Node");
-        _right = Calculator.CreateCalculatorToken(Calculator, child, option);
+        _operator = element.GetProperty("operator").GetEnum<BinaryOperator>();
+        _left = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("left"), option);
+        _right = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("right"), option);
 
     }
-
-    public override void Save(BinaryWriter bw, SaveOption option)
-    {
-        bw.Write((int)CalculatorTokenType.BinaryOperator);
-        bw.Write((int)_operator);
-        _left.Save(bw, option);
-        _right.Save(bw, option);
-    }
-
-    public override void Load(BinaryReader br, SaveOption option)
-    {
-        _operator = (BinaryOperator)br.ReadInt32();
-        _left = Calculator.CreateCalculatorToken(Calculator, br, option);
-        _right = Calculator.CreateCalculatorToken(Calculator, br, option);
-    }
-
-
-
 }

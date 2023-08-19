@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;

@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Text.Json;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Map2d;
@@ -29,12 +28,12 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
 
     public void OnHit(Collision collision)
     {
-        //Debug.WriteLine($"TiledMapComponent OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+        Owner.Hit(collision, this);
     }
 
     public void OnHitEnded(Collision collision)
     {
-
+        Owner.HitEnded(collision, this);
     }
 
     public TiledMapComponent(Entity entity) : base(entity, ComponentId)
@@ -53,11 +52,13 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
 
         foreach (var spriteSheetFileName in TiledMapData.SpriteSheetFileNames)
         {
-            SpriteLoader.LoadFromFile(Path.Combine(GameSettings.ProjectSettings.ProjectPath, spriteSheetFileName), game.GameManager.AssetContentManager);
+            var fileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, spriteSheetFileName);
+            SpriteLoader.LoadFromFile(fileName, game.GameManager.AssetContentManager, SaveOption.Editor);
         }
 
-        foreach (var tiledMapLayerData in TiledMapData.Layers)
+        for (var layerIndex = 0; layerIndex < TiledMapData.Layers.Count; layerIndex++)
         {
+            var tiledMapLayerData = TiledMapData.Layers[layerIndex];
             var tiledMapLayer = new TiledMapLayer(tiledMapLayerData);
             Layers.Add(tiledMapLayer);
             var mapWidth = TiledMapData.MapSize.Width;
@@ -81,7 +82,8 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
                         if (tileData.Type == TileType.Auto)
                         {
                             var autoTiles = GetAutoTiles(tileData as AutoTileData);
-                            tile = TiledMapLoader.CreateAutoTile(x, y, autoTiles, tiledMapLayerData, TiledMapData.MapSize, TiledMapData.TileSize, game.GameManager.AssetContentManager);
+                            tile = TiledMapLoader.CreateAutoTile(x, y, autoTiles, tiledMapLayerData,
+                                TiledMapData.MapSize, TiledMapData.TileSize, game.GameManager.AssetContentManager);
                         }
                         else
                         {
@@ -97,8 +99,11 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
                                     x * TiledMapData.TileSize.Width + TiledMapData.TileSize.Width / 2f,
                                     -y * TiledMapData.TileSize.Height - TiledMapData.TileSize.Height / 2f,
                                     0f);
-                                var rectangle = new ShapeRectangle(0, 0, TiledMapData.TileSize.Width, TiledMapData.TileSize.Height);
-                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, this, new PhysicsDefinition { Friction = 0f });
+                                var rectangle = new ShapeRectangle(0, 0, TiledMapData.TileSize.Width,
+                                    TiledMapData.TileSize.Height);
+                                var tileCollisionManager = new TileCollisionManager(this, layerIndex, x, y);
+                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, tileCollisionManager,
+                                    new PhysicsDefinition { Friction = 0f });
                                 break;
                         }
                     }
@@ -169,6 +174,11 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
         }
     }
 
+    public void RemoveTile(int layer, int x, int y)
+    {
+        Layers[layer].Tiles[x + y * TiledMapData.MapSize.Width] = new EmptyTile();
+    }
+
     public override Component Clone(Entity owner)
     {
         var component = new TiledMapComponent(owner);
@@ -233,4 +243,42 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
     }
 
 #endif
+}
+
+
+public class TileCollisionManager : ICollideableComponent
+{
+    private readonly TiledMapComponent _tiledMapComponent;
+    private readonly int _layer;
+    private readonly int _x;
+    private readonly int _y;
+
+    public TileCollisionManager(TiledMapComponent tiledMapComponent, int layer, int x, int y)
+    {
+        _tiledMapComponent = tiledMapComponent;
+        _layer = layer;
+        _x = x;
+        _y = y;
+    }
+
+    public Entity Owner => _tiledMapComponent.Owner;
+
+    public PhysicsType PhysicsType { get; }
+
+    public HashSet<Collision> Collisions { get; } = new();
+
+    public void OnHit(Collision collision)
+    {
+        Owner.Hit(collision, _tiledMapComponent);
+    }
+
+    public void OnHitEnded(Collision collision)
+    {
+        Owner.HitEnded(collision, _tiledMapComponent);
+    }
+
+    public void RemoveTile()
+    {
+        _tiledMapComponent.RemoveTile(_layer, _x, _y);
+    }
 }

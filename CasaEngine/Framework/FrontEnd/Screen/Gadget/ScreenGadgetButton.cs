@@ -1,7 +1,8 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.FrontEnd.Screen.Gadget;
 
@@ -21,8 +22,8 @@ public class ScreenGadgetButton : ScreenGadget
     //    set;
     //}
 
-    public ScreenGadgetButton(XmlElement el, SaveOption opt)
-        : base(el, opt)
+    public ScreenGadgetButton(JsonElement element, SaveOption option)
+        : base(element, option)
     {
 
     }
@@ -32,12 +33,7 @@ public class ScreenGadgetButton : ScreenGadget
         
     }*/
 
-#if EDITOR
-    public
-#else
-    protected
-#endif
-    override void DrawGadget(float elapsedTime)
+    public override void DrawGadget(float elapsedTime)
     {
         var area = new Rectangle((int)Location.X, (int)Location.Y, Width, Height);
 
@@ -68,11 +64,11 @@ public class ScreenGadgetButton : ScreenGadget
             area);
     }
 
-    public override void Load(XmlElement el, SaveOption opt)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        base.Load(el, opt);
+        base.Load(element, option);
 
-        var spriteId = int.Parse(el.SelectSingleNode("Image").InnerText);
+        var spriteId = element.GetProperty("image").GetInt32();
 
         if (spriteId != int.MaxValue)
         {
@@ -80,7 +76,7 @@ public class ScreenGadgetButton : ScreenGadget
             //GameManager.Asset2dManager.AddSprite2DToLoadingList(Image);
         }
 
-        SizeImage = (SizeImage)Enum.Parse(typeof(SizeImage), el.SelectSingleNode("SizeImage").InnerText);
+        SizeImage = element.GetProperty("size_image").GetEnum<SizeImage>();
     }
 
 #if EDITOR
@@ -95,26 +91,15 @@ public class ScreenGadgetButton : ScreenGadget
         BackgroundColor = Color.White;
     }
 
-    public override void Save(XmlElement el, SaveOption opt)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        XmlElement node;
-
-        base.Save(el, opt);
+        base.Save(jObject, option);
 
         //var SpriteId = Image == null ? int.MaxValue : Image.Id;
         //node = el.OwnerDocument.CreateElementWithText("Image", SpriteId.ToString());
         //el.AppendChild(node);
-        node = el.OwnerDocument.CreateElementWithText("SizeImage", Enum.GetName(typeof(SizeImage), SizeImage));
-        el.AppendChild(node);
+        jObject.Add("size_image", SizeImage.ConvertToString());
     }
 
-    public override void Save(BinaryWriter bw, SaveOption opt)
-    {
-        base.Save(bw, opt);
-
-        //var SpriteId = Image == null ? int.MaxValue : Image.Id;
-        //bw.Write(SpriteId);
-        bw.Write((int)SizeImage);
-    }
 #endif
 }

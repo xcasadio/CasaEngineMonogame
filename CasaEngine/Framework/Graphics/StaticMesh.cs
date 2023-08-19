@@ -1,10 +1,11 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Assets;
+namespace CasaEngine.Framework.Graphics;
 
 public class StaticMesh
 {
@@ -13,7 +14,7 @@ public class StaticMesh
     public VertexBuffer? VertexBuffer { get; private set; }
     public IndexBuffer? IndexBuffer { get; private set; }
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
-    public Textures.Texture? Texture { get; set; }
+    public Assets.Textures.Texture? Texture { get; set; }
 
     public void Initialize(GraphicsDevice graphicsDevice)
     {
@@ -81,8 +82,8 @@ public class StaticMesh
         var textureElement = element.GetProperty("texture");
         if (textureElement.ToString() != "null")
         {
-            Texture = new Textures.Texture();
-            Texture.Load(textureElement);
+            Texture = new Assets.Textures.Texture();
+            Texture.Load(textureElement, SaveOption.Editor);
         }
     }
 
@@ -95,7 +96,7 @@ public class StaticMesh
         return _vertices;
     }
 
-    public void Save(JObject jObject)
+    public void Save(JObject jObject, SaveOption option)
     {
         //base.Save(jObject); //asset ?
         jObject.Add("version", 1);
@@ -122,7 +123,7 @@ public class StaticMesh
         var textureJObject = new JObject();
         if (Texture != null)
         {
-            Texture.Save(textureJObject);
+            Texture.Save(textureJObject, option);
             jObject.Add("texture", textureJObject);
         }
         else

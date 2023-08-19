@@ -1,19 +1,15 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
-internal class CalculatorTokenValue
-    : CalculatorToken
+internal class CalculatorTokenValue : CalculatorToken
 {
     private int _type;
     private float _value;
     private string _string;
-
-
-
-
 
     public CalculatorTokenValue(Calculator calculator, float value)
         : base(calculator)
@@ -29,73 +25,37 @@ internal class CalculatorTokenValue
         _type = 1;
     }
 
-    public CalculatorTokenValue(Calculator calculator, XmlElement el, SaveOption option)
+    public CalculatorTokenValue(Calculator calculator, JsonElement element, SaveOption option)
         : base(calculator)
     {
-        Load(el, option);
+        Load(element, option);
     }
-
-    public CalculatorTokenValue(Calculator calculator, BinaryReader br, SaveOption option)
-        : base(calculator)
-    {
-        Load(br, option);
-    }
-
-
 
     public override float Evaluate()
     {
         return _value;
     }
 
-
-    public override void Save(XmlElement el, SaveOption option)
+#if EDITOR
+    public override void Save(JObject jObject, SaveOption option)
     {
-        var node = el.OwnerDocument.CreateElement("Node");
-        el.AppendChild(node);
-        el.OwnerDocument.AddAttribute(node, "type", ((int)CalculatorTokenType.Value).ToString());
-
-        var value = _type == 0 ? _value.ToString() : _string;
-
-        var valueNode = el.OwnerDocument.CreateElementWithText("Value", value);
-        el.OwnerDocument.AddAttribute(valueNode, "type", _type.ToString());
-        node.AppendChild(valueNode);
+        jObject.Add("type", CalculatorTokenType.Value.ConvertToString());
+        jObject.Add("value", _type == 0 ? _value : _string);
     }
 
-    public override void Load(XmlElement el, SaveOption option)
-    {
-        _type = int.Parse(el.SelectSingleNode("Value").Attributes["type"].Value);
-        if (_type == 0)
-        {
-            _value = float.Parse(el.SelectSingleNode("Value").InnerText);
-        }
-        else
-        {
-            _string = el.SelectSingleNode("Value").InnerText;
-        }
-    }
+#endif
 
-    public override void Save(BinaryWriter bw, SaveOption option)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        bw.Write((int)CalculatorTokenType.Value);
-        var value = _type == 0 ? _value.ToString() : _string;
-        bw.Write(value);
-        bw.Write(_type);
-    }
-
-    public override void Load(BinaryReader br, SaveOption option)
-    {
-        _type = br.ReadInt32();
+        _type = (int)element.GetProperty("type").GetEnum<CalculatorTokenType>();
 
         if (_type == 0)
         {
-            _value = float.Parse(br.ReadString());
+            _value = element.GetProperty("value").GetSingle();
         }
         else
         {
-            _string = br.ReadString();
+            _string = element.GetProperty("value").GetString();
         }
     }
-
-
 }

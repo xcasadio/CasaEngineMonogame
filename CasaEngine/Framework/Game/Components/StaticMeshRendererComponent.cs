@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Animations;
+using CasaEngine.Engine.Materials;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -18,11 +20,12 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(StaticMesh staticMesh, Matrix world, Matrix worldViewProj, Vector3 cameraPosition)
+    public void AddMesh(StaticMesh staticMesh, Material material, Matrix world, Matrix worldViewProj, Vector3 cameraPosition)
     {
         _meshInfos.Add(new MeshInfo
         {
             StaticMesh = staticMesh,
+            Material = material,
             World = world,
             WorldViewProj = worldViewProj,
             CameraPosition = cameraPosition
@@ -86,11 +89,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent
             graphicsDevice.Indices = meshInfo.StaticMesh.IndexBuffer;
 
             _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource);
-            _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
-
             _effect.Parameters["EyePosition"].SetValue(meshInfo.CameraPosition);
             _effect.Parameters["World"].SetValue(meshInfo.World);
             _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.World.Invert().Transpose());
+            _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
 
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
             {
@@ -106,6 +108,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
     private class MeshInfo
     {
         public StaticMesh? StaticMesh;
+        public Material? Material;
         public Vector3 CameraPosition;
         public Matrix World;
         public Matrix WorldViewProj;

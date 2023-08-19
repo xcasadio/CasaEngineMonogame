@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Editor;
 using XNAGizmo;
 

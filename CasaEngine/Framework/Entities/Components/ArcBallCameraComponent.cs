@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Entities.Components;
 

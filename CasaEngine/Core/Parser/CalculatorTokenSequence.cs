@@ -1,10 +1,10 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
-internal class CalculatorTokenSequence
-    : CalculatorToken
+internal class CalculatorTokenSequence : CalculatorToken
 {
     public enum TokenSequence
     {
@@ -13,13 +13,9 @@ internal class CalculatorTokenSequence
         EndSequence
     }
 
-
     private readonly TokenSequence _sequence;
 
-
-
     public TokenSequence Sequence => _sequence;
-
 
     public CalculatorTokenSequence(Calculator calculator, TokenSequence sequence)
         : base(calculator)
@@ -27,33 +23,21 @@ internal class CalculatorTokenSequence
         _sequence = sequence;
     }
 
-
-
     public override float Evaluate()
     {
         throw new InvalidOperationException("Don't use to evaluate");
     }
 
-
-    public override void Save(XmlElement el, SaveOption option)
-    {
-        throw new InvalidOperationException("Can't save this object. It is a temporary object");
-    }
-
-    public override void Load(XmlElement el, SaveOption option)
+    public override void Load(JsonElement element, SaveOption option)
     {
         throw new InvalidOperationException("Can't save this object. It is a temporary objecte");
     }
 
-    public override void Save(BinaryWriter bw, SaveOption option)
+#if EDITOR
+    public override void Save(JObject jObject, SaveOption option)
     {
         throw new InvalidOperationException("Can't save this object. It is a temporary object");
     }
 
-    public override void Load(BinaryReader br, SaveOption option)
-    {
-        throw new InvalidOperationException("Can't save this object. It is a temporary object");
-    }
-
-
+#endif
 }

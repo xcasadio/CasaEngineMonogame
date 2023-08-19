@@ -1,5 +1,7 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Helpers;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
 
@@ -7,8 +9,6 @@ internal class Calculator
 {
     private CalculatorToken _root;
     private readonly Parser _parser;
-
-
 
     public CalculatorToken Root
     {
@@ -18,64 +18,35 @@ internal class Calculator
 
     public Parser Parser => _parser;
 
-
     public Calculator(Parser parser)
     {
         _parser = parser;
     }
-
-
 
     public float Evaluate()
     {
         return _root.Evaluate();
     }
 
-
-    public void Load(XmlElement el, SaveOption option)
+    public void Load(JsonElement element, SaveOption option)
     {
-        _root = null;
-
-        var root = (XmlElement)el.SelectSingleNode("Root/Node");
-
-        if (root != null)
-        {
-            _root = CreateCalculatorToken(this, root, option);
-        }
+        _root = CreateCalculatorToken(this, element.GetProperty("root"), option);
     }
 
-    public void Save(XmlElement el, SaveOption option)
-    {
-        if (_root != null)
-        {
-            XmlNode node = el.OwnerDocument.CreateElement("Root");
-            el.AppendChild(node);
-            _root.Save((XmlElement)node, option);
-        }
-    }
-
-    public void Save(BinaryWriter bw, SaveOption option)
-    {
-        if (_root != null)
-        {
-            _root.Save(bw, option);
-        }
-    }
-
-    public static CalculatorToken CreateCalculatorToken(Calculator calculator, XmlElement el, SaveOption option)
+    public static CalculatorToken CreateCalculatorToken(Calculator calculator, JsonElement element, SaveOption option)
     {
         CalculatorToken token = null;
 
-        var type = (CalculatorTokenType)int.Parse(el.Attributes["type"].Value);
+        var type = element.GetProperty("type").GetEnum<CalculatorTokenType>();
 
         switch (type)
         {
             case CalculatorTokenType.BinaryOperator:
-                token = new CalculatorTokenBinaryOperator(calculator, el, option);
+                token = new CalculatorTokenBinaryOperator(calculator, element, option);
                 break;
 
             case CalculatorTokenType.Keyword:
-                token = new CalculatorTokenKeyword(calculator, el, option);
+                token = new CalculatorTokenKeyword(calculator, element, option);
                 break;
 
             /*case CalculatorTokenType.UnaryOperator:
@@ -83,11 +54,11 @@ internal class Calculator
                 break;*/
 
             case CalculatorTokenType.Value:
-                token = new CalculatorTokenValue(calculator, el, option);
+                token = new CalculatorTokenValue(calculator, element, option);
                 break;
 
             case CalculatorTokenType.Function:
-                token = new CalculatorTokenFunction(calculator, el, option);
+                token = new CalculatorTokenFunction(calculator, element, option);
                 break;
 
             default:
@@ -97,40 +68,17 @@ internal class Calculator
         return token;
     }
 
-    public static CalculatorToken CreateCalculatorToken(Calculator calculator, BinaryReader br, SaveOption option)
+#if EDITOR
+
+    public void Save(JObject jObject, SaveOption option)
     {
-        CalculatorToken token = null;
-
-        var type = (CalculatorTokenType)br.ReadInt32();
-
-        switch (type)
+        if (_root != null)
         {
-            case CalculatorTokenType.BinaryOperator:
-                token = new CalculatorTokenBinaryOperator(calculator, br, option);
-                break;
-
-            case CalculatorTokenType.Keyword:
-                token = new CalculatorTokenKeyword(calculator, br, option);
-                break;
-
-            /*case CalculatorTokenType.UnaryOperator:
-                token = new CalculatorTokenUnaryOperator(el_, option_);
-                break;*/
-
-            case CalculatorTokenType.Value:
-                token = new CalculatorTokenValue(calculator, br, option);
-                break;
-
-            case CalculatorTokenType.Function:
-                token = new CalculatorTokenFunction(calculator, br, option);
-                break;
-
-            default:
-                throw new InvalidOperationException("unknown CalculatorTokenType");
+            var rootObject = new JObject();
+            _root.Save(rootObject, option);
+            jObject.Add("root", rootObject);
         }
-
-        return token;
     }
 
-
+#endif
 }

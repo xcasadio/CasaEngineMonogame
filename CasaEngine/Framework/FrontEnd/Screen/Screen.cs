@@ -5,13 +5,13 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 
-using System.Xml;
+using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.FrontEnd.Screen;
 
@@ -23,7 +23,7 @@ public enum ScreenState
     Hidden,
 }
 
-public abstract class Screen : Entity
+public abstract class Screen
 {
     private bool _isPopup;
     private TimeSpan _transitionOnTime = TimeSpan.Zero;
@@ -113,9 +113,9 @@ public abstract class Screen : Entity
         Name = name;
     }
 
-    protected Screen(XmlElement el, SaveOption opt)
+    protected Screen(JsonElement element, SaveOption option)
     {
-        Load(el, opt);
+        Load(element, option);
     }
 
     public virtual void LoadContent(Microsoft.Xna.Framework.Game game)
@@ -205,15 +205,13 @@ public abstract class Screen : Entity
 
     public virtual void Draw(float elapsedTime) { }
 
-    public override void Load(XmlElement el, SaveOption opt)
+    public virtual void Load(JsonElement element, SaveOption option)
     {
-        base.Load(el, opt);
-
-        Name = el.Attributes["name"].Value;
+        Name = element.GetProperty("name").GetString();
 
         //this.TransitionAlpha = byte.Parse(el_.SelectSingleNode("TransitionAlpha").InnerText);
-        TransitionOffTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOffTime").InnerText);
-        TransitionOnTime = TimeSpan.Parse(el.SelectSingleNode("TransitionOnTime").InnerText);
+        TransitionOffTime = TimeSpan.Parse(element.GetProperty("transition_off_time").GetString());
+        TransitionOnTime = TimeSpan.Parse(element.GetProperty("transition_on_time").GetString());
         //this.TransitionPosition = float.Parse(el_.SelectSingleNode("TransitionPosition").InnerText);
     }
 
@@ -246,7 +244,7 @@ public abstract class Screen : Entity
 
 #if EDITOR
 
-    public bool CompareTo(Entity other)
+    public bool CompareTo(object other)
     {
         if (other is Screen == false)
         {
@@ -264,12 +262,7 @@ public abstract class Screen : Entity
                && _otherScreenHasFocus == screen._otherScreenHasFocus;
     }
 
-    public override void Save(XmlElement el, SaveOption opt)
-    {
-
-    }
-
-    public override void Save(BinaryWriter bw, SaveOption opt)
+    public virtual void Save(JObject jObject, SaveOption option)
     {
 
     }

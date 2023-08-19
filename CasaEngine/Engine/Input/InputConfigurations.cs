@@ -1,16 +1,14 @@
-﻿using System.Xml;
+﻿using System.Text.Json;
+using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Input.InputSequence;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Engine.Input;
 
 public class InputConfigurations
 {
     private readonly Dictionary<string, ButtonConfiguration> _configs = new();
-
-
-
-
 
     public InputConfigurations()
     {
@@ -24,8 +22,6 @@ public class InputConfigurations
 
          _Configs.Add("default", buttonConfig);*/
     }
-
-
 
     public ButtonConfiguration GetConfig(string name)
     {
@@ -47,24 +43,13 @@ public class InputConfigurations
         _configs.Remove(name);
     }
 
-    public void Save(XmlElement el, SaveOption option)
+    public void Save(JObject jObject, SaveOption option)
     {
 
     }
 
-    public void Load(XmlElement el, SaveOption option)
+    public void Load(JsonElement element, SaveOption option)
     {
 
     }
-
-    public void Save(BinaryWriter bw, SaveOption option)
-    {
-
-    }
-
-    public void Load(BinaryReader br, SaveOption option)
-    {
-
-    }
-
 }

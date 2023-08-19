@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Engine.Input;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Entities.Components;

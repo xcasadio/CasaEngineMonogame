@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
 
@@ -12,7 +13,7 @@ public class SpriteData : Asset
     public List<Socket> Sockets { get; } = new();
     public List<Collision2d> CollisionShapes { get; } = new();
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
         Name = element.GetJsonPropertyByName("asset_name").Value.GetString(); //TODO : in base.Load()
 
@@ -43,7 +44,7 @@ public class SpriteData : Asset
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("asset_name", Name);
         jObject.Add("sprite_sheet", SpriteSheetFileName);

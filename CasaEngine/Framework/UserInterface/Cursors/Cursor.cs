@@ -1,14 +1,12 @@
-﻿using System.Xml;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets;
+﻿using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.UserInterface.Cursors;
+
 #if (WINDOWS)
 
 public class Cursor : Asset
 {
-
     public GraphicsDevice GraphicsDevice { get; private set; }
 
     public System.Windows.Forms.Cursor Resource { get; private set; }
@@ -43,16 +41,5 @@ public class Cursor : Asset
             Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(FileName, GraphicsDevice);
         }
     } // RecreateResource
-
-    public override void Load(BinaryReader br, SaveOption option)
-    {
-
-    }
-
-    public override void Load(XmlElement el, SaveOption option)
-    {
-
-    }
-
 } // Cursor
 #endif
