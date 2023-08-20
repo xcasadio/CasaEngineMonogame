@@ -1,193 +1,90 @@
-//-----------------------------------------------------------------------------
-// RandomHelper.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
 using Microsoft.Xna.Framework;
+using System;
 
 namespace CasaEngine.Core.Helpers;
 
-/// <summary>
-/// Random helper
-/// </summary>
 public static class RandomHelper
 {
-    /// <summary>
-    /// Global random generator
-    /// </summary>
-    public static Random GlobalRandomGenerator = GenerateNewRandomGenerator();
-
-    /// <summary>
-    /// Generate a new random generator with help of
-    /// WindowsHelper.GetPerformanceCounter.
-    /// Also used for all GetRandom methods here.
-    /// </summary>
-    /// <returns>Random</returns>
-    public static Random GenerateNewRandomGenerator()
+    public static Random Create()
     {
-        GlobalRandomGenerator = new Random((int)DateTime.Now.Ticks);
-        //needs Interop: (int)WindowsHelper.GetPerformanceCounter());
-        return GlobalRandomGenerator;
+        return new Random(Environment.TickCount);
     }
 
-
-    /// <summary>
-    /// Get random int
-    /// </summary>
-    /// <returns>Int</returns>
-    public static int GetRandomInt()
+    public static float Variation(this Random random, float value, float variation)
     {
-        return GlobalRandomGenerator.Next();
+        float min = value - variation;
+        float max = value + variation;
+
+        return random.NextFloat(min, max);
     }
 
-    /// <summary>
-    /// Get random int
-    /// </summary>
-    /// <param name="max">Maximum</param>
-    /// <returns>Int</returns>
-    public static int GetRandomInt(int max)
+    public static int Choose(this Random random, params int[] values)
     {
-        return GlobalRandomGenerator.Next(max);
-    }
-
-    /// <summary>
-    /// Get random int
-    /// </summary>
-    /// <param name="min">Minimum</param>
-    /// <param name="max">Maximum</param>
-    /// <returns>Int</returns>
-    public static int GetRandomInt(int min, int max)
-    {
-        return GlobalRandomGenerator.Next(min, max);
-    }
-
-    /// <summary>
-    /// Get random float between min and max
-    /// </summary>
-    /// <param name="min">Min</param>
-    /// <param name="max">Max</param>
-    /// <returns>Float</returns>
-    public static float GetRandomFloat(float min, float max)
-    {
-        return (float)GlobalRandomGenerator.NextDouble() * (max - min) + min;
-    }
-
-    /// <summary>
-    /// Returns a random boolean value.
-    /// </summary>
-    public static bool NextBool()
-    {
-        return GetRandomInt(2) == 1;
-    }
-
-    /// <summary>
-    /// Get random byte between min and max
-    /// </summary>
-    /// <param name="min">Min</param>
-    /// <param name="max">Max</param>
-    /// <returns>Byte</returns>
-    public static byte GetRandomByte(byte min, byte max)
-    {
-        return (byte)GlobalRandomGenerator.Next(min, max);
-    }
-
-    /// <summary>
-    /// Get random Vector2
-    /// </summary>
-    /// <param name="min">Minimum for each component</param>
-    /// <param name="max">Maximum for each component</param>
-    /// <returns>Vector2</returns>
-    public static Vector2 GetRandomVector2(float min, float max)
-    {
-        return new Vector2(
-            GetRandomFloat(min, max),
-            GetRandomFloat(min, max));
-    }
-
-    /// <summary>
-    /// Get random Vector3
-    /// </summary>
-    /// <param name="min">Minimum for each component</param>
-    /// <param name="max">Maximum for each component</param>
-    /// <returns>Vector3</returns>
-    public static Vector3 GetRandomVector3(float min, float max)
-    {
-        return new Vector3(
-            GetRandomFloat(min, max),
-            GetRandomFloat(min, max),
-            GetRandomFloat(min, max));
-    }
-
-    /// <summary>
-    /// Get random color
-    /// </summary>
-    /// <returns>Color</returns>
-    public static Color RandomColor =>
-        new Color(new Vector3(
-            GetRandomFloat(0f, 1.0f),
-            GetRandomFloat(0f, 1.0f),
-            GetRandomFloat(0f, 1.0f)));
-
-    /// <summary>
-    /// Get random normal Vector3
-    /// </summary>
-    /// <returns>Vector3</returns>
-    public static Vector3 RandomNormalVector3
-    {
-        get
-        {
-            Vector3 randomNormalVector = new Vector3(
-                GetRandomFloat(-1.0f, 1.0f),
-                GetRandomFloat(-1.0f, 1.0f),
-                GetRandomFloat(-1.0f, 1.0f));
-            randomNormalVector.Normalize();
-            return randomNormalVector;
-        }
-    }
-
-    /// <summary>
-    /// Returns a random variation of the specified value.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <param name="variation">The variation multiple of the value.</param>
-    /// <example>a value of 10 with a variation of 0.5 will result in a random number between 5.0 and 15.</example>
-    public static float Variation(float value, float variation)
-    {
-        float min = value - variation,
-            max = value + variation;
-
-        return GetRandomFloat(min, max);
-    }
-
-    /// <summary>
-    /// Chooses a random item from the specified parameters and returns it.
-    /// </summary>
-    public static int Choose(params int[] values)
-    {
-        int index = GetRandomInt(values.Length);
-
+        int index = random.NextInt32(0, values.Length);
         return values[index];
     }
 
-    /// <summary>
-    /// Chooses a random item from the specified parameters and returns it.
-    /// </summary>
-    public static float Choose(params float[] values)
+    public static float Choose(this Random random, params float[] values)
     {
-        int index = GetRandomInt(values.Length);
-
+        int index = random.NextInt32(0, values.Length);
         return values[index];
     }
 
-    /// <summary>
-    /// Chooses a random item from the specified parameters and returns it.
-    /// </summary>
-    public static T Choose<T>(params T[] values)
+    public static T Choose<T>(this Random random, params T[] values)
     {
-        int index = GetRandomInt(values.Length);
-
+        int index = random.NextInt32(0, values.Length);
         return values[index];
     }
+
+    public static float NextFloat(this Random random, float min, float max) => MathHelper.Lerp(min, max, (float)random.NextDouble());
+
+
+    public static int NextInt32(this Random random, int min, int max) => Math.Abs(random.Next() % (max - min + 1)) + min;
+
+    public static long NextLong(this Random random)
+    {
+        byte[] buffer = new byte[8];
+        random.NextBytes(buffer);
+        return BitConverter.ToInt64(buffer, 0);
+    }
+
+    public static long NextLong(this Random random, long min, long max)
+    {
+        byte[] buffer = new byte[8];
+        random.NextBytes(buffer);
+        return Math.Abs(BitConverter.ToInt64(buffer, 0) % (max - min + 1L)) + min;
+    }
+
+    public static Vector2 NextVector2(this Random random, Vector2 min, Vector2 max) => new Vector2(random.NextFloat(min.X, max.X), random.NextFloat(min.Y, max.Y));
+
+    public static Vector3 NextVector3(this Random random, Vector3 min, Vector3 max) => new Vector3(random.NextFloat(min.X, max.X), random.NextFloat(min.Y, max.Y), random.NextFloat(min.Z, max.Z));
+
+    public static Vector4 NextVector4(this Random random, Vector4 min, Vector4 max) => new Vector4(random.NextFloat(min.X, max.X), random.NextFloat(min.Y, max.Y), random.NextFloat(min.Z, max.Z), random.NextFloat(min.W, max.W));
+
+    public static Color NextColor(this Random random) => new Color(random.NextFloat(0.0f, 1f), random.NextFloat(0.0f, 1f), random.NextFloat(0.0f, 1f), 1f);
+
+    public static Color NextColor(this Random random, float minBrightness, float maxBrightness) => new Color(random.NextFloat(minBrightness, maxBrightness), random.NextFloat(minBrightness, maxBrightness), random.NextFloat(minBrightness, maxBrightness), 1f);
+
+    public static Color NextColor(
+      this Random random,
+      float minBrightness,
+      float maxBrightness,
+      float alpha)
+    {
+        return new Color(random.NextFloat(minBrightness, maxBrightness), random.NextFloat(minBrightness, maxBrightness), random.NextFloat(minBrightness, maxBrightness), alpha);
+    }
+
+    public static Color NextColor(
+      this Random random,
+      float minBrightness,
+      float maxBrightness,
+      float minAlpha,
+      float maxAlpha)
+    {
+        return new Color(random.NextFloat(minBrightness, maxBrightness), random.NextFloat(minBrightness, maxBrightness), random.NextFloat(minBrightness, maxBrightness), random.NextFloat(minAlpha, maxAlpha));
+    }
+
+    public static Point NextPoint(this Random random, Point min, Point max) => new Point(random.Next(min.X, max.X), random.Next(min.Y, max.Y));
+
+    public static TimeSpan NextTime(this Random random, TimeSpan min, TimeSpan max) => TimeSpan.FromTicks(random.NextLong(min.Ticks, max.Ticks));
 }
