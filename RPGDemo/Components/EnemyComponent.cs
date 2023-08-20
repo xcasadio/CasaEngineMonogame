@@ -1,36 +1,35 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
 using RPGDemo.Controllers;
 using Component = CasaEngine.Framework.Entities.Component;
 
-namespace RPGDemo;
+namespace RPGDemo.Components;
 
-[DisplayName("PlayerComponent")]
-public class PlayerComponent : Component
+[DisplayName("EnemyComponent")]
+public class EnemyComponent : Component
 {
-    public static readonly int ComponentId = (int)ComponentIds.Custom + 1;
+    public static readonly int ComponentId = (int)RpgDemoComponentIds.EnemyComponent;
 
-    private readonly HumanPlayerController _playerController;
+    public EnemyController Controller { get; }
+
     public Character Character { get; }
 
-    public PlayerComponent(Entity owner) : base(owner, ComponentId)
+    public EnemyComponent(Entity owner) : base(owner, ComponentId)
     {
         Character = new Character(owner);
-        _playerController = new HumanPlayerController(Character, PlayerIndex.One);
+        Controller = new EnemyController(Character);
     }
 
     public override void Initialize(CasaEngineGame game)
     {
-        _playerController.Initialize(game);
+        Controller.Initialize(game);
     }
 
     public override void Update(float elapsedTime)
     {
-        _playerController.Update(elapsedTime);
+        Controller.Update(elapsedTime);
     }
 
     public override void Draw()
@@ -45,6 +44,6 @@ public class PlayerComponent : Component
 
     public override Component Clone(Entity owner)
     {
-        return new PlayerComponent(owner);
+        return new EnemyComponent(owner);
     }
 }

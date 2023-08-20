@@ -31,7 +31,7 @@ public class AiController : Controller
 
     public override void Initialize(CasaEngineGame game)
     {
-
+        base.Initialize(game);
     }
 
     public override void Update(float elapsedTime)

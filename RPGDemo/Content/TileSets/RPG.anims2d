@@ -6,7 +6,7 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.03,
+          "duration": 0.06,
           "sprite_id": "sword_14"
         },
         {
@@ -384,12 +384,12 @@
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_16"
+          "sprite_id": "octopus_15"
         },
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_0"
+          "sprite_id": "octopus_16"
         }
       ]
     },
@@ -405,12 +405,12 @@
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_13"
+          "sprite_id": "octopus_12"
         },
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_0"
+          "sprite_id": "octopus_13"
         }
       ]
     },
@@ -426,12 +426,12 @@
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_10"
+          "sprite_id": "octopus_9"
         },
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_0"
+          "sprite_id": "octopus_10"
         }
       ]
     },
@@ -447,12 +447,12 @@
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_19"
+          "sprite_id": "octopus_18"
         },
         {
           "asset_name": "",
           "duration": 0.15,
-          "sprite_id": "octopus_0"
+          "sprite_id": "octopus_19"
         }
       ]
     },
@@ -462,12 +462,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_6"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_7"
         }
       ]
@@ -478,12 +478,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_4"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_5"
         }
       ]
@@ -494,12 +494,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_0"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_1"
         }
       ]
@@ -510,12 +510,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_2"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 1.0,
           "sprite_id": "octopus_3"
         }
       ]
@@ -526,12 +526,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_6"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_7"
         }
       ]
@@ -542,12 +542,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_4"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_5"
         }
       ]
@@ -558,12 +558,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_0"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_1"
         }
       ]
@@ -574,12 +574,12 @@
       "frames": [
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_2"
         },
         {
           "asset_name": "",
-          "duration": 0.15,
+          "duration": 0.33,
           "sprite_id": "octopus_3"
         }
       ]

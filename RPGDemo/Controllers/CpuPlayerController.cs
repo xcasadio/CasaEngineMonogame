@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using RPGDemo.Controllers.CpuPlayerState;
 using static RPGDemo.Controllers.Character;

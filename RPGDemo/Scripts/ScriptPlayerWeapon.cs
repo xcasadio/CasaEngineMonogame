@@ -3,6 +3,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
+using RPGDemo.Components;
 
 namespace RPGDemo.Scripts;
 
@@ -32,6 +33,12 @@ public class ScriptPlayerWeapon : IExternalComponent
 
     public void OnHit(Collision collision)
     {
+        HitWithGrass(collision);
+        HitWithEnemy(collision);
+    }
+
+    private void HitWithGrass(Collision collision)
+    {
         TileCollisionManager tileCollisionManager = null;
 
         if (collision.ColliderA.Owner == _entity)
@@ -40,10 +47,30 @@ public class ScriptPlayerWeapon : IExternalComponent
         }
         else if (collision.ColliderB.Owner == _entity)
         {
-            tileCollisionManager = collision.ColliderB as TileCollisionManager;
+            tileCollisionManager = collision.ColliderA as TileCollisionManager;
         }
 
         if (tileCollisionManager != null)
+        {
+            //check if it AutoTile grass
+            //tileCollisionManager.RemoveTile();
+        }
+    }
+
+    private void HitWithEnemy(Collision collision)
+    {
+        EnemyComponent enemyComponent = null;
+
+        if (collision.ColliderA.Owner == _entity)
+        {
+            enemyComponent = collision.ColliderB.Owner.ComponentManager.GetComponent<EnemyComponent>();
+        }
+        else if (collision.ColliderB.Owner == _entity)
+        {
+            enemyComponent = collision.ColliderA.Owner.ComponentManager.GetComponent<EnemyComponent>();
+        }
+
+        if (enemyComponent != null)
         {
             //check if it AutoTile grass
             //tileCollisionManager.RemoveTile();

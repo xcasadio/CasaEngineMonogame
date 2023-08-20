@@ -10,7 +10,7 @@ public class PlayerWalkState : IState<Controller>
 
     public void Enter(Controller controller)
     {
-        Vector2 joyDir = Vector2.Zero;
+        var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Walk);
     }
@@ -22,7 +22,7 @@ public class PlayerWalkState : IState<Controller>
 
     public void Update(Controller controller, float elapsedTime)
     {
-        HumanPlayerController c = (HumanPlayerController)controller;
+        var c = (HumanPlayerController)controller;
         //PlayerIndex playerIndex = c.PlayerIndex;
 
         if (c.IsAttackButtonPressed() && controller.Character.CanAttack)

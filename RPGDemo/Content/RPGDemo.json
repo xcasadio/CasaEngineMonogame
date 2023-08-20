@@ -1,0 +1,14 @@
+{
+  "WindowTitle": "Project name undefined",
+  "ProjectName": "RPGDemo",
+  "FirstScreenName": "",
+  "AllowUserResizing": false,
+  "IsFixedTimeStep": false,
+  "IsMouseVisible": false,
+  "FirstWorldLoaded": "DefaultWorld.world",
+  "GameplayDllName": "",
+  "DebugIsFullScreen": false,
+  "DebugWidth": 1024,
+  "DebugHeight": 768,
+  "ExternalToolsDirectory": "ExternalTools"
+}

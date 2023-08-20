@@ -293,11 +293,11 @@ public class Character
 
         if (v.Y < -DeadZone)
         {
-            dir = Character2dDirection.Up;
+            dir = Character2dDirection.Down;
         }
         else if (v.Y > DeadZone)
         {
-            dir = Character2dDirection.Down;
+            dir = Character2dDirection.Up;
         }
 
         return dir;

@@ -1,7 +1,6 @@
 ﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
-using Microsoft.Xna.Framework;
 
 namespace RPGDemo.Controllers.EnemyState;
 
@@ -24,7 +23,7 @@ public class EnemyMoveToState : IState<Controller>
         //move to player
         if (controller is EnemyController ec)
         {
-            Vector2 dir = ec.TargetPosition - ec.Character.Position.ToVector2();
+            var dir = ec.TargetPosition - ec.Character.Position.ToVector2();
 
             if (dir.LengthSquared() <= 10 * 10)
             {

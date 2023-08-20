@@ -12,7 +12,7 @@ public class PlayerAttack2State : IState<Controller>
     {
         controller.Character.DoANewAttack();
 
-        Vector2 joyDir = Vector2.Zero;
+        var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Attack2);
         controller.Character.AttachWeapon();
@@ -25,7 +25,7 @@ public class PlayerAttack2State : IState<Controller>
 
     public void Update(Controller controller, float elapsedTime)
     {
-        HumanPlayerController c = (HumanPlayerController)controller;
+        var c = (HumanPlayerController)controller;
 
         if (controller.Character.ComboNumber == 1
             //&& controller.Character.AnimatedSpriteComponent.CurrentAnimation.CurrentFrameIndex >= 2

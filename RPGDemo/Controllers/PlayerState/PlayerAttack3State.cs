@@ -12,7 +12,7 @@ public class PlayerAttack3State : IState<Controller>
     {
         controller.Character.DoANewAttack();
 
-        Vector2 joyDir = Vector2.Zero;
+        var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Attack3);
         controller.Character.AttachWeapon();

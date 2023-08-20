@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Design;
@@ -10,14 +11,14 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using RPGDemo.Controllers;
+using RPGDemo.Components;
 using RPGDemo.Scripts;
+using static Assimp.Metadata;
 
 namespace RPGDemo;
 
@@ -71,11 +72,21 @@ public class RpgGame : CasaEngineGame
         world.AddEntityImmediately(entity);
 
         //============ common ressources ===============
-        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", GameManager.AssetContentManager, SaveOption.Editor);
-        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG_animations.anims2d", GameManager.AssetContentManager);
+        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG.spritesheet", GameManager.AssetContentManager, SaveOption.Editor);
+        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG.anims2d", GameManager.AssetContentManager);
 
+        var playerComponent = CreatePlayer(animations, world);
+        CreateEnemy(animations, world, playerComponent);
+
+        base.LoadContent();
+
+        GameManager.ActiveCamera = camera;
+    }
+
+    private static PlayerComponent CreatePlayer(List<Animation2dData> animations, World world)
+    {
         //============ sword ===============
-        entity = new Entity();
+        var entity = new Entity();
         var weaponEntity = entity;
         entity.IsVisible = false;
         entity.IsEnabled = false;
@@ -86,6 +97,7 @@ public class RpgGame : CasaEngineGame
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
+
         var gamePlayComponent = new GamePlayComponent(entity);
         entity.ComponentManager.Components.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon(entity);
@@ -112,6 +124,7 @@ public class RpgGame : CasaEngineGame
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
+
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
         var playerComponent = new PlayerComponent(entity);
@@ -121,11 +134,42 @@ public class RpgGame : CasaEngineGame
 
         world.AddEntityImmediately(entity);
 
-        base.LoadContent();
-
-        GameManager.ActiveCamera = camera;
+        return playerComponent;
     }
 
+    private static void CreateEnemy(List<Animation2dData> animations, World world, PlayerComponent playerComponent)
+    {
+        var entity = new Entity();
+        entity.Name = "Octopus";
+        entity.Coordinates.LocalPosition = new Vector3(600, 600, 0.3f);
+        var physicsComponent = new Physics2dComponent(entity);
+        entity.ComponentManager.Components.Add(physicsComponent);
+        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+        physicsComponent.PhysicsDefinition.Mass = 1.0f;
+        physicsComponent.Shape = new ShapeCircle(25);
+        physicsComponent.PhysicsDefinition.ApplyGravity = false;
+        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
+        physicsComponent.PhysicsDefinition.Friction = 0f;
+        physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
+        physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
+        var animatedSprite = new AnimatedSpriteComponent(entity);
+        entity.ComponentManager.Components.Add(animatedSprite);
+        foreach (var animation in animations.Where(x => x.Name.StartsWith("octopus")))
+        {
+            animatedSprite.AddAnimation(new Animation2d(animation));
+        }
+
+        animatedSprite.SetCurrentAnimation("octopus_stand_right", true);
+
+        var enemyComponent = new EnemyComponent(entity);
+        enemyComponent.Character.AnimatationPrefix = "octopus";
+        //enemyComponent.Character.SetWeapon(weaponEntity);
+        entity.ComponentManager.Components.Add(enemyComponent);
+
+        enemyComponent.Controller.PlayerHunted = playerComponent.Character;
+
+        world.AddEntityImmediately(entity);
+    }
 
     protected override void Update(GameTime gameTime)
     {

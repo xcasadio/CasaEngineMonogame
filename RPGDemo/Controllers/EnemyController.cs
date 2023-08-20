@@ -4,13 +4,9 @@ using static RPGDemo.Controllers.Character;
 
 namespace RPGDemo.Controllers;
 
-public class EnemyController
-    : AiController
+public class EnemyController : AiController
 {
     Character _playerHunted;
-
-    //to delete
-    int _s = 0;
 
     public Character PlayerHunted
     {

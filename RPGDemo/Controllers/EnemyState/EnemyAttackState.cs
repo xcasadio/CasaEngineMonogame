@@ -12,7 +12,7 @@ public class EnemyAttackState : IState<Controller>
     {
         controller.Character.DoANewAttack();
         controller.Character.ComboNumber = 0;
-        Vector2 joyDir = Vector2.Zero;
+        var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Attack);
     }

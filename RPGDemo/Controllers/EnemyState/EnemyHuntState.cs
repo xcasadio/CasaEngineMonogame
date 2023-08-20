@@ -11,7 +11,7 @@ public class EnemyHuntState : IState<Controller>
 
     public virtual void Enter(Controller controller)
     {
-        Vector2 joyDir = Vector2.Zero;
+        var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
 
         //if (controller is EnemyController enemyController)
@@ -55,8 +55,8 @@ public class EnemyHuntState : IState<Controller>
         //move to player
         if (controller is EnemyController enemyController)
         {
-            Vector2 dir = (enemyController.PlayerHunted.Position - enemyController.Character.Position).ToVector2();
-            float l = dir.LengthSquared();
+            var dir = (enemyController.PlayerHunted.Position - enemyController.Character.Position).ToVector2();
+            var l = dir.LengthSquared();
             dir.Normalize();
 
             if (l <= 100 * 100

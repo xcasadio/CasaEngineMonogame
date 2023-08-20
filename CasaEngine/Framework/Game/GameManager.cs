@@ -225,21 +225,6 @@ public class GameManager
 #endif
     }
 
-    private void CreateCameraEditor()
-    {
-        _cameraEditorEntity = new Entity { Name = "Camera" };
-        _cameraEditorEntity.IsTemporary = true;
-        _cameraEditorEntity.IsVisible = false;
-        _cameraEditor = new ArcBallCameraComponent(_cameraEditorEntity);
-        _cameraEditorEntity.ComponentManager.Components.Add(_cameraEditor);
-        _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        var gamePlayComponent = new GamePlayComponent(_cameraEditorEntity);
-        _cameraEditorEntity.ComponentManager.Components.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera(_cameraEditorEntity);
-
-        _cameraEditorEntity.Initialize(_game);
-    }
-
     public void BeginUpdate(GameTime gameTime)
     {
         if (CurrentWorld == null)
@@ -312,6 +297,22 @@ public class GameManager
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
         InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
+    }
+    
+
+    private void CreateCameraEditor()
+    {
+        _cameraEditorEntity = new Entity { Name = "Camera" };
+        _cameraEditorEntity.IsTemporary = true;
+        _cameraEditorEntity.IsVisible = false;
+        _cameraEditor = new ArcBallCameraComponent(_cameraEditorEntity);
+        _cameraEditorEntity.ComponentManager.Components.Add(_cameraEditor);
+        _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+        var gamePlayComponent = new GamePlayComponent(_cameraEditorEntity);
+        _cameraEditorEntity.ComponentManager.Components.Add(gamePlayComponent);
+        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera(_cameraEditorEntity);
+
+        _cameraEditorEntity.Initialize(_game);
     }
 #endif
 }
