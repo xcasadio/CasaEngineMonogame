@@ -227,7 +227,7 @@ public class Character
 
     public void DoANewAttack()
     {
-        _delayBeforeNewAttack = 1.2f;
+        _delayBeforeNewAttack = 1.0f;
         //m_AlreadyAttacked.Clear();
     }
 
@@ -235,7 +235,6 @@ public class Character
     {
         _weapon = weapon;
         _weapon.Parent = Owner;
-        _weapon.Coordinates.Parent = Owner.Coordinates;
     }
 
     public void AttachWeapon()

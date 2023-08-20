@@ -19,6 +19,8 @@ public class Entity : ISaveLoad
     , ITransformable
 #endif
 {
+    private Entity? _parent;
+
     [Category("Object"), ReadOnly(true)]
     public long Id { get; private set; }
 
@@ -26,7 +28,15 @@ public class Entity : ISaveLoad
     public string Name { get; set; } = string.Empty;
 
     [Browsable(false)]
-    public Entity? Parent { get; set; }
+    public Entity? Parent
+    {
+        get => _parent;
+        set
+        {
+            _parent = value;
+            Coordinates.Parent = _parent?.Coordinates;
+        }
+    }
 
     [Browsable(false)]
     public ComponentManager ComponentManager { get; }

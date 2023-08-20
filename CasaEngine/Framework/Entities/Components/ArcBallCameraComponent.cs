@@ -14,7 +14,6 @@ public class ArcBallCameraComponent : Camera3dComponent
     public static readonly int ComponentId = (int)ComponentIds.ArcBallCamera;
 
     private Vector3 _target;
-    private Quaternion _orientation;
     private float _distance;
     private float _yaw, _pitch;
     private float _inputTurnRate;
@@ -52,11 +51,10 @@ public class ArcBallCameraComponent : Camera3dComponent
         }
     }
 
-    private void ComputeOrientation()
+    private Quaternion Orientation
     {
-        var q1 = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw);
-        var q2 = Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
-        _orientation = q1 * q2;
+        get => Owner.Coordinates.LocalRotation;
+        set => Owner.Coordinates.LocalRotation = value;
     }
 
     public Vector3 Direction
@@ -68,12 +66,14 @@ public class ArcBallCameraComponent : Camera3dComponent
             //  1.  We're using unit quaternions
             //  2.  The initial aspect does not change
             //The reduced form of the same equation follows
+            var orientation = Orientation;
+
             var dir = Vector3.Zero;
-            dir.X = -2.0f * (_orientation.X * _orientation.Z + _orientation.W * _orientation.Y);
-            dir.Y = 2.0f * (_orientation.W * _orientation.X - _orientation.Y * _orientation.Z);
+            dir.X = -2.0f * (orientation.X * orientation.Z + orientation.W * orientation.Y);
+            dir.Y = 2.0f * (orientation.W * orientation.X - orientation.Y * orientation.Z);
             dir.Z =
-                _orientation.X * _orientation.X + _orientation.Y * _orientation.Y -
-                (_orientation.Z * _orientation.Z + _orientation.W * _orientation.W);
+                orientation.X * orientation.X + orientation.Y * orientation.Y -
+                (orientation.Z * orientation.Z + orientation.W * orientation.W);
             dir.Normalize();
             return dir;
         }
@@ -88,12 +88,14 @@ public class ArcBallCameraComponent : Camera3dComponent
             //  1.  We're using unit quaternions
             //  2.  The initial aspect does not change
             //The reduced form of the same equation follows
+            var orientation = Orientation;
+
             var right = Vector3.Zero;
             right.X =
-                _orientation.X * _orientation.X + _orientation.W * _orientation.W -
-                (_orientation.Z * _orientation.Z + _orientation.Y * _orientation.Y);
-            right.Y = 2.0f * (_orientation.X * _orientation.Y + _orientation.Z * _orientation.W);
-            right.Z = 2.0f * (_orientation.X * _orientation.Z - _orientation.Y * _orientation.W);
+                orientation.X * orientation.X + orientation.W * orientation.W -
+                (orientation.Z * orientation.Z + orientation.Y * orientation.Y);
+            right.Y = 2.0f * (orientation.X * orientation.Y + orientation.Z * orientation.W);
+            right.Z = 2.0f * (orientation.X * orientation.Z - orientation.Y * orientation.W);
 
             return right;
         }
@@ -108,19 +110,20 @@ public class ArcBallCameraComponent : Camera3dComponent
             //  1.  We're using unit quaternions
             //  2.  The initial aspect does not change
             //The reduced form of the same equation follows
+            var orientation = Orientation;
+
             var up = Vector3.Zero;
-            up.X = 2.0f * (_orientation.X * _orientation.Y - _orientation.Z * _orientation.W);
+            up.X = 2.0f * (orientation.X * orientation.Y - orientation.Z * orientation.W);
             up.Y =
-                _orientation.Y * _orientation.Y + _orientation.W * _orientation.W -
-                (_orientation.Z * _orientation.Z + _orientation.X * _orientation.X);
-            up.Z = 2.0f * (_orientation.Y * _orientation.Z + _orientation.X * _orientation.W);
+                orientation.Y * orientation.Y + orientation.W * orientation.W -
+                (orientation.Z * orientation.Z + orientation.X * orientation.X);
+            up.Z = 2.0f * (orientation.Y * orientation.Z + orientation.X * orientation.W);
             return up;
         }
     }
 
     public override Vector3 Position => _target - Direction * _distance;
 
-    //set => SetCamera(value, _target, Up);
     public Vector3 Target
     {
         get { return _target; }
@@ -128,6 +131,7 @@ public class ArcBallCameraComponent : Camera3dComponent
         {
             _needToComputeViewMatrix = true;
             _target = value;
+            UpdatePosition();
 #if EDITOR
             OnPropertyChanged();
 #endif
@@ -142,6 +146,7 @@ public class ArcBallCameraComponent : Camera3dComponent
         {
             _distance = value;
             _needToComputeViewMatrix = true;
+            UpdatePosition();
 #if EDITOR
             OnPropertyChanged();
 #endif
@@ -184,8 +189,9 @@ public class ArcBallCameraComponent : Camera3dComponent
 
         //orientation quaternion assumes a PI rotation so you're facing the "front"
         //of the model (looking down the +Z axis)
-        _orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
+        Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
         _target = Vector3.Zero;
+        UpdatePosition();
     }
 
     public override void Initialize(CasaEngineGame game)
@@ -328,8 +334,7 @@ public class ArcBallCameraComponent : Camera3dComponent
         MathHelper.Clamp(_pitch, -(MathHelper.PiOver2) + .0001f, (MathHelper.PiOver2) - .0001f);
 
         //create a new aspect based on pitch and yaw
-        _orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) *
-                                             Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
+        Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) * Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
         //normalize to reduce errors
         //orientation.Normalized(); ??
 
@@ -347,8 +352,8 @@ public class ArcBallCameraComponent : Camera3dComponent
         //float mod yaw to avoid eventual precision errors
         //as we move away from 0
         _yaw %= MathHelper.TwoPi;
-        _orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) * Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
-        _orientation.Normalize();
+        Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) * Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
+        Orientation.Normalize();
 
         _needToComputeViewMatrix = true;
     }
@@ -377,7 +382,7 @@ public class ArcBallCameraComponent : Camera3dComponent
         var rot = Quaternion.CreateFromAxisAngle(Right, angle);
         var dir = Direction * _distance;
         Vector3.Transform(ref dir, ref rot, out var vec);
-        _target += vec - dir;
+        Target += vec - dir;
 
         _needToComputeViewMatrix = true;
     }
@@ -389,17 +394,20 @@ public class ArcBallCameraComponent : Camera3dComponent
         var rot = Quaternion.CreateFromAxisAngle(Up, angle);
         var dir = Direction * _distance;
         Vector3.Transform(ref dir, ref rot, out var vec);
-        _target += vec - dir;
+        Target += vec - dir;
 
         _needToComputeViewMatrix = true;
     }
 
     public void SetCamera(Vector3 position, Vector3 target, Vector3 up)
     {
-        up.Normalize();
         Vector3 dir = position - target;
+        Target = -target;
+        Distance = -dir.Length();
+
         Vector3 zAxis = dir;
         zAxis.Normalize();
+        up.Normalize();
         Vector3 xAxis = (Vector3.Cross(zAxis, up));
         xAxis.Normalize();
         Vector3 yAxis = (Vector3.Cross(xAxis, zAxis));
@@ -407,13 +415,11 @@ public class ArcBallCameraComponent : Camera3dComponent
         xAxis = (Vector3.Cross(zAxis, yAxis));
         xAxis.Normalize();
 
-        Target = -target;
-        Distance = -dir.Length();
-        Matrix m = Matrix.Identity;
-        m.Right = xAxis;
-        m.Forward = zAxis;
-        m.Up = yAxis;
-        m = Matrix.Transpose(m);
+        //Matrix m = Matrix.Identity;
+        //m.Right = xAxis;
+        //m.Forward = zAxis;
+        //m.Up = yAxis;
+        //m = Matrix.Transpose(m);
 
         //find the yaw of the direction on the x/z plane
         //and use the sign of the x-component since we have 360 degrees
@@ -426,12 +432,24 @@ public class ArcBallCameraComponent : Camera3dComponent
         Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, zAxis)) - MathHelper.PiOver2);
     }
 
+    private void ComputeOrientation()
+    {
+        var q1 = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw);
+        var q2 = Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
+        Orientation = q1 * q2;
+    }
+
+    private void UpdatePosition()
+    {
+        Owner.Coordinates.LocalPosition = Position;
+    }
+
     public override Component Clone(Entity owner)
     {
         var component = new ArcBallCameraComponent(owner);
 
         component._target = _target;
-        component._orientation = _orientation;
+        component.Orientation = Orientation;
         component._distance = _distance;
         component._yaw = _yaw;
         component._pitch = _pitch;
@@ -448,8 +466,6 @@ public class ArcBallCameraComponent : Camera3dComponent
         base.Load(element);
 
         _target = element.GetProperty("target").GetVector3();
-        _orientation = element.GetProperty("orientation").GetQuaternion();
-
         _distance = element.GetProperty("distance").GetSingle();
         _yaw = element.GetProperty("yaw").GetSingle();
         _pitch = element.GetProperty("pitch").GetSingle();
@@ -464,11 +480,6 @@ public class ArcBallCameraComponent : Camera3dComponent
         JObject newJObject = new();
         _target.Save(newJObject);
         jObject.Add("target", newJObject);
-
-        newJObject = new();
-        _orientation.Save(newJObject);
-        jObject.Add("orientation", newJObject);
-
         jObject.Add("distance", _distance);
         jObject.Add("yaw", _yaw);
         jObject.Add("pitch", _pitch);
