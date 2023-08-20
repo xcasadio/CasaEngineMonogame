@@ -56,7 +56,7 @@ public class AutoTile : Tile
 
     public void RemovedTileFromLayer()
     {
-        _tiledMapLayerData.tiles[_x + _y * (int)_mapSize.Width] = -1;
+        _tiledMapLayerData.tiles[_x + _y * _mapSize.Width] = -1;
     }
 
     public override void Initialize(CasaEngineGame game)
@@ -81,7 +81,7 @@ public class AutoTile : Tile
             return 0;
         }
 
-        var tileId = layer.tiles[x + y * (int)mapSize.Width];
+        var tileId = layer.tiles[x + y * mapSize.Width];
         if (tileId != -1)
         {
             return (uint)1 << offset;
@@ -96,21 +96,21 @@ public class AutoTile : Tile
             tile.Update(elapsedTime);
         }
         uint mask = 0;
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x - 1, _y, 0);
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y, 1);
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x, _y - 1, 2);
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x, _y + 1, 3);
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x - 1, _y - 1, 4);
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x - 1, _y + 1, 5);
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y - 1, 6);
-        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y + 1, 7);
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x - 1, _y + 0, 0); // mask_left
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y + 0, 1); // mask_right
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 0, _y - 1, 2); // mask_top
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 0, _y + 1, 3); // mask_bottom
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x - 1, _y - 1, 4); // mask_left_top
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x - 1, _y + 1, 5); // mask_left_bottom
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y - 1, 6); // mask_right_top
+        mask |= getMask(_mapSize, _tiledMapLayerData, _x + 1, _y + 1, 7); // mask_right_bottom
 
-        ComputeDrawingInfos(mask, 0, 0, 0, new Rectangle(0, 0, (int)_tileSize.Width, (int)_tileSize.Height));
+        ComputeDrawingInfos(mask, 0, 0, 0, new Rectangle(0, 0, _tileSize.Width, _tileSize.Height));
     }
 
     public override void Draw(float x, float y, float z, Vector2 scale)
     {
-        Draw(x, y, z, new Rectangle(0, 0, (int)_tileSize.Width, (int)_tileSize.Height), scale);
+        Draw(x, y, z, new Rectangle(0, 0, _tileSize.Width, _tileSize.Height), scale);
     }
 
     public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
@@ -153,7 +153,6 @@ public class AutoTile : Tile
         _drawingInfos[2].SetInfo(-1, x, y, z, uvOffset);
         _drawingInfos[3].SetInfo(-1, x, y, z, uvOffset);
 
-        //trivial case
         if (mask == mask_none)
         {
             _drawingInfos[0].SetInfo(0, x, y, z, uvOffset);
@@ -163,20 +162,18 @@ public class AutoTile : Tile
         var width = uvOffset.Width / 2;
         var height = uvOffset.Height / 2;
 
-        //trivial case
         if (mask == mask_all)
         {
             _drawingInfos[0].SetInfo(2, x, y, z, new Rectangle(width, height, width, height));
             _drawingInfos[1].SetInfo(3, x + width, y, z, new Rectangle(0, height, width, height));
-            _drawingInfos[2].SetInfo(4, x, y + height, z, new Rectangle(width, 0, width, height));
-            _drawingInfos[3].SetInfo(5, x + width, y + height, z, new Rectangle(0, 0, width, height));
+            _drawingInfos[2].SetInfo(4, x, y - height, z, new Rectangle(width, 0, width, height));
+            _drawingInfos[3].SetInfo(5, x + width, y - height, z, new Rectangle(0, 0, width, height));
             return;
         }
 
         int index = 0;
-        uint mask1 = 0;
 
-        mask1 = mask & (mask_left_top | mask_top | mask_left);
+        var mask1 = mask & (mask_left_top | mask_top | mask_left);
         //left-top sub tile
         if (mask1 == (mask_left_top | mask_top | mask_left))
         {
@@ -189,7 +186,7 @@ public class AutoTile : Tile
         else if (mask1 == (mask_left_top | mask_top)
                  || mask1 == mask_top)
         {
-            _drawingInfos[index++].SetInfo(4, x, y, z, new Rectangle(0, 0, width, height));
+            _drawingInfos[index++].SetInfo(0, x, y, z, new Rectangle(0, 0, width, height));
         }
         else if (mask1 == (mask_top | mask_left))
         {
@@ -197,7 +194,7 @@ public class AutoTile : Tile
         }
         else if (mask1 == mask_left_top || mask1 == 0)
         {
-            _drawingInfos[index++].SetInfo(0, x, y, z, new Rectangle(0, 0, width, height));
+            _drawingInfos[index++].SetInfo(3, x, y, z, new Rectangle(width, 0, width, height));
         }
         else if (mask1 == mask_left)
         {
@@ -218,7 +215,7 @@ public class AutoTile : Tile
         else if (mask1 == (mask_right_top | mask_top)
                  || mask1 == mask_top)
         {
-            _drawingInfos[index++].SetInfo(3, x, y, z, new Rectangle(width, height, width, height));
+            _drawingInfos[index++].SetInfo(0, x, y, z, new Rectangle(width, height, width, height));
         }
         else if (mask1 == (mask_top | mask_right))
         {
@@ -226,7 +223,7 @@ public class AutoTile : Tile
         }
         else if (mask1 == mask_right_top || mask1 == 0)
         {
-            _drawingInfos[index++].SetInfo(0, x, y, z, new Rectangle(width, 0, width, height));
+            _drawingInfos[index++].SetInfo(3, x, y, z, new Rectangle(width, 0, width, height));
         }
         else if (mask1 == mask_right)
         {
@@ -234,7 +231,7 @@ public class AutoTile : Tile
         }
 
         x -= width;
-        y += height;
+        y -= height;
         mask1 = mask & (mask_left_bottom | mask_bottom | mask_left);
         //left-bottom sub tile
         if (mask1 == (mask_left_bottom | mask_bottom | mask_left))
@@ -257,7 +254,7 @@ public class AutoTile : Tile
         }
         else if (mask1 == mask_left_bottom || mask1 == 0)
         {
-            _drawingInfos[index++].SetInfo(0, x, y, z, new Rectangle(0, height, width, height));
+            _drawingInfos[index++].SetInfo(4, x, y, z, new Rectangle(0, height, width, height));
         }
 
         x += width;
@@ -283,11 +280,11 @@ public class AutoTile : Tile
         }
         else if (mask1 == mask_right_bottom || mask1 == 0)
         {
-            _drawingInfos[index++].SetInfo(0, x, y, z, new Rectangle(width, height, width, height));
+            _drawingInfos[index++].SetInfo(4, x, y, z, new Rectangle(width, height, width, height));
         }
         else if (mask1 == mask_right)
         {
-            _drawingInfos[index++].SetInfo(4, x, y, z, new Rectangle(width, height, width, height));
+            _drawingInfos[index++].SetInfo(0, x, y, z, new Rectangle(width, height, width, height));
         }
     }
 }
