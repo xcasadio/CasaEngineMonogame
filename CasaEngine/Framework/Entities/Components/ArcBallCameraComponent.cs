@@ -1,6 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using CasaEngine.Engine.Input;
-using CasaEngine.Framework.Game;
 using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Helpers;
@@ -16,10 +14,6 @@ public class ArcBallCameraComponent : Camera3dComponent
     private Vector3 _target;
     private float _distance;
     private float _yaw, _pitch;
-    private float _inputTurnRate;
-    private float _inputDistanceRate;
-    private float _inputDisplacementRate;
-    private InputComponent _inputComponent;
 
     public float Pitch
     {
@@ -154,36 +148,10 @@ public class ArcBallCameraComponent : Camera3dComponent
         }
     }
 
-    public float InputDistanceRate
-    {
-        get { return _inputDistanceRate; }
-        set
-        {
-            _inputDistanceRate = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }
-
-    public float InputDisplacementRate
-    {
-        get { return _inputDisplacementRate; }
-        set
-        {
-            _inputDisplacementRate = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }
 
     public ArcBallCameraComponent(Entity entity) : base(entity, ComponentId)
     {
         _distance = 5.0f;
-        InputDistanceRate = 3.0f;
-        _inputTurnRate = 0.3f;
-        InputDisplacementRate = 10.0f;
         _yaw = MathHelper.Pi;
         _pitch = 0.0f;
 
@@ -194,123 +162,9 @@ public class ArcBallCameraComponent : Camera3dComponent
         UpdatePosition();
     }
 
-    public override void Initialize(CasaEngineGame game)
-    {
-        _inputComponent = game.GetGameComponent<InputComponent>();
-        base.Initialize(game);
-    }
-
     public override void Update(float elapsedTime)
     {
-        var rightAxis = 0.0f;
-        var upAxis = 0.0f;
-        var forwardAxis = 0.0f;
-        var horizontalOrbit = 0.0f;
-        var verticalOrbit = 0.0f;
-        var rollOrbit = 0.0f;
-        var zoom = 0.0f;
-
-        const float step = 1.0f;
-
-
-        if (_inputComponent.IsKeyPressed(Keys.Right))
-        {
-            rightAxis = step;
-        }
-        else if (_inputComponent.IsKeyPressed(Keys.Left))
-        {
-            rightAxis = -step;
-        }
-
-        if (_inputComponent.IsKeyPressed(Keys.Up))
-        {
-            forwardAxis = -step;
-        }
-        else if (_inputComponent.IsKeyPressed(Keys.Down))
-        {
-            forwardAxis = step;
-        }
-
-        if (_inputComponent.IsKeyPressed(Keys.PageUp))
-        {
-            upAxis = -step;
-        }
-        else if (_inputComponent.IsKeyPressed(Keys.PageDown))
-        {
-            upAxis = step;
-        }
-
-        if (_inputComponent.MouseRightButtonPressed)
-        {
-            horizontalOrbit = _inputComponent.MouseXMovement;
-            verticalOrbit = -_inputComponent.MouseYMovement;
-        }
-
-        //#if EDITOR
-        rightAxis = -rightAxis;
-        upAxis = -upAxis;
-        horizontalOrbit = -horizontalOrbit;
-        verticalOrbit = -verticalOrbit;
-        //#endif
-
-        //Touch
-        //if (_inputComponent.IsTouchMove(0) == true)
-        //{
-        //    horizontalOrbit = -Game.Instance().GetInput().TouchMoveDeltaX(0);
-        //    verticalOrbit = -Game.Instance().GetInput().TouchMoveDeltaY(0);
-        //}
-
-        HandleControls(elapsedTime, rightAxis, upAxis, forwardAxis, horizontalOrbit, verticalOrbit, rollOrbit, zoom);
-    }
-
-    /**
-     * <param name="gameTime"></param>
-     * <param name="horizontalAxis_"> value between -1.0 and 1.0 </param>
-     * <param name="verticalAxis_"> value between -1.0 and 1.0 </param>
-     * <param name="rollAxis_"> value between -1.0 and 1.0 </param>
-     * <param name="zoom"> zoom value </param>
-    */
-    private void HandleControls(float elapsedTime, float rightAxis_, float upAxis_, float forwardAxis_, float horizontalOrbit_, float verticalOrbit_,
-        float rollOrbit_, float zoom_)
-    {
-        var r = rightAxis_ * elapsedTime * InputDisplacementRate;
-        var u = upAxis_ * elapsedTime * InputDisplacementRate;
-        var f = forwardAxis_ * elapsedTime * InputDisplacementRate;
-
-        var dH = horizontalOrbit_ * elapsedTime * _inputTurnRate;
-        var dV = verticalOrbit_ * elapsedTime * _inputTurnRate;
-        //float dR = rollOrbit_ * elapsedTime * _inputTurnRate;
-
-        if (dH != 0.0f)
-        {
-            RotateTargetRight(dH);
-            OrbitRight(dH);
-        }
-
-        if (dV != 0.0f)
-        {
-            RotateTargetUp(dV);
-            OrbitUp(-dV);
-        }
-        //if ( dR != 0.0f ) RotateClockwise( dR );
-
-        //decrease distance to target
-        if (zoom_ != 0.0f)
-        {
-            _distance += zoom_ * elapsedTime * InputDistanceRate;
-
-            if (_distance < 0.001f)
-            {
-                _distance = 0.001f;
-                _needToComputeViewMatrix = true;
-            }
-        }
-
-        if (r != 0.0f || u != 0.0f || f != 0.0f)
-        {
-            var pos = Target + Right * r + Up * u + Direction * f;
-            Target = pos;
-        }
+        //Do nothing
     }
 
     protected override void ComputeViewMatrix()
@@ -453,10 +307,6 @@ public class ArcBallCameraComponent : Camera3dComponent
         component._distance = _distance;
         component._yaw = _yaw;
         component._pitch = _pitch;
-        component._inputTurnRate = _inputTurnRate;
-        component._inputDistanceRate = _inputDistanceRate;
-        component._inputDisplacementRate = _inputDisplacementRate;
-        component._inputComponent = _inputComponent;
 
         return component;
     }

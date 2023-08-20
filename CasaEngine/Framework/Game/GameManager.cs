@@ -1,6 +1,7 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
+using CasaEngine.Engine.Input.InputSequence;
 using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
@@ -11,6 +12,7 @@ using CasaEngine.Framework.FrontEnd.Screen;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.UserInterface;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,6 +29,7 @@ public class GameManager
 
 #if EDITOR
     private ArcBallCameraComponent _cameraEditor;
+    private Entity _cameraEditorEntity;
 #endif
 
 #if !FINAL
@@ -217,15 +220,24 @@ public class GameManager
         //_physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(CurrentWorld.Physic2dWorld);
 #else
         //in editor the active camera is debug camera and it isn't belong to the world
-        var entity = new Entity { Name = "Camera" };
-        entity.IsTemporary = true;
-        entity.IsVisible = false;
-        _cameraEditor = new ArcBallCameraComponent(entity);
-        entity.ComponentManager.Components.Add(_cameraEditor);
-        _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        _cameraEditor.Initialize(_game);
+        CreateCameraEditor();
         ActiveCamera = _cameraEditor;
 #endif
+    }
+
+    private void CreateCameraEditor()
+    {
+        _cameraEditorEntity = new Entity { Name = "Camera" };
+        _cameraEditorEntity.IsTemporary = true;
+        _cameraEditorEntity.IsVisible = false;
+        _cameraEditor = new ArcBallCameraComponent(_cameraEditorEntity);
+        _cameraEditorEntity.ComponentManager.Components.Add(_cameraEditor);
+        _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+        var gamePlayComponent = new GamePlayComponent(_cameraEditorEntity);
+        _cameraEditorEntity.ComponentManager.Components.Add(gamePlayComponent);
+        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera(_cameraEditorEntity);
+
+        _cameraEditorEntity.Initialize(_game);
     }
 
     public void BeginUpdate(GameTime gameTime)
@@ -249,7 +261,7 @@ public class GameManager
 #if EDITOR
         if (ActiveCamera == _cameraEditor)
         {
-            _cameraEditor.Update(elapsedTime);
+            _cameraEditorEntity.Update(elapsedTime);
         }
 #endif
 

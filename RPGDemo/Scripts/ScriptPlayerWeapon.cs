@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Scripting;
 
 namespace RPGDemo.Scripts;
 
@@ -16,7 +18,7 @@ public class ScriptPlayerWeapon : IExternalComponent
     public string Name { get; }
     public int Id { get; }
 
-    public void Initialize()
+    public void Initialize(CasaEngineGame game)
     {
     }
 

@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Framework.Entities;
+namespace CasaEngine.Framework.Scripting;
 
 public interface IExternalComponent
 {
@@ -8,7 +9,7 @@ public interface IExternalComponent
 
     public int Id { get; }
 
-    public void Initialize();
+    public void Initialize(CasaEngineGame game);
 
     public void Update(float elapsedTime);
 
