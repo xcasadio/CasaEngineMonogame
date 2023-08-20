@@ -22,23 +22,23 @@ namespace CasaEngine.Framework.Game;
 public class GameManager
 {
     private readonly CasaEngineGame _game;
+    private World.World? _currentWorld;
+    private CameraComponent? _activeCamera;
 
-    public string[] Arguments { get; set; }
-    private string ProjectFile { get; set; } = string.Empty;
-    public AssetContentManager AssetContentManager { get; internal set; } = new();
-    public ScreenManager ScreenManager { get; } = new();
-    public UserInterfaceManager UiManager { get; } = new();
-    public SpriteBatch? SpriteBatch { get; set; }
+#if EDITOR
+    private ArcBallCameraComponent _cameraEditor;
+#endif
 
 #if !FINAL
-    public SpriteFont? DefaultSpriteFont { get; set; }
     public string ContentPath = string.Empty;
 #endif
 
-#if EDITOR
-    public BasicEffect? BasicEffect { get; set; }
-#endif
-
+    public string[] Arguments { get; set; }
+    private string ProjectFile { get; set; } = string.Empty;
+    public AssetContentManager AssetContentManager { get; } = new();
+    public ScreenManager ScreenManager { get; } = new();
+    public UserInterfaceManager UiManager { get; } = new();
+    public SpriteBatch? SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
     public Renderer2dComponent Renderer2dComponent { get; private set; }
     public SpriteRendererComponent SpriteRendererComponent { get; private set; }
@@ -49,9 +49,9 @@ public class GameManager
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
-    // Game running infos
-    private World.World? _currentWorld;
-    private CameraComponent? _activeCamera;
+#if !FINAL
+    public SpriteFont? DefaultSpriteFont { get; set; }
+#endif
 
     public World.World? CurrentWorld
     {
@@ -218,11 +218,13 @@ public class GameManager
 #else
         //in editor the active camera is debug camera and it isn't belong to the world
         var entity = new Entity { Name = "Camera" };
-        var camera = new ArcBallCameraComponent(entity);
-        entity.ComponentManager.Components.Add(camera);
-        camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        camera.Initialize(_game);
-        ActiveCamera = camera;
+        entity.IsTemporary = true;
+        entity.IsVisible = false;
+        _cameraEditor = new ArcBallCameraComponent(entity);
+        entity.ComponentManager.Components.Add(_cameraEditor);
+        _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
+        _cameraEditor.Initialize(_game);
+        ActiveCamera = _cameraEditor;
 #endif
     }
 
@@ -242,15 +244,18 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
 #endif
 
+        var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+
 #if EDITOR
-        //In editor the camera is not an entity of the world
-        ActiveCamera?.Update(gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
+        if (ActiveCamera == _cameraEditor)
+        {
+            _cameraEditor.Update(elapsedTime);
+        }
 #endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
         //    DebugSystem.Instance.DebugCommandUI.Show(); 
 
-        var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
         CurrentWorld?.Update(elapsedTime);
         //UiManager.Update(elapsedTime);
     }
