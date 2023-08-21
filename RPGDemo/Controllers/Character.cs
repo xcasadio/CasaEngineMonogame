@@ -6,6 +6,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
+using RPGDemo.Weapons;
 
 namespace RPGDemo.Controllers;
 
@@ -44,7 +45,7 @@ public class Character
     private int _numberOfDirection = 4;
     private int _animationDirectionMask = 0;
     private readonly Dictionary<int, int> _animationDirectionOffset = new();
-    private Entity _weapon;
+    private Weapon _weapon;
     private float _delayBeforeNewAttack;
 
     private Physics2dComponent _physics2dComponent;
@@ -231,29 +232,20 @@ public class Character
         //m_AlreadyAttacked.Clear();
     }
 
-    public void SetWeapon(Entity weapon)
+    public void SetWeapon(Weapon weapon)
     {
         _weapon = weapon;
-        _weapon.Parent = Owner;
+        _weapon.Character = this;
     }
 
     public void AttachWeapon()
     {
-        _weapon.IsEnabled = true;
-        _weapon.IsVisible = true;
-        var animationName = AnimatedSpriteComponent.CurrentAnimation.AnimationData.Name;
-        var animationNameWithOrientation = animationName.Replace(AnimatationPrefix, "baton");
-        _weapon.ComponentManager.GetComponent<AnimatedSpriteComponent>().SetCurrentAnimation(animationNameWithOrientation, true);
+        _weapon.Attach();
     }
 
     public void UnAttachWeapon()
     {
-        _weapon.IsEnabled = false;
-        _weapon.IsVisible = false;
-
-        //collision from the last frame is not removed !!
-        var animatedSpriteComponent = _weapon.ComponentManager.GetComponent<AnimatedSpriteComponent>();
-        animatedSpriteComponent.RemoveCollisionsFromFrame(animatedSpriteComponent.CurrentAnimation.CurrentFrame);
+        _weapon.UnAttachWeapon();
     }
 
     public bool HandleMessage(Message message)

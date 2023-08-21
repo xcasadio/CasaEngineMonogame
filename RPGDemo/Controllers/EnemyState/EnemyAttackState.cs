@@ -15,11 +15,12 @@ public class EnemyAttackState : IState<Controller>
         var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Attack);
+        controller.Character.AttachWeapon();
     }
 
     public virtual void Exit(Controller controller)
     {
-
+        controller.Character.UnAttachWeapon();
     }
 
     public virtual void Update(Controller controller, float elapsedTime)

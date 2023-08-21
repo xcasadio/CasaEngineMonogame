@@ -109,7 +109,10 @@ public class Entity : ISaveLoad
         Coordinates.CopyFrom(entity.Coordinates);
     }
 
-    public void Destroy() { }
+    public void Destroy()
+    {
+        ToBeRemoved = true;
+    }
 
     public void Load(JsonElement element, SaveOption option)
     {

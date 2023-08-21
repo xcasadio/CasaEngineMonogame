@@ -17,7 +17,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RPGDemo.Components;
+using RPGDemo.Controllers;
 using RPGDemo.Scripts;
+using RPGDemo.Weapons;
 using static Assimp.Metadata;
 
 namespace RPGDemo;
@@ -129,7 +131,7 @@ public class RpgGame : CasaEngineGame
 
         var playerComponent = new PlayerComponent(entity);
         playerComponent.Character.AnimatationPrefix = "swordman";
-        playerComponent.Character.SetWeapon(weaponEntity);
+        playerComponent.Character.SetWeapon(new MeleeWeapon(weaponEntity));
         entity.ComponentManager.Components.Add(playerComponent);
 
         world.AddEntityImmediately(entity);
@@ -139,10 +141,40 @@ public class RpgGame : CasaEngineGame
 
     private static void CreateEnemy(List<Animation2dData> animations, World world, PlayerComponent playerComponent)
     {
+        //============ weapon rock ===============
         var entity = new Entity();
+        var rockEntity = entity;
+        entity.IsVisible = false;
+        entity.IsEnabled = false;
+        entity.Name = "rock";
+        var physicsComponent = new Physics2dComponent(entity);
+        entity.ComponentManager.Components.Add(physicsComponent);
+        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+        physicsComponent.PhysicsDefinition.Mass = 1.0f;
+        physicsComponent.Shape = new ShapeCircle(20);
+        physicsComponent.PhysicsDefinition.ApplyGravity = false;
+        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
+        physicsComponent.PhysicsDefinition.Friction = 0f;
+        physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
+        physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
+        var animatedSprite = new AnimatedSpriteComponent(entity);
+        entity.ComponentManager.Components.Add(animatedSprite);
+        foreach (var animation in animations.Where(x => x.Name.StartsWith("rock")))
+        {
+            animatedSprite.AddAnimation(new Animation2d(animation));
+        }
+
+        var gamePlayComponent = new GamePlayComponent(entity);
+        entity.ComponentManager.Components.Add(gamePlayComponent);
+        gamePlayComponent.ExternalComponent = new ScriptEnemyWeapon(entity);
+
+        world.AddEntityImmediately(entity);
+
+        //============ enemy ===============
+        entity = new Entity();
         entity.Name = "Octopus";
         entity.Coordinates.LocalPosition = new Vector3(600, 600, 0.3f);
-        var physicsComponent = new Physics2dComponent(entity);
+        physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
         physicsComponent.PhysicsDefinition.Mass = 1.0f;
@@ -152,7 +184,7 @@ public class RpgGame : CasaEngineGame
         physicsComponent.PhysicsDefinition.Friction = 0f;
         physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
         physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
-        var animatedSprite = new AnimatedSpriteComponent(entity);
+        animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
         foreach (var animation in animations.Where(x => x.Name.StartsWith("octopus")))
         {
@@ -163,7 +195,7 @@ public class RpgGame : CasaEngineGame
 
         var enemyComponent = new EnemyComponent(entity);
         enemyComponent.Character.AnimatationPrefix = "octopus";
-        //enemyComponent.Character.SetWeapon(weaponEntity);
+        enemyComponent.Character.SetWeapon(new ThrowableWeapon(rockEntity));
         entity.ComponentManager.Components.Add(enemyComponent);
 
         enemyComponent.Controller.PlayerHunted = playerComponent.Character;

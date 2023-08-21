@@ -1,6 +1,27 @@
 {
   "animations": [
     {
+      "animation_type": "loop",
+      "asset_name": "rock",
+      "frames": [
+        {
+          "asset_name": "",
+          "duration": 0.16,
+          "sprite_id": "rock_0"
+        },
+        {
+          "asset_name": "",
+          "duration": 0.16,
+          "sprite_id": "rock_1"
+        },
+        {
+          "asset_name": "",
+          "duration": 0.16,
+          "sprite_id": "rock_2"
+        }
+      ]
+    },
+    {
       "animation_type": "once",
       "asset_name": "baton_attack_down",
       "frames": [

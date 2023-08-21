@@ -146,6 +146,14 @@ public class Physics2dComponent : Component, ICollideableComponent
 #endif
     }
 
+    public void SetPosition(Vector3 position)
+    {
+        var physicObject = _rigidBody ?? _collisionObject;
+        var worldMatrix = physicObject.WorldTransform;
+        worldMatrix.Translation = position;
+        physicObject.WorldTransform = worldMatrix;
+    }
+
     public void OnHit(Collision collision)
     {
         Owner.Hit(collision, this);
