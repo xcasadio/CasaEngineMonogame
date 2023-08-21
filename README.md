@@ -8,6 +8,11 @@ I developed this engine with the aim of migrating all my game projects to the sa
 You are welcome, you can contact me with [GitHub Discussions](https://github.com/xcasadio/CasaEngineMonogame/discussions).
 
 ## Features
+* Editor (based on [Stride3d](https://github.com/stride3d/stride))
+  - World & Entity editor
+  - 2D Graphics
+    - Visualization : Sprites, Animations, Tiled map
+  - Asset Manager
 * 2D
   - Sprites
   - Animations
@@ -26,5 +31,6 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
 
 ## Screenshots
 ![Editor](/github/screenshot_editor.jpg)
-![demo physics 2d](/github/demo_physics_2d.jpg)
-![demo physics 3d](/github/demo_physics_3d.jpg)
+![Sprite Editor](/github/screenshot_sprite_editor.jpg)
+![Demo physics 2d](/github/demo_physics_2d.jpg)
+![Demo physics 3d](/github/demo_physics_3d.jpg)
