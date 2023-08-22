@@ -10,17 +10,13 @@
 
 #-------------------------------- References --------------------------------#
 
+
 #---------------------------------- Content ---------------------------------#
 
-#begin monogame-logo.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
+#begin GizmoFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:monogame-logo.png
+/processorParam:TextureFormat=Compressed
+/build:GizmoFont.spritefont
 
