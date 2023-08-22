@@ -29,6 +29,25 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
 * Physics : BulletSharp
 * Models & animations: AssimpNET
 
+## Getting started (Windows)
+1. Download and install **Visual Studio 2022** and **NET 6**
+
+2. Clone the repository:
+
+```sh
+git clone https://github.com/xcasadio/CasaEngineMonogame.git
+```
+
+3. Launch the editor
+    * Select DebugEditor or ReleaseEditor in the configuration Manager
+    * Select the EditorWpf project as startup project
+    * Compile and launch
+
+4. Launch a demo
+    * Select Debug or Release in the configuration Manager
+    * Select the RPGDemo or DemosGame project as startup project
+    * Compile and launch
+
 ## Screenshots
 ![Editor](/github/screenshot_editor.jpg)
 ![Sprite Editor](/github/screenshot_sprite_editor.jpg)
