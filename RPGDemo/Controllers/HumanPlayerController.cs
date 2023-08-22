@@ -77,7 +77,7 @@ public class HumanPlayerController : PlayerController
             direction.Normalize();
         }
 
-        return GetCharacterDirectionFromVector2(direction);
+        return GetCharacterDirectionFromVector2(direction * new Vector2(1f, -1f));
     }
 
     private static void ClampDirection(ref Vector2 direction)

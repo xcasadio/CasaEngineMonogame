@@ -27,7 +27,18 @@ public class ThrowableWeapon : Weapon
         Entity.IsEnabled = true;
         Entity.IsVisible = true;
 
-        _physics2dComponent.SetPosition(Character.Owner.Coordinates.Position);
+        var offsetLength = 20f;
+
+        var offset = Character.CurrentDirection switch
+        {
+            Character2dDirection.Up => Vector2.UnitY * offsetLength,
+            Character2dDirection.Down => -Vector2.UnitY * offsetLength,
+            Character2dDirection.Left => -Vector2.UnitX * offsetLength,
+            Character2dDirection.Right => Vector2.UnitX * offsetLength,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        _physics2dComponent.SetPosition(Character.Owner.Coordinates.Position + new Vector3(offset, 0f));
 
         Vector2 direction = Character.CurrentDirection switch
         {
