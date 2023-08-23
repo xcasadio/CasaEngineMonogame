@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Engine;
 using EditorWpf.Controls.Animation2dControls;
+using EditorWpf.Controls.EntityControls;
 using EditorWpf.Controls.SpriteControls;
 using EditorWpf.Controls.TiledMapControls;
 using EditorWpf.Controls.WorldControls;
@@ -54,6 +55,11 @@ namespace EditorWpf.Controls.ContentBrowser
 
             switch (extension)
             {
+                case Constants.FileNameExtensions.Entity:
+                    var entityControl = window.GetEditorControl<EntityEditorControl>();
+                    window.ActivateEditorControl<EntityEditorControl>();
+                    entityControl.LoadEntity(contentItem.FullPath);
+                    break;
                 case Constants.FileNameExtensions.SpriteSheet:
                     var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                     window.ActivateEditorControl<SpriteEditorControl>();

@@ -39,6 +39,11 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
 
     public override void Draw(GameTime gameTime)
     {
+        if (_meshInfos.Count == 0)
+        {
+            return;
+        }
+
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
         graphicsDevice.DepthStencilState = DepthStencilState.Default;
         GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;

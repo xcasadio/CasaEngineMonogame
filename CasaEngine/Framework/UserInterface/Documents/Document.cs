@@ -38,16 +38,16 @@ public class Document : Asset
 
     public Document(string filename)
     {
-        Name = filename;
-        FileName = filename;
+        AssetInfo.Name = filename;
+        AssetInfo.FileName = filename;
         //FileName = GameInfo.Instance.ProjectManager.ProjectPath + filename;
-        if (File.Exists(FileName + ".skin") == false) //.xnb
+        if (File.Exists($"{AssetInfo.FileName}.skin") == false) //.xnb
         {
-            throw new ArgumentException("Failed to load document: File " + FileName + " does not exists!", nameof(filename));
+            throw new ArgumentException($"Failed to load document: File {AssetInfo.FileName} does not exists!", nameof(filename));
         }
         try
         {
-            Resource = XDocument.Load(FileName + ".skin");
+            Resource = XDocument.Load($"{AssetInfo.FileName}.skin");
             //Resource = new XDocument();
             //Resource = GameInfo.Instance.AssetContentManager.Load<XDocument>(FileName, GameInfo.Instance.Game.GraphicsDevice);
             //Resource = AssetContentManager.CurrentContentManager.XnaContentManager.Load<XDocument>(FileName);
@@ -58,13 +58,13 @@ public class Document : Asset
         }
         catch (Exception e)
         {
-            throw new InvalidOperationException("Failed to load document: " + filename, e);
+            throw new InvalidOperationException($"Failed to load document: {filename}", e);
         }
     } // Document
 
     internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        Resource ??= assetContentManager.Load<XDocument>(FileName, device);
+        Resource ??= assetContentManager.Load<XDocument>(AssetInfo.FileName, device);
     } // RecreateResource
 } // Document
 // XNAFinalEngine.Assets

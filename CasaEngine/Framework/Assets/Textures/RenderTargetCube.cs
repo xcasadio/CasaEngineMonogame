@@ -69,7 +69,7 @@ public sealed class RenderTargetCube : TextureCube
 
     public RenderTargetCube(GraphicsDevice graphicsDevice, int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntiAliasingType antiAliasingType = RenderTarget.AntiAliasingType.NoAntialiasing, bool mipMap = false)
     {
-        Name = "Render Target";
+        AssetInfo.Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;
@@ -82,7 +82,7 @@ public sealed class RenderTargetCube : TextureCube
 
     public RenderTargetCube(GraphicsDevice graphicsDevice, int size, SurfaceFormat surfaceFormat = SurfaceFormat.Color, bool hasDepthBuffer = true, RenderTarget.AntiAliasingType antiAliasingType = RenderTarget.AntiAliasingType.NoAntialiasing, bool mipMap = false)
     {
-        Name = "Render Target";
+        AssetInfo.Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;

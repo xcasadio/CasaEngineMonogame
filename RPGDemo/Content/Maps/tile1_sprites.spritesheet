@@ -1,7 +1,11 @@
 {
   "sprites": [
     {
-      "asset_name": "tile1_0_0",
+      "asset": {
+        "id": 2906,
+        "name": "tile1_0_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 0,
@@ -12,10 +16,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_1_0",
+      "asset": {
+        "id": 2907,
+        "name": "tile1_1_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 32,
@@ -26,10 +36,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_2_0",
+      "asset": {
+        "id": 2908,
+        "name": "tile1_2_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 64,
@@ -40,10 +56,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_3_0",
+      "asset": {
+        "id": 2909,
+        "name": "tile1_3_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 96,
@@ -54,10 +76,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_4_0",
+      "asset": {
+        "id": 2910,
+        "name": "tile1_4_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 128,
@@ -68,10 +96,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_5_0",
+      "asset": {
+        "id": 2911,
+        "name": "tile1_5_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 160,
@@ -82,10 +116,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_6_0",
+      "asset": {
+        "id": 2912,
+        "name": "tile1_6_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 192,
@@ -96,10 +136,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_7_0",
+      "asset": {
+        "id": 2913,
+        "name": "tile1_7_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 224,
@@ -110,10 +156,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_8_0",
+      "asset": {
+        "id": 2914,
+        "name": "tile1_8_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 256,
@@ -124,10 +176,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_9_0",
+      "asset": {
+        "id": 2915,
+        "name": "tile1_9_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 288,
@@ -138,10 +196,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_10_0",
+      "asset": {
+        "id": 2916,
+        "name": "tile1_10_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 320,
@@ -152,10 +216,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_11_0",
+      "asset": {
+        "id": 2917,
+        "name": "tile1_11_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 352,
@@ -166,10 +236,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_12_0",
+      "asset": {
+        "id": 2918,
+        "name": "tile1_12_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 384,
@@ -180,10 +256,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_13_0",
+      "asset": {
+        "id": 2919,
+        "name": "tile1_13_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 416,
@@ -194,10 +276,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_14_0",
+      "asset": {
+        "id": 2920,
+        "name": "tile1_14_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 448,
@@ -208,10 +296,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_15_0",
+      "asset": {
+        "id": 2921,
+        "name": "tile1_15_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 480,
@@ -222,10 +316,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_0_1",
+      "asset": {
+        "id": 2922,
+        "name": "tile1_0_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 0,
@@ -236,10 +336,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_1_1",
+      "asset": {
+        "id": 2923,
+        "name": "tile1_1_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 32,
@@ -250,10 +356,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_2_1",
+      "asset": {
+        "id": 2924,
+        "name": "tile1_2_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 64,
@@ -264,10 +376,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_3_1",
+      "asset": {
+        "id": 2925,
+        "name": "tile1_3_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 96,
@@ -278,10 +396,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_4_1",
+      "asset": {
+        "id": 2926,
+        "name": "tile1_4_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 128,
@@ -292,10 +416,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_5_1",
+      "asset": {
+        "id": 2927,
+        "name": "tile1_5_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 160,
@@ -306,10 +436,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_6_1",
+      "asset": {
+        "id": 2928,
+        "name": "tile1_6_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 192,
@@ -320,10 +456,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_7_1",
+      "asset": {
+        "id": 2929,
+        "name": "tile1_7_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 224,
@@ -334,10 +476,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_8_1",
+      "asset": {
+        "id": 2930,
+        "name": "tile1_8_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 256,
@@ -348,10 +496,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_9_1",
+      "asset": {
+        "id": 2931,
+        "name": "tile1_9_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 288,
@@ -362,10 +516,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_10_1",
+      "asset": {
+        "id": 2932,
+        "name": "tile1_10_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 320,
@@ -376,10 +536,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_11_1",
+      "asset": {
+        "id": 2933,
+        "name": "tile1_11_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 352,
@@ -390,10 +556,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_12_1",
+      "asset": {
+        "id": 2934,
+        "name": "tile1_12_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 384,
@@ -404,10 +576,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_13_1",
+      "asset": {
+        "id": 2935,
+        "name": "tile1_13_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 416,
@@ -418,10 +596,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_14_1",
+      "asset": {
+        "id": 2936,
+        "name": "tile1_14_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 448,
@@ -432,10 +616,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_15_1",
+      "asset": {
+        "id": 2937,
+        "name": "tile1_15_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 480,
@@ -446,10 +636,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_0_2",
+      "asset": {
+        "id": 2938,
+        "name": "tile1_0_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 0,
@@ -460,10 +656,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_1_2",
+      "asset": {
+        "id": 2939,
+        "name": "tile1_1_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 32,
@@ -474,10 +676,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_2_2",
+      "asset": {
+        "id": 2940,
+        "name": "tile1_2_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 64,
@@ -488,10 +696,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_3_2",
+      "asset": {
+        "id": 2941,
+        "name": "tile1_3_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 96,
@@ -502,10 +716,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_4_2",
+      "asset": {
+        "id": 2942,
+        "name": "tile1_4_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 128,
@@ -516,10 +736,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_5_2",
+      "asset": {
+        "id": 2943,
+        "name": "tile1_5_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 160,
@@ -530,10 +756,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_6_2",
+      "asset": {
+        "id": 2944,
+        "name": "tile1_6_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 192,
@@ -544,10 +776,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_7_2",
+      "asset": {
+        "id": 2945,
+        "name": "tile1_7_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 224,
@@ -558,10 +796,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_8_2",
+      "asset": {
+        "id": 2946,
+        "name": "tile1_8_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 256,
@@ -572,10 +816,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_9_2",
+      "asset": {
+        "id": 2947,
+        "name": "tile1_9_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 288,
@@ -586,10 +836,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_10_2",
+      "asset": {
+        "id": 2948,
+        "name": "tile1_10_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 320,
@@ -600,10 +856,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_11_2",
+      "asset": {
+        "id": 2949,
+        "name": "tile1_11_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 352,
@@ -614,10 +876,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_12_2",
+      "asset": {
+        "id": 2950,
+        "name": "tile1_12_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 384,
@@ -628,10 +896,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_13_2",
+      "asset": {
+        "id": 2951,
+        "name": "tile1_13_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 416,
@@ -642,10 +916,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_14_2",
+      "asset": {
+        "id": 2952,
+        "name": "tile1_14_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 448,
@@ -656,10 +936,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_15_2",
+      "asset": {
+        "id": 2953,
+        "name": "tile1_15_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 480,
@@ -670,10 +956,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_0_3",
+      "asset": {
+        "id": 2954,
+        "name": "tile1_0_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 0,
@@ -684,10 +976,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_1_3",
+      "asset": {
+        "id": 2955,
+        "name": "tile1_1_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 32,
@@ -698,10 +996,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_2_3",
+      "asset": {
+        "id": 2956,
+        "name": "tile1_2_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 64,
@@ -712,10 +1016,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_3_3",
+      "asset": {
+        "id": 2957,
+        "name": "tile1_3_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 96,
@@ -726,10 +1036,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_4_3",
+      "asset": {
+        "id": 2958,
+        "name": "tile1_4_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 128,
@@ -740,10 +1056,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_5_3",
+      "asset": {
+        "id": 2959,
+        "name": "tile1_5_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 160,
@@ -754,10 +1076,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_6_3",
+      "asset": {
+        "id": 2960,
+        "name": "tile1_6_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 192,
@@ -768,10 +1096,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_7_3",
+      "asset": {
+        "id": 2961,
+        "name": "tile1_7_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 224,
@@ -782,10 +1116,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_8_3",
+      "asset": {
+        "id": 2962,
+        "name": "tile1_8_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 256,
@@ -796,10 +1136,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_9_3",
+      "asset": {
+        "id": 2963,
+        "name": "tile1_9_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 288,
@@ -810,10 +1156,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_10_3",
+      "asset": {
+        "id": 2964,
+        "name": "tile1_10_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 320,
@@ -824,10 +1176,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_11_3",
+      "asset": {
+        "id": 2965,
+        "name": "tile1_11_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 352,
@@ -838,10 +1196,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_12_3",
+      "asset": {
+        "id": 2966,
+        "name": "tile1_12_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 384,
@@ -852,10 +1216,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_13_3",
+      "asset": {
+        "id": 2967,
+        "name": "tile1_13_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 416,
@@ -866,10 +1236,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_14_3",
+      "asset": {
+        "id": 2968,
+        "name": "tile1_14_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 448,
@@ -880,10 +1256,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_15_3",
+      "asset": {
+        "id": 2969,
+        "name": "tile1_15_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 480,
@@ -894,10 +1276,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_0_4",
+      "asset": {
+        "id": 2970,
+        "name": "tile1_0_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 0,
@@ -908,10 +1296,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_1_4",
+      "asset": {
+        "id": 2971,
+        "name": "tile1_1_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 32,
@@ -922,10 +1316,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_2_4",
+      "asset": {
+        "id": 2972,
+        "name": "tile1_2_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 64,
@@ -936,10 +1336,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_3_4",
+      "asset": {
+        "id": 2973,
+        "name": "tile1_3_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 96,
@@ -950,10 +1356,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_4_4",
+      "asset": {
+        "id": 2974,
+        "name": "tile1_4_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 128,
@@ -964,10 +1376,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_5_4",
+      "asset": {
+        "id": 2975,
+        "name": "tile1_5_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 160,
@@ -978,10 +1396,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_6_4",
+      "asset": {
+        "id": 2976,
+        "name": "tile1_6_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 192,
@@ -992,10 +1416,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_7_4",
+      "asset": {
+        "id": 2977,
+        "name": "tile1_7_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 224,
@@ -1006,10 +1436,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_8_4",
+      "asset": {
+        "id": 2978,
+        "name": "tile1_8_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 256,
@@ -1020,10 +1456,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_9_4",
+      "asset": {
+        "id": 2979,
+        "name": "tile1_9_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 288,
@@ -1034,10 +1476,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_10_4",
+      "asset": {
+        "id": 2980,
+        "name": "tile1_10_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 320,
@@ -1048,10 +1496,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_11_4",
+      "asset": {
+        "id": 2981,
+        "name": "tile1_11_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 352,
@@ -1062,10 +1516,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_12_4",
+      "asset": {
+        "id": 2982,
+        "name": "tile1_12_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 384,
@@ -1076,10 +1536,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_13_4",
+      "asset": {
+        "id": 2983,
+        "name": "tile1_13_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 416,
@@ -1090,10 +1556,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_14_4",
+      "asset": {
+        "id": 2984,
+        "name": "tile1_14_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 448,
@@ -1104,10 +1576,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_15_4",
+      "asset": {
+        "id": 2985,
+        "name": "tile1_15_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 480,
@@ -1118,10 +1596,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_0_5",
+      "asset": {
+        "id": 2986,
+        "name": "tile1_0_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 0,
@@ -1132,10 +1616,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_1_5",
+      "asset": {
+        "id": 2987,
+        "name": "tile1_1_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 32,
@@ -1146,10 +1636,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_2_5",
+      "asset": {
+        "id": 2988,
+        "name": "tile1_2_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 64,
@@ -1160,10 +1656,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_3_5",
+      "asset": {
+        "id": 2989,
+        "name": "tile1_3_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 96,
@@ -1174,10 +1676,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_4_5",
+      "asset": {
+        "id": 2990,
+        "name": "tile1_4_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 128,
@@ -1188,10 +1696,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_5_5",
+      "asset": {
+        "id": 2991,
+        "name": "tile1_5_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 160,
@@ -1202,10 +1716,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_6_5",
+      "asset": {
+        "id": 2992,
+        "name": "tile1_6_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 192,
@@ -1216,10 +1736,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_7_5",
+      "asset": {
+        "id": 2993,
+        "name": "tile1_7_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 224,
@@ -1230,10 +1756,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_8_5",
+      "asset": {
+        "id": 2994,
+        "name": "tile1_8_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 256,
@@ -1244,10 +1776,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_9_5",
+      "asset": {
+        "id": 2995,
+        "name": "tile1_9_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 288,
@@ -1258,10 +1796,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_10_5",
+      "asset": {
+        "id": 2996,
+        "name": "tile1_10_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 320,
@@ -1272,10 +1816,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_11_5",
+      "asset": {
+        "id": 2997,
+        "name": "tile1_11_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 352,
@@ -1286,10 +1836,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_12_5",
+      "asset": {
+        "id": 2998,
+        "name": "tile1_12_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 384,
@@ -1300,10 +1856,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_13_5",
+      "asset": {
+        "id": 2999,
+        "name": "tile1_13_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 416,
@@ -1314,10 +1876,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_14_5",
+      "asset": {
+        "id": 3000,
+        "name": "tile1_14_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 448,
@@ -1328,10 +1896,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_15_5",
+      "asset": {
+        "id": 3001,
+        "name": "tile1_15_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 480,
@@ -1342,10 +1916,16 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     },
     {
-      "asset_name": "tile1_0_6",
+      "asset": {
+        "id": 3002,
+        "name": "tile1_0_6",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\Maps\\tile1_sprites.spritesheet"
+      },
       "sprite_sheet": "Maps\\Tile1.png",
       "location": {
         "x": 0,
@@ -1356,7 +1936,9 @@
       "hotspot": {
         "x": 0,
         "y": 0
-      }
+      },
+      "collisions": [],
+      "sockets": []
     }
   ]
 }

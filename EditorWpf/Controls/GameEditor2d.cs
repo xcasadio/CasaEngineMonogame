@@ -15,6 +15,7 @@ public abstract class GameEditor2d : GameEditor
     protected Entity _entity;
     private InputComponent? _inputComponent;
     private Point _lastMousePosition;
+    protected Entity CameraEntity { get; private set; }
 
     public float Scale
     {
@@ -32,13 +33,13 @@ public abstract class GameEditor2d : GameEditor
     {
         base.LoadContent();
 
-        var entity = new Entity();
-        var camera = new Camera3dIn2dAxisComponent(entity);
-        entity.ComponentManager.Components.Add(camera);
+        CameraEntity = new Entity();
+        var camera = new Camera3dIn2dAxisComponent(CameraEntity);
+        CameraEntity.ComponentManager.Components.Add(camera);
         var screenXBy2 = Game.Window.ClientBounds.Width / 2f;
         var screenYBy2 = Game.Window.ClientBounds.Height / 2f;
         camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
-        entity.Initialize(Game);
+        CameraEntity.Initialize(Game);
         Game.GameManager.ActiveCamera = camera;
 
         _inputComponent = Game.GetGameComponent<InputComponent>();

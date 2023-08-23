@@ -1,12 +1,17 @@
+using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Plugin;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Project;
 
 namespace CasaEngine.Framework.Game;
 
-public class GameSettings
+public static class GameSettings
 {
+    public static AssetInfoManager AssetInfoManager { get; } = new();
     public static ProjectSettings ProjectSettings { get; } = new();
     public static PluginManager PluginManager { get; } = new();
 
@@ -16,4 +21,20 @@ public class GameSettings
 #if EDITOR
     public static ExternalToolManager ExternalToolManager { get; } = new();
 #endif
+
+    public static void Load(string projectFileName)
+    {
+        ProjectSettings.Load(projectFileName);
+
+        var assetInfoFileName = Path.Combine(Path.GetDirectoryName(projectFileName), "AssetInfos.json");
+
+        //#if !EDITOR
+        if (!File.Exists(assetInfoFileName))
+        {
+            return;
+        }
+        //#endif
+        AssetInfoManager.Load(assetInfoFileName, SaveOption.Editor);
+    }
+
 }

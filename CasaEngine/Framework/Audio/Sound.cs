@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Audio;
 
 namespace CasaEngine.Framework.Audio;
 
-public class Sound : Entity
+public class Sound
 {
     private readonly SoundEffect _soundEffect;
     private SoundEffectInstance _soundEffectInstance;
@@ -18,7 +18,7 @@ public class Sound : Entity
     {
         if (soundEffect == null)
         {
-            throw new ArgumentNullException("Sound() : SoundEffect is null");
+            throw new ArgumentNullException(nameof(soundEffect));
         }
 
         _soundEffect = soundEffect;

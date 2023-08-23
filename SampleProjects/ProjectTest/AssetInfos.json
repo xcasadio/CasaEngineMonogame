@@ -1,0 +1,19 @@
+{
+  "asset_infos": [
+    {
+	  "id": 1,
+	  "name": "ground",
+	  "file_name": "Entities\\ground.entity"
+    },
+    {
+	  "id": 2,
+	  "name": "Box",
+	  "file_name": "Entities\\Box.entity"
+    },
+    {
+	  "id": 25,
+	  "name": "camera",
+	  "file_name": "Entities\\camera.entity"
+    }
+  ]
+}

@@ -1,26 +1,55 @@
 ﻿using CasaEngine.Core.Design;
 using System.Text.Json;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Entities;
 
-public static class EntityLoader
+public class EntityLoader : IAssetLoader
 {
+    public object LoadAsset(string fileName, GraphicsDevice device)
+    {
+        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+        return Load(jsonDocument.RootElement, SaveOption.Editor);
+    }
+
+    public static Entity Load(string fileName)
+    {
+        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+        return Load(jsonDocument.RootElement, SaveOption.Editor);
+    }
+
     public static Entity Load(JsonElement element, SaveOption option)
     {
-        var baseObject = new Entity();
-        baseObject.Load(element, option);
-        return baseObject;
+        var entity = new Entity();
+        entity.Load(element, option);
+        return entity;
+    }
+
+    public static void LoadFromEntityReference(EntityReference entityReference, AssetContentManager assetContentManager,
+        GraphicsDevice graphicsDevice)
+    {
+        if (entityReference.AssetId != IdManager.InvalidId)
+        {
+            var assetInfo = GameSettings.AssetInfoManager.Get(entityReference.AssetId);
+            var assetFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, assetInfo.FileName);
+            var entity = assetContentManager.Load<Entity>(assetFileName, graphicsDevice).Clone();
+            entityReference.Entity = entity;
+            entity.Name = entityReference.Name;
+            entity.Coordinates.CopyFrom(entityReference.InitialCoordinates);
+        }
     }
 
     public static List<Entity> LoadFromArray(JsonElement element, SaveOption option)
     {
-        var baseObjects = new List<Entity>();
+        var entities = new List<Entity>();
 
         foreach (var item in element.EnumerateArray())
         {
-            baseObjects.Add(Load(item, option));
+            entities.Add(Load(item, option));
         }
 
-        return baseObjects;
+        return entities;
     }
 }

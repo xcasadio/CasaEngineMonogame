@@ -1,8 +1,8 @@
 ﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Animations;
-using CasaEngine.Engine.Materials;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

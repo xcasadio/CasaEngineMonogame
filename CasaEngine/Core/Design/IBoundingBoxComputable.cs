@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Entities;
+namespace CasaEngine.Core.Design;
 
 public interface IBoundingBoxComputable
 {

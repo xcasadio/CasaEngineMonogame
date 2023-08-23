@@ -3,7 +3,7 @@ using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Engine.Materials;
+namespace CasaEngine.Framework.Materials;
 
 public class Material
 {

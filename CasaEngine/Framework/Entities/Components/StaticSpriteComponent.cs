@@ -3,9 +3,9 @@ using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -133,7 +133,7 @@ public class StaticSpriteComponent : Component, ICollideableComponent
 
     public override void Save(JObject jObject)
     {
-        jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.Name);
+        jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.AssetInfo.Name);
         base.Save(jObject);
     }
 

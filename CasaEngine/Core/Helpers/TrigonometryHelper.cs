@@ -61,15 +61,16 @@ public static class TrigonometryHelper
 
     public static float ArcTanAngle(float x, float y)
     {
-        if (x == 0)
+        if (MathUtils.NearEqual(x, 0))
         {
-            if (y == 1)
+            if (MathUtils.NearEqual(y, 1))
             {
                 return MathXna.PiOver2;
             }
 
             return -MathXna.PiOver2;
         }
+
         if (x > 0)
         {
             return (float)Math.Atan(y / x);
@@ -84,6 +85,7 @@ public static class TrigonometryHelper
 
             return (float)Math.Atan(y / x) - MathXna.Pi;
         }
+
         return 0;
     }
 }

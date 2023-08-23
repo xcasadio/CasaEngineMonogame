@@ -13,11 +13,11 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
     [ReadOnly(true)]
     public string Name
     {
-        get => _spriteData.Name;
+        get => _spriteData.AssetInfo.Name;
         set
         {
-            if (value == _spriteData.Name) return;
-            _spriteData.Name = value;
+            if (value == _spriteData.AssetInfo.Name) return;
+            _spriteData.AssetInfo.Name = value;
             OnPropertyChanged();
         }
     }

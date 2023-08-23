@@ -3,12 +3,12 @@ using System.Text.Json;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using RPGDemo.Controllers;
-using Component = CasaEngine.Framework.Entities.Component;
+using Component = CasaEngine.Framework.Entities.Components.Component;
 
 namespace RPGDemo.Components;
 
 [DisplayName("EnemyComponent")]
-public class EnemyComponent : Component
+public class EnemyComponent : CasaEngine.Framework.Entities.Components.Component
 {
     public static readonly int ComponentId = (int)RpgDemoComponentIds.EnemyComponent;
 

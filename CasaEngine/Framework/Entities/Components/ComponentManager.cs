@@ -1,17 +1,10 @@
 ﻿using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Framework.Entities;
+namespace CasaEngine.Framework.Entities.Components;
 
 public class ComponentManager
 {
-    public Entity Owner { get; }
-
     public List<Component> Components { get; } = new();
-
-    public ComponentManager(Entity entity)
-    {
-        Owner = entity;
-    }
 
     public void Update(float elapsedTime)
     {
@@ -49,6 +42,21 @@ public class ComponentManager
         return res;
     }
 
+    public void Add(Component component)
+    {
+        Components.Add(component);
+    }
+
+    public void Remove(Component component)
+    {
+        Components.Remove(component);
+    }
+
+    public void Clear()
+    {
+        Components.Clear();
+    }
+
     public List<T> GetComponents<T>() where T : Component
     {
         var components = new List<T>();
@@ -77,11 +85,11 @@ public class ComponentManager
         return null;
     }
 
-    public void CopyFrom(ComponentManager componentManager)
+    public void CopyFrom(ComponentManager componentManager, Entity entity)
     {
         foreach (var component in componentManager.Components)
         {
-            Components.Add(component.Clone(Owner));
+            Components.Add(component.Clone(entity));
         }
     }
 }

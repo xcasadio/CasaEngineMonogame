@@ -183,11 +183,6 @@ public class Font
         }
     }
 
-    public void Load(BinaryReader br, SaveOption option)
-    {
-        throw new Exception("The method or operation is not implemented.");
-    }
-
     internal FontChar GetFontChar(char c)
     {
         if (_charsDic.ContainsKey(c))
@@ -238,37 +233,36 @@ public class Font
 
     public void Save(XmlElement el, SaveOption opt)
     {
-
-        XmlNode fontNode = el.OwnerDocument.CreateElement("Font");
-        el.AppendChild(fontNode);
-
-        Common.Save(fontNode, opt);
-
-        XmlNode pagesNode = el.OwnerDocument.CreateElement("Pages");
-        fontNode.AppendChild(pagesNode);
-
-        foreach (var file in _texturesFileNames)
-        {
-            XmlNode pageNode = el.OwnerDocument.CreateElement("Page");
-            pagesNode.AppendChild(pageNode);
-            el.OwnerDocument.AddAttribute((XmlElement)pageNode, "file", file);
-        }
-
-        XmlNode charsNode = el.OwnerDocument.CreateElement("Chars");
-        fontNode.AppendChild(charsNode);
-
-        foreach (var f in Chars)
-        {
-            f.Save(charsNode, opt);
-        }
-
-        XmlNode kerningsNode = el.OwnerDocument.CreateElement("Kernings");
-        fontNode.AppendChild(kerningsNode);
-
-        foreach (var kerning in Kernings)
-        {
-            kerning.Save(kerningsNode, opt);
-        }
+        //XmlNode fontNode = el.OwnerDocument.CreateElement("Font");
+        //el.AppendChild(fontNode);
+        //
+        //Common.Save(fontNode, opt);
+        //
+        //XmlNode pagesNode = el.OwnerDocument.CreateElement("Pages");
+        //fontNode.AppendChild(pagesNode);
+        //
+        //foreach (var file in _texturesFileNames)
+        //{
+        //    XmlNode pageNode = el.OwnerDocument.CreateElement("Page");
+        //    pagesNode.AppendChild(pageNode);
+        //    el.OwnerDocument.AddAttribute((XmlElement)pageNode, "file", file);
+        //}
+        //
+        //XmlNode charsNode = el.OwnerDocument.CreateElement("Chars");
+        //fontNode.AppendChild(charsNode);
+        //
+        //foreach (var f in Chars)
+        //{
+        //    f.Save(charsNode, opt);
+        //}
+        //
+        //XmlNode kerningsNode = el.OwnerDocument.CreateElement("Kernings");
+        //fontNode.AppendChild(kerningsNode);
+        //
+        //foreach (var kerning in Kernings)
+        //{
+        //    kerning.Save(kerningsNode, opt);
+        //}
     }
 
     public void Save(BinaryWriter bw, SaveOption option)
@@ -487,8 +481,8 @@ public class FontCommon
         XmlNode fontNode = node.OwnerDocument.CreateElement("Common");
         node.AppendChild(fontNode);
 
-        fontNode.OwnerDocument.AddAttribute((XmlElement)fontNode, "lineHeight", LineHeight.ToString());
-        fontNode.OwnerDocument.AddAttribute((XmlElement)fontNode, "base", Base.ToString());
+        //fontNode.OwnerDocument.AddAttribute((XmlElement)fontNode, "lineHeight", LineHeight.ToString());
+        //fontNode.OwnerDocument.AddAttribute((XmlElement)fontNode, "base", Base.ToString());
     }
 }
 
@@ -607,14 +601,14 @@ public class FontChar
         XmlNode charNode = node.OwnerDocument.CreateElement("Char");
         node.AppendChild(charNode);
 
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "id", Id.ToString());
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "x", X.ToString());
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "y", Y.ToString());
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "width", Width.ToString());
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "height", Height.ToString());
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "xoffset", XOffset.ToString());
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "yoffset", YOffset.ToString());
-        charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "xadvance", XAdvance.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "id", Id.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "x", X.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "y", Y.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "width", Width.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "height", Height.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "xoffset", XOffset.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "yoffset", YOffset.ToString());
+        //charNode.OwnerDocument.AddAttribute((XmlElement)charNode, "xadvance", XAdvance.ToString());
     }
 }
 
@@ -655,8 +649,8 @@ public class FontKerning
         XmlNode kerningNode = node.OwnerDocument.CreateElement("Kerning");
         node.AppendChild(kerningNode);
 
-        kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "first", First.ToString());
-        kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "second", Second.ToString());
-        kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "amount", Amount.ToString());
+        //kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "first", First.ToString());
+        //kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "second", Second.ToString());
+        //kerningNode.OwnerDocument.AddAttribute((XmlElement)kerningNode, "amount", Amount.ToString());
     }
 }

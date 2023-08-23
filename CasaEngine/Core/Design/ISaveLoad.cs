@@ -11,8 +11,9 @@ public enum SaveOption
 
 public interface ISaveLoad
 {
+    void Load(JsonElement element, SaveOption option);
+
 #if EDITOR
     void Save(JObject jObject, SaveOption option);
 #endif
-    void Load(JsonElement element, SaveOption option);
 }

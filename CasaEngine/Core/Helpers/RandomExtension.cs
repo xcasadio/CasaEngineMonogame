@@ -3,7 +3,7 @@ using System;
 
 namespace CasaEngine.Core.Helpers;
 
-public static class RandomHelper
+public static class RandomExtension
 {
     public static Random Create()
     {

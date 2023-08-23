@@ -36,13 +36,16 @@ public class GameEditorTiledMap : GameEditor2d
     {
         TiledMapLoader.Create(tiledMapDataViewModel.TiledMapData, Game.GameManager.AssetContentManager);
         _tiledMapComponent.TiledMapData = (DataContext as TiledMapDataViewModel).TiledMapData;
+
+        Game.GameManager.CurrentWorld.AddEntityImmediately(CameraEntity);
+        Game.GameManager.CurrentWorld.AddEntityImmediately(_entity);
+
         Game.GameManager.CurrentWorld.Initialize(Game);
     }
 
     public void RemoveAllEntities()
     {
-        Game.GameManager.CurrentWorld.Clear();
+        Game.GameManager.CurrentWorld.ClearEntities();
         Game.GameManager.AssetContentManager.Unload(AssetContentManager.DefaultCategory);
-        Game.GameManager.CurrentWorld.AddEntityImmediately(_entity);
     }
 }

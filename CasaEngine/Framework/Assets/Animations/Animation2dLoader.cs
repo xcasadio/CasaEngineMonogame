@@ -21,8 +21,8 @@ public class Animation2dLoader
         {
             var animation2dData = new Animation2dData();
             animation2dData.Load(jsonElement, SaveOption.Editor);
-            animation2dData.FileName = fileName;
-            assetContentManager.AddAsset(animation2dData.Name, animation2dData);
+            animation2dData.AssetInfo.FileName = fileName;
+            assetContentManager.AddAsset(animation2dData.AssetInfo.Name, animation2dData);
             animations.Add(animation2dData);
         }
 

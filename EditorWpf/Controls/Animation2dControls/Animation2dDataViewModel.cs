@@ -9,11 +9,11 @@ public class Animation2dDataViewModel : NotifyPropertyChangeBase
 
     public string Name
     {
-        get => Animation2dData.Name;
+        get => Animation2dData.AssetInfo.Name;
         set
         {
-            if (EqualityComparer<string>.Default.Equals(Animation2dData.Name, value)) return;
-            Animation2dData.Name = value;
+            if (EqualityComparer<string>.Default.Equals(Animation2dData.AssetInfo.Name, value)) return;
+            Animation2dData.AssetInfo.Name = value;
             OnPropertyChanged();
         }
     }

@@ -42,8 +42,9 @@ public class TiledMapDemo : Demo
         physicsComponent.Shape = new ShapeCircle(25);
         physicsComponent.PhysicsDefinition.ApplyGravity = false;
         physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
-        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG_sprites.spritesheet", game.GameManager.AssetContentManager, SaveOption.Editor);
-        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG_animations.anims2d", game.GameManager.AssetContentManager);
+        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG.spritesheet", game.GameManager.AssetContentManager, SaveOption.Editor);
+        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG.anims2d", game.GameManager.AssetContentManager);
+
         var animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
         foreach (var animation in animations)

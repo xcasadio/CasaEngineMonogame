@@ -47,17 +47,17 @@ public class TextureCube : Asset
 
     public TextureCube(string filename, GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
     {
-        Name = filename;
+        AssetInfo.Name = filename;
         IsRgbm = false;
         RgbmMaxRange = 50;
-        FileName = filename;
-        if (File.Exists(FileName) == false)
+        AssetInfo.FileName = filename;
+        if (File.Exists(AssetInfo.FileName) == false)
         {
-            throw new ArgumentException("Failed to load cube map: File " + FileName + " does not exists!");
+            throw new ArgumentException($"Failed to load cube map: File {AssetInfo.FileName} does not exists!");
         }
         try
         {
-            XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(FileName, graphicsDevice);
+            XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo.FileName, graphicsDevice);
             Size = XnaTextureCube.Size;
             Resource.Name = filename;
         }
@@ -67,7 +67,7 @@ public class TextureCube : Asset
         }
         catch (Exception e)
         {
-            throw new InvalidOperationException("Failed to load cube map: " + filename, e);
+            throw new InvalidOperationException($"Failed to load cube map: {filename}", e);
         }
     } // TextureCube
 
@@ -75,7 +75,7 @@ public class TextureCube : Asset
 
     internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(FileName, device);
+        XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo.FileName, device);
     } // RecreateResource
 
 } // TextureCube

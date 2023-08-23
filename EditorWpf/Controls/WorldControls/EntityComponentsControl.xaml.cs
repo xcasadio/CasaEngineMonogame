@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Common;
 

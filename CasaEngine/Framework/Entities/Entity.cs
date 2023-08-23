@@ -5,11 +5,13 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using XNAGizmo;
 using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
+using Component = System.ComponentModel.Component;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Entities;
@@ -38,8 +40,7 @@ public class Entity : ISaveLoad
         }
     }
 
-    [Browsable(false)]
-    public ComponentManager ComponentManager { get; }
+    [Browsable(false)] public ComponentManager ComponentManager { get; } = new();
 
     [Category("Object")]
     public Coordinates Coordinates { get; } = new();
@@ -61,7 +62,6 @@ public class Entity : ISaveLoad
 
     public Entity()
     {
-        ComponentManager = new ComponentManager(this);
         Id = IdManager.GetId();
     }
 
@@ -99,14 +99,14 @@ public class Entity : ISaveLoad
 
     public void CopyFrom(Entity entity)
     {
+        ComponentManager.CopyFrom(entity.ComponentManager, this);
+        Coordinates.CopyFrom(entity.Coordinates);
+
         IsTemporary = entity.IsTemporary;
         Name = entity.Name + $"_{Id}";
         Parent = entity.Parent;
         IsEnabled = entity.IsEnabled;
         IsVisible = entity.IsVisible;
-
-        ComponentManager.CopyFrom(entity.ComponentManager);
-        Coordinates.CopyFrom(entity.Coordinates);
     }
 
     public void Destroy()
@@ -137,7 +137,7 @@ public class Entity : ISaveLoad
         }
     }
 
-    public void Hit(Collision collision, Component component)
+    public void Hit(Collision collision, Components.Component component)
     {
         LogManager.Instance.WriteLineTrace($"OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         //var scriptComponent = Owner.ComponentManager.GetComponent<ScriptComponent>();
@@ -145,7 +145,7 @@ public class Entity : ISaveLoad
         OnHit?.Invoke(this, new EventCollisionArgs(collision, component));
     }
 
-    public void HitEnded(Collision collision, Component component)
+    public void HitEnded(Collision collision, Components.Component component)
     {
         LogManager.Instance.WriteLineTrace($"OnHitEnded : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHitEnded?.Invoke(this, new EventCollisionArgs(collision, component));
@@ -219,6 +219,7 @@ public class Entity : ISaveLoad
     {
         var min = Vector3.One * int.MaxValue;
         var max = Vector3.One * int.MinValue;
+        bool found = false;
 
         foreach (var component in ComponentManager.Components)
         {
@@ -227,10 +228,11 @@ public class Entity : ISaveLoad
                 var boundingBox = boundingBoxComputable.BoundingBox;
                 min = Vector3.Min(min, boundingBox.Min);
                 max = Vector3.Max(max, boundingBox.Max);
+                found = true;
             }
         }
 
-        return new BoundingBox(min, max);
+        return found ? new BoundingBox(min, max) : new BoundingBox(Vector3.One / 2f, Vector3.One / 2f);
     }
 #endif
 }

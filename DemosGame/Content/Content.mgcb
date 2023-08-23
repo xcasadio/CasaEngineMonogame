@@ -187,11 +187,11 @@
 #begin TileSets/rock.json
 /copy:TileSets/rock.json
 
-#begin TileSets/RPG_animations.anims2d
-/copy:TileSets/RPG_animations.anims2d
+#begin TileSets/RPG.anims2d
+/copy:TileSets/RPG.anims2d
 
-#begin TileSets/RPG_sprites.spritesheet
-/copy:TileSets/RPG_sprites.spritesheet
+#begin TileSets/RPG.spritesheet
+/copy:TileSets/RPG.spritesheet
 
 #begin TileSets/Swordman_1.png
 /copy:TileSets/Swordman_1.png

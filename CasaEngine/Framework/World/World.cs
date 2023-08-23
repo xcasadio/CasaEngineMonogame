@@ -14,6 +14,8 @@ namespace CasaEngine.Framework.World;
 
 public sealed class World : Asset
 {
+    private readonly List<EntityReference> _entityReferences = new();
+
     private readonly List<Entity> _entities = new();
     private readonly List<Entity> _baseObjectsToAdd = new();
 
@@ -25,6 +27,7 @@ public sealed class World : Asset
     public event EventHandler? EntitiesChanged;
 #endif
 
+    //public IList<EntityReference> EntityReferences => _entityReferences;
     public IList<Entity> Entities => _entities;
     public Vector2 Gravity2d { get; set; } = Vector2.UnitY * -9.81f;
     public Vector3 Gravity { get; set; } = Vector3.UnitY * -9.81f;
@@ -42,7 +45,7 @@ public sealed class World : Asset
         _baseObjectsToAdd.Add(entity);
     }
 
-    public void Clear()
+    public void ClearEntities()
     {
         _entities.Clear();
         _baseObjectsToAdd.Clear();
@@ -51,8 +54,39 @@ public sealed class World : Asset
 #endif
     }
 
+    public void AddEntityReference(EntityReference entityReference)
+    {
+        _entityReferences.Add(entityReference);
+    }
+
+    public void RemoveEntityReference(EntityReference entityReference)
+    {
+        _entityReferences.Remove(entityReference);
+    }
+
+    public void ClearEntityReference()
+    {
+        _entityReferences.Clear();
+    }
+
     public void Initialize(CasaEngineGame game)
     {
+        Initialize(game, GameSettings.AssetInfoManager.IsLoaded);
+    }
+
+    private void Initialize(CasaEngineGame game, bool withReference)
+    {
+        if (withReference)
+        {
+            ClearEntities();
+
+            foreach (var entityReference in _entityReferences)
+            {
+                EntityLoader.LoadFromEntityReference(entityReference, game.GameManager.AssetContentManager, game.GraphicsDevice);
+                _entities.Add(entityReference.Entity);
+            }
+        }
+
         foreach (var entity in _entities)
         {
             entity.Initialize(game);
@@ -68,6 +102,10 @@ public sealed class World : Asset
 #endif
 
         Initializing?.Invoke(this, EventArgs.Empty);
+
+#if EDITOR
+        EntitiesChanged?.Invoke(this, EventArgs.Empty);
+#endif
     }
 
     public void LoadContent()
@@ -119,36 +157,41 @@ public sealed class World : Asset
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        Clear();
+        ClearEntities();
+        ClearEntityReference();
         base.Load(element.GetProperty("asset"), option);
-        var version = element.GetJsonPropertyByName("version").Value.GetInt32();
-        _entities.AddRange(EntityLoader.LoadFromArray(element.GetJsonPropertyByName("entities").Value, option));
+        //_entities.AddRange(EntityLoader.LoadFromArray(element.GetJsonPropertyByName("entities").Value, option));
 
-#if EDITOR
-        EntitiesChanged?.Invoke(this, EventArgs.Empty);
-#endif
+        foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())
+        {
+            var entityReference = new EntityReference();
+            entityReference.Load(entityReferenceNode, option);
+            _entityReferences.Add(entityReference);
+        }
     }
 
 #if EDITOR
     public void Save(string path, SaveOption option)
     {
-        var relativePath = Name + Constants.FileNameExtensions.World;
+        var relativePath = AssetInfo.Name + Constants.FileNameExtensions.World;
         var fullFileName = Path.Combine(path, relativePath);
-        FileName = relativePath;
+        AssetInfo.FileName = relativePath;
 
         JObject worldJson = new();
         base.Save(worldJson, option);
-        worldJson.Add("version", 1);
         var entitiesJArray = new JArray();
 
-        foreach (var entity in Entities.Where(x => !x.IsTemporary))
+        foreach (var entityReference in _entityReferences)
         {
+            entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.Coordinates);
+            //entityReference.Name = entityReference.Entity.Name;
+
             JObject entityObject = new();
-            entity.Save(entityObject, option);
+            entityReference.Save(entityObject, option);
             entitiesJArray.Add(entityObject);
         }
 
-        worldJson.Add("entities", entitiesJArray);
+        worldJson.Add("entity_references", entitiesJArray);
 
         using StreamWriter file = File.CreateText(fullFileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };

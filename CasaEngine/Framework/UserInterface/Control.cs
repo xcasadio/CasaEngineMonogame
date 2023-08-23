@@ -1313,10 +1313,8 @@ public class Control : Disposable
                     //AssetContentManager.CurrentContentManager = UserInterfaceManager.UserInterfaceContentManager;
                     _renderTarget = new RenderTarget(UserInterfaceManager.AssetContentManager,
                         UserInterfaceManager.GraphicsDevice, new ScreenSize(w, h, UserInterfaceManager.Screen),
-                        SurfaceFormat.Color, false)
-                    {
-                        Name = "User Interface Render Target"
-                    };
+                        SurfaceFormat.Color, false);
+                    _renderTarget.AssetInfo.Name = "User Interface Render Target";
                     //AssetContentManager.CurrentContentManager = userContentManager;
                 }
                 else

@@ -25,11 +25,11 @@ public class LookupTable : Asset
     public LookupTable(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager)
     {
         _assetContentManager = assetContentManager;
-        Name = Path.GetFileName(filename);
-        FileName = filename;
-        if (File.Exists(FileName) == false)
+        AssetInfo.Name = Path.GetFileName(filename);
+        AssetInfo.FileName = filename;
+        if (File.Exists(AssetInfo.FileName) == false)
         {
-            throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
+            throw new ArgumentException($"Failed to load texture: File {AssetInfo.FileName} does not exists!", nameof(filename));
         }
         try
         {
@@ -41,14 +41,14 @@ public class LookupTable : Asset
         }
         catch (Exception e)
         {
-            throw new InvalidOperationException("Failed to load lookup texture: " + filename, e);
+            throw new InvalidOperationException($"Failed to load lookup texture: {filename}", e);
         }
     } // LookupTable
 
     private LookupTable()
     {
-        Name = "";
-        FileName = "";
+        //AssetInfo.Name = "";
+        //AssetInfo.FileName = "";
     } // LookupTable
 
     private void Create(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager)
@@ -71,7 +71,10 @@ public class LookupTable : Asset
 
     public static LookupTable Identity(GraphicsDevice graphicsDevice, int size)
     {
-        return new LookupTable { Name = "Identity", FileName = "", Resource = IdentityTexture(graphicsDevice, size), Size = size };
+        var lookupTable = new LookupTable { Resource = IdentityTexture(graphicsDevice, size), Size = size };
+        lookupTable.AssetInfo.Name = "Identity";
+        lookupTable.AssetInfo.FileName = "";
+        return lookupTable;
     } // Identity
 
     private static Texture3D IdentityTexture(GraphicsDevice graphicsDevice, int size)
@@ -114,7 +117,9 @@ public class LookupTable : Asset
         var lookupTable2DTexture = new Texture2D(graphicsDevice, side1, side2, false, SurfaceFormat.Color);
         lookupTable.Resource.GetData(colors);
         lookupTable2DTexture.SetData(colors);
-        return new Texture(lookupTable2DTexture) { Name = lookupTable.Name + "-Texture" };
+        var texture = new Texture(lookupTable2DTexture);
+        texture.AssetInfo.Name = $"{lookupTable.AssetInfo.Name}-Texture";
+        return texture;
     } // LookupTextureToTexture
 
     protected override void DisposeManagedResources()
@@ -126,13 +131,13 @@ public class LookupTable : Asset
 
     internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        if (string.IsNullOrEmpty(FileName))
+        if (string.IsNullOrEmpty(AssetInfo.FileName))
         {
             Resource = IdentityTexture(device, Size);
         }
         else
         {
-            Create(device, FileName.Substring(30), assetContentManager); // Removes "Textures\\"
+            Create(device, AssetInfo.FileName.Substring(30), assetContentManager); // Removes "Textures\\"
         }
 
         GraphicsDevice = device;

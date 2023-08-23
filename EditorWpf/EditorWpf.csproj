@@ -41,6 +41,8 @@
 		<PackageReference Include="AvalonEdit" Version="6.2.0.78" />
 		<PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.0" />
 		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -87,6 +89,12 @@
 		</Compile>
 		<Compile Update="Controls\Common\InputTextBox.xaml.cs">
 			<SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Controls\EntityControls\EntityEditorControl.xaml.cs">
+		  <SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Controls\EntityControls\GameEditorEntityControl.xaml.cs">
+		  <SubType>Code</SubType>
 		</Compile>
 	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">

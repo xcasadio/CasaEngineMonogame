@@ -1,12 +1,11 @@
-﻿using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
+using CasaEngine.Framework.Assets.Sprites;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Engine.Renderer;
+namespace CasaEngine.Framework.Game.Components;
 
 public class SpriteRendererComponent : DrawableGameComponent
 {
@@ -44,7 +43,7 @@ public class SpriteRendererComponent : DrawableGameComponent
     private readonly Vector3 _verticeBottomRight;
     private readonly Vector3 _verticeBottomLeft;
 
-    public SpriteRendererComponent(Game game) : base(game)
+    public SpriteRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         if (game == null)
         {

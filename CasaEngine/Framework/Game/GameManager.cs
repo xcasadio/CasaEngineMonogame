@@ -2,7 +2,6 @@ using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Input.InputSequence;
-using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;
@@ -146,6 +145,7 @@ public class GameManager
 
     public void Initialize()
     {
+        AssetContentManager.RegisterAssetLoader(typeof(Entity), new EntityLoader());
         AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
         AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
         AssetContentManager.Initialize(_game.GraphicsDevice);
@@ -198,7 +198,7 @@ public class GameManager
         var texture2D = new Texture2D(_game.GraphicsDevice, 128, 128, true, SurfaceFormat.Color);
         texture2D.SetData(Enumerable.Repeat(Color.Orange, texture2D.Width * texture2D.Height).ToArray());
         var texture = new Assets.Textures.Texture(texture2D);
-        texture.Name = Assets.Textures.Texture.DefaultTextureName;
+        texture.AssetInfo.Name = Assets.Textures.Texture.DefaultTextureName;
         AssetContentManager.AddAsset(Assets.Textures.Texture.DefaultTextureName, texture);
     }
 
@@ -298,7 +298,7 @@ public class GameManager
     {
         InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
     }
-    
+
 
     private void CreateCameraEditor()
     {

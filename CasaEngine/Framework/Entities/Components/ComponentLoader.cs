@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
 
-namespace CasaEngine.Framework.Entities;
+namespace CasaEngine.Framework.Entities.Components;
 
 public static class ComponentLoader
 {

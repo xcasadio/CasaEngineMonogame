@@ -12,7 +12,6 @@ public class Animation2dData : AnimationData
     public override void Load(JsonElement element, SaveOption option)
     {
         base.Load(element, option);
-        Name = element.GetJsonPropertyByName("asset_name").Value.GetString(); //TODO : in base.Load()
 
         foreach (var jsonElement in element.GetJsonPropertyByName("frames").Value.EnumerateArray())
         {
@@ -26,7 +25,7 @@ public class Animation2dData : AnimationData
 
     public override void Save(JObject jObject, SaveOption option)
     {
-        jObject.Add("asset_name", Name);
+        base.Save(jObject, option);
 
         var jArray = new JArray();
         foreach (var frame in Frames)
@@ -36,8 +35,6 @@ public class Animation2dData : AnimationData
             jArray.Add(newJObject);
         }
         jObject.Add("frames", jArray);
-
-        base.Save(jObject, option);
     }
 #endif
 }

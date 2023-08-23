@@ -1,7 +1,11 @@
 {
   "sprites": [
     {
-      "asset_name": "octopus_0",
+      "asset": {
+        "id": 18,
+        "name": "octopus_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 0,
@@ -30,7 +34,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_1",
+      "asset": {
+        "id": 19,
+        "name": "octopus_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 32,
@@ -59,7 +67,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_10",
+      "asset": {
+        "id": 20,
+        "name": "octopus_10",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 315,
@@ -88,7 +100,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_11",
+      "asset": {
+        "id": 21,
+        "name": "octopus_11",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 347,
@@ -117,7 +133,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_12",
+      "asset": {
+        "id": 22,
+        "name": "octopus_12",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 378,
@@ -146,7 +166,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_13",
+      "asset": {
+        "id": 23,
+        "name": "octopus_13",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 416,
@@ -175,7 +199,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_14",
+      "asset": {
+        "id": 24,
+        "name": "octopus_14",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 448,
@@ -204,7 +232,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_15",
+      "asset": {
+        "id": 25,
+        "name": "octopus_15",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 480,
@@ -233,7 +265,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_16",
+      "asset": {
+        "id": 26,
+        "name": "octopus_16",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 0,
@@ -262,7 +298,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_17",
+      "asset": {
+        "id": 27,
+        "name": "octopus_17",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 32,
@@ -291,7 +331,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_18",
+      "asset": {
+        "id": 28,
+        "name": "octopus_18",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 64,
@@ -320,7 +364,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_19",
+      "asset": {
+        "id": 29,
+        "name": "octopus_19",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 96,
@@ -349,7 +397,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_2",
+      "asset": {
+        "id": 30,
+        "name": "octopus_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 60,
@@ -378,7 +430,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_3",
+      "asset": {
+        "id": 31,
+        "name": "octopus_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 92,
@@ -407,7 +463,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_4",
+      "asset": {
+        "id": 32,
+        "name": "octopus_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 124,
@@ -436,7 +496,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_5",
+      "asset": {
+        "id": 33,
+        "name": "octopus_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 156,
@@ -465,7 +529,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_6",
+      "asset": {
+        "id": 34,
+        "name": "octopus_6",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 184,
@@ -494,7 +562,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_7",
+      "asset": {
+        "id": 35,
+        "name": "octopus_7",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 215,
@@ -523,7 +595,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_8",
+      "asset": {
+        "id": 36,
+        "name": "octopus_8",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 246,
@@ -552,7 +628,11 @@
       "sockets": []
     },
     {
-      "asset_name": "octopus_9",
+      "asset": {
+        "id": 37,
+        "name": "octopus_9",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\octopus_0_0.png",
       "location": {
         "x": 277,
@@ -581,7 +661,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_0",
+      "asset": {
+        "id": 38,
+        "name": "player_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -610,7 +694,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_1",
+      "asset": {
+        "id": 39,
+        "name": "player_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -639,7 +727,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_10",
+      "asset": {
+        "id": 40,
+        "name": "player_10",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -668,7 +760,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_100",
+      "asset": {
+        "id": 41,
+        "name": "player_100",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -684,7 +780,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_101",
+      "asset": {
+        "id": 42,
+        "name": "player_101",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -700,7 +800,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_102",
+      "asset": {
+        "id": 43,
+        "name": "player_102",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -716,7 +820,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_103",
+      "asset": {
+        "id": 44,
+        "name": "player_103",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -732,7 +840,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_104",
+      "asset": {
+        "id": 45,
+        "name": "player_104",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -748,7 +860,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_105",
+      "asset": {
+        "id": 46,
+        "name": "player_105",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -764,7 +880,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_11",
+      "asset": {
+        "id": 47,
+        "name": "player_11",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -793,7 +913,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_12",
+      "asset": {
+        "id": 48,
+        "name": "player_12",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -822,7 +946,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_13",
+      "asset": {
+        "id": 49,
+        "name": "player_13",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -851,7 +979,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_14",
+      "asset": {
+        "id": 50,
+        "name": "player_14",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -880,7 +1012,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_15",
+      "asset": {
+        "id": 51,
+        "name": "player_15",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -909,7 +1045,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_16",
+      "asset": {
+        "id": 52,
+        "name": "player_16",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -938,7 +1078,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_17",
+      "asset": {
+        "id": 53,
+        "name": "player_17",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -967,7 +1111,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_18",
+      "asset": {
+        "id": 54,
+        "name": "player_18",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -996,7 +1144,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_19",
+      "asset": {
+        "id": 55,
+        "name": "player_19",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -1025,7 +1177,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_2",
+      "asset": {
+        "id": 56,
+        "name": "player_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -1054,7 +1210,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_20",
+      "asset": {
+        "id": 57,
+        "name": "player_20",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -1083,7 +1243,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_21",
+      "asset": {
+        "id": 58,
+        "name": "player_21",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -1112,7 +1276,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_22",
+      "asset": {
+        "id": 59,
+        "name": "player_22",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -1141,7 +1309,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_23",
+      "asset": {
+        "id": 60,
+        "name": "player_23",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -1170,7 +1342,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_24",
+      "asset": {
+        "id": 61,
+        "name": "player_24",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -1199,7 +1375,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_25",
+      "asset": {
+        "id": 62,
+        "name": "player_25",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -1228,7 +1408,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_26",
+      "asset": {
+        "id": 63,
+        "name": "player_26",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -1257,7 +1441,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_27",
+      "asset": {
+        "id": 64,
+        "name": "player_27",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -1286,7 +1474,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_28",
+      "asset": {
+        "id": 65,
+        "name": "player_28",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -1315,7 +1507,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_29",
+      "asset": {
+        "id": 66,
+        "name": "player_29",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -1344,7 +1540,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_3",
+      "asset": {
+        "id": 67,
+        "name": "player_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -1373,7 +1573,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_30",
+      "asset": {
+        "id": 68,
+        "name": "player_30",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -1402,7 +1606,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_31",
+      "asset": {
+        "id": 69,
+        "name": "player_31",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -1431,7 +1639,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_32",
+      "asset": {
+        "id": 70,
+        "name": "player_32",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -1460,7 +1672,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_33",
+      "asset": {
+        "id": 71,
+        "name": "player_33",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -1489,7 +1705,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_34",
+      "asset": {
+        "id": 72,
+        "name": "player_34",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -1518,7 +1738,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_35",
+      "asset": {
+        "id": 73,
+        "name": "player_35",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -1547,7 +1771,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_36",
+      "asset": {
+        "id": 74,
+        "name": "player_36",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -1576,7 +1804,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_37",
+      "asset": {
+        "id": 75,
+        "name": "player_37",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -1605,7 +1837,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_38",
+      "asset": {
+        "id": 76,
+        "name": "player_38",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -1634,7 +1870,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_39",
+      "asset": {
+        "id": 77,
+        "name": "player_39",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -1663,7 +1903,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_4",
+      "asset": {
+        "id": 78,
+        "name": "player_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -1692,7 +1936,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_40",
+      "asset": {
+        "id": 79,
+        "name": "player_40",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -1721,7 +1969,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_41",
+      "asset": {
+        "id": 80,
+        "name": "player_41",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -1750,7 +2002,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_42",
+      "asset": {
+        "id": 81,
+        "name": "player_42",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -1779,7 +2035,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_43",
+      "asset": {
+        "id": 82,
+        "name": "player_43",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -1808,7 +2068,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_44",
+      "asset": {
+        "id": 83,
+        "name": "player_44",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -1837,7 +2101,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_45",
+      "asset": {
+        "id": 84,
+        "name": "player_45",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -1866,7 +2134,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_46",
+      "asset": {
+        "id": 85,
+        "name": "player_46",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -1895,7 +2167,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_47",
+      "asset": {
+        "id": 86,
+        "name": "player_47",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -1924,7 +2200,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_48",
+      "asset": {
+        "id": 87,
+        "name": "player_48",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -1953,7 +2233,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_49",
+      "asset": {
+        "id": 88,
+        "name": "player_49",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -1982,7 +2266,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_5",
+      "asset": {
+        "id": 89,
+        "name": "player_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -2011,7 +2299,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_50",
+      "asset": {
+        "id": 90,
+        "name": "player_50",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -2040,7 +2332,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_51",
+      "asset": {
+        "id": 91,
+        "name": "player_51",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -2069,7 +2365,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_52",
+      "asset": {
+        "id": 92,
+        "name": "player_52",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2098,7 +2398,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_53",
+      "asset": {
+        "id": 93,
+        "name": "player_53",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2127,7 +2431,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_54",
+      "asset": {
+        "id": 94,
+        "name": "player_54",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2156,7 +2464,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_55",
+      "asset": {
+        "id": 95,
+        "name": "player_55",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2185,7 +2497,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_56",
+      "asset": {
+        "id": 96,
+        "name": "player_56",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2214,7 +2530,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_57",
+      "asset": {
+        "id": 97,
+        "name": "player_57",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -2243,7 +2563,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_58",
+      "asset": {
+        "id": 98,
+        "name": "player_58",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2272,7 +2596,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_59",
+      "asset": {
+        "id": 99,
+        "name": "player_59",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2301,7 +2629,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_6",
+      "asset": {
+        "id": 100,
+        "name": "player_6",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -2330,7 +2662,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_60",
+      "asset": {
+        "id": 101,
+        "name": "player_60",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -2359,7 +2695,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_61",
+      "asset": {
+        "id": 102,
+        "name": "player_61",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2388,7 +2728,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_62",
+      "asset": {
+        "id": 103,
+        "name": "player_62",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2417,7 +2761,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_63",
+      "asset": {
+        "id": 104,
+        "name": "player_63",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -2446,7 +2794,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_64",
+      "asset": {
+        "id": 105,
+        "name": "player_64",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2475,7 +2827,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_65",
+      "asset": {
+        "id": 106,
+        "name": "player_65",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2504,7 +2860,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_66",
+      "asset": {
+        "id": 107,
+        "name": "player_66",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -2533,7 +2893,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_67",
+      "asset": {
+        "id": 108,
+        "name": "player_67",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -2562,7 +2926,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_68",
+      "asset": {
+        "id": 109,
+        "name": "player_68",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2591,7 +2959,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_69",
+      "asset": {
+        "id": 110,
+        "name": "player_69",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2620,7 +2992,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_7",
+      "asset": {
+        "id": 111,
+        "name": "player_7",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -2649,7 +3025,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_70",
+      "asset": {
+        "id": 112,
+        "name": "player_70",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -2678,7 +3058,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_71",
+      "asset": {
+        "id": 113,
+        "name": "player_71",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2707,7 +3091,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_72",
+      "asset": {
+        "id": 114,
+        "name": "player_72",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -2736,7 +3124,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_73",
+      "asset": {
+        "id": 115,
+        "name": "player_73",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -2765,7 +3157,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_74",
+      "asset": {
+        "id": 116,
+        "name": "player_74",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -2794,7 +3190,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_75",
+      "asset": {
+        "id": 117,
+        "name": "player_75",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -2823,7 +3223,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_76",
+      "asset": {
+        "id": 118,
+        "name": "player_76",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -2852,7 +3256,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_77",
+      "asset": {
+        "id": 119,
+        "name": "player_77",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -2881,7 +3289,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_78",
+      "asset": {
+        "id": 120,
+        "name": "player_78",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -2910,7 +3322,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_79",
+      "asset": {
+        "id": 121,
+        "name": "player_79",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -2939,7 +3355,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_8",
+      "asset": {
+        "id": 122,
+        "name": "player_8",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -2968,7 +3388,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_80",
+      "asset": {
+        "id": 123,
+        "name": "player_80",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -2997,7 +3421,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_81",
+      "asset": {
+        "id": 124,
+        "name": "player_81",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -3026,7 +3454,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_82",
+      "asset": {
+        "id": 125,
+        "name": "player_82",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -3055,7 +3487,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_83",
+      "asset": {
+        "id": 126,
+        "name": "player_83",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -3084,7 +3520,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_84",
+      "asset": {
+        "id": 127,
+        "name": "player_84",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -3100,7 +3540,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_85",
+      "asset": {
+        "id": 128,
+        "name": "player_85",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -3116,7 +3560,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_86",
+      "asset": {
+        "id": 129,
+        "name": "player_86",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -3132,7 +3580,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_87",
+      "asset": {
+        "id": 130,
+        "name": "player_87",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -3148,7 +3600,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_88",
+      "asset": {
+        "id": 131,
+        "name": "player_88",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -3164,7 +3620,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_89",
+      "asset": {
+        "id": 132,
+        "name": "player_89",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -3180,7 +3640,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_9",
+      "asset": {
+        "id": 133,
+        "name": "player_9",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -3209,7 +3673,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_90",
+      "asset": {
+        "id": 134,
+        "name": "player_90",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 0,
@@ -3225,7 +3693,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_91",
+      "asset": {
+        "id": 135,
+        "name": "player_91",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 48,
@@ -3241,7 +3713,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_92",
+      "asset": {
+        "id": 136,
+        "name": "player_92",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 96,
@@ -3257,7 +3733,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_93",
+      "asset": {
+        "id": 137,
+        "name": "player_93",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 144,
@@ -3273,7 +3753,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_94",
+      "asset": {
+        "id": 138,
+        "name": "player_94",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 192,
@@ -3289,7 +3773,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_95",
+      "asset": {
+        "id": 139,
+        "name": "player_95",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 240,
@@ -3305,7 +3793,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_96",
+      "asset": {
+        "id": 140,
+        "name": "player_96",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 288,
@@ -3321,7 +3813,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_97",
+      "asset": {
+        "id": 141,
+        "name": "player_97",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 336,
@@ -3337,7 +3833,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_98",
+      "asset": {
+        "id": 142,
+        "name": "player_98",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 384,
@@ -3353,7 +3853,11 @@
       "sockets": []
     },
     {
-      "asset_name": "player_99",
+      "asset": {
+        "id": 143,
+        "name": "player_99",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Swordman_1.png",
       "location": {
         "x": 432,
@@ -3369,7 +3873,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_0",
+      "asset": {
+        "id": 144,
+        "name": "sword_0",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 50,
@@ -3398,7 +3906,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_1",
+      "asset": {
+        "id": 145,
+        "name": "sword_1",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 96,
@@ -3451,7 +3963,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_10",
+      "asset": {
+        "id": 146,
+        "name": "sword_10",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 50,
@@ -3480,7 +3996,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_11",
+      "asset": {
+        "id": 147,
+        "name": "sword_11",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 96,
@@ -3533,7 +4053,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_12",
+      "asset": {
+        "id": 148,
+        "name": "sword_12",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 298,
@@ -3574,7 +4098,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_13",
+      "asset": {
+        "id": 149,
+        "name": "sword_13",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -3603,7 +4131,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_14",
+      "asset": {
+        "id": 150,
+        "name": "sword_14",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -3632,7 +4164,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_15",
+      "asset": {
+        "id": 151,
+        "name": "sword_15",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 133,
@@ -3685,7 +4221,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_16",
+      "asset": {
+        "id": 152,
+        "name": "sword_16",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 244,
@@ -3726,7 +4266,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_17",
+      "asset": {
+        "id": 153,
+        "name": "sword_17",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 73,
@@ -3755,7 +4299,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_18",
+      "asset": {
+        "id": 154,
+        "name": "sword_18",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 207,
@@ -3808,7 +4356,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_19",
+      "asset": {
+        "id": 155,
+        "name": "sword_19",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 298,
@@ -3849,7 +4401,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_2",
+      "asset": {
+        "id": 156,
+        "name": "sword_2",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 298,
@@ -3890,7 +4446,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_20",
+      "asset": {
+        "id": 157,
+        "name": "sword_20",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -3919,7 +4479,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_21",
+      "asset": {
+        "id": 158,
+        "name": "sword_21",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 50,
@@ -3948,7 +4512,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_22",
+      "asset": {
+        "id": 159,
+        "name": "sword_22",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 170,
@@ -4001,7 +4569,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_23",
+      "asset": {
+        "id": 160,
+        "name": "sword_23",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 271,
@@ -4042,7 +4614,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_24",
+      "asset": {
+        "id": 161,
+        "name": "sword_24",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -4071,7 +4647,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_25",
+      "asset": {
+        "id": 162,
+        "name": "sword_25",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 298,
@@ -4112,7 +4692,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_26",
+      "asset": {
+        "id": 163,
+        "name": "sword_26",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 207,
@@ -4165,7 +4749,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_27",
+      "asset": {
+        "id": 164,
+        "name": "sword_27",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 73,
@@ -4194,7 +4782,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_28",
+      "asset": {
+        "id": 165,
+        "name": "sword_28",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 207,
@@ -4247,7 +4839,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_29",
+      "asset": {
+        "id": 166,
+        "name": "sword_29",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -4276,7 +4872,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_3",
+      "asset": {
+        "id": 167,
+        "name": "sword_3",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -4305,7 +4905,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_30",
+      "asset": {
+        "id": 168,
+        "name": "sword_30",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 170,
@@ -4358,7 +4962,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_31",
+      "asset": {
+        "id": 169,
+        "name": "sword_31",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 50,
@@ -4387,7 +4995,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_32",
+      "asset": {
+        "id": 170,
+        "name": "sword_32",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 133,
@@ -4440,7 +5052,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_33",
+      "asset": {
+        "id": 171,
+        "name": "sword_33",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -4469,7 +5085,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_34",
+      "asset": {
+        "id": 172,
+        "name": "sword_34",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 96,
@@ -4522,7 +5142,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_35",
+      "asset": {
+        "id": 173,
+        "name": "sword_35",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 50,
@@ -4551,7 +5175,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_36",
+      "asset": {
+        "id": 174,
+        "name": "sword_36",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 96,
@@ -4604,7 +5232,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_37",
+      "asset": {
+        "id": 175,
+        "name": "sword_37",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 50,
@@ -4633,7 +5265,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_38",
+      "asset": {
+        "id": 176,
+        "name": "sword_38",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 170,
@@ -4686,7 +5322,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_39",
+      "asset": {
+        "id": 177,
+        "name": "sword_39",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -4715,7 +5355,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_4",
+      "asset": {
+        "id": 178,
+        "name": "sword_4",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 133,
@@ -4768,7 +5412,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_40",
+      "asset": {
+        "id": 179,
+        "name": "sword_40",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 207,
@@ -4821,7 +5469,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_41",
+      "asset": {
+        "id": 180,
+        "name": "sword_41",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 73,
@@ -4850,7 +5502,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_42",
+      "asset": {
+        "id": 181,
+        "name": "sword_42",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 133,
@@ -4903,7 +5559,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_43",
+      "asset": {
+        "id": 182,
+        "name": "sword_43",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -4932,7 +5592,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_44",
+      "asset": {
+        "id": 183,
+        "name": "sword_44",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 170,
@@ -4985,7 +5649,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_45",
+      "asset": {
+        "id": 184,
+        "name": "sword_45",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -5014,7 +5682,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_46",
+      "asset": {
+        "id": 185,
+        "name": "sword_46",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 207,
@@ -5067,7 +5739,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_47",
+      "asset": {
+        "id": 186,
+        "name": "sword_47",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 73,
@@ -5096,7 +5772,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_48",
+      "asset": {
+        "id": 187,
+        "name": "sword_48",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 96,
@@ -5149,7 +5829,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_49",
+      "asset": {
+        "id": 188,
+        "name": "sword_49",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -5178,7 +5862,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_5",
+      "asset": {
+        "id": 189,
+        "name": "sword_5",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 244,
@@ -5219,7 +5907,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_50",
+      "asset": {
+        "id": 190,
+        "name": "sword_50",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 133,
@@ -5272,7 +5964,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_51",
+      "asset": {
+        "id": 191,
+        "name": "sword_51",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 73,
@@ -5301,7 +5997,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_52",
+      "asset": {
+        "id": 192,
+        "name": "sword_52",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 170,
@@ -5354,7 +6054,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_53",
+      "asset": {
+        "id": 193,
+        "name": "sword_53",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 50,
@@ -5383,7 +6087,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_54",
+      "asset": {
+        "id": 194,
+        "name": "sword_54",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 96,
@@ -5436,7 +6144,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_55",
+      "asset": {
+        "id": 195,
+        "name": "sword_55",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -5465,7 +6177,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_56",
+      "asset": {
+        "id": 196,
+        "name": "sword_56",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 133,
@@ -5518,7 +6234,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_57",
+      "asset": {
+        "id": 197,
+        "name": "sword_57",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 73,
@@ -5547,7 +6267,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_58",
+      "asset": {
+        "id": 198,
+        "name": "sword_58",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 207,
@@ -5600,7 +6324,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_59",
+      "asset": {
+        "id": 199,
+        "name": "sword_59",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -5629,7 +6357,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_6",
+      "asset": {
+        "id": 200,
+        "name": "sword_6",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 73,
@@ -5658,7 +6390,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_7",
+      "asset": {
+        "id": 201,
+        "name": "sword_7",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 0,
@@ -5687,7 +6423,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_8",
+      "asset": {
+        "id": 202,
+        "name": "sword_8",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 170,
@@ -5740,7 +6480,11 @@
       "sockets": []
     },
     {
-      "asset_name": "sword_9",
+      "asset": {
+        "id": 203,
+        "name": "sword_9",
+        "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\DemosGame\\Content\\TileSets\\RPG_sprites.spritesheet"
+      },
       "sprite_sheet": "TileSets\\Epee_en_bois.png",
       "location": {
         "x": 271,

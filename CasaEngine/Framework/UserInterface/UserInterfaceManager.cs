@@ -15,6 +15,7 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Controls.Windows;
 using Microsoft.Xna.Framework.Graphics;
@@ -264,10 +265,8 @@ public class UserInterfaceManager
             AssetContentManager.CurrentContentManager = UserInterfaceContentManager;*/
             var size = new ScreenSize(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, Screen);
             _renderTarget = new RenderTarget(Game.GameManager.AssetContentManager, Game.GraphicsDevice, size.FullScreen,
-                SurfaceFormat.Color, false)
-            {
-                Name = "User Interface Render Target",
-            };
+                SurfaceFormat.Color, false);
+            _renderTarget.AssetInfo.Name = "User Interface Render Target";
             //AssetContentManager.CurrentContentManager = userContentManager;
 
             // Init User Interface UserInterfaceManager.Renderer.

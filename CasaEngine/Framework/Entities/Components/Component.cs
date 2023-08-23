@@ -5,7 +5,7 @@ using System.Text.Json;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities;
+namespace CasaEngine.Framework.Entities.Components;
 
 public abstract class Component
 #if EDITOR

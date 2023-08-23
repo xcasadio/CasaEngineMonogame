@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 using BulletSharp;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Engine.Renderer;
+using CasaEngine.Framework.Game.Components;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -51,7 +51,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public void SetCurrentAnimation(Animation2d anim, bool forceReset)
     {
-        if (CurrentAnimation != null && CurrentAnimation.AnimationData.Name == anim.AnimationData.Name)
+        if (CurrentAnimation != null && CurrentAnimation.AnimationData.AssetInfo.Name == anim.AnimationData.AssetInfo.Name)
         {
             if (forceReset)
             {
@@ -86,7 +86,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     {
         foreach (var anim in Animations)
         {
-            if (anim.AnimationData.Name == name)
+            if (anim.AnimationData.AssetInfo.Name == name)
             {
                 SetCurrentAnimation(anim, forceReset);
                 return true;

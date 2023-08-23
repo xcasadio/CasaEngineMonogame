@@ -161,7 +161,7 @@ public class Character
     {
         var animationName = GetAnimationName(animationIndex);
 
-        if (AnimatedSpriteComponent?.CurrentAnimation?.Animation2dData.Name == animationName)
+        if (AnimatedSpriteComponent?.CurrentAnimation?.Animation2dData.AssetInfo.Name == animationName)
         {
             return;
         }

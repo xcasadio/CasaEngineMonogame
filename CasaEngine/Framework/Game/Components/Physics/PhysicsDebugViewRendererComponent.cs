@@ -1,6 +1,5 @@
 ﻿using BulletSharp;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Engine.Renderer;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Game.Components.Physics;

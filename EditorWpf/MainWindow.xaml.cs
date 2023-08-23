@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
@@ -67,7 +69,7 @@ namespace EditorWpf
 
             LogManager.Instance.WriteLineInfo($"Project opened {projectFileName}");
 
-            GameSettings.ProjectSettings.Load(projectFileName);
+            GameSettings.Load(projectFileName);
         }
 
         private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)

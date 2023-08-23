@@ -18,7 +18,7 @@ public class EnemyIdleState : IState<Controller>
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Idle);
         _elapsedTime = 0;
-        var random = RandomHelper.Create();
+        var random = RandomExtension.Create();
         _timeMaxBeforeHunt = random.NextFloat(5.0f, 10.0f);
     }
 

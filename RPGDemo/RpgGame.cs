@@ -95,7 +95,7 @@ public class RpgGame : CasaEngineGame
         entity.Name = "link_sword";
         var animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.Name.StartsWith("baton")))
+        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("baton")))
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
@@ -122,7 +122,7 @@ public class RpgGame : CasaEngineGame
         physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
         animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.Name.StartsWith("swordman")))
+        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("swordman")))
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
@@ -159,7 +159,7 @@ public class RpgGame : CasaEngineGame
         physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
         var animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.Name.StartsWith("rock")))
+        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("rock")))
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
@@ -186,7 +186,7 @@ public class RpgGame : CasaEngineGame
         physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
         animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.Name.StartsWith("octopus")))
+        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("octopus")))
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }

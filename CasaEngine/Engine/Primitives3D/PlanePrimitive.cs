@@ -11,18 +11,10 @@ public class PlanePrimitive : GeometricPrimitive
 #endif
 
     /// <summary>
-    /// Constructs a new sphere primitive, using default settings.
-    /// </summary>
-    public PlanePrimitive(GraphicsDevice graphicsDevice)
-        : this(graphicsDevice, 1.0f, 1.0f, 1, 1)
-    {
-    }
-
-    /// <summary>
     /// Constructs a new plane primitive,
     /// with the specified horizontal and vertical tessellation level.
     /// </summary>
-    public PlanePrimitive(GraphicsDevice graphicsDevice, float sizeH, float sizeV, int tessellationHorizontal, int tessellationVertical)
+    public PlanePrimitive(GraphicsDevice graphicsDevice, float sizeH = 1.0f, float sizeV = 1.0f, int tessellationHorizontal = 1, int tessellationVertical = 1)
         : base(GeometricPrimitiveType.Plane)
     {
         if (tessellationHorizontal < 1)
@@ -89,42 +81,4 @@ public class PlanePrimitive : GeometricPrimitive
 
         InitializePrimitive(graphicsDevice);
     }
-
-#if BINARY_FORMAT
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="binR_"></param>
-		/// <param name="linearize"></param>
-		static public PlanePrimitive LoadPlane(GraphicsDevice graphicDevice_, BinaryReader binR_, bool linearize)
-		{
-			int TesH = binR_.ReadInt32();
-			int TesV = binR_.ReadInt32();
-			Vector2 scale = binR_.ReadVector2();
-
-			return new PlanePrimitive(graphicDevice_, scale.X, scale.Y, TesH, TesV);
-		}
-
-#elif XML_FORMAT
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="graphicDevice_"></param>
-		/// <param name="el_"></param>
-		/// <returns></returns>
-		static public PlanePrimitive LoadPlane(GraphicsDevice graphicDevice_, XmlElement el_)
-		{
-			Vector2 scale = new Vector2();
-
-			int TesH = int.Parse(el_.Attributes["TessellationH"].Value);
-			int TesV = int.Parse(el_.Attributes["m_TessellationVertical"].Value);
-			((XmlElement)el_.SelectSingleNode("Scale")).Read(ref scale);			
-
-			return new PlanePrimitive(graphicDevice_, scale.X, scale.Y, TesH, TesV);
-		}
-
-#endif
-
 }

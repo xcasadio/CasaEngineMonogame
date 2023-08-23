@@ -6,5 +6,5 @@
     "file_name": "DefaultWorld.world"
   },
   "version": 1,
-  "entities": []
+  "entity_references": []
 }

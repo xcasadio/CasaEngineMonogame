@@ -148,10 +148,11 @@ public class ProjectSettings
     private void CreateDefaultItem(string projectName, string fullFileName)
     {
         var projectPath = Path.GetDirectoryName(fullFileName);
-        var world = new World.World { Name = "DefaultWorld" };
-        world.FileName = world.Name;
+        var world = new World.World();
+        world.AssetInfo.Name = "DefaultWorld";
+        world.AssetInfo.FileName = world.AssetInfo.FileName;
         world.Save(projectPath, SaveOption.Editor);
-        FirstWorldLoaded = world.FileName;
+        FirstWorldLoaded = world.AssetInfo.FileName;
     }
 
     public bool Save(string fileName)

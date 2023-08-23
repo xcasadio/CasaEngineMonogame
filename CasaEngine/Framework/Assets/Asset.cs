@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
@@ -8,29 +8,11 @@ namespace CasaEngine.Framework.Assets;
 
 public abstract class Asset : Disposable
 {
-    //public event EventHandler? Disposed;
-
-    private string _name;
-
-    public long Id { get; private set; }
-
-    public string FileName { get; set; }
-
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (!string.IsNullOrEmpty(value) && _name != value)
-            {
-                _name = value;
-            }
-        }
-    }
+    public AssetInfo AssetInfo { get; } = new();
 
     protected Asset()
     {
-        Id = IdManager.GetId();
+        //Do nothing
     }
 
     internal virtual void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
@@ -40,22 +22,13 @@ public abstract class Asset : Disposable
 
     public virtual void Load(JsonElement element, SaveOption option)
     {
-        var version = element.GetJsonPropertyByName("version").Value.GetInt32();
-        Name = element.GetJsonPropertyByName("name").Value.GetString();
-        FileName = element.GetJsonPropertyByName("file_name").Value.GetString();
-        Id = element.GetJsonPropertyByName("id").Value.GetInt32();
+        AssetInfo.Load(element, option);
     }
 
 #if EDITOR
     public virtual void Save(JObject jObject, SaveOption option)
     {
-        var assetObject = new JObject(
-            new JProperty("version", 1),
-            new JProperty("id", Id),
-            new JProperty("name", Name),
-            new JProperty("file_name", FileName));
-
-        jObject.Add("asset", assetObject);
+        AssetInfo.Save(jObject, option);
     }
 #endif
 }

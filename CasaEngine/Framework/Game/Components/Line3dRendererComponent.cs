@@ -1,9 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Engine.Renderer;
+namespace CasaEngine.Framework.Game.Components;
 
 public class Line3dRendererComponent : DrawableGameComponent
 {
@@ -30,7 +29,7 @@ public class Line3dRendererComponent : DrawableGameComponent
     private BasicEffect? _basicEffect;
     private readonly CasaEngineGame _game;
 
-    public Line3dRendererComponent(Game game) : base(game)
+    public Line3dRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         if (game == null)
         {

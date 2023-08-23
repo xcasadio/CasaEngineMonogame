@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using CasaEngine.Core.Design;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Engine.Renderer;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Map2d;
@@ -112,7 +112,7 @@ namespace SandBoxGame
             entity.Coordinates.LocalPosition = new Vector3(450, 100, 1.0f);
             animatedSprite = new AnimatedSpriteComponent(entity);
             entity.ComponentManager.Components.Add(animatedSprite);
-            animatedSprite.AddAnimation(new Animation2d(animations.First(x => x.Name == "idle")));
+            animatedSprite.AddAnimation(new Animation2d(animations.First(x => x.AssetInfo.Name == "idle")));
             animatedSprite.SetCurrentAnimation("idle", true);
             world.AddEntityImmediately(entity);
 

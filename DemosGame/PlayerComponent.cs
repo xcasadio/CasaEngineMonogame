@@ -10,12 +10,12 @@ using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using SharpDX.Direct2D1;
-using Component = CasaEngine.Framework.Entities.Component;
+using Component = CasaEngine.Framework.Entities.Components.Component;
 
 namespace DemosGame;
 
 [DisplayName("PlayerComponent")]
-public class PlayerComponent : Component
+public class PlayerComponent : CasaEngine.Framework.Entities.Components.Component
 {
     public static readonly int ComponentId = (int)ComponentIds.Custom + 1;
 
@@ -65,14 +65,14 @@ public class PlayerComponent : Component
 
         _physics2dComponent.Velocity = new Vector2(velocityX, velocityY);
 
-        if (!string.IsNullOrWhiteSpace(animationName) && !animationName.Equals(_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name))
+        if (!string.IsNullOrWhiteSpace(animationName) && !animationName.Equals(_animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name))
         {
-            Debug.WriteLine(DateTime.Now.TimeOfDay + " " + animationName + " " + _animatedSpriteComponent.CurrentAnimation.Animation2dData.Name);
+            Debug.WriteLine(DateTime.Now.TimeOfDay + " " + animationName + " " + _animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name);
             _animatedSpriteComponent.SetCurrentAnimation(animationName, true);
         }
-        else if (string.IsNullOrWhiteSpace(animationName) && !_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name.Contains("stand"))
+        else if (string.IsNullOrWhiteSpace(animationName) && !_animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name.Contains("stand"))
         {
-            _animatedSpriteComponent.SetCurrentAnimation(_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name.Replace("walk", "stand"), true);
+            _animatedSpriteComponent.SetCurrentAnimation(_animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name.Replace("walk", "stand"), true);
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.Add))

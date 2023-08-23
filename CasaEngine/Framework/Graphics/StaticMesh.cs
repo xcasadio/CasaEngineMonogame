@@ -61,7 +61,7 @@ public class StaticMesh
     public void Load(JsonElement element)
     {
         //base.Save(jObject); //asset ?
-        var version = element.GetProperty("version").GetInt32();
+        //var version = element.GetProperty("version").GetInt32();
         PrimitiveType = element.GetProperty("primitive_type").GetEnum<PrimitiveType>();
 
         var verticesJObject = element.GetProperty("vertices");
@@ -99,7 +99,7 @@ public class StaticMesh
     public void Save(JObject jObject, SaveOption option)
     {
         //base.Save(jObject); //asset ?
-        jObject.Add("version", 1);
+        //jObject.Add("version", 1);
         jObject.Add("primitive_type", PrimitiveType.ConvertToString());
 
         var verticesJObject = new JArray();

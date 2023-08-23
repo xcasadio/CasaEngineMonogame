@@ -4,12 +4,12 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using RPGDemo.Controllers;
-using Component = CasaEngine.Framework.Entities.Component;
+using Component = CasaEngine.Framework.Entities.Components.Component;
 
 namespace RPGDemo.Components;
 
 [DisplayName("PlayerComponent")]
-public class PlayerComponent : Component
+public class PlayerComponent : CasaEngine.Framework.Entities.Components.Component
 {
     public static readonly int ComponentId = (int)RpgDemoComponentIds.PlayerComponent;
 

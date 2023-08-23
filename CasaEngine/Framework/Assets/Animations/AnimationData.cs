@@ -11,8 +11,8 @@ public class AnimationData : Asset
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        //base.Load(element);
         AnimationType = element.GetJsonPropertyByName("animation_type").Value.GetEnum<AnimationType>();
+        base.Load(element.GetProperty("asset"), option);
     }
 
 #if EDITOR
@@ -20,7 +20,7 @@ public class AnimationData : Asset
     public override void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("animation_type", AnimationType.ConvertToString());
-        //base.Save(jObject);
+        base.Save(jObject, option);
     }
 #endif
 }

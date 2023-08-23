@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
+using Component = CasaEngine.Framework.Entities.Components.Component;
 
 namespace CasaEngine.Editor.Tools;
 
@@ -14,7 +15,7 @@ public static class ElementRegister
 
     private static void SetEntityComponentNames()
     {
-        var componentType = typeof(Framework.Entities.Component);
+        var componentType = typeof(Component);
         var executingAssembly = Assembly.GetExecutingAssembly();
 
         EntityComponentNames = executingAssembly

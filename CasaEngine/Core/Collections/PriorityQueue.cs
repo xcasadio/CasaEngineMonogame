@@ -24,8 +24,6 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// </summary>
     protected IComparer<T> comparer;
 
-
-
     /// <summary>
     /// Default constructor. Uses the default comparer for the elements in the priority queue
     /// </summary>
@@ -56,8 +54,6 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         this.comparer = comparer;
         heapElements.Capacity = capacity;
     }
-
-
 
     /// <summary>
     /// Push an object onto the PQ
@@ -159,8 +155,6 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         return default;
     }
 
-
-
     /// <summary>
     /// Swaps two elements
     /// </summary>
@@ -251,8 +245,6 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         } while (true);
     }
 
-
-
     /// <summary>
     /// Returns an enumerator that iterates the priority queue
     /// </summary>
@@ -262,8 +254,6 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         return heapElements.GetEnumerator();
     }
 
-
-
     /// <summary>
     /// Not implemented
     /// </summary>
@@ -272,8 +262,6 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     {
         throw new NotSupportedException("You can´t iterate through the elements of a priority queue using a non-generic enumerator");
     }
-
-
 
     /// <summary>
     /// Number of elements in the heap
@@ -332,8 +320,6 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         throw new NotSupportedException("You should use the method Dequeue to eliminate elements from a priority queue");
     }
 
-
-
     /// <summary>
     /// Searches for the element in the heap
     /// </summary>
@@ -379,32 +365,12 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         }
     }
 
-
-
     /// <summary>
     /// Creates a clone from this object
     /// </summary>
     /// <returns>The clone of the object</returns>
     public object Clone()
     {
-        MemoryStream memory;
-        BinaryFormatter formater;
-        object clone;
-
-        using (memory = new MemoryStream())
-        {
-            //Serialize ourselves
-            formater = new BinaryFormatter();
-            formater.Serialize(memory, this);
-
-            //Move the memory buffer to the start
-            memory.Seek(0, SeekOrigin.Begin);
-
-            //Undo the serialization in the new clone object
-            clone = formater.Deserialize(memory);
-
-            return clone;
-        }
+        throw new NotImplementedException();
     }
-
 }

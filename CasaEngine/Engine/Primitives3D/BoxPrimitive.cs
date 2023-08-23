@@ -149,37 +149,4 @@ public class BoxPrimitive : GeometricPrimitive
             AddIndex(CurrentVertex + 3);
         }
     }
-
-#if BINARY_FORMAT
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="binR_"></param>
-		/// <param name="linearize"></param>
-		static public BoxPrimitive LoadCube(GraphicsDevice graphicDevice_, BinaryReader binR_, bool linearize)
-		{
-			float widht = binR_.ReadSingle();
-			float heigth = binR_.ReadSingle();
-			float length = binR_.ReadSingle();
-			return new BoxPrimitive(graphicDevice_, widht, heigth, length);
-		}
-
-#elif XML_FORMAT
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="graphicDevice_"></param>
-		/// <param name="el_"></param>
-		/// <returns></returns>
-		static public BoxPrimitive LoadCube(GraphicsDevice graphicDevice_, XmlElement el_)
-		{
-			float widht = float.Parse(el_.Attributes["width"].Value);
-			float heigth = float.Parse(el_.Attributes["height"].Value);
-			float length = float.Parse(el_.Attributes["length"].Value); ;
-			return new BoxPrimitive(graphicDevice_, widht, heigth, length);
-		}
-
-#endif
 }

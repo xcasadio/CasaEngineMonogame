@@ -76,8 +76,7 @@ public static class StringBuilderExtensions
     /// </summary>
     /// <param name="number"></param>
     /// <param name="options">Format options</param>
-    public static void AppendNumber(this StringBuilder builder, int number,
-        AppendNumberOptions options)
+    public static void AppendNumber(this StringBuilder builder, int number, AppendNumberOptions options)
     {
         AppendNumberInternal(builder, number, 0, options);
     }
@@ -95,8 +94,7 @@ public static class StringBuilderExtensions
     /// Convert float to string and add to string builder.
     /// </summary>
     /// <remarks>It shows 2 decimal digits.</remarks>
-    public static void AppendNumber(this StringBuilder builder, float number,
-        AppendNumberOptions options)
+    public static void AppendNumber(this StringBuilder builder, float number, AppendNumberOptions options)
     {
         builder.AppendNumber(number, 2, options);
     }
@@ -104,8 +102,8 @@ public static class StringBuilderExtensions
     /// <summary>
     /// Convert float to string and add to string builder.
     /// </summary>
-    public static void AppendNumber(this StringBuilder builder, float number,
-        int decimalCount, AppendNumberOptions options)
+    public static void AppendNumber(this StringBuilder builder, float number, int decimalCount,
+        AppendNumberOptions options)
     {
         // Handle NaN, Infinity cases.
         if (float.IsNaN(number))
@@ -122,16 +120,14 @@ public static class StringBuilderExtensions
         }
         else
         {
-            int intNumber =
-                (int)(number * MathUtils.Pow(10, decimalCount) + 0.5f);
+            int intNumber = (int)(number * MathUtils.Pow(10, decimalCount) + 0.5f);
 
             AppendNumberInternal(builder, intNumber, decimalCount, options);
         }
     }
 
 
-    private static void AppendNumberInternal(StringBuilder builder, int number,
-        int decimalCount, AppendNumberOptions options)
+    private static void AppendNumberInternal(StringBuilder builder, int number, int decimalCount, AppendNumberOptions options)
     {
         // Initialize variables for conversion.
         NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;

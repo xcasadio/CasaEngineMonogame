@@ -14,15 +14,15 @@ public class Cursor : Asset
     public Cursor(GraphicsDevice graphicsDevice, string fileName, AssetContentManager assetContentManager)
     {
         GraphicsDevice = graphicsDevice;
-        Name = Path.GetFileName(fileName);
-        FileName = fileName;
-        if (File.Exists(FileName) == false)
+        AssetInfo.Name = Path.GetFileName(fileName);
+        AssetInfo.FileName = fileName;
+        if (File.Exists(AssetInfo.FileName) == false)
         {
-            throw new ArgumentException("Failed to load cursor: File " + FileName + " does not exists!", nameof(fileName));
+            throw new ArgumentException($"Failed to load cursor: File {AssetInfo.FileName} does not exists!", nameof(fileName));
         }
         try
         {
-            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(FileName, GraphicsDevice);
+            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(AssetInfo.FileName, GraphicsDevice);
         }
         catch (ObjectDisposedException)
         {
@@ -30,7 +30,7 @@ public class Cursor : Asset
         }
         catch (Exception e)
         {
-            throw new InvalidOperationException("Failed to load cursor: " + fileName, e);
+            throw new InvalidOperationException($"Failed to load cursor: {fileName}", e);
         }
     } // Cursor
 
@@ -38,7 +38,7 @@ public class Cursor : Asset
     {
         if (Resource == null)
         {
-            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(FileName, GraphicsDevice);
+            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(AssetInfo.FileName, GraphicsDevice);
         }
     } // RecreateResource
 } // Cursor

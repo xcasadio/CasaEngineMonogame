@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 

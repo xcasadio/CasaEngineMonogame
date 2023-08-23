@@ -49,7 +49,7 @@ public class Texture : Asset
 
     public Texture()
     {
-        Name = "Empty Texture";
+        AssetInfo.Name = "Empty Texture";
     }
 
     public Texture(GraphicsDevice graphicsDevice) : this()
@@ -59,7 +59,7 @@ public class Texture : Asset
 
     public Texture(Texture2D texture2d) : this(texture2d.GraphicsDevice)
     {
-        Name = "Texture";
+        AssetInfo.Name = "Texture";
         Texture2d = texture2d;
         //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new Screen(GraphicsDevice));
     }
@@ -67,20 +67,20 @@ public class Texture : Asset
 
     public Texture(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager) : this(graphicsDevice)
     {
-        FileName = filename;
+        AssetInfo.FileName = filename;
         Initialize(graphicsDevice, assetContentManager);
     }
 
     public void Initialize(GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
     {
         GraphicsDevice = graphicsDevice;
-        LoadTexture(FileName, assetContentManager);
+        LoadTexture(AssetInfo.FileName, assetContentManager);
     }
 
     private void LoadTexture(string filename, AssetContentManager assetContentManager)
     {
-        Name = Path.GetFileNameWithoutExtension(filename);
-        FileName = filename;
+        AssetInfo.Name = Path.GetFileNameWithoutExtension(filename);
+        AssetInfo.FileName = filename;
 
         if (File.Exists(filename) == false)
         {
@@ -88,7 +88,7 @@ public class Texture : Asset
             filename = Path.Combine(GameSettings.ProjectSettings.ProjectPath, filename);
             if (File.Exists(filename) == false)
             {
-                throw new ArgumentException("Failed to load texture: File " + FileName + " does not exists!", nameof(filename));
+                throw new ArgumentException($"Failed to load texture: File {AssetInfo.FileName} does not exists!", nameof(filename));
             }
         }
 
@@ -96,7 +96,7 @@ public class Texture : Asset
         {
             Texture2d = assetContentManager.Load<Texture2D>(filename, GraphicsDevice);
             //ScreenSize = new ScreenSize(Texture2d.Width, Texture2d.Height, new Screen(GraphicsDevice));
-            Resource.Name = FileName;
+            Resource.Name = AssetInfo.FileName;
         }
         catch (ObjectDisposedException)
         {
@@ -104,7 +104,7 @@ public class Texture : Asset
         }
         catch (Exception e)
         {
-            throw new InvalidOperationException("Failed to load texture: " + filename, e);
+            throw new InvalidOperationException($"Failed to load texture: {filename}", e);
         }
     }
 
@@ -124,13 +124,13 @@ public class Texture : Asset
             return;
         }
 
-        if (string.IsNullOrEmpty(FileName))
+        if (string.IsNullOrEmpty(AssetInfo.FileName))
         {
             Texture2d = new Texture2D(device, Texture2d.Width, Texture2d.Height);
         }
         else if (Texture2d is { IsDisposed: true })
         {
-            Texture2d = assetContentManager.Load<Texture2D>(FileName, device);
+            Texture2d = assetContentManager.Load<Texture2D>(AssetInfo.FileName, device);
         }
 
         GraphicsDevice = device;

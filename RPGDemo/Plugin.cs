@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Engine.Plugin;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using RPGDemo.Components;
 
 namespace RPGDemo;

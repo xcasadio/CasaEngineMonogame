@@ -16,7 +16,7 @@ public class SetFrameEvent : AnimationEvent
         }
         else
         {
-            throw new InvalidOperationException($"SetFrameEvent.Activate() : Animation({anim.AnimationData.Name}) is not a Animation2D");
+            throw new InvalidOperationException($"SetFrameEvent.Activate() : Animation({anim.AnimationData.AssetInfo.Name}) is not a Animation2D");
         }
     }
 }

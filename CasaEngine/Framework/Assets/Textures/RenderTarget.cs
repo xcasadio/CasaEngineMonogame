@@ -116,7 +116,7 @@ public sealed class RenderTarget : Texture
         : base(graphicsDevice)
     {
         _assetContentManager = assetContentManager;
-        Name = "Render Target";
+        AssetInfo.Name = "Render Target";
         //ScreenSize = screenSize;
 
         SurfaceFormat = surfaceFormat;
@@ -139,7 +139,7 @@ public sealed class RenderTarget : Texture
         : base(graphicsDevice)
     {
         _assetContentManager = assetContentManager;
-        Name = "Render Target";
+        AssetInfo.Name = "Render Target";
         //ScreenSize = screenSize;
 
         SurfaceFormat = surfaceFormat;

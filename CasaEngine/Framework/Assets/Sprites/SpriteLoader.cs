@@ -22,18 +22,10 @@ public class SpriteLoader
         {
             var spriteData = new SpriteData();
             spriteData.Load(jsonElement, option);
-            //var rect = spriteData.PositionInTexture;
-            //rect.X -= 1;
-            //rect.Width += 2;
-            //rect.Y -= 1;
-            //rect.Height += 2;
-            //spriteData.PositionInTexture = rect;
-            spriteData.FileName = fileName;
-            assetContentManager.AddAsset(spriteData.Name, spriteData);
+            spriteData.AssetInfo.FileName = fileName;
+            assetContentManager.AddAsset(spriteData.AssetInfo.Name, spriteData);
             spriteDatas.Add(spriteData);
         }
-
-        //SaveToFile(fileName, spriteDatas);
 
         return spriteDatas;
     }

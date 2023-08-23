@@ -15,7 +15,8 @@ public class SpriteData : Asset
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        Name = element.GetJsonPropertyByName("asset_name").Value.GetString(); //TODO : in base.Load()
+        base.Load(element.GetProperty("asset"), option);
+        //AssetInfo.Name = element.GetJsonPropertyByName("asset_name").Value.GetString();
 
         SpriteSheetFileName = element.GetJsonPropertyByName("sprite_sheet").Value.GetString();
         PositionInTexture = element.GetJsonPropertyByName("location").Value.GetRectangle();
@@ -46,7 +47,8 @@ public class SpriteData : Asset
 
     public override void Save(JObject jObject, SaveOption option)
     {
-        jObject.Add("asset_name", Name);
+        base.Save(jObject, option);
+        //jObject.Add("asset_name", Name);
         jObject.Add("sprite_sheet", SpriteSheetFileName);
 
         JObject newJObject = new();

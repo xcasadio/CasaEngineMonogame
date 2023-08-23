@@ -16,7 +16,7 @@ public class GameEditor : WpfGame
 
     public CasaEngineGame? Game { get; private set; }
 
-    protected override bool CanRender => _isInitialized;
+    protected override bool CanRender => _isInitialized && IsVisible;
 
     protected override void Initialize()
     {
