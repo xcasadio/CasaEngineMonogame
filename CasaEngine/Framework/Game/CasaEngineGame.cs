@@ -1,8 +1,5 @@
-using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Text.Json;
-using CasaEngine.Core.Design;
 
 namespace CasaEngine.Framework.Game;
 

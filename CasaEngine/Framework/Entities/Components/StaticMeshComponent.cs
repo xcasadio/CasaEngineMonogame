@@ -78,7 +78,7 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         return component;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
         var meshElement = element.GetProperty("mesh");
 
@@ -91,9 +91,9 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
 
         JObject newJObject = new();
         if (Mesh != null)

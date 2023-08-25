@@ -11,6 +11,8 @@
              xmlns:worldControls="clr-namespace:EditorWpf.Controls.WorldControls"
              xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              xmlns:shapes="clr-namespace:CasaEngine.Core.Shapes;assembly=CasaEngine"
+             xmlns:xna="clr-namespace:Microsoft.Xna.Framework;assembly=MonoGame.Framework"
+             xmlns:graphics="clr-namespace:Microsoft.Xna.Framework.Graphics;assembly=MonoGame.Framework"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
@@ -20,6 +22,14 @@
                             x:Key="PhysicsTypeEnumValues">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="physics:PhysicsType" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}"
+                            x:Key="SpriteEffectsEnumValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="graphics:SpriteEffects" />
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
@@ -107,8 +117,32 @@
                 <CheckBox Grid.Row="17" Grid.Column="1" IsChecked="{Binding ApplyGravity}" HorizontalAlignment="Stretch"/>
 
                 <TextBlock Grid.Row="18" Grid.Column="0" Text="Debug Color" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:ColorEditor Grid.Row="18" Grid.Column="1" Value="{Binding DebugColor}"/>
-
+                <ContentControl Grid.Row="18" Grid.Column="1" DataContext="{Binding DebugColor}">
+                    <ContentControl.Style>
+                        <Style TargetType="{x:Type ContentControl}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DebugColor}" Value="{x:Null}">
+                                    <Setter Property="ContentTemplate" >
+                                        <Setter.Value>
+                                            <DataTemplate>
+                                                <Button Content="Create"/>
+                                            </DataTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DebugColor}" Value="{x:Type xna:Color}">
+                                    <Setter Property="ContentTemplate" >
+                                        <Setter.Value>
+                                            <DataTemplate>
+                                                <wpfControls:ColorEditor Value="{Binding DebugColor}"/>
+                                            </DataTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
             </Grid>
         </DataTemplate>
 
@@ -207,10 +241,70 @@
 
 
         <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type components:GamePlayComponent}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding ExternalComponent.Name}" />
-                <TextBlock Text="{Binding ExternalComponent.Id}" />
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="ExternalComponent Id" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ExternalComponent.Id}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="ExternalComponent list" />
+                <ComboBox Grid.Row="1" Grid.Column="1" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="animatedSpriteComponentTemplate" DataType="{x:Type components:AnimatedSpriteComponent}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Color" />
+                <wpfControls:ColorEditor Grid.Row="0" Grid.Column="1" Value="{Binding Color}"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Sprite Effect" />
+                <ComboBox Grid.Row="1" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
+                          ItemsSource="{Binding Source={StaticResource SpriteEffectsEnumValues}}"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Animations" />
+                <ListBox Grid.Row="2" Grid.Column="1" ></ListBox>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="staticSpriteComponentTemplate" DataType="{x:Type components:StaticSpriteComponent}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Sprite" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SpriteData.Name}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Color" />
+                <wpfControls:ColorEditor Grid.Row="1" Grid.Column="1" Value="{Binding Color}"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Sprite Effect" />
+                <ComboBox Grid.Row="2" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
+                          ItemsSource="{Binding Source={StaticResource SpriteEffectsEnumValues}}"/>
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
@@ -276,38 +370,29 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                <Grid Grid.Row="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Shape.Position}"/>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Shape.Position}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Orientation" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:RotationEditor Grid.Row="1" Grid.Column="1" Value="{Binding Shape.Orientation}"/>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Orientation" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <wpfControls:RotationEditor Grid.Row="1" Grid.Column="1" Value="{Binding Shape.Orientation}"/>
-
-                    <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Shape.Type}"/>
+                <Button Grid.Row="2" Grid.Column="1" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 
                             HorizontalAlignment="Right"/>
 
-                    <ContentControl Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding PhysicsDefinition}"
+                <ContentControl Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"  x:Name="physicsShapeControl" Content="{Binding Shape}" 
+                                 ContentTemplateSelector="{StaticResource ShapeTemplateSelector}"/>
+
+                <ContentControl Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding PhysicsDefinition}"
                                     ContentTemplate="{StaticResource physicsDefinitionComponentTemplate}"/>
-
-                </Grid>
-
-                <TextBlock Grid.Row="2" Text="{Binding Shape.Type}"/>
-                <ContentControl x:Name="physicsShapeControl"  Grid.Row="3" Content="{Binding Shape}" 
-                                ContentTemplateSelector="{StaticResource ShapeTemplateSelector}"/>
             </Grid>
         </DataTemplate>
 
@@ -333,7 +418,10 @@
                     MeshComponenTemplate="{StaticResource meshComponentTemplate}"
                     GamePlayComponenTemplate="{StaticResource gamePlayComponentTemplate}"
                     PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
-                    TiledMapComponentTemplate="{StaticResource tiledMapComponentTemplate}" />
+                    TiledMapComponentTemplate="{StaticResource tiledMapComponentTemplate}"
+                    StaticSpriteComponentTemplate="{StaticResource staticSpriteComponentTemplate}"
+                    AnimatedSpriteComponentTemplate="{StaticResource animatedSpriteComponentTemplate}"
+                    />
             </ContentControl.ContentTemplateSelector>
         </ContentControl>
     </Grid>

@@ -1,11 +1,7 @@
-﻿using System.ComponentModel;
-using System.Numerics;
-using BulletSharp;
+﻿using BulletSharp;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Maths.Curves;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 using Vector3 = Microsoft.Xna.Framework.Vector3;

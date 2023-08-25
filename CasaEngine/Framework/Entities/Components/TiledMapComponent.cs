@@ -192,7 +192,7 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
         return component;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
         var fileName = element.GetProperty("tiledMapDataFileName").GetString();
         TiledMapData = TiledMapLoader.LoadMapFromFile(fileName);
@@ -205,9 +205,9 @@ public class TiledMapComponent : Component, IBoundingBoxComputable, ICollideable
 #if EDITOR
     public string TiledMapDataFileName { get; set; }
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
 
         jObject.Add("tiledMapDataFileName", TiledMapDataFileName);
     }

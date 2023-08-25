@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
 
@@ -311,9 +312,9 @@ public class ArcBallCameraComponent : Camera3dComponent
         return component;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        base.Load(element);
+        base.Load(element, option);
 
         _target = element.GetProperty("target").GetVector3();
         _distance = element.GetProperty("distance").GetSingle();
@@ -323,9 +324,9 @@ public class ArcBallCameraComponent : Camera3dComponent
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
 
         JObject newJObject = new();
         _target.Save(newJObject);

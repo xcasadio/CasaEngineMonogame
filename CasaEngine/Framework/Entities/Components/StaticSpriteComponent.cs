@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using BulletSharp;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
@@ -84,7 +85,7 @@ public class StaticSpriteComponent : Component, ICollideableComponent
         return component;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
         var spriteDataName = element.GetProperty("spriteDataName").GetString();
 
@@ -131,10 +132,10 @@ public class StaticSpriteComponent : Component, ICollideableComponent
         LoadSpriteData(spriteDataName);
     }
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.AssetInfo.Name);
-        base.Save(jObject);
+        base.Save(jObject, option);
     }
 
 #endif

@@ -1,14 +1,19 @@
+using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Scripting;
 
-public class ScriptArcBallCamera : IExternalComponent
+public class ScriptArcBallCamera : ExternalComponent
 {
+    public static int ScriptId => (int)ScriptIds.ArcBallCamera;
+
     private readonly ArcBallCameraComponent? _arcBallCameraComponent;
     private InputComponent _inputComponent;
 
@@ -18,7 +23,7 @@ public class ScriptArcBallCamera : IExternalComponent
 
     public float InputDisplacementRate { get; set; }
 
-    public ScriptArcBallCamera(Entity entity)
+    public ScriptArcBallCamera(Entity entity) : base(ScriptId)
     {
         _arcBallCameraComponent = entity.ComponentManager.GetComponent<ArcBallCameraComponent>();
         InputDistanceRate = 3.0f;
@@ -26,15 +31,12 @@ public class ScriptArcBallCamera : IExternalComponent
         InputDisplacementRate = 10.0f;
     }
 
-    public string Name => "ArcBallCameraComponent script";
-    public int Id { get; }
-
-    public void Initialize(CasaEngineGame game)
+    public override void Initialize(CasaEngineGame game)
     {
         _inputComponent = game.GetGameComponent<InputComponent>();
     }
 
-    public void Update(float elapsedTime)
+    public override void Update(float elapsedTime)
     {
         var rightAxis = 0.0f;
         var upAxis = 0.0f;
@@ -139,15 +141,29 @@ public class ScriptArcBallCamera : IExternalComponent
         }
     }
 
-    public void Draw()
+    public override void Draw()
     {
     }
 
-    public void OnHit(Collision collision)
+    public override void OnHit(Collision collision)
     {
     }
 
-    public void OnHitEnded(Collision collision)
+    public override void OnHitEnded(Collision collision)
     {
     }
+
+    public override void Load(JsonElement element, SaveOption option)
+    {
+
+    }
+
+#if EDITOR
+
+    public override void Save(JObject jObject, SaveOption option)
+    {
+
+    }
+
+#endif
 }

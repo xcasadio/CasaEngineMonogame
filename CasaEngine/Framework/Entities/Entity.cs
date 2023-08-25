@@ -122,7 +122,7 @@ public class Entity : ISaveLoad
 
         foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
         {
-            ComponentManager.Components.Add(ComponentLoader.Load(this, item));
+            ComponentManager.Components.Add(GameSettings.ComponentLoader.Load(this, item));
         }
 
         var jsonCoordinate = element.GetJsonPropertyByName("coordinates").Value;
@@ -172,7 +172,7 @@ public class Entity : ISaveLoad
         foreach (var component in ComponentManager.Components)
         {
             JObject componentObject = new();
-            component.Save(componentObject);
+            component.Save(componentObject, option);
             componentsJArray.Add(componentObject);
         }
         jObject.Add("components", componentsJArray);

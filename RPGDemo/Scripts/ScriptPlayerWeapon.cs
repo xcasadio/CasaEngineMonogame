@@ -7,7 +7,7 @@ using RPGDemo.Components;
 
 namespace RPGDemo.Scripts;
 
-public class ScriptPlayerWeapon : IExternalComponent
+public class ScriptPlayerWeapon : ExternalComponent
 {
     private readonly Entity _entity;
 
@@ -16,8 +16,7 @@ public class ScriptPlayerWeapon : IExternalComponent
         _entity = entity;
     }
 
-    public string Name { get; }
-    public int Id { get; }
+    public int Id => (int)ScriptIds.Custom + (int)ScriptRPGDemoIds.PlayerWeapon;
 
     public void Initialize(CasaEngineGame game)
     {

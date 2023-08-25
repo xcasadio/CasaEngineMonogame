@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using RPGDemo.Controllers;
@@ -37,7 +38,7 @@ public class EnemyComponent : CasaEngine.Framework.Entities.Components.Component
 
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
 
     }

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
@@ -11,9 +12,9 @@ namespace CasaEngine.Framework.Entities.Components;
 public class GamePlayComponent : Component
 {
     public static readonly int ComponentId = (int)ComponentIds.GamePlay;
-    private IExternalComponent? _externalComponent;
+    private ExternalComponent? _externalComponent;
 
-    public IExternalComponent? ExternalComponent
+    public ExternalComponent? ExternalComponent
     {
         get => _externalComponent;
         set => _externalComponent = value;
@@ -59,18 +60,24 @@ public class GamePlayComponent : Component
         return component;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        throw new NotImplementedException();
+        //base.Load(element);
+        var externalComponentId = element.GetProperty("external_component_id").GetInt32();
+
+        if (externalComponentId != -1)
+        {
+
+        }
     }
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
 
-        throw new NotImplementedException();
+        jObject.Add("external_component_id", ExternalComponent == null ? -1 : ExternalComponent.Type);
     }
 #endif
 }

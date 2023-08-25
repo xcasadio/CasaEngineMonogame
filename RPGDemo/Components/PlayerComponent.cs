@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
@@ -37,7 +38,7 @@ public class PlayerComponent : CasaEngine.Framework.Entities.Components.Componen
 
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
 
     }

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
@@ -70,7 +71,7 @@ public abstract class CameraComponent : Component
         _viewport.MaxDepth = 1000.0f;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
         _viewDistance = element.GetProperty("view_distance").GetSingle();
         _viewport = element.GetJsonPropertyByName("viewport").Value.GetViewPort();
@@ -88,9 +89,9 @@ public abstract class CameraComponent : Component
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
 
         jObject.Add("view_distance", _viewDistance);
 

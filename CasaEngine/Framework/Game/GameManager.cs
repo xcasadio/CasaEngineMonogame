@@ -1,7 +1,6 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
-using CasaEngine.Engine.Input.InputSequence;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Debugger;

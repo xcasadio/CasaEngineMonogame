@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -56,18 +57,18 @@ public abstract class Camera3dComponent : CameraComponent
             Viewport.AspectRatio; //1920 / 1080 = 1.777777777 => in angle = MathHelper.PiOver4
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        base.Load(element);
+        base.Load(element, option);
 
         _fieldOfView = element.GetProperty("fieldOfView").GetSingle();
     }
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
         jObject.Add("fieldOfView", _fieldOfView);
     }
 #endif

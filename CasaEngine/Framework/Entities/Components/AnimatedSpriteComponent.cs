@@ -14,6 +14,9 @@ using BulletSharp;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game.Components;
+using System.Diagnostics;
+using CasaEngine.Core.Design;
+using CasaEngine.Core.Helpers;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -26,11 +29,10 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     public event EventHandler<Animation2d>? AnimationFinished;
     private readonly Dictionary<string, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
 
-    private Renderer2dComponent _renderer2dComponent;
+    private CasaEngineGame _game;
     private AssetContentManager _assetContentManager;
     private PhysicsEngineComponent? _physicsEngineComponent;
     private SpriteRendererComponent _spriteRenderer;
-    private CasaEngineGame _game;
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
@@ -130,7 +132,6 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     public override void Initialize(CasaEngineGame game)
     {
         _game = game;
-        _renderer2dComponent = game.GetGameComponent<Renderer2dComponent>();
         _spriteRenderer = game.GetGameComponent<SpriteRendererComponent>();
         _assetContentManager = game.GameManager.AssetContentManager;
         _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
@@ -274,9 +275,15 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         Owner.HitEnded(collision, this);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        throw new NotImplementedException();
+        Color = element.GetProperty("color").GetColor();
+        SpriteEffect = element.GetProperty("sprite_effect").GetEnum<SpriteEffects>();
+
+        foreach (var animationNode in element.GetProperty("animations").EnumerateArray())
+        {
+            //load animation
+        }
     }
 
     public override Component Clone(Entity owner)
@@ -293,10 +300,28 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        throw new NotImplementedException();
-        base.Save(jObject);
+        base.Save(jObject, option);
+
+        var newJObject = new JObject();
+        Color.Save(newJObject);
+        jObject.Add("color", newJObject);
+
+        jObject.Add("sprite_effect", SpriteEffect.ConvertToString());
+
+        var animationsNode = new JArray();
+
+        foreach (var animation2d in Animations)
+        {
+            newJObject = new JObject();
+            //newJObject.Add("", );
+            //animation2d.Animation2dData.AssetInfo.Name;
+            //animation2d.Animation2dData.AssetInfo.FileName;
+            animationsNode.Add(newJObject);
+        }
+
+        jObject.Add("animations", animationsNode);
     }
 
 #endif

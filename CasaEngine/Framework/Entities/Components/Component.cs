@@ -2,14 +2,15 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
-public abstract class Component
+public abstract class Component : ISaveLoad
 #if EDITOR
-    : INotifyPropertyChanged
+    , INotifyPropertyChanged
 #endif
 {
     public Entity Owner { get; }
@@ -37,7 +38,7 @@ public abstract class Component
         return false;
     }
 
-    public abstract void Load(JsonElement element);
+    public abstract void Load(JsonElement element, SaveOption option);
 
     public virtual void ScreenResized(int width, int height)
     {
@@ -57,7 +58,7 @@ public abstract class Component
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public virtual void Save(JObject jObject)
+    public virtual void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("version", 1);
         jObject.Add("type", Type);

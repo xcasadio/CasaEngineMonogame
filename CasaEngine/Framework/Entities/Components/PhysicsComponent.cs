@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using BulletSharp;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
@@ -153,7 +154,7 @@ public class PhysicsComponent : Component, ICollideableComponent
         return component;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
         PhysicsDefinition.Load(element.GetProperty("physics_definition"));
 
@@ -166,9 +167,9 @@ public class PhysicsComponent : Component, ICollideableComponent
 
 #if EDITOR
 
-    public override void Save(JObject jObject)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        base.Save(jObject);
+        base.Save(jObject, option);
 
         JObject newJObject = new();
         PhysicsDefinition.Save(newJObject);

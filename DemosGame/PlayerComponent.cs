@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Entities;
@@ -99,7 +100,7 @@ public class PlayerComponent : CasaEngine.Framework.Entities.Components.Componen
         return component;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JsonElement element, SaveOption option)
     {
 
     }

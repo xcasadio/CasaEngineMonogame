@@ -87,9 +87,9 @@ public static class JsonHelper
     {
         return new Color
         {
-            R = element.GetProperty("x").GetByte(),
-            G = element.GetProperty("y").GetByte(),
-            B = element.GetProperty("z").GetByte(),
+            R = element.GetProperty("r").GetByte(),
+            G = element.GetProperty("g").GetByte(),
+            B = element.GetProperty("b").GetByte(),
             A = element.GetProperty("a").GetByte()
         };
     }

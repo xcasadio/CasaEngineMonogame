@@ -12,7 +12,8 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
     public DataTemplate ArcBallCameraComponenTemplate { get; set; }
     public DataTemplate PhysicsComponenTemplate { get; set; }
     public DataTemplate TiledMapComponentTemplate { get; set; }
-
+    public DataTemplate StaticSpriteComponentTemplate { get; set; }
+    public DataTemplate AnimatedSpriteComponentTemplate { get; set; }
 
 
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
@@ -26,6 +27,8 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
                 case ComponentIds.GamePlay: return GamePlayComponenTemplate;
                 case ComponentIds.Physics: return PhysicsComponenTemplate;
                 case ComponentIds.TiledMap: return TiledMapComponentTemplate;
+                case ComponentIds.AnimatedSprite: return AnimatedSpriteComponentTemplate;
+                case ComponentIds.StaticSprite: return StaticSpriteComponentTemplate;
             }
         }
 
