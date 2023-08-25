@@ -38,13 +38,22 @@ public class PlayerComponent : CasaEngine.Framework.Entities.Components.Componen
 
     }
 
+    public override Component Clone(Entity owner)
+    {
+        return new PlayerComponent(owner);
+    }
+
     public override void Load(JsonElement element, SaveOption option)
     {
 
     }
 
-    public override Component Clone(Entity owner)
+#if EDITOR
+
+    public override void Save(JObject jObject, SaveOption option)
     {
-        return new PlayerComponent(owner);
+        base.Save(jObject, option);
     }
+
+#endif
 }

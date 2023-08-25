@@ -1,4 +1,6 @@
-﻿using CasaEngine.Engine.Physics;
+﻿using System.Text.Json;
+using CasaEngine.Core.Design;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -9,28 +11,28 @@ namespace RPGDemo.Scripts;
 
 public class ScriptPlayerWeapon : ExternalComponent
 {
+    public static int ScriptId => (int)RpgDemoScriptIds.Player;
+
     private readonly Entity _entity;
 
-    public ScriptPlayerWeapon(Entity entity)
+    public ScriptPlayerWeapon(Entity entity) : base(ScriptId)
     {
         _entity = entity;
     }
 
-    public int Id => (int)ScriptIds.Custom + (int)ScriptRPGDemoIds.PlayerWeapon;
-
-    public void Initialize(CasaEngineGame game)
+    public override void Initialize(CasaEngineGame game)
     {
     }
 
-    public void Update(float elapsedTime)
+    public override void Update(float elapsedTime)
     {
     }
 
-    public void Draw()
+    public override void Draw()
     {
     }
 
-    public void OnHit(Collision collision)
+    public override void OnHit(Collision collision)
     {
         HitWithGrass(collision);
         HitWithEnemy(collision);
@@ -76,7 +78,21 @@ public class ScriptPlayerWeapon : ExternalComponent
         }
     }
 
-    public void OnHitEnded(Collision collision)
+    public override void OnHitEnded(Collision collision)
     {
     }
+
+    public override void Load(JsonElement element, SaveOption option)
+    {
+
+    }
+
+#if EDITOR
+
+    public override void Save(JObject jObject, SaveOption option)
+    {
+        base.Save(jObject, option);
+    }
+
+#endif
 }

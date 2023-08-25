@@ -1,7 +1,9 @@
-﻿namespace RPGDemo.Scripts;
+﻿using CasaEngine.Framework.Scripting;
 
-public enum ScriptRPGDemoIds
+namespace RPGDemo.Scripts;
+
+public enum RPGDemoScriptIds
 {
-    PlayerWeapon = 0,
+    PlayerWeapon = ScriptIds.Custom,
     EnemyWeapon
 }

@@ -9,7 +9,7 @@ using Component = CasaEngine.Framework.Entities.Components.Component;
 namespace RPGDemo.Components;
 
 [DisplayName("EnemyComponent")]
-public class EnemyComponent : CasaEngine.Framework.Entities.Components.Component
+public class EnemyComponent : Component
 {
     public static readonly int ComponentId = (int)RpgDemoComponentIds.EnemyComponent;
 
