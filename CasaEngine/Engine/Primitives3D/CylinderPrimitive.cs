@@ -5,11 +5,8 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class CylinderPrimitive : GeometricPrimitive
 {
-    public CylinderPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 1, 32)
-    {
-    }
-
-    public CylinderPrimitive(GraphicsDevice graphicsDevice, float height, float diameter, int tessellation) : base(GeometricPrimitiveType.Cylinder)
+    public CylinderPrimitive(GraphicsDevice graphicsDevice, float height = 1f, float diameter = 1f, int tessellation = 32) :
+        base(GeometricPrimitiveType.Cylinder)
     {
         if (tessellation < 3)
         {

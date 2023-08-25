@@ -5,11 +5,7 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class TorusPrimitive : GeometricPrimitive
 {
-    public TorusPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 0.333f, 32)
-    {
-    }
-
-    public TorusPrimitive(GraphicsDevice graphicsDevice, float diameter, float thickness, int tessellation) : base(GeometricPrimitiveType.Torus)
+    public TorusPrimitive(GraphicsDevice graphicsDevice, float diameter = 1, float thickness = 0.333f, int tessellation = 32) : base(GeometricPrimitiveType.Torus)
     {
         if (tessellation < 3)
         {

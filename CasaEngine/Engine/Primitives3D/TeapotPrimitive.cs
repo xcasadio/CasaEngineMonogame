@@ -6,11 +6,7 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class TeapotPrimitive : BezierPrimitive
 {
-    public TeapotPrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 8)
-    {
-    }
-
-    public TeapotPrimitive(GraphicsDevice graphicsDevice, float size, int tessellation) : base(GeometricPrimitiveType.Teapot)
+    public TeapotPrimitive(GraphicsDevice graphicsDevice, float size = 1, int tessellation = 8) : base(GeometricPrimitiveType.Teapot)
     {
         if (tessellation < 1)
         {

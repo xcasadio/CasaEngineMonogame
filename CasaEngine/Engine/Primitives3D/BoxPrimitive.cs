@@ -10,32 +10,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
-/// <summary>
-/// Geometric primitive class for drawing cubes.
-/// </summary>
 public class BoxPrimitive : GeometricPrimitive
 {
 #if EDITOR
     private float _width, _height, _length;
 #endif
 
-    /// <summary>
-    /// Constructs a new cube primitive, using default settings.
-    /// </summary>
-    public BoxPrimitive(GraphicsDevice graphicsDevice)
-        : this(graphicsDevice, 1, 1, 1)
-    {
-    }
-
-
-    /// <summary>
-    /// Constructs a new cube primitive, with the specified size.
-    /// </summary>
-    /// <param name="graphicsDevice"></param>
-    /// <param name="width">X</param>
-    /// <param name="height">Y</param>
-    /// <param name="length">Z</param>
-    public BoxPrimitive(GraphicsDevice graphicsDevice, float width, float height, float length)
+    public BoxPrimitive(GraphicsDevice graphicsDevice, float width = 1, float height = 1, float length = 1)
         : base(GeometricPrimitiveType.Cube)
     {
 #if EDITOR
@@ -123,9 +104,6 @@ public class BoxPrimitive : GeometricPrimitive
         InitializePrimitive(graphicsDevice);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     private void AddVertex(bool dir)
     {
         if (dir)

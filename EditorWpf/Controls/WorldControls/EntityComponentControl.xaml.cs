@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Globalization;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using EditorWpf.Windows;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace EditorWpf.Controls.WorldControls
 {
@@ -37,10 +40,18 @@ namespace EditorWpf.Controls.WorldControls
                 var staticMeshComponent = button.DataContext as StaticMeshComponent;
                 var graphicsDevice = staticMeshComponent.Game.GraphicsDevice;
 
-                staticMeshComponent.Mesh = ((GeometricPrimitive)Activator.CreateInstance(selectStaticMeshWindow.SelectedType, graphicsDevice)).CreateMesh();
+                staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
                 staticMeshComponent.Mesh.Initialize(graphicsDevice);
                 staticMeshComponent.Mesh.Texture = staticMeshComponent.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             }
+        }
+
+        private static GeometricPrimitive CreateGeometricPrimitive(Type type, GraphicsDevice graphicsDevice)
+        {
+            return (GeometricPrimitive)Activator.CreateInstance(type,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.CreateInstance |
+                BindingFlags.OptionalParamBinding,
+                null, new object[] { graphicsDevice }, null, null);
         }
 
         private void PhysicComponent_ShapeSelection_OnClick(object sender, RoutedEventArgs e)

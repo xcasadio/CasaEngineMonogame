@@ -11,10 +11,6 @@ public class CapsulePrimitive : GeometricPrimitive
     private int _tessellation;
 #endif
 
-    public CapsulePrimitive(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 16)
-    {
-    }
-
     public CapsulePrimitive(GraphicsDevice graphicsDevice, float length = 1.0f, float radius = 0.5f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false) : base(GeometricPrimitiveType.Sphere)
     {
 #if EDITOR
