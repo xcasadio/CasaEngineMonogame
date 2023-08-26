@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using EditorWpf.Controls;
 
 public class Animation2dDataViewModel : NotifyPropertyChangeBase
 {
     public Animation2dData Animation2dData { get; }
+
+    public AssetInfo AssetInfo => Animation2dData.AssetInfo;
 
     public string Name
     {

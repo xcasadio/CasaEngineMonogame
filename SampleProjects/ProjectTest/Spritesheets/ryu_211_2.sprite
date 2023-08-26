@@ -1,0 +1,105 @@
+{
+  "asset": {
+    "id": 246,
+    "name": "ryu_211_2",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_211_2.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 1337,
+    "y": 764,
+    "w": 82,
+    "h": 103
+  },
+  "hotspot": {
+    "x": 26,
+    "y": 99
+  },
+  "collisions": [
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 51.0,
+        "y": 13.0
+      },
+      "orientation": 0.0,
+      "w": 30,
+      "h": 41
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 40.0,
+        "y": 0.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 11
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 59.0,
+        "y": 13.0
+      },
+      "orientation": 0.0,
+      "w": 22,
+      "h": 41
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 19.0,
+        "y": 10.0
+      },
+      "orientation": 0.0,
+      "w": 41,
+      "h": 90
+    },
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 46.0,
+        "y": 10.0
+      },
+      "orientation": 0.0,
+      "w": 38,
+      "h": 36
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 59.0,
+        "y": 10.0
+      },
+      "orientation": 0.0,
+      "w": 25,
+      "h": 36
+    },
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 47.0,
+        "y": 13.0
+      },
+      "orientation": 0.0,
+      "w": 51,
+      "h": 82
+    }
+  ],
+  "sockets": []
+}

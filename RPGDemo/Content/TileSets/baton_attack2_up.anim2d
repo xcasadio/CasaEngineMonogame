@@ -1,0 +1,25 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 211,
+    "name": "baton_attack2_up"
+  },
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": 174
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 175
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 176
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 177
+    }
+  ]
+}

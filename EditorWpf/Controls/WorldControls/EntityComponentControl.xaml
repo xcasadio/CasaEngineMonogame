@@ -396,14 +396,14 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="tiledMapComponentTemplate" DataType="{x:Type components:TiledMapComponent}">
+        <DataTemplate x:Key="tiledMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Column="0" Text="{Binding TiledMapDataFileName}"/>
+                <TextBox Grid.Column="0" Text="{Binding TileMapDataFileName}"/>
                 <Button Grid.Column="1" Content="..." ToolTip="Put Selected Item in Content Browser"/>
             </Grid>
         </DataTemplate>

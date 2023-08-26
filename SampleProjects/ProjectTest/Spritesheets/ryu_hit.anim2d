@@ -1,0 +1,30 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 669,
+    "name": "ryu_hit",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_hit.anim2d"
+  },
+  "frames": [
+    {
+      "duration": 0.08,
+      "sprite_id": 551
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": 552
+    },
+    {
+      "duration": 0.32,
+      "sprite_id": 553
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": 552
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": 551
+    }
+  ]
+}

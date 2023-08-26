@@ -620,7 +620,7 @@ public class Skin
             foreach (var skinImage in Images)
             {
                 var fileName = fullPath + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar + skinImage.Filename + ".png";
-                skinImage.Texture = new Texture(game.GraphicsDevice, fileName, game.GameManager.AssetContentManager);
+                skinImage.Texture = new Texture(fileName, game.GameManager.AssetContentManager);
             }
             foreach (var skinControl in Controls)
             {

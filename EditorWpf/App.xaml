@@ -9,7 +9,7 @@
         <RoutedUICommand x:Key="Commands.Animation2d.Load" />
         <RoutedUICommand x:Key="Commands.Animation2d.Save" />
 
-        <RoutedUICommand x:Key="Commands.TiledMap.Load" />
-        <RoutedUICommand x:Key="Commands.TiledMap.Save" />
+        <RoutedUICommand x:Key="Commands.TileMap.Load" />
+        <RoutedUICommand x:Key="Commands.TileMap.Save" />
     </Application.Resources>
 </Application>

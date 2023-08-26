@@ -1,28 +1,38 @@
 ﻿using System.Collections.ObjectModel;
-using CasaEngine.Core.Design;
+using System.Linq;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Game;
+using Path = System.IO.Path;
 
 namespace EditorWpf.Controls.SpriteControls;
 
 public class SpritesModelView
 {
     private readonly AssetContentManager _assetContentManager;
+    private CasaEngineGame _game;
     public ObservableCollection<SpriteDataViewModel> SpriteDatas { get; } = new();
 
     public SpritesModelView(GameEditorSprite gameEditorSprite)
     {
-        _assetContentManager = gameEditorSprite.Game.GameManager.AssetContentManager;
+        _game = gameEditorSprite.Game;
+        _assetContentManager = _game.GameManager.AssetContentManager;
+
+        LoadAllSpriteData();
     }
 
-    public void LoadSpriteSheet(string fileName)
+    public void Add(AssetInfo assetInfo)
     {
-        var spriteDatas = SpriteLoader.LoadFromFile(fileName, _assetContentManager, SaveOption.Editor);
+        var spriteData = _game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo, _game.GraphicsDevice);
+        SpriteDatas.Add(new SpriteDataViewModel(spriteData));
+    }
 
-        SpriteDatas.Clear();
-        foreach (var spriteData in spriteDatas)
+    private void LoadAllSpriteData()
+    {
+        foreach (var assetInfo in GameSettings.AssetInfoManager.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Sprite))
         {
-            SpriteDatas.Add(new SpriteDataViewModel(spriteData));
+            Add(assetInfo);
         }
     }
 }

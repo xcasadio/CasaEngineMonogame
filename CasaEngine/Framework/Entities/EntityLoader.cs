@@ -6,14 +6,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Entities;
 
-public class EntityLoader : IAssetLoader
+public class EntityLoader
 {
-    public object LoadAsset(string fileName, GraphicsDevice device)
-    {
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
-        return Load(jsonDocument.RootElement, SaveOption.Editor);
-    }
-
     public static Entity Load(string fileName)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
@@ -34,7 +28,7 @@ public class EntityLoader : IAssetLoader
         {
             var assetInfo = GameSettings.AssetInfoManager.Get(entityReference.AssetId);
             var assetFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, assetInfo.FileName);
-            var entity = assetContentManager.Load<Entity>(assetFileName, graphicsDevice).Clone();
+            var entity = assetContentManager.Load<Entity>(assetInfo, graphicsDevice).Clone();
             entityReference.Entity = entity;
             entity.Name = entityReference.Name;
             entity.Coordinates.CopyFrom(entityReference.InitialCoordinates);

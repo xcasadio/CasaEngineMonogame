@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
+using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -46,6 +48,8 @@ public class RpgGame : CasaEngineGame
 
     protected override void LoadContent()
     {
+        GameSettings.AssetInfoManager.Load("Content\\AssetInfos.json", SaveOption.Editor);
+
         GameManager.DefaultSpriteFont = Content.Load<SpriteFont>("GizmoFont");
 
         var world = new World();
@@ -62,20 +66,20 @@ public class RpgGame : CasaEngineGame
         world.AddEntityImmediately(entity);
 
         //============ tiledMap ===============
-        var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
+        var tiledMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
 
         entity = new Entity();
-        entity.Name = "TiledMap";
+        entity.Name = "TileMap";
         entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
-        var tiledMapComponent = new TiledMapComponent(entity);
-        tiledMapComponent.TiledMapData = tiledMapData;
+        var tiledMapComponent = new TileMapComponent(entity);
+        tiledMapComponent.TileMapData = tiledMapData;
         entity.ComponentManager.Components.Add(tiledMapComponent);
 
         world.AddEntityImmediately(entity);
 
         //============ common ressources ===============
-        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG.spritesheet", GameManager.AssetContentManager, SaveOption.Editor);
-        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG.anims2d", GameManager.AssetContentManager);
+        LoadSprites();
+        var animations = LoadAnimations();
 
         var playerComponent = CreatePlayer(animations, world);
         CreateEnemy(animations, world, playerComponent);
@@ -83,6 +87,33 @@ public class RpgGame : CasaEngineGame
         base.LoadContent();
 
         GameManager.ActiveCamera = camera;
+    }
+
+    private List<Animation2dData> LoadAnimations()
+    {
+        var animationsAssetInfos = GameSettings.AssetInfoManager.AssetInfos
+            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Animation2d));
+
+        var animations = new List<Animation2dData>();
+
+        foreach (var assetInfo in animationsAssetInfos)
+        {
+            var animation2dData = GameManager.AssetContentManager.Load<Animation2dData>(assetInfo, GraphicsDevice);
+            animations.Add(animation2dData);
+        }
+
+        return animations;
+    }
+
+    private void LoadSprites()
+    {
+        var spriteAssetInfos = GameSettings.AssetInfoManager.AssetInfos
+            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Sprite));
+
+        foreach (var assetInfo in spriteAssetInfos)
+        {
+            var spriteData = GameManager.AssetContentManager.Load<SpriteData>(assetInfo, GraphicsDevice);
+        }
     }
 
     private static PlayerComponent CreatePlayer(List<Animation2dData> animations, World world)

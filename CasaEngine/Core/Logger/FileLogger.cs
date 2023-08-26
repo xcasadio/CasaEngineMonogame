@@ -25,7 +25,7 @@ public class FileLogger : ILog
     {
         if (displayTime)
         {
-            _stream.Write(DateTime.Now.ToString("T") + " ");
+            _stream.Write($"{DateTime.Now:T} ");
         }
 
         _stream.Write(msg);

@@ -1,0 +1,105 @@
+{
+  "asset": {
+    "id": 83,
+    "name": "ryu_1201_0",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_1201_0.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 0,
+    "y": 1714,
+    "w": 75,
+    "h": 110
+  },
+  "hotspot": {
+    "x": 17,
+    "y": 121
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 29.0,
+        "y": 40.0
+      },
+      "orientation": 0.0,
+      "w": 41,
+      "h": 17
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 5.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 25,
+      "h": 51
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 29.0,
+        "y": 40.0
+      },
+      "orientation": 0.0,
+      "w": 41,
+      "h": 18
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 5.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 25,
+      "h": 52
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 29.0,
+        "y": 40.0
+      },
+      "orientation": 0.0,
+      "w": 41,
+      "h": 29
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 5.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 25,
+      "h": 59
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 29.0,
+        "y": 40.0
+      },
+      "orientation": 0.0,
+      "w": 41,
+      "h": 25
+    }
+  ],
+  "sockets": []
+}

@@ -1,9 +1,13 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Engine;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SharpDX.Direct3D9;
 
 namespace CasaEngine.Framework.Assets.Animations;
 
@@ -22,7 +26,7 @@ public class Animation2dLoader
             var animation2dData = new Animation2dData();
             animation2dData.Load(jsonElement, SaveOption.Editor);
             animation2dData.AssetInfo.FileName = fileName;
-            assetContentManager.AddAsset(animation2dData.AssetInfo.Name, animation2dData);
+            assetContentManager.AddAsset(animation2dData.AssetInfo, animation2dData);
             animations.Add(animation2dData);
         }
 

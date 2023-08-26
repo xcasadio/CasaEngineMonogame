@@ -1,0 +1,13 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 251,
+    "name": "swordman_magic_right"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 38
+    }
+  ]
+}

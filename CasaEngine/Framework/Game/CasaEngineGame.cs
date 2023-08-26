@@ -1,3 +1,4 @@
+using CasaEngine.Core.Logger;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -10,6 +11,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
     public CasaEngineGame(string? projectFileName = null, IGraphicsDeviceService? graphicsDeviceService = null)
     {
+        LogManager.Instance.AddLogger(new DebugLogger());
+        LogManager.Instance.Verbosity = LogVerbosity.Trace;
+
         _projectFileName = projectFileName;
         GameManager = new GameManager(this, graphicsDeviceService);
     }

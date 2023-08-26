@@ -75,16 +75,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Controls\TiledMapControls\TilesDefinitionControl.xaml.cs">
+		<Compile Update="Controls\TileMapControls\TilesDefinitionControl.xaml.cs">
 			<SubType>Code</SubType>
 		</Compile>
-		<Compile Update="Controls\TiledMapControls\TiledMapEditorControl.xaml.cs">
+		<Compile Update="Controls\TileMapControls\TileMapEditorControl.xaml.cs">
 			<SubType>Code</SubType>
 		</Compile>
-		<Compile Update="Controls\TiledMapControls\TiledMapDetailsControl.xaml.cs">
+		<Compile Update="Controls\TileMapControls\TileMapDetailsControl.xaml.cs">
 			<SubType>Code</SubType>
 		</Compile>
-		<Compile Update="Controls\TiledMapControls\GameEditorTiledMapControl.xaml.cs">
+		<Compile Update="Controls\TileMapControls\GameEditorTileMapControl.xaml.cs">
 			<SubType>Code</SubType>
 		</Compile>
 		<Compile Update="Controls\Common\InputTextBox.xaml.cs">

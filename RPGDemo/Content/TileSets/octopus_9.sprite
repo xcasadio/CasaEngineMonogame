@@ -1,0 +1,32 @@
+{
+  "asset": {
+    "id": 37,
+    "name": "octopus_9"
+  },
+  "sprite_sheet": "TileSets\\octopus_0_0.png",
+  "location": {
+    "x": 277,
+    "y": 0,
+    "w": 38,
+    "h": 29
+  },
+  "hotspot": {
+    "x": 13,
+    "y": 14
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 2.0,
+        "y": 1.0
+      },
+      "orientation": 0.0,
+      "w": 24,
+      "h": 24
+    }
+  ],
+  "sockets": []
+}

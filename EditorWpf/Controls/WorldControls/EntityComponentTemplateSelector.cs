@@ -26,7 +26,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
                 case ComponentIds.ArcBallCamera: return ArcBallCameraComponenTemplate;
                 case ComponentIds.GamePlay: return GamePlayComponenTemplate;
                 case ComponentIds.Physics: return PhysicsComponenTemplate;
-                case ComponentIds.TiledMap: return TiledMapComponentTemplate;
+                case ComponentIds.TileMap: return TiledMapComponentTemplate;
                 case ComponentIds.AnimatedSprite: return AnimatedSpriteComponentTemplate;
                 case ComponentIds.StaticSprite: return StaticSpriteComponentTemplate;
             }

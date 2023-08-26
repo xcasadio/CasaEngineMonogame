@@ -1,0 +1,25 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 231,
+    "name": "swordman_attack2_up"
+  },
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": 101
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 102
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 103
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 104
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 692,
+    "name": "ryu_131",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_131.anim2d"
+  },
+  "frames": [
+    {
+      "duration": 0.015999999,
+      "sprite_id": 98
+    }
+  ]
+}

@@ -54,7 +54,7 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         Game = game;
         _meshRendererComponent = game.GetGameComponent<StaticMeshRendererComponent>();
         Mesh?.Initialize(game.GraphicsDevice);
-        Mesh?.Texture?.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
+        Mesh?.Texture?.Initialize(game.GameManager.AssetContentManager);
     }
 
     public override void Update(float elapsedTime)

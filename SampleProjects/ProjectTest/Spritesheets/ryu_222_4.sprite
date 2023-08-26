@@ -1,0 +1,105 @@
+{
+  "asset": {
+    "id": 302,
+    "name": "ryu_222_4",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_222_4.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 2225,
+    "y": 1624,
+    "w": 50,
+    "h": 125
+  },
+  "hotspot": {
+    "x": 23,
+    "y": 136
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 10.0,
+        "y": 66.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 56
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 4.0,
+        "y": 17.0
+      },
+      "orientation": 0.0,
+      "w": 30,
+      "h": 50
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 12.0,
+        "y": 70.0
+      },
+      "orientation": 0.0,
+      "w": 14,
+      "h": 54
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 6.0,
+        "y": 22.0
+      },
+      "orientation": 0.0,
+      "w": 27,
+      "h": 49
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 7.0,
+        "y": 16.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 64
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 10.0,
+        "y": 71.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 52
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 4.0,
+        "y": 15.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 57
+    }
+  ],
+  "sockets": []
+}

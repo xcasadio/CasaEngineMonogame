@@ -6,7 +6,7 @@ using CasaEngine.Engine;
 using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.EntityControls;
 using EditorWpf.Controls.SpriteControls;
-using EditorWpf.Controls.TiledMapControls;
+using EditorWpf.Controls.TileMapControls;
 using EditorWpf.Controls.WorldControls;
 using Microsoft.Xna.Framework;
 
@@ -60,20 +60,20 @@ namespace EditorWpf.Controls.ContentBrowser
                     window.ActivateEditorControl<EntityEditorControl>();
                     entityControl.LoadEntity(contentItem.FullPath);
                     break;
-                case Constants.FileNameExtensions.SpriteSheet:
+                case Constants.FileNameExtensions.Sprite:
                     var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                     window.ActivateEditorControl<SpriteEditorControl>();
-                    spriteControl.LoadSpriteSheet(contentItem.FullPath);
+                    spriteControl.OpenSprite(contentItem.FullPath);
                     break;
                 case Constants.FileNameExtensions.Animation2d:
                     var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
                     window.ActivateEditorControl<Animation2dEditorControl>();
-                    animation2dControl.LoadAnimations2d(contentItem.FullPath);
+                    animation2dControl.OpenAnimations2d(contentItem.FullPath);
                     break;
-                case Constants.FileNameExtensions.TiledMap:
-                    var tiledMapEditorControl = window.GetEditorControl<TiledMapEditorControl>();
-                    window.ActivateEditorControl<TiledMapEditorControl>();
-                    tiledMapEditorControl.LoadTiledMap(contentItem.FullPath);
+                case Constants.FileNameExtensions.TileMap:
+                    var tiledMapEditorControl = window.GetEditorControl<TileMapEditorControl>();
+                    window.ActivateEditorControl<TileMapEditorControl>();
+                    tiledMapEditorControl.OpenMap(contentItem.FullPath);
                     break;
                 case Constants.FileNameExtensions.World:
                     var worldEditorControl = window.GetEditorControl<WorldEditorControl>();

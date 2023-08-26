@@ -43,7 +43,7 @@ public class Collision2dBasicDemo : Demo
         entity.ComponentManager.Components.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, size.X, size.Y, size.Z).CreateMesh();
         meshComponent.Mesh.Initialize(game.GraphicsDevice);
-        meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"Content\checkboard.png", game.GameManager.AssetContentManager);
+        meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(@"Content\checkboard.png", game.GameManager.AssetContentManager);
         world.AddEntityImmediately(entity);
 
         //============ Create bodies ===============
@@ -134,7 +134,7 @@ public class Collision2dBasicDemo : Demo
                 }
 
                 meshComponent.Mesh.Initialize(game.GraphicsDevice);
-                meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(game.GraphicsDevice, @"Content\paper_box_texture.jpg", game.GameManager.AssetContentManager);
+                meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(@"Content\paper_box_texture.jpg", game.GameManager.AssetContentManager);
                 world.AddEntityImmediately(entity);
 
                 y += deltaY;

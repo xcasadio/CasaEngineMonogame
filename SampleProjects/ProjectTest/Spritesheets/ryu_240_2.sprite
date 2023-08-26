@@ -1,0 +1,141 @@
+{
+  "asset": {
+    "id": 334,
+    "name": "ryu_240_2",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_240_2.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 1771,
+    "y": 635,
+    "w": 81,
+    "h": 97
+  },
+  "hotspot": {
+    "x": 24,
+    "y": 89
+  },
+  "collisions": [
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 52.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 39
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 3.0,
+        "y": 69.0
+      },
+      "orientation": 0.0,
+      "w": 21,
+      "h": 22
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 36.0,
+        "y": 0.0
+      },
+      "orientation": 0.0,
+      "w": 17,
+      "h": 13
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 23.0,
+        "y": 12.0
+      },
+      "orientation": 0.0,
+      "w": 30,
+      "h": 80
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 52.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 39
+    },
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 52.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 86
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 52.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 86
+    },
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 43.0,
+        "y": 9.0
+      },
+      "orientation": 0.0,
+      "w": 48,
+      "h": 75
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 55.0,
+        "y": 10.0
+      },
+      "orientation": 0.0,
+      "w": 22,
+      "h": 22
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 14.0,
+        "y": 12.0
+      },
+      "orientation": 0.0,
+      "w": 48,
+      "h": 78
+    }
+  ],
+  "sockets": []
+}

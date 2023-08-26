@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public class SetFrameEvent : AnimationEvent
 {
-    public string FrameId { get; set; }
+    public long FrameId { get; set; }
 
     public override void Activate(Animation anim)
     {

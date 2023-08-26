@@ -1,0 +1,17 @@
+{
+  "animation_type": "Loop",
+  "asset": {
+    "id": 220,
+    "name": "octopus_stand_down"
+  },
+  "frames": [
+    {
+      "duration": 1.0,
+      "sprite_id": 34
+    },
+    {
+      "duration": 1.0,
+      "sprite_id": 35
+    }
+  ]
+}

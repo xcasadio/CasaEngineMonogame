@@ -1,0 +1,33 @@
+{
+  "asset": {
+    "id": 597,
+    "name": "ryu_5300_1",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_5300_1.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 1722,
+    "y": 1595,
+    "w": 60,
+    "h": 102
+  },
+  "hotspot": {
+    "x": 31,
+    "y": 98
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 12.0,
+        "y": 5.0
+      },
+      "orientation": 0.0,
+      "w": 36,
+      "h": 94
+    }
+  ],
+  "sockets": []
+}

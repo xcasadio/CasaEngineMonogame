@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
-public abstract class Asset : Disposable
+public abstract class Asset : Disposable, ISaveLoad
 {
     public AssetInfo AssetInfo { get; } = new();
 

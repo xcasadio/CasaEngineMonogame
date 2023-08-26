@@ -57,7 +57,7 @@ public class TextureCube : Asset
         }
         try
         {
-            XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo.FileName, graphicsDevice);
+            XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo, graphicsDevice);
             Size = XnaTextureCube.Size;
             Resource.Name = filename;
         }
@@ -75,7 +75,7 @@ public class TextureCube : Asset
 
     internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo.FileName, device);
+        XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo, device);
     } // RecreateResource
 
 } // TextureCube

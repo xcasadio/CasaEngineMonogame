@@ -16,7 +16,7 @@ public class FrameDataViewModel : NotifyPropertyChangeBase
             OnPropertyChanged();
         }
     }
-
+    /*
     public string SpriteId
     {
         get => FrameData.SpriteId;
@@ -27,7 +27,7 @@ public class FrameDataViewModel : NotifyPropertyChangeBase
             OnPropertyChanged();
         }
     }
-
+    */
     public FrameDataViewModel(FrameData frameData)
     {
         FrameData = frameData;

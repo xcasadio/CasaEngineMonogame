@@ -1,0 +1,17 @@
+{
+  "animation_type": "Loop",
+  "asset": {
+    "id": 224,
+    "name": "octopus_walk_down"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 34
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 35
+    }
+  ]
+}

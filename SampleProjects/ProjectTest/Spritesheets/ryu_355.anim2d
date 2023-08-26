@@ -1,0 +1,70 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 779,
+    "name": "ryu_355",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_355.anim2d"
+  },
+  "frames": [
+    {
+      "duration": 0.47999996,
+      "sprite_id": 518
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": 519
+    },
+    {
+      "duration": 0.71999997,
+      "sprite_id": 520
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": 519
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": 507
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": 506
+    },
+    {
+      "duration": 0.048,
+      "sprite_id": 459
+    },
+    {
+      "duration": 0.048,
+      "sprite_id": 460
+    },
+    {
+      "duration": 0.112,
+      "sprite_id": 461
+    },
+    {
+      "duration": 0.112,
+      "sprite_id": 462
+    },
+    {
+      "duration": 0.192,
+      "sprite_id": 463
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": 464
+    },
+    {
+      "duration": 0.25599998,
+      "sprite_id": 465
+    },
+    {
+      "duration": 0.048,
+      "sprite_id": 466
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": 467
+    }
+  ]
+}

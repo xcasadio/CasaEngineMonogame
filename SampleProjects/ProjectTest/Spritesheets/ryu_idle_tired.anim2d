@@ -1,0 +1,118 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 928,
+    "name": "ryu_idle_tired",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_idle_tired.anim2d"
+  },
+  "frames": [
+    {
+      "duration": 0.096,
+      "sprite_id": 179
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 180
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 181
+    },
+    {
+      "duration": 0.12799999,
+      "sprite_id": 182
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 183
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 184
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 185
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 186
+    },
+    {
+      "duration": 0.192,
+      "sprite_id": 187
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 179
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 180
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 181
+    },
+    {
+      "duration": 0.12799999,
+      "sprite_id": 182
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 183
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 184
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 185
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 186
+    },
+    {
+      "duration": 0.192,
+      "sprite_id": 187
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 188
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 180
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 181
+    },
+    {
+      "duration": 0.12799999,
+      "sprite_id": 182
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 183
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 184
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 185
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 186
+    },
+    {
+      "duration": 0.192,
+      "sprite_id": 187
+    }
+  ]
+}

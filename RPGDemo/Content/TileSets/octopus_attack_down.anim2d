@@ -1,0 +1,21 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 216,
+    "name": "octopus_attack_down"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 24
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 26
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 18
+    }
+  ]
+}

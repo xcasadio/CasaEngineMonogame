@@ -1,0 +1,44 @@
+{
+  "asset": {
+    "id": 148,
+    "name": "sword_12"
+  },
+  "sprite_sheet": "TileSets\\Epee_en_bois.png",
+  "location": {
+    "x": 298,
+    "y": 0,
+    "w": 48,
+    "h": 27
+  },
+  "hotspot": {
+    "x": 56,
+    "y": 26
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 14.0,
+        "y": 7.0
+      },
+      "orientation": 0.0,
+      "w": 8,
+      "h": 18
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 8
+    }
+  ],
+  "sockets": []
+}

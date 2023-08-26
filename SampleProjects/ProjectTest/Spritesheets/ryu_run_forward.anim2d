@@ -1,0 +1,34 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 930,
+    "name": "ryu_run_forward",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_run_forward.anim2d"
+  },
+  "frames": [
+    {
+      "duration": 0.08,
+      "sprite_id": 52
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 53
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": 48
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 49
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": 50
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": 51
+    }
+  ]
+}

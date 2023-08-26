@@ -2,7 +2,10 @@ using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Debugger;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -144,9 +147,7 @@ public class GameManager
 
     public void Initialize()
     {
-        AssetContentManager.RegisterAssetLoader(typeof(Entity), new EntityLoader());
-        AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
-        AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+        RegisterLoaders();
         AssetContentManager.Initialize(_game.GraphicsDevice);
         AssetContentManager.RootDirectory = ContentPath;
 
@@ -185,11 +186,21 @@ public class GameManager
         //UiManager.Initialize(_game, null/*Window.Handle*/, _game.Window.ClientBounds);
     }
 
+    private void RegisterLoaders()
+    {
+        AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
+        AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+
+        AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
+        AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
+        AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
+        AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
+        AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
+    }
+
     public void BeginLoadContent()
     {
-        //#if EDITOR
         CreateDefaultTexture();
-        //#endif
     }
 
     private void CreateDefaultTexture()
@@ -198,7 +209,7 @@ public class GameManager
         texture2D.SetData(Enumerable.Repeat(Color.Orange, texture2D.Width * texture2D.Height).ToArray());
         var texture = new Assets.Textures.Texture(texture2D);
         texture.AssetInfo.Name = Assets.Textures.Texture.DefaultTextureName;
-        AssetContentManager.AddAsset(Assets.Textures.Texture.DefaultTextureName, texture);
+        AssetContentManager.AddAsset(IdManager.GetId(), Assets.Textures.Texture.DefaultTextureName, texture);
     }
 
     public void EndLoadContent()

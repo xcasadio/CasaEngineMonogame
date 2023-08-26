@@ -1,0 +1,105 @@
+{
+  "asset": {
+    "id": 321,
+    "name": "ryu_226_4",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_226_4.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 672,
+    "y": 279,
+    "w": 103,
+    "h": 107
+  },
+  "hotspot": {
+    "x": 10,
+    "y": 105
+  },
+  "collisions": [
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 79.0,
+        "y": 8.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 36
+    },
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 48.0,
+        "y": 23.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 35
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 79.0,
+        "y": 8.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 36
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 13.0,
+        "y": 4.0
+      },
+      "orientation": 0.0,
+      "w": 35,
+      "h": 51
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 30.0,
+        "y": 54.0
+      },
+      "orientation": 0.0,
+      "w": 19,
+      "h": 53
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 48.0,
+        "y": 23.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 35
+    },
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 45.0,
+        "y": -3.0
+      },
+      "orientation": 0.0,
+      "w": 61,
+      "h": 73
+    }
+  ],
+  "sockets": []
+}

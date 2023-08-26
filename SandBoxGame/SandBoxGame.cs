@@ -7,8 +7,8 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -67,18 +67,18 @@ namespace SandBoxGame
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
             meshComponent.Mesh.Initialize(GraphicsDevice);
-            meshComponent.Mesh.Texture = new Texture(GraphicsDevice, @"Content\checkboard.png", GameManager.AssetContentManager);
+            meshComponent.Mesh.Texture = new Texture(@"Content\checkboard.png", GameManager.AssetContentManager);
             //meshComponent.Mesh.Texture = GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             world.AddEntityImmediately(entity);
 
             //============ tiledMap ===============
-            var tiledMapData = TiledMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
+            var tiledMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tiledMap");
 
             entity = new Entity();
             entity.Name = "TiledMap";
             entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
-            var tiledMapComponent = new TiledMapComponent(entity);
-            tiledMapComponent.TiledMapData = tiledMapData;
+            var tiledMapComponent = new TileMapComponent(entity);
+            tiledMapComponent.TileMapData = tiledMapData;
             entity.ComponentManager.Components.Add(tiledMapComponent);
 
             world.AddEntityImmediately(entity);

@@ -9,7 +9,7 @@ public enum ComponentIds
     Physics,
     AnimatedSprite,
     StaticSprite,
-    TiledMap,
+    TileMap,
     LookAtCamera,
     CameraTarget2d,
     Camera3dIn2dAxis,

@@ -1,0 +1,33 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 248,
+    "name": "swordman_dying"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 41
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 42
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 43
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 44
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 45
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 46
+    }
+  ]
+}

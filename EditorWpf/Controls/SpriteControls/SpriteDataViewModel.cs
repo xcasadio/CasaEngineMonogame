@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
 using EditorWpf.Controls.PropertyGridTypeEditor;
 using Microsoft.Xna.Framework;
@@ -9,6 +10,12 @@ namespace EditorWpf.Controls.SpriteControls;
 public class SpriteDataViewModel : NotifyPropertyChangeBase
 {
     private readonly SpriteData _spriteData;
+
+    [Browsable(false)]
+    public AssetInfo AssetInfo => _spriteData.AssetInfo;
+
+    [Browsable(false)]
+    public SpriteData SpriteData => _spriteData;
 
     [ReadOnly(true)]
     public string Name

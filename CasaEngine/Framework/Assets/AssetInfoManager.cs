@@ -16,16 +16,48 @@ public class AssetInfoManager
     public void Add(AssetInfo assetInfo)
     {
         _assetInfos.Add(assetInfo.Id, assetInfo);
+
+#if EDITOR
+        AssetAdded?.Invoke(this, assetInfo);
+#endif
+    }
+
+    public AssetInfo GetOrAdd(string fileName)
+    {
+        foreach (var assetInfo in _assetInfos.Values)
+        {
+            if (assetInfo.FileName == fileName)
+            {
+                return assetInfo;
+            }
+        }
+
+        var newAssetInfo = new AssetInfo();
+        newAssetInfo.Name = Path.GetFileNameWithoutExtension(fileName);
+        newAssetInfo.FileName = fileName;
+        Add(newAssetInfo);
+        return newAssetInfo;
     }
 
     public void Remove(long id)
     {
+#if EDITOR
+        _assetInfos.TryGetValue(id, out var assetInfo);
+#endif
+
         _assetInfos.Remove(id);
+
+#if EDITOR
+        AssetRemoved?.Invoke(this, assetInfo);
+#endif
     }
 
     public void Clear()
     {
         _assetInfos.Clear();
+#if EDITOR
+        AssetCleared?.Invoke(this, EventArgs.Empty);
+#endif
     }
 
     public AssetInfo Get(long assetId)
@@ -49,6 +81,10 @@ public class AssetInfoManager
     }
 
 #if EDITOR
+
+    public event EventHandler<AssetInfo> AssetAdded;
+    public event EventHandler<AssetInfo> AssetRemoved;
+    public event EventHandler AssetCleared;
 
     public void Save(string fileName, SaveOption option)
     {

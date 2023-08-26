@@ -1,0 +1,17 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 241,
+    "name": "swordman_dead_idle_left"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 134
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 135
+    }
+  ]
+}

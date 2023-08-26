@@ -67,16 +67,15 @@ namespace EditorWpf.Controls.SpriteControls
             };
         }
 
-        public void LoadSpriteSheet(string fileName)
+        public void OpenSprite(string fileName)
         {
             _spriteSheetFileName = fileName;
-            SpriteListControl.LoadSpriteSheet(fileName);
+            SpriteListControl.OpenSprite(fileName);
         }
 
         private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var spriteDatas = GameEditorSpriteControl.GameEditor.Game.GameManager.AssetContentManager.GetAssets<SpriteData>();
-            SpriteLoader.SaveToFile(_spriteSheetFileName, spriteDatas, SaveOption.Editor);
+            SpriteListControl.SaveCurrentSprite();
             e.Handled = true;
         }
     }

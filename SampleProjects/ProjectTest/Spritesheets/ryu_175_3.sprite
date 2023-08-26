@@ -1,0 +1,20 @@
+{
+  "asset": {
+    "id": 174,
+    "name": "ryu_175_3",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_175_3.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 2002,
+    "y": 825,
+    "w": 57,
+    "h": 114
+  },
+  "hotspot": {
+    "x": 26,
+    "y": 107
+  },
+  "collisions": [],
+  "sockets": []
+}

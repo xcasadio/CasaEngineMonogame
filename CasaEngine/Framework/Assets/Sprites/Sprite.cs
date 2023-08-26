@@ -7,9 +7,6 @@ public class Sprite
     public Texture Texture { get; }
     public SpriteData SpriteData { get; }
 
-    public Sprite()
-    { }
-
     private Sprite(SpriteData spriteData, Texture texture)
     {
         SpriteData = spriteData;
@@ -18,7 +15,7 @@ public class Sprite
 
     public static Sprite Create(SpriteData spriteData, AssetContentManager assetContentManager)
     {
-        var texture = new Texture(assetContentManager.GraphicsDevice, spriteData.SpriteSheetFileName, assetContentManager);
+        var texture = new Texture(spriteData.SpriteSheetFileName, assetContentManager);
         return new Sprite(spriteData, texture);
     }
 }

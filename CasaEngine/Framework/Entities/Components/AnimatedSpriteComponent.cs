@@ -25,9 +25,9 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.AnimatedSprite;
 
-    public event EventHandler<string>? FrameChanged;
+    public event EventHandler<long>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
-    private readonly Dictionary<string, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
+    private readonly Dictionary<long, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
 
     private CasaEngineGame _game;
     private AssetContentManager _assetContentManager;
@@ -98,11 +98,11 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         return false;
     }
 
-    public string GetCurrentFrameName()
+    public long GetCurrentFrameName()
     {
         if (CurrentAnimation == null)
         {
-            return "";
+            return -1;
         }
 
         return CurrentAnimation.CurrentFrame;
@@ -219,7 +219,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         return null;
     }
 
-    private void OnFrameChanged(object? sender, (string oldFrame, string newFrame) arg)
+    private void OnFrameChanged(object? sender, (long oldFrame, long newFrame) arg)
     {
         RemoveCollisionsFromFrame(arg.oldFrame);
         AddCollisionFromFrame(arg.newFrame, true);
@@ -227,12 +227,12 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         FrameChanged?.Invoke(this, arg.newFrame);
     }
 
-    private void UpdateCollisionFromFrame(string frameId)
+    private void UpdateCollisionFromFrame(long frameId)
     {
         AddCollisionFromFrame(frameId, false);
     }
 
-    private void AddCollisionFromFrame(string frameId, bool addCollision)
+    private void AddCollisionFromFrame(long frameId, bool addCollision)
     {
         if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
         {
@@ -249,7 +249,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         }
     }
 
-    public void RemoveCollisionsFromFrame(string frameId)
+    public void RemoveCollisionsFromFrame(long frameId)
     {
         if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
         {

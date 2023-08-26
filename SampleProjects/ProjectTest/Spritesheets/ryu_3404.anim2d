@@ -1,0 +1,30 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 773,
+    "name": "ryu_3404",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_3404.anim2d"
+  },
+  "frames": [
+    {
+      "duration": 0.048,
+      "sprite_id": 71
+    },
+    {
+      "duration": 0.048,
+      "sprite_id": 615
+    },
+    {
+      "duration": 0.12799999,
+      "sprite_id": 616
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": 81
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": 80
+    }
+  ]
+}

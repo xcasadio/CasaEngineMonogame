@@ -135,7 +135,7 @@ public class Font
 
         foreach (var texFileName in _texturesFileNames)
         {
-            Textures[i] = new Texture(game.GraphicsDevice, texFileName, game.GameManager.AssetContentManager);
+            Textures[i] = new Texture(texFileName, game.GameManager.AssetContentManager);
             i++;
         }
 

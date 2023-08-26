@@ -53,7 +53,7 @@ public class LookupTable : Asset
 
     private void Create(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager)
     {
-        var lookupTableTexture2D = new Texture(graphicsDevice, filename, _assetContentManager);
+        var lookupTableTexture2D = new Texture(filename, _assetContentManager);
         // SideSize is inaccurate because Math.Pow is a bad way to calculate cube roots.
         var sideSize = (int)Math.Pow(lookupTableTexture2D.Width * lookupTableTexture2D.Height, 1 / 3.0);
         // hence this second step to snap to nearest power of 2.

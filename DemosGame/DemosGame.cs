@@ -42,7 +42,7 @@ namespace DemosGame
 
             _demos.Add(new Collision3dBasicDemo());
             _demos.Add(new Collision2dBasicDemo());
-            _demos.Add(new TiledMapDemo());
+            _demos.Add(new TileMapDemo());
             _demos.Add(new SkinnedMeshDemo());
 
             ChangeDemo(3);

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -23,7 +24,7 @@ public class SpriteLoader
             var spriteData = new SpriteData();
             spriteData.Load(jsonElement, option);
             spriteData.AssetInfo.FileName = fileName;
-            assetContentManager.AddAsset(spriteData.AssetInfo.Name, spriteData);
+            assetContentManager.AddAsset(spriteData.AssetInfo, spriteData);
             spriteDatas.Add(spriteData);
         }
 

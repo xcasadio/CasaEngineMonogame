@@ -1,0 +1,105 @@
+{
+  "asset": {
+    "id": 617,
+    "name": "ryu_700_0",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_700_0.sprite"
+  },
+  "sprite_sheet": "Spritesheets\\ryu.png",
+  "location": {
+    "x": 1277,
+    "y": 1356,
+    "w": 65,
+    "h": 109
+  },
+  "hotspot": {
+    "x": 33,
+    "y": 105
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 14.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 100
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 13.0,
+        "y": 5.0
+      },
+      "orientation": 0.0,
+      "w": 40,
+      "h": 100
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 10.0,
+        "y": 8.0
+      },
+      "orientation": 0.0,
+      "w": 42,
+      "h": 98
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 8.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 46,
+      "h": 101
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 12.0,
+        "y": 3.0
+      },
+      "orientation": 0.0,
+      "w": 38,
+      "h": 103
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 27.0,
+        "y": 3.0
+      },
+      "orientation": 0.0,
+      "w": 17,
+      "h": 17
+    },
+    {
+      "collision_type": "Defense",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 13.0,
+        "y": 11.0
+      },
+      "orientation": 0.0,
+      "w": 44,
+      "h": 95
+    }
+  ],
+  "sockets": []
+}

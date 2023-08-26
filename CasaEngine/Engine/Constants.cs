@@ -11,9 +11,9 @@ public class Constants
         //asset
         public const string Texture = ".texture";
         public const string Shader = ".shader";
-        public const string SpriteSheet = ".spritesheet";
-        public const string Animation2d = ".anims2d";
-        public const string TiledMap = ".tiledMap";
+        public const string Sprite = ".sprite";
+        public const string Animation2d = ".anim2d";
+        public const string TileMap = ".tileMap";
 
         //project
         public const string Project = ".json";

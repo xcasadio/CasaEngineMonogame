@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
-using CasaEngine.Framework.Assets.Map2d;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;

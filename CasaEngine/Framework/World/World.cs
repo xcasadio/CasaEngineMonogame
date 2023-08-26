@@ -76,6 +76,7 @@ public sealed class World : Asset
 
     private void Initialize(CasaEngineGame game, bool withReference)
     {
+#if EDITOR
         if (withReference)
         {
             ClearEntities();
@@ -86,6 +87,7 @@ public sealed class World : Asset
                 _entities.Add(entityReference.Entity);
             }
         }
+#endif
 
         foreach (var entity in _entities)
         {

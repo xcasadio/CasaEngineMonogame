@@ -1,0 +1,13 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 254,
+    "name": "swordman_object_left"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 38
+    }
+  ]
+}

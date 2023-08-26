@@ -1,0 +1,178 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 759,
+    "name": "ryu_3202",
+    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_3202.anim2d"
+  },
+  "frames": [
+    {
+      "duration": 0.015999999,
+      "sprite_id": 83
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 84
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 85
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 86
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 87
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 88
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 83
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 84
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 85
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 86
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 87
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 88
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 83
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 84
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 85
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 86
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 87
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 88
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 83
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 84
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 85
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 86
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 87
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 88
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 83
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 84
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 85
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 86
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 87
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 88
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 83
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 84
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 85
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 86
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 87
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 88
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 83
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 84
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 85
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 86
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 87
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": 88
+    }
+  ]
+}

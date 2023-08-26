@@ -1,0 +1,25 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 214,
+    "name": "baton_attack3_right"
+  },
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": 183
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 184
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 185
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 186
+    }
+  ]
+}

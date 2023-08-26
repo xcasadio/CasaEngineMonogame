@@ -8,14 +8,14 @@ public class FrameData
 {
     public float Duration { get; set; }
 
-    public string SpriteId { get; set; }
+    public long SpriteId { get; set; }
     //flip
     //blending
 
     public void Load(JsonElement element)
     {
         Duration = element.GetJsonPropertyByName("duration").Value.GetSingle();
-        SpriteId = element.GetJsonPropertyByName("sprite_id").Value.GetString();
+        SpriteId = element.GetJsonPropertyByName("sprite_id").Value.GetInt64();
     }
 
 #if EDITOR

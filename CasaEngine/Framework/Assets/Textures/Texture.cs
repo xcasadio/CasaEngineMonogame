@@ -65,15 +65,15 @@ public class Texture : Asset
     }
 
 
-    public Texture(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager) : this(graphicsDevice)
+    public Texture(string filename, AssetContentManager assetContentManager) : this(assetContentManager.GraphicsDevice)
     {
         AssetInfo.FileName = filename;
-        Initialize(graphicsDevice, assetContentManager);
+        Initialize(assetContentManager);
     }
 
-    public void Initialize(GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
+    public void Initialize(AssetContentManager assetContentManager)
     {
-        GraphicsDevice = graphicsDevice;
+        GraphicsDevice = assetContentManager.GraphicsDevice;
         LoadTexture(AssetInfo.FileName, assetContentManager);
     }
 
@@ -94,7 +94,8 @@ public class Texture : Asset
 
         try
         {
-            Texture2d = assetContentManager.Load<Texture2D>(filename, GraphicsDevice);
+            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(filename);
+            Texture2d = assetContentManager.Load<Texture2D>(assetInfo, GraphicsDevice);
             //ScreenSize = new ScreenSize(Texture2d.Width, Texture2d.Height, new Screen(GraphicsDevice));
             Resource.Name = AssetInfo.FileName;
         }
@@ -130,7 +131,7 @@ public class Texture : Asset
         }
         else if (Texture2d is { IsDisposed: true })
         {
-            Texture2d = assetContentManager.Load<Texture2D>(AssetInfo.FileName, device);
+            Texture2d = assetContentManager.Load<Texture2D>(AssetInfo, device);
         }
 
         GraphicsDevice = device;

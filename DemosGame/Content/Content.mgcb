@@ -16,23 +16,14 @@
 #begin checkboard.png
 /copy:checkboard.png
 
-#begin Maps/auto_grass.png
-/copy:Maps/auto_grass.png
-
-#begin Maps/map_1_1_tile_set.tiledMap
-/copy:Maps/map_1_1_tile_set.tiledMap
-
-#begin Maps/tile1_auto_tile_set.json
-/copy:Maps/tile1_auto_tile_set.json
-
-#begin Maps/tile1_auto_tile_sprites.spritesheet
-/copy:Maps/tile1_auto_tile_sprites.spritesheet
-
-#begin Maps/tile1_sprites.spritesheet
-/copy:Maps/tile1_sprites.spritesheet
+#begin Maps/map_1_1.tileMap
+/copy:Maps/map_1_1.tileMap
 
 #begin Maps/Tile1.png
 /copy:Maps/Tile1.png
+
+#begin Maps/tile1.tileset
+/copy:Maps/tile1.tileset
 
 #begin paper_box_texture.jpg
 /copy:paper_box_texture.jpg

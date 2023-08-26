@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
-public class AssetInfo
+public class AssetInfo : ISaveLoad
 {
     private string _name;
 
@@ -36,9 +36,14 @@ public class AssetInfo
 
     public virtual void Load(JsonElement element, SaveOption option)
     {
-        Id = element.GetJsonPropertyByName("id").Value.GetInt64();
-        Name = element.GetJsonPropertyByName("name").Value.GetString();
-        FileName = element.GetJsonPropertyByName("file_name").Value.GetString();
+        Id = element.GetProperty("id").GetInt64();
+        IdManager.SetMax(Id);
+        Name = element.GetProperty("name").GetString();
+
+        if (element.TryGetProperty("file_name", out var node))
+        {
+            FileName = element.GetProperty("file_name").GetString();
+        }
     }
 
 #if EDITOR

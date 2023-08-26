@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using CasaEngine.Framework.Assets.Animations;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
-using CasaEngine.Framework.Assets.Map2d;
 using Xceed.Wpf.AvalonDock;
 
 namespace EditorWpf.Controls.Animation2dControls
@@ -33,16 +32,15 @@ namespace EditorWpf.Controls.Animation2dControls
             };
         }
 
-        public void LoadAnimations2d(string fileName)
+        public void OpenAnimations2d(string fileName)
         {
             _animation2dFileName = fileName;
-            Animation2dListControl.LoadAnimations2d(fileName);
+            Animation2dListControl.OpenAnimations2d(fileName);
         }
 
         private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var animation2dDatas = GameEditorAnimation2dControl.GameEditor.Game.GameManager.AssetContentManager.GetAssets<Animation2dData>();
-            Animation2dLoader.SaveToFile(_animation2dFileName, animation2dDatas);
+            Animation2dListControl.SaveCurrentAnimation();
             e.Handled = true;
         }
     }
