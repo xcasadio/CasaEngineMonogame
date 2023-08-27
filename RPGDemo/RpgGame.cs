@@ -30,7 +30,7 @@ public class RpgGame : CasaEngineGame
 {
     protected override void Initialize()
     {
-        GameSettings.ProjectSettings.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
+        EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
         //new GridComponent(this);
         //new AxisComponent(this);
         base.Initialize();

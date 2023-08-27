@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Entities;
-
-namespace CasaEngine.Framework.AI.NeuralNets.FeedForward;
+﻿namespace CasaEngine.Framework.AI.NeuralNets.FeedForward;
 
 public class NeuralNetwork
 {

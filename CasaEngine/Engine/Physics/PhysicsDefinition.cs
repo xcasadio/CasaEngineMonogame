@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using BulletSharp;
-using BulletSharp.SoftBody;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Shapes;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 

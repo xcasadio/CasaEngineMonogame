@@ -53,26 +53,12 @@ public class ProjectSettings
 
 #endif
 
-    [Browsable(false), JsonIgnore]
-    public string? ProjectPath
-    {
-#if EDITOR
-        get
-        {
-            return Path.GetDirectoryName(ProjectFileOpened);
-        }
-    }
-#else
-        get;
-        set;
-    } = Environment.CurrentDirectory;
-#endif
-
     public void Load(string fileName)
     {
 #if EDITOR
         Clear();
         ProjectFileOpened = fileName;
+        EngineEnvironment.ProjectPath = Path.GetDirectoryName(fileName);
 #endif
 
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));

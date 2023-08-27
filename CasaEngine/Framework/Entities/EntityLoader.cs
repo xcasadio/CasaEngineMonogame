@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Core.Design;
 using System.Text.Json;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,7 +28,7 @@ public class EntityLoader
         if (entityReference.AssetId != IdManager.InvalidId)
         {
             var assetInfo = GameSettings.AssetInfoManager.Get(entityReference.AssetId);
-            var assetFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, assetInfo.FileName);
+            var assetFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
             var entity = assetContentManager.Load<Entity>(assetInfo, graphicsDevice).Clone();
             entityReference.Entity = entity;
             entity.Name = entityReference.Name;

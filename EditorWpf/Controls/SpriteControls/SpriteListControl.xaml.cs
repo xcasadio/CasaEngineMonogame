@@ -1,17 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Core.Design;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Common;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace EditorWpf.Controls.SpriteControls
 {
@@ -34,9 +29,9 @@ namespace EditorWpf.Controls.SpriteControls
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selectedItem = ListBox.SelectedItem as SpriteDataViewModel;
-            _gameEditor.Game.GameManager.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo, _gameEditor.Game.GraphicsDevice);
-            SelectedItem = selectedItem;
+            var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
+            var spriteData = _gameEditor.Game.GameManager.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo, _gameEditor.Game.GraphicsDevice);
+            SelectedItem = new SpriteDataViewModel(spriteData);
         }
 
         public void InitializeFromGameEditor(GameEditorSprite gameEditorSprite)
@@ -45,38 +40,9 @@ namespace EditorWpf.Controls.SpriteControls
             _gameEditor.GameStarted += OnGameStarted;
         }
 
-        private void OnGameStarted(object? sender, System.EventArgs e)
+        private void OnGameStarted(object? sender, EventArgs e)
         {
-            GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
-            GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;
-            GameSettings.AssetInfoManager.AssetCleared += OnAssetCleared;
-            DataContext = new SpritesModelView(_gameEditor);
-        }
-
-        private void OnAssetAdded(object? sender, AssetInfo assetInfo)
-        {
-            if (Path.GetExtension(assetInfo.FileName) == Constants.FileNameExtensions.Sprite)
-            {
-                var spritesModelView = DataContext as SpritesModelView;
-                spritesModelView.Add(assetInfo);
-            }
-        }
-
-        private void OnAssetRemoved(object? sender, AssetInfo assetInfo)
-        {
-            var spritesModelView = DataContext as SpritesModelView;
-
-            var spriteDataViewModel = spritesModelView.SpriteDatas.FirstOrDefault(x => x.Name == assetInfo.Name); // by id
-            if (spriteDataViewModel != null)
-            {
-                spritesModelView.SpriteDatas.Remove(spriteDataViewModel);
-            }
-        }
-
-        private void OnAssetCleared(object? sender, EventArgs e)
-        {
-            var spritesModelView = DataContext as SpritesModelView;
-            spritesModelView.SpriteDatas.Clear();
+            DataContext = new SpritesModelView();
         }
 
         private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -86,7 +52,7 @@ namespace EditorWpf.Controls.SpriteControls
                 var inputTextBox = new InputTextBox();
                 inputTextBox.Description = "Enter a new name";
                 inputTextBox.Title = "Rename";
-                var spriteDataViewModel = (listBox.SelectedItem as SpriteDataViewModel);
+                var spriteDataViewModel = (listBox.SelectedItem as AssetInfoViewModel);
                 inputTextBox.Text = spriteDataViewModel.Name;
 
                 if (inputTextBox.ShowDialog() == true)
@@ -102,9 +68,9 @@ namespace EditorWpf.Controls.SpriteControls
             var spritesModelView = DataContext as SpritesModelView;
             var index = -1;
 
-            for (int i = 0; i < spritesModelView.SpriteDatas.Count; i++)
+            for (int i = 0; i < spritesModelView.SpriteAssetInfos.Count; i++)
             {
-                if (spritesModelView.SpriteDatas[i].AssetInfo.FileName == fileName)
+                if (spritesModelView.SpriteAssetInfos[i].AssetInfo.FileName == fileName)
                 {
                     index = i;
                     break;
@@ -121,7 +87,7 @@ namespace EditorWpf.Controls.SpriteControls
         {
             if (SelectedItem is SpriteDataViewModel spriteDataViewModel)
             {
-                var fullFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, spriteDataViewModel.AssetInfo.FileName);
+                var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, spriteDataViewModel.AssetInfo.FileName);
                 AssetSaver.SaveAsset(fullFileName, spriteDataViewModel.SpriteData);
             }
         }

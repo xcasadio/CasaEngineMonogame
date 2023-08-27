@@ -27,7 +27,7 @@
             </Button>
         </StackPanel>
 
-        <ListBox Grid.Row="1" Grid.Column="0" x:Name="ListBox" ItemsSource="{Binding SpriteDatas}" DisplayMemberPath="Name" SelectionChanged="OnSelectionChanged"
+        <ListBox Grid.Row="1" Grid.Column="0" x:Name="ListBox" ItemsSource="{Binding SpriteAssetInfos}" DisplayMemberPath="Name" SelectionChanged="OnSelectionChanged"
                  MouseDoubleClick="ListBox_OnMouseDoubleClick"/>
     </Grid>
 </UserControl>

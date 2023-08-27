@@ -1,7 +1,5 @@
 ﻿using System.Windows.Data;
 using System.Windows.Input;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;

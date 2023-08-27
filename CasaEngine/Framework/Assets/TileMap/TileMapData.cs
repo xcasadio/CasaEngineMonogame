@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Game;
+using CasaEngine.Engine;
 using Newtonsoft.Json.Linq;
 using Size = CasaEngine.Core.Maths.Size;
 
@@ -31,7 +31,7 @@ public class TileMapData : AssetInfo
 
     private static TileSetData LoadTileSetData(string fileName)
     {
-        fileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName);
+        fileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
         var tileSetData = new TileSetData();
         tileSetData.Load(jsonDocument.RootElement, SaveOption.Editor);

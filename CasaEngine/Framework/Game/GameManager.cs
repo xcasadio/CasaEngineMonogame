@@ -1,5 +1,6 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Engine;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -241,7 +242,7 @@ public class GameManager
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
             CurrentWorld = new World.World();
-            var fileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
+            var fileName = Path.Combine(EngineEnvironment.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
             CurrentWorld.Load(fileName, SaveOption.Editor);
             CurrentWorld.Initialize(_game);
         }

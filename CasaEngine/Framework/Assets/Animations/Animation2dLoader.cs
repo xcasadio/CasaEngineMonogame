@@ -2,12 +2,8 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SharpDX.Direct3D9;
 
 namespace CasaEngine.Framework.Assets.Animations;
 
@@ -48,7 +44,7 @@ public class Animation2dLoader
 
         rootJObject.Add(Animation2dDatasNodeName, spriteJArray);
 
-        var fullFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName);
+        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
         using StreamWriter file = File.CreateText(fullFileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         rootJObject.WriteTo(writer);

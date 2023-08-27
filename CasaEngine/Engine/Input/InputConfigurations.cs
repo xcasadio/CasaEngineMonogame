@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Xml;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Input.InputSequence;
 using Newtonsoft.Json.Linq;

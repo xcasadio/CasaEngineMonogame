@@ -1,10 +1,9 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
@@ -153,6 +152,7 @@ public sealed class World : Asset
 
     public void Load(string fileName, SaveOption option)
     {
+        LogManager.Instance.WriteLineInfo($"Load world {fileName}");
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
         Load(jsonDocument.RootElement, option);
     }

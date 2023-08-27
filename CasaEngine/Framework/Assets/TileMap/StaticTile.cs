@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Assets.Sprites;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.TileMap;

@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using Path = System.IO.Path;
 
@@ -10,29 +10,44 @@ namespace EditorWpf.Controls.SpriteControls;
 
 public class SpritesModelView
 {
-    private readonly AssetContentManager _assetContentManager;
-    private CasaEngineGame _game;
-    public ObservableCollection<SpriteDataViewModel> SpriteDatas { get; } = new();
+    public ObservableCollection<AssetInfoViewModel> SpriteAssetInfos { get; } = new();
 
-    public SpritesModelView(GameEditorSprite gameEditorSprite)
+    public SpritesModelView()
     {
-        _game = gameEditorSprite.Game;
-        _assetContentManager = _game.GameManager.AssetContentManager;
+        GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
+        GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;
+        GameSettings.AssetInfoManager.AssetCleared += OnAssetCleared;
 
-        LoadAllSpriteData();
+        LoadAllSpriteAssetInfos();
     }
 
-    public void Add(AssetInfo assetInfo)
-    {
-        var spriteData = _game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo, _game.GraphicsDevice);
-        SpriteDatas.Add(new SpriteDataViewModel(spriteData));
-    }
-
-    private void LoadAllSpriteData()
+    private void LoadAllSpriteAssetInfos()
     {
         foreach (var assetInfo in GameSettings.AssetInfoManager.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Sprite))
         {
-            Add(assetInfo);
+            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo));
         }
+    }
+
+    private void OnAssetAdded(object? sender, AssetInfo assetInfo)
+    {
+        if (Path.GetExtension(assetInfo.FileName) == Constants.FileNameExtensions.Sprite)
+        {
+            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+        }
+    }
+
+    private void OnAssetRemoved(object? sender, AssetInfo assetInfo)
+    {
+        var spriteDataViewModel = SpriteAssetInfos.FirstOrDefault(x => x.Name == assetInfo.Name); // by id
+        if (spriteDataViewModel != null)
+        {
+            SpriteAssetInfos.Remove(spriteDataViewModel);
+        }
+    }
+
+    private void OnAssetCleared(object? sender, EventArgs e)
+    {
+        SpriteAssetInfos.Clear();
     }
 }

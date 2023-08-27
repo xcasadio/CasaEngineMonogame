@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;

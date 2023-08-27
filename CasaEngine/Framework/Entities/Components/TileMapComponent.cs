@@ -3,15 +3,11 @@ using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
-using Size = CasaEngine.Core.Maths.Size;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Entities.Components;

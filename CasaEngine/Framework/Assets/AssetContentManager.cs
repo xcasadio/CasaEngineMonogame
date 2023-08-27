@@ -1,47 +1,8 @@
 ﻿using System.Collections;
+using CasaEngine.Engine;
 using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Assets;
-
-public class AssetDictionary : IEnumerable<object>
-{
-    private readonly Dictionary<string, object> _assetsByName = new();
-    private readonly Dictionary<long, object> _assetsById = new();
-
-    public void Add(long id, string name, object asset)
-    {
-        _assetsById[id] = asset;
-        _assetsByName[name] = asset;
-    }
-
-    public bool Get(long id, out object asset)
-    {
-        return _assetsById.TryGetValue(id, out asset);
-    }
-
-    public bool Get(string name, out object asset)
-    {
-        return _assetsByName.TryGetValue(name, out asset);
-    }
-
-    public object Remove(long id, string name)
-    {
-        return _assetsById.Remove(id);
-        return _assetsByName.Remove(name);
-    }
-
-    public IEnumerator<object> GetEnumerator()
-    {
-        return _assetsById.Values.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-}
 
 public class AssetContentManager
 {
@@ -50,11 +11,7 @@ public class AssetContentManager
     private readonly Dictionary<string, AssetDictionary> _assetsDictionaryByCategory = new();
     public GraphicsDevice GraphicsDevice { get; private set; }
 
-    public string RootDirectory
-    {
-        get;
-        set;
-    }
+    public string RootDirectory { get; set; }
 
     public AssetContentManager()
     {
@@ -146,7 +103,7 @@ public class AssetContentManager
             throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
         }
 
-        var fullFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, assetInfo.FileName);
+        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
         var newAsset = (T)_assetLoader[type].LoadAsset(fullFileName, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;
@@ -221,4 +178,42 @@ public class AssetContentManager
         return assets;
     }
 #endif
+
+    private class AssetDictionary : IEnumerable<object>
+    {
+        private readonly Dictionary<string, object> _assetsByName = new();
+        private readonly Dictionary<long, object> _assetsById = new();
+
+        public void Add(long id, string name, object asset)
+        {
+            _assetsById[id] = asset;
+            _assetsByName[name] = asset;
+        }
+
+        public bool Get(long id, out object asset)
+        {
+            return _assetsById.TryGetValue(id, out asset);
+        }
+
+        public bool Get(string name, out object asset)
+        {
+            return _assetsByName.TryGetValue(name, out asset);
+        }
+
+        public object Remove(long id, string name)
+        {
+            return _assetsById.Remove(id);
+            return _assetsByName.Remove(name);
+        }
+
+        public IEnumerator<object> GetEnumerator()
+        {
+            return _assetsById.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }

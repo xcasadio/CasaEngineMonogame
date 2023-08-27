@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -85,7 +86,7 @@ public class Texture : Asset
         if (File.Exists(filename) == false)
         {
             //TODO : all asset must be loaded from  ProjectPath
-            filename = Path.Combine(GameSettings.ProjectSettings.ProjectPath, filename);
+            filename = Path.Combine(EngineEnvironment.ProjectPath, filename);
             if (File.Exists(filename) == false)
             {
                 throw new ArgumentException($"Failed to load texture: File {AssetInfo.FileName} does not exists!", nameof(filename));

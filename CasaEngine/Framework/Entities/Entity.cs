@@ -2,7 +2,6 @@
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logger;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
@@ -11,7 +10,6 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using XNAGizmo;
 using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
-using Component = System.ComponentModel.Component;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Entities;

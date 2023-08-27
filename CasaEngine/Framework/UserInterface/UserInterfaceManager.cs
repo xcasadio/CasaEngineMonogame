@@ -15,7 +15,6 @@ Modified by: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.UserInterface.Controls.Windows;
 using Microsoft.Xna.Framework.Graphics;

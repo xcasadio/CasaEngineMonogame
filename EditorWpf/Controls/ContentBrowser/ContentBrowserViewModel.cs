@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 
 namespace EditorWpf.Controls.ContentBrowser;
@@ -33,7 +34,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
         Clear();
         var rootFolder = new FolderItem { Name = "All" };
         ContentItems.Add(rootFolder);
-        AddContent(GameSettings.ProjectSettings.ProjectPath!, rootFolder);
+        AddContent(EngineEnvironment.ProjectPath!, rootFolder);
 
         OnPropertyChanged(nameof(ContentItems));
     }

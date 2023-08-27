@@ -83,7 +83,6 @@ public class Animation
 
         if (isFinished)
         {
-            LogManager.Instance.WriteLineTrace($"Animation ended : {AnimationData.AssetInfo.Name}");
             AnimationFinished?.Invoke(this, EventArgs.Empty);
         }
 

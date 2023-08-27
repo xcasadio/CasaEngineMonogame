@@ -3,7 +3,6 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

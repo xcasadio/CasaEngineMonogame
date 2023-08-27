@@ -1,7 +1,4 @@
-﻿using CasaEngine.Core.Design;
-using CasaEngine.Framework.Game;
-using Newtonsoft.Json.Linq;
-using SharpDX.Direct2D1;
+﻿using Newtonsoft.Json.Linq;
 using System.Text.Json;
 
 namespace CasaEngine.Framework.Assets.TileMap;

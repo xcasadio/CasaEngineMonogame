@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using CasaEngine.Core.Logger;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Editor.Tools;
 
@@ -18,12 +18,12 @@ public class ExternalToolManager
     {
         Clear();
 
-        if (string.IsNullOrEmpty(GameSettings.ProjectSettings.ProjectPath))
+        if (string.IsNullOrEmpty(EngineEnvironment.ProjectPath))
         {
             return;
         }
 
-        var fullPath = Path.Combine(GameSettings.ProjectSettings.ProjectPath, directory);
+        var fullPath = Path.Combine(EngineEnvironment.ProjectPath, directory);
         var msg = string.Empty;
 
         if (!Directory.Exists(fullPath))

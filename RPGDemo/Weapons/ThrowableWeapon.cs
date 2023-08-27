@@ -40,7 +40,7 @@ public class ThrowableWeapon : Weapon
 
         _physics2dComponent.SetPosition(Character.Owner.Coordinates.Position + new Vector3(offset, 0f));
 
-        Vector2 direction = Character.CurrentDirection switch
+        var direction = Character.CurrentDirection switch
         {
             Character2dDirection.Up => Vector2.UnitY,
             Character2dDirection.Down => -Vector2.UnitY,

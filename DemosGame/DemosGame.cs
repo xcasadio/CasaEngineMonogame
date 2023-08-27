@@ -23,7 +23,7 @@ namespace DemosGame
         {
             LogManager.Instance.AddLogger(new FileLogger("log.txt"));
 
-            GameSettings.ProjectSettings.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
+            EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
             GameSettings.ProjectSettings.IsMouseVisible = true;
             GameSettings.ProjectSettings.WindowTitle = "CasaEngine demos";
             GameSettings.ProjectSettings.AllowUserResizing = true;

@@ -2,7 +2,6 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Game;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -46,7 +45,7 @@ public class SpriteLoader
 
         rootJObject.Add(SpriteDatasNodeName, spriteJArray);
 
-        var fullFileName = Path.Combine(GameSettings.ProjectSettings.ProjectPath, fileName);
+        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
         using StreamWriter file = File.CreateText(fullFileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         rootJObject.WriteTo(writer);

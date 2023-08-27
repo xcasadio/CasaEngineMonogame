@@ -1,52 +1,52 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Game;
-using EditorWpf.Controls.Animation2dControls;
+using EditorWpf.Controls;
 
 public class Animation2dListModelView
 {
-    private readonly AssetContentManager _assetContentManager;
-    private CasaEngineGame? _game;
+    public ObservableCollection<AssetInfoViewModel> Animation2dAssetInfos { get; } = new();
 
-    public ObservableCollection<Animation2dDataViewModel> Animation2dDatas { get; } = new();
-
-    public Animation2dListModelView(GameEditorAnimation2d gameEditor)
+    public Animation2dListModelView()
     {
-        _game = gameEditor.Game;
-        _assetContentManager = _game.GameManager.AssetContentManager;
+        GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
+        GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;
+        GameSettings.AssetInfoManager.AssetCleared += OnAssetCleared;
 
-        LoadAllAnimation2dData();
+        LoadAllAnimation2dAssetInfos();
     }
 
-    private void LoadAllAnimation2dData()
+    private void LoadAllAnimation2dAssetInfos()
     {
         foreach (var assetInfo in GameSettings.AssetInfoManager.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Animation2d))
         {
-            Add(assetInfo);
+            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo));
         }
     }
 
-    //public void LoadAnimations2d(string fileName)
-    //{
-    //    var spriteSheetFileName = fileName.Replace(Path.GetExtension(fileName), Constants.FileNameExtensions.SpriteSheet);
-    //
-    //    var spriteDatas = SpriteLoader.LoadFromFile(spriteSheetFileName, _assetContentManager, SaveOption.Editor);
-    //    var animations = Animation2dLoader.LoadFromFile(fileName, _assetContentManager);
-    //
-    //    Animation2dDatas.Clear();
-    //    foreach (var animation2dData in animations)
-    //    {
-    //        Animation2dDatas.Add(new Animation2dDataViewModel(animation2dData));
-    //    }
-    //}
-
-    public void Add(AssetInfo assetInfo)
+    private void OnAssetAdded(object? sender, AssetInfo assetInfo)
     {
-        var animation2dData = _game.GameManager.AssetContentManager.Load<Animation2dData>(assetInfo, _game.GraphicsDevice);
-        Animation2dDatas.Add(new Animation2dDataViewModel(animation2dData));
+        if (Path.GetExtension(assetInfo.FileName) == Constants.FileNameExtensions.Animation2d)
+        {
+            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+        }
+    }
+
+    private void OnAssetRemoved(object? sender, AssetInfo assetInfo)
+    {
+        var spriteDataViewModel = Animation2dAssetInfos.FirstOrDefault(x => x.Name == assetInfo.Name); // by id
+        if (spriteDataViewModel != null)
+        {
+            Animation2dAssetInfos.Remove(spriteDataViewModel);
+        }
+    }
+
+    private void OnAssetCleared(object? sender, EventArgs e)
+    {
+        Animation2dAssetInfos.Clear();
     }
 }

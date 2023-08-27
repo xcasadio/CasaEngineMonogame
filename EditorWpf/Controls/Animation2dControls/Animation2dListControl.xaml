@@ -27,7 +27,7 @@
             </Button>
         </StackPanel>
 
-        <ListBox Grid.Row="1" Grid.Column="0" x:Name="ListBox" ItemsSource="{Binding Animation2dDatas}" 
+        <ListBox Grid.Row="1" Grid.Column="0" x:Name="ListBox" ItemsSource="{Binding Animation2dAssetInfos}" 
                  DisplayMemberPath="Name" SelectionChanged="OnSelectionChanged"
                  MouseDoubleClick="ListBox_OnMouseDoubleClick"/>
     </Grid>

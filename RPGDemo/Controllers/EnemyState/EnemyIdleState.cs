@@ -20,7 +20,7 @@ public class EnemyIdleState : IState<Controller>
         controller.Character.Move(ref joyDir);
         controller.Character.SetAnimation(Character.AnimationIndices.Stand);
         _timeMaxBeforeHunt = _random.NextFloat(5.0f, 10.0f);
-        _idleTime = _random.NextFloat(2.0f, 4.0f);
+        ComputeIdleTime();
     }
 
     public virtual void Exit(Controller controller)
@@ -53,12 +53,17 @@ public class EnemyIdleState : IState<Controller>
                 controller.Character.SetAnimation(Character.AnimationIndices.Stand);
             }
 
-            _idleTime = _random.NextFloat(2.0f, 4.0f);
+            ComputeIdleTime();
         }
     }
 
     public virtual bool HandleMessage(Controller controller, Message message)
     {
         return false;
+    }
+
+    private void ComputeIdleTime()
+    {
+        _idleTime = _random.NextFloat(2.0f, 4.0f);
     }
 }

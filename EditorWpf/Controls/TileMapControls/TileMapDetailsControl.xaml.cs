@@ -68,7 +68,7 @@ public partial class TileMapDetailsControl : UserControl
         tileMapDataViewModel.LoadMap(fileName);
 
         //var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
-        //var projectPath = GameSettings.ProjectSettings.ProjectPath;
+        //var projectPath = EngineEnvironment.ProjectPath;
 
         //foreach (var spriteSheetFileName in tileMapDataViewModel.TiledMapData.SpriteSheetFileNames)
         //{

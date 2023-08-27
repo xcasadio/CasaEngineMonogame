@@ -6,7 +6,6 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.Graphics2D;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -14,7 +13,6 @@ using BulletSharp;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game.Components;
-using System.Diagnostics;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 
