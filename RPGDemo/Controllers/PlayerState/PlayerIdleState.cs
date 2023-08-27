@@ -12,7 +12,7 @@ public class PlayerIdleState : IState<Controller>
     {
         var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
-        controller.Character.SetAnimation(Character.AnimationIndices.Idle);
+        controller.Character.SetAnimation(Character.AnimationIndices.Stand);
     }
 
     public void Exit(Controller controller)

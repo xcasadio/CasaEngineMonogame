@@ -33,7 +33,7 @@ public class EnemyController : AiController
         StateMachine.GlobalState = new EnemyGlobalState();
 
         Character.CurrentDirection = Character2dDirection.Down;
-        Character.SetAnimation(AnimationIndices.Idle);
+        Character.SetAnimation(AnimationIndices.Stand);
     }
 
     public override void Update(float elapsedTime)

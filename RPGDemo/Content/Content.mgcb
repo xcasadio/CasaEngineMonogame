@@ -752,17 +752,17 @@
 #begin TileSets/swordman_attack3_up.anim2d
 /copy:TileSets/swordman_attack3_up.anim2d
 
-#begin TileSets/swordman_dead_idle_down.anim2d
-/copy:TileSets/swordman_dead_idle_down.anim2d
+#begin TileSets/swordman_dead_stand_down.anim2d
+/copy:TileSets/swordman_dead_stand_down.anim2d
 
-#begin TileSets/swordman_dead_idle_left.anim2d
-/copy:TileSets/swordman_dead_idle_left.anim2d
+#begin TileSets/swordman_dead_stand_left.anim2d
+/copy:TileSets/swordman_dead_stand_left.anim2d
 
-#begin TileSets/swordman_dead_idle_right.anim2d
-/copy:TileSets/swordman_dead_idle_right.anim2d
+#begin TileSets/swordman_dead_stand_right.anim2d
+/copy:TileSets/swordman_dead_stand_right.anim2d
 
-#begin TileSets/swordman_dead_idle_up.anim2d
-/copy:TileSets/swordman_dead_idle_up.anim2d
+#begin TileSets/swordman_dead_stand_up.anim2d
+/copy:TileSets/swordman_dead_stand_up.anim2d
 
 #begin TileSets/swordman_dead_walking_down.anim2d
 /copy:TileSets/swordman_dead_walking_down.anim2d

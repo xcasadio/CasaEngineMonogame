@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 
 namespace RPGDemo.Controllers;
@@ -47,8 +48,12 @@ public abstract class Controller : IFsmCapable<Controller>
         Character.Update(elapsedTime);
     }
 
-    private void OnAnimationFinished(object sender, CasaEngine.Framework.Assets.Animations.Animation2d e)
+    private void OnAnimationFinished(object sender, CasaEngine.Framework.Assets.Animations.Animation2d animation2d)
     {
-        StateMachine.HandleMessage(new Message(-1, -1, (int)MessageType.AnimationChanged, 0.0f, null));
+        if (sender is Component component)
+        {
+            StateMachine.HandleMessage(new Message(component.Owner.Id, component.Owner.Id,
+                (int)MessageType.AnimationChanged, 0.0f, animation2d));
+        }
     }
 }

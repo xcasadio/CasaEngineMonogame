@@ -37,7 +37,7 @@ public class PlayerAttackState : IState<Controller>
 
     public bool HandleMessage(Controller controller, Message message)
     {
-        if (message.Type == (int)MessageType.AnimationChanged)
+        if (message.Type == (int)MessageType.AnimationChanged && message.SenderID == controller.Character.Owner.Id)
         {
             if (controller.Character.ComboNumber == 1)
             {

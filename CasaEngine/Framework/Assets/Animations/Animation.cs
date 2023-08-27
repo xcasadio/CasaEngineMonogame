@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using CasaEngine.Core.Logger;
 
 namespace CasaEngine.Framework.Assets.Animations;
 
@@ -82,6 +83,7 @@ public class Animation
 
         if (isFinished)
         {
+            LogManager.Instance.WriteLineTrace($"Animation ended : {AnimationData.AssetInfo.Name}");
             AnimationFinished?.Invoke(this, EventArgs.Empty);
         }
 

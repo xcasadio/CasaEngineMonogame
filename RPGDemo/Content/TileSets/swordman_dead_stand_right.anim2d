@@ -1,17 +1,17 @@
 {
   "animation_type": "Once",
   "asset": {
-    "id": 240,
-    "name": "swordman_dead_idle_down"
+    "id": 242,
+    "name": "swordman_dead_stand_right"
   },
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": 127
+      "sprite_id": 129
     },
     {
       "duration": 0.15,
-      "sprite_id": 128
+      "sprite_id": 130
     }
   ]
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using CasaEngine.Core.Logger;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -16,7 +17,7 @@ public class Character
 
     public enum AnimationIndices
     {
-        Idle = 0,
+        Stand = 0,
         Walk = 1,
         Attack = 2,
         Attack2 = 3,
@@ -166,8 +167,8 @@ public class Character
             return;
         }
 
+        LogManager.Instance.WriteLineTrace($"{Owner.Name} SetAnimation : {animationName}");
         AnimatedSpriteComponent.SetCurrentAnimation(animationName, true);
-        //Debug.WriteLine($"SetAnimation : {animationName}");
     }
 
     private string GetAnimationName(AnimationIndices animationIndex, string prefix = null)

@@ -2,7 +2,7 @@
   "animation_type": "Once",
   "asset": {
     "id": 243,
-    "name": "swordman_dead_idle_up"
+    "name": "swordman_dead_stand_up"
   },
   "frames": [
     {

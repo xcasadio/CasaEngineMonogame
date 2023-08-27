@@ -1,4 +1,5 @@
-﻿using CasaEngine.Core.Helpers;
+﻿using System;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
 using Microsoft.Xna.Framework;
@@ -7,8 +8,9 @@ namespace RPGDemo.Controllers.EnemyState;
 
 public class EnemyIdleState : IState<Controller>
 {
-    private float _elapsedTime;
     private float _timeMaxBeforeHunt;
+    private float _idleTime;
+    private readonly Random _random = RandomExtension.Create();
 
     public string Name => "Enemy Idle State";
 
@@ -16,10 +18,9 @@ public class EnemyIdleState : IState<Controller>
     {
         var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
-        controller.Character.SetAnimation(Character.AnimationIndices.Idle);
-        _elapsedTime = 0;
-        var random = RandomExtension.Create();
-        _timeMaxBeforeHunt = random.NextFloat(5.0f, 10.0f);
+        controller.Character.SetAnimation(Character.AnimationIndices.Stand);
+        _timeMaxBeforeHunt = _random.NextFloat(5.0f, 10.0f);
+        _idleTime = _random.NextFloat(2.0f, 4.0f);
     }
 
     public virtual void Exit(Controller controller)
@@ -32,23 +33,27 @@ public class EnemyIdleState : IState<Controller>
         var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
 
-        _elapsedTime += elapsedTime;
+        _timeMaxBeforeHunt -= elapsedTime;
+        _idleTime -= elapsedTime;
 
-        if (_elapsedTime >= _timeMaxBeforeHunt)
+        if (_timeMaxBeforeHunt <= 0f)
         {
             controller.StateMachine.Transition(controller.GetState((int)EnemyControllerState.Hunt));
         }
-        else
+        else if (_idleTime <= 0f)
         {
             var ec = (EnemyController)controller;
 
-            if (ec.PlayerHunted != null)
+            //if (ec.PlayerHunted != null)
             {
-                var dir = (ec.PlayerHunted.Position - controller.Character.Position).ToVector2(); //inverse
+                //var dir = (ec.PlayerHunted.Position - controller.Character.Position).ToVector2(); //inverse
+                var dir = _random.NextVector2(Vector2.Zero, Vector2.One);
                 dir.Normalize();
                 controller.Character.CurrentDirection = Character.GetCharacterDirectionFromVector2(dir);
-                controller.Character.SetAnimation(Character.AnimationIndices.Idle);
+                controller.Character.SetAnimation(Character.AnimationIndices.Stand);
             }
+
+            _idleTime = _random.NextFloat(2.0f, 4.0f);
         }
     }
 
