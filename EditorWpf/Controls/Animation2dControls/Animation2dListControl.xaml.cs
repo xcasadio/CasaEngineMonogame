@@ -10,6 +10,7 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Common;
+using EditorWpf.Controls.SpriteControls;
 
 namespace EditorWpf.Controls.Animation2dControls
 {
@@ -92,20 +93,15 @@ namespace EditorWpf.Controls.Animation2dControls
         public void OpenAnimations2d(string fileName)
         {
             var animation2dListModelView = DataContext as Animation2dListModelView;
-            var index = -1;
 
-            for (int i = 0; i < animation2dListModelView.Animation2dAssetInfos.Count; i++)
+            foreach (var assetInfoViewModel in animation2dListModelView.Animation2dAssetInfos)
             {
-                if (animation2dListModelView.Animation2dAssetInfos[i].AssetInfo.FileName == fileName)
+                if (fileName.EndsWith(assetInfoViewModel.AssetInfo.FileName))
                 {
-                    index = i;
+                    var index = ListBox.Items.IndexOf(assetInfoViewModel);
+                    Dispatcher.Invoke(() => ListBox.SelectedIndex = index);
                     break;
                 }
-            }
-
-            if (index != -1)
-            {
-                Dispatcher.Invoke(() => ListBox.SelectedIndex = index);
             }
         }
 

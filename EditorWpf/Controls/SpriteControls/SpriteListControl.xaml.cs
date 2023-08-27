@@ -66,20 +66,15 @@ namespace EditorWpf.Controls.SpriteControls
         public void OpenSprite(string fileName)
         {
             var spritesModelView = DataContext as SpritesModelView;
-            var index = -1;
 
-            for (int i = 0; i < spritesModelView.SpriteAssetInfos.Count; i++)
+            foreach (var assetInfoViewModel in spritesModelView.SpriteAssetInfos)
             {
-                if (spritesModelView.SpriteAssetInfos[i].AssetInfo.FileName == fileName)
+                if (fileName.EndsWith(assetInfoViewModel.AssetInfo.FileName))
                 {
-                    index = i;
+                    var index = ListBox.Items.IndexOf(assetInfoViewModel);
+                    Dispatcher.Invoke(() => ListBox.SelectedIndex = index);
                     break;
                 }
-            }
-
-            if (index != -1)
-            {
-                Dispatcher.Invoke(() => ListBox.SelectedIndex = index);
             }
         }
 
