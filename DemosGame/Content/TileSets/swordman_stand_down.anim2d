@@ -1,0 +1,17 @@
+{
+  "animation_type": "Loop",
+  "asset": {
+    "id": 257,
+    "name": "swordman_stand_down"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 52
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 53
+    }
+  ]
+}

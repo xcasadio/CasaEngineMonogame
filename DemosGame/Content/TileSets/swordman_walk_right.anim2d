@@ -1,0 +1,25 @@
+{
+  "animation_type": "Loop",
+  "asset": {
+    "id": 263,
+    "name": "swordman_walk_right"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 78
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 89
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 100
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 111
+    }
+  ]
+}

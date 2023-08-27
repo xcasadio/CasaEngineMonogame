@@ -1,0 +1,21 @@
+{
+  "animation_type": "Loop",
+  "asset": {
+    "id": 2204,
+    "name": "rock"
+  },
+  "frames": [
+    {
+      "duration": 0.16,
+      "sprite_id": 1018
+    },
+    {
+      "duration": 0.16,
+      "sprite_id": 1019
+    },
+    {
+      "duration": 0.16,
+      "sprite_id": 1020
+    }
+  ]
+}

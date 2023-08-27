@@ -1,0 +1,17 @@
+{
+  "animation_type": "Loop",
+  "asset": {
+    "id": 260,
+    "name": "swordman_stand_up"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 57
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 58
+    }
+  ]
+}

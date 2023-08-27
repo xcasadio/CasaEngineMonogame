@@ -1,0 +1,19 @@
+{
+  "asset": {
+    "id": 139,
+    "name": "player_95"
+  },
+  "sprite_sheet": "TileSets\\Swordman_1.png",
+  "location": {
+    "x": 240,
+    "y": 432,
+    "w": 48,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 23,
+    "y": 35
+  },
+  "collisions": [],
+  "sockets": []
+}

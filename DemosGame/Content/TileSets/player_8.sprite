@@ -1,0 +1,32 @@
+{
+  "asset": {
+    "id": 122,
+    "name": "player_8"
+  },
+  "sprite_sheet": "TileSets\\Swordman_1.png",
+  "location": {
+    "x": 0,
+    "y": 48,
+    "w": 48,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 23,
+    "y": 35
+  },
+  "collisions": [
+    {
+      "collision_type": "Attack",
+      "version": 1,
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 9.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 28,
+      "h": 36
+    }
+  ],
+  "sockets": []
+}

@@ -89,6 +89,17 @@ public class RpgGame : CasaEngineGame
         GameManager.ActiveCamera = camera;
     }
 
+    private void LoadSprites()
+    {
+        var spriteAssetInfos = GameSettings.AssetInfoManager.AssetInfos
+            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Sprite));
+
+        foreach (var assetInfo in spriteAssetInfos)
+        {
+            var spriteData = GameManager.AssetContentManager.Load<SpriteData>(assetInfo, GraphicsDevice);
+        }
+    }
+
     private List<Animation2dData> LoadAnimations()
     {
         var animationsAssetInfos = GameSettings.AssetInfoManager.AssetInfos
@@ -103,17 +114,6 @@ public class RpgGame : CasaEngineGame
         }
 
         return animations;
-    }
-
-    private void LoadSprites()
-    {
-        var spriteAssetInfos = GameSettings.AssetInfoManager.AssetInfos
-            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Sprite));
-
-        foreach (var assetInfo in spriteAssetInfos)
-        {
-            var spriteData = GameManager.AssetContentManager.Load<SpriteData>(assetInfo, GraphicsDevice);
-        }
     }
 
     private static PlayerComponent CreatePlayer(List<Animation2dData> animations, World world)
@@ -140,7 +140,7 @@ public class RpgGame : CasaEngineGame
         //============ player ===============
         entity = new Entity();
         entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(60, 600, 0.3f);
+        entity.Coordinates.LocalPosition = new Vector3(60, 600, 0.2f);
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
@@ -204,7 +204,7 @@ public class RpgGame : CasaEngineGame
         //============ enemy ===============
         entity = new Entity();
         entity.Name = "Octopus";
-        entity.Coordinates.LocalPosition = new Vector3(600, 600, 0.3f);
+        entity.Coordinates.LocalPosition = new Vector3(600, 600, 0.2f);
         physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;

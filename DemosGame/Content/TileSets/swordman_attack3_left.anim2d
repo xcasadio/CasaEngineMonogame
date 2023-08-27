@@ -1,0 +1,25 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 233,
+    "name": "swordman_attack3_left"
+  },
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": 114
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 115
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 116
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": 117
+    }
+  ]
+}

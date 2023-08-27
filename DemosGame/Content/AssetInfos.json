@@ -1,0 +1,1522 @@
+{
+  "asset_infos": [
+    {
+      
+        "id": 1018,
+        "name": "rock_0",
+        "file_name": "TileSets\\rock_0.sprite"
+       },
+    {
+      
+        "id": 1019,
+        "name": "rock_1",
+        "file_name": "TileSets\\rock_1.sprite"
+       },
+    {
+      
+        "id": 1020,
+        "name": "rock_2",
+        "file_name": "TileSets\\rock_2.sprite"
+       },
+    {
+      
+        "id": 18,
+        "name": "octopus_0",
+        "file_name": "TileSets\\octopus_0.sprite"
+       },
+    {
+      
+        "id": 19,
+        "name": "octopus_1",
+        "file_name": "TileSets\\octopus_1.sprite"
+       },
+    {
+      
+        "id": 20,
+        "name": "octopus_10",
+        "file_name": "TileSets\\octopus_10.sprite"
+       },
+    {
+      
+        "id": 21,
+        "name": "octopus_11",
+        "file_name": "TileSets\\octopus_11.sprite"
+       },
+    {
+      
+        "id": 22,
+        "name": "octopus_12",
+        "file_name": "TileSets\\octopus_12.sprite"
+       },
+    {
+      
+        "id": 23,
+        "name": "octopus_13",
+        "file_name": "TileSets\\octopus_13.sprite"
+       },
+    {
+      
+        "id": 24,
+        "name": "octopus_14",
+        "file_name": "TileSets\\octopus_14.sprite"
+       },
+    {
+      
+        "id": 25,
+        "name": "octopus_15",
+        "file_name": "TileSets\\octopus_15.sprite"
+       },
+    {
+      
+        "id": 26,
+        "name": "octopus_16",
+        "file_name": "TileSets\\octopus_16.sprite"
+       },
+    {
+      
+        "id": 27,
+        "name": "octopus_17",
+        "file_name": "TileSets\\octopus_17.sprite"
+       },
+    {
+      
+        "id": 28,
+        "name": "octopus_18",
+        "file_name": "TileSets\\octopus_18.sprite"
+       },
+    {
+      
+        "id": 29,
+        "name": "octopus_19",
+        "file_name": "TileSets\\octopus_19.sprite"
+       },
+    {
+      
+        "id": 30,
+        "name": "octopus_2",
+        "file_name": "TileSets\\octopus_2.sprite"
+       },
+    {
+      
+        "id": 31,
+        "name": "octopus_3",
+        "file_name": "TileSets\\octopus_3.sprite"
+       },
+    {
+      
+        "id": 32,
+        "name": "octopus_4",
+        "file_name": "TileSets\\octopus_4.sprite"
+       },
+    {
+      
+        "id": 33,
+        "name": "octopus_5",
+        "file_name": "TileSets\\octopus_5.sprite"
+       },
+    {
+      
+        "id": 34,
+        "name": "octopus_6",
+        "file_name": "TileSets\\octopus_6.sprite"
+       },
+    {
+      
+        "id": 35,
+        "name": "octopus_7",
+        "file_name": "TileSets\\octopus_7.sprite"
+       },
+    {
+      
+        "id": 36,
+        "name": "octopus_8",
+        "file_name": "TileSets\\octopus_8.sprite"
+       },
+    {
+      
+        "id": 37,
+        "name": "octopus_9",
+        "file_name": "TileSets\\octopus_9.sprite"
+       },
+    {
+      
+        "id": 38,
+        "name": "player_0",
+        "file_name": "TileSets\\player_0.sprite"
+       },
+    {
+      
+        "id": 39,
+        "name": "player_1",
+        "file_name": "TileSets\\player_1.sprite"
+       },
+    {
+      
+        "id": 40,
+        "name": "player_10",
+        "file_name": "TileSets\\player_10.sprite"
+       },
+    {
+      
+        "id": 41,
+        "name": "player_100",
+        "file_name": "TileSets\\player_100.sprite"
+       },
+    {
+      
+        "id": 42,
+        "name": "player_101",
+        "file_name": "TileSets\\player_101.sprite"
+       },
+    {
+      
+        "id": 43,
+        "name": "player_102",
+        "file_name": "TileSets\\player_102.sprite"
+       },
+    {
+      
+        "id": 44,
+        "name": "player_103",
+        "file_name": "TileSets\\player_103.sprite"
+       },
+    {
+      
+        "id": 45,
+        "name": "player_104",
+        "file_name": "TileSets\\player_104.sprite"
+       },
+    {
+      
+        "id": 46,
+        "name": "player_105",
+        "file_name": "TileSets\\player_105.sprite"
+       },
+    {
+      
+        "id": 47,
+        "name": "player_11",
+        "file_name": "TileSets\\player_11.sprite"
+       },
+    {
+      
+        "id": 48,
+        "name": "player_12",
+        "file_name": "TileSets\\player_12.sprite"
+       },
+    {
+      
+        "id": 49,
+        "name": "player_13",
+        "file_name": "TileSets\\player_13.sprite"
+       },
+    {
+      
+        "id": 50,
+        "name": "player_14",
+        "file_name": "TileSets\\player_14.sprite"
+       },
+    {
+      
+        "id": 51,
+        "name": "player_15",
+        "file_name": "TileSets\\player_15.sprite"
+       },
+    {
+      
+        "id": 52,
+        "name": "player_16",
+        "file_name": "TileSets\\player_16.sprite"
+       },
+    {
+      
+        "id": 53,
+        "name": "player_17",
+        "file_name": "TileSets\\player_17.sprite"
+       },
+    {
+      
+        "id": 54,
+        "name": "player_18",
+        "file_name": "TileSets\\player_18.sprite"
+       },
+    {
+      
+        "id": 55,
+        "name": "player_19",
+        "file_name": "TileSets\\player_19.sprite"
+       },
+    {
+      
+        "id": 56,
+        "name": "player_2",
+        "file_name": "TileSets\\player_2.sprite"
+       },
+    {
+      
+        "id": 57,
+        "name": "player_20",
+        "file_name": "TileSets\\player_20.sprite"
+       },
+    {
+      
+        "id": 58,
+        "name": "player_21",
+        "file_name": "TileSets\\player_21.sprite"
+       },
+    {
+      
+        "id": 59,
+        "name": "player_22",
+        "file_name": "TileSets\\player_22.sprite"
+       },
+    {
+      
+        "id": 60,
+        "name": "player_23",
+        "file_name": "TileSets\\player_23.sprite"
+       },
+    {
+      
+        "id": 61,
+        "name": "player_24",
+        "file_name": "TileSets\\player_24.sprite"
+       },
+    {
+      
+        "id": 62,
+        "name": "player_25",
+        "file_name": "TileSets\\player_25.sprite"
+       },
+    {
+      
+        "id": 63,
+        "name": "player_26",
+        "file_name": "TileSets\\player_26.sprite"
+       },
+    {
+      
+        "id": 64,
+        "name": "player_27",
+        "file_name": "TileSets\\player_27.sprite"
+       },
+    {
+      
+        "id": 65,
+        "name": "player_28",
+        "file_name": "TileSets\\player_28.sprite"
+       },
+    {
+      
+        "id": 66,
+        "name": "player_29",
+        "file_name": "TileSets\\player_29.sprite"
+       },
+    {
+      
+        "id": 67,
+        "name": "player_3",
+        "file_name": "TileSets\\player_3.sprite"
+       },
+    {
+      
+        "id": 68,
+        "name": "player_30",
+        "file_name": "TileSets\\player_30.sprite"
+       },
+    {
+      
+        "id": 69,
+        "name": "player_31",
+        "file_name": "TileSets\\player_31.sprite"
+       },
+    {
+      
+        "id": 70,
+        "name": "player_32",
+        "file_name": "TileSets\\player_32.sprite"
+       },
+    {
+      
+        "id": 71,
+        "name": "player_33",
+        "file_name": "TileSets\\player_33.sprite"
+       },
+    {
+      
+        "id": 72,
+        "name": "player_34",
+        "file_name": "TileSets\\player_34.sprite"
+       },
+    {
+      
+        "id": 73,
+        "name": "player_35",
+        "file_name": "TileSets\\player_35.sprite"
+       },
+    {
+      
+        "id": 74,
+        "name": "player_36",
+        "file_name": "TileSets\\player_36.sprite"
+       },
+    {
+      
+        "id": 75,
+        "name": "player_37",
+        "file_name": "TileSets\\player_37.sprite"
+       },
+    {
+      
+        "id": 76,
+        "name": "player_38",
+        "file_name": "TileSets\\player_38.sprite"
+       },
+    {
+      
+        "id": 77,
+        "name": "player_39",
+        "file_name": "TileSets\\player_39.sprite"
+       },
+    {
+      
+        "id": 78,
+        "name": "player_4",
+        "file_name": "TileSets\\player_4.sprite"
+       },
+    {
+      
+        "id": 79,
+        "name": "player_40",
+        "file_name": "TileSets\\player_40.sprite"
+       },
+    {
+      
+        "id": 80,
+        "name": "player_41",
+        "file_name": "TileSets\\player_41.sprite"
+       },
+    {
+      
+        "id": 81,
+        "name": "player_42",
+        "file_name": "TileSets\\player_42.sprite"
+       },
+    {
+      
+        "id": 82,
+        "name": "player_43",
+        "file_name": "TileSets\\player_43.sprite"
+       },
+    {
+      
+        "id": 83,
+        "name": "player_44",
+        "file_name": "TileSets\\player_44.sprite"
+       },
+    {
+      
+        "id": 84,
+        "name": "player_45",
+        "file_name": "TileSets\\player_45.sprite"
+       },
+    {
+      
+        "id": 85,
+        "name": "player_46",
+        "file_name": "TileSets\\player_46.sprite"
+       },
+    {
+      
+        "id": 86,
+        "name": "player_47",
+        "file_name": "TileSets\\player_47.sprite"
+       },
+    {
+      
+        "id": 87,
+        "name": "player_48",
+        "file_name": "TileSets\\player_48.sprite"
+       },
+    {
+      
+        "id": 88,
+        "name": "player_49",
+        "file_name": "TileSets\\player_49.sprite"
+       },
+    {
+      
+        "id": 89,
+        "name": "player_5",
+        "file_name": "TileSets\\player_5.sprite"
+       },
+    {
+      
+        "id": 90,
+        "name": "player_50",
+        "file_name": "TileSets\\player_50.sprite"
+       },
+    {
+      
+        "id": 91,
+        "name": "player_51",
+        "file_name": "TileSets\\player_51.sprite"
+       },
+    {
+      
+        "id": 92,
+        "name": "player_52",
+        "file_name": "TileSets\\player_52.sprite"
+       },
+    {
+      
+        "id": 93,
+        "name": "player_53",
+        "file_name": "TileSets\\player_53.sprite"
+       },
+    {
+      
+        "id": 94,
+        "name": "player_54",
+        "file_name": "TileSets\\player_54.sprite"
+       },
+    {
+      
+        "id": 95,
+        "name": "player_55",
+        "file_name": "TileSets\\player_55.sprite"
+       },
+    {
+      
+        "id": 96,
+        "name": "player_56",
+        "file_name": "TileSets\\player_56.sprite"
+       },
+    {
+      
+        "id": 97,
+        "name": "player_57",
+        "file_name": "TileSets\\player_57.sprite"
+       },
+    {
+      
+        "id": 98,
+        "name": "player_58",
+        "file_name": "TileSets\\player_58.sprite"
+       },
+    {
+      
+        "id": 99,
+        "name": "player_59",
+        "file_name": "TileSets\\player_59.sprite"
+       },
+    {
+      
+        "id": 100,
+        "name": "player_6",
+        "file_name": "TileSets\\player_6.sprite"
+       },
+    {
+      
+        "id": 101,
+        "name": "player_60",
+        "file_name": "TileSets\\player_60.sprite"
+       },
+    {
+      
+        "id": 102,
+        "name": "player_61",
+        "file_name": "TileSets\\player_61.sprite"
+       },
+    {
+      
+        "id": 103,
+        "name": "player_62",
+        "file_name": "TileSets\\player_62.sprite"
+       },
+    {
+      
+        "id": 104,
+        "name": "player_63",
+        "file_name": "TileSets\\player_63.sprite"
+       },
+    {
+      
+        "id": 105,
+        "name": "player_64",
+        "file_name": "TileSets\\player_64.sprite"
+       },
+    {
+      
+        "id": 106,
+        "name": "player_65",
+        "file_name": "TileSets\\player_65.sprite"
+       },
+    {
+      
+        "id": 107,
+        "name": "player_66",
+        "file_name": "TileSets\\player_66.sprite"
+       },
+    {
+      
+        "id": 108,
+        "name": "player_67",
+        "file_name": "TileSets\\player_67.sprite"
+       },
+    {
+      
+        "id": 109,
+        "name": "player_68",
+        "file_name": "TileSets\\player_68.sprite"
+       },
+    {
+      
+        "id": 110,
+        "name": "player_69",
+        "file_name": "TileSets\\player_69.sprite"
+       },
+    {
+      
+        "id": 111,
+        "name": "player_7",
+        "file_name": "TileSets\\player_7.sprite"
+       },
+    {
+      
+        "id": 112,
+        "name": "player_70",
+        "file_name": "TileSets\\player_70.sprite"
+       },
+    {
+      
+        "id": 113,
+        "name": "player_71",
+        "file_name": "TileSets\\player_71.sprite"
+       },
+    {
+      
+        "id": 114,
+        "name": "player_72",
+        "file_name": "TileSets\\player_72.sprite"
+       },
+    {
+      
+        "id": 115,
+        "name": "player_73",
+        "file_name": "TileSets\\player_73.sprite"
+       },
+    {
+      
+        "id": 116,
+        "name": "player_74",
+        "file_name": "TileSets\\player_74.sprite"
+       },
+    {
+      
+        "id": 117,
+        "name": "player_75",
+        "file_name": "TileSets\\player_75.sprite"
+       },
+    {
+      
+        "id": 118,
+        "name": "player_76",
+        "file_name": "TileSets\\player_76.sprite"
+       },
+    {
+      
+        "id": 119,
+        "name": "player_77",
+        "file_name": "TileSets\\player_77.sprite"
+       },
+    {
+      
+        "id": 120,
+        "name": "player_78",
+        "file_name": "TileSets\\player_78.sprite"
+       },
+    {
+      
+        "id": 121,
+        "name": "player_79",
+        "file_name": "TileSets\\player_79.sprite"
+       },
+    {
+      
+        "id": 122,
+        "name": "player_8",
+        "file_name": "TileSets\\player_8.sprite"
+       },
+    {
+      
+        "id": 123,
+        "name": "player_80",
+        "file_name": "TileSets\\player_80.sprite"
+       },
+    {
+      
+        "id": 124,
+        "name": "player_81",
+        "file_name": "TileSets\\player_81.sprite"
+       },
+    {
+      
+        "id": 125,
+        "name": "player_82",
+        "file_name": "TileSets\\player_82.sprite"
+       },
+    {
+      
+        "id": 126,
+        "name": "player_83",
+        "file_name": "TileSets\\player_83.sprite"
+       },
+    {
+      
+        "id": 127,
+        "name": "player_84",
+        "file_name": "TileSets\\player_84.sprite"
+       },
+    {
+      
+        "id": 128,
+        "name": "player_85",
+        "file_name": "TileSets\\player_85.sprite"
+       },
+    {
+      
+        "id": 129,
+        "name": "player_86",
+        "file_name": "TileSets\\player_86.sprite"
+       },
+    {
+      
+        "id": 130,
+        "name": "player_87",
+        "file_name": "TileSets\\player_87.sprite"
+       },
+    {
+      
+        "id": 131,
+        "name": "player_88",
+        "file_name": "TileSets\\player_88.sprite"
+       },
+    {
+      
+        "id": 132,
+        "name": "player_89",
+        "file_name": "TileSets\\player_89.sprite"
+       },
+    {
+      
+        "id": 133,
+        "name": "player_9",
+        "file_name": "TileSets\\player_9.sprite"
+       },
+    {
+      
+        "id": 134,
+        "name": "player_90",
+        "file_name": "TileSets\\player_90.sprite"
+       },
+    {
+      
+        "id": 135,
+        "name": "player_91",
+        "file_name": "TileSets\\player_91.sprite"
+       },
+    {
+      
+        "id": 136,
+        "name": "player_92",
+        "file_name": "TileSets\\player_92.sprite"
+       },
+    {
+      
+        "id": 137,
+        "name": "player_93",
+        "file_name": "TileSets\\player_93.sprite"
+       },
+    {
+      
+        "id": 138,
+        "name": "player_94",
+        "file_name": "TileSets\\player_94.sprite"
+       },
+    {
+      
+        "id": 139,
+        "name": "player_95",
+        "file_name": "TileSets\\player_95.sprite"
+       },
+    {
+      
+        "id": 140,
+        "name": "player_96",
+        "file_name": "TileSets\\player_96.sprite"
+       },
+    {
+      
+        "id": 141,
+        "name": "player_97",
+        "file_name": "TileSets\\player_97.sprite"
+       },
+    {
+      
+        "id": 142,
+        "name": "player_98",
+        "file_name": "TileSets\\player_98.sprite"
+       },
+    {
+      
+        "id": 143,
+        "name": "player_99",
+        "file_name": "TileSets\\player_99.sprite"
+       },
+    {
+      
+        "id": 144,
+        "name": "sword_0",
+        "file_name": "TileSets\\sword_0.sprite"
+       },
+    {
+      
+        "id": 145,
+        "name": "sword_1",
+        "file_name": "TileSets\\sword_1.sprite"
+       },
+    {
+      
+        "id": 146,
+        "name": "sword_10",
+        "file_name": "TileSets\\sword_10.sprite"
+       },
+    {
+      
+        "id": 147,
+        "name": "sword_11",
+        "file_name": "TileSets\\sword_11.sprite"
+       },
+    {
+      
+        "id": 148,
+        "name": "sword_12",
+        "file_name": "TileSets\\sword_12.sprite"
+       },
+    {
+      
+        "id": 149,
+        "name": "sword_13",
+        "file_name": "TileSets\\sword_13.sprite"
+       },
+    {
+      
+        "id": 150,
+        "name": "sword_14",
+        "file_name": "TileSets\\sword_14.sprite"
+       },
+    {
+      
+        "id": 151,
+        "name": "sword_15",
+        "file_name": "TileSets\\sword_15.sprite"
+       },
+    {
+      
+        "id": 152,
+        "name": "sword_16",
+        "file_name": "TileSets\\sword_16.sprite"
+       },
+    {
+      
+        "id": 153,
+        "name": "sword_17",
+        "file_name": "TileSets\\sword_17.sprite"
+       },
+    {
+      
+        "id": 154,
+        "name": "sword_18",
+        "file_name": "TileSets\\sword_18.sprite"
+       },
+    {
+      
+        "id": 155,
+        "name": "sword_19",
+        "file_name": "TileSets\\sword_19.sprite"
+       },
+    {
+      
+        "id": 156,
+        "name": "sword_2",
+        "file_name": "TileSets\\sword_2.sprite"
+       },
+    {
+      
+        "id": 157,
+        "name": "sword_20",
+        "file_name": "TileSets\\sword_20.sprite"
+       },
+    {
+      
+        "id": 158,
+        "name": "sword_21",
+        "file_name": "TileSets\\sword_21.sprite"
+       },
+    {
+      
+        "id": 159,
+        "name": "sword_22",
+        "file_name": "TileSets\\sword_22.sprite"
+       },
+    {
+      
+        "id": 160,
+        "name": "sword_23",
+        "file_name": "TileSets\\sword_23.sprite"
+       },
+    {
+      
+        "id": 161,
+        "name": "sword_24",
+        "file_name": "TileSets\\sword_24.sprite"
+       },
+    {
+      
+        "id": 162,
+        "name": "sword_25",
+        "file_name": "TileSets\\sword_25.sprite"
+       },
+    {
+      
+        "id": 163,
+        "name": "sword_26",
+        "file_name": "TileSets\\sword_26.sprite"
+       },
+    {
+      
+        "id": 164,
+        "name": "sword_27",
+        "file_name": "TileSets\\sword_27.sprite"
+       },
+    {
+      
+        "id": 165,
+        "name": "sword_28",
+        "file_name": "TileSets\\sword_28.sprite"
+       },
+    {
+      
+        "id": 166,
+        "name": "sword_29",
+        "file_name": "TileSets\\sword_29.sprite"
+       },
+    {
+      
+        "id": 167,
+        "name": "sword_3",
+        "file_name": "TileSets\\sword_3.sprite"
+       },
+    {
+      
+        "id": 168,
+        "name": "sword_30",
+        "file_name": "TileSets\\sword_30.sprite"
+       },
+    {
+      
+        "id": 169,
+        "name": "sword_31",
+        "file_name": "TileSets\\sword_31.sprite"
+       },
+    {
+      
+        "id": 170,
+        "name": "sword_32",
+        "file_name": "TileSets\\sword_32.sprite"
+       },
+    {
+      
+        "id": 171,
+        "name": "sword_33",
+        "file_name": "TileSets\\sword_33.sprite"
+       },
+    {
+      
+        "id": 172,
+        "name": "sword_34",
+        "file_name": "TileSets\\sword_34.sprite"
+       },
+    {
+      
+        "id": 173,
+        "name": "sword_35",
+        "file_name": "TileSets\\sword_35.sprite"
+       },
+    {
+      
+        "id": 174,
+        "name": "sword_36",
+        "file_name": "TileSets\\sword_36.sprite"
+       },
+    {
+      
+        "id": 175,
+        "name": "sword_37",
+        "file_name": "TileSets\\sword_37.sprite"
+       },
+    {
+      
+        "id": 176,
+        "name": "sword_38",
+        "file_name": "TileSets\\sword_38.sprite"
+       },
+    {
+      
+        "id": 177,
+        "name": "sword_39",
+        "file_name": "TileSets\\sword_39.sprite"
+       },
+    {
+      
+        "id": 178,
+        "name": "sword_4",
+        "file_name": "TileSets\\sword_4.sprite"
+       },
+    {
+      
+        "id": 179,
+        "name": "sword_40",
+        "file_name": "TileSets\\sword_40.sprite"
+       },
+    {
+      
+        "id": 180,
+        "name": "sword_41",
+        "file_name": "TileSets\\sword_41.sprite"
+       },
+    {
+      
+        "id": 181,
+        "name": "sword_42",
+        "file_name": "TileSets\\sword_42.sprite"
+       },
+    {
+      
+        "id": 182,
+        "name": "sword_43",
+        "file_name": "TileSets\\sword_43.sprite"
+       },
+    {
+      
+        "id": 183,
+        "name": "sword_44",
+        "file_name": "TileSets\\sword_44.sprite"
+       },
+    {
+      
+        "id": 184,
+        "name": "sword_45",
+        "file_name": "TileSets\\sword_45.sprite"
+       },
+    {
+      
+        "id": 185,
+        "name": "sword_46",
+        "file_name": "TileSets\\sword_46.sprite"
+       },
+    {
+      
+        "id": 186,
+        "name": "sword_47",
+        "file_name": "TileSets\\sword_47.sprite"
+       },
+    {
+      
+        "id": 187,
+        "name": "sword_48",
+        "file_name": "TileSets\\sword_48.sprite"
+       },
+    {
+      
+        "id": 188,
+        "name": "sword_49",
+        "file_name": "TileSets\\sword_49.sprite"
+       },
+    {
+      
+        "id": 189,
+        "name": "sword_5",
+        "file_name": "TileSets\\sword_5.sprite"
+       },
+    {
+      
+        "id": 190,
+        "name": "sword_50",
+        "file_name": "TileSets\\sword_50.sprite"
+       },
+    {
+      
+        "id": 191,
+        "name": "sword_51",
+        "file_name": "TileSets\\sword_51.sprite"
+       },
+    {
+      
+        "id": 192,
+        "name": "sword_52",
+        "file_name": "TileSets\\sword_52.sprite"
+       },
+    {
+      
+        "id": 193,
+        "name": "sword_53",
+        "file_name": "TileSets\\sword_53.sprite"
+       },
+    {
+      
+        "id": 194,
+        "name": "sword_54",
+        "file_name": "TileSets\\sword_54.sprite"
+       },
+    {
+      
+        "id": 195,
+        "name": "sword_55",
+        "file_name": "TileSets\\sword_55.sprite"
+       },
+    {
+      
+        "id": 196,
+        "name": "sword_56",
+        "file_name": "TileSets\\sword_56.sprite"
+       },
+    {
+      
+        "id": 197,
+        "name": "sword_57",
+        "file_name": "TileSets\\sword_57.sprite"
+       },
+    {
+      
+        "id": 198,
+        "name": "sword_58",
+        "file_name": "TileSets\\sword_58.sprite"
+       },
+    {
+      
+        "id": 199,
+        "name": "sword_59",
+        "file_name": "TileSets\\sword_59.sprite"
+       },
+    {
+      
+        "id": 200,
+        "name": "sword_6",
+        "file_name": "TileSets\\sword_6.sprite"
+       },
+    {
+      
+        "id": 201,
+        "name": "sword_7",
+        "file_name": "TileSets\\sword_7.sprite"
+       },
+    {
+      
+        "id": 202,
+        "name": "sword_8",
+        "file_name": "TileSets\\sword_8.sprite"
+       },
+    {
+      
+        "id": 203,
+        "name": "sword_9",
+        "file_name": "TileSets\\sword_9.sprite"
+       },
+    {
+      
+        "id": 2204,
+        "name": "rock",
+        "file_name": "TileSets\\rock.anim2d"
+       },
+    {
+      
+        "id": 204,
+        "name": "baton_attack_down",
+        "file_name": "TileSets\\baton_attack_down.anim2d"
+       },
+    {
+      
+        "id": 205,
+        "name": "baton_attack_left",
+        "file_name": "TileSets\\baton_attack_left.anim2d"
+       },
+    {
+      
+        "id": 206,
+        "name": "baton_attack_right",
+        "file_name": "TileSets\\baton_attack_right.anim2d"
+       },
+    {
+      
+        "id": 207,
+        "name": "baton_attack_up",
+        "file_name": "TileSets\\baton_attack_up.anim2d"
+       },
+    {
+      
+        "id": 208,
+        "name": "baton_attack2_down",
+        "file_name": "TileSets\\baton_attack2_down.anim2d"
+       },
+    {
+      
+        "id": 209,
+        "name": "baton_attack2_left",
+        "file_name": "TileSets\\baton_attack2_left.anim2d"
+       },
+    {
+      
+        "id": 210,
+        "name": "baton_attack2_right",
+        "file_name": "TileSets\\baton_attack2_right.anim2d"
+       },
+    {
+      
+        "id": 211,
+        "name": "baton_attack2_up",
+        "file_name": "TileSets\\baton_attack2_up.anim2d"
+       },
+    {
+      
+        "id": 212,
+        "name": "baton_attack3_down",
+        "file_name": "TileSets\\baton_attack3_down.anim2d"
+       },
+    {
+      
+        "id": 213,
+        "name": "baton_attack3_left",
+        "file_name": "TileSets\\baton_attack3_left.anim2d"
+       },
+    {
+      
+        "id": 214,
+        "name": "baton_attack3_right",
+        "file_name": "TileSets\\baton_attack3_right.anim2d"
+       },
+    {
+      
+        "id": 215,
+        "name": "baton_attack3_up",
+        "file_name": "TileSets\\baton_attack3_up.anim2d"
+       },
+    {
+      
+        "id": 216,
+        "name": "octopus_attack_down",
+        "file_name": "TileSets\\octopus_attack_down.anim2d"
+       },
+    {
+      
+        "id": 217,
+        "name": "octopus_attack_left",
+        "file_name": "TileSets\\octopus_attack_left.anim2d"
+       },
+    {
+      
+        "id": 218,
+        "name": "octopus_attack_right",
+        "file_name": "TileSets\\octopus_attack_right.anim2d"
+       },
+    {
+      
+        "id": 219,
+        "name": "octopus_attack_up",
+        "file_name": "TileSets\\octopus_attack_up.anim2d"
+       },
+    {
+      
+        "id": 220,
+        "name": "octopus_stand_down",
+        "file_name": "TileSets\\octopus_stand_down.anim2d"
+       },
+    {
+      
+        "id": 221,
+        "name": "octopus_stand_left",
+        "file_name": "TileSets\\octopus_stand_left.anim2d"
+       },
+    {
+      
+        "id": 222,
+        "name": "octopus_stand_right",
+        "file_name": "TileSets\\octopus_stand_right.anim2d"
+       },
+    {
+      
+        "id": 223,
+        "name": "octopus_stand_up",
+        "file_name": "TileSets\\octopus_stand_up.anim2d"
+       },
+    {
+      
+        "id": 224,
+        "name": "octopus_walk_down",
+        "file_name": "TileSets\\octopus_walk_down.anim2d"
+       },
+    {
+      
+        "id": 225,
+        "name": "octopus_walk_left",
+        "file_name": "TileSets\\octopus_walk_left.anim2d"
+       },
+    {
+      
+        "id": 226,
+        "name": "octopus_walk_right",
+        "file_name": "TileSets\\octopus_walk_right.anim2d"
+       },
+    {
+      
+        "id": 227,
+        "name": "octopus_walk_up",
+        "file_name": "TileSets\\octopus_walk_up.anim2d"
+       },
+    {
+      
+        "id": 228,
+        "name": "swordman_attack2_down",
+        "file_name": "TileSets\\swordman_attack2_down.anim2d"
+       },
+    {
+      
+        "id": 229,
+        "name": "swordman_attack2_left",
+        "file_name": "TileSets\\swordman_attack2_left.anim2d"
+       },
+    {
+      
+        "id": 230,
+        "name": "swordman_attack2_right",
+        "file_name": "TileSets\\swordman_attack2_right.anim2d"
+       },
+    {
+      
+        "id": 231,
+        "name": "swordman_attack2_up",
+        "file_name": "TileSets\\swordman_attack2_up.anim2d"
+       },
+    {
+      
+        "id": 232,
+        "name": "swordman_attack3_down",
+        "file_name": "TileSets\\swordman_attack3_down.anim2d"
+       },
+    {
+      
+        "id": 233,
+        "name": "swordman_attack3_left",
+        "file_name": "TileSets\\swordman_attack3_left.anim2d"
+       },
+    {
+      
+        "id": 234,
+        "name": "swordman_attack3_right",
+        "file_name": "TileSets\\swordman_attack3_right.anim2d"
+       },
+    {
+      
+        "id": 235,
+        "name": "swordman_attack3_up",
+        "file_name": "TileSets\\swordman_attack3_up.anim2d"
+       },
+    {
+      
+        "id": 236,
+        "name": "swordman_attack_down",
+        "file_name": "TileSets\\swordman_attack_down.anim2d"
+       },
+    {
+      
+        "id": 237,
+        "name": "swordman_attack_left",
+        "file_name": "TileSets\\swordman_attack_left.anim2d"
+       },
+    {
+      
+        "id": 238,
+        "name": "swordman_attack_right",
+        "file_name": "TileSets\\swordman_attack_right.anim2d"
+       },
+    {
+      
+        "id": 239,
+        "name": "swordman_attack_up",
+        "file_name": "TileSets\\swordman_attack_up.anim2d"
+       },
+    {
+      
+        "id": 240,
+        "name": "swordman_dead_stand_down",
+        "file_name": "TileSets\\swordman_dead_stand_down.anim2d"
+       },
+    {
+      
+        "id": 241,
+        "name": "swordman_dead_stand_left",
+        "file_name": "TileSets\\swordman_dead_stand_left.anim2d"
+       },
+    {
+      
+        "id": 242,
+        "name": "swordman_dead_stand_right",
+        "file_name": "TileSets\\swordman_dead_stand_right.anim2d"
+       },
+    {
+      
+        "id": 243,
+        "name": "swordman_dead_stand_up",
+        "file_name": "TileSets\\swordman_dead_stand_up.anim2d"
+       },
+    {
+      
+        "id": 244,
+        "name": "swordman_dead_walking_down",
+        "file_name": "TileSets\\swordman_dead_walking_down.anim2d"
+       },
+    {
+      
+        "id": 245,
+        "name": "swordman_dead_walking_left",
+        "file_name": "TileSets\\swordman_dead_walking_left.anim2d"
+       },
+    {
+      
+        "id": 246,
+        "name": "swordman_dead_walking_right",
+        "file_name": "TileSets\\swordman_dead_walking_right.anim2d"
+       },
+    {
+      
+        "id": 247,
+        "name": "swordman_dead_walking_up",
+        "file_name": "TileSets\\swordman_dead_walking_up.anim2d"
+       },
+    {
+      
+        "id": 248,
+        "name": "swordman_dying",
+        "file_name": "TileSets\\swordman_dying.anim2d"
+       },
+    {
+      
+        "id": 249,
+        "name": "swordman_magic_down",
+        "file_name": "TileSets\\swordman_magic_down.anim2d"
+       },
+    {
+      
+        "id": 250,
+        "name": "swordman_magic_left",
+        "file_name": "TileSets\\swordman_magic_left.anim2d"
+       },
+    {
+      
+        "id": 251,
+        "name": "swordman_magic_right",
+        "file_name": "TileSets\\swordman_magic_right.anim2d"
+       },
+    {
+      
+        "id": 252,
+        "name": "swordman_magic_up",
+        "file_name": "TileSets\\swordman_magic_up.anim2d"
+       },
+    {
+      
+        "id": 253,
+        "name": "swordman_object_down",
+        "file_name": "TileSets\\swordman_object_down.anim2d"
+       },
+    {
+      
+        "id": 254,
+        "name": "swordman_object_left",
+        "file_name": "TileSets\\swordman_object_left.anim2d"
+       },
+    {
+      
+        "id": 255,
+        "name": "swordman_object_right",
+        "file_name": "TileSets\\swordman_object_right.anim2d"
+       },
+    {
+      
+        "id": 256,
+        "name": "swordman_object_up",
+        "file_name": "TileSets\\swordman_object_up.anim2d"
+       },
+    {
+      
+        "id": 257,
+        "name": "swordman_stand_down",
+        "file_name": "TileSets\\swordman_stand_down.anim2d"
+       },
+    {
+      
+        "id": 258,
+        "name": "swordman_stand_left",
+        "file_name": "TileSets\\swordman_stand_left.anim2d"
+       },
+    {
+      
+        "id": 259,
+        "name": "swordman_stand_right",
+        "file_name": "TileSets\\swordman_stand_right.anim2d"
+       },
+    {
+      
+        "id": 260,
+        "name": "swordman_stand_up",
+        "file_name": "TileSets\\swordman_stand_up.anim2d"
+       },
+    {
+      
+        "id": 261,
+        "name": "swordman_walk_down",
+        "file_name": "TileSets\\swordman_walk_down.anim2d"
+       },
+    {
+      
+        "id": 262,
+        "name": "swordman_walk_left",
+        "file_name": "TileSets\\swordman_walk_left.anim2d"
+       },
+    {
+      
+        "id": 263,
+        "name": "swordman_walk_right",
+        "file_name": "TileSets\\swordman_walk_right.anim2d"
+       },
+    {
+      
+        "id": 264,
+        "name": "swordman_walk_up",
+        "file_name": "TileSets\\swordman_walk_up.anim2d"
+       },
+    {
+      
+        "id": 4000,
+        "name": "map_1_1",
+        "file_name": "Maps\\map_1_1.tileMap"
+       },
+    {
+      
+        "id": 4001,
+        "name": "tile1",
+        "file_name": "Maps\\tile1.tileset"
+      }
+  ]
+}

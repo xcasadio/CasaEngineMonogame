@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -35,6 +37,8 @@ namespace DemosGame
 
         protected override void LoadContent()
         {
+            GameSettings.AssetInfoManager.Load("Content\\AssetInfos.json", SaveOption.Editor);
+
             var world = new World();
             GameManager.CurrentWorld = world;
             //PhysicsDebugViewRendererComponent.DisplayPhysics = true;

@@ -1,0 +1,17 @@
+{
+  "animation_type": "Loop",
+  "asset": {
+    "id": 258,
+    "name": "swordman_stand_left"
+  },
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": 59
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 60
+    }
+  ]
+}

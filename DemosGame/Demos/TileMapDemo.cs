@@ -8,6 +8,11 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System.Collections.Generic;
+using System.Linq;
+using CasaEngine.Engine;
+using CasaEngine.Framework.Assets;
 
 namespace DemosGame.Demos;
 
@@ -20,7 +25,7 @@ public class TileMapDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         //============ tileMap ===============
-        var tileMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1_tile_set.tileMap");
+        var tileMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
 
         var entity = new Entity();
         entity.Name = "TileMap";
@@ -42,8 +47,9 @@ public class TileMapDemo : Demo
         physicsComponent.Shape = new ShapeCircle(25);
         physicsComponent.PhysicsDefinition.ApplyGravity = false;
         physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
-        var sprites = SpriteLoader.LoadFromFile("Content\\TileSets\\RPG.spritesheet", game.GameManager.AssetContentManager, SaveOption.Editor);
-        var animations = Animation2dLoader.LoadFromFile("Content\\TileSets\\RPG.anims2d", game.GameManager.AssetContentManager);
+        //ressources
+        LoadSprites(game.GameManager.AssetContentManager, game.GraphicsDevice);
+        var animations = LoadAnimations(game.GameManager.AssetContentManager, game.GraphicsDevice);
 
         var animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
@@ -56,6 +62,33 @@ public class TileMapDemo : Demo
         entity.ComponentManager.Components.Add(new PlayerComponent(entity));
 
         world.AddEntityImmediately(entity);
+    }
+
+    private void LoadSprites(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice)
+    {
+        var spriteAssetInfos = GameSettings.AssetInfoManager.AssetInfos
+            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Sprite));
+
+        foreach (var assetInfo in spriteAssetInfos)
+        {
+            var spriteData = assetContentManager.Load<SpriteData>(assetInfo, graphicsDevice);
+        }
+    }
+
+    private List<Animation2dData> LoadAnimations(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice)
+    {
+        var animationsAssetInfos = GameSettings.AssetInfoManager.AssetInfos
+            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Animation2d));
+
+        var animations = new List<Animation2dData>();
+
+        foreach (var assetInfo in animationsAssetInfos)
+        {
+            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo, graphicsDevice);
+            animations.Add(animation2dData);
+        }
+
+        return animations;
     }
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
