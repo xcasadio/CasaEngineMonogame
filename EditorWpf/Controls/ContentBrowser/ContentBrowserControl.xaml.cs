@@ -71,9 +71,9 @@ namespace EditorWpf.Controls.ContentBrowser
                     animation2dControl.OpenAnimations2d(contentItem.FullPath);
                     break;
                 case Constants.FileNameExtensions.TileMap:
-                    var tiledMapEditorControl = window.GetEditorControl<TileMapEditorControl>();
+                    var tileMapEditorControl = window.GetEditorControl<TileMapEditorControl>();
                     window.ActivateEditorControl<TileMapEditorControl>();
-                    tiledMapEditorControl.OpenMap(contentItem.FullPath);
+                    tileMapEditorControl.OpenMap(contentItem.FullPath);
                     break;
                 case Constants.FileNameExtensions.World:
                     var worldEditorControl = window.GetEditorControl<WorldEditorControl>();

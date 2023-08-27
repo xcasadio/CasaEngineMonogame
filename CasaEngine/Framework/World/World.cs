@@ -200,5 +200,18 @@ public sealed class World : Asset
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         worldJson.WriteTo(writer);
     }
+
+    public void AddEntityEditorMode(Entity entity)
+    {
+        var entityReference = new EntityReference();
+        entityReference.Name = entity.Name;
+        entityReference.Entity = entity;
+        _entityReferences.Add(entityReference);
+
+        _entities.Add(entity);
+#if EDITOR
+        EntitiesChanged?.Invoke(this, EventArgs.Empty);
+#endif
+    }
 #endif
 }

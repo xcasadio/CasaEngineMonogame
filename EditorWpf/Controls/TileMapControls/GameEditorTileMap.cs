@@ -16,11 +16,11 @@ public class GameEditorTileMap : GameEditor2d
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
-        var tiledMapDataViewModel = DataContext as TileMapDataViewModel;
+        var tileMapDataViewModel = DataContext as TileMapDataViewModel;
 
         if (_tileMapComponent != null)
         {
-            _tileMapComponent.TileMapData = tiledMapDataViewModel.TiledMapData;
+            _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData;
             _tileMapComponent.Initialize(Game);
         }
     }
@@ -33,7 +33,7 @@ public class GameEditorTileMap : GameEditor2d
 
     public void CreateMapEntities(TileMapDataViewModel tileMapDataViewModel)
     {
-        _tileMapComponent.TileMapData = (DataContext as TileMapDataViewModel).TiledMapData;
+        _tileMapComponent.TileMapData = (DataContext as TileMapDataViewModel).TileMapData;
 
         Game.GameManager.CurrentWorld.AddEntityImmediately(CameraEntity);
         Game.GameManager.CurrentWorld.AddEntityImmediately(_entity);

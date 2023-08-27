@@ -65,15 +65,15 @@ public class RpgGame : CasaEngineGame
 
         world.AddEntityImmediately(entity);
 
-        //============ tiledMap ===============
-        var tiledMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
+        //============ tileMap ===============
+        var tileMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
 
         entity = new Entity();
         entity.Name = "TileMap";
         entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
-        var tiledMapComponent = new TileMapComponent(entity);
-        tiledMapComponent.TileMapData = tiledMapData;
-        entity.ComponentManager.Components.Add(tiledMapComponent);
+        var tileMapComponent = new TileMapComponent(entity);
+        tileMapComponent.TileMapData = tileMapData;
+        entity.ComponentManager.Components.Add(tileMapComponent);
 
         world.AddEntityImmediately(entity);
 

@@ -55,7 +55,7 @@
             <TabItem Header="Animation 2d">
                 <animation2dControls:Animation2dEditorControl/>
             </TabItem>
-            <TabItem Header="Tiled Map">
+            <TabItem Header="Tile Map">
                 <tileMapControls:TileMapEditorControl/>
             </TabItem>
             <TabItem Header="Settings">

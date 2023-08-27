@@ -14,7 +14,7 @@
 	</controls:EditorControlBase.CommandBindings>
 
 	<Grid>
-		<xcad:DockingManager x:Name="dockingManagerTiledMap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+		<xcad:DockingManager x:Name="dockingManagerTileMap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 			<xcad:DockingManager.Theme>
 				<xcad:GenericTheme/>
 			</xcad:DockingManager.Theme>
@@ -25,7 +25,7 @@
 
 						<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
 							<xcad:LayoutDocumentPane>
-								<xcad:LayoutDocument x:Name="TiledMapViewLayout" Title="Tiled Map View" CanFloat="False" CanClose="False">
+								<xcad:LayoutDocument x:Name="TileMapViewLayout" Title="TileMap View" CanFloat="False" CanClose="False">
 									<tileMapControls:GameEditorTileMapControl x:Name="GameEditorControl"/>
 								</xcad:LayoutDocument>
 							</xcad:LayoutDocumentPane>
@@ -33,13 +33,13 @@
 
 						<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
 							<xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
-								<xcad:LayoutAnchorable x:Name="TiledMapLayout" Title="Map Details">
-									<tileMapControls:TileMapDetailsControl x:Name="TiledMapDetailsControl"/>
+								<xcad:LayoutAnchorable x:Name="TileMapLayout" Title="Map Details">
+									<tileMapControls:TileMapDetailsControl x:Name="TileMapDetailsControl"/>
 								</xcad:LayoutAnchorable>
 							</xcad:LayoutAnchorablePane>
 							<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 								<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-									<xcad:LayoutAnchorable x:Name="tiledMapDetailsLayout" Title="Tiles Definition">
+									<xcad:LayoutAnchorable x:Name="tileMapDetailsLayout" Title="Tiles Definition">
 										<tileMapControls:TilesDefinitionControl x:Name="TilesDefinitionControl"/>
 									</xcad:LayoutAnchorable>
 								</xcad:LayoutAnchorablePane>

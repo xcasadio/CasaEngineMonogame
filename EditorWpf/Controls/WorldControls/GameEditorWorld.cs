@@ -55,7 +55,7 @@ public class GameEditorWorld : GameEditor
                     };
                     entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;//entity.BoundingBox.;
                     entity.Initialize(Game);
-                    Game?.GameManager.CurrentWorld.AddEntityImmediately(entity);
+                    Game?.GameManager.CurrentWorld.AddEntityEditorMode(entity);
 
                     //select this entity
                     var gizmoComponent = Game.GetGameComponent<GizmoComponent>();

@@ -12,7 +12,7 @@ using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Entities.Components;
 
-[DisplayName("Tiled Map")]
+[DisplayName("Tile Map")]
 public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.TileMap;
@@ -190,11 +190,15 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
     public override void Load(JsonElement element, SaveOption option)
     {
         var fileName = element.GetProperty("tileMapDataFileName").GetString();
-        TileMapData = TileMapLoader.LoadMapFromFile(fileName);
+
+        if (!string.IsNullOrEmpty(fileName))
+        {
+            TileMapData = TileMapLoader.LoadMapFromFile(fileName);
 
 #if EDITOR
-        TileMapDataFileName = fileName;
+            TileMapDataFileName = fileName;
 #endif
+        }
     }
 
 #if EDITOR

@@ -396,7 +396,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="tiledMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
+        <DataTemplate x:Key="tileMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -418,7 +418,7 @@
                     MeshComponenTemplate="{StaticResource meshComponentTemplate}"
                     GamePlayComponenTemplate="{StaticResource gamePlayComponentTemplate}"
                     PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
-                    TiledMapComponentTemplate="{StaticResource tiledMapComponentTemplate}"
+                    TileMapComponentTemplate="{StaticResource tileMapComponentTemplate}"
                     StaticSpriteComponentTemplate="{StaticResource staticSpriteComponentTemplate}"
                     AnimatedSpriteComponentTemplate="{StaticResource animatedSpriteComponentTemplate}"
                     />

@@ -4,5 +4,44 @@
     "name": "DefaultWorld",
     "file_name": "DefaultWorld.world"
   },
-  "entity_references": []
+  "entity_references": [
+    {
+      "asset_id": -1,
+      "entity": {
+        "version": 1,
+        "id": 4026,
+        "name": "Entity 5997895162926623221",
+        "coordinates": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "center_of_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "components": [
+          {
+            "version": 1,
+            "type": 8,
+            "tileMapDataFileName": null
+          }
+        ]
+      }
+    }
+  ]
 }
