@@ -18,6 +18,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 {
     public static readonly int ComponentId = (int)ComponentIds.TileMap;
 
+    public AssetInfo TileMapDataAssetInfo { get; set; }
     public TileMapData TileMapData { get; set; }
     private List<TileMapLayer> Layers { get; } = new();
 
@@ -44,12 +45,15 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 
     public override void Initialize(CasaEngineGame game)
     {
-#if EDITOR
+        if (TileMapDataAssetInfo != null)
+        {
+            TileMapData = game.GameManager.AssetContentManager.Load<TileMapData>(TileMapDataAssetInfo, game.GraphicsDevice);
+        }
+
         if (TileMapData == null)
         {
             return;
         }
-#endif
 
         var texture = new Texture(TileMapData.TileSetData.SpriteSheetFileName, game.GameManager.AssetContentManager);
         var tileSize = TileMapData.TileSetData.TileSize;
@@ -67,7 +71,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
                 for (var x = 0; x < mapWidth; x++)
                 {
                     var tileId = tileMapLayerData.tiles[x + y * mapWidth];
-                    Tile? tile = null;
+                    Tile? tile;
 
                     if (tileId == -1)
                     {
@@ -140,12 +144,10 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 
     public override void Draw()
     {
-#if EDITOR
         if (TileMapData == null)
         {
             return;
         }
-#endif
 
         var translation = Owner.Coordinates.WorldMatrix.Translation;
         var scale = new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
@@ -181,10 +183,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 
         component.Layers.AddRange(Layers);
         component.TileMapData = TileMapData;
-#if EDITOR
         component.TileMapDataAssetInfo = TileMapDataAssetInfo;
-#endif
-
         return component;
     }
 
@@ -193,17 +192,12 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
         var node = element.GetProperty("tileMapDataAssetInfo");
         if (node.GetRawText() != "null")
         {
-            var assetInfo = new AssetInfo(false);
-            assetInfo.Load(node.GetProperty("asset"), option);
-
-#if EDITOR
-            TileMapDataAssetInfo = assetInfo;
-#endif
+            TileMapDataAssetInfo = new AssetInfo(false);
+            TileMapDataAssetInfo.Load(node.GetProperty("asset"), option);
         }
     }
 
 #if EDITOR
-    public AssetInfo TileMapDataAssetInfo { get; set; }
 
     public override void Save(JObject jObject, SaveOption option)
     {
