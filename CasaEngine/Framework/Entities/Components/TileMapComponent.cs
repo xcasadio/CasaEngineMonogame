@@ -3,6 +3,7 @@ using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -181,7 +182,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
         component.Layers.AddRange(Layers);
         component.TileMapData = TileMapData;
 #if EDITOR
-        component.TileMapDataFileName = TileMapDataFileName;
+        component.TileMapDataAssetInfo = TileMapDataAssetInfo;
 #endif
 
         return component;
@@ -189,26 +190,28 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        var fileName = element.GetProperty("tileMapDataFileName").GetString();
-
-        if (!string.IsNullOrEmpty(fileName))
+        var node = element.GetProperty("tileMapDataAssetInfo");
+        if (node.GetRawText() != "null")
         {
-            TileMapData = TileMapLoader.LoadMapFromFile(fileName);
+            var assetInfo = new AssetInfo(false);
+            assetInfo.Load(node.GetProperty("asset"), option);
 
 #if EDITOR
-            TileMapDataFileName = fileName;
+            TileMapDataAssetInfo = assetInfo;
 #endif
         }
     }
 
 #if EDITOR
-    public string TileMapDataFileName { get; set; }
+    public AssetInfo TileMapDataAssetInfo { get; set; }
 
     public override void Save(JObject jObject, SaveOption option)
     {
         base.Save(jObject, option);
 
-        jObject.Add("tileMapDataFileName", TileMapDataFileName);
+        var newNode = new JObject();
+        TileMapDataAssetInfo.Save(newNode, option);
+        jObject.Add("tileMapDataAssetInfo", newNode);
     }
 
 

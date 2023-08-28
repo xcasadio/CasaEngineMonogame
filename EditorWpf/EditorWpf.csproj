@@ -21,6 +21,7 @@
 		<None Remove="Resources\icon_arrowUP_16x16.png" />
 		<None Remove="Resources\icon_first_16x16.png" />
 		<None Remove="Resources\icon_last_16x16.png" />
+		<None Remove="Resources\icon_left_arrow.png" />
 		<None Remove="Resources\icon_Minus_16x16.png" />
 		<None Remove="Resources\icon_pause_16x16.png" />
 		<None Remove="Resources\icon_play_16x16.png" />
@@ -58,6 +59,7 @@
 		<Resource Include="Resources\icon_arrowUP_16x16.png" />
 		<Resource Include="Resources\icon_first_16x16.png" />
 		<Resource Include="Resources\icon_last_16x16.png" />
+		<Resource Include="Resources\icon_left_arrow.png" />
 		<Resource Include="Resources\icon_Minus_16x16.png" />
 		<Resource Include="Resources\icon_pause_16x16.png" />
 		<Resource Include="Resources\icon_play_16x16.png" />

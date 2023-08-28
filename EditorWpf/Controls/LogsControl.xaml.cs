@@ -11,6 +11,9 @@ namespace EditorWpf.Controls
 
         public LogsControl()
         {
+            LogManager.Instance.AddLogger(new DebugLogger());
+            LogManager.Instance.Verbosity = LogVerbosity.Trace;
+
             LogManager.Instance.AddLogger(new LogEditor(LogEntries));
             InitializeComponent();
         }

@@ -4,8 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:contentBrowser="clr-namespace:EditorWpf.Controls.ContentBrowser"
+             xmlns:editorWpf="clr-namespace:EditorWpf"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" >
+    <UserControl.Resources>
+        <DataTemplate x:Key="FolderItemDataTemplate" DataType="{x:Type contentBrowser:FolderItem}">
+            <Image Width="246" Height="246" 
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                       Source="/Resources/file-folder-48.png" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="ContentItemDataTemplate" DataType="{x:Type contentBrowser:ContentItem}">
+            <Grid>
+                <Image Width="246" Height="246" 
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                           Source="/Resources/fichier-50.png" />
+                <TextBlock Text="{Binding FileExtension}"
+                               FontSize="32" Foreground="DimGray"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </DataTemplate>
+
+        <contentBrowser:ContentBrowserItemDataTemplateSelector x:Key="contentBrowserItemDataTemplateSelector"
+                                              ContentItemTemplate="{StaticResource ContentItemDataTemplate}"
+                                              FolderItemTemplate="{StaticResource FolderItemDataTemplate}"/>
+    </UserControl.Resources>
     <UserControl.DataContext>
         <contentBrowser:ContentBrowserViewModel />
     </UserControl.DataContext>
@@ -34,8 +57,8 @@
 
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
-        <ListBox x:Name="ListBoxFoldersContent" Grid.Column="2" ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" AllowDrop="True">
+        <ListBox x:Name="ListBoxFolderContent" Grid.Column="2" ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -55,22 +78,10 @@
                     <Viewbox>
                         <Border BorderThickness="4" BorderBrush="White" Margin="5">
                             <DockPanel>
-                                <Image DockPanel.Dock="Top" Width="246" Height="246" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-                                    <Image.Style>
-                                        <Style TargetType="{x:Type Image}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Type}" Value="{x:Type contentBrowser:ContentItem}">
-                                                    <Setter Property="Source" Value="/Resources/fichier-50.png"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Type}" Value="{x:Type contentBrowser:FolderItem}">
-                                                    <Setter Property="Source" Value="/Resources/file-folder-48.png"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Image.Style>
-                                </Image>
+                                <ContentControl DockPanel.Dock="Top" Content="{Binding }"
+                                                ContentTemplateSelector="{StaticResource contentBrowserItemDataTemplateSelector}"/>
                                 <Grid>
-                                    <TextBlock Text="{Binding Path=Name}" FontSize="32" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" FontSize="32" HorizontalAlignment="Center"/>
                                 </Grid>
                             </DockPanel>
                         </Border>

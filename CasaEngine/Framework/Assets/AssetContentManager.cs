@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Assets;
 public class AssetContentManager
 {
     public const string DefaultCategory = "default";
-    private readonly Dictionary<Type, IAssetLoader> _assetLoader = new();
+    private readonly Dictionary<Type, IAssetLoader> _assetLoaderByType = new();
     private readonly Dictionary<string, AssetDictionary> _assetsDictionaryByCategory = new();
     public GraphicsDevice GraphicsDevice { get; private set; }
 
@@ -26,7 +26,7 @@ public class AssetContentManager
 
     public void RegisterAssetLoader(Type type, IAssetLoader loader)
     {
-        _assetLoader.Add(type, loader);
+        _assetLoaderByType.Add(type, loader);
     }
 
     public void AddAsset(AssetInfo assetInfo, object asset, string categoryName = DefaultCategory)
@@ -72,11 +72,16 @@ public class AssetContentManager
     }
     */
 
+    public bool IsFileSupported(string fileName)
+    {
+        return _assetLoaderByType.Values.Any(assetLoader => assetLoader.IsFileSupported(fileName));
+    }
+
     //TODO : remove only create for texture (waiting add assetinfo for texture)
     public T LoadWithoutAdd<T>(string fileName, GraphicsDevice device, string categoryName = DefaultCategory)
     {
         var type = typeof(T);
-        return (T)_assetLoader[type].LoadAsset(fileName, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {fileName}");
+        return (T)_assetLoaderByType[type].LoadAsset(fileName, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {fileName}");
     }
 
     public T Load<T>(AssetInfo assetInfo, GraphicsDevice device, string categoryName = DefaultCategory)
@@ -98,13 +103,13 @@ public class AssetContentManager
 
         var type = typeof(T);
 
-        if (!_assetLoader.ContainsKey(type))
+        if (!_assetLoaderByType.ContainsKey(type))
         {
             throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
-        var newAsset = (T)_assetLoader[type].LoadAsset(fullFileName, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;
     }

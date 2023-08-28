@@ -1,15 +1,16 @@
-﻿using CasaEngine.Framework.Game;
-using System;
+﻿using System;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Assets;
 
 namespace EditorWpf.Controls.ContentBrowser;
 
 public class ContentItem : NotifyPropertyChangeBase
 {
     private FolderItem? _parent;
-    private string _name;
+    public AssetInfo? AssetInfo { get; }
 
-    public string FullPath => System.IO.Path.Combine(EngineEnvironment.ProjectPath, Path);
+    public virtual string FullPath => System.IO.Path.Combine(EngineEnvironment.ProjectPath, AssetInfo.FileName);
+    public string FileExtension => System.IO.Path.GetExtension(AssetInfo.FileName);
 
     public string Path
     {
@@ -24,11 +25,6 @@ public class ContentItem : NotifyPropertyChangeBase
         }
     }
 
-    private bool IsRoot(FolderItem parent)
-    {
-        return parent.Name == "All" && parent.Parent == null;
-    }
-
     public Type Type => GetType();
 
     public FolderItem? Parent
@@ -37,9 +33,26 @@ public class ContentItem : NotifyPropertyChangeBase
         set => SetField(ref _parent, value);
     }
 
-    public string Name
+    public virtual string Name
     {
-        get => _name;
-        set => SetField(ref _name, value);
+        get => AssetInfo.Name;
+        set
+        {
+            if (AssetInfo.Name != value)
+            {
+                AssetInfo.Name = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public ContentItem(AssetInfo? assetInfo = null)
+    {
+        AssetInfo = assetInfo;
+    }
+
+    private bool IsRoot(FolderItem parent)
+    {
+        return parent is { Name: "All", Parent: null };
     }
 }

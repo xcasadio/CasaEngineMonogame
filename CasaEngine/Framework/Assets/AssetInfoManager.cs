@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Logger;
+using CasaEngine.Engine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -13,13 +15,9 @@ public class AssetInfoManager
 
     public IEnumerable<AssetInfo> AssetInfos => _assetInfos.Values;
 
-    public void Add(AssetInfo assetInfo)
+    private void Add(AssetInfo assetInfo)
     {
         _assetInfos.Add(assetInfo.Id, assetInfo);
-
-#if EDITOR
-        AssetAdded?.Invoke(this, assetInfo);
-#endif
     }
 
     public AssetInfo GetOrAdd(string fileName)
@@ -39,28 +37,7 @@ public class AssetInfoManager
         return newAssetInfo;
     }
 
-    public void Remove(long id)
-    {
-#if EDITOR
-        _assetInfos.TryGetValue(id, out var assetInfo);
-#endif
-
-        _assetInfos.Remove(id);
-
-#if EDITOR
-        AssetRemoved?.Invoke(this, assetInfo);
-#endif
-    }
-
-    public void Clear()
-    {
-        _assetInfos.Clear();
-#if EDITOR
-        AssetCleared?.Invoke(this, EventArgs.Empty);
-#endif
-    }
-
-    public AssetInfo Get(long assetId)
+    public AssetInfo? Get(long assetId)
     {
         _assetInfos.TryGetValue(assetId, out var assetInfo);
         return assetInfo;
@@ -86,6 +63,11 @@ public class AssetInfoManager
     public event EventHandler<AssetInfo> AssetRemoved;
     public event EventHandler AssetCleared;
 
+    public void Save()
+    {
+        Save(Path.Combine(EngineEnvironment.ProjectPath, "AssetInfos.json"), SaveOption.Editor);
+    }
+
     public void Save(string fileName, SaveOption option)
     {
         JObject root = new();
@@ -103,6 +85,32 @@ public class AssetInfoManager
         using StreamWriter file = File.CreateText(fileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         root.WriteTo(writer);
+    }
+
+    public void AddAndSave(AssetInfo assetInfo)
+    {
+        LogManager.Instance.WriteLineTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+
+        Add(assetInfo);
+        Save();
+        AssetAdded?.Invoke(this, assetInfo);
+    }
+
+    public void Remove(long id)
+    {
+        _assetInfos.TryGetValue(id, out var assetInfo);
+        LogManager.Instance.WriteLineTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+        _assetInfos.Remove(id);
+        Save();
+        AssetRemoved?.Invoke(this, assetInfo);
+    }
+
+    public void Clear()
+    {
+        LogManager.Instance.WriteLineTrace("Clear all assets");
+
+        _assetInfos.Clear();
+        AssetCleared?.Invoke(this, EventArgs.Empty);
     }
 
 #endif

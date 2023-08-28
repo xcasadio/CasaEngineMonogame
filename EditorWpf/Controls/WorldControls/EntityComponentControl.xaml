@@ -403,8 +403,11 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Column="0" Text="{Binding TileMapDataFileName}"/>
-                <Button Grid.Column="1" Content="..." ToolTip="Put Selected Item in Content Browser"/>
+                <TextBox Grid.Column="0" Text="{Binding TileMapDataAssetInfo.Name}"/>
+                <Button Grid.Column="1" ToolTip="Put Selected Item in Content Browser" Click="TileMapAsset_OnClick">
+                    <Image HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                           Source="/Resources/icon_left_arrow.png" />
+                </Button>
             </Grid>
         </DataTemplate>
 

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
+using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -102,6 +104,19 @@ namespace EditorWpf.Controls.WorldControls
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void TileMapAsset_OnClick(object sender, RoutedEventArgs e)
+        {
+            var contentBrowserControl = this.FindParent<MainWindow>().ContentBrowserControl;
+
+            if (contentBrowserControl.SelectedItem != null
+                && Path.GetExtension(contentBrowserControl.SelectedItem.FileName) == Constants.FileNameExtensions.TileMap)
+            {
+                var button = sender as Button;
+                var tileMapComponent = button.DataContext as TileMapComponent;
+                tileMapComponent.TileMapDataAssetInfo = contentBrowserControl.SelectedItem;
             }
         }
     }

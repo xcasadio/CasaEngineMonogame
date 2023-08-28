@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.EntityControls;
 using EditorWpf.Controls.SpriteControls;
@@ -14,6 +18,22 @@ namespace EditorWpf.Controls.ContentBrowser
 {
     public partial class ContentBrowserControl : UserControl
     {
+        private GameEditor _gameEditor;
+
+        public AssetInfo? SelectedItem
+        {
+            get
+            {
+                if (ListBoxFolderContent.SelectedItem is not FolderItem &&
+                    ListBoxFolderContent.SelectedItem is ContentItem contentItem)
+                {
+                    return contentItem.AssetInfo;
+                }
+
+                return null;
+            }
+        }
+
         public ContentBrowserControl()
         {
             InitializeComponent();
@@ -21,6 +41,7 @@ namespace EditorWpf.Controls.ContentBrowser
 
         public void InitializeFromGameEditor(GameEditor gameEditor)
         {
+            _gameEditor = gameEditor;
             var contentBrowserViewModel = DataContext as ContentBrowserViewModel;
             contentBrowserViewModel.Initialize(gameEditor);
         }
@@ -45,7 +66,7 @@ namespace EditorWpf.Controls.ContentBrowser
 
         private void TryToOpenFile(ContentItem contentItem)
         {
-            var extension = System.IO.Path.GetExtension(contentItem.Name);
+            var extension = Path.GetExtension(contentItem.Name);
             var window = this.FindParent<MainWindow>();
 
             if (window == null)
@@ -105,6 +126,62 @@ namespace EditorWpf.Controls.ContentBrowser
                     treeViewItem.IsExpanded = true;
                     treeViewItem.IsSelected = true;
                     treeViewItem.UpdateLayout();
+                }
+            }
+        }
+
+        private void OnDragEnter(object sender, DragEventArgs e)
+        {
+            //if (e.Data.GetDataPresent(DataFormats.UnicodeText))
+            //{
+            //    var data = e.Data.GetData(DataFormats.UnicodeText) as byte[];
+            //    Debug.WriteLine(data);
+            //}
+            //if (e.Data.GetDataPresent(DataFormats.Bitmap))
+            //{
+            //    var data = e.Data.GetData(DataFormats.Bitmap);
+            //    Debug.WriteLine(data);
+            //}
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
+
+                foreach (var fileName in fileNames)
+                {
+                    if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
+                    {
+                        e.Effects = DragDropEffects.Copy;
+                    }
+                }
+            }
+        }
+
+        private void OnDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
+                var folderItem = treeViewFolders.SelectedItem as FolderItem;
+                var folderPath = folderItem.FullPath;
+
+                foreach (var fileName in fileNames)
+                {
+                    if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
+                    {
+                        var destFileName = Path.Combine(folderPath, Path.GetFileName(fileName));
+                        if (!File.Exists(destFileName))
+                        {
+                            File.Copy(fileName, destFileName);
+                            LogManager.Instance.WriteLineTrace($"Copy {fileName} -> {destFileName}");
+
+                            var assetInfo = new AssetInfo();
+                            assetInfo.FileName = destFileName
+                                .Replace(EngineEnvironment.ProjectPath, string.Empty)
+                                .TrimStart(Path.DirectorySeparatorChar);
+                            assetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+                            GameSettings.AssetInfoManager.AddAndSave(assetInfo);
+                        }
+                    }
                 }
             }
         }

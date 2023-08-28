@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace CasaEngine.Core.Logger;
 
@@ -16,7 +17,7 @@ public class DebugLogger : ILog
 
     private void Write(string msg)
     {
-        Debug.Write($"{DateTime.Now:T} {msg}");
+        Debug.Write($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {msg}");
     }
 
     public void WriteLineTrace(string msg)

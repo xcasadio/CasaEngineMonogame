@@ -10,7 +10,7 @@
       "entity": {
         "version": 1,
         "id": 4026,
-        "name": "Entity 5997895162926623221",
+        "name": "tileMap",
         "coordinates": {
           "position": {
             "x": 0.0,
@@ -38,7 +38,13 @@
           {
             "version": 1,
             "type": 8,
-            "tileMapDataFileName": null
+            "tileMapDataAssetInfo": {
+              "asset": {
+                "id": 4000,
+                "name": "map_1_1",
+                "file_name": "Maps\\map_1_1.tileMap"
+              }
+            }
           }
         ]
       }

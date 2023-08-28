@@ -28,4 +28,9 @@ internal class CursorLoader : IAssetLoader
 
         return curs;
     }
+
+    public bool IsFileSupported(string fileName)
+    {
+        return Path.GetExtension(fileName) == ".cur";
+    }
 }
