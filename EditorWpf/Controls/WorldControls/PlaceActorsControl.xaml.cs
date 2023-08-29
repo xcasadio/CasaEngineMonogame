@@ -2,13 +2,10 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using EditorWpf.Datas;
+using EditorWpf.DragAndDrop;
 
 namespace EditorWpf.Controls.WorldControls
 {
-    /// <summary>
-    /// Interaction logic for PlaceActorsControl.xaml
-    /// </summary>
     public partial class PlaceActorsControl : UserControl
     {
         public PlaceActorsControl()
@@ -20,11 +17,13 @@ namespace EditorWpf.Controls.WorldControls
         {
             if (sender != null && e.LeftButton == MouseButtonState.Pressed)
             {
-                DragDrop.DoDragDrop(sender as Label,
+                var frameworkElement = sender as FrameworkElement;
+
+                DragDrop.DoDragDrop(frameworkElement,
                     JsonSerializer.Serialize(new DragAndDropInfo
                     {
                         Action = DragAndDropInfoAction.Create,
-                        Type = DragAndDropInfoType.Actor
+                        Type = frameworkElement.Tag.ToString()
                     }), DragDropEffects.Copy);
             }
         }

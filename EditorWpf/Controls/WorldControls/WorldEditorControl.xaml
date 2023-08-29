@@ -28,7 +28,7 @@
 
 						<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
 							<xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
-								<xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities">
+								<xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities" >
 									<worldControls:EntitiesControl x:Name="EntitiesControl"/>
 								</xcad:LayoutAnchorable>
 							</xcad:LayoutAnchorablePane>

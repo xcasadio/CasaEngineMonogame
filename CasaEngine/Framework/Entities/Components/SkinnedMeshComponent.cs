@@ -13,6 +13,7 @@ namespace CasaEngine.Framework.Entities.Components;
 public class SkinnedMeshComponent : Component, IBoundingBoxComputable
 {
     public static readonly int ComponentId = (int)ComponentIds.SkinnedMesh;
+
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
     private RiggedModel? _skinnedMesh;
 

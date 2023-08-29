@@ -66,7 +66,7 @@ namespace EditorWpf.Controls.ContentBrowser
 
         private void TryToOpenFile(ContentItem contentItem)
         {
-            var extension = Path.GetExtension(contentItem.Name);
+            var extension = Path.GetExtension(contentItem.AssetInfo.FileName);
             var window = this.FindParent<MainWindow>();
 
             if (window == null)

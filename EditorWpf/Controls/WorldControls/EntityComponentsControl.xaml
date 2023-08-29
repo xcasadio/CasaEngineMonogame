@@ -21,7 +21,9 @@
             <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
         </Button>
 
-        <ListBox x:Name="ListBoxComponents" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ItemsSource="{Binding ComponentManager.Components}">
+        <ListBox x:Name="ListBoxComponents" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                 ItemsSource="{Binding ComponentManager.Components}"
+                 ScrollViewer.CanContentScroll="False">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />

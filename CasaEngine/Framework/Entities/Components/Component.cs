@@ -33,10 +33,7 @@ public abstract class Component : ISaveLoad
     {
     }
 
-    public bool HandleMessage(Message message)
-    {
-        return false;
-    }
+    public abstract Component Clone(Entity owner);
 
     public abstract void Load(JsonElement element, SaveOption option);
 
@@ -45,7 +42,10 @@ public abstract class Component : ISaveLoad
 
     }
 
-    public abstract Component Clone(Entity owner);
+    public bool HandleMessage(Message message)
+    {
+        return false;
+    }
 
 
 #if EDITOR

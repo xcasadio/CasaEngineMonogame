@@ -10,7 +10,6 @@ using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using EditorWpf.Controls.SpriteControls;
-using EditorWpf.Datas;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.EntityControls;

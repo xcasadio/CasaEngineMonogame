@@ -288,6 +288,43 @@
           "w": 1.0
         }
       }
+    },
+    {
+      "asset_id": -1,
+      "entity": {
+        "version": 1,
+        "id": 967,
+        "name": "Player start",
+        "coordinates": {
+          "position": {
+            "x": -0.17074925,
+            "y": -1.236228,
+            "z": -2.4091392
+          },
+          "center_of_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "components": [
+          {
+            "version": 1,
+            "type": 13
+          }
+        ]
+      }
     }
   ]
 }

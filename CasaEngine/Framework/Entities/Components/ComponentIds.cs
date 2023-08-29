@@ -14,6 +14,7 @@ public enum ComponentIds
     CameraTarget2d,
     Camera3dIn2dAxis,
     SkinnedMesh,
+    PlayerStart,
 
     Custom = 1000
 }

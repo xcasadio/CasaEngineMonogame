@@ -3,9 +3,10 @@ using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using EditorWpf.Datas;
+using EditorWpf.DragAndDrop;
 using Microsoft.Xna.Framework;
 
 namespace EditorWpf.Controls.WorldControls;
@@ -31,38 +32,39 @@ public class GameEditorWorld : GameEditor
         if (e.Data.GetDataPresent(DataFormats.StringFormat))
         {
             string dataString = (string)e.Data.GetData(DataFormats.StringFormat);
-
             var dragAndDropInfo = JsonSerializer.Deserialize<DragAndDropInfo>(dataString);
-
-            e.Handled = true;
-            var position = e.GetPosition(this);
-            var camera = Game?.GameManager.ActiveCamera;
-            var ray = RayHelper.CalculateRayFromScreenCoordinate(
-                new Vector2((float)position.X, (float)position.Y),
-                camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
-            //tester si le ray intersect un model sinon ray.Position
-
-            //create element type from dataString
-            //add element at ray.Position => 
 
             if (dragAndDropInfo.Action == DragAndDropInfoAction.Create)
             {
-                if (dragAndDropInfo.Type == DragAndDropInfoType.Actor)
-                {
-                    var entity = new Entity
-                    {
-                        Name = "Entity " + new Random().NextInt64()
-                    };
-                    entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;//entity.BoundingBox.;
-                    entity.Initialize(Game);
-                    Game?.GameManager.CurrentWorld.AddEntityEditorMode(entity);
+                e.Handled = true;
 
-                    //select this entity
-                    var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-                    gizmoComponent.Gizmo.Clear(); // TODO
-                    gizmoComponent.Gizmo.Selection.Add(entity);
-                    gizmoComponent.Gizmo.RaiseSelectionChanged();
+                var position = e.GetPosition(this);
+                var camera = Game?.GameManager.ActiveCamera;
+                var ray = RayHelper.CalculateRayFromScreenCoordinate(
+                    new Vector2((float)position.X, (float)position.Y),
+                    camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
+
+                var entity = new Entity();
+                entity.Name = "Entity " + entity.Id;
+                entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;
+                entity.Initialize(Game);
+
+                if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)
+                {
+                    //do nothing : empty entity
                 }
+                else if (dragAndDropInfo.Type == DragAndDropInfoType.PlayerStart)
+                {
+                    entity.ComponentManager.Add(new PlayerStartComponent(entity));
+                }
+
+                Game?.GameManager.CurrentWorld.AddEntityEditorMode(entity);
+
+                //select this entity
+                var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
+                gizmoComponent.Gizmo.Clear();
+                gizmoComponent.Gizmo.Selection.Add(entity);
+                gizmoComponent.Gizmo.RaiseSelectionChanged();
             }
         }
     }

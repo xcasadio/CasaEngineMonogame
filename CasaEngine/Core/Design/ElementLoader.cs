@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Core.Design;
@@ -36,6 +37,12 @@ public class ElementLoader<T> where T : ISaveLoad
     public T Load(Entity owner, JsonElement element)
     {
         var id = element.GetJsonPropertyByName("type").Value.GetInt32();
+
+        if (!FactoryByIds.ContainsKey(id))
+        {
+            LogManager.Instance.WriteLineError($"The component with the type {id} is not supported. Please Register it before load it.");
+        }
+
         return FactoryByIds[id].Invoke(owner, element);
     }
 }
