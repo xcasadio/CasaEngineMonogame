@@ -52,8 +52,7 @@ public abstract class EditorControlBase : UserControl, IEditorControl
         if (parent != null)
         {
             RemoveControlFromLayoutPane(control, parent.Layout);
-            //control.Parent is not null after this call.
-            //The workaround is to call RemoveLogicalChild
+            //control.Parent is not null after this call : the workaround is to call protected function RemoveLogicalChild
             var methodInfo = parent.GetType().GetMethod("RemoveLogicalChild", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             methodInfo.Invoke(parent, new object?[] { control });
         }
@@ -61,9 +60,8 @@ public abstract class EditorControlBase : UserControl, IEditorControl
         dockingManager.Dispatcher.Invoke(() =>
         {
             var layoutAnchorable = new LayoutAnchorable { Content = control, Title = panelTitle };
-            dockingManager.Layout.BottomSide = new LayoutAnchorSide { Children = { new LayoutAnchorGroup { Children = { layoutAnchorable } } } };
-            layoutAnchorable.Show();
-            dockingManager.UpdateLayout();
+            layoutAnchorable.AddToLayout(dockingManager, AnchorableShowStrategy.Bottom);
+            layoutAnchorable.IsSelected = true;
         });
     }
 
@@ -75,7 +73,6 @@ public abstract class EditorControlBase : UserControl, IEditorControl
             {
                 layoutContent.Close();
                 layoutContent.Content = null;
-                //layoutContainerParent.RemoveChild(layoutContent);
                 return true;
             }
 
