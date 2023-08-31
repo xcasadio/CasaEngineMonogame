@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -184,6 +185,11 @@ namespace EditorWpf.Controls.ContentBrowser
                     }
                 }
             }
+        }
+
+        private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
+        {
+            GameSettings.AssetInfoManager.Save();
         }
     }
 }

@@ -70,6 +70,8 @@ public class AssetInfoManager
 
     public void Save(string fileName, SaveOption option)
     {
+        LogManager.Instance.WriteLineInfo($"Asset infos saved in {fileName}");
+
         JObject root = new();
         var assetInfoJArray = new JArray();
 

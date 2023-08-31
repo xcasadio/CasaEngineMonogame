@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.World;
+using EditorWpf.Controls.Common;
+using EditorWpf.Controls.EntityControls;
 using XNAGizmo;
 
 namespace EditorWpf.Controls.WorldControls
@@ -74,8 +81,8 @@ namespace EditorWpf.Controls.WorldControls
                 gizmoComponent.Gizmo.Selection.Add(entity);
             }
 
-            OnEntitiesChanged(this, EventArgs.Empty);
-            SetSelectedItem(newEntities[0]);
+            var entitiesViewModel = DataContext as EntitiesViewModel;
+            SetSelectedItem(entitiesViewModel.GetFromEntity(newEntities[0]));
 
             _isSelectionTriggerActive = true;
         }
@@ -94,21 +101,18 @@ namespace EditorWpf.Controls.WorldControls
             {
                 selectedEntity = (Entity)gizmoComponent.Gizmo.Selection[0];
             }
-            SetSelectedItem(selectedEntity);
+
+            var entitiesViewModel = DataContext as EntitiesViewModel;
+            SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity));
 
             _isSelectionTriggerActive = true;
         }
 
         private void OnWorldChanged(object? sender, EventArgs e)
         {
-            Game.GameManager.CurrentWorld.EntitiesChanged += OnEntitiesChanged;
-            TreeView.ItemsSource = Game.GameManager.CurrentWorld.Entities;
-        }
-
-        private void OnEntitiesChanged(object? sender, EventArgs e)
-        {
-            TreeView.ItemsSource = null;
-            TreeView.ItemsSource = Game.GameManager.CurrentWorld.Entities;
+            var entitiesViewModel = new EntitiesViewModel(Game.GameManager.CurrentWorld);
+            DataContext = entitiesViewModel;
+            TreeView.ItemsSource = entitiesViewModel.Entities;
         }
 
         private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -122,6 +126,8 @@ namespace EditorWpf.Controls.WorldControls
 
             var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
 
+            var entityViewModel = e.NewValue as EntityViewModel;
+
             if (e.NewValue == null)
             {
                 gizmoComponent.Gizmo.Clear();
@@ -129,24 +135,21 @@ namespace EditorWpf.Controls.WorldControls
             else
             {
                 gizmoComponent.Gizmo.Clear(); // TODO
-                gizmoComponent.Gizmo.Selection.Add((ITransformable)e.NewValue);
-
+                gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity);
             }
 
-            var selectedEntity = (Entity)e.NewValue;
-            SetSelectedItem(selectedEntity);
+            SetSelectedItem(entityViewModel);
 
             _isSelectionTriggerFromGizmoActive = true;
         }
 
-        private void SetSelectedItem(Entity? selectedEntity)
+        private void SetSelectedItem(EntityViewModel? selectedEntity)
         {
-            SelectedItem = selectedEntity;
+            SelectedItem = selectedEntity.Entity;
 
             if (selectedEntity != null)
             {
-                var treeViewItem = TreeView.ItemContainerGenerator.ContainerFromItem(selectedEntity) as TreeViewItem;
-                if (treeViewItem != null)
+                if (TreeView.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
                 {
                     treeViewItem.IsSelected = true;
                 }
@@ -155,8 +158,7 @@ namespace EditorWpf.Controls.WorldControls
             {
                 foreach (var item in TreeView.ItemContainerGenerator.Items)
                 {
-                    var treeViewItem = TreeView.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
-                    if (treeViewItem != null)
+                    if (TreeView.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem treeViewItem)
                     {
                         treeViewItem.IsSelected = false;
                     }
@@ -170,10 +172,103 @@ namespace EditorWpf.Controls.WorldControls
             {
                 if (TreeView.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem)
                 {
-                    Game.GameManager.CurrentWorld.Entities.Remove(treeViewItem.DataContext as Entity);
-                    OnEntitiesChanged(this, EventArgs.Empty);
+                    Game.GameManager.CurrentWorld.RemoveEntity(treeViewItem.DataContext as Entity);
+                    //OnEntitiesChanged(this, EventArgs.Empty);
                 }
             }
+        }
+
+        private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TreeViewItem treeViewItem)
+            {
+                var inputTextBox = new InputTextBox();
+                inputTextBox.Description = "Enter a new name";
+                inputTextBox.Title = "Rename";
+                var entity = (treeViewItem.DataContext as EntityViewModel);
+                inputTextBox.Text = entity.Name;
+
+                if (inputTextBox.ShowDialog() == true)
+                {
+                    //_gameEditor.Game.GameManager.AssetContentManager.Rename(animation2dDataViewModel.Name, inputTextBox.Text);
+                    entity.Name = inputTextBox.Text;
+                }
+            }
+        }
+    }
+
+    internal class EntitiesViewModel
+    {
+        public ObservableCollection<EntityViewModel> Entities { get; } = new();
+
+        public EntitiesViewModel(World world)
+        {
+            world.EntitiesAdded += OnEntitiesAdded;
+            world.EntitiesRemoved += OnEntitiesRemoved;
+            world.EntitiesClear += OnEntitiesClear;
+
+            foreach (var worldEntity in world.Entities)
+            {
+                Entities.Add(new EntityViewModel(worldEntity));
+            }
+        }
+
+        private void OnEntitiesClear(object? sender, EventArgs e)
+        {
+            Entities.Clear();
+        }
+
+        private void OnEntitiesRemoved(object? sender, Entity entity)
+        {
+            foreach (var entityViewModel in Entities)
+            {
+                if (entityViewModel.Entity == entity)
+                {
+                    Entities.Remove(entityViewModel);
+                    break;
+                }
+            }
+        }
+
+        private void OnEntitiesAdded(object? sender, Entity entity)
+        {
+            Entities.Add(new EntityViewModel(entity));
+        }
+
+        public EntityViewModel? GetFromEntity(Entity entity)
+        {
+            foreach (var entityViewModel in Entities)
+            {
+                if (entityViewModel.Entity == entity)
+                {
+                    return entityViewModel;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    internal class EntityViewModel : NotifyPropertyChangeBase
+    {
+        public Entity Entity { get; }
+
+        public string Name
+        {
+            get => Entity.Name;
+            set
+            {
+                if (Entity.Name != value)
+                {
+                    Entity.Name = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public EntityViewModel(Entity entity)
+        {
+            Entity = entity;
         }
     }
 }

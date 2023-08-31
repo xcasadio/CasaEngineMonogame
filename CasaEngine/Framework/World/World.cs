@@ -24,7 +24,9 @@ public sealed class World : Asset
     public event EventHandler? Starting;
 
 #if EDITOR
-    public event EventHandler? EntitiesChanged;
+    public event EventHandler? EntitiesClear;
+    public event EventHandler<Entity> EntitiesAdded;
+    public event EventHandler<Entity> EntitiesRemoved;
 #endif
 
     //public IList<EntityReference> EntityReferences => _entityReferences;
@@ -36,7 +38,7 @@ public sealed class World : Asset
     {
         _entities.Add(entity);
 #if EDITOR
-        EntitiesChanged?.Invoke(this, EventArgs.Empty);
+        EntitiesAdded?.Invoke(this, entity);
 #endif
     }
 
@@ -50,7 +52,7 @@ public sealed class World : Asset
         _entities.Clear();
         _baseObjectsToAdd.Clear();
 #if EDITOR
-        EntitiesChanged?.Invoke(this, EventArgs.Empty);
+        EntitiesClear?.Invoke(this, EventArgs.Empty);
 #endif
     }
 
@@ -84,7 +86,7 @@ public sealed class World : Asset
             foreach (var entityReference in _entityReferences)
             {
                 EntityLoader.LoadFromEntityReference(entityReference, game.GameManager.AssetContentManager, game.GraphicsDevice);
-                _entities.Add(entityReference.Entity);
+                AddEntityImmediately(entityReference.Entity);
             }
         }
 #endif
@@ -104,10 +106,6 @@ public sealed class World : Asset
 #endif
 
         Initializing?.Invoke(this, EventArgs.Empty);
-
-#if EDITOR
-        EntitiesChanged?.Invoke(this, EventArgs.Empty);
-#endif
     }
 
     public void LoadContent()
@@ -176,6 +174,8 @@ public sealed class World : Asset
 #if EDITOR
     public void Save(string path, SaveOption option)
     {
+        LogManager.Instance.WriteLineInfo($"Saving World {AssetInfo.Name} in ({AssetInfo.FileName})");
+
         var relativePath = AssetInfo.Name + Constants.FileNameExtensions.World;
         var fullFileName = Path.Combine(path, relativePath);
         AssetInfo.FileName = relativePath;
@@ -206,12 +206,24 @@ public sealed class World : Asset
         var entityReference = new EntityReference();
         entityReference.Name = entity.Name;
         entityReference.Entity = entity;
-        _entityReferences.Add(entityReference);
 
+        _entityReferences.Add(entityReference);
         _entities.Add(entity);
-#if EDITOR
-        EntitiesChanged?.Invoke(this, EventArgs.Empty);
-#endif
+
+        EntitiesAdded?.Invoke(this, entity);
     }
+
+    public void RemoveEntity(Entity entity)
+    {
+        var entityReference = new EntityReference();
+        entityReference.Name = entity.Name;
+        entityReference.Entity = entity;
+
+        _entityReferences.Remove(entityReference);
+        _entities.Remove(entity);
+
+        EntitiesRemoved?.Invoke(this, entity);
+    }
+
 #endif
 }

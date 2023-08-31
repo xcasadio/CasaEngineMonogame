@@ -60,24 +60,13 @@ public class StaticMesh
 
     public void Load(JsonElement element)
     {
-        //base.Save(jObject); //asset ?
-        //var version = element.GetProperty("version").GetInt32();
         PrimitiveType = element.GetProperty("primitive_type").GetEnum<PrimitiveType>();
 
-        var verticesJObject = element.GetProperty("vertices");
+        _vertices.Clear();
+        _vertices.AddRange(element.GetElements("vertices", o => o.GetVertexPositionNormalTexture()));
 
-        var arrayEnumerator = verticesJObject.EnumerateArray();
-        foreach (var vertex in arrayEnumerator.GetEnumerator())
-        {
-            _vertices.Add(vertex.GetVertexPositionNormalTexture());
-        }
-
-        var indicesJObject = element.GetProperty("indices");
-        arrayEnumerator = indicesJObject.EnumerateArray();
-        foreach (var index in arrayEnumerator.GetEnumerator())
-        {
-            _indices.Add(index.GetUInt16());
-        }
+        _indices.Clear();
+        _indices.AddRange(element.GetElements("indices", o => o.GetUInt16()));
 
         var textureElement = element.GetProperty("texture");
         if (textureElement.ToString() != "null")
@@ -98,27 +87,10 @@ public class StaticMesh
 
     public void Save(JObject jObject, SaveOption option)
     {
-        //base.Save(jObject); //asset ?
-        //jObject.Add("version", 1);
         jObject.Add("primitive_type", PrimitiveType.ConvertToString());
 
-        var verticesJObject = new JArray();
-        jObject.Add("vertices", verticesJObject);
-
-        foreach (var vertex in _vertices)
-        {
-            var vertexObject = new JObject();
-            vertex.Save(vertexObject);
-            verticesJObject.Add(vertexObject);
-        }
-
-        var indicesJObject = new JArray();
-        jObject.Add("indices", indicesJObject);
-
-        foreach (var index in _indices)
-        {
-            indicesJObject.Add(index);
-        }
+        jObject.AddArray("vertices", _vertices, (v, o) => v.Save(o));
+        jObject.AddArray("indices", _indices);
 
         var textureJObject = new JObject();
         if (Texture != null)

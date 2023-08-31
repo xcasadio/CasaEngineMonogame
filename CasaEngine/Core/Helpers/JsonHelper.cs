@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
+using CasaEngine.Core.Design;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -13,7 +15,7 @@ public static class JsonHelper
         return jsonElement.EnumerateObject().First(x => x.Name == key);
     }
 
-    //Load
+    //================================ Load ======================================
     public static Rectangle GetRectangle(this JsonElement element)
     {
         return new Rectangle
@@ -115,12 +117,34 @@ public static class JsonHelper
         return obj;
     }
 
+    public static SamplerState GetSamplerState(this JsonElement element)
+    {
+        var samplerState = new SamplerState();
+        samplerState.Filter = element.GetProperty("texture_filter").GetEnum<TextureFilter>();
+        samplerState.AddressU = element.GetProperty("address_u").GetEnum<TextureAddressMode>();
+        samplerState.AddressV = element.GetProperty("address_v").GetEnum<TextureAddressMode>();
+        samplerState.AddressW = element.GetProperty("address_w").GetEnum<TextureAddressMode>();
+        samplerState.BorderColor = element.GetProperty("border_color").GetColor();
+        samplerState.MaxAnisotropy = element.GetProperty("max_anisotropy").GetInt32();
+        samplerState.MaxMipLevel = element.GetProperty("max_mip_level").GetInt32();
+        samplerState.MipMapLevelOfDetailBias = element.GetProperty("mip_map_level_of_detail_bias").GetSingle();
+        samplerState.ComparisonFunction = element.GetProperty("comparison_function").GetEnum<CompareFunction>();
+        samplerState.FilterMode = element.GetProperty("filter_mode").GetEnum<TextureFilterMode>();
+
+        return samplerState;
+    }
+
+    public static IEnumerable<T> GetElements<T>(this JsonElement element, string arrayName, Func<JsonElement, T> loadElementFunc)
+    {
+        return element.GetProperty(arrayName).EnumerateArray().Select(loadElementFunc);
+    }
+
     public static T GetEnum<T>(this JsonElement element) where T : struct
     {
         return Enum.Parse<T>(element.GetString(), true);
     }
 
-    //Save
+    //================================ Save ======================================
     public static void Save(this Rectangle obj, JObject jObject)
     {
         jObject.Add("x", obj.X);
@@ -220,6 +244,47 @@ public static class JsonHelper
         var textureCoordinateObject = new JObject();
         obj.TextureCoordinate.Save(textureCoordinateObject);
         jObject.Add("texture_coordinate", textureCoordinateObject);
+    }
+
+    public static void Save(this SamplerState samplerState, JObject jObject)
+    {
+        jObject.Add("texture_filter", samplerState.Filter.ConvertToString());
+        jObject.Add("address_u", samplerState.AddressU.ConvertToString());
+        jObject.Add("address_v", samplerState.AddressV.ConvertToString());
+        jObject.Add("address_w", samplerState.AddressW.ConvertToString());
+        var newNode = new JObject();
+        samplerState.BorderColor.Save(newNode);
+        jObject.Add("border_color", newNode);
+        jObject.Add("max_anisotropy", samplerState.MaxAnisotropy);
+        jObject.Add("max_mip_level", samplerState.MaxMipLevel);
+        jObject.Add("mip_map_level_of_detail_bias", samplerState.MipMapLevelOfDetailBias);
+        jObject.Add("comparison_function", samplerState.ComparisonFunction.ConvertToString());
+        jObject.Add("filter_mode", samplerState.FilterMode.ConvertToString());
+    }
+
+    public static void AddArray<T>(this JObject jObject, string arrayName, IEnumerable<T> elements, Action<T, JObject> saveFunc)
+    {
+        var jArray = new JArray();
+        jObject.Add(arrayName, jArray);
+
+        foreach (var element in elements)
+        {
+            var newObject = new JObject();
+            saveFunc(element, newObject);
+            //element.Save(newObject);
+            jArray.Add(newObject);
+        }
+    }
+
+    public static void AddArray<T>(this JObject jObject, string arrayName, IEnumerable<T> elements)
+    {
+        var jArray = new JArray();
+        jObject.Add(arrayName, jArray);
+
+        foreach (var element in elements)
+        {
+            jArray.Add(element);
+        }
     }
 
     public static string? ConvertToString(this Enum value)

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,7 +13,6 @@ public class Texture : Asset
     public static readonly string DefaultTextureName = "defaultTexture";
 
     protected Texture2D? Texture2d;
-    private SamplerState _preferedSamplerState = SamplerState.AnisotropicWrap;
 
     public GraphicsDevice GraphicsDevice { get; private set; }
 
@@ -36,17 +36,11 @@ public class Texture : Asset
         }
     }
 
-    public SamplerState PreferredSamplerState
-    {
-        get => _preferedSamplerState;
-        set => _preferedSamplerState = value;
-    }
+    public SamplerState PreferredSamplerState { get; set; } = SamplerState.AnisotropicWrap;
 
     public int Width => Texture2d.Width;
 
     public int Height => Texture2d.Height;
-
-    //public ScreenSize ScreenSize { get; protected set; }
 
     public Texture()
     {
@@ -142,9 +136,11 @@ public class Texture : Asset
     {
         base.Load(element.GetProperty("asset"), option);
 
-        //if (!string.IsNullOrEmpty(FileName) && File.Exists(FileName))
+        PreferredSamplerState = element.GetProperty("sampler_state").GetSamplerState();
+
+        //if (!string.IsNullOrEmpty(AssetInfo.FileName) && File.Exists(AssetInfo.FileName))
         //{
-        //    LoadTexture(FileName);
+        //    LoadTexture(AssetInfo.FileName);
         //}
     }
 
@@ -154,18 +150,9 @@ public class Texture : Asset
     {
         base.Save(jObject, option);
 
-        //jObject.Add("preferredSamplerState", PreferredSamplerState);
-        //
-        //PreferredSamplerState.Filter = TextureFilter.Linear;
-        //PreferredSamplerState.AddressU = TextureAddressMode.Wrap;
-        //PreferredSamplerState.AddressV = TextureAddressMode.Wrap;
-        //PreferredSamplerState.AddressW = TextureAddressMode.Wrap;
-        //PreferredSamplerState.BorderColor = Color.White;
-        //PreferredSamplerState.MaxAnisotropy = 4;
-        //PreferredSamplerState.MaxMipLevel = 0;
-        //PreferredSamplerState.MipMapLevelOfDetailBias = 0.0f;
-        //PreferredSamplerState.ComparisonFunction = CompareFunction.Never;
-        //PreferredSamplerState.FilterMode = TextureFilterMode.Default;
+        var newNode = new JObject();
+        PreferredSamplerState.Save(newNode);
+        jObject.Add("sampler_state", newNode);
     }
 #endif
 }

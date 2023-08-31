@@ -9,7 +9,7 @@
         <TreeView x:Name="TreeView" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown">
             <TreeView.ItemTemplate>
                 <DataTemplate>
-                    <TreeViewItem Header="{Binding Name}" />
+                    <TreeViewItem Header="{Binding Name}" MouseDoubleClick="OnMouseDoubleClick"/>
                 </DataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>

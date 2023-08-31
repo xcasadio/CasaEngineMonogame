@@ -35,7 +35,6 @@ namespace EditorWpf.Controls.WorldControls
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
         {
             gameEditor.Game.GameManager.CurrentWorld.Save(EngineEnvironment.ProjectPath, SaveOption.Editor);
-            LogManager.Instance.WriteLineInfo($"World {gameEditor.Game.GameManager.CurrentWorld.AssetInfo.Name} saved ({gameEditor.Game.GameManager.CurrentWorld.AssetInfo.FileName})");
         }
 
         private void ButtonTranslate_Click(object sender, RoutedEventArgs e)
