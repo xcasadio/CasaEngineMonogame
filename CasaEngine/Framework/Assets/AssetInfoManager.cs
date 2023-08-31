@@ -50,7 +50,7 @@ public class AssetInfoManager
         foreach (var assetInfoNode in jsonDocument.RootElement.GetProperty("asset_infos").EnumerateArray())
         {
             var assetInfo = new AssetInfo(false);
-            assetInfo.Load(assetInfoNode, option);
+            assetInfo.Load(assetInfoNode.GetProperty("asset"), option);
             Add(assetInfo);
         }
 
@@ -103,8 +103,18 @@ public class AssetInfoManager
         _assetInfos.TryGetValue(id, out var assetInfo);
         LogManager.Instance.WriteLineTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         _assetInfos.Remove(id);
+        DeleteFile(assetInfo);
         Save();
         AssetRemoved?.Invoke(this, assetInfo);
+    }
+
+    private static void DeleteFile(AssetInfo assetInfo)
+    {
+        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
+        if (File.Exists(fullFileName))
+        {
+            File.Delete(fullFileName);
+        }
     }
 
     public void Clear()

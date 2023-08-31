@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -12,8 +13,8 @@ namespace EditorWpf.Controls.ContentBrowser;
 
 public class ContentBrowserViewModel : INotifyPropertyChanged
 {
-    private FolderItem _rootFolder;
-    public List<ContentItem> ContentItems { get; } = new();
+    private FolderItem RootFolder => ContentItems[0] as FolderItem;
+    public ObservableCollection<ContentItem> ContentItems { get; } = new();
 
     public ContentBrowserViewModel()
     {
@@ -26,13 +27,35 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
     private void OnAssetAdded(object? sender, AssetInfo assetInfo)
     {
-        var folderItem = GetOrCreateFolders(_rootFolder, assetInfo.FileName);
+        var folderItem = GetOrCreateFolders(RootFolder, assetInfo.FileName);
         folderItem.AddContent(new ContentItem(assetInfo));
     }
 
     private void OnAssetRemoved(object? sender, AssetInfo assetInfo)
     {
+        RemoveAssetInfoInFolder(RootFolder, assetInfo);
+    }
 
+    private bool RemoveAssetInfoInFolder(FolderItem folder, AssetInfo assetInfo)
+    {
+        foreach (var contentItem in folder.Contents)
+        {
+            if (contentItem is not FolderItem && contentItem.AssetInfo.Id == assetInfo.Id)
+            {
+                folder.Contents.Remove(contentItem);
+                return true;
+            }
+        }
+
+        foreach (var folderChild in folder.Folders)
+        {
+            if (RemoveAssetInfoInFolder(folderChild, assetInfo))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void OnAssetCleared(object? sender, EventArgs e)
@@ -55,9 +78,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     private void OnProjectLoaded(object? sender, EventArgs e)
     {
         Clear();
-        _rootFolder = new FolderItem { Name = "All" };
-        ContentItems.Add(_rootFolder);
-        AddContent(_rootFolder);
+        AddContent(RootFolder);
 
         OnPropertyChanged(nameof(ContentItems));
     }
@@ -69,7 +90,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
     private void Clear()
     {
-        ContentItems.Clear();
+        RootFolder.Contents.Clear();
         OnPropertyChanged(nameof(ContentItems));
     }
 

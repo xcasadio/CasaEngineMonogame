@@ -191,5 +191,27 @@ namespace EditorWpf.Controls.ContentBrowser
         {
             GameSettings.AssetInfoManager.Save();
         }
+
+        private void ListBoxFolderContentCreate_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ListBoxFolderContentDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListBoxFolderContent.SelectedItem == null)
+            {
+                return;
+            }
+
+            var contentItem = ListBoxFolderContent.SelectedItem as ContentItem;
+
+            GameSettings.AssetInfoManager.Remove(contentItem.AssetInfo.Id);
+        }
+
+        private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+
+        }
     }
 }
