@@ -29,6 +29,9 @@
 #begin Maps/Tile1.png
 /copy:Maps/Tile1.png
 
+#begin Maps/tile1.texture
+/copy:Maps/tile1.texture
+
 #begin Maps/tile1.tileset
 /copy:Maps/tile1.tileset
 
@@ -92,8 +95,14 @@
 #begin TileSets/Epee_en_bois.png
 /copy:TileSets/Epee_en_bois.png
 
+#begin TileSets/Epee_en_bois.texture
+/copy:TileSets/Epee_en_bois.texture
+
 #begin TileSets/octopus_0_0.png
 /copy:TileSets/octopus_0_0.png
+
+#begin TileSets/octopus_0_0.texture
+/copy:TileSets/octopus_0_0.texture
 
 #begin TileSets/octopus_0.sprite
 /copy:TileSets/octopus_0.sprite
@@ -712,6 +721,9 @@
 
 #begin TileSets/Swordman_1.png
 /copy:TileSets/Swordman_1.png
+
+#begin TileSets/Swordman_1.texture
+/copy:TileSets/Swordman_1.texture
 
 #begin TileSets/Swordman_2.png
 /copy:TileSets/Swordman_2.png

@@ -7,6 +7,8 @@ using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Animation2dControls;
 using EditorWpf.Controls.EntityControls;
@@ -169,18 +171,35 @@ namespace EditorWpf.Controls.ContentBrowser
                 {
                     if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
                     {
-                        var destFileName = Path.Combine(folderPath, Path.GetFileName(fileName));
-                        if (!File.Exists(destFileName))
+                        if (Texture2DLoader.IsTextureFile(fileName))
                         {
-                            File.Copy(fileName, destFileName);
-                            LogManager.Instance.WriteLineTrace($"Copy {fileName} -> {destFileName}");
+                            var destFileName = Path.Combine(EngineEnvironment.ProjectPath, folderPath, Path.GetFileName(fileName));
+                            if (!File.Exists(destFileName))
+                            {
+                                //copy file
+                                File.Copy(fileName, destFileName, true);
+                                LogManager.Instance.WriteLineTrace($"Copy {fileName} -> {destFileName}");
 
-                            var assetInfo = new AssetInfo();
-                            assetInfo.FileName = destFileName
-                                .Replace(EngineEnvironment.ProjectPath, string.Empty)
-                                .TrimStart(Path.DirectorySeparatorChar);
-                            assetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
-                            GameSettings.AssetInfoManager.AddAndSave(assetInfo);
+                                //create assetinfo
+                                var textureAssetInfo = new AssetInfo();
+                                textureAssetInfo.FileName = destFileName
+                                    .Replace(EngineEnvironment.ProjectPath, string.Empty)
+                                    .TrimStart(Path.DirectorySeparatorChar);
+                                textureAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+
+                                //Create texture asset
+                                var texture = new Texture(textureAssetInfo.Id, _gameEditor.Game.GraphicsDevice);
+                                texture.AssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+                                texture.AssetInfo.FileName = Path.Combine(
+                                    Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty)), texture.AssetInfo.Name + Constants.FileNameExtensions.Texture)
+                                    .TrimStart(Path.DirectorySeparatorChar);
+                                //texture.Load(assetInfo, _gameEditor.Game.GameManager.AssetContentManager);
+                                AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, texture.AssetInfo.FileName), texture);
+
+                                GameSettings.AssetInfoManager.Add(texture.AssetInfo);
+                                GameSettings.AssetInfoManager.Add(textureAssetInfo);
+                                GameSettings.AssetInfoManager.Save();
+                            }
                         }
                     }
                 }

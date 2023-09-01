@@ -37,49 +37,49 @@ public class Material
         if (string.IsNullOrEmpty(TextureBaseColorName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureBaseColorName);
-            TextureBaseColor = content.Load<Texture2D>(assetInfo, graphicsDevice);
+            TextureBaseColor = content.Load<Texture2D>(assetInfo);
         }
 
         if (string.IsNullOrEmpty(TextureOpacityName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureOpacityName);
-            TextureOpacityColor = content.LoadWithoutAdd<Texture2D>(TextureOpacityName, graphicsDevice);
+            TextureOpacityColor = content.LoadWithoutAdd<Texture2D>(TextureOpacityName);
         }
 
         if (string.IsNullOrEmpty(TextureNormalName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureNormalName);
-            TextureNormal = content.LoadWithoutAdd<Texture2D>(TextureNormalName, graphicsDevice);
+            TextureNormal = content.LoadWithoutAdd<Texture2D>(TextureNormalName);
         }
 
         if (string.IsNullOrEmpty(TextureSpecularName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureSpecularName);
-            TextureSpecular = content.LoadWithoutAdd<Texture2D>(TextureSpecularName, graphicsDevice);
+            TextureSpecular = content.LoadWithoutAdd<Texture2D>(TextureSpecularName);
         }
 
         if (string.IsNullOrEmpty(TextureRoughnessName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureOpacityName);
-            TextureRoughness = content.LoadWithoutAdd<Texture2D>(TextureRoughnessName, graphicsDevice);
+            TextureRoughness = content.LoadWithoutAdd<Texture2D>(TextureRoughnessName);
         }
 
         if (string.IsNullOrEmpty(TextureTangentName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureTangentName);
-            TextureTangent = content.LoadWithoutAdd<Texture2D>(TextureTangentName, graphicsDevice);
+            TextureTangent = content.LoadWithoutAdd<Texture2D>(TextureTangentName);
         }
 
         if (string.IsNullOrEmpty(TextureHeightName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureHeightName);
-            TextureHeight = content.LoadWithoutAdd<Texture2D>(TextureHeightName, graphicsDevice);
+            TextureHeight = content.LoadWithoutAdd<Texture2D>(TextureHeightName);
         }
 
         if (string.IsNullOrEmpty(TextureReflectionName))
         {
             var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureReflectionName);
-            TextureReflection = content.LoadWithoutAdd<Texture2D>(TextureReflectionName, graphicsDevice);
+            TextureReflection = content.LoadWithoutAdd<Texture2D>(TextureReflectionName);
         }
     }
 

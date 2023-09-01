@@ -1,0 +1,25 @@
+{
+  "asset": {
+    "id": 10007,
+    "name": "Swordman_1",
+    "file_name": "TileSets\\Swordman_1.texture"
+  },
+  "texture_asset_id": 10006,
+  "sampler_state": {
+    "texture_filter": "Anisotropic",
+    "address_u": "Wrap",
+    "address_v": "Wrap",
+    "address_w": "Wrap",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

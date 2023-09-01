@@ -1,10 +1,7 @@
-﻿using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using CasaEngine.Framework.Assets;
 
 namespace EditorWpf.Controls.EntityControls
 {
@@ -24,14 +21,7 @@ namespace EditorWpf.Controls.EntityControls
                 return;
             }
 
-            var jObject = new JObject();
-
-            EntityControlViewModel.Entity.Save(jObject, SaveOption.Editor);
-
-            using StreamWriter file = File.CreateText(EntityControlViewModel.FileName);
-            using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
-            jObject.WriteTo(writer);
-
+            AssetSaver.SaveAsset(EntityControlViewModel.FileName, EntityControlViewModel.Entity);
             LogManager.Instance.WriteLineInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({EntityControlViewModel.FileName})");
         }
     }

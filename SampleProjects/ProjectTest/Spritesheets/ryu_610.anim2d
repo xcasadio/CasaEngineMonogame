@@ -3,7 +3,7 @@
   "asset": {
     "id": 900,
     "name": "ryu_610",
-    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_610.anim2d"
+    "file_name": "Spritesheets\\ryu_610.anim2d"
   },
   "frames": [
     {

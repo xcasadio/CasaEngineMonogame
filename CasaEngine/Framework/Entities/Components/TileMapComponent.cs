@@ -18,8 +18,9 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 {
     public static readonly int ComponentId = (int)ComponentIds.TileMap;
 
-    public AssetInfo TileMapDataAssetInfo { get; set; }
+    public long TileMapDataAssetId { get; set; } = IdManager.InvalidId;
     public TileMapData TileMapData { get; set; }
+    public TileSetData TileSetData { get; set; }
     private List<TileMapLayer> Layers { get; } = new();
 
     [Browsable(false)]
@@ -45,9 +46,12 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 
     public override void Initialize(CasaEngineGame game)
     {
-        if (TileMapDataAssetInfo != null)
+        AssetInfo assetInfo;
+
+        if (TileMapDataAssetId != IdManager.InvalidId)
         {
-            TileMapData = game.GameManager.AssetContentManager.Load<TileMapData>(TileMapDataAssetInfo, game.GraphicsDevice);
+            assetInfo = GameSettings.AssetInfoManager.Get(TileMapDataAssetId);
+            TileMapData = game.GameManager.AssetContentManager.Load<TileMapData>(assetInfo);
         }
 
         if (TileMapData == null)
@@ -55,8 +59,13 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
             return;
         }
 
-        var texture = new Texture(TileMapData.TileSetData.SpriteSheetFileName, game.GameManager.AssetContentManager);
-        var tileSize = TileMapData.TileSetData.TileSize;
+        assetInfo = GameSettings.AssetInfoManager.Get(TileMapData.TileSetDataAssetId);
+        TileSetData = game.GameManager.AssetContentManager.Load<TileSetData>(assetInfo);
+        var tileSize = TileSetData.TileSize;
+
+        assetInfo = GameSettings.AssetInfoManager.Get(TileSetData.SpriteSheetAssetId);
+        var texture = game.GameManager.AssetContentManager.Load<Texture>(assetInfo);
+        texture.Load(game.GameManager.AssetContentManager);
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -79,7 +88,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
                     }
                     else
                     {
-                        var tileData = TileMapData.TileSetData.GetTileData(tileId + (tileId < 2000 ? 2906 : 0));
+                        var tileData = TileSetData.GetTileData(tileId);
 
                         switch (tileData.Type)
                         {
@@ -153,8 +162,8 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
         var scale = new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
         var mapWidth = TileMapData.MapSize.Width;
         var mapHeight = TileMapData.MapSize.Height;
-        var tileWidth = TileMapData.TileSetData.TileSize.Width * Owner.Coordinates.Scale.X;
-        var tileHeight = TileMapData.TileSetData.TileSize.Height * Owner.Coordinates.Scale.Y;
+        var tileWidth = TileSetData.TileSize.Width * Owner.Coordinates.Scale.X;
+        var tileHeight = TileSetData.TileSize.Height * Owner.Coordinates.Scale.Y;
         var mapPosX = translation.X;
         var mapPosY = translation.Y;
 
@@ -183,18 +192,13 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 
         component.Layers.AddRange(Layers);
         component.TileMapData = TileMapData;
-        component.TileMapDataAssetInfo = TileMapDataAssetInfo;
+        component.TileMapDataAssetId = TileMapDataAssetId;
         return component;
     }
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        var node = element.GetProperty("tileMapDataAssetInfo");
-        if (node.GetRawText() != "null")
-        {
-            TileMapDataAssetInfo = new AssetInfo(false);
-            TileMapDataAssetInfo.Load(node.GetProperty("asset"), option);
-        }
+        TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetInt64();
     }
 
 #if EDITOR
@@ -202,10 +206,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
     public override void Save(JObject jObject, SaveOption option)
     {
         base.Save(jObject, option);
-
-        var newNode = new JObject();
-        TileMapDataAssetInfo.Save(newNode, option);
-        jObject.Add("tileMapDataAssetInfo", newNode);
+        jObject.Add("tile_map_data_asset_id", TileMapDataAssetId);
     }
 
 
@@ -220,8 +221,8 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
             {
                 min = Vector3.Min(min, new Vector3(0, 0, TileMapData.Layers.Min(x => x.zOffset)));
                 max = Vector3.Max(max, new Vector3(
-                    TileMapData.MapSize.Width * TileMapData.TileSetData.TileSize.Width,
-                    -TileMapData.MapSize.Height * TileMapData.TileSetData.TileSize.Height,
+                    TileMapData.MapSize.Width * TileSetData.TileSize.Width,
+                    -TileMapData.MapSize.Height * TileSetData.TileSize.Height,
                     TileMapData.Layers.Max(x => x.zOffset)));
             }
             else // default box

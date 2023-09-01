@@ -22,7 +22,7 @@ public class Cursor : Asset
         }
         try
         {
-            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(AssetInfo, GraphicsDevice);
+            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(AssetInfo);
         }
         catch (ObjectDisposedException)
         {
@@ -38,7 +38,7 @@ public class Cursor : Asset
     {
         if (Resource == null)
         {
-            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(AssetInfo, GraphicsDevice);
+            Resource = assetContentManager.Load<System.Windows.Forms.Cursor>(AssetInfo);
         }
     } // RecreateResource
 } // Cursor

@@ -30,7 +30,7 @@ namespace EditorWpf.Controls.SpriteControls
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-            var spriteData = _gameEditor.Game.GameManager.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo, _gameEditor.Game.GraphicsDevice);
+            var spriteData = _gameEditor.Game.GameManager.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo);
             SelectedItem = new SpriteDataViewModel(spriteData);
         }
 
@@ -82,8 +82,7 @@ namespace EditorWpf.Controls.SpriteControls
         {
             if (SelectedItem is SpriteDataViewModel spriteDataViewModel)
             {
-                var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, spriteDataViewModel.AssetInfo.FileName);
-                AssetSaver.SaveAsset(fullFileName, spriteDataViewModel.SpriteData);
+                AssetSaver.SaveAsset(spriteDataViewModel.AssetInfo.FileName, spriteDataViewModel.SpriteData);
             }
         }
     }

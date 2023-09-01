@@ -3,7 +3,7 @@
     "id": 33,
     "name": "octopus_5"
   },
-  "sprite_sheet": "TileSets\\octopus_0_0.png",
+  "sprite_sheet_asset_id": 10003,
   "location": {
     "x": 156,
     "y": 0,

@@ -3,7 +3,7 @@
   "asset": {
     "id": 932,
     "name": "ryu_walk_forward",
-    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_walk_forward.anim2d"
+    "file_name": "Spritesheets\\ryu_walk_forward.anim2d"
   },
   "frames": [
     {

@@ -3,7 +3,7 @@
     "id": 152,
     "name": "sword_16"
   },
-  "sprite_sheet": "TileSets\\Epee_en_bois.png",
+  "sprite_sheet_asset_id": 10003,
   "location": {
     "x": 244,
     "y": 0,

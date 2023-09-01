@@ -271,7 +271,6 @@ public static class JsonHelper
         {
             var newObject = new JObject();
             saveFunc(element, newObject);
-            //element.Save(newObject);
             jArray.Add(newObject);
         }
     }

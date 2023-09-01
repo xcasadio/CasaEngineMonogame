@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -11,12 +13,14 @@ public class StaticMesh
 {
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<ushort> _indices = new();
+
     public VertexBuffer? VertexBuffer { get; private set; }
     public IndexBuffer? IndexBuffer { get; private set; }
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
+    public long TextureAssetId { get; set; } = IdManager.InvalidId;
     public Assets.Textures.Texture? Texture { get; set; }
 
-    public void Initialize(GraphicsDevice graphicsDevice)
+    public void Initialize(GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
     {
 #if EDITOR
         if (_isInitialized)
@@ -31,7 +35,12 @@ public class StaticMesh
         IndexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
 
-        //Texture?.Initialize(graphicsDevice);
+        if (TextureAssetId != IdManager.InvalidId)
+        {
+            var assetInfo = GameSettings.AssetInfoManager.Get(TextureAssetId);
+            Texture = assetContentManager.Load<Assets.Textures.Texture>(assetInfo);
+            Texture.Load(assetContentManager);
+        }
 
 #if EDITOR
         _isInitialized = true;
@@ -68,12 +77,7 @@ public class StaticMesh
         _indices.Clear();
         _indices.AddRange(element.GetElements("indices", o => o.GetUInt16()));
 
-        var textureElement = element.GetProperty("texture");
-        if (textureElement.ToString() != "null")
-        {
-            Texture = new Assets.Textures.Texture();
-            Texture.Load(textureElement, SaveOption.Editor);
-        }
+        TextureAssetId = element.GetProperty("texture_asset_id").GetInt64();
     }
 
 #if EDITOR
@@ -93,15 +97,7 @@ public class StaticMesh
         jObject.AddArray("indices", _indices);
 
         var textureJObject = new JObject();
-        if (Texture != null)
-        {
-            Texture.Save(textureJObject, option);
-            jObject.Add("texture", textureJObject);
-        }
-        else
-        {
-            jObject.Add("texture", "null");
-        }
+        jObject.Add("texture_asset_id", Texture == null ? IdManager.InvalidId : Texture.AssetInfo.Id);
     }
 #endif
 }

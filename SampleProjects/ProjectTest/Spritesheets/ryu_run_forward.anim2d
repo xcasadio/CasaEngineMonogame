@@ -3,7 +3,7 @@
   "asset": {
     "id": 930,
     "name": "ryu_run_forward",
-    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_run_forward.anim2d"
+    "file_name": "Spritesheets\\ryu_run_forward.anim2d"
   },
   "frames": [
     {

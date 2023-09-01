@@ -13,6 +13,7 @@
              xmlns:shapes="clr-namespace:CasaEngine.Core.Shapes;assembly=CasaEngine"
              xmlns:xna="clr-namespace:Microsoft.Xna.Framework;assembly=MonoGame.Framework"
              xmlns:graphics="clr-namespace:Microsoft.Xna.Framework.Graphics;assembly=MonoGame.Framework"
+             xmlns:common="clr-namespace:EditorWpf.Controls.Common"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
@@ -308,12 +309,25 @@
         </DataTemplate>
 
         <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                <TextBlock Text="Mesh : " />
-                <TextBlock Text="nb vertices = " />
-                <TextBlock Text="{Binding Mesh.VertexBuffer.VertexCount}" />
-                <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                    <TextBlock Text="Mesh : " />
+                    <TextBlock Text="nb vertices = " />
+                    <TextBlock Text="{Binding Mesh.VertexBuffer.VertexCount}" />
+                    <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
+                </StackPanel>
+
+                <common:AssetSelectorControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" AssetId="{Binding Mesh.TextureAssetId, Mode=TwoWay}"/>
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
@@ -398,16 +412,7 @@
 
         <DataTemplate x:Key="tileMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBox Grid.Column="0" Text="{Binding TileMapDataAssetInfo.Name}"/>
-                <Button Grid.Column="1" ToolTip="Put Selected Item in Content Browser" Click="TileMapAsset_OnClick">
-                    <Image HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                           Source="/Resources/icon_left_arrow.png" />
-                </Button>
+                <common:AssetSelectorControl AssetId="{Binding TileMapDataAssetId, Mode=TwoWay}"/>
             </Grid>
         </DataTemplate>
 

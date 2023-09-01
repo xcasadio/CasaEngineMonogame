@@ -30,13 +30,13 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
     }
 
     [ReadOnly(true)]
-    public string SpriteSheetFileName
+    public long SpriteSheetAssetId
     {
-        get => _spriteData.SpriteSheetFileName;
+        get => _spriteData.SpriteSheetAssetId;
         set
         {
-            if (value == _spriteData.SpriteSheetFileName) return;
-            _spriteData.SpriteSheetFileName = value;
+            if (value == _spriteData.SpriteSheetAssetId) return;
+            _spriteData.SpriteSheetAssetId = value;
             OnPropertyChanged();
         }
     }

@@ -3,7 +3,7 @@
     "id": 84,
     "name": "player_45"
   },
-  "sprite_sheet": "TileSets\\Swordman_1.png",
+  "sprite_sheet_asset_id": 10007,
   "location": {
     "x": 0,
     "y": 288,

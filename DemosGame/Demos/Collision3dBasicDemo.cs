@@ -1,4 +1,7 @@
-﻿using CasaEngine.Core.Shapes;
+﻿using System;
+using System.IO;
+using CasaEngine.Core.Shapes;
+using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
@@ -27,8 +30,9 @@ public class Collision3dBasicDemo : Demo
         var meshComponent = new StaticMeshComponent(entity);
         entity.ComponentManager.Components.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
-        meshComponent.Mesh.Initialize(game.GraphicsDevice);
-        meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(@"checkboard.png", game.GameManager.AssetContentManager);
+        meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
+        var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
+        meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
         world.AddEntityImmediately(entity);
 
         //============ Create box ===============
@@ -57,8 +61,9 @@ public class Collision3dBasicDemo : Demo
                     meshComponent = new StaticMeshComponent(entity);
                     entity.ComponentManager.Components.Add(meshComponent);
                     meshComponent.Mesh = boxPrimitive;
-                    meshComponent.Mesh.Initialize(game.GraphicsDevice);
-                    meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(@"paper_box_texture.jpg", game.GameManager.AssetContentManager);
+                    meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
+                    fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
+                    meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
                     world.AddEntityImmediately(entity);
                 }
             }

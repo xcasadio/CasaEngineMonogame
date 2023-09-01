@@ -1517,6 +1517,46 @@
         "id": 4001,
         "name": "tile1",
         "file_name": "Maps\\tile1.tileset"
+      },
+    {
+        "id": 10000,
+        "name": "tile1",
+        "file_name": "Maps\\Tile1.png"
+      },
+    {
+        "id": 10001,
+        "name": "tile1",
+        "file_name": "Maps\\tile1.texture"
+      },
+    {
+        "id": 10002,
+        "name": "octopus_0_0",
+        "file_name": "TileSets\\octopus_0_0.png"
+      },
+    {
+        "id": 10003,
+        "name": "octopus_0_0",
+        "file_name": "TileSets\\octopus_0_0.texture"
+      },
+    {
+        "id": 10004,
+        "name": "Epee_en_bois",
+        "file_name": "TileSets\\Epee_en_bois.png"
+      },
+    {
+        "id": 10005,
+        "name": "Epee_en_bois",
+        "file_name": "TileSets\\Epee_en_bois.texture"
+      },
+    {
+        "id": 10006,
+        "name": "Swordman_1",
+        "file_name": "TileSets\\Swordman_1.png"
+      },
+    {
+        "id": 10007,
+        "name": "Swordman_1",
+        "file_name": "TileSets\\Swordman_1.texture"
       }
   ]
 }

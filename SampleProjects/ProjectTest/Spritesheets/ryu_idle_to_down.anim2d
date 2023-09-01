@@ -3,7 +3,7 @@
   "asset": {
     "id": 929,
     "name": "ryu_idle_to_down",
-    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_idle_to_down.anim2d"
+    "file_name": "Spritesheets\\ryu_idle_to_down.anim2d"
   },
   "frames": [
     {

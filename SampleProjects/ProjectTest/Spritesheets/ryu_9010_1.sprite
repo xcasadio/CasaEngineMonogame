@@ -2,9 +2,9 @@
   "asset": {
     "id": 668,
     "name": "ryu_9010_1",
-    "file_name": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest\\Spritesheets\\ryu_9010_1.sprite"
+    "file_name": "Spritesheets\\ryu_9010_1.sprite"
   },
-  "sprite_sheet": "Spritesheets\\ryu.png",
+  "sprite_sheet_asset_id": 1003,
   "location": {
     "x": 819,
     "y": 101,

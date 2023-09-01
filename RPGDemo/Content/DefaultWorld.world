@@ -38,13 +38,7 @@
           {
             "version": 1,
             "type": 8,
-            "tileMapDataAssetInfo": {
-              "asset": {
-                "id": 4000,
-                "name": "map_1_1",
-                "file_name": "Maps\\map_1_1.tileMap"
-              }
-            }
+            "tile_map_data_asset_id": 4000
           }
         ]
       }

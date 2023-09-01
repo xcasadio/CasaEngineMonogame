@@ -65,7 +65,7 @@ public partial class TileMapDetailsControl : UserControl
         Clear();
 
         var tileMapDataViewModel = DataContext as TileMapDataViewModel;
-        tileMapDataViewModel.LoadMap(fileName);
+        tileMapDataViewModel.LoadMap(fileName, _gameEditor.Game.GameManager.AssetContentManager);
 
         //var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
         //var projectPath = EngineEnvironment.ProjectPath;

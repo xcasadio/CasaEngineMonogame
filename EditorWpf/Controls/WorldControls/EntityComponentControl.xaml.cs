@@ -43,7 +43,7 @@ namespace EditorWpf.Controls.WorldControls
                 var graphicsDevice = staticMeshComponent.Game.GraphicsDevice;
 
                 staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
-                staticMeshComponent.Mesh.Initialize(graphicsDevice);
+                staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Game.GameManager.AssetContentManager);
                 staticMeshComponent.Mesh.Texture = staticMeshComponent.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             }
         }
@@ -107,16 +107,26 @@ namespace EditorWpf.Controls.WorldControls
             }
         }
 
-        private void TileMapAsset_OnClick(object sender, RoutedEventArgs e)
+        private void SetAssetInfo_OnClick(object sender, RoutedEventArgs e)
         {
             var contentBrowserControl = this.FindParent<MainWindow>().ContentBrowserControl;
 
-            if (contentBrowserControl.SelectedItem != null
-                && Path.GetExtension(contentBrowserControl.SelectedItem.FileName) == Constants.FileNameExtensions.TileMap)
+            if (contentBrowserControl.SelectedItem != null && sender is FrameworkElement frameworkElement)
             {
-                var button = sender as Button;
-                var tileMapComponent = button.DataContext as TileMapComponent;
-                tileMapComponent.TileMapDataAssetInfo = contentBrowserControl.SelectedItem;
+                if (frameworkElement.DataContext is TileMapComponent tileMapComponent
+                    && Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
+                    Constants.FileNameExtensions.TileMap)
+                {
+                    tileMapComponent.TileMapDataAssetId = contentBrowserControl.SelectedItem.Id;
+                }
+                else if (frameworkElement.DataContext is StaticMeshComponent staticMeshComponent
+                         && Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
+                         Constants.FileNameExtensions.Texture)
+                {
+                    staticMeshComponent.Mesh.Texture =
+                        staticMeshComponent.Game.GameManager.AssetContentManager.Load<Texture>(
+                            contentBrowserControl.SelectedItem);
+                }
             }
         }
     }

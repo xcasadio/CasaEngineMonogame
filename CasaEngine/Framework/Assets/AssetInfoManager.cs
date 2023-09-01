@@ -15,11 +15,17 @@ public class AssetInfoManager
 
     public IEnumerable<AssetInfo> AssetInfos => _assetInfos.Values;
 
-    private void Add(AssetInfo assetInfo)
+    public void Add(AssetInfo assetInfo)
     {
         _assetInfos.Add(assetInfo.Id, assetInfo);
+
+#if EDITOR
+        LogManager.Instance.WriteLineTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+        AssetAdded?.Invoke(this, assetInfo);
+#endif
     }
 
+    [Obsolete]
     public AssetInfo GetOrAdd(string fileName)
     {
         foreach (var assetInfo in _assetInfos.Values)
@@ -50,7 +56,7 @@ public class AssetInfoManager
         foreach (var assetInfoNode in jsonDocument.RootElement.GetProperty("asset_infos").EnumerateArray())
         {
             var assetInfo = new AssetInfo(false);
-            assetInfo.Load(assetInfoNode.GetProperty("asset"), option);
+            assetInfo.Load(assetInfoNode, option);
             Add(assetInfo);
         }
 
@@ -77,8 +83,12 @@ public class AssetInfoManager
 
         foreach (var assetInfo in _assetInfos)
         {
-            JObject entityObject = new();
-            assetInfo.Value.Save(entityObject, option);
+            var entityObject = new JObject(
+                new JProperty("id", assetInfo.Value.Id),
+                new JProperty("name", assetInfo.Value.Name),
+                new JProperty("file_name", assetInfo.Value.FileName));
+            //assetInfo.Value.Save(entityObject, option);
+
             assetInfoJArray.Add(entityObject);
         }
 
@@ -87,15 +97,6 @@ public class AssetInfoManager
         using StreamWriter file = File.CreateText(fileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         root.WriteTo(writer);
-    }
-
-    public void AddAndSave(AssetInfo assetInfo)
-    {
-        LogManager.Instance.WriteLineTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
-
-        Add(assetInfo);
-        Save();
-        AssetAdded?.Invoke(this, assetInfo);
     }
 
     public void Remove(long id)

@@ -2,6 +2,7 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using Newtonsoft.Json.Linq;
+using SharpDX.Direct2D1.Effects;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
@@ -9,7 +10,7 @@ public class TileSetData : AssetInfo
 {
     private readonly Dictionary<int, TileData> _tileById = new();
 
-    public string SpriteSheetFileName { get; set; }
+    public long SpriteSheetAssetId { get; set; }
     public Core.Maths.Size TileSize { get; set; }
     public List<TileData> Tiles { get; } = new();
 
@@ -21,7 +22,7 @@ public class TileSetData : AssetInfo
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        SpriteSheetFileName = element.GetProperty("sprite_sheet_file_name").GetString();
+        SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetInt64();
         TileSize = element.GetProperty("tile_size").GetSize();
 
         foreach (var tileNode in element.GetProperty("tiles").EnumerateArray())
@@ -43,6 +44,7 @@ public class TileSetData : AssetInfo
             }
 
             tileData.Load(tileNode);
+
             AddTile(tileData);
         }
     }
@@ -57,7 +59,7 @@ public class TileSetData : AssetInfo
 
     public override void Save(JObject jObject, SaveOption option)
     {
-        jObject.Add("sprite_sheet_file_name", SpriteSheetFileName);
+        jObject.Add("sprite_sheet_file_name", SpriteSheetAssetId);
 
         var newNode = new JObject();
         TileSize.Save(newNode);

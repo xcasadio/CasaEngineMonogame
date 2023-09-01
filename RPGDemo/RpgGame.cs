@@ -96,7 +96,7 @@ public class RpgGame : CasaEngineGame
 
         foreach (var assetInfo in spriteAssetInfos)
         {
-            var spriteData = GameManager.AssetContentManager.Load<SpriteData>(assetInfo, GraphicsDevice);
+            var spriteData = GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
         }
     }
 
@@ -109,7 +109,7 @@ public class RpgGame : CasaEngineGame
 
         foreach (var assetInfo in animationsAssetInfos)
         {
-            var animation2dData = GameManager.AssetContentManager.Load<Animation2dData>(assetInfo, GraphicsDevice);
+            var animation2dData = GameManager.AssetContentManager.Load<Animation2dData>(assetInfo);
             animations.Add(animation2dData);
         }
 

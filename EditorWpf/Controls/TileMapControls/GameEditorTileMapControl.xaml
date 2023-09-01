@@ -15,7 +15,7 @@
 
         <ToolBarTray Grid.Row="0">
             <ToolBar>
-                <Button ToolTip="Save" Command="{StaticResource Commands.TileMap.Save}">
+                <Button ToolTip="Save" Click="ButtonSave_OnClick">
                     <Image Source="/Resources/save-44-48.png" Height="16"/>
                 </Button>
                 <Separator />

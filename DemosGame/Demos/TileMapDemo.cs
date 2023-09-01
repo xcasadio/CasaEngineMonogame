@@ -71,7 +71,7 @@ public class TileMapDemo : Demo
 
         foreach (var assetInfo in spriteAssetInfos)
         {
-            var spriteData = assetContentManager.Load<SpriteData>(assetInfo, graphicsDevice);
+            var spriteData = assetContentManager.Load<SpriteData>(assetInfo);
         }
     }
 
@@ -84,7 +84,7 @@ public class TileMapDemo : Demo
 
         foreach (var assetInfo in animationsAssetInfos)
         {
-            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo, graphicsDevice);
+            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo);
             animations.Add(animation2dData);
         }
 

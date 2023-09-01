@@ -78,13 +78,13 @@ public class AssetContentManager
     }
 
     //TODO : remove only create for texture (waiting add assetinfo for texture)
-    public T LoadWithoutAdd<T>(string fileName, GraphicsDevice device, string categoryName = DefaultCategory)
+    public T LoadWithoutAdd<T>(string fileName, string categoryName = DefaultCategory)
     {
         var type = typeof(T);
-        return (T)_assetLoaderByType[type].LoadAsset(fileName, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {fileName}");
+        return (T)_assetLoaderByType[type].LoadAsset(fileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fileName}");
     }
 
-    public T Load<T>(AssetInfo assetInfo, GraphicsDevice device, string categoryName = DefaultCategory)
+    public T Load<T>(AssetInfo assetInfo, string categoryName = DefaultCategory)
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList))
         {
@@ -109,7 +109,7 @@ public class AssetContentManager
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
-        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, device) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;
     }
@@ -142,7 +142,7 @@ public class AssetContentManager
 
     internal void OnDeviceReset(object? sender, EventArgs e)
     {
-        GraphicsDevice = sender as GraphicsDevice;
+        //GraphicsDevice = sender as GraphicsDevice;
 
         foreach (var assetDictionaryByCategory in _assetsDictionaryByCategory)
         {

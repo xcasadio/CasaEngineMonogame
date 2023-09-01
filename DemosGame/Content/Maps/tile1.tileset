@@ -1,5 +1,5 @@
 {
-    "sprite_sheet_file_name": "Maps\\Tile1.png",
+    "sprite_sheet_asset_id": 10001,
 	"id": 4001,
 	"version": 1,
 	"name": "tile1",

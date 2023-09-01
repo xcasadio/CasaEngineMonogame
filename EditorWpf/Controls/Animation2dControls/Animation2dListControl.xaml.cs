@@ -42,12 +42,12 @@ namespace EditorWpf.Controls.Animation2dControls
         {
             var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
             var graphicsDevice = _gameEditor.Game.GraphicsDevice;
-            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo, graphicsDevice);
+            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo);
 
             foreach (var frameData in animation2dData.Frames)
             {
                 var frameAssetInfo = GameSettings.AssetInfoManager.Get(frameData.SpriteId);
-                assetContentManager.Load<SpriteData>(frameAssetInfo, graphicsDevice);
+                assetContentManager.Load<SpriteData>(frameAssetInfo);
             }
 
             return animation2dData;
@@ -109,8 +109,7 @@ namespace EditorWpf.Controls.Animation2dControls
         {
             if (SelectedItem is Animation2dDataViewModel animation2dDataViewModel)
             {
-                var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, animation2dDataViewModel.AssetInfo.FileName);
-                AssetSaver.SaveAsset(fullFileName, animation2dDataViewModel.Animation2dData);
+                AssetSaver.SaveAsset(animation2dDataViewModel.AssetInfo.FileName, animation2dDataViewModel.Animation2dData);
             }
         }
     }

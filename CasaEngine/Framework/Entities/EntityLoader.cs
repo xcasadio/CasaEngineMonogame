@@ -29,7 +29,7 @@ public class EntityLoader
         {
             var assetInfo = GameSettings.AssetInfoManager.Get(entityReference.AssetId);
             var assetFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
-            var entity = assetContentManager.Load<Entity>(assetInfo, graphicsDevice).Clone();
+            var entity = assetContentManager.Load<Entity>(assetInfo).Clone();
             entityReference.Entity = entity;
             entity.Name = entityReference.Name;
             entity.Coordinates.CopyFrom(entityReference.InitialCoordinates);

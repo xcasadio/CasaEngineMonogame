@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Engine;
 using Newtonsoft.Json.Linq;
 using Size = CasaEngine.Core.Maths.Size;
 
@@ -10,33 +9,22 @@ namespace CasaEngine.Framework.Assets.TileMap;
 public class TileMapData : AssetInfo
 {
     public Size MapSize { get; set; }
-    public TileSetData TileSetData { get; set; }
+    public long TileSetDataAssetId { get; private set; } = IdManager.InvalidId;
     public List<TileMapLayerData> Layers { get; } = new();
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        base.Load(element, option);
+        base.Load(element.GetProperty("asset"), option);
 
         MapSize = element.GetProperty("map_size").GetSize();
+        TileSetDataAssetId = element.GetProperty("tile_set_asset_id").GetInt64();
 
-        TileSetData = LoadTileSetData(element.GetProperty("tile_set").GetString());
-
-        foreach (var jObject in element.GetProperty("layers").EnumerateArray())
+        Layers.AddRange(element.GetElements("layers", o =>
         {
             var tileMapLayerData = new TileMapLayerData();
-            tileMapLayerData.Load(jObject);
-            Layers.Add(tileMapLayerData);
-        }
-    }
-
-    private static TileSetData LoadTileSetData(string fileName)
-    {
-        fileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
-        var tileSetData = new TileSetData();
-        tileSetData.Load(jsonDocument.RootElement, SaveOption.Editor);
-
-        return tileSetData;
+            tileMapLayerData.Load(o);
+            return tileMapLayerData;
+        }));
     }
 
 #if EDITOR
@@ -44,6 +32,21 @@ public class TileMapData : AssetInfo
     public override void Save(JObject jObject, SaveOption option)
     {
         base.Save(jObject, option);
+
+        var newObject = new JObject();
+        MapSize.Save(newObject);
+        jObject.Add("map_size", newObject);
+        jObject.Add("tile_set_asset_id", TileSetDataAssetId);
+
+        var jArray = new JArray();
+        jObject.Add("layers", jArray);
+
+        foreach (var layer in Layers)
+        {
+            newObject = new JObject();
+            layer.Save(newObject);
+            jArray.Add(newObject);
+        }
     }
 
 #endif

@@ -3,7 +3,7 @@
     "id": 1019,
     "name": "rock_1"
   },
-  "sprite_sheet": "TileSets\\octopus_0_0.png",
+  "sprite_sheet_asset_id": 10003,
   "location": {
     "x": 152,
     "y": 32,

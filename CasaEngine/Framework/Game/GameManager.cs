@@ -20,6 +20,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
+using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Game;
 
@@ -195,6 +196,7 @@ public class GameManager
         AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
         AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
+        AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
         AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
         AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
     }

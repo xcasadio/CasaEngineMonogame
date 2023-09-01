@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
-using CasaEngine.Engine;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets;

@@ -64,7 +64,7 @@ public class Document : Asset
 
     internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
-        Resource ??= assetContentManager.Load<XDocument>(AssetInfo, device);
+        Resource ??= assetContentManager.Load<XDocument>(AssetInfo);
     } // RecreateResource
 } // Document
 // XNAFinalEngine.Assets

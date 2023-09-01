@@ -12,6 +12,7 @@ public class Texture : Asset
 {
     public static readonly string DefaultTextureName = "defaultTexture";
 
+    private long _texture2dAssetId = IdManager.InvalidId;
     protected Texture2D? Texture2d;
 
     public GraphicsDevice GraphicsDevice { get; private set; }
@@ -47,9 +48,14 @@ public class Texture : Asset
         AssetInfo.Name = "Empty Texture";
     }
 
-    public Texture(GraphicsDevice graphicsDevice) : this()
+    protected Texture(GraphicsDevice graphicsDevice) : this()
     {
         GraphicsDevice = graphicsDevice;
+    }
+
+    public Texture(long texture2dAssetId, GraphicsDevice graphicsDevice) : this(graphicsDevice)
+    {
+        _texture2dAssetId = texture2dAssetId;
     }
 
     public Texture(Texture2D texture2d) : this(texture2d.GraphicsDevice)
@@ -59,49 +65,18 @@ public class Texture : Asset
         //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new Screen(GraphicsDevice));
     }
 
-
+    [Obsolete("only for UI")]
     public Texture(string filename, AssetContentManager assetContentManager) : this(assetContentManager.GraphicsDevice)
     {
         AssetInfo.FileName = filename;
-        Initialize(assetContentManager);
     }
 
-    public void Initialize(AssetContentManager assetContentManager)
+    public void Load(AssetContentManager assetContentManager)
     {
         GraphicsDevice = assetContentManager.GraphicsDevice;
-        LoadTexture(AssetInfo.FileName, assetContentManager);
-    }
-
-    private void LoadTexture(string filename, AssetContentManager assetContentManager)
-    {
-        AssetInfo.Name = Path.GetFileNameWithoutExtension(filename);
-        AssetInfo.FileName = filename;
-
-        if (File.Exists(filename) == false)
-        {
-            //TODO : all asset must be loaded from  ProjectPath
-            filename = Path.Combine(EngineEnvironment.ProjectPath, filename);
-            if (File.Exists(filename) == false)
-            {
-                throw new ArgumentException($"Failed to load texture: File {AssetInfo.FileName} does not exists!", nameof(filename));
-            }
-        }
-
-        try
-        {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(filename);
-            Texture2d = assetContentManager.Load<Texture2D>(assetInfo, GraphicsDevice);
-            //ScreenSize = new ScreenSize(Texture2d.Width, Texture2d.Height, new Screen(GraphicsDevice));
-            Resource.Name = AssetInfo.FileName;
-        }
-        catch (ObjectDisposedException)
-        {
-            throw new InvalidOperationException("Content Manager: Content manager disposed");
-        }
-        catch (Exception e)
-        {
-            throw new InvalidOperationException($"Failed to load texture: {filename}", e);
-        }
+        var assetInfo = GameSettings.AssetInfoManager.Get(_texture2dAssetId);
+        Texture2d = assetContentManager.Load<Texture2D>(assetInfo);
+        Resource.Name = AssetInfo.FileName;
     }
 
     protected override void DisposeManagedResources()
@@ -126,7 +101,7 @@ public class Texture : Asset
         }
         else if (Texture2d is { IsDisposed: true })
         {
-            Texture2d = assetContentManager.Load<Texture2D>(AssetInfo, device);
+            Texture2d = assetContentManager.Load<Texture2D>(AssetInfo);
         }
 
         GraphicsDevice = device;
@@ -137,6 +112,7 @@ public class Texture : Asset
         base.Load(element.GetProperty("asset"), option);
 
         PreferredSamplerState = element.GetProperty("sampler_state").GetSamplerState();
+        _texture2dAssetId = element.GetProperty("texture_asset_id").GetInt32();
 
         //if (!string.IsNullOrEmpty(AssetInfo.FileName) && File.Exists(AssetInfo.FileName))
         //{
@@ -149,6 +125,8 @@ public class Texture : Asset
     public override void Save(JObject jObject, SaveOption option)
     {
         base.Save(jObject, option);
+
+        jObject.Add("texture_asset_id", _texture2dAssetId);
 
         var newNode = new JObject();
         PreferredSamplerState.Save(newNode);

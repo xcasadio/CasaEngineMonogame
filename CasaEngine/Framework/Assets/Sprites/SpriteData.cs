@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Assets.Sprites;
 
 public class SpriteData : Asset
 {
-    public string SpriteSheetFileName { get; set; }
+    public long SpriteSheetAssetId { get; set; }
     public Rectangle PositionInTexture { get; set; }
     public Point Origin { get; set; }
     public List<Socket> Sockets { get; } = new();
@@ -16,9 +16,8 @@ public class SpriteData : Asset
     public override void Load(JsonElement element, SaveOption option)
     {
         base.Load(element.GetProperty("asset"), option);
-        //AssetInfo.Name = element.GetJsonPropertyByName("asset_name").Value.GetString();
 
-        SpriteSheetFileName = element.GetJsonPropertyByName("sprite_sheet").Value.GetString();
+        SpriteSheetAssetId = element.GetJsonPropertyByName("sprite_sheet_asset_id").Value.GetInt64();
         PositionInTexture = element.GetJsonPropertyByName("location").Value.GetRectangle();
         Origin = element.GetJsonPropertyByName("hotspot").Value.GetPoint();
 
@@ -49,7 +48,7 @@ public class SpriteData : Asset
     {
         base.Save(jObject, option);
         //jObject.Add("asset_name", Name);
-        jObject.Add("sprite_sheet", SpriteSheetFileName);
+        jObject.Add("sprite_sheet_asset_id", SpriteSheetAssetId);
 
         JObject newJObject = new();
         PositionInTexture.Save(newJObject);

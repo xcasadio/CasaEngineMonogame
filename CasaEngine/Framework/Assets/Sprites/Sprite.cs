@@ -1,4 +1,5 @@
-﻿using Texture = CasaEngine.Framework.Assets.Textures.Texture;
+﻿using CasaEngine.Framework.Game;
+using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Assets.Sprites;
 
@@ -15,7 +16,9 @@ public class Sprite
 
     public static Sprite Create(SpriteData spriteData, AssetContentManager assetContentManager)
     {
-        var texture = new Texture(spriteData.SpriteSheetFileName, assetContentManager);
+        var assetInfo = GameSettings.AssetInfoManager.Get(spriteData.SpriteSheetAssetId);
+        var texture = assetContentManager.Load<Texture>(assetInfo);
+        texture.Load(assetContentManager);
         return new Sprite(spriteData, texture);
     }
 }

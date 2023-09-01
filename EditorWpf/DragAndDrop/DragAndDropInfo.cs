@@ -1,8 +1,7 @@
-﻿namespace EditorWpf.DragAndDrop
+﻿namespace EditorWpf.DragAndDrop;
+
+public class DragAndDropInfo
 {
-    public class DragAndDropInfo
-    {
-        public string Action { get; set; }
-        public string Type { get; set; }
-    }
+    public string Action { get; set; }
+    public string Type { get; set; }
 }
