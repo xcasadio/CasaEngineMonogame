@@ -32,9 +32,6 @@ BEGIN_CONSTANTS
 
     float3 EyePosition _vs(c13) _ps(c14) _cb(c12);
 
-    //float3 FogColor _ps(c0) _cb(c13);
-    //float4 FogVector _vs(c14) _cb(c14);
-
     float4x4 World _vs(c19) _cb(c15);
     float3x3 WorldInverseTranspose _vs(c23) _cb(c19);
 

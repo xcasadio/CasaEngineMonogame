@@ -249,7 +249,7 @@ public class PhysicsEngine
         _outdatedCollisions.Clear();
     }
 
-    internal void ClearCollisionDataOf(PhysicsComponent component)
+    internal void ClearCollisionDataOf(ICollideableComponent component)
     {
         foreach (var (collision, key) in _collisions)
         {

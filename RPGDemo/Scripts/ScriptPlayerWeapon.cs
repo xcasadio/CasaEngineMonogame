@@ -23,6 +23,8 @@ public class ScriptPlayerWeapon : ExternalComponent
 
     public override void Initialize(CasaEngineGame game)
     {
+        _entity.IsEnabled = false;
+        _entity.IsVisible = false;
     }
 
     public override void Update(float elapsedTime)

@@ -8,105 +8,103 @@ namespace CasaEngine.Framework.Materials;
 
 public class Material
 {
-    public string TextureBaseColorName;
-    public Texture2D TextureBaseColor;
+    public long TextureBaseColorAssetId { get; set; }
+    public Texture TextureBaseColor;
 
-    public string TextureOpacityName;
-    public Texture2D TextureOpacityColor;
+    public long TextureOpacityAssetId { get; set; }
+    public Texture TextureOpacityColor;
 
-    public string TextureNormalName;
-    public Texture2D TextureNormal;
+    public long TextureNormalAssetId { get; set; }
+    public Texture TextureNormal;
 
-    public string TextureSpecularName;
-    public Texture2D TextureSpecular;
+    public long TextureSpecularAssetId { get; set; }
+    public Texture TextureSpecular;
 
-    public string TextureRoughnessName;
-    public Texture2D TextureRoughness;
+    public long TextureRoughnessAssetId { get; set; }
+    public Texture TextureRoughness;
 
-    public string TextureTangentName;
-    public Texture2D TextureTangent;
+    public long TextureTangentAssetId { get; set; }
+    public Texture TextureTangent;
 
-    public string TextureHeightName;
-    public Texture2D TextureHeight;
+    public long TextureHeightAssetId { get; set; }
+    public Texture TextureHeight;
 
-    public string TextureReflectionName;
-    public Texture2D TextureReflection;
+    public long TextureReflectionAssetId { get; set; }
+    public Texture TextureReflection;
 
-    public void Load(AssetContentManager content, GraphicsDevice graphicsDevice)
+    public void Load(AssetContentManager content)
     {
-        if (string.IsNullOrEmpty(TextureBaseColorName))
+        if (TextureBaseColorAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureBaseColorName);
-            TextureBaseColor = content.Load<Texture2D>(assetInfo);
+            TextureBaseColor = LoadTexture(TextureBaseColorAssetId, content);
         }
 
-        if (string.IsNullOrEmpty(TextureOpacityName))
+        if (TextureOpacityAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureOpacityName);
-            TextureOpacityColor = content.LoadWithoutAdd<Texture2D>(TextureOpacityName);
+            TextureOpacityColor = LoadTexture(TextureOpacityAssetId, content);
         }
 
-        if (string.IsNullOrEmpty(TextureNormalName))
+        if (TextureNormalAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureNormalName);
-            TextureNormal = content.LoadWithoutAdd<Texture2D>(TextureNormalName);
+            TextureNormal = LoadTexture(TextureNormalAssetId, content);
         }
 
-        if (string.IsNullOrEmpty(TextureSpecularName))
+        if (TextureSpecularAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureSpecularName);
-            TextureSpecular = content.LoadWithoutAdd<Texture2D>(TextureSpecularName);
+            TextureSpecular = LoadTexture(TextureSpecularAssetId, content);
         }
 
-        if (string.IsNullOrEmpty(TextureRoughnessName))
+        if (TextureRoughnessAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureOpacityName);
-            TextureRoughness = content.LoadWithoutAdd<Texture2D>(TextureRoughnessName);
+            TextureRoughness = LoadTexture(TextureRoughnessAssetId, content);
         }
 
-        if (string.IsNullOrEmpty(TextureTangentName))
+        if (TextureTangentAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureTangentName);
-            TextureTangent = content.LoadWithoutAdd<Texture2D>(TextureTangentName);
+            TextureTangent = LoadTexture(TextureTangentAssetId, content);
         }
 
-        if (string.IsNullOrEmpty(TextureHeightName))
+        if (TextureHeightAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureHeightName);
-            TextureHeight = content.LoadWithoutAdd<Texture2D>(TextureHeightName);
+            TextureHeight = LoadTexture(TextureHeightAssetId, content);
         }
 
-        if (string.IsNullOrEmpty(TextureReflectionName))
+        if (TextureReflectionAssetId != IdManager.InvalidId)
         {
-            var assetInfo = GameSettings.AssetInfoManager.GetOrAdd(TextureReflectionName);
-            TextureReflection = content.LoadWithoutAdd<Texture2D>(TextureReflectionName);
+            TextureReflection = LoadTexture(TextureReflectionAssetId, content);
         }
+    }
+
+    private Texture LoadTexture(long assetId, AssetContentManager content)
+    {
+        var assetInfo = GameSettings.AssetInfoManager.Get(assetId);
+        return content.Load<Texture>(assetInfo);
     }
 
     public void Load(JsonElement element)
     {
-        TextureBaseColorName = element.GetProperty("texture_base_color_name").GetString();
-        TextureOpacityName = element.GetProperty("texture_opacity_name").GetString();
-        TextureNormalName = element.GetProperty("texture_normal_name").GetString();
-        TextureSpecularName = element.GetProperty("texture_specular_name").GetString();
-        TextureRoughnessName = element.GetProperty("texture_roughness_name").GetString();
-        TextureTangentName = element.GetProperty("texture_tangent_name").GetString();
-        TextureHeightName = element.GetProperty("texture_height_name").GetString();
-        TextureReflectionName = element.GetProperty("texture_reflection_name").GetString();
+        TextureBaseColorAssetId = element.GetProperty("texture_base_color_asset_id").GetInt64();
+        TextureOpacityAssetId = element.GetProperty("texture_opacity_asset_id").GetInt64();
+        TextureNormalAssetId = element.GetProperty("texture_normal_asset_id").GetInt64();
+        TextureSpecularAssetId = element.GetProperty("texture_specular_asset_id").GetInt64();
+        TextureRoughnessAssetId = element.GetProperty("texture_roughness_asset_id").GetInt64();
+        TextureTangentAssetId = element.GetProperty("texture_tangent_asset_id").GetInt64();
+        TextureHeightAssetId = element.GetProperty("texture_height_asset_id").GetInt64();
+        TextureReflectionAssetId = element.GetProperty("texture_reflection_asset_id").GetInt64();
     }
 
 #if EDITOR
 
     public void Save(JObject jObject)
     {
-        jObject.Add("texture_base_color_name", TextureBaseColorName == null ? "null" : TextureBaseColorName);
-        jObject.Add("texture_opacity_name", TextureOpacityName == null ? "null" : TextureOpacityName);
-        jObject.Add("texture_normal_name", TextureNormalName == null ? "null" : TextureNormalName);
-        jObject.Add("texture_specular_name", TextureSpecularName == null ? "null" : TextureSpecularName);
-        jObject.Add("texture_roughness_name", TextureRoughnessName == null ? "null" : TextureRoughnessName);
-        jObject.Add("texture_tangent_name", TextureTangentName == null ? "null" : TextureTangentName);
-        jObject.Add("texture_height_name", TextureHeightName == null ? "null" : TextureHeightName);
-        jObject.Add("texture_reflection_name", TextureReflectionName == null ? "null" : TextureReflectionName);
+        jObject.Add("texture_base_color_asset_id", TextureBaseColorAssetId);
+        jObject.Add("texture_opacity_asset_id", TextureOpacityAssetId);
+        jObject.Add("texture_normal_asset_id", TextureNormalAssetId);
+        jObject.Add("texture_specular_asset_id", TextureSpecularAssetId);
+        jObject.Add("texture_roughness_asset_id", TextureRoughnessAssetId);
+        jObject.Add("texture_tangent_asset_id", TextureTangentAssetId);
+        jObject.Add("texture_height_asset_id", TextureHeightAssetId);
+        jObject.Add("texture_reflection_asset_id", TextureReflectionAssetId);
     }
 
 #endif

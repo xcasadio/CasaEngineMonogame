@@ -14,19 +14,6 @@
     "x": 8,
     "y": 8
   },
-  "collisions": [
-    {
-      "collision_type": "Attack",
-      "version": 1,
-      "shape_type": "Rectangle",
-      "location": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "orientation": 0.0,
-      "w": 16,
-      "h": 16
-    }
-  ],
+  "collisions": [],
   "sockets": []
 }

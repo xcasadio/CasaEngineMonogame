@@ -23,7 +23,9 @@ namespace DemosGame
 
         protected override void Initialize()
         {
+            LogManager.Instance.AddLogger(new DebugLogger());
             LogManager.Instance.AddLogger(new FileLogger("log.txt"));
+            LogManager.Instance.Verbosity = LogVerbosity.Trace;
 
             EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
             GameSettings.ProjectSettings.IsMouseVisible = true;

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -77,13 +78,6 @@ public class AssetContentManager
         return _assetLoaderByType.Values.Any(assetLoader => assetLoader.IsFileSupported(fileName));
     }
 
-    //TODO : remove only create for texture (waiting add assetinfo for texture)
-    public T LoadWithoutAdd<T>(string fileName, string categoryName = DefaultCategory)
-    {
-        var type = typeof(T);
-        return (T)_assetLoaderByType[type].LoadAsset(fileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fileName}");
-    }
-
     public T Load<T>(AssetInfo assetInfo, string categoryName = DefaultCategory)
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList))
@@ -109,6 +103,7 @@ public class AssetContentManager
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
+        LogManager.Instance.WriteLineTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;

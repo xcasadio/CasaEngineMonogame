@@ -33,6 +33,6 @@ public class MeleeWeapon : Weapon
         Entity.IsVisible = false;
 
         //collision from the last frame is not removed !!
-        _animatedSpriteComponent.RemoveCollisionsFromFrame(_animatedSpriteComponent.CurrentAnimation.CurrentFrame);
+        //_animatedSpriteComponent.RemoveCollisionsFromFrame(_animatedSpriteComponent.CurrentAnimation.CurrentFrame);
     }
 }

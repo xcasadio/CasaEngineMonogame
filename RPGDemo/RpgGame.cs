@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Logger;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
@@ -28,6 +29,8 @@ namespace RPGDemo;
 
 public class RpgGame : CasaEngineGame
 {
+    private static float _characterZOffSet = 0.3f;
+
     protected override void Initialize()
     {
         EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
@@ -43,7 +46,11 @@ public class RpgGame : CasaEngineGame
         //GameManager.Renderer2dComponent.IsDrawCollisionsEnabled = true;
         //GameManager.Renderer2dComponent.IsDrawSpriteOriginEnabled = true;
 
-        PhysicsDebugViewRendererComponent.DisplayPhysics = true;
+        //PhysicsDebugViewRendererComponent.DisplayPhysics = true;
+
+        LogManager.Instance.AddLogger(new DebugLogger());
+        LogManager.Instance.AddLogger(new FileLogger("log.txt"));
+        LogManager.Instance.Verbosity = LogVerbosity.Trace;
     }
 
     protected override void LoadContent()
@@ -140,7 +147,7 @@ public class RpgGame : CasaEngineGame
         //============ player ===============
         entity = new Entity();
         entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(60, 600, 0.2f);
+        entity.Coordinates.LocalPosition = new Vector3(60, 600, _characterZOffSet);
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
@@ -175,9 +182,7 @@ public class RpgGame : CasaEngineGame
         //============ weapon rock ===============
         var entity = new Entity();
         var rockEntity = entity;
-        entity.IsVisible = false;
-        entity.IsEnabled = false;
-        entity.Name = "rock";
+        entity.Name = "octopus_rock";
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
@@ -204,7 +209,7 @@ public class RpgGame : CasaEngineGame
         //============ enemy ===============
         entity = new Entity();
         entity.Name = "Octopus";
-        entity.Coordinates.LocalPosition = new Vector3(600, 600, 0.2f);
+        entity.Coordinates.LocalPosition = new Vector3(600, 600, _characterZOffSet);
         physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;

@@ -37,11 +37,19 @@ public class AssetInfo : ISaveLoad
     {
         Id = element.GetProperty("id").GetInt64();
         IdManager.SetMax(Id);
-        Name = element.GetProperty("name").GetString();
 
-        if (element.TryGetProperty("file_name", out var node))
+        if (element.TryGetProperty("file_name", out var fileNameNode))
         {
-            FileName = element.GetProperty("file_name").GetString();
+            FileName = fileNameNode.GetString();
+        }
+
+        if (element.TryGetProperty("name", out var nameNode))
+        {
+            Name = nameNode.GetString();
+        }
+        else
+        {
+            Name = Path.GetFileNameWithoutExtension(FileName); //element.GetProperty("name").GetString();
         }
     }
 
@@ -50,7 +58,7 @@ public class AssetInfo : ISaveLoad
     {
         var assetObject = new JObject(
             new JProperty("id", Id),
-            new JProperty("name", Name),
+            //new JProperty("name", Name),
             new JProperty("file_name", FileName));
 
         jObject.Add("asset", assetObject);

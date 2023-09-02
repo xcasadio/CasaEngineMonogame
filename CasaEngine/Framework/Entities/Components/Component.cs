@@ -24,7 +24,7 @@ public abstract class Component : ISaveLoad
 
     public virtual void Initialize(CasaEngineGame game)
     {
-
+        //do nothing
     }
 
     public abstract void Update(float elapsedTime);
@@ -39,7 +39,11 @@ public abstract class Component : ISaveLoad
 
     public virtual void ScreenResized(int width, int height)
     {
-
+        //do nothing
+    }
+    public virtual void OnEnabledValueChange()
+    {
+        //do nothing
     }
 
     public bool HandleMessage(Message message)

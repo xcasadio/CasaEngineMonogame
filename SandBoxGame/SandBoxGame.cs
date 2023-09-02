@@ -66,7 +66,7 @@ namespace SandBoxGame
             var meshComponent = new StaticMeshComponent(entity);
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
-            meshComponent.Mesh.Initialize(GraphicsDevice);
+            meshComponent.Mesh.Initialize(GraphicsDevice, GameManager.AssetContentManager);
             meshComponent.Mesh.Texture = new Texture(@"Content\checkboard.png", GameManager.AssetContentManager);
             //meshComponent.Mesh.Texture = GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             world.AddEntityImmediately(entity);

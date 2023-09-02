@@ -1,6 +1,9 @@
 using System;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using RPGDemo.Controllers;
 
@@ -11,7 +14,7 @@ public class ThrowableWeapon : Weapon
     private readonly Physics2dComponent _physics2dComponent;
     private readonly AnimatedSpriteComponent _animatedSpriteComponent;
 
-    public ThrowableWeapon(Entity entity) : base(entity)
+    public ThrowableWeapon(CasaEngineGame game, Entity entity) : base(game, entity)
     {
         _physics2dComponent = entity.ComponentManager.GetComponent<Physics2dComponent>();
         _animatedSpriteComponent = Entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
@@ -19,7 +22,6 @@ public class ThrowableWeapon : Weapon
 
     protected override void Initialize()
     {
-        //do nothing
     }
 
     public override void Attach()
@@ -53,15 +55,22 @@ public class ThrowableWeapon : Weapon
         _animatedSpriteComponent.SetCurrentAnimation("rock", true);
 
         //spawn
-        //Entity.Clone()
+        //SpawnEntity("rock", _game.GameManager.AssetContentManager, _game.GameManager.CurrentWorld);
+    }
+
+    private void SpawnEntity(string assetName, AssetContentManager assetContentManager, World world)
+    {
+        var assetInfo = GameSettings.AssetInfoManager.Get(assetName);
+        var entity = assetContentManager.Load<Entity>(assetInfo);
+        world.AddEntity(entity);
     }
 
     public override void UnAttachWeapon()
     {
-        Entity.IsEnabled = true;
-        Entity.IsVisible = true;
+        Entity.IsEnabled = false;
+        Entity.IsVisible = false;
 
-        _animatedSpriteComponent.RemoveCollisionsFromFrame(_animatedSpriteComponent.CurrentAnimation.CurrentFrame);
+        //_animatedSpriteComponent.RemoveCollisionsFromFrame(_animatedSpriteComponent.CurrentAnimation.CurrentFrame);
 
         //Entity.Destroy();
     }

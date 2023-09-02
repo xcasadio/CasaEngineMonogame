@@ -88,39 +88,10 @@ public class Physics2dComponent : Component, ICollideableComponent
             return;
         }
 
-        if (_collisionObject != null)
-        {
-            _physicsEngineComponent.RemoveCollisionObject(_collisionObject);
-            _collisionObject = null;
-        }
-        if (_rigidBody != null)
-        {
-            _physicsEngineComponent.RemoveRigidBody(_rigidBody);
-            _rigidBody = null;
-        }
+        DestroyPhysicsObject();
 #endif
 
-        //TODO : remove this
-        if (_shape != null)
-        {
-            _shape.Position = Owner.Coordinates.LocalPosition.ToVector2();
-            //_shape.Rotation = Owner.Coordinates.Rotation;
-        }
-
-        var worldMatrix = Matrix.CreateFromQuaternion(Owner.Coordinates.LocalRotation) * Matrix.CreateTranslation(Owner.Coordinates.LocalPosition);
-
-        switch (PhysicsType)
-        {
-            case PhysicsType.Static:
-                _collisionObject = _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
-                break;
-            case PhysicsType.Kinetic:
-                _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
-                break;
-            default:
-                _rigidBody = _physicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
-                break;
-        }
+        CreatePhysicsObject();
     }
 
     public override void Update(float elapsedTime)
@@ -153,6 +124,62 @@ public class Physics2dComponent : Component, ICollideableComponent
         var worldMatrix = physicObject.WorldTransform;
         worldMatrix.Translation = position;
         physicObject.WorldTransform = worldMatrix;
+    }
+
+    public override void OnEnabledValueChange()
+    {
+        if (Owner.IsEnabled)
+        {
+            CreatePhysicsObject();
+        }
+        else
+        {
+            DestroyPhysicsObject();
+        }
+    }
+
+    private void DestroyPhysicsObject()
+    {
+        if (_collisionObject != null)
+        {
+            _physicsEngineComponent.RemoveCollisionObject(_collisionObject);
+            _collisionObject = null;
+        }
+
+        if (_rigidBody != null)
+        {
+            _physicsEngineComponent.RemoveRigidBody(_rigidBody);
+            _rigidBody = null;
+        }
+
+        _physicsEngineComponent.ClearCollisionDataOf(this);
+    }
+
+    private void CreatePhysicsObject()
+    {
+        //TODO : remove this
+        if (_shape != null)
+        {
+            _shape.Position = Owner.Coordinates.LocalPosition.ToVector2();
+            //_shape.Rotation = Owner.Coordinates.Rotation;
+        }
+
+        var worldMatrix = Matrix.CreateFromQuaternion(Owner.Coordinates.LocalRotation) *
+                          Matrix.CreateTranslation(Owner.Coordinates.LocalPosition);
+
+        switch (PhysicsType)
+        {
+            case PhysicsType.Static:
+                _collisionObject =
+                    _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
+                break;
+            case PhysicsType.Kinetic:
+                _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
+                break;
+            default:
+                _rigidBody = _physicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
+                break;
+        }
     }
 
     public void OnHit(Collision collision)

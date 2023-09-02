@@ -74,7 +74,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         CurrentAnimation.FrameChanged += OnFrameChanged;
         CurrentAnimation.AnimationFinished += OnAnimationFinished;
         CurrentAnimation.FrameChanged += OnFrameChanged;
-        AddCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
+        AddOrUdpateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
     }
 
     public void SetCurrentAnimation(int index, bool forceReset)
@@ -220,17 +220,17 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     private void OnFrameChanged(object? sender, (long oldFrame, long newFrame) arg)
     {
         RemoveCollisionsFromFrame(arg.oldFrame);
-        AddCollisionFromFrame(arg.newFrame, true);
+        AddOrUdpateCollisionFromFrame(arg.newFrame, true);
 
         FrameChanged?.Invoke(this, arg.newFrame);
     }
 
     private void UpdateCollisionFromFrame(long frameId)
     {
-        AddCollisionFromFrame(frameId, false);
+        AddOrUdpateCollisionFromFrame(frameId, false);
     }
 
-    private void AddCollisionFromFrame(long frameId, bool addCollision)
+    private void AddOrUdpateCollisionFromFrame(long frameId, bool addCollision)
     {
         if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
         {
@@ -254,6 +254,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
             foreach (var (shape2d, collisionObject) in collisionObjects)
             {
                 _physicsEngineComponent.RemoveCollisionObject(collisionObject);
+                _physicsEngineComponent.ClearCollisionDataOf(this);
             }
         }
     }
@@ -261,6 +262,21 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     private void OnAnimationFinished(object? sender, EventArgs args)
     {
         AnimationFinished?.Invoke(this, (Animation2d)sender);
+    }
+
+    public override void OnEnabledValueChange()
+    {
+        if (CurrentAnimation != null)
+        {
+            if (Owner.IsEnabled)
+            {
+                AddOrUdpateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
+            }
+            else
+            {
+                RemoveCollisionsFromFrame(CurrentAnimation.CurrentFrame);
+            }
+        }
     }
 
     public void OnHit(Collision collision)

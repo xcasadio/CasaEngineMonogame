@@ -1,7 +1,6 @@
 {
   "asset": {
     "id": 0,
-    "name": "DefaultWorld",
     "file_name": "DefaultWorld.world"
   },
   "entity_references": [

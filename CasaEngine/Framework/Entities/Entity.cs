@@ -2,6 +2,7 @@
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Logger;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
@@ -20,6 +21,7 @@ public class Entity : ISaveLoad
 #endif
 {
     private Entity? _parent;
+    private bool _isEnabled = true;
 
     [Category("Object"), ReadOnly(true)]
     public long Id { get; private set; }
@@ -44,7 +46,16 @@ public class Entity : ISaveLoad
     public Coordinates Coordinates { get; } = new();
 
     [Category("Object")]
-    public bool IsEnabled { get; set; } = true;
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set
+        {
+            _isEnabled = value;
+            LogManager.Instance.WriteLineTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
+            OnEnabledValueChange();
+        }
+    }
 
     [Category("Object")]
     public bool IsVisible { get; set; } = true;
@@ -129,9 +140,21 @@ public class Entity : ISaveLoad
 
     public void ScreenResized(int width, int height)
     {
-        foreach (var component in ComponentManager.Components)
+        var components = ComponentManager.Components;
+
+        for (var index = 0; index < components.Count; index++)
         {
-            component.ScreenResized(width, height);
+            components[index].ScreenResized(width, height);
+        }
+    }
+
+    private void OnEnabledValueChange()
+    {
+        var components = ComponentManager.Components;
+
+        for (var index = 0; index < components.Count; index++)
+        {
+            components[index].OnEnabledValueChange();
         }
     }
 

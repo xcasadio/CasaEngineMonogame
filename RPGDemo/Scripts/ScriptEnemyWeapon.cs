@@ -7,6 +7,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using RPGDemo.Components;
+using static Assimp.Metadata;
 
 namespace RPGDemo.Scripts;
 
@@ -23,6 +24,8 @@ public class ScriptEnemyWeapon : ExternalComponent
 
     public override void Initialize(CasaEngineGame game)
     {
+        _entity.IsEnabled = false;
+        _entity.IsVisible = false;
     }
 
     public override void Update(float elapsedTime)
@@ -74,6 +77,9 @@ public class ScriptEnemyWeapon : ExternalComponent
 
         if (playerComponent != null)
         {
+            _entity.IsEnabled = false;
+            _entity.IsVisible = false;
+
             //check if it AutoTile grass
             //tileCollisionManager.RemoveTile();
         }

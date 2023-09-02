@@ -49,6 +49,11 @@ public class AssetInfoManager
         return assetInfo;
     }
 
+    public AssetInfo? Get(string name)
+    {
+        return _assetInfos.Values.FirstOrDefault(x => x.Name == name);
+    }
+
     public void Load(string fileName, SaveOption option)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
@@ -85,9 +90,7 @@ public class AssetInfoManager
         {
             var entityObject = new JObject(
                 new JProperty("id", assetInfo.Value.Id),
-                new JProperty("name", assetInfo.Value.Name),
                 new JProperty("file_name", assetInfo.Value.FileName));
-            //assetInfo.Value.Save(entityObject, option);
 
             assetInfoJArray.Add(entityObject);
         }

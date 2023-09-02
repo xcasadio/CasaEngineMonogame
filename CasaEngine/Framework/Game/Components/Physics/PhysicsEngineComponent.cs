@@ -235,4 +235,9 @@ public class PhysicsEngineComponent : GameComponent
     {
         PhysicsEngine.World.RemoveRigidBody(rigidBody);
     }
+
+    public void ClearCollisionDataOf(ICollideableComponent component)
+    {
+        PhysicsEngine.ClearCollisionDataOf(component);
+    }
 }

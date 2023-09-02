@@ -9,8 +9,6 @@ public class AssetLoader<T> : IAssetLoader where T : ISaveLoad, new()
 {
     public object LoadAsset(string fileName, GraphicsDevice device)
     {
-        LogManager.Instance.WriteLineTrace($"Load asset {fileName}");
-
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
         var entity = new T();
         entity.Load(jsonDocument.RootElement, SaveOption.Editor);
