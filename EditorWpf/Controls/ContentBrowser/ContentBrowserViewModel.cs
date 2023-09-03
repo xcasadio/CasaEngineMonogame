@@ -111,6 +111,12 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
             .TrimStart(Path.DirectorySeparatorChar);
 
         var folders = Path.GetDirectoryName(fullFileName).Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+
+        if (folders.Length == 0)
+        {
+            return RootFolder;
+        }
+
         FolderItem parentFolderItem = rootFolderItem;
         FolderItem folderItem = null;
 

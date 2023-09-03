@@ -47,6 +47,11 @@ public sealed class World : Asset
         _baseObjectsToAdd.Add(entity);
     }
 
+    public void RemoveEntity(Entity entity)
+    {
+        entity.Destroy();
+    }
+
     public void ClearEntities()
     {
         _entities.Clear();
@@ -213,7 +218,7 @@ public sealed class World : Asset
         EntitiesAdded?.Invoke(this, entity);
     }
 
-    public void RemoveEntity(Entity entity)
+    public void RemoveEntityEditorMode(Entity entity)
     {
         var entityReference = new EntityReference();
         entityReference.Name = entity.Name;

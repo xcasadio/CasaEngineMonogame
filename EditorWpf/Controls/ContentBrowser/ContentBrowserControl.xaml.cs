@@ -9,8 +9,10 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls.Animation2dControls;
+using EditorWpf.Controls.Common;
 using EditorWpf.Controls.EntityControls;
 using EditorWpf.Controls.SpriteControls;
 using EditorWpf.Controls.TileMapControls;
@@ -216,6 +218,32 @@ namespace EditorWpf.Controls.ContentBrowser
 
         }
 
+        private void MenuItemCreateEntity_OnClick(object sender, RoutedEventArgs e)
+        {
+            //ask name
+            var entity = new Entity();
+            var inputTextBox = new InputTextBox();
+            inputTextBox.Text = entity.Name;
+
+            if (inputTextBox.ShowDialog() == true)
+            {
+                //add asset
+
+                var folderItem = treeViewFolders.SelectedItem as FolderItem;
+                var contentItem = new ContentItem(entity.AssetInfo);
+                //folderItem.Contents.Add(contentItem);
+                ListBoxFolderContent.SelectedItem = contentItem;
+
+                //save entity
+                entity.Name = inputTextBox.Text;
+                entity.AssetInfo.FileName = Path.Combine(folderItem.FullPath, entity.Name + Constants.FileNameExtensions.Entity);
+
+                GameSettings.AssetInfoManager.Add(entity.AssetInfo);
+                AssetSaver.SaveAsset(entity.AssetInfo.FileName, entity);
+                GameSettings.AssetInfoManager.Save();
+            }
+        }
+
         private void ListBoxFolderContentDelete_Click(object sender, RoutedEventArgs e)
         {
             if (ListBoxFolderContent.SelectedItem == null)
@@ -230,7 +258,7 @@ namespace EditorWpf.Controls.ContentBrowser
 
         private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-
+            e.Handled = false;
         }
     }
 }

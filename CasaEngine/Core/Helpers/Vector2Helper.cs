@@ -64,4 +64,9 @@ public static class Vector2Helper
     {
         return MathUtils.FloatInRange(Area(ref a, ref b, ref c), -tolerance, tolerance);
     }
+
+    public static Vector3 ToVector3(this Vector2 vector)
+    {
+        return new Vector3(vector, 0f);
+    }
 }

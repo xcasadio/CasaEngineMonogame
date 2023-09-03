@@ -7,9 +7,11 @@
     {
       "asset_id": -1,
       "entity": {
+        "asset": {
+          "id": 1,
+          "file_name": null
+        },
         "version": 1,
-        "id": 1,
-        "name": "ground",
         "coordinates": {
           "position": {
             "x": 0.0,
@@ -285,9 +287,11 @@
     {
       "asset_id": -1,
       "entity": {
+        "asset": {
+          "id": 967,
+          "file_name": null
+        },
         "version": 1,
-        "id": 967,
-        "name": "Player start",
         "coordinates": {
           "position": {
             "x": -0.17074925,

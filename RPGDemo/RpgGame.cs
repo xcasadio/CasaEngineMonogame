@@ -123,7 +123,7 @@ public class RpgGame : CasaEngineGame
         return animations;
     }
 
-    private static PlayerComponent CreatePlayer(List<Animation2dData> animations, World world)
+    private PlayerComponent CreatePlayer(List<Animation2dData> animations, World world)
     {
         //============ sword ===============
         var entity = new Entity();
@@ -169,7 +169,7 @@ public class RpgGame : CasaEngineGame
 
         var playerComponent = new PlayerComponent(entity);
         playerComponent.Character.AnimatationPrefix = "swordman";
-        playerComponent.Character.SetWeapon(new MeleeWeapon(weaponEntity));
+        playerComponent.Character.SetWeapon(new MeleeWeapon(this, weaponEntity));
         entity.ComponentManager.Components.Add(playerComponent);
 
         world.AddEntityImmediately(entity);
@@ -177,7 +177,7 @@ public class RpgGame : CasaEngineGame
         return playerComponent;
     }
 
-    private static void CreateEnemy(List<Animation2dData> animations, World world, PlayerComponent playerComponent)
+    private void CreateEnemy(List<Animation2dData> animations, World world, PlayerComponent playerComponent)
     {
         //============ weapon rock ===============
         var entity = new Entity();
@@ -231,7 +231,7 @@ public class RpgGame : CasaEngineGame
 
         var enemyComponent = new EnemyComponent(entity);
         enemyComponent.Character.AnimatationPrefix = "octopus";
-        enemyComponent.Character.SetWeapon(new ThrowableWeapon(rockEntity));
+        enemyComponent.Character.SetWeapon(new ThrowableWeapon(this, rockEntity));
         entity.ComponentManager.Components.Add(enemyComponent);
 
         enemyComponent.Controller.PlayerHunted = playerComponent.Character;

@@ -11,7 +11,12 @@ public class FolderItem : ContentItem
     public IEnumerable<FolderItem> Folders => Contents.Where(x => x is FolderItem).Cast<FolderItem>();
     public ObservableCollection<ContentItem> Contents { get; } = new();
 
-    public override string FullPath => Parent == null || IsRoot(Parent) ? Name : System.IO.Path.Combine(Parent.Name, Name);
+    public override string FullPath => Parent == null || IsRoot(Parent) ? IsRoot(this) ? string.Empty : Name : System.IO.Path.Combine(Parent.Name, Name);
+
+    private bool IsRoot()
+    {
+        return this is { Parent: null, Name: "All" };
+    }
 
     private bool IsRoot(FolderItem? folder)
     {

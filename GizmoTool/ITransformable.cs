@@ -30,7 +30,7 @@ namespace XNAGizmo
     public interface ITransformable
     {
 #if USE_NAME
-        string Name { get; set; }
+        string Name { get; }
 #endif
 
         Vector3 Position { get; set; }

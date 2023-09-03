@@ -1,40 +1,18 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Text.Json;
-using BulletSharp;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Physics")]
-public class PhysicsComponent : Component, ICollideableComponent
+public class PhysicsComponent : PhysicsBaseComponent
 {
     public static readonly int ComponentId = (int)ComponentIds.Physics;
     private Shape3d? _shape;
-    private PhysicsEngineComponent _physicsEngineComponent;
-
-    //body
-    private Vector3 _velocity;
-    private float _maxSpeed;
-    private float _maxForce;
-    private float _maxTurnRate;
-    private RigidBody? _rigidBody;
-
-    //static
-    private CollisionObject? _collisionObject;
-
-    [Browsable(false)]
-    public HashSet<Collision> Collisions { get; } = new();
-
-    [Browsable(false)]
-    public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
-    public PhysicsDefinition PhysicsDefinition { get; } = new();
 
     public Shape3d? Shape
     {
@@ -50,94 +28,17 @@ public class PhysicsComponent : Component, ICollideableComponent
 
     public PhysicsComponent(Entity entity) : base(entity, ComponentId)
     {
-        PhysicsDefinition.PhysicsType = PhysicsType.Static;
-
-#if EDITOR
-        entity.PositionChanged += OnPositionChanged;
-        entity.OrientationChanged += OnOrientationChanged;
-#endif
     }
 
-    public override void Initialize(CasaEngineGame game)
+    protected override void CreatePhysicsObject()
     {
-        var physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
-        Debug.Assert(physicsEngineComponent != null);
-
-        _physicsEngineComponent = physicsEngineComponent;
-
-#if EDITOR // TODO : usefull ???
-        if (_shape == null)
+        if (_physicsEngineComponent == null || _shape == null)
         {
             return;
         }
 
-        DestroyPhysicsObject();
-#endif
-
-        CreatePhysicsObject();
-    }
-
-    public override void Update(float elapsedTime)
-    {
-        //In editor mode the game is in idle mode so we don't update physics
-#if !EDITOR
-        CollisionObject? collisionObject = null;
-
-        if (_collisionObject != null)
-        {
-            collisionObject = _collisionObject;
-        }
-        else if (_rigidBody != null)
-        {
-            collisionObject = _rigidBody;
-        }
-
-        if (collisionObject != null)
-        {
-            collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
-            Owner.Coordinates.LocalPosition = position;
-            Owner.Coordinates.LocalRotation = rotation;
-        }
-#endif
-    }
-
-    public override void OnEnabledValueChange()
-    {
-        if (Owner.IsEnabled)
-        {
-            CreatePhysicsObject();
-        }
-        else
-        {
-            DestroyPhysicsObject();
-        }
-    }
-
-    private void DestroyPhysicsObject()
-    {
-        if (_collisionObject != null)
-        {
-            _physicsEngineComponent.RemoveCollisionObject(_collisionObject);
-            _collisionObject = null;
-        }
-
-        if (_rigidBody != null)
-        {
-            _physicsEngineComponent.RemoveRigidBody(_rigidBody);
-            _rigidBody = null;
-        }
-
-        _physicsEngineComponent.ClearCollisionDataOf(this);
-    }
-
-    private void CreatePhysicsObject()
-    {
-        //TODO : remove this
-        if (_shape != null)
-        {
-            _shape.Position = Owner.Coordinates.LocalPosition;
-            _shape.Orientation = Owner.Coordinates.Rotation;
-        }
+        _shape.Position = Owner.Coordinates.LocalPosition;
+        _shape.Orientation = Owner.Coordinates.Rotation;
 
         var worldMatrix = Matrix.CreateFromQuaternion(Owner.Coordinates.LocalRotation) *
                           Matrix.CreateTranslation(Owner.Coordinates.LocalPosition);
@@ -157,33 +58,17 @@ public class PhysicsComponent : Component, ICollideableComponent
         }
     }
 
-    public void OnHit(Collision collision)
-    {
-        Owner.Hit(collision, this);
-    }
-
-    public void OnHitEnded(Collision collision)
-    {
-        Owner.HitEnded(collision, this);
-    }
-
     public override Component Clone(Entity owner)
     {
         var component = new PhysicsComponent(owner);
-
         component._shape = _shape;
-        component._velocity = _velocity;
-        component._maxSpeed = _maxSpeed;
-        component._maxForce = _maxForce;
-        component._maxTurnRate = _maxTurnRate;
-        component.PhysicsDefinition.CopyFrom(PhysicsDefinition);
-
+        Clone(component);
         return component;
     }
 
     public override void Load(JsonElement element, SaveOption option)
     {
-        PhysicsDefinition.Load(element.GetProperty("physics_definition"));
+        base.Load(element, option);
 
         var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "null")
@@ -198,13 +83,9 @@ public class PhysicsComponent : Component, ICollideableComponent
     {
         base.Save(jObject, option);
 
-        JObject newJObject = new();
-        PhysicsDefinition.Save(newJObject);
-        jObject.Add("physics_definition", newJObject);
-
         if (_shape != null)
         {
-            newJObject = new();
+            var newJObject = new JObject();
             _shape.Save(newJObject);
             jObject.Add("shape", newJObject);
         }
@@ -214,34 +95,5 @@ public class PhysicsComponent : Component, ICollideableComponent
         }
     }
 
-    ~PhysicsComponent()
-    {
-        Owner.PositionChanged -= OnPositionChanged;
-        Owner.OrientationChanged -= OnOrientationChanged;
-    }
-
-    private void OnPositionChanged(object? sender, EventArgs e)
-    {
-        if (_collisionObject != null)
-        {
-            _collisionObject.WorldTransform = Owner.Coordinates.WorldMatrix;
-        }
-        if (_rigidBody != null)
-        {
-            _rigidBody.WorldTransform = Owner.Coordinates.WorldMatrix;
-        }
-    }
-
-    private void OnOrientationChanged(object? sender, EventArgs e)
-    {
-        if (_collisionObject != null)
-        {
-            _collisionObject.WorldTransform = Owner.Coordinates.WorldMatrix;
-        }
-        if (_rigidBody != null)
-        {
-            _rigidBody.WorldTransform = Owner.Coordinates.WorldMatrix;
-        }
-    }
 #endif
 }

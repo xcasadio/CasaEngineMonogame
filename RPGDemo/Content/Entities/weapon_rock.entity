@@ -1,7 +1,9 @@
 {
+  "asset": {
+    "id": 10036,
+    "file_name": "weapon_rock.entity"
+  },
   "version": 1,
-  "id": 2,
-  "name": "weapon_rock",
   "coordinates": {
     "position": {
       "x": 0.0,
@@ -28,7 +30,19 @@
   "components": [
     {
       "version": 1,
-      "type": 5,
+      "type": 6,
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+      },
+      "sprite_effect": "None",
+      "animations": []
+    },
+    {
+      "version": 1,
+      "type": 4,
       "physics_definition": {
         "physics_type": "Dynamic",
         "additional_angular_damping_factor": 0.01,
@@ -40,56 +54,29 @@
         "angular_factor": {
           "x": 0.0,
           "y": 0.0,
-          "z": 0.0
+          "z": 1.0
         },
-        "angular_sleeping_threshold": 0.0,
-        "friction": 0.0,
+        "angular_sleeping_threshold": 1.0,
+        "friction": 0.5,
         "linear_damping": 0.0,
         "linear_factor": {
           "x": 1.0,
           "y": 1.0,
-          "z": 1.0
+          "z": 0.0
         },
-        "linear_sleeping_threshold": 0.0,
+        "linear_sleeping_threshold": 0.8,
         "local_inertia": {
           "x": 0.0,
           "y": 0.0,
           "z": 0.0
         },
-        "mass": 1.0,
+        "mass": 0.0,
         "restitution": 0.0,
         "rolling_friction": 0.0,
-        "apply_gravity": false,
+        "apply_gravity": true,
         "debug_color": "null"
       },
-      "shape": {
-        "version": 1,
-        "shape_type": "Sphere",
-        "position": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
-        "orientation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0,
-          "w": 1.0
-        },
-        "radius": 20.0
-      }
-    },
-    {
-      "version": 1,
-      "type": 6,
-      "color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
-      },
-      "sprite_effect": "None",
-      "animations": []
+      "shape": "null"
     },
     {
       "version": 1,

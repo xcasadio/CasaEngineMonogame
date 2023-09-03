@@ -6,7 +6,7 @@ namespace RPGDemo.Weapons;
 
 public abstract class Weapon
 {
-    protected readonly CasaEngineGame _game;
+    protected CasaEngineGame Game { get; }
     private Character _character;
 
     public Entity Entity { get; }
@@ -23,7 +23,7 @@ public abstract class Weapon
 
     protected Weapon(CasaEngineGame game, Entity entity)
     {
-        _game = game;
+        Game = game;
         Entity = entity;
     }
 

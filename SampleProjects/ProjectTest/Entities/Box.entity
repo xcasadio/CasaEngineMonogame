@@ -1,7 +1,9 @@
 {
+  "asset": {
+    "id": 2,
+    "file_name": null
+  },
   "version": 1,
-  "id": 2,
-  "name": "Box",
   "coordinates": {
     "position": {
       "x": 0.0,

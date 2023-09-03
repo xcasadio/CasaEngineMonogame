@@ -63,7 +63,7 @@ public class PlayerComponent : CasaEngine.Framework.Entities.Components.Componen
             animationName = "swordman_walk_left";
         }
 
-        _physics2dComponent.Velocity = new Vector2(velocityX, velocityY);
+        _physics2dComponent.Velocity = new Vector3(velocityX, velocityY, 0f);
 
         if (!string.IsNullOrWhiteSpace(animationName) && !animationName.Equals(_animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name))
         {

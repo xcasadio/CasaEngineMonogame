@@ -16,6 +16,7 @@ using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.UserInterface;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using EventArgs = System.EventArgs;
@@ -186,6 +187,14 @@ public class GameManager
         _game.IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
 
         //UiManager.Initialize(_game, null/*Window.Handle*/, _game.Window.ClientBounds);
+    }
+
+    public Entity SpawnEntity(string assetName)
+    {
+        var assetInfo = GameSettings.AssetInfoManager.Get(assetName);
+        var entity = AssetContentManager.Load<Entity>(assetInfo);
+        CurrentWorld.AddEntity(entity);
+        return entity;
     }
 
     private void RegisterLoaders()

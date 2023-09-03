@@ -145,10 +145,10 @@ namespace EditorWpf.Controls.WorldControls
 
         private void SetSelectedItem(EntityViewModel? selectedEntity)
         {
-            SelectedItem = selectedEntity.Entity;
-
             if (selectedEntity != null)
             {
+                SelectedItem = selectedEntity.Entity;
+
                 if (TreeView.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
                 {
                     treeViewItem.IsSelected = true;

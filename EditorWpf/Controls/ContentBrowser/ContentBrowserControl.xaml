@@ -72,12 +72,20 @@
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
         <ListBox x:Name="ListBoxFolderContent" Grid.Row="1" Grid.Column="2" ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                 AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop"
                  ContextMenuOpening="ListBoxFolderContent_OnContextMenuOpening">
             <ListBox.CommandBindings>
                 <CommandBinding Command="ApplicationCommands.New" Executed="ListBoxFolderContentCreate_Click" />
                 <CommandBinding Command="ApplicationCommands.Delete" Executed="ListBoxFolderContentDelete_Click" />
             </ListBox.CommandBindings>
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Create">
+                        <MenuItem Header="Entity" Click="MenuItemCreateEntity_OnClick" />
+                    </MenuItem>
+                </ContextMenu>
+            </ListBox.ContextMenu>
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -88,7 +96,6 @@
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
-                                <MenuItem Header="Create" Command="ApplicationCommands.New"/>
                                 <MenuItem Header="Delete" Command="ApplicationCommands.Delete"/>
                             </ContextMenu>
                         </Setter.Value>

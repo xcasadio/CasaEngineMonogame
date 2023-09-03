@@ -15,7 +15,7 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Entities;
 
-public class Entity : ISaveLoad
+public class Entity : Asset
 #if EDITOR
     , ITransformable
 #endif
@@ -23,11 +23,15 @@ public class Entity : ISaveLoad
     private Entity? _parent;
     private bool _isEnabled = true;
 
-    [Category("Object"), ReadOnly(true)]
-    public long Id { get; private set; }
+    [Category("Asset")]
+    public long Id => AssetInfo.Id;
 
-    [Category("Object")]
-    public string Name { get; set; } = string.Empty;
+    [Category("Asset")]
+    public string Name
+    {
+        get => AssetInfo.Name;
+        set => AssetInfo.Name = value;
+    }
 
     [Browsable(false)]
     public Entity? Parent
@@ -71,7 +75,6 @@ public class Entity : ISaveLoad
 
     public Entity()
     {
-        Id = IdManager.GetId();
     }
 
     public void Initialize(CasaEngineGame game)
@@ -112,7 +115,7 @@ public class Entity : ISaveLoad
         Coordinates.CopyFrom(entity.Coordinates);
 
         IsTemporary = entity.IsTemporary;
-        Name = entity.Name + $"_{Id}";
+        //Name = entity.Name + $"_{AssetInfo.Id}";
         Parent = entity.Parent;
         IsEnabled = entity.IsEnabled;
         IsVisible = entity.IsVisible;
@@ -121,13 +124,15 @@ public class Entity : ISaveLoad
     public void Destroy()
     {
         ToBeRemoved = true;
+        IsEnabled = false;
+        IsVisible = false;
     }
 
-    public void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element, SaveOption option)
     {
-        var version = element.GetJsonPropertyByName("version").Value.GetInt32();
-        Name = element.GetJsonPropertyByName("name").Value.GetString();
-        Id = element.GetJsonPropertyByName("id").Value.GetInt32();
+        base.Load(element.GetProperty("asset"), option);
+
+        //var version = element.GetJsonPropertyByName("version").Value.GetInt32();
 
         foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
         {
@@ -177,11 +182,13 @@ public class Entity : ISaveLoad
 
     private static readonly int Version = 1;
 
-    public void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject, SaveOption option)
     {
+        base.Save(jObject, option);
+
         jObject.Add("version", 1);
-        jObject.Add("id", Id);
-        jObject.Add("name", Name);
+        //jObject.Add("id", Id);
+        //jObject.Add("name", Name);
 
         var coordinatesObject = new JObject();
         Coordinates.Save(coordinatesObject);

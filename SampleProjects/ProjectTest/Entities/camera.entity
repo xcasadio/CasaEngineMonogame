@@ -1,52 +1,54 @@
 {
+  "asset": {
+    "id": 25,
+    "file_name": null
+  },
   "version": 1,
-  "id": 25,
-  "name": "camera",
   "coordinates": {
-	"position": {
-	  "x": 0.0,
-	  "y": 10.0,
-	  "z": -8.0
-	},
-	"center_of_rotation": {
-	  "x": 0.0,
-	  "y": 0.0,
-	  "z": 0.0
-	},
-	"scale": {
-	  "x": 1.0,
-	  "y": 1.0,
-	  "z": 1.0
-	},
-	"rotation": {
-	  "x": -0.03551994,
-	  "y": -0.95550317,
-	  "z": -0.26282448,
-	  "w": 0.12913339
-	}
+    "position": {
+      "x": 0.0,
+      "y": 10.0,
+      "z": -8.0
+    },
+    "center_of_rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "scale": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    },
+    "rotation": {
+      "x": -0.03551994,
+      "y": -0.95550317,
+      "z": -0.26282448,
+      "w": 0.12913339
+    }
   },
   "components": [
-	{
-	  "version": 1,
-	  "type": 3,
-	  "view_distance": 0.0,
-	  "viewport": {
-		"x": 0,
-		"y": 0,
-		"w": 800,
-		"h": 480,
-		"min_depth": 1.0,
-		"max_depth": 1000.0
-	  },
-	  "fieldOfView": 0.8377581,
-	  "target": {
-		"x": -8.128628,
-		"y": -1.9367545,
-		"z": -3.401419
-	  },
-	  "distance": 5.0,
-	  "yaw": 2.8729265,
-	  "pitch": -0.53685135
-	}
+    {
+      "version": 1,
+      "type": 3,
+      "view_distance": 0.0,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480,
+        "min_depth": 1.0,
+        "max_depth": 1000.0
+      },
+      "fieldOfView": 0.8377581,
+      "target": {
+        "x": -8.128628,
+        "y": -1.9367545,
+        "z": -3.401419
+      },
+      "distance": 5.0,
+      "yaw": 2.8729265,
+      "pitch": -0.53685135
+    }
   ]
 }

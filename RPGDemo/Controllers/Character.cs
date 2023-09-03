@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
@@ -119,10 +120,10 @@ public class Character
         {
             //always when Vector2.Zero to stop movement
             //else if contact the character will continue to move
-            _physics2dComponent.Velocity = dir;
+            _physics2dComponent.Velocity = dir.ToVector3();
         }
 
-        _physics2dComponent.Velocity = dir * 120f;
+        _physics2dComponent.Velocity = dir.ToVector3() * 120f;
         //_physics2dComponent.ApplyLinearImpulse(dir * 10f);
         //m_MovementDirection = dir_ * m_Spd * 10f;
     }
