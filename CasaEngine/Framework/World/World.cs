@@ -6,7 +6,6 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -23,22 +22,13 @@ public sealed class World : Asset
     public event EventHandler? LoadingContent;
     public event EventHandler? Starting;
 
-#if EDITOR
-    public event EventHandler? EntitiesClear;
-    public event EventHandler<Entity> EntitiesAdded;
-    public event EventHandler<Entity> EntitiesRemoved;
-#endif
-
-    //public IList<EntityReference> EntityReferences => _entityReferences;
     public IList<Entity> Entities => _entities;
-    public Vector2 Gravity2d { get; set; } = Vector2.UnitY * -9.81f;
-    public Vector3 Gravity { get; set; } = Vector3.UnitY * -9.81f;
 
     public void AddEntityImmediately(Entity entity)
     {
         _entities.Add(entity);
 #if EDITOR
-        EntitiesAdded?.Invoke(this, entity);
+        EntityAdded?.Invoke(this, entity);
 #endif
     }
 
@@ -71,7 +61,7 @@ public sealed class World : Asset
         _entityReferences.Remove(entityReference);
     }
 
-    public void ClearEntityReference()
+    public void ClearEntityReferences()
     {
         _entityReferences.Clear();
     }
@@ -83,10 +73,11 @@ public sealed class World : Asset
 
     private void Initialize(CasaEngineGame game, bool withReference)
     {
-#if EDITOR
         if (withReference)
         {
+#if EDITOR
             ClearEntities();
+#endif
 
             foreach (var entityReference in _entityReferences)
             {
@@ -94,7 +85,6 @@ public sealed class World : Asset
                 AddEntityImmediately(entityReference.Entity);
             }
         }
-#endif
 
         foreach (var entity in _entities)
         {
@@ -164,9 +154,8 @@ public sealed class World : Asset
     public override void Load(JsonElement element, SaveOption option)
     {
         ClearEntities();
-        ClearEntityReference();
+        ClearEntityReferences();
         base.Load(element.GetProperty("asset"), option);
-        //_entities.AddRange(EntityLoader.LoadFromArray(element.GetJsonPropertyByName("entities").Value, option));
 
         foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())
         {
@@ -177,6 +166,11 @@ public sealed class World : Asset
     }
 
 #if EDITOR
+
+    public event EventHandler? EntitiesClear;
+    public event EventHandler<Entity> EntityAdded;
+    public event EventHandler<Entity> EntityRemoved;
+
     public void Save(string path, SaveOption option)
     {
         LogManager.Instance.WriteLineInfo($"Saving World {AssetInfo.Name} in ({AssetInfo.FileName})");
@@ -215,7 +209,7 @@ public sealed class World : Asset
         _entityReferences.Add(entityReference);
         _entities.Add(entity);
 
-        EntitiesAdded?.Invoke(this, entity);
+        EntityAdded?.Invoke(this, entity);
     }
 
     public void RemoveEntityEditorMode(Entity entity)
@@ -227,7 +221,7 @@ public sealed class World : Asset
         _entityReferences.Remove(entityReference);
         _entities.Remove(entity);
 
-        EntitiesRemoved?.Invoke(this, entity);
+        EntityRemoved?.Invoke(this, entity);
     }
 
 #endif

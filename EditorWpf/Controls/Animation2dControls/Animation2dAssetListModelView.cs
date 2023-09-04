@@ -7,11 +7,11 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using EditorWpf.Controls;
 
-public class Animation2dListModelView
+public class Animation2dAssetListModelView
 {
     public ObservableCollection<AssetInfoViewModel> Animation2dAssetInfos { get; } = new();
 
-    public Animation2dListModelView()
+    public Animation2dAssetListModelView()
     {
         GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
         GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;

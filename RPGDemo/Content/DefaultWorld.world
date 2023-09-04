@@ -9,13 +9,14 @@
       "entity": {
         "asset": {
           "id": 4026,
+		  "name": "tileMap",
           "file_name": null
         },
         "version": 1,
         "coordinates": {
           "position": {
             "x": 0.0,
-            "y": 0.0,
+            "y": 700.0,
             "z": 0.0
           },
           "center_of_rotation": {

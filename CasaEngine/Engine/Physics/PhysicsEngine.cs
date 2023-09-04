@@ -82,7 +82,7 @@ public class PhysicsEngine
     /// <exception cref="System.Exception">
     /// Cannot perform this action when the physics engine is set to CollisionsOnly
     /// </exception>
-    public Vector3 Gravity
+    /*public Vector3 Gravity
     {
         get
         {
@@ -102,7 +102,7 @@ public class PhysicsEngine
 
             World.Gravity = value;
         }
-    }
+    }*/
 
     /// <summary>
     /// The maximum number of steps that the Simulation is allowed to take each tick.

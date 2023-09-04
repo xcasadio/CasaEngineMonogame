@@ -203,8 +203,8 @@ namespace EditorWpf.Controls.WorldControls
 
         public EntitiesViewModel(World world)
         {
-            world.EntitiesAdded += OnEntitiesAdded;
-            world.EntitiesRemoved += OnEntitiesRemoved;
+            world.EntityAdded += OnEntityAdded;
+            world.EntityRemoved += OnEntityRemoved;
             world.EntitiesClear += OnEntitiesClear;
 
             foreach (var worldEntity in world.Entities)
@@ -218,7 +218,7 @@ namespace EditorWpf.Controls.WorldControls
             Entities.Clear();
         }
 
-        private void OnEntitiesRemoved(object? sender, Entity entity)
+        private void OnEntityRemoved(object? sender, Entity entity)
         {
             foreach (var entityViewModel in Entities)
             {
@@ -230,7 +230,7 @@ namespace EditorWpf.Controls.WorldControls
             }
         }
 
-        private void OnEntitiesAdded(object? sender, Entity entity)
+        private void OnEntityAdded(object? sender, Entity entity)
         {
             Entities.Add(new EntityViewModel(entity));
         }

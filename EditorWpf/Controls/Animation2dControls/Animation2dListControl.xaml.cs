@@ -61,7 +61,7 @@ namespace EditorWpf.Controls.Animation2dControls
 
         private void OnGameStarted(object? sender, System.EventArgs e)
         {
-            DataContext = new Animation2dListModelView();
+            DataContext = new Animation2dAssetListModelView();
         }
 
         private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -92,7 +92,7 @@ namespace EditorWpf.Controls.Animation2dControls
 
         public void OpenAnimations2d(string fileName)
         {
-            var animation2dListModelView = DataContext as Animation2dListModelView;
+            var animation2dListModelView = DataContext as Animation2dAssetListModelView;
 
             foreach (var assetInfoViewModel in animation2dListModelView.Animation2dAssetInfos)
             {

@@ -11,22 +11,21 @@ namespace RPGDemo.Weapons;
 
 public class ThrowableWeapon : Weapon
 {
-    public ThrowableWeapon(CasaEngineGame game, Entity entity) : base(game, entity)
-    {
+    private readonly string _entityName;
 
+    public ThrowableWeapon(CasaEngineGame game, string entityName) : base(game, null)
+    {
+        _entityName = entityName;
     }
 
     protected override void Initialize()
     {
+        //Do nothing
     }
 
     public override void Attach()
     {
-        //Entity.IsEnabled = true;
-        //Entity.IsVisible = true;
-
-        //spawn
-        var entity = Game.GameManager.SpawnEntity("weapon_rock");
+        var entity = Game.GameManager.SpawnEntity(_entityName);
         InitializeEntity(entity);
     }
 
@@ -67,10 +66,6 @@ public class ThrowableWeapon : Weapon
 
     public override void UnAttachWeapon()
     {
-        //Entity.IsEnabled = false;
-        //Entity.IsVisible = false;
-
-        //do nothing
-        //Game.GameManager.CurrentWorld.RemoveEntity(Entity);
+        //Do nothing
     }
 }

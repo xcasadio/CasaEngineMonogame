@@ -1,10 +1,10 @@
 {
-  "WindowTitle": "Project name undefined",
+  "WindowTitle": "RPG Demo",
   "ProjectName": "RPGDemo",
   "FirstScreenName": "",
-  "AllowUserResizing": false,
+  "AllowUserResizing": true,
   "IsFixedTimeStep": false,
-  "IsMouseVisible": false,
+  "IsMouseVisible": true,
   "FirstWorldLoaded": "DefaultWorld.world",
   "GameplayDllName": "",
   "DebugIsFullScreen": false,

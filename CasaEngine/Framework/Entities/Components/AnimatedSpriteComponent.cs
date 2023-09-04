@@ -27,7 +27,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     public event EventHandler<Animation2d>? AnimationFinished;
 
     private readonly Dictionary<long, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
-    private List<long> _animationAssetIds = new();
+    private readonly List<long> _animationAssetIds = new();
 
     private CasaEngineGame _game;
     private AssetContentManager _assetContentManager;
@@ -149,7 +149,8 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         {
             foreach (var frame in animation.Animation2dData.Frames)
             {
-                var spriteData = game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+                var assetInfo = GameSettings.AssetInfoManager.Get(frame.SpriteId);
+                var spriteData = game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
                 if (spriteData.CollisionShapes.Count == 0)
                 {
                     continue;
@@ -325,6 +326,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     }
 
 #if EDITOR
+    public List<long> AnimationAssetIds => _animationAssetIds;
 
     public override void Save(JObject jObject, SaveOption option)
     {

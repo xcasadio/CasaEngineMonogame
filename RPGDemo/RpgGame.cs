@@ -7,29 +7,29 @@ using CasaEngine.Core.Logger;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RPGDemo.Components;
-using RPGDemo.Controllers;
 using RPGDemo.Scripts;
 using RPGDemo.Weapons;
-using static Assimp.Metadata;
 
 namespace RPGDemo;
 
 public class RpgGame : CasaEngineGame
 {
-    private static float _characterZOffSet = 0.3f;
+    private static readonly float CharacterZOffSet = 0.3f;
+
+    public RpgGame() : base("Content\\RPGDemo.json")
+    {
+
+    }
 
     protected override void Initialize()
     {
@@ -38,13 +38,8 @@ public class RpgGame : CasaEngineGame
         //new AxisComponent(this);
         base.Initialize();
 
-        //IsMouseVisible = true;
-
         //GameManager.SpriteRendererComponent.IsDrawCollisionsEnabled = true;
         //GameManager.SpriteRendererComponent.IsDrawSpriteOriginEnabled = true;
-
-        //GameManager.Renderer2dComponent.IsDrawCollisionsEnabled = true;
-        //GameManager.Renderer2dComponent.IsDrawSpriteOriginEnabled = true;
 
         //PhysicsDebugViewRendererComponent.DisplayPhysics = true;
 
@@ -55,39 +50,27 @@ public class RpgGame : CasaEngineGame
 
     protected override void LoadContent()
     {
-        GameSettings.AssetInfoManager.Load("Content\\AssetInfos.json", SaveOption.Editor);
-
         GameManager.DefaultSpriteFont = Content.Load<SpriteFont>("GizmoFont");
 
+        //TODO : find a way to load the very first world just before LoadContent and Initialize it after this call
         var world = new World();
+        var fileName = Path.Combine(EngineEnvironment.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
+        world.Load(fileName, SaveOption.Editor);
         GameManager.CurrentWorld = world;
 
         //============ Camera ===============
         var entity = new Entity();
-        //var camera = new ArcBallCameraComponent(entity);
-        //camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         var camera = new Camera3dIn2dAxisComponent(entity);
         camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
         entity.ComponentManager.Components.Add(camera);
 
         world.AddEntityImmediately(entity);
 
-        //============ tileMap ===============
-        var tileMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
-
-        entity = new Entity();
-        entity.Name = "TileMap";
-        entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
-        var tileMapComponent = new TileMapComponent(entity);
-        tileMapComponent.TileMapData = tileMapData;
-        entity.ComponentManager.Components.Add(tileMapComponent);
-
-        world.AddEntityImmediately(entity);
-
-        //============ common ressources ===============
+        //============ common resources ===============
         LoadSprites();
         var animations = LoadAnimations();
 
+        //============ characters ===============
         var playerComponent = CreatePlayer(animations, world);
         CreateEnemy(animations, world, playerComponent);
 
@@ -147,7 +130,7 @@ public class RpgGame : CasaEngineGame
         //============ player ===============
         entity = new Entity();
         entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(60, 600, _characterZOffSet);
+        entity.Coordinates.LocalPosition = new Vector3(60, 600, CharacterZOffSet);
         var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
@@ -179,38 +162,10 @@ public class RpgGame : CasaEngineGame
 
     private void CreateEnemy(List<Animation2dData> animations, World world, PlayerComponent playerComponent)
     {
-        //============ weapon rock ===============
         var entity = new Entity();
-        var rockEntity = entity;
-        entity.Name = "octopus_rock";
-        var physicsComponent = new Physics2dComponent(entity);
-        entity.ComponentManager.Components.Add(physicsComponent);
-        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
-        physicsComponent.PhysicsDefinition.Mass = 1.0f;
-        physicsComponent.Shape = new ShapeCircle(20);
-        physicsComponent.PhysicsDefinition.ApplyGravity = false;
-        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
-        physicsComponent.PhysicsDefinition.Friction = 0f;
-        physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
-        physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
-        var animatedSprite = new AnimatedSpriteComponent(entity);
-        entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("rock")))
-        {
-            animatedSprite.AddAnimation(new Animation2d(animation));
-        }
-
-        var gamePlayComponent = new GamePlayComponent(entity);
-        entity.ComponentManager.Components.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptEnemyWeapon(entity);
-
-        world.AddEntityImmediately(entity);
-
-        //============ enemy ===============
-        entity = new Entity();
         entity.Name = "Octopus";
-        entity.Coordinates.LocalPosition = new Vector3(600, 600, _characterZOffSet);
-        physicsComponent = new Physics2dComponent(entity);
+        entity.Coordinates.LocalPosition = new Vector3(600, 600, CharacterZOffSet);
+        var physicsComponent = new Physics2dComponent(entity);
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
         physicsComponent.PhysicsDefinition.Mass = 1.0f;
@@ -220,7 +175,7 @@ public class RpgGame : CasaEngineGame
         physicsComponent.PhysicsDefinition.Friction = 0f;
         physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
         physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
-        animatedSprite = new AnimatedSpriteComponent(entity);
+        var animatedSprite = new AnimatedSpriteComponent(entity);
         entity.ComponentManager.Components.Add(animatedSprite);
         foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("octopus")))
         {
@@ -231,7 +186,7 @@ public class RpgGame : CasaEngineGame
 
         var enemyComponent = new EnemyComponent(entity);
         enemyComponent.Character.AnimatationPrefix = "octopus";
-        enemyComponent.Character.SetWeapon(new ThrowableWeapon(this, rockEntity));
+        enemyComponent.Character.SetWeapon(new ThrowableWeapon(this, "weapon_rock"));
         entity.ComponentManager.Components.Add(enemyComponent);
 
         enemyComponent.Controller.PlayerHunted = playerComponent.Character;
@@ -248,10 +203,5 @@ public class RpgGame : CasaEngineGame
 
 
         base.Update(gameTime);
-    }
-
-    protected override void Draw(GameTime gameTime)
-    {
-        base.Draw(gameTime);
     }
 }

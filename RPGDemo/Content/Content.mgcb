@@ -16,6 +16,9 @@
 #begin AssetInfos.json
 /copy:AssetInfos.json
 
+#begin DefaultWorld.world
+/copy:DefaultWorld.world
+
 #begin Entities/weapon_rock.entity
 /copy:Entities/weapon_rock.entity
 
@@ -37,6 +40,9 @@
 
 #begin Maps/tile1.tileset
 /copy:Maps/tile1.tileset
+
+#begin RPGDemo.json
+/copy:RPGDemo.json
 
 #begin Shaders/axisComponent.fx
 /importer:EffectImporter

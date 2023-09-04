@@ -1,5 +1,9 @@
 {
   "asset_infos": [
+  {
+      "id": 0,
+      "file_name": "DefaultWorld.world"
+    },
     {
       "id": 1018,
       "file_name": "TileSets\\rock_0.sprite"
