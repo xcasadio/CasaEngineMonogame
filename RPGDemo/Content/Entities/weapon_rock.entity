@@ -38,7 +38,7 @@
         "a": 255
       },
       "sprite_effect": "None",
-      "animations": []
+      "animations": [2204]
     },
     {
       "version": 1,
@@ -57,7 +57,7 @@
           "z": 1.0
         },
         "angular_sleeping_threshold": 1.0,
-        "friction": 0.5,
+        "friction": 0.0,
         "linear_damping": 0.0,
         "linear_factor": {
           "x": 1.0,
@@ -70,13 +70,22 @@
           "y": 0.0,
           "z": 0.0
         },
-        "mass": 0.0,
+        "mass": 1.0,
         "restitution": 0.0,
         "rolling_friction": 0.0,
-        "apply_gravity": true,
+        "apply_gravity": false,
         "debug_color": "null"
       },
-      "shape": "null"
+      "shape": {
+        "version": 1,
+        "shape_type": "Circle",
+        "location": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "orientation": 0.0,
+        "radius": 20.0
+      }
     },
     {
       "version": 1,

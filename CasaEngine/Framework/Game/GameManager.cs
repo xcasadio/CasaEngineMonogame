@@ -192,7 +192,8 @@ public class GameManager
     public Entity SpawnEntity(string assetName)
     {
         var assetInfo = GameSettings.AssetInfoManager.Get(assetName);
-        var entity = AssetContentManager.Load<Entity>(assetInfo);
+        var entity = AssetContentManager.Load<Entity>(assetInfo).Clone();
+        entity.Initialize(_game);
         CurrentWorld.AddEntity(entity);
         return entity;
     }

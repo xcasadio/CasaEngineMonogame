@@ -25,7 +25,9 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public event EventHandler<long>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
+
     private readonly Dictionary<long, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
+    private List<long> _animationAssetIds = new();
 
     private CasaEngineGame _game;
     private AssetContentManager _assetContentManager;
@@ -133,6 +135,15 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         _spriteRenderer = game.GetGameComponent<SpriteRendererComponent>();
         _assetContentManager = game.GameManager.AssetContentManager;
         _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
+
+        foreach (var assetId in _animationAssetIds)
+        {
+            var assetInfo = GameSettings.AssetInfoManager.Get(assetId);
+            var animation2dData = game.GameManager.AssetContentManager.Load<Animation2dData>(assetInfo);
+            var animation2d = new Animation2d(animation2dData);
+            animation2d.Initialize();
+            Animations.Add(animation2d);
+        }
 
         foreach (var animation in Animations)
         {
@@ -296,7 +307,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
         foreach (var animationNode in element.GetProperty("animations").EnumerateArray())
         {
-            //load animation
+            _animationAssetIds.Add(animationNode.GetInt32());
         }
     }
 
@@ -308,6 +319,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         component.SpriteEffect = SpriteEffect;
         component.CurrentAnimation = CurrentAnimation;
         component.Animations.AddRange(Animations);
+        component._animationAssetIds.AddRange(_animationAssetIds);
 
         return component;
     }
@@ -328,11 +340,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
         foreach (var animation2d in Animations)
         {
-            newJObject = new JObject();
-            //newJObject.Add("", );
-            //animation2d.Animation2dData.AssetInfo.Name;
-            //animation2d.Animation2dData.AssetInfo.FileName;
-            animationsNode.Add(newJObject);
+            animationsNode.Add(animation2d.Animation2dData.AssetInfo.Id);
         }
 
         jObject.Add("animations", animationsNode);

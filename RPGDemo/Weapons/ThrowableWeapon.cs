@@ -5,6 +5,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using RPGDemo.Controllers;
+using RPGDemo.Scripts;
 
 namespace RPGDemo.Weapons;
 
@@ -25,16 +26,17 @@ public class ThrowableWeapon : Weapon
         //Entity.IsVisible = true;
 
         //spawn
-        var entity = Game.GameManager.SpawnEntity("rock");
+        var entity = Game.GameManager.SpawnEntity("weapon_rock");
         InitializeEntity(entity);
     }
 
     private void InitializeEntity(Entity entity)
     {
-        var offsetLength = 20f;
+        var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
+        entity.ComponentManager.Components.Add(gamePlayComponent);
+        gamePlayComponent.ExternalComponent = new ScriptEnemyWeapon(entity);
 
-        //Entity.IsEnabled = true;
-        //Entity.IsVisible = true;
+        var offsetLength = 20f;
 
         var physics2dComponent = entity.ComponentManager.GetComponent<Physics2dComponent>();
         var animatedSpriteComponent = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
@@ -69,6 +71,6 @@ public class ThrowableWeapon : Weapon
         //Entity.IsVisible = false;
 
         //do nothing
-        Game.GameManager.CurrentWorld.RemoveEntity(Entity);
+        //Game.GameManager.CurrentWorld.RemoveEntity(Entity);
     }
 }

@@ -5,7 +5,7 @@ namespace CasaEngine.Core.Shapes;
 
 public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
 {
-    public int Radius { get; set; }
+    public float Radius { get; set; }
 
     public ShapeCircle() : base(Shape2dType.Circle)
     {
@@ -32,17 +32,12 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
         return Equals((ShapeCircle)obj);
     }
 
-    public override int GetHashCode()
-    {
-        return Radius;
-    }
-
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";
 
     public override void Load(JsonElement element)
     {
         base.Load(element);
-        Radius = element.GetProperty("radius").GetInt32();
+        Radius = element.GetProperty("radius").GetSingle();
     }
 
 #if EDITOR

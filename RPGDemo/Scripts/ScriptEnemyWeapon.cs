@@ -77,8 +77,7 @@ public class ScriptEnemyWeapon : ExternalComponent
 
         if (playerComponent != null)
         {
-            _entity.IsEnabled = false;
-            _entity.IsVisible = false;
+            _entity.Destroy();
 
             //check if it AutoTile grass
             //tileCollisionManager.RemoveTile();

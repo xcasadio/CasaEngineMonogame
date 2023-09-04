@@ -16,6 +16,9 @@
 #begin AssetInfos.json
 /copy:AssetInfos.json
 
+#begin Entities/weapon_rock.entity
+/copy:Entities/weapon_rock.entity
+
 #begin GizmoFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
