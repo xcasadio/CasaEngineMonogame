@@ -172,6 +172,13 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
                 }
             }
         }
+
+#if EDITOR
+        if (Animations.Count > 0)
+        {
+            SetCurrentAnimation(0, true);
+        }
+#endif
     }
 
     public override void Update(float elapsedTime)

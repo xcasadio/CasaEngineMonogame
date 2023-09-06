@@ -2,12 +2,14 @@
 using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using EditorWpf.DragAndDrop;
 using Microsoft.Xna.Framework;
+using static Assimp.Metadata;
 
 namespace EditorWpf.Controls.WorldControls;
 
@@ -29,6 +31,26 @@ public class GameEditorWorld : GameEditor
 
     private void OnDrop(object sender, DragEventArgs e)
     {
+        var formats = e.Data.GetFormats();
+
+        if (formats.Length > 0)
+        {
+            if (formats[0] == typeof(AssetInfo).FullName)
+            {
+                var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
+                var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, Game.GameManager.AssetContentManager);
+                entityReference.Entity.Initialize(Game);
+                Game.GameManager.CurrentWorld.AddEntityReference(entityReference);
+
+                var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
+                gizmoComponent.Gizmo.Clear();
+                gizmoComponent.Gizmo.Selection.Add(entityReference.Entity);
+                gizmoComponent.Gizmo.RaiseSelectionChanged();
+
+                return;
+            }
+        }
+
         if (e.Data.GetDataPresent(DataFormats.StringFormat))
         {
             string dataString = (string)e.Data.GetData(DataFormats.StringFormat);

@@ -13,6 +13,16 @@ public class EntityReference : ISaveLoad
     public Coordinates InitialCoordinates { get; internal set; } = new();
     public Entity Entity { get; internal set; }
 
+    public static EntityReference CreateFromAssetInfo(AssetInfo assetInfo, AssetContentManager assetContentManager)
+    {
+        var entityReference = new EntityReference();
+        entityReference.AssetId = assetInfo.Id;
+        entityReference.Name = assetInfo.Name;
+        entityReference.Entity = assetContentManager.Load<Entity>(assetInfo);
+        entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.Coordinates);
+        return entityReference;
+    }
+
     public void Load(JsonElement element, SaveOption option)
     {
         AssetId = element.GetProperty("asset_id").GetInt64();

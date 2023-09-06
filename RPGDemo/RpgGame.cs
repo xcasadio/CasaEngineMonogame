@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Engine;
-using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -34,8 +29,6 @@ public class RpgGame : CasaEngineGame
     protected override void Initialize()
     {
         EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
-        //new GridComponent(this);
-        //new AxisComponent(this);
         base.Initialize();
 
         //GameManager.SpriteRendererComponent.IsDrawCollisionsEnabled = true;
@@ -66,122 +59,43 @@ public class RpgGame : CasaEngineGame
 
         world.AddEntityImmediately(entity);
 
-        //============ common resources ===============
-        LoadSprites();
-        var animations = LoadAnimations();
-
-        //============ characters ===============
-        var playerComponent = CreatePlayer(animations, world);
-        CreateEnemy(animations, world, playerComponent);
-
         base.LoadContent();
+
+        var playerComponent = InitializePlayer(world);
+        InitializeEnemy(world, playerComponent);
 
         GameManager.ActiveCamera = camera;
     }
 
-    private void LoadSprites()
+    private PlayerComponent InitializePlayer(World world)
     {
-        var spriteAssetInfos = GameSettings.AssetInfoManager.AssetInfos
-            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Sprite));
-
-        foreach (var assetInfo in spriteAssetInfos)
-        {
-            var spriteData = GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
-        }
-    }
-
-    private List<Animation2dData> LoadAnimations()
-    {
-        var animationsAssetInfos = GameSettings.AssetInfoManager.AssetInfos
-            .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Animation2d));
-
-        var animations = new List<Animation2dData>();
-
-        foreach (var assetInfo in animationsAssetInfos)
-        {
-            var animation2dData = GameManager.AssetContentManager.Load<Animation2dData>(assetInfo);
-            animations.Add(animation2dData);
-        }
-
-        return animations;
-    }
-
-    private PlayerComponent CreatePlayer(List<Animation2dData> animations, World world)
-    {
-        //============ sword ===============
-        var entity = new Entity();
-        var weaponEntity = entity;
-        entity.IsVisible = false;
-        entity.IsEnabled = false;
-        entity.Name = "link_sword";
-        var animatedSprite = new AnimatedSpriteComponent(entity);
-        entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("baton")))
-        {
-            animatedSprite.AddAnimation(new Animation2d(animation));
-        }
-
-        var gamePlayComponent = new GamePlayComponent(entity);
-        entity.ComponentManager.Components.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon(entity);
-
-        world.AddEntityImmediately(entity);
-
-        //============ player ===============
-        entity = new Entity();
-        entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(60, 600, CharacterZOffSet);
-        var physicsComponent = new Physics2dComponent(entity);
-        entity.ComponentManager.Components.Add(physicsComponent);
-        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
-        physicsComponent.PhysicsDefinition.Mass = 1.0f;
-        physicsComponent.Shape = new ShapeCircle(25);
-        physicsComponent.PhysicsDefinition.ApplyGravity = false;
-        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
-        physicsComponent.PhysicsDefinition.Friction = 0f;
-        physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
-        physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
-        animatedSprite = new AnimatedSpriteComponent(entity);
-        entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("swordman")))
-        {
-            animatedSprite.AddAnimation(new Animation2d(animation));
-        }
-
+        var entity = world.Entities.First(x => x.Name == "character_link");
+        var animatedSprite = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
         var playerComponent = new PlayerComponent(entity);
         playerComponent.Character.AnimatationPrefix = "swordman";
+        var weaponEntity = GameManager.SpawnEntity("weapon_sword");
+        weaponEntity.Initialize(this);
         playerComponent.Character.SetWeapon(new MeleeWeapon(this, weaponEntity));
         entity.ComponentManager.Components.Add(playerComponent);
 
-        world.AddEntityImmediately(entity);
+        playerComponent.Initialize(this);
 
-        return playerComponent;
+        //weapon
+        weaponEntity.IsVisible = false;
+        weaponEntity.IsEnabled = false;
+        var gamePlayComponent = weaponEntity.ComponentManager.GetComponent<GamePlayComponent>();
+        weaponEntity.ComponentManager.Components.Add(gamePlayComponent);
+        gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon(weaponEntity);
+
+        return entity.ComponentManager.GetComponent<PlayerComponent>();
     }
 
-    private void CreateEnemy(List<Animation2dData> animations, World world, PlayerComponent playerComponent)
+    private void InitializeEnemy(World world, PlayerComponent playerComponent)
     {
-        var entity = new Entity();
-        entity.Name = "Octopus";
-        entity.Coordinates.LocalPosition = new Vector3(600, 600, CharacterZOffSet);
-        var physicsComponent = new Physics2dComponent(entity);
-        entity.ComponentManager.Components.Add(physicsComponent);
-        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
-        physicsComponent.PhysicsDefinition.Mass = 1.0f;
-        physicsComponent.Shape = new ShapeCircle(25);
-        physicsComponent.PhysicsDefinition.ApplyGravity = false;
-        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
-        physicsComponent.PhysicsDefinition.Friction = 0f;
-        physicsComponent.PhysicsDefinition.LinearSleepingThreshold = 0f;
-        physicsComponent.PhysicsDefinition.AngularSleepingThreshold = 0f;
-        var animatedSprite = new AnimatedSpriteComponent(entity);
-        entity.ComponentManager.Components.Add(animatedSprite);
-        foreach (var animation in animations.Where(x => x.AssetInfo.Name.StartsWith("octopus")))
-        {
-            animatedSprite.AddAnimation(new Animation2d(animation));
-        }
-
+        var entity = world.Entities.First(x => x.Name == "character_octopus");
+        var animatedSprite = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
         animatedSprite.SetCurrentAnimation("octopus_stand_right", true);
 
         var enemyComponent = new EnemyComponent(entity);
@@ -189,9 +103,9 @@ public class RpgGame : CasaEngineGame
         enemyComponent.Character.SetWeapon(new ThrowableWeapon(this, "weapon_rock"));
         entity.ComponentManager.Components.Add(enemyComponent);
 
-        enemyComponent.Controller.PlayerHunted = playerComponent.Character;
+        enemyComponent.Initialize(this);
 
-        world.AddEntityImmediately(entity);
+        enemyComponent.Controller.PlayerHunted = playerComponent.Character;
     }
 
     protected override void Update(GameTime gameTime)
@@ -200,7 +114,6 @@ public class RpgGame : CasaEngineGame
         {
             Exit();
         }
-
 
         base.Update(gameTime);
     }

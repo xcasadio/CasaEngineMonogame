@@ -1,6 +1,6 @@
 {
   "asset_infos": [
-  {
+    {
       "id": 0,
       "file_name": "DefaultWorld.world"
     },
@@ -1051,6 +1051,18 @@
     {
       "id": 10036,
       "file_name": "Entities\\weapon_rock.entity"
+    },
+    {
+      "id": 10065,
+      "file_name": "Entities\\character_link.entity"
+    },
+    {
+      "id": 10066,
+      "file_name": "Entities\\character_octopus.entity"
+    },
+    {
+      "id": 10272,
+      "file_name": "Entities\\weapon_sword.entity"
     }
   ]
 }

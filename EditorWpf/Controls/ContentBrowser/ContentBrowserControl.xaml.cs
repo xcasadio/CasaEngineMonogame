@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
@@ -18,6 +19,7 @@ using EditorWpf.Controls.SpriteControls;
 using EditorWpf.Controls.TileMapControls;
 using EditorWpf.Controls.WorldControls;
 using Microsoft.Xna.Framework;
+using Point = System.Windows.Point;
 
 namespace EditorWpf.Controls.ContentBrowser
 {
@@ -259,6 +261,28 @@ namespace EditorWpf.Controls.ContentBrowser
         private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             e.Handled = false;
+        }
+
+        private void ListBox_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ListBox parent = (ListBox)sender;
+            //dragSource = parent;
+            object data = GetDataFromListBox(parent, e.GetPosition(parent));
+
+            if (data != null)
+            {
+                DragDrop.DoDragDrop(parent, data, DragDropEffects.Move);
+            }
+        }
+
+        private static object GetDataFromListBox(ListBox source, Point point)
+        {
+            if (source.InputHitTest(point) is FrameworkElement { DataContext: ContentItem { AssetInfo: { } } contentItem })
+            {
+                return contentItem.AssetInfo;
+            }
+
+            return null;
         }
     }
 }

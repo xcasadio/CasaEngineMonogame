@@ -71,10 +71,12 @@
 
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
-        <ListBox x:Name="ListBoxFolderContent" Grid.Row="1" Grid.Column="2" ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
+        <ListBox x:Name="ListBoxFolderContent" Grid.Row="1" Grid.Column="2" 
+                 ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
                  AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop"
-                 ContextMenuOpening="ListBoxFolderContent_OnContextMenuOpening">
+                 ContextMenuOpening="ListBoxFolderContent_OnContextMenuOpening"
+                 PreviewMouseLeftButtonDown="ListBox_OnPreviewMouseLeftButtonDown">
             <ListBox.CommandBindings>
                 <CommandBinding Command="ApplicationCommands.New" Executed="ListBoxFolderContentCreate_Click" />
                 <CommandBinding Command="ApplicationCommands.Delete" Executed="ListBoxFolderContentDelete_Click" />

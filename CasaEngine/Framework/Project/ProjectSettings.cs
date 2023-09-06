@@ -4,6 +4,7 @@ using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Assets;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using JsonIgnoreAttribute = System.Text.Json.Serialization.JsonIgnoreAttribute;
 
@@ -117,7 +118,7 @@ public class ProjectSettings
         WindowTitle = ProjectName;
         ProjectName = projectName;
         ProjectFileOpened = fullFileName;
-        CreateDefaultItem(projectName, fullFileName);
+        CreateDefaultItem(fullFileName);
         Save(fullFileName);
 
         ProjectLoaded?.Invoke(this, EventArgs.Empty);
@@ -131,13 +132,13 @@ public class ProjectSettings
 #endif
     }
 
-    private void CreateDefaultItem(string projectName, string fullFileName)
+    private void CreateDefaultItem(string fullFileName)
     {
         var projectPath = Path.GetDirectoryName(fullFileName);
         var world = new World.World();
         world.AssetInfo.Name = "DefaultWorld";
         world.AssetInfo.FileName = world.AssetInfo.FileName;
-        world.Save(projectPath, SaveOption.Editor);
+        AssetSaver.SaveAsset(world.AssetInfo.FileName, world);
         FirstWorldLoaded = world.AssetInfo.FileName;
     }
 

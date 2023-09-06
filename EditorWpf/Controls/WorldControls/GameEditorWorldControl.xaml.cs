@@ -25,16 +25,17 @@ namespace EditorWpf.Controls.WorldControls
             //Create the specific project settings =>
             //  launch in the project directory
             //  launch this world
-            var gameExe = "CasaEngineLauncher.exe";
-            var processStartInfo = new ProcessStartInfo(Path.Combine("Game", gameExe), "project path");
-            var process = Process.Start(processStartInfo);
+            //var gameExe = "CasaEngineLauncher.exe";
+            //var processStartInfo = new ProcessStartInfo(Path.Combine("Game", gameExe), "project path");
+            //var process = Process.Start(processStartInfo);
 
             //process.WaitForExit()
         }
 
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
         {
-            gameEditor.Game.GameManager.CurrentWorld.Save(EngineEnvironment.ProjectPath, SaveOption.Editor);
+            var world = gameEditor.Game.GameManager.CurrentWorld;
+            AssetSaver.SaveAsset(world.AssetInfo.FileName, world);
         }
 
         private void ButtonTranslate_Click(object sender, RoutedEventArgs e)

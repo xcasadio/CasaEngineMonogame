@@ -51,16 +51,6 @@ public sealed class World : Asset
 #endif
     }
 
-    public void AddEntityReference(EntityReference entityReference)
-    {
-        _entityReferences.Add(entityReference);
-    }
-
-    public void RemoveEntityReference(EntityReference entityReference)
-    {
-        _entityReferences.Remove(entityReference);
-    }
-
     public void ClearEntityReferences()
     {
         _entityReferences.Clear();
@@ -120,19 +110,21 @@ public sealed class World : Asset
         _entities.AddRange(_baseObjectsToAdd);
         _baseObjectsToAdd.Clear();
 
-        foreach (var a in _entities)
+        foreach (var entity in _entities)
         {
-            a.Update(elapsedTime);
-
-            if (a.ToBeRemoved)
+            if (entity.ToBeRemoved)
             {
-                toRemove.Add(a);
+                toRemove.Add(entity);
+            }
+            else
+            {
+                entity.Update(elapsedTime);
             }
         }
 
-        foreach (var a in toRemove)
+        foreach (var entity in toRemove)
         {
-            _entities.Remove(a);
+            _entities.Remove(entity);
         }
     }
 
@@ -144,6 +136,7 @@ public sealed class World : Asset
         }
     }
 
+    //TODO : remove it, use AssetContentManager
     public void Load(string fileName, SaveOption option)
     {
         LogManager.Instance.WriteLineInfo($"Load world {fileName}");
@@ -171,16 +164,10 @@ public sealed class World : Asset
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
 
-    public void Save(string path, SaveOption option)
+    public override void Save(JObject jObject, SaveOption option)
     {
-        LogManager.Instance.WriteLineInfo($"Saving World {AssetInfo.Name} in ({AssetInfo.FileName})");
+        base.Save(jObject, option);
 
-        var relativePath = AssetInfo.Name + Constants.FileNameExtensions.World;
-        var fullFileName = Path.Combine(path, relativePath);
-        AssetInfo.FileName = relativePath;
-
-        JObject worldJson = new();
-        base.Save(worldJson, option);
         var entitiesJArray = new JArray();
 
         foreach (var entityReference in _entityReferences)
@@ -193,11 +180,17 @@ public sealed class World : Asset
             entitiesJArray.Add(entityObject);
         }
 
-        worldJson.Add("entity_references", entitiesJArray);
+        jObject.Add("entity_references", entitiesJArray);
+    }
 
-        using StreamWriter file = File.CreateText(fullFileName);
-        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
-        worldJson.WriteTo(writer);
+    public void AddEntityReference(EntityReference entityReference)
+    {
+        AddEntityEditorMode(entityReference, entityReference.Entity);
+    }
+
+    public void RemoveEntityReference(EntityReference entityReference)
+    {
+        _entityReferences.Remove(entityReference);
     }
 
     public void AddEntityEditorMode(Entity entity)
@@ -206,6 +199,11 @@ public sealed class World : Asset
         entityReference.Name = entity.Name;
         entityReference.Entity = entity;
 
+        AddEntityEditorMode(entityReference, entityReference.Entity);
+    }
+
+    private void AddEntityEditorMode(EntityReference entityReference, Entity entity)
+    {
         _entityReferences.Add(entityReference);
         _entities.Add(entity);
 

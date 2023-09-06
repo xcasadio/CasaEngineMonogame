@@ -31,6 +31,7 @@ public class ThrowableWeapon : Weapon
 
     private void InitializeEntity(Entity entity)
     {
+        //TODO : remove it => must be set by editor
         var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
         entity.ComponentManager.Components.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptEnemyWeapon(entity);

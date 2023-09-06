@@ -19,8 +19,17 @@
 #begin DefaultWorld.world
 /copy:DefaultWorld.world
 
+#begin Entities/character_link.entity
+/copy:Entities/character_link.entity
+
+#begin Entities/character_octopus.entity
+/copy:Entities/character_octopus.entity
+
 #begin Entities/weapon_rock.entity
 /copy:Entities/weapon_rock.entity
+
+#begin Entities/weapon_sword.entity
+/copy:Entities/weapon_sword.entity
 
 #begin GizmoFont.spritefont
 /importer:FontDescriptionImporter
