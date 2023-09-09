@@ -742,7 +742,7 @@ public class InputComponent : GameComponent
         var enumerator = _buttonConfiguration.Buttons;
         var j = 0;
 
-        var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
 
         //create button buffer
         while (enumerator.MoveNext())
@@ -755,7 +755,7 @@ public class InputComponent : GameComponent
 
         foreach (var input in _inputManager)
         {
-            input.Update(_keysState, GameTimeHelper.TotalGameTimeToMilliseconds(gameTime));
+            input.Update(_keysState, GameTimeHelper.ConvertTotalTimeToSeconds(gameTime));
         }
 
         base.Update(gameTime);

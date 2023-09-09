@@ -105,7 +105,7 @@ public class ScreenManagerComponent : DrawableGameComponent
 
     public override void Update(GameTime gameTime)
     {
-        var elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+        var elpasedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
 
         // Make a copy of the master screen list, to avoid confusion if
         // the process of updating one screen adds or removes others.
@@ -173,7 +173,7 @@ public class ScreenManagerComponent : DrawableGameComponent
 
     public override void Draw(GameTime gameTime)
     {
-        var elpasedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+        var elpasedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
 
         foreach (var screen in _screens)
         {

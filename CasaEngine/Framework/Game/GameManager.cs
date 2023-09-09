@@ -264,7 +264,8 @@ public class GameManager
         DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
 #endif
 
-        var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
+        var totalElapsedTime = GameTimeHelper.ConvertTotalTimeToSeconds(gameTime);
 
 #if EDITOR
         if (ActiveCamera == _cameraEditor)
@@ -296,7 +297,7 @@ public class GameManager
 
         _game.GraphicsDevice.Clear(Color.Black);
 
-        var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
         CurrentWorld?.Draw(elapsedTime);
         //UiManager.PreRenderControls();
     }

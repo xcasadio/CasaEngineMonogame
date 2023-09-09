@@ -83,7 +83,7 @@ public class ScreenLogComponent : DrawableGameComponent
     {
         var toDelete = new List<LogText>();
 
-        var elapsedTime = GameTimeHelper.GameTimeToMilliseconds(gameTime);
+        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
 
         for (var i = 0; i < _logText.Count; i++)
         {

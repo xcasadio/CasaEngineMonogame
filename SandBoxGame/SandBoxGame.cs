@@ -1,4 +1,6 @@
-﻿using CasaEngine.Engine.Primitives3D;
+﻿using System.IO;
+using CasaEngine.Core.Helpers;
+using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -20,8 +22,12 @@ namespace SandBoxGame
     {
         private Entity _boxEntity;
         private StaticMesh _staticMesh;
-        private Effect _effect;
-        private Material _material;
+
+        private Effect _effectColor;
+        private Material _materialColor;
+
+        private Effect _effectTexture;
+        private Material _materialTexture;
 
         protected override void Initialize()
         {
@@ -69,13 +75,48 @@ namespace SandBoxGame
             world.AddEntityImmediately(entity);
 
             //============ Effect ===============
-            _material = new Material();
-            var shaderCompiled = ShaderCompiler.Compile("", null, TargetPlatform.Windows);
-            _effect = new Effect(GraphicsDevice, shaderCompiled.ByteCode);
+            _materialColor = new Material();
+            var materialDiffuse = new MaterialColor();
+            materialDiffuse.Color = Color.Green;
+            _materialColor.Diffuse = materialDiffuse;
+
+            var byteCode = CompileShaderFromMaterial(_materialColor);
+            _effectColor = new Effect(GraphicsDevice, byteCode);
+
+            //=====
+            _materialTexture = new Material();
+            var materialTextureDiffuse = new MaterialTexture();
+            materialTextureDiffuse.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
+            _materialTexture.Diffuse = materialTextureDiffuse;
+
+            byteCode = CompileShaderFromMaterial(_materialTexture);
+            _effectTexture = new Effect(GraphicsDevice, byteCode);
+
+
+            var materialGraph = new MaterialGraph();
+            materialGraph._slotAttached = new MaterialGraphNodeSlot();
+            var materialGraphNodeTexture = new MaterialGraphNodeTexture();
+            materialGraph._slotAttached.Node = materialGraphNodeTexture;
+
+            materialGraphNodeTexture._inputSlot = new MaterialGraphNodeSlot();
+            var materialGraphNodeDisplacementTexture = new MaterialGraphNodeDisplacementTexture();
+            materialGraphNodeTexture._inputSlot.Node = materialGraphNodeDisplacementTexture;
+
+            var result = materialGraph.Compile();
 
             base.LoadContent();
 
             GameManager.ActiveCamera = camera;
+        }
+
+        private byte[] CompileShaderFromMaterial(Material material)
+        {
+            var shaderWriter = new ShaderWriter();
+            var shaderCode = shaderWriter.Compile(material);
+            var tempFileName = Path.GetTempFileName();
+            File.WriteAllText(tempFileName, shaderCode);
+            var shaderCompiled = ShaderCompiler.Compile(tempFileName, null, TargetPlatform.Windows);
+            return shaderCompiled.ByteCode;
         }
 
         protected override void Update(GameTime gameTime)
@@ -90,29 +131,54 @@ namespace SandBoxGame
 
         protected override void Draw(GameTime gameTime)
         {
+            base.Draw(gameTime);
+
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             GraphicsDevice.BlendState = BlendState.AlphaBlend;
             GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
+            /*var samplerState = new SamplerState();
+            samplerState.AddressU = TextureAddressMode.Wrap;
+            samplerState.AddressV = TextureAddressMode.Wrap;
+            samplerState.Filter = TextureFilter.Anisotropic;
+            samplerState.FilterMode = TextureFilterMode.Default;
+            GraphicsDevice.SamplerStates[0] = samplerState;*/
+
             GraphicsDevice.SetVertexBuffer(_staticMesh.VertexBuffer);
             GraphicsDevice.Indices = _staticMesh.IndexBuffer;
 
-            _effect.Parameters["Texture"].SetValue(_staticMesh.Texture?.Resource);
-            //_effect.Parameters["EyePosition"].SetValue(_boxEntity.CameraPosition);
-            _effect.Parameters["World"].SetValue(_boxEntity.Coordinates.WorldMatrix);
-            //_effect.Parameters["WorldInverseTranspose"].SetValue((_boxEntity.Coordinates.WorldMatrix.Invert().Transpose());
-            _effect.Parameters["WorldViewProj"].SetValue(
-                _boxEntity.Coordinates.WorldMatrix * GameManager.ActiveCamera.ViewMatrix * GameManager.ActiveCamera.ProjectionMatrix);
+            DrawBoxWithEffect(gameTime, _effectColor, _materialColor, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(Vector3.UnitX * 2f));
+            DrawBoxWithEffect(gameTime, _effectTexture, _materialTexture, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 2f));
+        }
 
-            foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
+        private void DrawBoxWithEffect(GameTime gameTime, Effect effect, Material material, Matrix world)
+        {
+            if (material.Diffuse is MaterialTexture materialTexture)
+            {
+                effect.Parameters["Texture"].SetValue(materialTexture.Texture?.Resource);
+            }
+
+            // pour le deplacement de texture : uv + GameTime
+            // pour la repetition de texture : uv * repetition
+            //if (material.Diffuse is MaterialTexture materialTexture) 
+            //{
+            //    effect.Parameters["GameTime"].SetValue(GameTimeHelper.ConvertTotalTimeToSeconds(gameTime));
+            //}
+
+            //_effect.Parameters["Texture"].SetValue(_staticMesh.Texture?.Resource);
+            //_effect.Parameters["EyePosition"].SetValue(_boxEntity.CameraPosition);
+            //_effect.Parameters["World"].SetValue(_boxEntity.Coordinates.WorldMatrix);
+            //_effect.Parameters["WorldInverseTranspose"].SetValue((_boxEntity.Coordinates.WorldMatrix.Invert().Transpose());
+
+            effect.Parameters["WorldViewProj"].SetValue(world * GameManager.ActiveCamera.ViewMatrix * GameManager.ActiveCamera.ProjectionMatrix);
+
+            foreach (EffectPass effectPass in effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
                 int primitiveCount = _staticMesh.IndexBuffer.IndexCount / 3;
                 GraphicsDevice.DrawIndexedPrimitives(_staticMesh.PrimitiveType, 0, 0, primitiveCount);
             }
-
-            base.Draw(gameTime);
         }
     }
 }

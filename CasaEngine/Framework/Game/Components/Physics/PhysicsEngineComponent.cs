@@ -26,7 +26,7 @@ public class PhysicsEngineComponent : GameComponent
 
     public override void Update(GameTime gameTime)
     {
-        PhysicsEngine.Update(GameTimeHelper.GameTimeToMilliseconds(gameTime));
+        PhysicsEngine.Update(GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime));
         PhysicsEngine.UpdateContacts();
         PhysicsEngine.SendEvents();
     }
