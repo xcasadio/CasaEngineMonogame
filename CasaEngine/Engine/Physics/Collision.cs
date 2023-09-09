@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Entities.Components;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Physics;
 
@@ -8,12 +9,14 @@ namespace CasaEngine.Engine.Physics;
 /// </summary>
 public readonly struct Collision : IEquatable<Collision>
 {
+    public readonly Vector3 ContactPoint;
     public readonly ICollideableComponent ColliderA;
 
     public readonly ICollideableComponent ColliderB;
 
-    public Collision(ICollideableComponent a, ICollideableComponent b)
+    public Collision(ICollideableComponent a, ICollideableComponent b, Vector3 contactPoint)
     {
+        ContactPoint = contactPoint;
         ColliderA = a;
         ColliderB = b;
     }

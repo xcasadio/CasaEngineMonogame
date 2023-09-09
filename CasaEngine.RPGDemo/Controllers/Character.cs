@@ -7,8 +7,11 @@ using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.RPGDemo.Components;
+using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
+using SharpDX.XInput;
 
 namespace CasaEngine.RPGDemo.Controllers;
 
@@ -62,6 +65,13 @@ public class Character
     public string AnimatationPrefix { get; set; }
 
     public bool CanAttack => _delayBeforeNewAttack <= 0.0f;
+
+
+    public int Strength { get; set; } = 5;
+    public int Defense { get; set; } = 3;
+    public int HPMax { get; set; } = 10;
+    public int HP { get; set; } = 10;
+
 
     public Character(Entity entity)
     {
@@ -182,30 +192,27 @@ public class Character
         return _animationDirectionOffset[(int)CurrentDirection & _animationDirectionMask];
     }
 
-    //public void Hit(HitInfo info_)
-    //{
-    //    CharacterActor2D a = (CharacterActor2D)info_.ActorAttacking;
-    //
-    //    AddHitEffect(ref info_.ContactPoint);
-    //
-    //    int cost = a.Strength - Defense;
-    //    cost = cost < 0 ? 0 : cost;
-    //    HP -= cost;
-    //
-    //    if (HP <= 0)
-    //    {
-    //        a.IKillSomeone(info_);
-    //        Delete = true;
-    //
-    //        //to delete : debug
-    //        //respawn
-    //        m_HP = m_HPMax;
-    //        SetPosition(Vector2.One * 10.0f);
-    //        m_Controller.StateMachine.Transition(m_Controller.GetState(0));
-    //    }
-    //}
+    public void Hit(HitParameters hitParameters)
+    {
+        AddHitEffect(ref hitParameters.ContactPoint);
 
-    public void AddHitEffect(ref Vector2 contactPoint)
+        var characterComponent = hitParameters.Entity.ComponentManager.GetComponent<CharacterComponent>();
+
+        int cost = characterComponent.Character.Strength - Defense;
+        cost = cost < 0 ? 0 : cost;
+        HP -= cost;
+
+        if (HP <= 0)
+        {
+            //characterComponent.Character.IKillSomeone(info_);
+
+            //m_HP = m_HPMax;
+            //SetPosition(Vector2.One * 10.0f);
+            //characterComponent.Controller.StateMachine.Transition(Controller.GetState(0));
+        }
+    }
+
+    public void AddHitEffect(ref Vector3 contactPoint)
     {
 
     }

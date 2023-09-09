@@ -229,7 +229,7 @@ public class PhysicsEngine
                 continue;
             }
 
-            var collision = new Collision(a.UserObject as ICollideableComponent, b.UserObject as ICollideableComponent);
+            var collision = new Collision(a.UserObject as ICollideableComponent, b.UserObject as ICollideableComponent, persistentManifold.GetContactPoint(0).LocalPointA);
             // PairCachingGhostObject has two identical manifolds when colliding, not 100% sure why that is,
             // CompoundColliderShape shapes all map to the same PhysicsComponent but create unique manifolds.
             if (_collisions.TryAdd(collision, collId))
@@ -305,7 +305,7 @@ public class PhysicsEngine
         // Send collision ended
         foreach (var (_, refCollision) in _outdatedCollisions)
         {
-            var collision = new Collision(refCollision.ColliderA, refCollision.ColliderB);
+            var collision = new Collision(refCollision.ColliderA, refCollision.ColliderB, refCollision.ContactPoint);
             // See: SendEvents()
             if (IncludeStaticAgainstStaticCollisions == false
                 && collision.ColliderA.PhysicsType == PhysicsType.Static

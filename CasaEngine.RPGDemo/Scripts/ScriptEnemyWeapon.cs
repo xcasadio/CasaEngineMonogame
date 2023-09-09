@@ -6,6 +6,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.RPGDemo.Components;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -77,6 +78,14 @@ public class ScriptEnemyWeapon : ExternalComponent
         {
             _entity.Destroy();
 
+            var hitParameters = new HitParameters();
+            hitParameters.ContactPoint = collision.ContactPoint;
+            hitParameters.Entity = playerComponent.Owner;
+            hitParameters.Strength = 10;
+            hitParameters.Precision = 10;
+            hitParameters.MagicStrength = 10;
+            playerComponent.Character.Hit(hitParameters);
+
             //check if it AutoTile grass
             //tileCollisionManager.RemoveTile();
         }
@@ -99,4 +108,15 @@ public class ScriptEnemyWeapon : ExternalComponent
     }
 
 #endif
+}
+
+public class HitParameters
+{
+    public int Strength;
+    public int Precision;
+    public int MagicStrength;
+
+    public Entity Entity;
+
+    public Vector3 ContactPoint;
 }

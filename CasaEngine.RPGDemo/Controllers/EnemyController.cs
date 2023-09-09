@@ -6,13 +6,7 @@ namespace CasaEngine.RPGDemo.Controllers;
 
 public class EnemyController : AiController
 {
-    Character _playerHunted;
-
-    public Character PlayerHunted
-    {
-        get => _playerHunted;
-        set => _playerHunted = value;
-    }
+    public Character PlayerHunted { get; set; }
 
     public EnemyController(Character character)
         : base(character)

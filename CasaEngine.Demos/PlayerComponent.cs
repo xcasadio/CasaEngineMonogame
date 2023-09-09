@@ -13,7 +13,7 @@ using Component = CasaEngine.Framework.Entities.Components.Component;
 namespace CasaEngine.Demos;
 
 [DisplayName("PlayerComponent")]
-public class PlayerComponent : CasaEngine.Framework.Entities.Components.Component
+public class PlayerComponent : Component
 {
     public static readonly int ComponentId = (int)ComponentIds.Custom + 1;
 

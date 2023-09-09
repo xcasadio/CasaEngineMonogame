@@ -2,40 +2,25 @@
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 using CasaEngine.RPGDemo.Controllers;
 using Component = CasaEngine.Framework.Entities.Components.Component;
 
 namespace CasaEngine.RPGDemo.Components;
 
 [DisplayName("EnemyComponent")]
-public class EnemyComponent : Component
+public class EnemyComponent : CharacterComponent
 {
     public static readonly int ComponentId = (int)RpgDemoComponentIds.EnemyComponent;
 
-    public EnemyController Controller { get; }
-
-    public Character Character { get; }
 
     public EnemyComponent(Entity owner) : base(owner, ComponentId)
     {
-        Character = new Character(owner);
         Controller = new EnemyController(Character);
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override Component Clone(Entity owner)
     {
-        Controller.Initialize(game);
-    }
-
-    public override void Update(float elapsedTime)
-    {
-        Controller.Update(elapsedTime);
-    }
-
-    public override void Draw()
-    {
-
+        return new EnemyComponent(owner);
     }
 
     public override void Load(JsonElement element, SaveOption option)
@@ -43,8 +28,12 @@ public class EnemyComponent : Component
 
     }
 
-    public override Component Clone(Entity owner)
+#if EDITOR
+
+    public override void Save(JObject jObject, SaveOption option)
     {
-        return new EnemyComponent(owner);
+        base.Save(jObject, option);
     }
+
+#endif
 }

@@ -9,6 +9,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Components;
+using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
@@ -105,7 +106,7 @@ public class RpgGame : CasaEngineGame
 
         enemyComponent.Initialize(this);
 
-        enemyComponent.Controller.PlayerHunted = playerComponent.Character;
+        (enemyComponent.Controller as EnemyController).PlayerHunted = playerComponent.Character;
     }
 
     protected override void Update(GameTime gameTime)
