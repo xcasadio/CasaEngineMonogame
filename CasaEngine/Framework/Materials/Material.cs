@@ -6,8 +6,31 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Materials;
 
+
+public class MaterialAsset
+{
+
+}
+
+public class MaterialBinaryOperator
+{
+    //add, substract, ...
+}
+
+public class MaterialColor
+{
+    public Color Color { get; set; }
+}
+
+public class MaterialTexture
+{
+    public long TextureAssetId { get; set; }
+    public Texture Texture;
+}
+
 public class Material
 {
+    private MaterialAsset Diffuse;
     public long TextureBaseColorAssetId { get; set; }
     public Texture TextureBaseColor;
 
@@ -107,5 +130,54 @@ public class Material
         jObject.Add("texture_reflection_asset_id", TextureReflectionAssetId);
     }
 
+
+    public void WriteShader()
+    {
+
+        //Diffuse.GetResult()
+        /*
+        VSOutputPixelLighting VSBasicPixelLightingVc(VSInputNmVc vin)
+        {
+            VSOutputPixelLighting vout;
+
+            CommonVSOutputPixelLighting cout = ComputeCommonVSOutputPixelLighting(vin.Position, vin.Normal);
+            SetCommonVSOutputParamsPixelLighting;
+
+            vout.Diffuse.rgb = vin.Color.rgb;
+            vout.Diffuse.a = vin.Color.a * DiffuseColor.a;
+
+            return vout;
+        }
+
+
+
+        float4 PSBasic(VSOutput pin) : SV_Target0
+        {
+            return pin.Diffuse;
+        }
+
+
+        float4 PSBasicTxSimple(VSOutputTx pin) : SV_Target0
+        {
+            return SAMPLE_TEXTURE(Texture, pin.TexCoord);
+        }
+
+        // Pixel shader: texture.
+        float4 PSBasicTx(VSOutputTx pin) : SV_Target0
+        {
+            return SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+        }
+
+
+        // Pixel shader: texture.
+        float4 PSFinal(VSOutputFinal pin) : SV_Target0
+        {
+            float4 color = GetColor(pin);
+            return SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+        }
+        */
+
+
+    }
 #endif
 }

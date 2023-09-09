@@ -1,0 +1,8 @@
+{
+  "asset": {
+    "id": 50000,
+    "name": "dude",
+    "file_name": "SkinnedMesh\\dude.skinnedmesh"
+  },
+  "texture_asset_id": 10004
+}

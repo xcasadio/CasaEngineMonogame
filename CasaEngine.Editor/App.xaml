@@ -1,0 +1,15 @@
+﻿<Application x:Class="CasaEngine.Editor.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="ProjectLauncherWindow.xaml">
+    <Application.Resources>
+        <RoutedUICommand x:Key="Commands.Sprite.Load" />
+        <RoutedUICommand x:Key="Commands.Sprite.Save" />
+
+        <RoutedUICommand x:Key="Commands.Animation2d.Load" />
+        <RoutedUICommand x:Key="Commands.Animation2d.Save" />
+
+        <RoutedUICommand x:Key="Commands.TileMap.Load" />
+        <RoutedUICommand x:Key="Commands.TileMap.Save" />
+    </Application.Resources>
+</Application>

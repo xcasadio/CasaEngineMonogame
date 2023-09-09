@@ -1,0 +1,55 @@
+﻿<UserControl x:Class="CasaEngine.Editor.Controls.WorldControls.EntityControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CasaEngine.Editor.Controls"
+             xmlns:worldControls="clr-namespace:CasaEngine.Editor.Controls.WorldControls"
+             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Name}" VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalPosition}"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Rotation" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalRotation}"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalScale}"/>
+            </Grid>
+        </Grid>
+
+        <worldControls:EntityComponentsControl x:Name="entityComponentsControl" Grid.Row="1"/>
+
+    </Grid>
+</UserControl>

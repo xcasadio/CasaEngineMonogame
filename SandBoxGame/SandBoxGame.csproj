@@ -16,6 +16,7 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">

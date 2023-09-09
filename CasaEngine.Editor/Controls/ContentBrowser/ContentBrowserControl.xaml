@@ -1,0 +1,129 @@
+﻿<UserControl x:Class="CasaEngine.Editor.Controls.ContentBrowser.ContentBrowserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:contentBrowser="clr-namespace:CasaEngine.Editor.Controls.ContentBrowser"
+             xmlns:CasaEngine.Editor="clr-namespace:CasaEngine.Editor"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" >
+    <UserControl.Resources>
+        <DataTemplate x:Key="FolderItemDataTemplate" DataType="{x:Type contentBrowser:FolderItem}">
+            <Image Width="246" Height="246" 
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                       Source="/Resources/file-folder-48.png" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="ContentItemDataTemplate" DataType="{x:Type contentBrowser:ContentItem}">
+            <Grid>
+                <Image Width="246" Height="246" 
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                           Source="/Resources/fichier-50.png" />
+                <TextBlock Text="{Binding FileExtension}"
+                               FontSize="32" Foreground="DimGray"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </DataTemplate>
+
+        <contentBrowser:ContentBrowserItemDataTemplateSelector x:Key="contentBrowserItemDataTemplateSelector"
+                                              ContentItemTemplate="{StaticResource ContentItemDataTemplate}"
+                                              FolderItemTemplate="{StaticResource FolderItemDataTemplate}"/>
+    </UserControl.Resources>
+    <UserControl.DataContext>
+        <contentBrowser:ContentBrowserViewModel />
+    </UserControl.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ToolBarTray Grid.Row="0" Grid.ColumnSpan="3">
+            <ToolBar>
+                <Button ToolTip="Save" Click="ButtonSave_OnClick">
+                    <Image Source="/Resources/save-44-48.png" Height="16" />
+                </Button>
+                <Separator />
+            </ToolBar>
+        </ToolBarTray>
+
+
+        <TreeView x:Name="treeViewFolders" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding ContentItems}">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type contentBrowser:FolderItem}" ItemsSource="{Binding Folders}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Column="0" Source="/Resources/file-folder-48.png" Width="24" Height="24"/>
+                        <Label Grid.Column="1" Content="{Binding Name}" VerticalAlignment="Center"/>
+                    </Grid>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+
+        <ListBox x:Name="ListBoxFolderContent" Grid.Row="1" Grid.Column="2" 
+                 ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                 AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop"
+                 ContextMenuOpening="ListBoxFolderContent_OnContextMenuOpening"
+                 PreviewMouseLeftButtonDown="ListBox_OnPreviewMouseLeftButtonDown">
+            <ListBox.CommandBindings>
+                <CommandBinding Command="ApplicationCommands.New" Executed="ListBoxFolderContentCreate_Click" />
+                <CommandBinding Command="ApplicationCommands.Delete" Executed="ListBoxFolderContentDelete_Click" />
+            </ListBox.CommandBindings>
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Create">
+                        <MenuItem Header="Entity" Click="MenuItemCreateEntity_OnClick" />
+                    </MenuItem>
+                </ContextMenu>
+            </ListBox.ContextMenu>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Width" Value="128"/>
+                    <Setter Property="Height" Value="128"/>
+                    <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="Delete" Command="ApplicationCommands.Delete"/>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel IsItemsHost="True" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Viewbox>
+                        <Border BorderThickness="4" BorderBrush="White" Margin="5">
+                            <DockPanel>
+                                <ContentControl DockPanel.Dock="Top" Content="{Binding }"
+                                                ContentTemplateSelector="{StaticResource contentBrowserItemDataTemplateSelector}"/>
+                                <Grid>
+                                    <TextBlock Text="{Binding Name}" FontSize="32" HorizontalAlignment="Center"/>
+                                </Grid>
+                            </DockPanel>
+                        </Border>
+                    </Viewbox>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</UserControl>

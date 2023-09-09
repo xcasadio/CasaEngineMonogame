@@ -333,7 +333,7 @@ public class GameManager
         _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         var gamePlayComponent = new GamePlayComponent(_cameraEditorEntity);
         _cameraEditorEntity.ComponentManager.Components.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera(_cameraEditorEntity);
+        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
 
         _cameraEditorEntity.Initialize(_game);
     }
