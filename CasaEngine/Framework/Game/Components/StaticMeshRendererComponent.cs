@@ -77,9 +77,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
         graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        GraphicsDevice.BlendState = BlendState.AlphaBlend;
-        GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
+        graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        graphicsDevice.BlendState = BlendState.AlphaBlend;
+        graphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
         foreach (var meshInfo in _meshInfos)
         {

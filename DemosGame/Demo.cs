@@ -21,7 +21,7 @@ public abstract class Demo
         camera.SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
         var gamePlayComponent = new GamePlayComponent(entity);
         entity.ComponentManager.Components.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera(entity);
+        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
         game.GameManager.CurrentWorld.AddEntityImmediately(entity);
 
         return camera;

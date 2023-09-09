@@ -28,7 +28,7 @@ public class GamePlayComponent : Component
 
     public override void Initialize(CasaEngineGame game)
     {
-        ExternalComponent?.Initialize(game);
+        ExternalComponent?.Initialize(Owner, game);
     }
 
     public override void Update(float elapsedTime)

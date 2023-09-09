@@ -14,7 +14,7 @@ public class ScriptArcBallCamera : ExternalComponent
 {
     public static int ScriptId => (int)ScriptIds.ArcBallCamera;
 
-    private readonly ArcBallCameraComponent? _arcBallCameraComponent;
+    private ArcBallCameraComponent? _arcBallCameraComponent;
     private InputComponent _inputComponent;
 
     private readonly float _inputTurnRate;
@@ -23,16 +23,16 @@ public class ScriptArcBallCamera : ExternalComponent
 
     public float InputDisplacementRate { get; set; }
 
-    public ScriptArcBallCamera(Entity entity) : base(ScriptId)
+    public ScriptArcBallCamera() : base(ScriptId)
     {
-        _arcBallCameraComponent = entity.ComponentManager.GetComponent<ArcBallCameraComponent>();
         InputDistanceRate = 3.0f;
         _inputTurnRate = 0.3f;
         InputDisplacementRate = 10.0f;
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        _arcBallCameraComponent = entity.ComponentManager.GetComponent<ArcBallCameraComponent>();
         _inputComponent = game.GetGameComponent<InputComponent>();
     }
 

@@ -3,6 +3,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
+using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Framework.Scripting;
 
@@ -15,7 +16,7 @@ public abstract class ExternalComponent : ISaveLoad
         Type = type;
     }
 
-    public abstract void Initialize(CasaEngineGame game);
+    public abstract void Initialize(Entity entity, CasaEngineGame game);
     public abstract void Update(float elapsedTime);
     public abstract void Draw();
     public abstract void OnHit(Collision collision);

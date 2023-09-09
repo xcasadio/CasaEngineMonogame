@@ -55,7 +55,7 @@ public class GameEditorEntity : GameEditor
         _camera.SetCamera(new Vector3(0, 5f, -10f), Vector3.Zero, Vector3.Up);
         var gamePlayComponent = new GamePlayComponent(_cameraEntity);
         _cameraEntity.ComponentManager.Components.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera(_cameraEntity);
+        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
         _cameraEntity.Initialize(Game);
         Game.GameManager.ActiveCamera = _camera;
         Game.GameManager.CurrentWorld.AddEntityImmediately(_cameraEntity);

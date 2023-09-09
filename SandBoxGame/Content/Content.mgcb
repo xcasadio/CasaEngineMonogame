@@ -13,6 +13,9 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin checkboard.png
+/copy:checkboard.png
+
 #begin GizmoFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor

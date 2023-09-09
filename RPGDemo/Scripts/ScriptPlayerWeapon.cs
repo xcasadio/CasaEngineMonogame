@@ -21,7 +21,7 @@ public class ScriptPlayerWeapon : ExternalComponent
         _entity = entity;
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
         _entity.IsEnabled = false;
         _entity.IsVisible = false;

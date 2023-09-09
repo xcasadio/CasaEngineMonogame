@@ -2,7 +2,7 @@
 
 namespace EditorWpf.Shaders;
 
-internal class ShaderCompiled
+public class ShaderCompiled
 {
     public List<string> Dependencies { get; } = new();
 

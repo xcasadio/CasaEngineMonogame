@@ -9,7 +9,7 @@ namespace EditorWpf.Shaders;
 // MonoGame - Copyright (C) The MonoGame Team
 // This file is subject to the terms and conditions defined in
 // file 'Licences\MonoGame.txt', which is part of this source code package.
-internal class ShaderCompiler
+public class ShaderCompiler
 {
     private const string mgfxcPath = "mgfxc\\mgfxc.dll";
 
