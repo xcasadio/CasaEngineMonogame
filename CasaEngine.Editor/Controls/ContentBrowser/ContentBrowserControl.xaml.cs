@@ -3,8 +3,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -26,6 +24,7 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
     public partial class ContentBrowserControl : UserControl
     {
         private GameEditor _gameEditor;
+        private object? _dragAndDropData;
 
         public AssetInfo? SelectedItem
         {
@@ -55,6 +54,8 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
 
         private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            LogManager.Instance.WriteLineDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
+
             if (sender is not FrameworkElement frameworkElement)
             {
                 return;
@@ -263,15 +264,26 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
             e.Handled = false;
         }
 
-        private void ListBox_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ListBox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ListBox parent = (ListBox)sender;
-            //dragSource = parent;
-            object data = GetDataFromListBox(parent, e.GetPosition(parent));
-
-            if (data != null)
+            if (sender is ListBoxItem listBoxItem && listBoxItem.DataContext is ContentItem contentItem)
             {
-                DragDrop.DoDragDrop(parent, data, DragDropEffects.Move);
+                _dragAndDropData = contentItem.AssetInfo;
+            }
+        }
+
+        private void ListBox_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _dragAndDropData = null;
+        }
+
+        private void ListBox_OnMouseMove(object sender, MouseEventArgs e)
+        {
+            if (_dragAndDropData != null && e.LeftButton == MouseButtonState.Pressed /* && detect moving ?? */
+                && sender is DependencyObject dependencyObject)
+            {
+                DragDrop.DoDragDrop(dependencyObject, _dragAndDropData, DragDropEffects.Move);
+                e.Handled = true;
             }
         }
 

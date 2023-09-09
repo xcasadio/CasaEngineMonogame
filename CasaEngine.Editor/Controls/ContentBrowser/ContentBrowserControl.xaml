@@ -75,8 +75,7 @@
                  ItemsSource="{Binding ElementName=treeViewFolders, Path=SelectedItem.Contents}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
                  AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop"
-                 ContextMenuOpening="ListBoxFolderContent_OnContextMenuOpening"
-                 PreviewMouseLeftButtonDown="ListBox_OnPreviewMouseLeftButtonDown">
+                 ContextMenuOpening="ListBoxFolderContent_OnContextMenuOpening">
             <ListBox.CommandBindings>
                 <CommandBinding Command="ApplicationCommands.New" Executed="ListBoxFolderContentCreate_Click" />
                 <CommandBinding Command="ApplicationCommands.Delete" Executed="ListBoxFolderContentDelete_Click" />
@@ -95,6 +94,9 @@
                     <Setter Property="Width" Value="128"/>
                     <Setter Property="Height" Value="128"/>
                     <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListBox_OnMouseLeftButtonDown"/>
+                    <EventSetter Event="PreviewMouseLeftButtonUp" Handler="ListBox_OnMouseLeftButtonUp"/>
+                    <EventSetter Event="PreviewMouseMove" Handler="ListBox_OnMouseMove"/>
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
