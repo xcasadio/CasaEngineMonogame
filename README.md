@@ -13,6 +13,8 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
   - 2D Graphics
     - Visualization : Sprites, Animations, Tiled map
   - Asset Manager
+* UI
+  - Neoforce ([NeoforceControls/Neoforce-Mono](https://github.com/NeoforceControls/Neoforce-Mono))
 * 2D
   - Sprites
   - Animations
@@ -24,6 +26,8 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
   - Lighting
 * Physics
   - RigidBody
+* Fonts
+  - load font from true type font ([FontStashSharp](https://github.com/FontStashSharp/FontStashSharp))
 
 ## 3rd parties
 * Physics : BulletSharp
