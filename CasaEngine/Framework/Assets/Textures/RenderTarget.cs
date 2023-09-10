@@ -33,8 +33,6 @@ namespace CasaEngine.Framework.Assets.Textures;
 
 public sealed class RenderTarget : Texture
 {
-    private readonly AssetContentManager _assetContentManager;
-
     public struct RenderTargetBinding
     {
         internal Microsoft.Xna.Framework.Graphics.RenderTargetBinding[] InternalBinding;
@@ -100,6 +98,8 @@ public sealed class RenderTarget : Texture
         }
     } // Resource
 
+    public ScreenSize ScreenSize { get; private set; }
+
     public SurfaceFormat SurfaceFormat { get; private set; }
 
     public DepthFormat DepthFormat { get; private set; }
@@ -110,14 +110,12 @@ public sealed class RenderTarget : Texture
 
     public static RenderTarget[] CurrentRenderTarget => currentRenderTarget;
 
-    public RenderTarget(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice, ScreenSize screenSize,
+    public RenderTarget(GraphicsDevice graphicsDevice, ScreenSize screenSize,
         SurfaceFormat surfaceFormat, DepthFormat depthFormat,
         AntiAliasingType antiAliasingType = AntiAliasingType.NoAntialiasing, bool mipMap = false)
         : base(graphicsDevice)
     {
-        _assetContentManager = assetContentManager;
-        AssetInfo.Name = "Render Target";
-        //ScreenSize = screenSize;
+        ScreenSize = screenSize;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = depthFormat;
@@ -138,9 +136,8 @@ public sealed class RenderTarget : Texture
         bool mipMap = false)
         : base(graphicsDevice)
     {
-        _assetContentManager = assetContentManager;
         AssetInfo.Name = "Render Target";
-        //ScreenSize = screenSize;
+        ScreenSize = screenSize;
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
@@ -185,7 +182,7 @@ public sealed class RenderTarget : Texture
         {
             // Render Targets don't use content managers.
             _renderTarget.Dispose();
-            OnDeviceReset(GraphicsDevice, _assetContentManager);
+            OnDeviceReset(GraphicsDevice, null);
         }
     } // OnScreenSizeChanged
 
@@ -392,7 +389,7 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        renderTarget = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat, depthFormat, antiAliasingType, mipMap);
+        renderTarget = new RenderTarget(graphicsDevice, screenSize, surfaceFormat, depthFormat, antiAliasingType, mipMap);
         RenderTargets.Add(renderTarget);
         renderTarget._looked = true;
         return renderTarget;
@@ -450,7 +447,7 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat1, depthFormat);
+        var renderTarget1 = new RenderTarget(graphicsDevice, screenSize, surfaceFormat1, depthFormat);
         var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat2, false);
         renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2);
         MultipleRenderTargets.Add(renderTargetBinding);
@@ -479,7 +476,7 @@ public sealed class RenderTarget : Texture
             }
         }
         // If there is not one unlook or present we create one.
-        var renderTarget1 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat1, depthFormat);
+        var renderTarget1 = new RenderTarget(graphicsDevice, screenSize, surfaceFormat1, depthFormat);
         var renderTarget2 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat2, false);
         var renderTarget3 = new RenderTarget(assetContentManager, graphicsDevice, screenSize, surfaceFormat3, false);
         renderTargetBinding = BindRenderTargets(renderTarget1, renderTarget2, renderTarget3);
