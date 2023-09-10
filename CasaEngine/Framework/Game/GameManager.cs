@@ -10,15 +10,15 @@ using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Debugger;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.FrontEnd.Screen;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.UserInterface;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TomShane.Neoforce.Controls;
+using Cursor = System.Windows.Forms.Cursor;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -43,8 +43,7 @@ public class GameManager
     public string[] Arguments { get; set; }
     private string ProjectFile { get; set; } = string.Empty;
     public AssetContentManager AssetContentManager { get; } = new();
-    public ScreenManager ScreenManager { get; } = new();
-    public UserInterfaceManager UiManager { get; } = new();
+    public Manager UiManager { get; private set; }
     public SpriteBatch? SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
     public Renderer2dComponent Renderer2dComponent { get; private set; }
@@ -52,7 +51,6 @@ public class GameManager
     public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
     public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
-    public ScreenManagerComponent ScreenManagerComponent { get; private set; }
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
@@ -161,7 +159,6 @@ public class GameManager
         Renderer2dComponent = new Renderer2dComponent(_game) { SpriteBatch = SpriteBatch };
         SpriteRendererComponent = new SpriteRendererComponent(_game);
         InputComponent = new InputComponent(_game);
-        ScreenManagerComponent = new ScreenManagerComponent(_game);
         MeshRendererComponent = new StaticMeshRendererComponent(_game);
         SkinnedMeshRendererComponent = new SkinnedMeshRendererComponent(_game);
         PhysicsEngineComponent = new PhysicsEngineComponent(_game);
@@ -186,7 +183,8 @@ public class GameManager
         _game.IsFixedTimeStep = GameSettings.ProjectSettings.IsFixedTimeStep;
         _game.IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
 
-        //UiManager.Initialize(_game, null/*Window.Handle*/, _game.Window.ClientBounds);
+        UiManager = new Manager(_game, _game.Services.GetService<IGraphicsDeviceManager>() as GraphicsDeviceManager);
+        //UiManager.Initialize();
     }
 
     public Entity SpawnEntity(string assetName)
@@ -278,7 +276,7 @@ public class GameManager
         //    DebugSystem.Instance.DebugCommandUI.Show(); 
 
         CurrentWorld?.Update(elapsedTime);
-        //UiManager.Update(elapsedTime);
+        //UiManager.Update(gameTime);
     }
 
     public void EndUpdate(GameTime gameTime)
@@ -299,7 +297,7 @@ public class GameManager
 
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
         CurrentWorld?.Draw(elapsedTime);
-        //UiManager.PreRenderControls();
+        //UiManager.Draw(gameTime);
     }
 
     public void EndDraw(GameTime gameTime)

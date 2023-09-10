@@ -41,6 +41,7 @@
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
+		<ProjectReference Include="..\TomShane.Neoforce.Controls\TomShane.Neoforce.Controls.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="BulletSharp">
