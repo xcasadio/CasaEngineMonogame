@@ -81,8 +81,6 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     public override void Update(float elapsedTime)
     {
-        //In editor mode the game is in idle mode so we don't update physics
-#if !EDITOR
         CollisionObject? collisionObject = null;
 
         if (_collisionObject != null)
@@ -100,7 +98,6 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
             Owner.Coordinates.LocalPosition = position;
             Owner.Coordinates.LocalRotation = rotation;
         }
-#endif
     }
 
     public override void OnEnabledValueChange()

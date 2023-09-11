@@ -1,6 +1,7 @@
 ﻿using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
+using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
@@ -26,6 +27,13 @@ public class PhysicsEngineComponent : GameComponent
 
     public override void Update(GameTime gameTime)
     {
+#if EDITOR
+        if (!(Game as CasaEngineGame).GameManager.IsRunningInGameEditorMode)
+        {
+            return;
+        }
+#endif
+
         PhysicsEngine.Update(GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime));
         PhysicsEngine.UpdateContacts();
         PhysicsEngine.SendEvents();
