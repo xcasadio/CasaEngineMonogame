@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System.Text;
 using System.Media;
+using SharpDX.Direct3D9;
 
 [assembly: CLSCompliant(false)]
 
@@ -77,7 +78,7 @@ public class Manager : DrawableGameComponent
     /// <summary>
     /// Returns associated <see cref="GraphicsDeviceManager"/>.
     /// </summary>
-    public virtual GraphicsDeviceManager Graphics { get; }
+    public virtual IGraphicsDeviceService Graphics { get; }
 
     /// <summary>
     /// Returns <see cref="Renderer"/> used for rendering controls.
@@ -435,7 +436,7 @@ public class Manager : DrawableGameComponent
     /// <param name="skin">
     /// The name of the skin being loaded at the start.
     /// </param>
-    public Manager(Game game, GraphicsDeviceManager graphics, string skin)
+    public Manager(Game game, IGraphicsDeviceService graphics, string skin)
         : base(game)
     {
         _disposing = false;
@@ -449,7 +450,9 @@ public class Manager : DrawableGameComponent
         OrderList = new ControlsList();
 
         Graphics = graphics;
-        graphics.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(PrepareGraphicsDevice);
+        graphics.DeviceReset += GraphicsOnDeviceReset; //new EventHandler<PreparingDeviceSettingsEventArgs>(PrepareGraphicsDevice);
+        graphics.DeviceResetting += GraphicsOnDeviceReset;
+        graphics.DeviceCreated += GraphicsOnDeviceReset;
 
         _skinName = skin;
 
@@ -490,7 +493,7 @@ public class Manager : DrawableGameComponent
     /// The name of the skin being loaded at the start.
     /// </param>
     public Manager(Game game, string skin)
-        : this(game, game.Services.GetService(typeof(IGraphicsDeviceManager)) as GraphicsDeviceManager, skin)
+        : this(game, game.Services.GetService<IGraphicsDeviceService>(), skin)
     {
     }
 
@@ -503,7 +506,7 @@ public class Manager : DrawableGameComponent
     /// <param name="graphics">
     /// The GraphicsDeviceManager class provided by the Game class.
     /// </param>
-    public Manager(Game game, GraphicsDeviceManager graphics)
+    public Manager(Game game, IGraphicsDeviceService graphics)
         : this(game, graphics, DefaultSkin)
     {
     }
@@ -625,18 +628,25 @@ public class Manager : DrawableGameComponent
     /// <summary>
     /// Method used as an event handler for the GraphicsDeviceManager.PreparingDeviceSettings event.
     /// </summary>
-    protected virtual void PrepareGraphicsDevice(object sender, PreparingDeviceSettingsEventArgs e)
+    private void GraphicsOnDeviceReset(object sender, System.EventArgs e)
     {
-        e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage;
-        var w = e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
-        var h = e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight;
+        if (sender is IGraphicsDeviceService graphicsDeviceService)
+        {
+            var w = graphicsDeviceService.GraphicsDevice.PresentationParameters.BackBufferWidth;
+            var h = graphicsDeviceService.GraphicsDevice.PresentationParameters.BackBufferHeight;
 
+            OnScreenResize(w, h);
+
+            DeviceSettingsChanged?.Invoke(new DeviceEventArgs(graphicsDeviceService.GraphicsDevice.PresentationParameters));
+        }
+    }
+
+    public void OnScreenResize(int width, int height)
+    {
         foreach (var c in Controls)
         {
-            SetMaxSize(c, w, h);
+            SetMaxSize(c, width, height);
         }
-
-        DeviceSettingsChanged?.Invoke(new DeviceEventArgs(e));
     }
 
     private void SetMaxSize(Control c, int w, int h)

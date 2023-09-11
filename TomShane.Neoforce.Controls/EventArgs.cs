@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace TomShane.Neoforce.Controls;
@@ -181,13 +182,13 @@ public class MoveEventArgs : EventArgs
 public class DeviceEventArgs : EventArgs
 {
 
-    public PreparingDeviceSettingsEventArgs DeviceSettings;
+    public PresentationParameters DeviceSettings;
 
     public DeviceEventArgs()
     {
     }
 
-    public DeviceEventArgs(PreparingDeviceSettingsEventArgs deviceSettings)
+    public DeviceEventArgs(PresentationParameters deviceSettings)
     {
         DeviceSettings = deviceSettings;
     }
