@@ -37,11 +37,11 @@ public class ScriptEnemyWeapon : ExternalComponent
 
     public override void OnHit(Collision collision)
     {
-        HitWithGrass(collision);
+        HitWithMap(collision);
         HitWithPlayer(collision);
     }
 
-    private void HitWithGrass(Collision collision)
+    private void HitWithMap(Collision collision)
     {
         TileCollisionManager tileCollisionManager = null;
 
@@ -56,8 +56,11 @@ public class ScriptEnemyWeapon : ExternalComponent
 
         if (tileCollisionManager != null)
         {
-            //check if it AutoTile grass
-            //tileCollisionManager.RemoveTile();
+            var tileData = tileCollisionManager.GetTileData();
+            if (tileData.CollisionType == TileCollisionType.Blocked)
+            {
+                _entity.Destroy();
+            }
         }
     }
 
@@ -85,9 +88,6 @@ public class ScriptEnemyWeapon : ExternalComponent
             hitParameters.Precision = 10;
             hitParameters.MagicStrength = 10;
             playerComponent.Character.Hit(hitParameters);
-
-            //check if it AutoTile grass
-            //tileCollisionManager.RemoveTile();
         }
     }
 

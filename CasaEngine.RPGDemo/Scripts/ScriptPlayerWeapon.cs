@@ -3,6 +3,7 @@ using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.RPGDemo.Components;
@@ -55,8 +56,11 @@ public class ScriptPlayerWeapon : ExternalComponent
 
         if (tileCollisionManager != null)
         {
-            //check if it AutoTile grass
-            //tileCollisionManager.RemoveTile();
+            var tileData = tileCollisionManager.GetTileData();
+            if (tileData.IsBreakable)
+            {
+                tileCollisionManager.RemoveTile();
+            }
         }
     }
 
@@ -75,8 +79,13 @@ public class ScriptPlayerWeapon : ExternalComponent
 
         if (enemyComponent != null)
         {
-            //check if it AutoTile grass
-            //tileCollisionManager.RemoveTile();
+            var hitParameters = new HitParameters();
+            hitParameters.ContactPoint = collision.ContactPoint;
+            hitParameters.Entity = enemyComponent.Owner;
+            hitParameters.Strength = 10;
+            hitParameters.Precision = 10;
+            hitParameters.MagicStrength = 10;
+            enemyComponent.Character.Hit(hitParameters);
         }
     }
 

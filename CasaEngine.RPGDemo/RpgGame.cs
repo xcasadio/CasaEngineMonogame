@@ -12,15 +12,22 @@ using CasaEngine.RPGDemo.Components;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using static System.Net.Mime.MediaTypeNames;
+using TomShane.Neoforce.Controls;
 
 namespace CasaEngine.RPGDemo;
 
 public class RpgGame : CasaEngineGame
 {
     private static readonly float CharacterZOffSet = 0.3f;
+    private SpriteFontBase _font;
+
+    private Character _playerCharacter;
+    private Character _enemyCharacter;
 
     public RpgGame() : base("Content\\RPGDemo.json")
     {
@@ -60,10 +67,16 @@ public class RpgGame : CasaEngineGame
 
         world.AddEntityImmediately(entity);
 
+        GameManager.FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
+        _font = GameManager.FontSystem.GetFont(20);
+
         base.LoadContent();
 
         var playerComponent = InitializePlayer(world);
-        InitializeEnemy(world, playerComponent);
+        var enemyComponent = InitializeEnemy(world, playerComponent);
+
+        _playerCharacter = playerComponent.Character;
+        _enemyCharacter = enemyComponent.Character;
 
         GameManager.ActiveCamera = camera;
     }
@@ -93,7 +106,7 @@ public class RpgGame : CasaEngineGame
         return entity.ComponentManager.GetComponent<PlayerComponent>();
     }
 
-    private void InitializeEnemy(World world, PlayerComponent playerComponent)
+    private EnemyComponent InitializeEnemy(World world, PlayerComponent playerComponent)
     {
         var entity = world.Entities.First(x => x.Name == "character_octopus");
         var animatedSprite = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
@@ -107,6 +120,8 @@ public class RpgGame : CasaEngineGame
         enemyComponent.Initialize(this);
 
         (enemyComponent.Controller as EnemyController).PlayerHunted = playerComponent.Character;
+
+        return enemyComponent;
     }
 
     protected override void Update(GameTime gameTime)
@@ -117,5 +132,15 @@ public class RpgGame : CasaEngineGame
         }
 
         base.Update(gameTime);
+    }
+
+    protected override void Draw(GameTime gameTime)
+    {
+        base.Draw(gameTime);
+
+        GameManager.SpriteBatch.Begin();
+        _font.DrawText(GameManager.SpriteBatch, $"Player HP: {_playerCharacter.HP}/{_playerCharacter.HPMax}", new Vector2(10, 10), Color.White, layerDepth: 0f);
+        _font.DrawText(GameManager.SpriteBatch, $"Enemy HP: {_enemyCharacter.HP}/{_enemyCharacter.HPMax}", new Vector2(10, 10 + _font.LineHeight), Color.White, layerDepth: 0f);
+        GameManager.SpriteBatch.End();
     }
 }

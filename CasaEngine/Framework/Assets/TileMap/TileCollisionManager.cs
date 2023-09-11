@@ -39,4 +39,11 @@ public class TileCollisionManager : ICollideableComponent
     {
         _tileMapComponent.RemoveTile(_layer, _x, _y);
     }
+
+    public TileData GetTileData()
+    {
+        int tileId = _tileMapComponent.TileMapData.Layers[_layer].tiles[_x + _y * _tileMapComponent.TileMapData.MapSize.Width];
+        var tileData = _tileMapComponent.TileSetData.GetTileData(tileId);
+        return tileData;
+    }
 }
