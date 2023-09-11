@@ -119,8 +119,9 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
 
                 foreach (var vertex in vertices)
                 {
-                    min = Vector3.Min(min, vertex.Position);
-                    max = Vector3.Max(max, vertex.Position);
+                    var position = Vector3.Transform(vertex.Position, Owner.Coordinates.WorldMatrix);
+                    min = Vector3.Min(min, position);
+                    max = Vector3.Max(max, position);
                 }
             }
             else // default box
@@ -129,9 +130,6 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
                 min = Vector3.One * -length;
                 max = Vector3.One * length;
             }
-
-            min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
-            max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
 
             return new BoundingBox(min, max);
         }
