@@ -7,6 +7,7 @@ using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Editor.Controls.WorldControls
 {
@@ -23,14 +24,10 @@ namespace CasaEngine.Editor.Controls.WorldControls
 
         private void ButtonLaunchGame_Click(object sender, RoutedEventArgs e)
         {
-            //Create the specific project settings =>
-            //  launch in the project directory
-            //  launch this world
-            //var gameExe = "CasaEngineLauncher.exe";
-            //var processStartInfo = new ProcessStartInfo(Path.Combine("Game", gameExe), "project path");
-            //var process = Process.Start(processStartInfo);
+            gameEditor.Game.GameManager.IsRunningInGameEditorMode = !gameEditor.Game.GameManager.IsRunningInGameEditorMode;
+            gameEditor.Game.GameManager.PhysicsEngineComponent.Enabled = gameEditor.Game.GameManager.IsRunningInGameEditorMode;
 
-            //process.WaitForExit()
+            buttonLaunch.Content = gameEditor.Game.GameManager.IsRunningInGameEditorMode ? "Running" : "Launch";
         }
 
         private void ButtonSave_OnClick(object sender, RoutedEventArgs e)

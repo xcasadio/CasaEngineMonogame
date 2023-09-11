@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.WpfControls;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Editor.Controls.WorldControls
 {
@@ -22,7 +24,25 @@ namespace CasaEngine.Editor.Controls.WorldControls
 
         private void OnGameStarted(object? sender, EventArgs e)
         {
-            entityComponentsControl.Game = (CasaEngineGame)sender;
+            var casaEngineGame = (CasaEngineGame)sender;
+            entityComponentsControl.Game = casaEngineGame;
+
+            casaEngineGame.GameManager.FrameComputed += OnFrameComputed;
+        }
+
+        private void OnFrameComputed(object? sender, EventArgs e)
+        {
+            if (sender is GameManager gameManager && gameManager.IsRunningInGameEditorMode)
+            {
+                var expression = Vector3ControlPosition.GetBindingExpression(Vector3Editor.ValueProperty);
+                expression?.UpdateTarget();
+
+                expression = RotationControl.GetBindingExpression(RotationEditor.ValueProperty);
+                expression?.UpdateTarget();
+
+                expression = Vector3ControlScale.GetBindingExpression(Vector3Editor.ValueProperty);
+                expression?.UpdateTarget();
+            }
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)

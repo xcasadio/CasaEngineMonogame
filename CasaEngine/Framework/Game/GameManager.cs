@@ -15,6 +15,7 @@ using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TomShane.Neoforce.Controls;
@@ -31,11 +32,6 @@ public class GameManager
     private World.World? _currentWorld;
     private CameraComponent? _activeCamera;
 
-#if EDITOR
-    private ArcBallCameraComponent _cameraEditor;
-    private Entity _cameraEditorEntity;
-#endif
-
 #if !FINAL
     public string ContentPath = string.Empty;
 #endif
@@ -44,6 +40,7 @@ public class GameManager
     private string ProjectFile { get; set; } = string.Empty;
     public AssetContentManager AssetContentManager { get; } = new();
     public Manager UiManager { get; private set; }
+    public FontSystem FontSystem { get; private set; }
     public SpriteBatch? SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
     public Renderer2dComponent Renderer2dComponent { get; private set; }
@@ -87,10 +84,6 @@ public class GameManager
         }
     }
 
-#if EDITOR
-    public event EventHandler? WorldChanged;
-#endif
-
     public GameManager(CasaEngineGame game, IGraphicsDeviceService? graphicsDeviceService)
     {
         _game = game;
@@ -119,17 +112,6 @@ public class GameManager
         }
     }
 
-    public void OnScreenResized(int width, int height)
-    {
-        if (CurrentWorld != null)
-        {
-            foreach (var entity in CurrentWorld.Entities)
-            {
-                entity.ScreenResized(width, height);
-            }
-        }
-    }
-
     private void OnDeviceReset(object? sender, EventArgs e)
     {
         GraphicsDevice graphicsDevice;
@@ -144,6 +126,17 @@ public class GameManager
         }
 
         OnScreenResized(graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
+    }
+
+    public void OnScreenResized(int width, int height)
+    {
+        if (CurrentWorld != null)
+        {
+            foreach (var entity in CurrentWorld.Entities)
+            {
+                entity.ScreenResized(width, height);
+            }
+        }
     }
 
     public void Initialize()
@@ -163,6 +156,7 @@ public class GameManager
         SkinnedMeshRendererComponent = new SkinnedMeshRendererComponent(_game);
         PhysicsEngineComponent = new PhysicsEngineComponent(_game);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(_game);
+        FontSystem = new FontSystem();
 
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
@@ -183,8 +177,8 @@ public class GameManager
         _game.IsFixedTimeStep = GameSettings.ProjectSettings.IsFixedTimeStep;
         _game.IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
 
-        UiManager = new Manager(_game, _game.Services.GetService<IGraphicsDeviceManager>() as GraphicsDeviceManager);
-        //UiManager.Initialize();
+        UiManager = new Manager(_game, _game.Services.GetService<IGraphicsDeviceService>());
+        UiManager.OnScreenResize(_game.GraphicsDevice.PresentationParameters.BackBufferWidth, _game.GraphicsDevice.PresentationParameters.BackBufferWidth);
     }
 
     public Entity SpawnEntity(string assetName)
@@ -284,6 +278,10 @@ public class GameManager
 #if !FINAL
         DebugSystem.Instance.TimeRuler.EndMark("Update");
 #endif
+
+#if EDITOR
+        FrameComputed?.Invoke(this, EventArgs.Empty);
+#endif
     }
 
     public void BeginDraw(GameTime gameTime)
@@ -316,6 +314,15 @@ public class GameManager
 
 
 #if EDITOR
+
+    public event EventHandler? FrameComputed;
+    public event EventHandler? WorldChanged;
+
+    private ArcBallCameraComponent _cameraEditor;
+    private Entity _cameraEditorEntity;
+
+    public bool IsRunningInGameEditorMode { get; set; }
+
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
         InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
