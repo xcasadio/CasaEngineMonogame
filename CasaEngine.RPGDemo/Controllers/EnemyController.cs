@@ -18,6 +18,7 @@ public class EnemyController : AiController
     {
         base.Initialize(game);
 
+        StateMachine.GlobalState = new EnemyGlobalState();
         AddState((int)EnemyControllerState.Idle, new EnemyIdleState());
         AddState((int)EnemyControllerState.Hit, new EnemyHitState());
         AddState((int)EnemyControllerState.MoveTo, new EnemyMoveToState());

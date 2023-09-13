@@ -8,7 +8,6 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
-using CasaEngine.RPGDemo.Components;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
@@ -16,8 +15,6 @@ using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using static System.Net.Mime.MediaTypeNames;
-using TomShane.Neoforce.Controls;
 
 namespace CasaEngine.RPGDemo;
 
@@ -72,56 +69,52 @@ public class RpgGame : CasaEngineGame
 
         base.LoadContent();
 
-        var playerComponent = InitializePlayer(world);
-        var enemyComponent = InitializeEnemy(world, playerComponent);
-
-        _playerCharacter = playerComponent.Character;
-        _enemyCharacter = enemyComponent.Character;
+        _playerCharacter = InitializePlayer(world);
+        _enemyCharacter = InitializeEnemy(world, _playerCharacter);
 
         GameManager.ActiveCamera = camera;
     }
 
-    private PlayerComponent InitializePlayer(World world)
+    private Character InitializePlayer(World world)
     {
         var entity = world.Entities.First(x => x.Name == "character_link");
         var animatedSprite = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
-        var playerComponent = new PlayerComponent(entity);
-        playerComponent.Character.AnimatationPrefix = "swordman";
+        var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
+        var scriptPlayer = new ScriptPlayer();
+        gamePlayComponent.ExternalComponent = scriptPlayer;
+        scriptPlayer.Initialize(entity, this);
+        scriptPlayer.Character.AnimatationPrefix = "swordman";
         var weaponEntity = GameManager.SpawnEntity("weapon_sword");
         weaponEntity.Initialize(this);
-        playerComponent.Character.SetWeapon(new MeleeWeapon(this, weaponEntity));
-        entity.ComponentManager.Components.Add(playerComponent);
-
-        playerComponent.Initialize(this);
+        scriptPlayer.Character.SetWeapon(new MeleeWeapon(this, weaponEntity));
 
         //weapon
         weaponEntity.IsVisible = false;
         weaponEntity.IsEnabled = false;
-        var gamePlayComponent = weaponEntity.ComponentManager.GetComponent<GamePlayComponent>();
-        weaponEntity.ComponentManager.Components.Add(gamePlayComponent);
+        gamePlayComponent = weaponEntity.ComponentManager.GetComponent<GamePlayComponent>();
         gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon(weaponEntity);
 
-        return entity.ComponentManager.GetComponent<PlayerComponent>();
+        return scriptPlayer.Character;
     }
 
-    private EnemyComponent InitializeEnemy(World world, PlayerComponent playerComponent)
+    private Character InitializeEnemy(World world, Character playerCharacter)
     {
         var entity = world.Entities.First(x => x.Name == "character_octopus");
         var animatedSprite = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
         animatedSprite.SetCurrentAnimation("octopus_stand_right", true);
 
-        var enemyComponent = new EnemyComponent(entity);
-        enemyComponent.Character.AnimatationPrefix = "octopus";
-        enemyComponent.Character.SetWeapon(new ThrowableWeapon(this, "weapon_rock"));
-        entity.ComponentManager.Components.Add(enemyComponent);
+        var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
+        var scriptEnemy = new ScriptEnemy();
+        gamePlayComponent.ExternalComponent = scriptEnemy;
+        scriptEnemy.Initialize(entity, this);
+        scriptEnemy.Character.AnimatationPrefix = "octopus";
+        scriptEnemy.Character.SetWeapon(new ThrowableWeapon(this, "weapon_rock"));
 
-        enemyComponent.Initialize(this);
+        (scriptEnemy.Controller as EnemyController).PlayerHunted = playerCharacter;
 
-        (enemyComponent.Controller as EnemyController).PlayerHunted = playerComponent.Character;
-
-        return enemyComponent;
+        return scriptEnemy.Character;
     }
 
     protected override void Update(GameTime gameTime)

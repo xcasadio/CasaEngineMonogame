@@ -9,11 +9,11 @@ namespace CasaEngine.Framework.Scripting;
 
 public abstract class ExternalComponent : ISaveLoad
 {
-    public int Type { get; }
+    public int ExternalComponentId { get; }
 
-    protected ExternalComponent(int type)
+    protected ExternalComponent(int externalComponentId)
     {
-        Type = type;
+        ExternalComponentId = externalComponentId;
     }
 
     public abstract void Initialize(Entity entity, CasaEngineGame game);

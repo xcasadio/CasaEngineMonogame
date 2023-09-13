@@ -6,5 +6,6 @@ public enum EnemyControllerState
     MoveTo,
     Hunt,
     Attack,
-    Hit
+    Hit,
+    Dying
 }

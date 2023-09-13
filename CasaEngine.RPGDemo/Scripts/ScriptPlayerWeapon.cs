@@ -6,13 +6,12 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.RPGDemo.Components;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptPlayerWeapon : ExternalComponent
 {
-    public static int ScriptId => (int)RpgDemoScriptIds.Player;
+    public static int ScriptId => (int)RpgDemoScriptIds.SwordWeapon;
 
     private readonly Entity _entity;
 
@@ -66,26 +65,26 @@ public class ScriptPlayerWeapon : ExternalComponent
 
     private void HitWithEnemy(Collision collision)
     {
-        EnemyComponent enemyComponent = null;
+        ScriptEnemy scriptEnemy = null;
 
         if (collision.ColliderA.Owner == _entity)
         {
-            enemyComponent = collision.ColliderB.Owner.ComponentManager.GetComponent<EnemyComponent>();
+            scriptEnemy = collision.ColliderB.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptEnemy;
         }
         else if (collision.ColliderB.Owner == _entity)
         {
-            enemyComponent = collision.ColliderA.Owner.ComponentManager.GetComponent<EnemyComponent>();
+            scriptEnemy = collision.ColliderA.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptEnemy;
         }
 
-        if (enemyComponent != null)
+        if (scriptEnemy != null)
         {
             var hitParameters = new HitParameters();
             hitParameters.ContactPoint = collision.ContactPoint;
-            hitParameters.Entity = enemyComponent.Owner;
+            hitParameters.Entity = scriptEnemy.Character.Owner;
             hitParameters.Strength = 10;
             hitParameters.Precision = 10;
             hitParameters.MagicStrength = 10;
-            enemyComponent.Character.Hit(hitParameters);
+            scriptEnemy.Character.Hit(hitParameters);
         }
     }
 

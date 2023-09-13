@@ -7,7 +7,7 @@ using static CasaEngine.RPGDemo.Controllers.Character;
 
 namespace CasaEngine.RPGDemo.Controllers;
 
-public class HumanPlayerController : PlayerController
+public class HumanPlayerController : Controller
 {
     private InputComponent _inputComponent;
     private readonly PlayerIndex _playerIndex;
@@ -25,6 +25,7 @@ public class HumanPlayerController : PlayerController
 
         _inputComponent = game.GetGameComponent<InputComponent>();
 
+        StateMachine.GlobalState = new PlayerGlobalStateState();
         AddState((int)PlayerControllerState.Idle, new PlayerIdleState());
         AddState((int)PlayerControllerState.Moving, new PlayerWalkState());
         AddState((int)PlayerControllerState.Attack, new PlayerAttackState());

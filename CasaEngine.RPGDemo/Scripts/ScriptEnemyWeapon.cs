@@ -3,16 +3,16 @@ using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.RPGDemo.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptEnemyWeapon : ExternalComponent
 {
-    public static int ScriptId => (int)RpgDemoScriptIds.Enemy;
+    public static int ScriptId => (int)RpgDemoScriptIds.ThrowableWeapon;
 
     private readonly Entity _entity;
 
@@ -66,28 +66,28 @@ public class ScriptEnemyWeapon : ExternalComponent
 
     private void HitWithPlayer(Collision collision)
     {
-        PlayerComponent playerComponent = null;
+        ScriptPlayer scriptPlayer = null;
 
         if (collision.ColliderA.Owner == _entity)
         {
-            playerComponent = collision.ColliderB.Owner.ComponentManager.GetComponent<PlayerComponent>();
+            scriptPlayer = collision.ColliderB.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptPlayer;
         }
         else if (collision.ColliderB.Owner == _entity)
         {
-            playerComponent = collision.ColliderA.Owner.ComponentManager.GetComponent<PlayerComponent>();
+            scriptPlayer = collision.ColliderA.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptPlayer;
         }
 
-        if (playerComponent != null)
+        if (scriptPlayer != null)
         {
             _entity.Destroy();
 
             var hitParameters = new HitParameters();
             hitParameters.ContactPoint = collision.ContactPoint;
-            hitParameters.Entity = playerComponent.Owner;
+            hitParameters.Entity = scriptPlayer.Character.Owner;
             hitParameters.Strength = 10;
             hitParameters.Precision = 10;
             hitParameters.MagicStrength = 10;
-            playerComponent.Character.Hit(hitParameters);
+            scriptPlayer.Character.Hit(hitParameters);
         }
     }
 

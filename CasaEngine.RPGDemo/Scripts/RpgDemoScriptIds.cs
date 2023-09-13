@@ -4,6 +4,8 @@ namespace CasaEngine.RPGDemo.Scripts;
 
 public enum RpgDemoScriptIds
 {
-    Player = ScriptIds.Custom + 1,
+    SwordWeapon = ScriptIds.Custom + 1,
+    ThrowableWeapon,
+    Player,
     Enemy
 }

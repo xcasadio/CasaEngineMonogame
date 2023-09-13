@@ -19,7 +19,10 @@ public class EnemyGlobalState : IState<Controller>
 
     public virtual void Update(Controller controller, float elapsedTime)
     {
-
+        if (controller.Character.HP <= 0)
+        {
+            controller.GetState((int)EnemyControllerState.Dying);
+        }
     }
 
     public virtual bool HandleMessage(Controller controller, Message message)

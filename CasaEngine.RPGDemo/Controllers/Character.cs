@@ -7,11 +7,9 @@ using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.RPGDemo.Components;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
-using SharpDX.XInput;
 
 namespace CasaEngine.RPGDemo.Controllers;
 
@@ -71,6 +69,9 @@ public class Character
     public int Defense { get; set; } = 3;
     public int HPMax { get; set; } = 10;
     public int HP { get; set; } = 10;
+    public int Level { get; set; } = 1;
+    public int Experience { get; set; } = 0;
+    public int ExperienceBeforeNextLevel { get; set; } = 10;
 
 
     public Character(Entity entity)
@@ -196,19 +197,45 @@ public class Character
     {
         AddHitEffect(ref hitParameters.ContactPoint);
 
-        var characterComponent = hitParameters.Entity.ComponentManager.GetComponent<CharacterComponent>();
+        var gamePlayComponent = hitParameters.Entity.ComponentManager.GetComponent<GamePlayComponent>();
 
-        int cost = characterComponent.Character.Strength - Defense;
-        cost = cost < 0 ? 0 : cost;
-        HP -= cost;
-
-        if (HP <= 0)
+        if (gamePlayComponent != null)
         {
-            //characterComponent.Character.IKillSomeone(info_);
+            var scriptCharacter = gamePlayComponent.ExternalComponent as IScriptCharacter;
 
-            //m_HP = m_HPMax;
-            //SetPosition(Vector2.One * 10.0f);
-            //characterComponent.Controller.StateMachine.Transition(Controller.GetState(0));
+            if (scriptCharacter != null)
+            {
+                var physics2dComponent = scriptCharacter.Character.Owner.ComponentManager.GetComponent<Physics2dComponent>();
+                //physics2dComponent.AddImpulse(-hitParameters.Entity.Coordinates.WorldMatrix.Forward);
+
+                int attackValue = scriptCharacter.Character.Strength - Defense;
+                attackValue = attackValue < 0 ? 0 : attackValue;
+                HP = Math.Max(HP - attackValue, 0);
+
+                if (HP == 0)
+                {
+                    scriptCharacter.Character.KillSomeone(Experience);
+                    //var characterComponent = Owner.ComponentManager.GetComponent<CharacterComponent>();
+                    //characterComponent.Controller.StateMachine.Transition(characterComponent.Controller.GetState(dying));
+                    //Owner.Destroy();
+
+
+                    //m_HP = m_HPMax;
+                    //SetPosition(Vector2.One * 10.0f);
+                    //characterComponent.Controller.StateMachine.Transition(Controller.GetState(0));
+                }
+            }
+        }
+    }
+
+    private void KillSomeone(int experience)
+    {
+        Experience += experience;
+
+        if (Experience > ExperienceBeforeNextLevel)
+        {
+            Experience -= ExperienceBeforeNextLevel;
+            Level++;
         }
     }
 
@@ -216,14 +243,6 @@ public class Character
     {
 
     }
-
-    //public virtual void IKillSomeone(HitInfo info_)
-    //{
-    //    if (IsPLayer == true)
-    //    {
-    //        GameInfo.Instance.WorldInfo.BotKilled++;
-    //    }
-    //}
 
     //public bool CanAttackHim(ICollide2Dable other_)
     //{
