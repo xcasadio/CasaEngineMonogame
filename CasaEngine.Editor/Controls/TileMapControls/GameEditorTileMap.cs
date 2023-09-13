@@ -8,6 +8,7 @@ namespace CasaEngine.Editor.Controls.TileMapControls;
 public class GameEditorTileMap : GameEditor2d
 {
     private TileMapComponent _tileMapComponent;
+    private Entity _entity;
 
     public GameEditorTileMap()
     {
@@ -21,19 +22,20 @@ public class GameEditorTileMap : GameEditor2d
         if (_tileMapComponent != null)
         {
             _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData;
-            _tileMapComponent.Initialize(Game);
+            _tileMapComponent.Initialize(_entity, Game);
         }
     }
 
     protected override void CreateEntityComponents(Entity entity)
     {
-        _tileMapComponent = new TileMapComponent(entity);
+        _entity = entity;
+        _tileMapComponent = new TileMapComponent();
         entity.ComponentManager.Components.Add(_tileMapComponent);
     }
 
     public void CreateMapEntities(TileMapDataViewModel tileMapDataViewModel)
     {
-        _tileMapComponent.TileMapData = (DataContext as TileMapDataViewModel).TileMapData;
+        _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData; //(DataContext as TileMapDataViewModel).TileMapData;
 
         Game.GameManager.CurrentWorld.AddEntityImmediately(CameraEntity);
         Game.GameManager.CurrentWorld.AddEntityImmediately(_entity);

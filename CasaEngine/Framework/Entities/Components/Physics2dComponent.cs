@@ -12,7 +12,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Physics 2d")]
 public class Physics2dComponent : PhysicsBaseComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.Physics2d;
+    public override int ComponentId => (int)ComponentIds.Physics2d;
 
     private Shape2d _shape;
 
@@ -28,7 +28,7 @@ public class Physics2dComponent : PhysicsBaseComponent
         }
     }
 
-    public Physics2dComponent(Entity entity) : base(entity, ComponentId)
+    public Physics2dComponent()
     {
         PhysicsDefinition.LinearFactor = new Vector3(1, 1, 0);
         PhysicsDefinition.AngularFactor = new Vector3(0, 0, 1);
@@ -70,9 +70,9 @@ public class Physics2dComponent : PhysicsBaseComponent
         }
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new Physics2dComponent(owner);
+        var component = new Physics2dComponent();
         component._shape = _shape;
         Clone(component);
         return component;

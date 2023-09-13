@@ -5,13 +5,15 @@ using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
+using static Assimp.Metadata;
 
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("GamePlay")]
 public class GamePlayComponent : Component
 {
-    public static readonly int ComponentId = (int)ComponentIds.GamePlay;
+    public override int ComponentId => (int)ComponentIds.GamePlay;
+
     private ExternalComponent? _externalComponent;
 
     public ExternalComponent? ExternalComponent
@@ -20,14 +22,13 @@ public class GamePlayComponent : Component
         set => _externalComponent = value;
     }
 
-    public GamePlayComponent(Entity entity) : base(entity, ComponentId)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        base.Initialize(entity, game);
+
         entity.OnHit += OnHit;
         entity.OnHitEnded += OnHitEnded;
-    }
 
-    public override void Initialize(CasaEngineGame game)
-    {
         ExternalComponent?.Initialize(Owner, game);
     }
 
@@ -51,9 +52,9 @@ public class GamePlayComponent : Component
         ExternalComponent?.OnHitEnded(e.Collision);
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new GamePlayComponent(owner);
+        var component = new GamePlayComponent();
 
         component._externalComponent = _externalComponent;
 
@@ -77,7 +78,7 @@ public class GamePlayComponent : Component
     {
         base.Save(jObject, option);
 
-        jObject.Add("external_component_id", ExternalComponent == null ? -1 : ExternalComponent.Type);
+        jObject.Add("external_component_id", ExternalComponent == null ? -1 : ExternalComponent.ExternalComponentId);
     }
 #endif
 }

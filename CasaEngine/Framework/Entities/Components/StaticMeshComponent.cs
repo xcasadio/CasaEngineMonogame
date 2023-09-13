@@ -13,7 +13,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Static Mesh")]
 public class StaticMeshComponent : Component, IBoundingBoxComputable
 {
-    public static readonly int ComponentId = (int)ComponentIds.Mesh;
+    public override int ComponentId => (int)ComponentIds.Mesh;
     private StaticMeshRendererComponent? _meshRendererComponent;
     private StaticMesh? _mesh;
     private Material? _material;
@@ -45,12 +45,10 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         }
     }
 
-    public StaticMeshComponent(Entity entity) : base(entity, ComponentId)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
-    }
+        base.Initialize(entity, game);
 
-    public override void Initialize(CasaEngineGame game)
-    {
         Game = game;
         _meshRendererComponent = game.GetGameComponent<StaticMeshRendererComponent>();
         Mesh?.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
@@ -68,9 +66,9 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         _meshRendererComponent.AddMesh(Mesh, Material, Owner.Coordinates.WorldMatrix, worldViewProj, camera.Position);
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new StaticMeshComponent(owner);
+        var component = new StaticMeshComponent();
 
         component._mesh = _mesh;
 

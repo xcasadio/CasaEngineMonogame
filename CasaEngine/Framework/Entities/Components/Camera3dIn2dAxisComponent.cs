@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Camera 3d in 2d axis")]
 public class Camera3dIn2dAxisComponent : Camera3dComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.Camera3dIn2dAxis;
+    public override int ComponentId => (int)ComponentIds.Camera3dIn2dAxis;
 
     private Vector3 _up = Vector3.Up;
     private Vector3 _target;
@@ -48,11 +48,6 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         }
     }
 
-    public Camera3dIn2dAxisComponent(Entity entity) : base(entity, ComponentId)
-    {
-
-    }
-
     public override void Update(float elapsedTime)
     {
         //Do nothing
@@ -63,9 +58,9 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new Camera3dIn2dAxisComponent(owner);
+        var component = new Camera3dIn2dAxisComponent();
 
         component._up = _up;
         component._target = _target;

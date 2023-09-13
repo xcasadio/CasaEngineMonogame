@@ -34,7 +34,7 @@ public class ThrowableWeapon : Weapon
         //TODO : remove it => must be set by editor
         var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
         entity.ComponentManager.Components.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptEnemyWeapon(entity);
+        gamePlayComponent.ExternalComponent = new ScriptEnemyWeapon();
 
         var offsetLength = 20f;
 

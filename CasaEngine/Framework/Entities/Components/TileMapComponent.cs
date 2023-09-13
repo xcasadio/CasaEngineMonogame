@@ -16,7 +16,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Tile Map")]
 public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.TileMap;
+    public override int ComponentId => (int)ComponentIds.TileMap;
 
     public long TileMapDataAssetId { get; set; } = IdManager.InvalidId;
     public TileMapData TileMapData { get; set; }
@@ -39,13 +39,15 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
         Owner.HitEnded(collision, this);
     }
 
-    public TileMapComponent(Entity entity) : base(entity, ComponentId)
+    public TileMapComponent() : base()
     {
         //Do nothing
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        base.Initialize(entity, game);
+
         AssetInfo assetInfo;
 
         if (TileMapDataAssetId != IdManager.InvalidId)
@@ -186,9 +188,9 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
         Layers[layer].Tiles[x + y * TileMapData.MapSize.Width] = new EmptyTile();
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new TileMapComponent(owner);
+        var component = new TileMapComponent();
 
         component.Layers.AddRange(Layers);
         component.TileMapData = TileMapData;

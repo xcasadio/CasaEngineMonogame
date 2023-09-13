@@ -83,16 +83,16 @@ public abstract class MovingObject : Component
         set => meshObject = value;
     }
 
-    protected MovingObject(Entity entity, int type) : base(entity, type)
+    protected MovingObject(int type) : base()
     {
 
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
-        base.Initialize(game);
+        base.Initialize(entity, game);
 
-        _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>()!;
+        _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
     }
 
     public virtual bool CanMoveBetween(Vector3 start, Vector3 end)

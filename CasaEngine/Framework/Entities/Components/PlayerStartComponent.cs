@@ -6,9 +6,9 @@ namespace CasaEngine.Framework.Entities.Components;
 
 public class PlayerStartComponent : Component
 {
-    public static readonly int ComponentId = (int)ComponentIds.PlayerStart;
+    public override int ComponentId => (int)ComponentIds.PlayerStart;
 
-    public PlayerStartComponent(Entity entity) : base(entity, ComponentId)
+    public PlayerStartComponent() : base()
     {
     }
 
@@ -16,9 +16,9 @@ public class PlayerStartComponent : Component
     {
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new PlayerStartComponent(owner);
+        var component = new PlayerStartComponent();
         return component;
     }
 

@@ -11,17 +11,13 @@ namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptPlayerWeapon : ExternalComponent
 {
-    public static int ScriptId => (int)RpgDemoScriptIds.SwordWeapon;
+    public override int ExternalComponentId => (int)RpgDemoScriptIds.SwordWeapon;
 
-    private readonly Entity _entity;
-
-    public ScriptPlayerWeapon(Entity entity) : base(ScriptId)
-    {
-        _entity = entity;
-    }
+    private Entity _entity;
 
     public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        _entity = entity;
         _entity.IsEnabled = false;
         _entity.IsVisible = false;
     }

@@ -12,7 +12,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Skinned Mesh")]
 public class SkinnedMeshComponent : Component, IBoundingBoxComputable
 {
-    public static readonly int ComponentId = (int)ComponentIds.SkinnedMesh;
+    public override int ComponentId => (int)ComponentIds.SkinnedMesh;
 
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
     private RiggedModel? _skinnedMesh;
@@ -32,12 +32,10 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
         }
     }
 
-    public SkinnedMeshComponent(Entity entity) : base(entity, ComponentId)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
-    }
+        base.Initialize(entity, game);
 
-    public override void Initialize(CasaEngineGame game)
-    {
         Game = game;
         _skinnedMeshRendererComponent = game.GetGameComponent<SkinnedMeshRendererComponent>();
         //Mesh?.Initialize(game.GraphicsDevice);
@@ -62,9 +60,9 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
             camera.Position);
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new SkinnedMeshComponent(owner);
+        var component = new SkinnedMeshComponent();
 
         component._skinnedMesh = _skinnedMesh;
 

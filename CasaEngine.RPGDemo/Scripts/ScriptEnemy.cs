@@ -12,13 +12,13 @@ namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptEnemy : ExternalComponent, IScriptCharacter
 {
-    public static int ScriptId => (int)RpgDemoScriptIds.Enemy;
+    public override int ExternalComponentId => (int)RpgDemoScriptIds.Enemy;
 
     private Entity _entity;
     public Character Character { get; private set; }
     public Controller Controller { get; private set; }
 
-    public ScriptEnemy() : base(ScriptId)
+    public ScriptEnemy()
     {
     }
 

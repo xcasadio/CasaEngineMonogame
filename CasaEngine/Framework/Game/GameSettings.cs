@@ -11,8 +11,8 @@ namespace CasaEngine.Framework.Game;
 
 public static class GameSettings
 {
-    public static ScriptLoader ScriptLoader { get; } = new();
-    public static ComponentLoader ComponentLoader { get; } = new();
+    public static ElementLoader<ExternalComponent> ScriptLoader { get; } = new();
+    public static ElementLoader<Component> ComponentLoader { get; } = new();
     public static AssetInfoManager AssetInfoManager { get; } = new();
     public static ProjectSettings ProjectSettings { get; } = new();
     public static PluginManager PluginManager { get; } = new();

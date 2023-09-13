@@ -21,7 +21,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Animated Sprite")]
 public class AnimatedSpriteComponent : Component, ICollideableComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.AnimatedSprite;
+    public override int ComponentId => (int)ComponentIds.AnimatedSprite;
 
     public event EventHandler<long>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
@@ -45,7 +45,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
 
-    public AnimatedSpriteComponent(Entity entity) : base(entity, ComponentId)
+    public AnimatedSpriteComponent() : base()
     {
         Color = Color.White;
         SpriteEffect = SpriteEffects.None;
@@ -129,8 +129,10 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         return -1;
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        base.Initialize(entity, game);
+
         _game = game;
         _spriteRenderer = game.GetGameComponent<SpriteRendererComponent>();
         _assetContentManager = game.GameManager.AssetContentManager;
@@ -319,9 +321,9 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         }
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new AnimatedSpriteComponent(owner);
+        var component = new AnimatedSpriteComponent();
 
         component.Color = Color;
         component.SpriteEffect = SpriteEffect;

@@ -1,12 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using System.ComponentModel;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("LookAt Camera")]
 public class CameraLookAtComponent : Camera3dComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.LookAtCamera;
+    public override int ComponentId => (int)ComponentIds.LookAtCamera;
     private Vector3 _up = Vector3.Up;
     private Vector3 _target;
     private Vector3 _lastPosition;
@@ -36,8 +37,14 @@ public class CameraLookAtComponent : Camera3dComponent
         }
     }
 
-    public CameraLookAtComponent(Entity entity) : base(entity, ComponentId)
+    public CameraLookAtComponent()
     {
+    }
+
+    public override void Initialize(Entity entity, CasaEngineGame game)
+    {
+        base.Initialize(entity, game);
+
         _lastPosition = entity.Coordinates.Position;
     }
 
@@ -54,9 +61,9 @@ public class CameraLookAtComponent : Camera3dComponent
         _viewMatrix = Matrix.CreateLookAt(Position, Target, Up);
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new CameraLookAtComponent(owner);
+        var component = new CameraLookAtComponent();
 
         component._up = _up;
         component._target = _target;

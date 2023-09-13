@@ -34,7 +34,7 @@ public abstract class GameEditor2d : GameEditor
         base.LoadContent();
 
         CameraEntity = new Entity();
-        var camera = new Camera3dIn2dAxisComponent(CameraEntity);
+        var camera = new Camera3dIn2dAxisComponent();
         CameraEntity.ComponentManager.Components.Add(camera);
         var screenXBy2 = Game.Window.ClientBounds.Width / 2f;
         var screenYBy2 = Game.Window.ClientBounds.Height / 2f;

@@ -20,7 +20,7 @@ public class GameEditorSprite : GameEditor2d
 
     protected override void CreateEntityComponents(Entity entity)
     {
-        StaticSpriteComponent = new StaticSpriteComponent(entity);
+        StaticSpriteComponent = new StaticSpriteComponent();
         entity.ComponentManager.Components.Add(StaticSpriteComponent);
     }
 }

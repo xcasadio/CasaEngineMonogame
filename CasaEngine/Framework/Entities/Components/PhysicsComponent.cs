@@ -11,7 +11,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Physics")]
 public class PhysicsComponent : PhysicsBaseComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.Physics;
+    public override int ComponentId => (int)ComponentIds.Physics;
     private Shape3d? _shape;
 
     public Shape3d? Shape
@@ -24,10 +24,6 @@ public class PhysicsComponent : PhysicsBaseComponent
             OnPropertyChanged();
 #endif
         }
-    }
-
-    public PhysicsComponent(Entity entity) : base(entity, ComponentId)
-    {
     }
 
     protected override void CreatePhysicsObject()
@@ -58,9 +54,9 @@ public class PhysicsComponent : PhysicsBaseComponent
         }
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new PhysicsComponent(owner);
+        var component = new PhysicsComponent();
         component._shape = _shape;
         Clone(component);
         return component;

@@ -52,12 +52,12 @@ namespace SandBoxGame
 
             //============ Camera ===============
             var entity = new Entity();
-            var camera = new ArcBallCameraComponent(entity);
+            var camera = new ArcBallCameraComponent();
             camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
             //var camera = new Camera3dIn2dAxisComponent(entity);
             //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
             entity.ComponentManager.Components.Add(camera);
-            var gamePlayComponent = new GamePlayComponent(entity);
+            var gamePlayComponent = new GamePlayComponent();
             entity.ComponentManager.Components.Add(gamePlayComponent);
             gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
             world.AddEntityImmediately(entity);
@@ -66,7 +66,7 @@ namespace SandBoxGame
             entity = new Entity();
             _boxEntity = entity;
             entity.Coordinates.LocalPosition = Vector3.Up * 0.5f;
-            var meshComponent = new StaticMeshComponent(entity);
+            var meshComponent = new StaticMeshComponent();
             entity.ComponentManager.Components.Add(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
             meshComponent.Mesh.Initialize(GraphicsDevice, GameManager.AssetContentManager);

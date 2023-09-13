@@ -69,7 +69,6 @@ public class GameEditorWorld : GameEditor
                 var entity = new Entity();
                 entity.Name = "Entity " + entity.AssetInfo.Id;
                 entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;
-                entity.Initialize(Game);
 
                 if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)
                 {
@@ -77,8 +76,10 @@ public class GameEditorWorld : GameEditor
                 }
                 else if (dragAndDropInfo.Type == DragAndDropInfoType.PlayerStart)
                 {
-                    entity.ComponentManager.Add(new PlayerStartComponent(entity));
+                    entity.ComponentManager.Add(new PlayerStartComponent());
                 }
+
+                entity.Initialize(Game);
 
                 Game?.GameManager.CurrentWorld.AddEntityEditorMode(entity);
 

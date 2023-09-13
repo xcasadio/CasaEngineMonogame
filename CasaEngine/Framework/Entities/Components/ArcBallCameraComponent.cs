@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -10,7 +11,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("ArcBall Camera")]
 public class ArcBallCameraComponent : Camera3dComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.ArcBallCamera;
+    public override int ComponentId => (int)ComponentIds.ArcBallCamera;
 
     private Vector3 _target;
     private float _distance;
@@ -150,16 +151,21 @@ public class ArcBallCameraComponent : Camera3dComponent
     }
 
 
-    public ArcBallCameraComponent(Entity entity) : base(entity, ComponentId)
+    public ArcBallCameraComponent()
     {
         _distance = 5.0f;
         _yaw = MathHelper.Pi;
         _pitch = 0.0f;
+        _target = Vector3.Zero;
+    }
 
+    public override void Initialize(Entity entity, CasaEngineGame game)
+    {
+        base.Initialize(entity, game);
         //orientation quaternion assumes a PI rotation so you're facing the "front"
         //of the model (looking down the +Z axis)
-        Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
-        _target = Vector3.Zero;
+        //Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
+        ComputeOrientation();
         UpdatePosition();
     }
 
@@ -299,12 +305,12 @@ public class ArcBallCameraComponent : Camera3dComponent
         Owner.Coordinates.LocalPosition = Position;
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new ArcBallCameraComponent(owner);
+        var component = new ArcBallCameraComponent();
 
         component._target = _target;
-        component.Orientation = Orientation;
+        //component.Orientation = Orientation;
         component._distance = _distance;
         component._yaw = _yaw;
         component._pitch = _pitch;

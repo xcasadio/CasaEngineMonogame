@@ -12,7 +12,7 @@ namespace CasaEngine.Framework.Scripting;
 
 public class ScriptArcBallCamera : ExternalComponent
 {
-    public static int ScriptId => (int)ScriptIds.ArcBallCamera;
+    public override int ExternalComponentId => (int)ScriptIds.ArcBallCamera;
 
     private ArcBallCameraComponent? _arcBallCameraComponent;
     private InputComponent _inputComponent;
@@ -23,7 +23,7 @@ public class ScriptArcBallCamera : ExternalComponent
 
     public float InputDisplacementRate { get; set; }
 
-    public ScriptArcBallCamera() : base(ScriptId)
+    public ScriptArcBallCamera()
     {
         InputDistanceRate = 3.0f;
         _inputTurnRate = 0.3f;

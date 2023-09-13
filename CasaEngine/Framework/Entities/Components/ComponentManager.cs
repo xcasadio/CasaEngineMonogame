@@ -22,24 +22,12 @@ public class ComponentManager
         }
     }
 
-    public void Initialize(CasaEngineGame game)
+    public void Initialize(Entity entity, CasaEngineGame game)
     {
         foreach (var component in Components)
         {
-            component.Initialize(game);
+            component.Initialize(entity, game);
         }
-    }
-
-    public bool HandleMessage(Message msg)
-    {
-        bool res = false;
-
-        foreach (var component in Components)
-        {
-            res |= component.HandleMessage(msg);
-        }
-
-        return res;
     }
 
     public void Add(Component component)
@@ -85,11 +73,11 @@ public class ComponentManager
         return null;
     }
 
-    public void CopyFrom(ComponentManager componentManager, Entity entity)
+    public void CopyFrom(ComponentManager componentManager)
     {
         foreach (var component in componentManager.Components)
         {
-            Components.Add(component.Clone(entity));
+            Components.Add(component.Clone());
         }
     }
 }

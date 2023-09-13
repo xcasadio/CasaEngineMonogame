@@ -48,7 +48,7 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new TileMapDemo());
         _demos.Add(new SkinnedMeshDemo());
 
-        ChangeDemo(1);
+        ChangeDemo(2);
     }
 
     private void ChangeDemo(int index)
@@ -59,6 +59,7 @@ public class DemosGame : CasaEngineGame
         _currentDemo.Initialize(this);
         var camera = _currentDemo.CreateCamera(this);
         GameManager.CurrentWorld.Initialize(this);
+        _currentDemo.InitializeCamera(camera);
         GameManager.ActiveCamera = camera;
 
         Window.Title = _currentDemo.Title;

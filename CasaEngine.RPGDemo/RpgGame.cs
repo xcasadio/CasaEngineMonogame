@@ -58,7 +58,7 @@ public class RpgGame : CasaEngineGame
 
         //============ Camera ===============
         var entity = new Entity();
-        var camera = new Camera3dIn2dAxisComponent(entity);
+        var camera = new Camera3dIn2dAxisComponent();
         camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
         entity.ComponentManager.Components.Add(camera);
 
@@ -94,7 +94,7 @@ public class RpgGame : CasaEngineGame
         weaponEntity.IsVisible = false;
         weaponEntity.IsEnabled = false;
         gamePlayComponent = weaponEntity.ComponentManager.GetComponent<GamePlayComponent>();
-        gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon(weaponEntity);
+        gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon();
 
         return scriptPlayer.Character;
     }

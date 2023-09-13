@@ -17,7 +17,7 @@ namespace CasaEngine.Framework.Entities.Components;
 
 public class StaticSpriteComponent : Component, ICollideableComponent
 {
-    public static readonly int ComponentId = (int)ComponentIds.StaticSprite;
+    public override int ComponentId => (int)ComponentIds.StaticSprite;
 
     private Sprite? _sprite;
     private SpriteData? _spriteData;
@@ -35,11 +35,13 @@ public class StaticSpriteComponent : Component, ICollideableComponent
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
 
-    public StaticSpriteComponent(Entity entity) : base(entity, ComponentId)
+    public StaticSpriteComponent() : base()
     { }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        base.Initialize(entity, game);
+
         _game = game;
         _spriteRendererComponent = _game.GetGameComponent<SpriteRendererComponent>();
         _physicsEngineComponent = _game.GetGameComponent<PhysicsEngineComponent>();
@@ -91,9 +93,9 @@ public class StaticSpriteComponent : Component, ICollideableComponent
 
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new StaticSpriteComponent(owner);
+        var component = new StaticSpriteComponent();
 
         component._spriteData = _spriteData;
 

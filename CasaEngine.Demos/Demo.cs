@@ -16,15 +16,19 @@ public abstract class Demo
     public virtual CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity();
-        var camera = new ArcBallCameraComponent(entity);
+        var camera = new ArcBallCameraComponent();
         entity.ComponentManager.Components.Add(camera);
-        camera.SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
-        var gamePlayComponent = new GamePlayComponent(entity);
+        var gamePlayComponent = new GamePlayComponent();
         entity.ComponentManager.Components.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
         game.GameManager.CurrentWorld.AddEntityImmediately(entity);
 
         return camera;
+    }
+
+    public virtual void InitializeCamera(CameraComponent camera)
+    {
+        ((ArcBallCameraComponent)camera).SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
     }
 
     public abstract void Update(GameTime gameTime);

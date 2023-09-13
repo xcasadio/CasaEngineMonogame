@@ -334,14 +334,15 @@ public class GameManager
         _cameraEditorEntity = new Entity { Name = "Camera" };
         _cameraEditorEntity.IsTemporary = true;
         _cameraEditorEntity.IsVisible = false;
-        _cameraEditor = new ArcBallCameraComponent(_cameraEditorEntity);
+        _cameraEditor = new ArcBallCameraComponent();
         _cameraEditorEntity.ComponentManager.Components.Add(_cameraEditor);
-        _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        var gamePlayComponent = new GamePlayComponent(_cameraEditorEntity);
+        var gamePlayComponent = new GamePlayComponent();
         _cameraEditorEntity.ComponentManager.Components.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
 
         _cameraEditorEntity.Initialize(_game);
+
+        _cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
     }
 #endif
 }

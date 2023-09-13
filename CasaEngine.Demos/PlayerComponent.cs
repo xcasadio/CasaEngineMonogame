@@ -15,19 +15,17 @@ namespace CasaEngine.Demos;
 [DisplayName("PlayerComponent")]
 public class PlayerComponent : Component
 {
-    public static readonly int ComponentId = (int)ComponentIds.Custom + 1;
+    public override int ComponentId => (int)ComponentIds.Custom + 1;
 
     private Physics2dComponent _physics2dComponent;
     private AnimatedSpriteComponent _animatedSpriteComponent;
 
     int index = 0;
 
-    public PlayerComponent(Entity owner) : base(owner, ComponentId)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
-    }
+        base.Initialize(entity, game);
 
-    public override void Initialize(CasaEngineGame game)
-    {
         _physics2dComponent = Owner.ComponentManager.GetComponent<Physics2dComponent>();
         _animatedSpriteComponent = Owner.ComponentManager.GetComponent<AnimatedSpriteComponent>();
     }
@@ -91,9 +89,9 @@ public class PlayerComponent : Component
 
     }
 
-    public override Component Clone(Entity owner)
+    public override Component Clone()
     {
-        var component = new PlayerComponent(owner);
+        var component = new PlayerComponent();
         return component;
     }
 

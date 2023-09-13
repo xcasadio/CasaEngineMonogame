@@ -51,8 +51,8 @@ namespace CasaEngine.Editor.Controls.WorldControls
             if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
             {
                 var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
-                var component = (Component)Activator.CreateInstance(componentType, entity);
-                component.Initialize(Game);
+                var component = (Component)Activator.CreateInstance(componentType);
+                component.Initialize(entity, Game);
                 entity.ComponentManager.Components.Add(component);
 
                 RefreshComponentsList(entity);

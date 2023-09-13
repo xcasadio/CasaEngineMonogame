@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Assets.TileMap;
-
-namespace CasaEngine.Framework.Entities.Components;
+﻿namespace CasaEngine.Framework.Assets.TileMap;
 
 public class TileMapLayer
 {

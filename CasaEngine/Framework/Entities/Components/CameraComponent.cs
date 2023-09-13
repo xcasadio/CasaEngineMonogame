@@ -20,8 +20,6 @@ public abstract class CameraComponent : Component
 
     public abstract Vector3 Position { get; }
 
-    public bool IsInitialized { get; private set; }
-
     public Matrix ViewMatrix
     {
         get
@@ -54,15 +52,16 @@ public abstract class CameraComponent : Component
 
     public float ViewDistance => _viewDistance;
 
-    protected CameraComponent(Entity entity, int type) : base(entity, type)
+    protected CameraComponent()
     {
         _needToComputeProjectionMatrix = true;
         _needToComputeViewMatrix = true;
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
-        IsInitialized = true;
+        base.Initialize(entity, game);
+
         _game = game;
 
         _viewport.Width = game.GraphicsDevice.PresentationParameters.BackBufferWidth;

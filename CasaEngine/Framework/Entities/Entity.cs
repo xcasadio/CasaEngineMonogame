@@ -73,13 +73,9 @@ public class Entity : Asset
     public event EventHandler<EventCollisionArgs> OnHit;
     public event EventHandler<EventCollisionArgs> OnHitEnded;
 
-    public Entity()
-    {
-    }
-
     public void Initialize(CasaEngineGame game)
     {
-        ComponentManager.Initialize(game);
+        ComponentManager.Initialize(this, game);
     }
 
     public void Update(float elapsedTime)
@@ -111,13 +107,13 @@ public class Entity : Asset
 
     public void CopyFrom(Entity entity)
     {
-        ComponentManager.CopyFrom(entity.ComponentManager, this);
+        ComponentManager.CopyFrom(entity.ComponentManager);
         Coordinates.CopyFrom(entity.Coordinates);
 
         IsTemporary = entity.IsTemporary;
         //Name = entity.Name + $"_{AssetInfo.Id}";
         Parent = entity.Parent;
-        IsEnabled = entity.IsEnabled;
+        _isEnabled = entity._isEnabled;
         IsVisible = entity.IsVisible;
     }
 

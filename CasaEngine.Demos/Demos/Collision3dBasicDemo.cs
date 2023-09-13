@@ -21,12 +21,12 @@ public class Collision3dBasicDemo : Demo
 
         //============ Create ground ===============
         var entity = new Entity();
-        var physicsComponent = new PhysicsComponent(entity);
+        var physicsComponent = new PhysicsComponent();
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         physicsComponent.Shape = new Box { Size = new Vector3(50, 1, 50) };
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
-        var meshComponent = new StaticMeshComponent(entity);
+        var meshComponent = new StaticMeshComponent();
         entity.ComponentManager.Components.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
         meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
@@ -52,12 +52,12 @@ public class Collision3dBasicDemo : Demo
                 {
                     entity = new Entity();
                     entity.Coordinates.LocalPosition = start + new Vector3(i, k, j);
-                    physicsComponent = new PhysicsComponent(entity);
+                    physicsComponent = new PhysicsComponent();
                     entity.ComponentManager.Components.Add(physicsComponent);
                     physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
                     physicsComponent.Shape = new Box { Size = Vector3.One };
                     physicsComponent.PhysicsDefinition.Mass = mass;
-                    meshComponent = new StaticMeshComponent(entity);
+                    meshComponent = new StaticMeshComponent();
                     entity.ComponentManager.Components.Add(meshComponent);
                     meshComponent.Mesh = boxPrimitive;
                     meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);

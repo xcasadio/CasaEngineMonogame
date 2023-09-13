@@ -9,12 +9,7 @@ namespace CasaEngine.Framework.Scripting;
 
 public abstract class ExternalComponent : ISaveLoad
 {
-    public int ExternalComponentId { get; }
-
-    protected ExternalComponent(int externalComponentId)
-    {
-        ExternalComponentId = externalComponentId;
-    }
+    public abstract int ExternalComponentId { get; }
 
     public abstract void Initialize(Entity entity, CasaEngineGame game);
     public abstract void Update(float elapsedTime);
@@ -29,7 +24,7 @@ public abstract class ExternalComponent : ISaveLoad
     public virtual void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("version", 1);
-        jObject.Add("type", Type);
+        jObject.Add("external_component_id", ExternalComponentId);
     }
 
 #endif

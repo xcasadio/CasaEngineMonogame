@@ -10,10 +10,6 @@ public abstract class Camera3dComponent : CameraComponent
 {
     private float _fieldOfView;
 
-    protected Camera3dComponent(Entity entity, int type) : base(entity, type)
-    {
-    }
-
     public float FieldOfView
     {
         get { return _fieldOfView; }
@@ -27,9 +23,9 @@ public abstract class Camera3dComponent : CameraComponent
         }
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
-        base.Initialize(game);
+        base.Initialize(entity, game);
         ComputeFieldOfView();
     }
 

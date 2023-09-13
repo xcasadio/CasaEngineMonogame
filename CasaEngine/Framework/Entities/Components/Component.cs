@@ -13,18 +13,14 @@ public abstract class Component : ISaveLoad
     , INotifyPropertyChanged
 #endif
 {
-    public Entity Owner { get; }
-    public int Type { get; }
+    public Entity Owner { get; private set; }
+    public abstract int ComponentId { get; }
+    public bool IsInitialized { get; private set; }
 
-    protected Component(Entity entity, int type)
+    public virtual void Initialize(Entity entity, CasaEngineGame game)
     {
+        IsInitialized = true;
         Owner = entity;
-        Type = type;
-    }
-
-    public virtual void Initialize(CasaEngineGame game)
-    {
-        //do nothing
     }
 
     public abstract void Update(float elapsedTime);
@@ -33,7 +29,7 @@ public abstract class Component : ISaveLoad
     {
     }
 
-    public abstract Component Clone(Entity owner);
+    public abstract Component Clone();
 
     public abstract void Load(JsonElement element, SaveOption option);
 
@@ -45,12 +41,6 @@ public abstract class Component : ISaveLoad
     {
         //do nothing
     }
-
-    public bool HandleMessage(Message message)
-    {
-        return false;
-    }
-
 
 #if EDITOR
     public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
@@ -65,7 +55,7 @@ public abstract class Component : ISaveLoad
     public virtual void Save(JObject jObject, SaveOption option)
     {
         jObject.Add("version", 1);
-        jObject.Add("type", Type);
+        jObject.Add("type", ComponentId);
     }
 #endif
 }

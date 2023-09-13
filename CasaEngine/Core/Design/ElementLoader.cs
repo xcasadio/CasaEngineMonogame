@@ -7,42 +7,29 @@ namespace CasaEngine.Core.Design;
 
 public class ElementLoader<T> where T : ISaveLoad
 {
-    private readonly Dictionary<int, Func<Entity, JsonElement, T>> FactoryByIds = new();
+    private readonly Dictionary<int, Type> _TypesById = new();
 
-    public void Register(int id, Func<Entity, T> factoryFunc)
+    public void Register<TU>(int id) where TU : new()
     {
-        if (FactoryByIds.ContainsKey(id))
+        if (_TypesById.ContainsKey(id))
         {
             throw new ArgumentException("the id already exist");
         }
 
-        FactoryByIds[id] = (owner, element) =>
-        {
-            var component = factoryFunc.Invoke(owner);
-            component.Load(element, SaveOption.Editor);
-            return component;
-        };
-    }
-
-    public void Register(int id, Func<Entity, JsonElement, T> factoryFunc)
-    {
-        if (FactoryByIds.ContainsKey(id))
-        {
-            throw new ArgumentException("the id already exist");
-        }
-
-        FactoryByIds[id] = factoryFunc;
+        _TypesById[id] = typeof(TU);
     }
 
     public T Load(Entity owner, JsonElement element)
     {
         var id = element.GetJsonPropertyByName("type").Value.GetInt32();
 
-        if (!FactoryByIds.ContainsKey(id))
+        if (!_TypesById.ContainsKey(id))
         {
             LogManager.Instance.WriteLineError($"The component with the type {id} is not supported. Please Register it before load it.");
         }
 
-        return FactoryByIds[id].Invoke(owner, element);
+        var component = (T)Activator.CreateInstance(_TypesById[id]);
+        component.Load(element, SaveOption.Editor);
+        return component;
     }
 }

@@ -21,7 +21,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
     {
         if (item is Component component)
         {
-            switch ((ComponentIds)component.Type)
+            switch ((ComponentIds)component.ComponentId)
             {
                 case ComponentIds.Mesh: return MeshComponenTemplate;
                 case ComponentIds.ArcBallCamera: return ArcBallCameraComponenTemplate;

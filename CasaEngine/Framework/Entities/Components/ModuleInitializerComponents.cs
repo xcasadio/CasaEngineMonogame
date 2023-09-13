@@ -8,18 +8,19 @@ internal static class ModuleInitializerComponents
     [ModuleInitializer]
     public static void Initialize()
     {
-        GameSettings.ComponentLoader.Register(AnimatedSpriteComponent.ComponentId, owner => new AnimatedSpriteComponent(owner));
-        GameSettings.ComponentLoader.Register(ArcBallCameraComponent.ComponentId, owner => new ArcBallCameraComponent(owner));
-        GameSettings.ComponentLoader.Register(CameraLookAtComponent.ComponentId, owner => new CameraLookAtComponent(owner));
-        GameSettings.ComponentLoader.Register(CameraTargeted2dComponent.ComponentId, owner => new CameraTargeted2dComponent(owner));
-        GameSettings.ComponentLoader.Register(Camera3dIn2dAxisComponent.ComponentId, owner => new Camera3dIn2dAxisComponent(owner));
-        GameSettings.ComponentLoader.Register(GamePlayComponent.ComponentId, owner => new GamePlayComponent(owner));
-        GameSettings.ComponentLoader.Register(SkinnedMeshComponent.ComponentId, owner => new SkinnedMeshComponent(owner));
-        GameSettings.ComponentLoader.Register(StaticMeshComponent.ComponentId, owner => new StaticMeshComponent(owner));
-        GameSettings.ComponentLoader.Register(Physics2dComponent.ComponentId, owner => new Physics2dComponent(owner));
-        GameSettings.ComponentLoader.Register(PhysicsComponent.ComponentId, owner => new PhysicsComponent(owner));
-        GameSettings.ComponentLoader.Register(StaticSpriteComponent.ComponentId, owner => new StaticSpriteComponent(owner));
-        GameSettings.ComponentLoader.Register(TileMapComponent.ComponentId, owner => new TileMapComponent(owner));
-        GameSettings.ComponentLoader.Register(PlayerStartComponent.ComponentId, owner => new PlayerStartComponent(owner));
+        GameSettings.ComponentLoader.Register<AnimatedSpriteComponent>(new AnimatedSpriteComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<ArcBallCameraComponent>(new ArcBallCameraComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<CameraLookAtComponent>(new CameraLookAtComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<CameraTargeted2dComponent>(new CameraTargeted2dComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<Camera3dIn2dAxisComponent>(new Camera3dIn2dAxisComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<GamePlayComponent>(new GamePlayComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<SkinnedMeshComponent>(new SkinnedMeshComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<StaticMeshComponent>(new StaticMeshComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<Physics2dComponent>(new Physics2dComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<PhysicsComponent>(new PhysicsComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<StaticSpriteComponent>(new StaticSpriteComponent().ComponentId);
+        GameSettings.ComponentLoader.Register<TileMapComponent>(new TileMapComponent().ComponentId);
+
+        GameSettings.ComponentLoader.Register<PlayerStartComponent>(new PlayerStartComponent().ComponentId);
     }
 }

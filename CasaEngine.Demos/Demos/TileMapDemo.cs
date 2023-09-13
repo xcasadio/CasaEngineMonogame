@@ -29,7 +29,7 @@ public class TileMapDemo : Demo
         var entity = new Entity();
         entity.Name = "TileMap";
         entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
-        var tileMapComponent = new TileMapComponent(entity);
+        var tileMapComponent = new TileMapComponent();
         tileMapComponent.TileMapData = tileMapData;
         entity.ComponentManager.Components.Add(tileMapComponent);
 
@@ -38,8 +38,8 @@ public class TileMapDemo : Demo
         //============ player ===============
         entity = new Entity();
         entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(100, 550, 0.2f);
-        var physicsComponent = new Physics2dComponent(entity);
+        entity.Coordinates.LocalPosition = new Vector3(100, 550, 0.3f);
+        var physicsComponent = new Physics2dComponent();
         entity.ComponentManager.Components.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
         physicsComponent.PhysicsDefinition.Mass = 1.0f;
@@ -50,7 +50,7 @@ public class TileMapDemo : Demo
         LoadSprites(game.GameManager.AssetContentManager, game.GraphicsDevice);
         var animations = LoadAnimations(game.GameManager.AssetContentManager, game.GraphicsDevice);
 
-        var animatedSprite = new AnimatedSpriteComponent(entity);
+        var animatedSprite = new AnimatedSpriteComponent();
         entity.ComponentManager.Components.Add(animatedSprite);
         foreach (var animation in animations)
         {
@@ -58,7 +58,7 @@ public class TileMapDemo : Demo
         }
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
-        entity.ComponentManager.Components.Add(new PlayerComponent(entity));
+        entity.ComponentManager.Components.Add(new PlayerComponent());
 
         world.AddEntityImmediately(entity);
     }
@@ -93,12 +93,16 @@ public class TileMapDemo : Demo
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity();
-        var camera = new Camera3dIn2dAxisComponent(entity);
+        var camera = new Camera3dIn2dAxisComponent();
         camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f);
         entity.ComponentManager.Components.Add(camera);
         game.GameManager.CurrentWorld.AddEntityImmediately(entity);
 
         return camera;
+    }
+    public override void InitializeCamera(CameraComponent camera)
+    {
+        //((Camera3dIn2dAxisComponent)camera).SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
     }
 
     public override void Update(GameTime gameTime)

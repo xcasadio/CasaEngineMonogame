@@ -57,22 +57,21 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         }
     }
 
-    protected PhysicsBaseComponent(Entity entity, int componentId) : base(entity, componentId)
+    protected PhysicsBaseComponent()
     {
         PhysicsDefinition.PhysicsType = PhysicsType.Static;
-
-#if EDITOR
-        entity.PositionChanged += OnPositionChanged;
-        entity.OrientationChanged += OnOrientationChanged;
-#endif
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        base.Initialize(entity, game);
+
         _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
         Debug.Assert(_physicsEngineComponent != null);
 
 #if EDITOR
+        entity.PositionChanged += OnPositionChanged;
+        entity.OrientationChanged += OnOrientationChanged;
         DestroyPhysicsObject();
 #endif
 
@@ -172,8 +171,11 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     ~PhysicsBaseComponent()
     {
-        Owner.PositionChanged -= OnPositionChanged;
-        Owner.OrientationChanged -= OnOrientationChanged;
+        if (Owner != null)
+        {
+            Owner.PositionChanged -= OnPositionChanged;
+            Owner.OrientationChanged -= OnOrientationChanged;
+        }
     }
 
     private void OnPositionChanged(object? sender, EventArgs e)
