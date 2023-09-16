@@ -31,7 +31,7 @@
 							<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 								<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 									<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-										<worldControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem.Entity, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
+										<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem.Entity, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
 									</xcad:LayoutAnchorable>
 								</xcad:LayoutAnchorablePane>
 							</xcad:LayoutAnchorablePaneGroup>

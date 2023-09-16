@@ -6,6 +6,7 @@
              xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
              xmlns:worldControls="clr-namespace:CasaEngine.Editor.Controls.WorldControls"
              xmlns:controls="clr-namespace:CasaEngine.Editor.Controls"
+             xmlns:entityControls="clr-namespace:CasaEngine.Editor.Controls.EntityControls"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 	<Grid>
@@ -29,13 +30,13 @@
 						<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
 							<xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
 								<xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities" >
-									<worldControls:EntitiesControl x:Name="EntitiesControl"/>
+									<entityControls:EntitiesControl x:Name="EntitiesControl"/>
 								</xcad:LayoutAnchorable>
 							</xcad:LayoutAnchorablePane>
 							<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 								<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 									<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-										<worldControls:EntityControl x:Name="EntityControl" DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
+										<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
 									</xcad:LayoutAnchorable>
 								</xcad:LayoutAnchorablePane>
 							</xcad:LayoutAnchorablePaneGroup>

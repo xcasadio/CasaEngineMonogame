@@ -4,9 +4,8 @@ using System.Windows.Controls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.WpfControls;
-using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Editor.Controls.WorldControls
+namespace CasaEngine.Editor.Controls.EntityControls
 {
     public partial class EntityControl : UserControl
     {

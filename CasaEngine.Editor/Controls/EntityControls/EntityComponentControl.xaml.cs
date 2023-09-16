@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
+using CasaEngine.Editor.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Editor.Windows;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
-namespace CasaEngine.Editor.Controls.WorldControls
+namespace CasaEngine.Editor.Controls.EntityControls
 {
     public partial class EntityComponentControl : UserControl
     {
