@@ -1,0 +1,4 @@
+[submodule "FlowGraph"]
+	path = FlowGraph
+	url = https://github.com/xcasadio/FlowGraph.git
+	branch = master
