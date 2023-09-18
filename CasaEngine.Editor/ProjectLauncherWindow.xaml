@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="CasaEngine Launcher" Height="450" Width="800">
-    <Grid>
+    <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -21,18 +21,22 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="1" Content="Open project" Click="ButtonOpenProject_Click"/>
-            <Button Grid.Column="2" Content="Create project" Click="ButtonCreateProject_Click"/>
+            <Button Grid.Column="1" Content="Open project" Click="ButtonOpenProject_Click" Padding ="5" Margin="0, 0, 5, 0"/>
+            <Button Grid.Column="2" Content="Create project" Click="ButtonCreateProject_Click" Padding ="5" />
         </Grid>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Margin="0, 5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="338*"/>
+                <ColumnDefinition Width="57*"/>
+            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Recent projects"/>
-            <ListBox Grid.Row="1" x:Name="listBoxRecentProjects" >
+            <TextBlock Grid.Row="0" Text="Recent projects" Grid.ColumnSpan="2" Grid.RowSpan="2"/>
+            <ListBox Grid.Row="1" x:Name="listBoxRecentProjects" Grid.ColumnSpan="2" >
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                         <EventSetter Event="MouseDoubleClick" Handler="ListBoxOnMouseDoubleClick"/>
@@ -41,6 +45,6 @@
             </ListBox>
         </Grid>
 
-        <Button Grid.Row="3" Content="Launch" HorizontalAlignment="Right" Click="ButtonLaunchEditor_Click" Height="35" Width="120"/>
+        <Button Grid.Row="3" Content="Launch" HorizontalAlignment="Right" Click="ButtonLaunchEditor_Click" Height="30" Width="100"/>
     </Grid>
 </Window>
