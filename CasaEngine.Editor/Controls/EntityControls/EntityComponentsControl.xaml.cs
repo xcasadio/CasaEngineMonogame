@@ -33,7 +33,6 @@ namespace CasaEngine.Editor.Controls.EntityControls
             ListBoxComponents.DataContext = entity;
         }
 
-
         private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
         {
             if (DataContext is not Entity entity)

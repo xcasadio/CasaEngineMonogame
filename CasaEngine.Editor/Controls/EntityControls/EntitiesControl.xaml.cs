@@ -17,16 +17,16 @@ namespace CasaEngine.Editor.Controls.EntityControls
 {
     public partial class EntitiesControl : UserControl
     {
-        public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(Entity), typeof(EntitiesControl));
+        public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(EntityViewModel), typeof(EntitiesControl));
 
         private CasaEngineGame Game { get; set; }
 
         private bool _isSelectionTriggerActive = true;
         private bool _isSelectionTriggerFromGizmoActive = true;
 
-        public Entity SelectedItem
+        public EntityViewModel SelectedItem
         {
-            get => (Entity)GetValue(SelectedItemProperty);
+            get => (EntityViewModel)GetValue(SelectedItemProperty);
             set => SetValue(SelectedItemProperty, value);
         }
 
@@ -144,7 +144,7 @@ namespace CasaEngine.Editor.Controls.EntityControls
         {
             if (selectedEntity != null)
             {
-                SelectedItem = selectedEntity.Entity;
+                SelectedItem = selectedEntity;
 
                 if (TreeView.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
                 {
@@ -179,17 +179,7 @@ namespace CasaEngine.Editor.Controls.EntityControls
         {
             if (sender is TreeViewItem treeViewItem)
             {
-                var inputTextBox = new InputTextBox();
-                inputTextBox.Description = "Enter a new name";
-                inputTextBox.Title = "Rename";
-                var entity = (treeViewItem.DataContext as EntityViewModel);
-                inputTextBox.Text = entity.Name;
-
-                if (inputTextBox.ShowDialog() == true)
-                {
-                    //_gameEditor.Game.GameManager.AssetContentManager.Rename(animation2dDataViewModel.Name, inputTextBox.Text);
-                    entity.Name = inputTextBox.Text;
-                }
+                //TODO : Camera in front of the Object
             }
         }
     }
@@ -243,29 +233,6 @@ namespace CasaEngine.Editor.Controls.EntityControls
             }
 
             return null;
-        }
-    }
-
-    internal class EntityViewModel : NotifyPropertyChangeBase
-    {
-        public Entity Entity { get; }
-
-        public string Name
-        {
-            get => Entity.Name;
-            set
-            {
-                if (Entity.Name != value)
-                {
-                    Entity.Name = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public EntityViewModel(Entity entity)
-        {
-            Entity = entity;
         }
     }
 }

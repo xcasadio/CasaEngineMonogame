@@ -1,8 +1,9 @@
-﻿using CasaEngine.Framework.Assets;
+﻿using System;
+using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.Editor.Controls;
 
-public class AssetInfoViewModel : NotifyPropertyChangeBase
+public class AssetInfoViewModel : NotifyPropertyChangeBase, IEquatable<AssetInfoViewModel>
 {
     public AssetInfo AssetInfo { get; }
 
@@ -22,5 +23,45 @@ public class AssetInfoViewModel : NotifyPropertyChangeBase
     public AssetInfoViewModel(AssetInfo assetInfo)
     {
         AssetInfo = assetInfo;
+    }
+
+    public bool Equals(AssetInfoViewModel? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return AssetInfo.Equals(other.AssetInfo);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        if (obj.GetType() != GetType())
+        {
+            return false;
+        }
+
+        return Equals((AssetInfoViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return AssetInfo.GetHashCode();
     }
 }

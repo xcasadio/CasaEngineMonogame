@@ -22,7 +22,7 @@
         </Button>
 
         <ListBox x:Name="ListBoxComponents" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                 ItemsSource="{Binding ComponentManager.Components}"
+                 ItemsSource="{Binding Entity.ComponentManager.Components}"
                  ScrollViewer.CanContentScroll="False">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
@@ -33,13 +33,13 @@
                 <DataTemplate>
                     <Expander>
                         <Expander.Header>
-                            <Grid>
+                            <Grid HorizontalAlignment="{Binding Path=HorizontalAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContentPresenter}}, Mode=OneWayToSource}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition Width="Auto" MaxWidth="20" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" HorizontalAlignment="Stretch"/>
                                 <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick">
                                     <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
                                 </Button>

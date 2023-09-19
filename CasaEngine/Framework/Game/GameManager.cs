@@ -328,7 +328,6 @@ public class GameManager
         InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
     }
 
-
     private void CreateCameraEditor()
     {
         _cameraEditorEntity = new Entity { Name = "Camera" };

@@ -37,16 +37,28 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Name}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" VerticalAlignment="Center"/>
+
+                <Grid Grid.Row="0" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Click="ButtonRenameEntity_OnClick">
+                        <Image Source="/Resources/icon_edit_16x16.png" Width="16" Height="16"/>
+                    </Button>
+                </Grid>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalPosition}"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.Coordinates.LocalPosition}"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Rotation" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalRotation}"/>
+                <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.Coordinates.LocalRotation}"/>
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.LocalScale}"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.Coordinates.LocalScale}"/>
             </Grid>
         </Grid>
 

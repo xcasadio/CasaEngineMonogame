@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,6 +19,7 @@ using CasaEngine.Editor.Controls.EntityControls;
 using CasaEngine.Editor.Controls.SpriteControls;
 using CasaEngine.Editor.Controls.TileMapControls;
 using CasaEngine.Editor.Controls.WorldControls;
+using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 using Point = System.Windows.Point;
 
@@ -43,6 +47,8 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
         public ContentBrowserControl()
         {
             InitializeComponent();
+
+            GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
         }
 
         public void InitializeFromGameEditor(GameEditor gameEditor)
@@ -204,6 +210,12 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
                                 GameSettings.AssetInfoManager.Add(texture.AssetInfo);
                                 GameSettings.AssetInfoManager.Add(textureAssetInfo);
                                 GameSettings.AssetInfoManager.Save();
+
+                                ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
+                            }
+                            else
+                            {
+                                MessageBox.Show(Application.Current.MainWindow, $"The file {Path.GetFileName(fileName)} already exists!", "File already exists", MessageBoxButton.OK);
                             }
                         }
                     }
@@ -261,7 +273,56 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
 
         private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            e.Handled = false;
+            if (sender is not ListBoxItem listBoxItem)
+            {
+                return;
+            }
+
+            foreach (MenuItem menuItem in listBoxItem.ContextMenu.Items)
+            {
+                if (string.Equals(menuItem.Name, "Delete", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    menuItem.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            if (ListBoxFolderContent.SelectedItem is not FolderItem &&
+                ListBoxFolderContent.SelectedItem is ContentItem contentItem)
+            {
+                if (contentItem.FileExtension == Constants.FileNameExtensions.Texture)
+                {
+                    foreach (MenuItem menuItem in listBoxItem.ContextMenu.Items)
+                    {
+                        if (menuItem.Name == "menuItemCreateSprites")
+                        {
+                            menuItem.Visibility = Visibility.Visible;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MenuItemCreateSprites_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListBoxFolderContent.SelectedItem is not FolderItem &&
+                ListBoxFolderContent.SelectedItem is ContentItem contentItem)
+            {
+                //TODO create an editor which find sprites
+                var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
+                var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo);
+                texture.Load(assetContentManager);
+                var spriteData = new SpriteData();
+                spriteData.PositionInTexture = texture.Resource.Bounds;
+                spriteData.SpriteSheetAssetId = contentItem.AssetInfo.Id;
+
+                spriteData.AssetInfo.Name = texture.AssetInfo.Name;
+                spriteData.AssetInfo.FileName = texture.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture,
+                    Constants.FileNameExtensions.Sprite);
+                AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, spriteData.AssetInfo.FileName), spriteData);
+
+                GameSettings.AssetInfoManager.Add(spriteData.AssetInfo);
+                GameSettings.AssetInfoManager.Save();
+            }
         }
 
         private void ListBox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -295,6 +356,36 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
             }
 
             return null;
+        }
+
+        private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
+        {
+            if (DataContext is ContentBrowserViewModel contentBrowserViewModel)
+            {
+                foreach (var contentItem in contentBrowserViewModel.ContentItems)
+                {
+                    if (contentItem is not FolderItem && contentItem.Name == e.Value2)
+                    {
+                        contentItem.Name = e.Value.Name;
+                    }
+                }
+            }
+        }
+
+        private void MenuItemNewFolder_Click(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is TreeViewItem { DataContext: FolderItem folderItem })
+            {
+                var newFolderName = "New_Folder";
+                int index = -1;
+
+                while (folderItem.Contents.Any(x => string.Equals(x.Name, newFolderName)))
+                {
+                    newFolderName = $"New_Folder_{++index}";
+                }
+
+                folderItem.Contents.Add(new FolderItem { Name = newFolderName });
+            }
         }
     }
 }

@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
-             xmlns:worldControls="clr-namespace:CasaEngine.Editor.Controls.WorldControls"
              xmlns:controls="clr-namespace:CasaEngine.Editor.Controls"
              xmlns:entityControls="clr-namespace:CasaEngine.Editor.Controls.EntityControls"
              mc:Ignorable="d"
@@ -31,7 +30,7 @@
 							<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 								<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 									<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-										<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem.Entity, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
+										<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
 									</xcad:LayoutAnchorable>
 								</xcad:LayoutAnchorablePane>
 							</xcad:LayoutAnchorablePaneGroup>

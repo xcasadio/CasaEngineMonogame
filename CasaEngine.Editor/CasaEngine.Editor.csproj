@@ -19,6 +19,7 @@
 		<None Remove="Resources\file-folder-48.png" />
 		<None Remove="Resources\icon_arrowDown_16x16.png" />
 		<None Remove="Resources\icon_arrowUP_16x16.png" />
+		<None Remove="Resources\icon_edit_16x16.png" />
 		<None Remove="Resources\icon_first_16x16.png" />
 		<None Remove="Resources\icon_last_16x16.png" />
 		<None Remove="Resources\icon_left_arrow.png" />
@@ -58,6 +59,7 @@
 		<Resource Include="Resources\fichier-50.png" />
 		<Resource Include="Resources\icon_arrowDown_16x16.png" />
 		<Resource Include="Resources\icon_arrowUP_16x16.png" />
+		<Resource Include="Resources\icon_edit_16x16.png" />
 		<Resource Include="Resources\icon_first_16x16.png" />
 		<Resource Include="Resources\icon_last_16x16.png" />
 		<Resource Include="Resources\icon_left_arrow.png" />

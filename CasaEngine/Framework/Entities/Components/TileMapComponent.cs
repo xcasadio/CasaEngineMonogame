@@ -119,6 +119,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
 
                         switch (tileData.CollisionType)
                         {
+                            case TileCollisionType.NoContactResponse:
                             case TileCollisionType.Blocked:
                                 var physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
                                 var worldMatrix = Owner.Coordinates.WorldMatrix;
@@ -129,8 +130,16 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
                                 var rectangle = new ShapeRectangle(0, 0, tileSize.Width,
                                     tileSize.Height);
                                 var tileCollisionManager = new TileCollisionManager(this, layerIndex, x, y);
-                                var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, tileCollisionManager,
-                                    new PhysicsDefinition { Friction = 0f });
+                                if (tileData.CollisionType == TileCollisionType.NoContactResponse)
+                                {
+                                    var collisionObject = physicsEngineComponent.AddGhostObject(rectangle, ref worldMatrix, tileCollisionManager);
+                                }
+                                else
+                                {
+                                    var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, tileCollisionManager,
+                                        new PhysicsDefinition { Friction = 0f });
+                                }
+
                                 break;
                         }
                     }

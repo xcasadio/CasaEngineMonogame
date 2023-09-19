@@ -11,13 +11,13 @@
             <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
 
-        <ListBox Grid.Column="0" Name="animation2dList" DisplayMemberPath="Name"/>
+        <ListBox Grid.Column="0" Name="animation2dList" DisplayMemberPath="Name" SelectionMode="Multiple"/>
 
         <StackPanel Grid.Column="1" Orientation="Vertical">
-            <Button>
+            <Button Click="ButtonAddAnimation_OnClick">
                 <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
             </Button>
-            <Button>
+            <Button Click="ButtonDeleteAnimation_OnClick">
                 <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
             </Button>
         </StackPanel>

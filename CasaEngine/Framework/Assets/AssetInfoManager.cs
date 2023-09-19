@@ -72,6 +72,7 @@ public class AssetInfoManager
 
     public event EventHandler<AssetInfo> AssetAdded;
     public event EventHandler<AssetInfo> AssetRemoved;
+    public event EventHandler<EventArgs<AssetInfo, string>> AssetRenamed;
     public event EventHandler AssetCleared;
 
     public void Save()
@@ -127,6 +128,19 @@ public class AssetInfoManager
 
         _assetInfos.Clear();
         AssetCleared?.Invoke(this, EventArgs.Empty);
+    }
+
+    public bool CanRename(AssetInfo assetInfo, string newName)
+    {
+        return !_assetInfos.Any(x => string.Equals(x.Value.Name, newName, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    public void Rename(AssetInfo assetInfo, string newName)
+    {
+        var oldName = assetInfo.Name;
+        assetInfo.Name = newName;
+
+        AssetRenamed?.Invoke(this, new EventArgs<AssetInfo, string>(assetInfo, oldName));
     }
 
 #endif

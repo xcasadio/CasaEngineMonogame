@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -10,6 +11,8 @@ namespace CasaEngine.Editor.Controls.EntityControls
 {
     public partial class Animation2dListSelectedControl : UserControl
     {
+        private Animation2dSelectedListModelView _animation2dSelectedListModelView;
+
         public Animation2dListSelectedControl()
         {
             DataContextChanged += OnDataContextChanged;
@@ -17,16 +20,42 @@ namespace CasaEngine.Editor.Controls.EntityControls
             InitializeComponent();
         }
 
-        private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             var animatedSpriteComponent = DataContext as AnimatedSpriteComponent;
 
-            var animation2dSelectedListModelView = new Animation2dSelectedListModelView(animatedSpriteComponent);
+            _animation2dSelectedListModelView = new Animation2dSelectedListModelView(animatedSpriteComponent);
 
-            animation2dList.ItemsSource = animation2dSelectedListModelView.Animations;
+            animation2dList.ItemsSource = _animation2dSelectedListModelView.Animations;
         }
 
+        private void ButtonAddAnimation_OnClick(object sender, RoutedEventArgs e)
+        {
+            var animation2dListSelectorWindow = new Animation2dListSelectorWindow(_animation2dSelectedListModelView.Animations);
+            animation2dListSelectorWindow.Owner = Application.Current.MainWindow;
 
+            if (animation2dListSelectorWindow.ShowDialog() == true)
+            {
+                foreach (var assetInfoViewModel in animation2dListSelectorWindow.AssetInfoSelected)
+                {
+                    _animation2dSelectedListModelView.Add(assetInfoViewModel.AssetInfo);
+                }
+            }
+        }
+
+        private void ButtonDeleteAnimation_OnClick(object sender, RoutedEventArgs e)
+        {
+            var toRemove = new List<AssetInfoViewModel>();
+            foreach (AssetInfoViewModel assetInfoViewModel in animation2dList.SelectedItems)
+            {
+                toRemove.Add(assetInfoViewModel);
+            }
+
+            foreach (var assetInfoViewModel in toRemove)
+            {
+                _animation2dSelectedListModelView.Remove(assetInfoViewModel);
+            }
+        }
     }
 
     internal class Animation2dSelectedListModelView

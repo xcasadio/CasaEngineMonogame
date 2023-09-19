@@ -9,11 +9,11 @@ namespace CasaEngine.Editor.Controls.EntityControls
 {
     public partial class EntityEditorControl : EditorControlBase
     {
-        public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(EntityDataViewModel), typeof(EntityEditorControl));
+        public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(EntityViewModel), typeof(EntityEditorControl));
 
-        public EntityDataViewModel SelectedItem
+        public EntityViewModel SelectedItem
         {
-            get => (EntityDataViewModel)GetValue(SelectedItemProperty);
+            get => (EntityViewModel)GetValue(SelectedItemProperty);
             set => SetValue(SelectedItemProperty, value);
         }
 
@@ -51,7 +51,7 @@ namespace CasaEngine.Editor.Controls.EntityControls
 
         public void LoadEntity(string fileName)
         {
-            SelectedItem = new EntityDataViewModel(EntityLoader.Load(fileName), fileName);
+            SelectedItem = new EntityViewModel(EntityLoader.Load(fileName));
         }
     }
 }

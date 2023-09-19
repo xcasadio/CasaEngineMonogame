@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Design;
+using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -24,6 +25,7 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     //static
     protected CollisionObject? _collisionObject;
+    private CasaEngineGame _game;
 
     [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
@@ -64,6 +66,7 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     public override void Initialize(Entity entity, CasaEngineGame game)
     {
+        _game = game;
         base.Initialize(entity, game);
 
         _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
@@ -80,6 +83,11 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     public override void Update(float elapsedTime)
     {
+        if (!_game.GameManager.IsRunningInGameEditorMode)
+        {
+            return;
+        }
+
         CollisionObject? collisionObject = null;
 
         if (_collisionObject != null)
@@ -111,6 +119,24 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         }
     }
 
+    public void OnHit(Collision collision)
+    {
+        Owner.Hit(collision, this);
+    }
+
+    public void OnHitEnded(Collision collision)
+    {
+        Owner.HitEnded(collision, this);
+    }
+    protected void Clone(PhysicsBaseComponent component)
+    {
+        component._velocity = _velocity;
+        component._maxSpeed = _maxSpeed;
+        component._maxForce = _maxForce;
+        component._maxTurnRate = _maxTurnRate;
+        component.PhysicsDefinition.CopyFrom(PhysicsDefinition);
+    }
+
     private void DestroyPhysicsObject()
     {
         if (_physicsEngineComponent == null)
@@ -135,22 +161,14 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     protected abstract void CreatePhysicsObject();
 
-    public void OnHit(Collision collision)
+    public void ApplyImpulse(Vector3 impulse, Vector3 relativePosition)
     {
-        Owner.Hit(collision, this);
-    }
+        //do nothing with _collisionObject
 
-    public void OnHitEnded(Collision collision)
-    {
-        Owner.HitEnded(collision, this);
-    }
-    protected void Clone(PhysicsBaseComponent component)
-    {
-        component._velocity = _velocity;
-        component._maxSpeed = _maxSpeed;
-        component._maxForce = _maxForce;
-        component._maxTurnRate = _maxTurnRate;
-        component.PhysicsDefinition.CopyFrom(PhysicsDefinition);
+        if (_rigidBody != null)
+        {
+            _rigidBody.ApplyImpulse(impulse, relativePosition);
+        }
     }
 
     public override void Load(JsonElement element, SaveOption option)

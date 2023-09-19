@@ -13,6 +13,7 @@
              xmlns:graphics="clr-namespace:Microsoft.Xna.Framework.Graphics;assembly=MonoGame.Framework"
              xmlns:common="clr-namespace:CasaEngine.Editor.Controls.Common"
              xmlns:entityControls="clr-namespace:CasaEngine.Editor.Controls.EntityControls"
+             xmlns:animation2dControls="clr-namespace:CasaEngine.Editor.Controls.Animation2dControls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>

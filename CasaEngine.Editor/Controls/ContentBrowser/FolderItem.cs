@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace CasaEngine.Editor.Controls.ContentBrowser;
@@ -27,6 +28,16 @@ public class FolderItem : ContentItem
     {
         get => _name;
         set => SetField(ref _name, value);
+    }
+
+    public FolderItem()
+    {
+        Contents.CollectionChanged += OnCollectionChanged;
+    }
+
+    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged("Folders");
     }
 
     public void AddContent(ContentItem item)

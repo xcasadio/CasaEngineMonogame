@@ -7,7 +7,7 @@ namespace CasaEngine.Editor.Controls.EntityControls
 {
     public partial class GameEditorEntityControl : UserControl
     {
-        private EntityDataViewModel? EntityControlViewModel => DataContext as EntityDataViewModel;
+        private EntityViewModel? EntityControlViewModel => DataContext as EntityViewModel;
 
         public GameEditorEntityControl()
         {
@@ -21,8 +21,9 @@ namespace CasaEngine.Editor.Controls.EntityControls
                 return;
             }
 
-            AssetSaver.SaveAsset(EntityControlViewModel.FileName, EntityControlViewModel.Entity);
-            LogManager.Instance.WriteLineInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({EntityControlViewModel.FileName})");
+            var fileName = EntityControlViewModel.Entity.AssetInfo.FileName;
+            AssetSaver.SaveAsset(fileName, EntityControlViewModel.Entity);
+            LogManager.Instance.WriteLineInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({fileName})");
         }
     }
 }

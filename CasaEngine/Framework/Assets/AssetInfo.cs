@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
-public class AssetInfo : ISaveLoad
+public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
 {
     private string _name;
 
@@ -58,10 +58,49 @@ public class AssetInfo : ISaveLoad
     {
         var assetObject = new JObject(
             new JProperty("id", Id),
-            //new JProperty("name", Name),
+            new JProperty("name", Name),
             new JProperty("file_name", FileName));
 
         jObject.Add("asset", assetObject);
     }
 #endif
+    public bool Equals(AssetInfo? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return _name == other._name && Id == other.Id && FileName == other.FileName;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        if (obj.GetType() != GetType())
+        {
+            return false;
+        }
+
+        return Equals((AssetInfo)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_name, Id, FileName);
+    }
 }

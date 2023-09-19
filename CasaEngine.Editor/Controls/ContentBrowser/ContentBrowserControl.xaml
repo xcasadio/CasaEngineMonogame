@@ -8,6 +8,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" >
     <UserControl.Resources>
+        <RoutedUICommand x:Key="Commands.CreateSpritesFromTexture" />
+        <RoutedUICommand x:Key="Commands.NewFolder" />
+
         <DataTemplate x:Key="FolderItemDataTemplate" DataType="{x:Type contentBrowser:FolderItem}">
             <Image Width="246" Height="246" 
                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
@@ -32,6 +35,10 @@
     <UserControl.DataContext>
         <contentBrowser:ContentBrowserViewModel />
     </UserControl.DataContext>
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{StaticResource Commands.CreateSpritesFromTexture}" Executed="MenuItemCreateSprites_Click" />
+        <CommandBinding Command="{StaticResource Commands.NewFolder}" Executed="MenuItemNewFolder_Click" />
+    </UserControl.CommandBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -52,8 +59,12 @@
             </ToolBar>
         </ToolBarTray>
 
-
         <TreeView x:Name="treeViewFolders" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding ContentItems}">
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type contentBrowser:FolderItem}" ItemsSource="{Binding Folders}">
                     <Grid>
@@ -85,6 +96,7 @@
                     <MenuItem Header="Create">
                         <MenuItem Header="Entity" Click="MenuItemCreateEntity_OnClick" />
                     </MenuItem>
+                    <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
                 </ContextMenu>
             </ListBox.ContextMenu>
             <ListBox.ItemContainerStyle>
@@ -97,10 +109,12 @@
                     <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListBox_OnMouseLeftButtonDown"/>
                     <EventSetter Event="PreviewMouseLeftButtonUp" Handler="ListBox_OnMouseLeftButtonUp"/>
                     <EventSetter Event="PreviewMouseMove" Handler="ListBox_OnMouseMove"/>
+                    <EventSetter Event="ContextMenuOpening" Handler="ListBoxFolderContent_OnContextMenuOpening"/>
                     <Setter Property="ContextMenu">
                         <Setter.Value>
-                            <ContextMenu>
-                                <MenuItem Header="Delete" Command="ApplicationCommands.Delete"/>
+                            <ContextMenu Name="ContentItemContextMenu">
+                                <MenuItem Name="menuItemDelete" Header="Delete" Command="ApplicationCommands.Delete"/>
+                                <MenuItem Name="menuItemCreateSprites" Header="Create Sprites" Command="{StaticResource Commands.CreateSpritesFromTexture}" Visibility="Hidden"/>
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>

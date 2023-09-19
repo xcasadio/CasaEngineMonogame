@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Editor.Controls.EntityControls;
-
+/*
 public class EntityDataViewModel : NotifyPropertyChangeBase
 {
     public string FileName { get; }
@@ -12,4 +12,4 @@ public class EntityDataViewModel : NotifyPropertyChangeBase
         FileName = fileName;
         Entity = entity;
     }
-}
+}*/

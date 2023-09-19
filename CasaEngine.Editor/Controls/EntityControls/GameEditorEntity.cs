@@ -29,12 +29,12 @@ public class GameEditorEntity : GameEditor
     {
         if (DataContext != null)
         {
-            var entityDataViewModel = DataContext as EntityDataViewModel;
-            entityDataViewModel.Entity.Initialize(Game);
+            var entityViewModel = DataContext as EntityViewModel;
+            entityViewModel.Entity.Initialize(Game);
             Game.GameManager.ActiveCamera = _camera;
             Game.GameManager.CurrentWorld.ClearEntities();
             Game.GameManager.CurrentWorld.AddEntityImmediately(_cameraEntity);
-            Game.GameManager.CurrentWorld.AddEntityImmediately(entityDataViewModel.Entity);
+            Game.GameManager.CurrentWorld.AddEntityImmediately(entityViewModel.Entity);
             //StaticSpriteComponent.TryLoadSpriteData(spriteData?.Name);
         }
     }

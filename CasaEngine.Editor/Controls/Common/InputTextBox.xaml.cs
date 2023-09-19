@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 
 namespace CasaEngine.Editor.Controls.Common
 {
@@ -11,9 +12,11 @@ namespace CasaEngine.Editor.Controls.Common
 
         public string? Text
         {
-            get => TextInput.Text as string;
+            get => TextInput.Text;
             set => TextInput.Text = value;
         }
+
+        public Func<string?, bool>? Predicate { get; set; }
 
         public InputTextBox()
         {
@@ -28,6 +31,11 @@ namespace CasaEngine.Editor.Controls.Common
 
         private void ButtonOk_Click(object sender, RoutedEventArgs e)
         {
+            if (Predicate != null && !Predicate(Text))
+            {
+                return;
+            }
+
             DialogResult = true;
             Close();
         }
