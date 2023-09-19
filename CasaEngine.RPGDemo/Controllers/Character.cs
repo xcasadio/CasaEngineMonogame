@@ -10,11 +10,13 @@ using CasaEngine.Framework.Game;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
+using SharpDX.XInput;
 
 namespace CasaEngine.RPGDemo.Controllers;
 
 public class Character
 {
+    private readonly CasaEngineGame _game;
     public const float DeadZone = 0.2f;
 
     public enum AnimationIndices
@@ -74,8 +76,9 @@ public class Character
     public int ExperienceBeforeNextLevel { get; set; } = 10;
 
 
-    public Character(Entity entity)
+    public Character(Entity entity, CasaEngineGame game)
     {
+        _game = game;
         Owner = entity;
 
         SetAnimationDirectionOffset(Character2dDirection.Down, (int)AnimationDirectionOffset.Down);
@@ -132,17 +135,27 @@ public class Character
             //always when Vector2.Zero to stop movement
             //else if contact the character will continue to move
             _physics2dComponent.Velocity = dir.ToVector3();
+            return;
         }
 
-        _physics2dComponent.Velocity = dir.ToVector3() * 120f;
-        //_physics2dComponent.ApplyLinearImpulse(dir * 10f);
+        var maxVelocity = 120f;
+        _physics2dComponent.Velocity = dir.ToVector3() * maxVelocity;
+        //_physics2dComponent.ApplyImpulse(dir.ToVector3() * maxVelocity, Vector3.Zero);
+        //
+        //if (_physics2dComponent.Velocity.Length() > 120.0f)
+        //{
+        //    var velocity = _physics2dComponent.Velocity;
+        //    velocity.Normalize();
+        //    _physics2dComponent.Velocity = velocity * maxVelocity;
+        //}
+
         //m_MovementDirection = dir_ * m_Spd * 10f;
     }
 
     private void MoveCharacter(float elapsedTime)
     {
         //m_MovementDirection = m_MovementDirection * elapsedTime_;
-        //m_Body.ApplyLinearImpulse(ref m_MovementDirection);
+        //_physics2dComponent.ApplyImpulse(ref m_MovementDirection);
     }
 
     public void SetAnimationParameters(int numberOfDirectionAnimation, int animationDirectionMask)
@@ -197,32 +210,40 @@ public class Character
     {
         AddHitEffect(ref hitParameters.ContactPoint);
 
-        var gamePlayComponent = hitParameters.Entity.ComponentManager.GetComponent<GamePlayComponent>();
+        var opponentGamePlayComponent = hitParameters.Entity.ComponentManager.GetComponent<GamePlayComponent>();
 
-        if (gamePlayComponent != null)
+        if (opponentGamePlayComponent != null)
         {
-            var scriptCharacter = gamePlayComponent.ExternalComponent as IScriptCharacter;
-
-            if (scriptCharacter != null)
+            if (opponentGamePlayComponent.ExternalComponent is IScriptCharacter opponentScriptCharacter)
             {
-                var physics2dComponent = scriptCharacter.Character.Owner.ComponentManager.GetComponent<Physics2dComponent>();
-                //physics2dComponent.AddImpulse(-hitParameters.Entity.Coordinates.WorldMatrix.Forward);
+                var physics2dComponent = opponentScriptCharacter.Character.Owner.ComponentManager.GetComponent<Physics2dComponent>();
+                var impulse = Vector3.UnitX * 300f; //Vector3.Normalize(hitParameters.Entity.Coordinates.WorldMatrix.Forward) * -100f;
+                physics2dComponent.ApplyImpulse(impulse, Vector3.Zero);
 
-                int attackValue = scriptCharacter.Character.Strength - Defense;
+                int attackValue = opponentScriptCharacter.Character.Strength - Defense;
                 attackValue = attackValue < 0 ? 0 : attackValue;
                 HP = Math.Max(HP - attackValue, 0);
 
                 if (HP == 0)
                 {
-                    scriptCharacter.Character.KillSomeone(Experience);
+                    opponentScriptCharacter.Character.KillSomeone(Experience);
                     //var characterComponent = Owner.ComponentManager.GetComponent<CharacterComponent>();
                     //characterComponent.Controller.StateMachine.Transition(characterComponent.Controller.GetState(dying));
                     //Owner.Destroy();
-
+                    var gamePlayComponent = Owner.ComponentManager.GetComponent<GamePlayComponent>();
+                    if (gamePlayComponent.ExternalComponent is IScriptCharacter scriptCharacter)
+                    {
+                        scriptCharacter.Dying();
+                    }
 
                     //m_HP = m_HPMax;
                     //SetPosition(Vector2.One * 10.0f);
                     //characterComponent.Controller.StateMachine.Transition(Controller.GetState(0));
+                }
+                else
+                {
+                    opponentScriptCharacter.Controller.StateMachine.HandleMessage(new Message(0, 0, (int)MessageType.Hit, 0,
+                        null));
                 }
             }
         }
@@ -253,6 +274,17 @@ public class Character
     //
     //    return false;
     //}
+
+    public void Dying()
+    {
+        Owner.Destroy();
+
+        //var entity = _game.GameManager.SpawnEntity("smoke_ring_effect");
+        //entity.Coordinates.LocalPosition = Owner.Coordinates.LocalPosition;
+        //entity.Initialize(_game);
+        //var animatedSpriteComponent = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        //animatedSpriteComponent.SetCurrentAnimation(0, true);
+    }
 
     public void DoANewAttack()
     {

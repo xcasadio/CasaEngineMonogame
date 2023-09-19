@@ -6,4 +6,5 @@ public interface IScriptCharacter
 {
     public Character Character { get; }
     public Controller Controller { get; }
+    void Dying();
 }

@@ -10,5 +10,6 @@ public enum PlayerControllerState
     Magic,
     Magic2,
     Hit,
-    Dead,
+    Dying,
+    Dead
 }

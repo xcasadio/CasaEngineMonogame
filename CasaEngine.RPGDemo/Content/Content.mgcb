@@ -25,6 +25,9 @@
 #begin Entities/character_octopus.entity
 /copy:Entities/character_octopus.entity
 
+#begin Entities/smoke_ring_effect.entity
+/copy:Entities/smoke_ring_effect.entity
+
 #begin Entities/weapon_rock.entity
 /copy:Entities/weapon_rock.entity
 
@@ -556,6 +559,42 @@
 
 #begin TileSets/rock.json
 /copy:TileSets/rock.json
+
+#begin TileSets/smoke_ring_0.sprite
+/copy:TileSets/smoke_ring_0.sprite
+
+#begin TileSets/smoke_ring_1.sprite
+/copy:TileSets/smoke_ring_1.sprite
+
+#begin TileSets/smoke_ring_2.sprite
+/copy:TileSets/smoke_ring_2.sprite
+
+#begin TileSets/smoke_ring_3.sprite
+/copy:TileSets/smoke_ring_3.sprite
+
+#begin TileSets/smoke_ring_4.sprite
+/copy:TileSets/smoke_ring_4.sprite
+
+#begin TileSets/smoke_ring_5.sprite
+/copy:TileSets/smoke_ring_5.sprite
+
+#begin TileSets/smoke_ring_6.sprite
+/copy:TileSets/smoke_ring_6.sprite
+
+#begin TileSets/smoke_ring_7.sprite
+/copy:TileSets/smoke_ring_7.sprite
+
+#begin TileSets/smoke_ring_8.sprite
+/copy:TileSets/smoke_ring_8.sprite
+
+#begin TileSets/smoke_ring.anim2d
+/copy:TileSets/smoke_ring.anim2d
+
+#begin TileSets/smoke_ring.png
+/copy:TileSets/smoke_ring.png
+
+#begin TileSets/smoke_ring.texture
+/copy:TileSets/smoke_ring.texture
 
 #begin TileSets/sword_0.sprite
 /copy:TileSets/sword_0.sprite

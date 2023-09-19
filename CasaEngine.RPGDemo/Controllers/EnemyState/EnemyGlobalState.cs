@@ -21,7 +21,7 @@ public class EnemyGlobalState : IState<Controller>
     {
         if (controller.Character.HP <= 0)
         {
-            controller.GetState((int)EnemyControllerState.Dying);
+            //controller.GetState((int)EnemyControllerState.Dying);
         }
     }
 

@@ -24,6 +24,7 @@ public class EnemyController : AiController
         AddState((int)EnemyControllerState.MoveTo, new EnemyMoveToState());
         AddState((int)EnemyControllerState.Hunt, new EnemyHuntState());
         AddState((int)EnemyControllerState.Attack, new EnemyAttackState());
+        AddState((int)EnemyControllerState.Dying, new EnemyDyingState());
         StateMachine.Transition(GetState((int)EnemyControllerState.Idle));
         StateMachine.GlobalState = new EnemyGlobalState();
 

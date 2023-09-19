@@ -6,7 +6,6 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -16,15 +15,9 @@ public class ScriptEnemyWeapon : ExternalComponent
 
     private Entity _entity;
 
-    public ScriptEnemyWeapon()
-    {
-    }
-
     public override void Initialize(Entity entity, CasaEngineGame game)
     {
         _entity = entity;
-        _entity.IsEnabled = false;
-        _entity.IsVisible = false;
     }
 
     public override void Update(float elapsedTime)
@@ -54,12 +47,14 @@ public class ScriptEnemyWeapon : ExternalComponent
             tileCollisionManager = collision.ColliderA as TileCollisionManager;
         }
 
-        if (tileCollisionManager != null)
+        if (tileCollisionManager != null) // && weapon IsBreakable ?
         {
             var tileData = tileCollisionManager.GetTileData();
             if (tileData.CollisionType == TileCollisionType.Blocked)
             {
                 _entity.Destroy();
+
+                //var entity = Game.GameManager.SpawnEntity("Break effect");
             }
         }
     }
@@ -81,12 +76,14 @@ public class ScriptEnemyWeapon : ExternalComponent
         {
             _entity.Destroy();
 
-            var hitParameters = new HitParameters();
-            hitParameters.ContactPoint = collision.ContactPoint;
-            hitParameters.Entity = scriptPlayer.Character.Owner;
-            hitParameters.Strength = 10;
-            hitParameters.Precision = 10;
-            hitParameters.MagicStrength = 10;
+            var hitParameters = new HitParameters
+            {
+                ContactPoint = collision.ContactPoint,
+                Entity = scriptPlayer.Character.Owner,
+                Strength = 10,
+                Precision = 10,
+                MagicStrength = 10
+            };
             scriptPlayer.Character.Hit(hitParameters);
         }
     }
@@ -108,15 +105,4 @@ public class ScriptEnemyWeapon : ExternalComponent
     }
 
 #endif
-}
-
-public class HitParameters
-{
-    public int Strength;
-    public int Precision;
-    public int MagicStrength;
-
-    public Entity Entity;
-
-    public Vector3 ContactPoint;
 }

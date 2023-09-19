@@ -7,6 +7,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.RPGDemo.Controllers;
+using CasaEngine.RPGDemo.Controllers.EnemyState;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -18,14 +19,10 @@ public class ScriptEnemy : ExternalComponent, IScriptCharacter
     public Character Character { get; private set; }
     public Controller Controller { get; private set; }
 
-    public ScriptEnemy()
-    {
-    }
-
     public override void Initialize(Entity entity, CasaEngineGame game)
     {
         _entity = entity;
-        Character = new Character(_entity);
+        Character = new Character(_entity, game);
         Controller = new EnemyController(Character);
 
         Character.Initialize(game);
@@ -60,6 +57,11 @@ public class ScriptEnemy : ExternalComponent, IScriptCharacter
             Controller.StateMachine.HandleMessage(new Message(component.Owner.Id, component.Owner.Id,
                 (int)MessageType.AnimationChanged, 0.0f, animation2d));
         }
+    }
+
+    public void Dying()
+    {
+        Controller.StateMachine.Transition(Controller.GetState((int)EnemyControllerState.Dying));
     }
 
     public override void Load(JsonElement element, SaveOption option)

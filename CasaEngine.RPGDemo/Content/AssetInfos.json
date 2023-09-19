@@ -1063,6 +1063,58 @@
     {
       "id": 10272,
       "file_name": "Entities\\weapon_sword.entity"
+    },
+    {
+      "id": 10479,
+      "file_name": "TileSets\\smoke_ring.texture"
+    },
+    {
+      "id": 10478,
+      "file_name": "TileSets\\smoke_ring.png"
+    },
+    {
+      "id": 10686,
+      "file_name": "TileSets\\smoke_ring_0.sprite"
+    },
+    {
+      "id": 10687,
+      "file_name": "TileSets\\smoke_ring_1.sprite"
+    },
+    {
+      "id": 10688,
+      "file_name": "TileSets\\smoke_ring_2.sprite"
+    },
+    {
+      "id": 10689,
+      "file_name": "TileSets\\smoke_ring_3.sprite"
+    },
+    {
+      "id": 10690,
+      "file_name": "TileSets\\smoke_ring_4.sprite"
+    },
+    {
+      "id": 10691,
+      "file_name": "TileSets\\smoke_ring_5.sprite"
+    },
+    {
+      "id": 10692,
+      "file_name": "TileSets\\smoke_ring_6.sprite"
+    },
+    {
+      "id": 10693,
+      "file_name": "TileSets\\smoke_ring_7.sprite"
+    },
+    {
+      "id": 10694,
+      "file_name": "TileSets\\smoke_ring_8.sprite"
+    },
+    {
+      "id": 10695,
+      "file_name": "TileSets\\smoke_ring.anim2d"
+    },
+    {
+      "id": 10901,
+      "file_name": "Entities\\smoke_ring_effect.entity"
     }
   ]
 }

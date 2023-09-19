@@ -1,0 +1,45 @@
+{
+  "animation_type": "Once",
+  "asset": {
+    "id": 10695,
+    "name": "smoke_ring"
+  },
+  "frames": [
+    {
+      "duration": 0.07,
+      "sprite_id": 10686
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10687
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10688
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10689
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10690
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10691
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10692
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10693
+    },
+    {
+      "duration": 0.07,
+      "sprite_id": 10694
+    }
+  ]
+}

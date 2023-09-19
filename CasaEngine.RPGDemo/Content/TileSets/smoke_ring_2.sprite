@@ -1,0 +1,19 @@
+{
+  "asset": {
+    "id": 10688,
+    "file_name": "TileSets\\smoke_ring_2.sprite"
+  },
+  "sprite_sheet_asset_id": 10479,
+  "location": {
+    "x": 64,
+    "y": 0,
+    "w": 40,
+    "h": 32
+  },
+  "hotspot": {
+    "x": 20,
+    "y": 16
+  },
+  "collisions": [],
+  "sockets": []
+}

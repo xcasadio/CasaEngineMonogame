@@ -7,9 +7,12 @@ public class EnemyHitState : IState<Controller>
 {
     public string Name => "Enemy Hit State";
 
+    private float _hitTime;
+
     public void Enter(Controller controller)
     {
         controller.Character.SetAnimation(Character.AnimationIndices.Hit);
+        _hitTime = 0.3f;
     }
 
     public void Exit(Controller controller)
@@ -19,15 +22,20 @@ public class EnemyHitState : IState<Controller>
 
     public void Update(Controller controller, float elapsedTime)
     {
+        _hitTime -= elapsedTime;
 
+        if (_hitTime <= 0)
+        {
+            controller.StateMachine.Transition(controller.GetState((int)EnemyControllerState.Idle));
+        }
     }
 
     public bool HandleMessage(Controller controller, Message message)
     {
-        if (message.Type == (int)MessageType.AnimationChanged)
-        {
-            controller.StateMachine.Transition(controller.GetState((int)EnemyControllerState.Idle));
-        }
+        //if (message.Type == (int)MessageType.AnimationChanged)
+        //{
+        //    controller.StateMachine.Transition(controller.GetState((int)EnemyControllerState.Idle));
+        //}
 
         return false;
     }

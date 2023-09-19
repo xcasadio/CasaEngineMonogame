@@ -20,7 +20,6 @@ namespace CasaEngine.RPGDemo;
 
 public class RpgGame : CasaEngineGame
 {
-    private static readonly float CharacterZOffSet = 0.3f;
     private SpriteFontBase _font;
 
     private Character _playerCharacter;
@@ -87,7 +86,6 @@ public class RpgGame : CasaEngineGame
         scriptPlayer.Initialize(entity, this);
         scriptPlayer.Character.AnimatationPrefix = "swordman";
         var weaponEntity = GameManager.SpawnEntity("weapon_sword");
-        weaponEntity.Initialize(this);
         scriptPlayer.Character.SetWeapon(new MeleeWeapon(this, weaponEntity));
 
         //weapon
@@ -95,6 +93,7 @@ public class RpgGame : CasaEngineGame
         weaponEntity.IsEnabled = false;
         gamePlayComponent = weaponEntity.ComponentManager.GetComponent<GamePlayComponent>();
         gamePlayComponent.ExternalComponent = new ScriptPlayerWeapon();
+        weaponEntity.Initialize(this);
 
         return scriptPlayer.Character;
     }
@@ -111,7 +110,6 @@ public class RpgGame : CasaEngineGame
         scriptEnemy.Initialize(entity, this);
         scriptEnemy.Character.AnimatationPrefix = "octopus";
         scriptEnemy.Character.SetWeapon(new ThrowableWeapon(this, "weapon_rock"));
-
         (scriptEnemy.Controller as EnemyController).PlayerHunted = playerCharacter;
 
         return scriptEnemy.Character;
