@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets;
@@ -17,6 +18,10 @@ public class AssetContentManager
     public AssetContentManager()
     {
         RootDirectory = Environment.CurrentDirectory;
+
+#if EDITOR
+        GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
+#endif
     }
 
     public void Initialize(GraphicsDevice device)
@@ -202,7 +207,7 @@ public class AssetContentManager
 
         public object Remove(long id, string name)
         {
-            return _assetsById.Remove(id);
+            _assetsById.Remove(id);
             return _assetsByName.Remove(name);
         }
 
@@ -214,6 +219,23 @@ public class AssetContentManager
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public void Rename(AssetInfo assetInfo, string oldName)
+        {
+            if (_assetsByName.ContainsKey(oldName))
+            {
+                _assetsByName.Remove(oldName);
+                _assetsByName[assetInfo.Name] = assetInfo;
+            }
+        }
+    }
+
+    private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
+    {
+        foreach (var assetsByCategory in _assetsDictionaryByCategory)
+        {
+            assetsByCategory.Value.Rename(e.Value, e.Value2);
         }
     }
 }

@@ -1,6 +1,7 @@
 {
   "asset": {
     "id": 0,
+    "name": "DefaultWorld",
     "file_name": "DefaultWorld.world"
   },
   "entity_references": [
@@ -9,6 +10,7 @@
       "entity": {
         "asset": {
           "id": 1,
+          "name": "ground",
           "file_name": null
         },
         "version": 1,
@@ -235,9 +237,9 @@
       "name": "camera",
       "initial_coordinates": {
         "position": {
-          "x": 0.0,
-          "y": 10.0,
-          "z": -8.0
+          "x": -9.269146,
+          "y": 0.6204097,
+          "z": -7.5438976
         },
         "center_of_rotation": {
           "x": 0.0,
@@ -289,6 +291,7 @@
       "entity": {
         "asset": {
           "id": 967,
+          "name": "Asset_1029",
           "file_name": null
         },
         "version": 1,

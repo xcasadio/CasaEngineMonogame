@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
@@ -7,6 +8,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Materials.Graph;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using CasaEngine.Shaders;
@@ -27,6 +29,7 @@ namespace SandBoxGame
         private Material _materialColor;
 
         private Effect _effectTexture;
+        private Effect _effectTexture2;
         private Material _materialTexture;
 
         protected override void Initialize()
@@ -53,7 +56,6 @@ namespace SandBoxGame
             //============ Camera ===============
             var entity = new Entity();
             var camera = new ArcBallCameraComponent();
-            camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
             //var camera = new Camera3dIn2dAxisComponent(entity);
             //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
             entity.ComponentManager.Components.Add(camera);
@@ -92,20 +94,28 @@ namespace SandBoxGame
             byteCode = CompileShaderFromMaterial(_materialTexture);
             _effectTexture = new Effect(GraphicsDevice, byteCode);
 
-
+            //===== Test
             var materialGraph = new MaterialGraph();
-            materialGraph._slotAttached = new MaterialGraphNodeSlot();
+            materialGraph.DiffuseSlot = new MaterialGraphNodeSlot();
+            //Texture -> Diffuse
             var materialGraphNodeTexture = new MaterialGraphNodeTexture();
-            materialGraph._slotAttached.Node = materialGraphNodeTexture;
-
             materialGraphNodeTexture._inputSlot = new MaterialGraphNodeSlot();
+            materialGraphNodeTexture.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
+            materialGraph.DiffuseSlot.Node = materialGraphNodeTexture;
+            //DisplacementTexture -> Texture -> Diffuse
             var materialGraphNodeDisplacementTexture = new MaterialGraphNodeDisplacementTexture();
+            materialGraphNodeDisplacementTexture._inputSlot = new MaterialGraphNodeSlot();
+            materialGraphNodeDisplacementTexture.speed = 0.1f;
             materialGraphNodeTexture._inputSlot.Node = materialGraphNodeDisplacementTexture;
+            //UV -> DisplacementTexture -> Texture -> Diffuse
+            materialGraphNodeDisplacementTexture._inputSlot.Node = new MaterialGraphNodeTextureUV();
 
-            var result = materialGraph.Compile();
+            byteCode = CompileShaderFromMaterialGraph(materialGraph);
+            _effectTexture2 = new Effect(GraphicsDevice, byteCode);
 
             base.LoadContent();
 
+            camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
             GameManager.ActiveCamera = camera;
         }
 
@@ -113,6 +123,16 @@ namespace SandBoxGame
         {
             var shaderWriter = new ShaderWriter();
             var shaderCode = shaderWriter.Compile(material);
+            var tempFileName = Path.GetTempFileName();
+            File.WriteAllText(tempFileName, shaderCode);
+            var shaderCompiled = ShaderCompiler.Compile(tempFileName, null, TargetPlatform.Windows);
+            return shaderCompiled.ByteCode;
+        }
+
+        private byte[] CompileShaderFromMaterialGraph(MaterialGraph materialGraph)
+        {
+            var shaderWriter = new ShaderWriter2();
+            var shaderCode = shaderWriter.Compile(materialGraph);
             var tempFileName = Path.GetTempFileName();
             File.WriteAllText(tempFileName, shaderCode);
             var shaderCompiled = ShaderCompiler.Compile(tempFileName, null, TargetPlatform.Windows);
@@ -138,18 +158,19 @@ namespace SandBoxGame
             GraphicsDevice.BlendState = BlendState.AlphaBlend;
             GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
-            /*var samplerState = new SamplerState();
+            var samplerState = new SamplerState();
             samplerState.AddressU = TextureAddressMode.Wrap;
             samplerState.AddressV = TextureAddressMode.Wrap;
-            samplerState.Filter = TextureFilter.Anisotropic;
+            samplerState.Filter = TextureFilter.Point;
             samplerState.FilterMode = TextureFilterMode.Default;
-            GraphicsDevice.SamplerStates[0] = samplerState;*/
+            GraphicsDevice.SamplerStates[0] = samplerState;
 
             GraphicsDevice.SetVertexBuffer(_staticMesh.VertexBuffer);
             GraphicsDevice.Indices = _staticMesh.IndexBuffer;
 
             DrawBoxWithEffect(gameTime, _effectColor, _materialColor, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(Vector3.UnitX * 2f));
             DrawBoxWithEffect(gameTime, _effectTexture, _materialTexture, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 2f));
+            DrawBoxWithEffect(gameTime, _effectTexture2, _materialTexture, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 4f));
         }
 
         private void DrawBoxWithEffect(GameTime gameTime, Effect effect, Material material, Matrix world)
@@ -157,6 +178,13 @@ namespace SandBoxGame
             if (material.Diffuse is MaterialTexture materialTexture)
             {
                 effect.Parameters["Texture"].SetValue(materialTexture.Texture?.Resource);
+            }
+
+            EffectParameter param = effect.Parameters.FirstOrDefault(x => x.Name == "TotalElapsedTime");
+            if (param != null)
+            {
+                var totalSeconds = (float)gameTime.TotalGameTime.TotalSeconds;
+                param.SetValue(totalSeconds);
             }
 
             // pour le deplacement de texture : uv + GameTime

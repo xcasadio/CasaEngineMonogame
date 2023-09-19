@@ -1,9 +1,10 @@
 ﻿using System.Text;
+using CasaEngine.Framework.Materials.Graph;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Materials;
 
-public class ShaderWriter : IMaterialAssetVisitor
+public class ShaderWriter2
 {
     //structures
     private readonly HashSet<Tuple<VertexElementFormat, VertexElementUsage>> _structureProperties = new()
@@ -18,9 +19,16 @@ public class ShaderWriter : IMaterialAssetVisitor
     private string _pixelFunction = string.Empty;
     private string _technique = string.Empty;
 
-    public string Compile(Material material)
+    public string Compile(MaterialGraph materialGraph)
     {
-        material.Diffuse.Accept(this);
+        foreach (var vertexProperty in materialGraph.DiffuseSlot.Node.GetVertexPropertiesNeeded())
+        {
+            _structureProperties.Add(vertexProperty);
+        }
+
+        _constants += string.Join(Environment.NewLine, materialGraph.DiffuseSlot.Node.GetConstants()) + Environment.NewLine;
+        _vertexFunction += materialGraph.DiffuseSlot.Node.GetVertexComputation();
+        _pixelCustomFunctions = materialGraph.DiffuseSlot.Node.GetPixelComputation();
 
         var stringBuilder = new StringBuilder();
 
@@ -47,35 +55,6 @@ public class ShaderWriter : IMaterialAssetVisitor
         stringBuilder.AppendLine(GetTechnique());
 
         return stringBuilder.ToString();
-    }
-
-    private void VisitCommon(MaterialAsset material)
-    {
-        foreach (var property in material.GetVertexPropertiesNeeded())
-        {
-            _structureProperties.Add(property);
-        }
-    }
-
-    public void Visit(MaterialColor materialColor)
-    {
-        VisitCommon(materialColor);
-
-        _pixelCustomFunctions = materialColor.WriteColor();
-    }
-
-    public void Visit(MaterialTexture materialTexture)
-    {
-        VisitCommon(materialTexture);
-
-        _constants += materialTexture.GetConstant() + Environment.NewLine;
-        _vertexFunction += materialTexture.GetVertexComputation() + Environment.NewLine;
-        _pixelCustomFunctions = materialTexture.GetTextureColorFromUv() + Environment.NewLine;
-    }
-
-    private static string NewLine()
-    {
-        return Environment.NewLine;
     }
 
     private string GetDefaultMacros()
@@ -146,11 +125,11 @@ struct VSInput
 ";
 
         var outputUsages = new[]
-            {
-                VertexElementUsage.Position,
-                VertexElementUsage.Color,
-                VertexElementUsage.TextureCoordinate
-            };
+        {
+            VertexElementUsage.Position,
+            VertexElementUsage.Color,
+            VertexElementUsage.TextureCoordinate
+        };
 
         foreach (var property in _structureProperties
                      .Where(x => VertexElementUsageSlots[x.Item2] > -1 && outputUsages.Any(y => y == x.Item2)))
