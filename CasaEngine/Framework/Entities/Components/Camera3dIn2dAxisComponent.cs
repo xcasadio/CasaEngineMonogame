@@ -19,8 +19,8 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
             //const float w = _game.GraphicsDevice.Viewport.Width * Game::Instance().GetWindowSize().x;
             //const float h = _game.GraphicsDevice.Viewport.Height * Game::Instance().GetWindowSize().Y;
 
-            float w = (float)_game.Window.ClientBounds.Width;
-            float h = (float)_game.Window.ClientBounds.Height;
+            float w = (float)Owner.Game.Window.ClientBounds.Width;
+            float h = (float)Owner.Game.Window.ClientBounds.Height;
 
             var fov = FieldOfView * 0.5f;
             float z = (h * 0.5f) / MathUtils.Tan(fov);

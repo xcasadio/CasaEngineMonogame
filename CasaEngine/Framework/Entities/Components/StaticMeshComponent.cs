@@ -18,9 +18,6 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
     private StaticMesh? _mesh;
     private Material? _material;
 
-    //TODO remove : use only in editor mode to retrieve the game. Very ugly....
-    public CasaEngineGame Game { get; private set; }
-
     public StaticMesh? Mesh
     {
         get { return _mesh; }
@@ -45,13 +42,12 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
         }
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
-        Game = game;
-        _meshRendererComponent = game.GetGameComponent<StaticMeshRendererComponent>();
-        Mesh?.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
+        _meshRendererComponent = Owner.Game.GetGameComponent<StaticMeshRendererComponent>();
+        Mesh?.Initialize(Owner.Game.GraphicsDevice, Owner.Game.GameManager.AssetContentManager);
     }
 
     public override void Update(float elapsedTime)
@@ -61,7 +57,7 @@ public class StaticMeshComponent : Component, IBoundingBoxComputable
             return;
         }
 
-        var camera = Game.GameManager.ActiveCamera;
+        var camera = Owner.Game.GameManager.ActiveCamera;
         var worldViewProj = Owner.Coordinates.WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
         _meshRendererComponent.AddMesh(Mesh, Material, Owner.Coordinates.WorldMatrix, worldViewProj, camera.Position);
     }

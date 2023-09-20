@@ -51,7 +51,7 @@ namespace CasaEngine.Editor.Controls.EntityControls
             {
                 var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
                 var component = (Component)Activator.CreateInstance(componentType);
-                component.Initialize(entity, Game);
+                component.Initialize(entity);
                 entity.ComponentManager.Components.Add(component);
 
                 RefreshComponentsList(entity);

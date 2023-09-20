@@ -25,7 +25,6 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     //static
     protected CollisionObject? _collisionObject;
-    private CasaEngineGame _game;
 
     [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
@@ -64,12 +63,11 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         PhysicsDefinition.PhysicsType = PhysicsType.Static;
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        _game = game;
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
-        _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
+        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
         Debug.Assert(_physicsEngineComponent != null);
 
 #if EDITOR
@@ -83,10 +81,12 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
     public override void Update(float elapsedTime)
     {
-        if (!_game.GameManager.IsRunningInGameEditorMode)
+#if EDITOR
+        if (!Owner.Game.GameManager.IsRunningInGameEditorMode)
         {
             return;
         }
+#endif
 
         CollisionObject? collisionObject = null;
 

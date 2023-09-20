@@ -22,7 +22,7 @@ public class GameEditorTileMap : GameEditor2d
         if (_tileMapComponent != null)
         {
             _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData;
-            _tileMapComponent.Initialize(_entity, Game);
+            _tileMapComponent.Initialize(_entity);
         }
     }
 

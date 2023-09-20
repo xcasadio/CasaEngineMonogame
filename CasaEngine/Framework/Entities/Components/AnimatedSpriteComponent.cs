@@ -29,7 +29,6 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     private readonly Dictionary<long, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
     private readonly List<long> _animationAssetIds = new();
 
-    private CasaEngineGame _game;
     private AssetContentManager _assetContentManager;
     private PhysicsEngineComponent? _physicsEngineComponent;
     private SpriteRendererComponent _spriteRenderer;
@@ -129,19 +128,18 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         return -1;
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
-        _game = game;
-        _spriteRenderer = game.GetGameComponent<SpriteRendererComponent>();
-        _assetContentManager = game.GameManager.AssetContentManager;
-        _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
+        _spriteRenderer = Owner.Game.GetGameComponent<SpriteRendererComponent>();
+        _assetContentManager = Owner.Game.GameManager.AssetContentManager;
+        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
 
         foreach (var assetId in _animationAssetIds)
         {
             var assetInfo = GameSettings.AssetInfoManager.Get(assetId);
-            var animation2dData = game.GameManager.AssetContentManager.Load<Animation2dData>(assetInfo);
+            var animation2dData = Owner.Game.GameManager.AssetContentManager.Load<Animation2dData>(assetInfo);
             var animation2d = new Animation2d(animation2dData);
             animation2d.Initialize();
             Animations.Add(animation2d);
@@ -152,7 +150,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
             foreach (var frame in animation.Animation2dData.Frames)
             {
                 var assetInfo = GameSettings.AssetInfoManager.Get(frame.SpriteId);
-                var spriteData = game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
+                var spriteData = Owner.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
                 if (spriteData.CollisionShapes.Count == 0)
                 {
                     continue;
@@ -232,7 +230,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         {
             if (frame.SpriteId == CurrentAnimation.CurrentFrame)
             {
-                return _game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+                return Owner.Game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
             }
         }
         return null;

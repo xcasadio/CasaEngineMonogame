@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -17,7 +16,7 @@ public abstract class Component : ISaveLoad
     public abstract int ComponentId { get; }
     public bool IsInitialized { get; private set; }
 
-    public virtual void Initialize(Entity entity, CasaEngineGame game)
+    public virtual void Initialize(Entity entity)
     {
         IsInitialized = true;
         Owner = entity;

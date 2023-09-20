@@ -21,7 +21,6 @@ public class StaticSpriteComponent : Component, ICollideableComponent
 
     private Sprite? _sprite;
     private SpriteData? _spriteData;
-    private CasaEngineGame _game;
     private SpriteRendererComponent? _spriteRendererComponent;
     private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
     private PhysicsEngineComponent? _physicsEngineComponent;
@@ -38,13 +37,12 @@ public class StaticSpriteComponent : Component, ICollideableComponent
     public StaticSpriteComponent() : base()
     { }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
-        _game = game;
-        _spriteRendererComponent = _game.GetGameComponent<SpriteRendererComponent>();
-        _physicsEngineComponent = _game.GetGameComponent<PhysicsEngineComponent>();
+        _spriteRendererComponent = Owner.Game.GetGameComponent<SpriteRendererComponent>();
+        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
     }
 
     public override void Update(float elapsedTime)
@@ -114,8 +112,8 @@ public class StaticSpriteComponent : Component, ICollideableComponent
 
     private void LoadSpriteData(string? spriteDataName)
     {
-        _spriteData = _game.GameManager.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
-        _sprite = Sprite.Create(_spriteData, _game.GameManager.AssetContentManager);
+        _spriteData = Owner.Game.GameManager.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
+        _sprite = Sprite.Create(_spriteData, Owner.Game.GameManager.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
     }

@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -159,9 +158,9 @@ public class ArcBallCameraComponent : Camera3dComponent
         _target = Vector3.Zero;
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
         //orientation quaternion assumes a PI rotation so you're facing the "front"
         //of the model (looking down the +Z axis)
         //Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using System.ComponentModel;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -41,9 +40,9 @@ public class CameraLookAtComponent : Camera3dComponent
     {
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
         _lastPosition = entity.Coordinates.Position;
     }

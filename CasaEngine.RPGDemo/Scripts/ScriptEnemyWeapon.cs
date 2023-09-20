@@ -4,7 +4,6 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.RPGDemo.Scripts;
@@ -15,7 +14,7 @@ public class ScriptEnemyWeapon : ExternalComponent
 
     private Entity _entity;
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
         _entity = entity;
     }

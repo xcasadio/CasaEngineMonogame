@@ -125,11 +125,6 @@ public class ProgressBar : Control
         CanFocus = false;
     }
 
-    public override void Init()
-    {
-        base.Init();
-    }
-
     protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
     {
         CheckLayer(Skin, "Control");

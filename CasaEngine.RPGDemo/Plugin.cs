@@ -1,4 +1,4 @@
-﻿using CasaEngine.Engine.Plugin;
+﻿using CasaEngine.Engine.Plugins;
 using CasaEngine.Framework.Game;
 using CasaEngine.RPGDemo.Scripts;
 

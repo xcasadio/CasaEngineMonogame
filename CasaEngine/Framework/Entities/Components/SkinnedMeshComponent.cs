@@ -17,9 +17,6 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
     private RiggedModel? _skinnedMesh;
 
-    //TODO remove : use only in editor mode to retrieve the game. Very ugly....
-    public CasaEngineGame Game { get; private set; }
-
     public RiggedModel? SkinnedMesh
     {
         get { return _skinnedMesh; }
@@ -32,12 +29,11 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
         }
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
-        Game = game;
-        _skinnedMeshRendererComponent = game.GetGameComponent<SkinnedMeshRendererComponent>();
+        _skinnedMeshRendererComponent = Owner.Game.GetGameComponent<SkinnedMeshRendererComponent>();
         //Mesh?.Initialize(game.GraphicsDevice);
         //Mesh?.Texture?.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
     }
@@ -51,7 +47,7 @@ public class SkinnedMeshComponent : Component, IBoundingBoxComputable
 
         SkinnedMesh.Update(elapsedTime);
 
-        var camera = Game.GameManager.ActiveCamera;
+        var camera = Owner.Game.GameManager.ActiveCamera;
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh,
             Owner.Coordinates.WorldMatrix,

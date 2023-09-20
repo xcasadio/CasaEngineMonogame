@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Game;
-
-namespace CasaEngine.Framework.Entities.Components;
+﻿namespace CasaEngine.Framework.Entities.Components;
 
 public class ComponentManager
 {
@@ -22,11 +20,11 @@ public class ComponentManager
         }
     }
 
-    public void Initialize(Entity entity, CasaEngineGame game)
+    public void Initialize(Entity entity)
     {
         foreach (var component in Components)
         {
-            component.Initialize(entity, game);
+            component.Initialize(entity);
         }
     }
 

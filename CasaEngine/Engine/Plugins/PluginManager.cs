@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace CasaEngine.Engine.Plugin;
+namespace CasaEngine.Engine.Plugins;
 
 public class PluginManager
 {

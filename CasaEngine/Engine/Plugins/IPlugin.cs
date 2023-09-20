@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Engine.Plugin;
+﻿namespace CasaEngine.Engine.Plugins;
 
 public interface IPlugin
 {

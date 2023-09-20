@@ -1,7 +1,7 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Editor.Tools;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Engine.Plugin;
+using CasaEngine.Engine.Plugins;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Project;

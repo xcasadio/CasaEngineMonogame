@@ -5,7 +5,6 @@ using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Component = CasaEngine.Framework.Entities.Components.Component;
@@ -22,9 +21,9 @@ public class PlayerComponent : Component
 
     int index = 0;
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
         _physics2dComponent = Owner.ComponentManager.GetComponent<Physics2dComponent>();
         _animatedSpriteComponent = Owner.ComponentManager.GetComponent<AnimatedSpriteComponent>();

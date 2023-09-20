@@ -44,16 +44,16 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
         //Do nothing
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
         AssetInfo assetInfo;
 
         if (TileMapDataAssetId != IdManager.InvalidId)
         {
             assetInfo = GameSettings.AssetInfoManager.Get(TileMapDataAssetId);
-            TileMapData = game.GameManager.AssetContentManager.Load<TileMapData>(assetInfo);
+            TileMapData = Owner.Game.GameManager.AssetContentManager.Load<TileMapData>(assetInfo);
         }
 
         if (TileMapData == null)
@@ -62,12 +62,12 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
         }
 
         assetInfo = GameSettings.AssetInfoManager.Get(TileMapData.TileSetDataAssetId);
-        TileSetData = game.GameManager.AssetContentManager.Load<TileSetData>(assetInfo);
+        TileSetData = Owner.Game.GameManager.AssetContentManager.Load<TileSetData>(assetInfo);
         var tileSize = TileSetData.TileSize;
 
         assetInfo = GameSettings.AssetInfoManager.Get(TileSetData.SpriteSheetAssetId);
-        var texture = game.GameManager.AssetContentManager.Load<Texture>(assetInfo);
-        texture.Load(game.GameManager.AssetContentManager);
+        var texture = Owner.Game.GameManager.AssetContentManager.Load<Texture>(assetInfo);
+        texture.Load(Owner.Game.GameManager.AssetContentManager);
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -121,7 +121,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
                         {
                             case TileCollisionType.NoContactResponse:
                             case TileCollisionType.Blocked:
-                                var physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
+                                var physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
                                 var worldMatrix = Owner.Coordinates.WorldMatrix;
                                 worldMatrix.Translation += new Vector3(
                                     x * tileSize.Width + tileSize.Width / 2f,
@@ -144,7 +144,7 @@ public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableC
                         }
                     }
 
-                    tile.Initialize(game);
+                    tile.Initialize(Owner.Game);
                     tileMapLayer.Tiles.Add(tile);
                 }
             }

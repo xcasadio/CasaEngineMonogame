@@ -23,8 +23,8 @@ public class CameraTargeted2dComponent : Camera3dComponent
             //const float w = _game.GraphicsDevice.Viewport.Width * Game::Instance().GetWindowSize().x;
             //const float h = _game.GraphicsDevice.Viewport.Height * Game::Instance().GetWindowSize().Y;
 
-            float w = (float)_game.Window.ClientBounds.Width;
-            float h = (float)_game.Window.ClientBounds.Height;
+            float w = (float)Owner.Game.Window.ClientBounds.Width;
+            float h = (float)Owner.Game.Window.ClientBounds.Height;
 
             var fov = FieldOfView * 0.5f;
             float z = -(h * 0.5f) / MathUtils.Tan(fov);
@@ -54,8 +54,8 @@ public class CameraTargeted2dComponent : Camera3dComponent
 
         if (Target != null)
         {
-            var viewport = _game.GraphicsDevice.Viewport;
-            var winSize = _game.Window.ClientBounds.Size;
+            var viewport = Owner.Game.GraphicsDevice.Viewport;
+            var winSize = Owner.Game.Window.ClientBounds.Size;
             var targetPosition = Target.Coordinates.Position;
 
             Rectangle deadZone = new Rectangle(

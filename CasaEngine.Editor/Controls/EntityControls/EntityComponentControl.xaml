@@ -13,26 +13,28 @@
              xmlns:graphics="clr-namespace:Microsoft.Xna.Framework.Graphics;assembly=MonoGame.Framework"
              xmlns:common="clr-namespace:CasaEngine.Editor.Controls.Common"
              xmlns:entityControls="clr-namespace:CasaEngine.Editor.Controls.EntityControls"
-             xmlns:animation2dControls="clr-namespace:CasaEngine.Editor.Controls.Animation2dControls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
 
-        <ObjectDataProvider MethodName="GetValues"
-                            ObjectType="{x:Type sys:Enum}"
-                            x:Key="PhysicsTypeEnumValues">
+        <ObjectDataProvider x:Key="PhysicsTypeEnumValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="physics:PhysicsType" />
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
-        <ObjectDataProvider MethodName="GetValues"
-                            ObjectType="{x:Type sys:Enum}"
-                            x:Key="SpriteEffectsEnumValues">
+        <ObjectDataProvider x:Key="SpriteEffectsEnumValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="graphics:SpriteEffects" />
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetDatas" 
+                            ObjectType="{x:Type entityControls:ExternalComponentRegisteredDataAccess}">
+        </ObjectDataProvider>
+
+        <entityControls:ExternalComponentConverter x:Key="ExternalComponentConverter" />
+
 
         <DataTemplate x:Key="physicsDefinitionComponentTemplate" DataType="{x:Type physics:PhysicsDefinition}">
             <Grid>
@@ -243,20 +245,17 @@
 
         <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type components:GamePlayComponent}">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="ExternalComponent Id" />
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ExternalComponent.Id}" />
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="ExternalComponent list" />
-                <ComboBox Grid.Row="1" Grid.Column="1" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="ExternalComponent list" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="1" Grid.Column="1" 
+                          SelectionChanged="ComboBoxExternalComponent_OnSelectionChanged"
+                          SelectedValue="{Binding Path=ExternalComponent, Converter={StaticResource ExternalComponentConverter}, Mode=OneWay}" 
+                          ItemsSource="{Binding Source={StaticResource ExternalComponentRegistered}, Converter={StaticResource ExternalComponentConverter}}"
+                          DisplayMemberPath="Value.Name"/>
             </Grid>
         </DataTemplate>
 

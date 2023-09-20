@@ -88,11 +88,11 @@ public abstract class MovingObject : Component
 
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
 
-        _physicsEngineComponent = game.GetGameComponent<PhysicsEngineComponent>();
+        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
     }
 
     public virtual bool CanMoveBetween(Vector3 start, Vector3 end)

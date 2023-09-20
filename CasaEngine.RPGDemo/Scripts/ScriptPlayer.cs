@@ -4,7 +4,6 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Controllers.EnemyState;
@@ -21,14 +20,14 @@ public class ScriptPlayer : ExternalComponent, IScriptCharacter
     public Character Character { get; private set; }
     public Controller Controller { get; private set; }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
         _entity = entity;
-        Character = new Character(_entity, game);
+        Character = new Character(_entity, entity.Game);
         Controller = new HumanPlayerController(Character, PlayerIndex.One);
 
-        Character.Initialize(game);
-        Controller.Initialize(game);
+        Character.Initialize(entity.Game);
+        Controller.Initialize(entity.Game);
         Character.AnimatedSpriteComponent.AnimationFinished += OnAnimationFinished;
     }
 

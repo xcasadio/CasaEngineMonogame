@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -23,9 +22,9 @@ public abstract class Camera3dComponent : CameraComponent
         }
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
-        base.Initialize(entity, game);
+        base.Initialize(entity);
         ComputeFieldOfView();
     }
 

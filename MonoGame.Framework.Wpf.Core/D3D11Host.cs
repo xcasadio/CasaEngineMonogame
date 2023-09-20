@@ -7,11 +7,6 @@ using System.Windows.Media;
 
 namespace Microsoft.Xna.Framework
 {
-    /// <summary>
-    /// D3D11Host
-    /// </summary>
-    /// <seealso cref="System.Windows.Controls.Image" />
-    /// <seealso cref="System.IDisposable" />
     public abstract class D3D11Host : Image, IDisposable
     {
         static readonly object GraphicsDeviceLock = new object();
@@ -52,7 +47,7 @@ namespace Microsoft.Xna.Framework
         {
             // each of those has its own check for disposed
             StopRendering();
-            UnitializeImageSource();
+            UninitializeImageSource();
             DisposeRenderTargetsFromPreviousFrames();
             if (GraphicsDeviceInitialized)
             {
@@ -489,7 +484,7 @@ namespace Microsoft.Xna.Framework
             _isRendering = false;
         }
 
-        void UnitializeImageSource()
+        void UninitializeImageSource()
         {
             Source = null;
             if (_d3D11Image != null)

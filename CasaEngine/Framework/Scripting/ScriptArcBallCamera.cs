@@ -30,10 +30,10 @@ public class ScriptArcBallCamera : ExternalComponent
         InputDisplacementRate = 10.0f;
     }
 
-    public override void Initialize(Entity entity, CasaEngineGame game)
+    public override void Initialize(Entity entity)
     {
         _arcBallCameraComponent = entity.ComponentManager.GetComponent<ArcBallCameraComponent>();
-        _inputComponent = game.GetGameComponent<InputComponent>();
+        _inputComponent = entity.Game.GetGameComponent<InputComponent>();
     }
 
     public override void Update(float elapsedTime)
@@ -157,6 +157,7 @@ public class ScriptArcBallCamera : ExternalComponent
     {
 
     }
+
 
 #if EDITOR
 

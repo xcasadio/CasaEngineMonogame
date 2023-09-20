@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
+using CasaEngine.Editor.Controls.Common;
 using CasaEngine.Editor.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -39,11 +43,11 @@ namespace CasaEngine.Editor.Controls.EntityControls
             if (selectStaticMeshWindow.ShowDialog() == true && sender is FrameworkElement button)
             {
                 var staticMeshComponent = button.DataContext as StaticMeshComponent;
-                var graphicsDevice = staticMeshComponent.Game.GraphicsDevice;
+                var graphicsDevice = staticMeshComponent.Owner.Game.GraphicsDevice;
 
                 staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
-                staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Game.GameManager.AssetContentManager);
-                staticMeshComponent.Mesh.Texture = staticMeshComponent.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
+                staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.Game.GameManager.AssetContentManager);
+                staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
             }
         }
 
@@ -123,9 +127,19 @@ namespace CasaEngine.Editor.Controls.EntityControls
                          Constants.FileNameExtensions.Texture)
                 {
                     staticMeshComponent.Mesh.Texture =
-                        staticMeshComponent.Game.GameManager.AssetContentManager.Load<Texture>(
+                        staticMeshComponent.Owner.Game.GameManager.AssetContentManager.Load<Texture>(
                             contentBrowserControl.SelectedItem);
                 }
+            }
+        }
+
+        private void ComboBoxExternalComponent_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.DataContext is GamePlayComponent gamePlayComponent)
+            {
+                var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
+                externalComponent.Initialize(gamePlayComponent.Owner);
+                gamePlayComponent.ExternalComponent = externalComponent;
             }
         }
     }

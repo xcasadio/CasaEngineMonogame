@@ -23,6 +23,8 @@ public class Entity : Asset
     private Entity? _parent;
     private bool _isEnabled = true;
 
+    public CasaEngineGame Game { get; private set; }
+
     [Category("Asset")]
     public long Id => AssetInfo.Id;
 
@@ -75,7 +77,8 @@ public class Entity : Asset
 
     public void Initialize(CasaEngineGame game)
     {
-        ComponentManager.Initialize(this, game);
+        Game = game;
+        ComponentManager.Initialize(this);
     }
 
     public void Update(float elapsedTime)

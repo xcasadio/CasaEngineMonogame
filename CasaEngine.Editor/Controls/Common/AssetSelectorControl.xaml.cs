@@ -54,7 +54,7 @@ namespace CasaEngine.Editor.Controls.Common
                          Constants.FileNameExtensions.Texture)
                 {
                     staticMeshComponent.Mesh.Texture =
-                        staticMeshComponent.Game.GameManager.AssetContentManager.Load<Texture>(
+                        staticMeshComponent.Owner.Game.GameManager.AssetContentManager.Load<Texture>(
                             contentBrowserControl.SelectedItem);
 
                     SetAssetInfoDescription(contentBrowserControl.SelectedItem);
