@@ -5,6 +5,7 @@
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="FontStashSharp.MonoGame" Version="1.2.8" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 	</ItemGroup>
 </Project>

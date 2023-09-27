@@ -45,10 +45,8 @@ namespace XNAGizmo
         public readonly bool SelectionBoxesIsVisible = true;
 
         private readonly GraphicsDevice _graphics;
-        private readonly SpriteBatch _spriteBatch;
         private readonly BasicEffect _lineEffect;
         private readonly BasicEffect _meshEffect;
-        private readonly SpriteFont _font;
 
         private Matrix _view = Matrix.Identity;
         private Matrix _projection = Matrix.Identity;
@@ -218,15 +216,13 @@ namespace XNAGizmo
         public event EventHandler<List<ITransformable>> SelectionChanged;
         public event EventHandler<List<ITransformable>> CopyTriggered;
 
-        public Gizmo(GraphicsDevice graphics, SpriteBatch spriteBatch, SpriteFont font)
-            : this(graphics, spriteBatch, font, Matrix.Identity) { }
+        public Gizmo(GraphicsDevice graphics)
+            : this(graphics, Matrix.Identity) { }
 
-        public Gizmo(GraphicsDevice graphics, SpriteBatch spriteBatch, SpriteFont font, Matrix world)
+        public Gizmo(GraphicsDevice graphics, Matrix world)
         {
             SceneWorld = world;
             _graphics = graphics;
-            _spriteBatch = spriteBatch;
-            _font = font;
 
             Enabled = true;
 
@@ -1249,7 +1245,7 @@ namespace XNAGizmo
 
         private void Draw2D()
         {
-            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            //_spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
             // -- Draw Axis identifiers ("X,Y,Z") -- // 
             for (var i = 0; i < 3; i++)
@@ -1289,16 +1285,16 @@ namespace XNAGizmo
                         break;
                 }
 
-                _spriteBatch.DrawString(_font, _axisText[i], new Vector2(screenPos.X, screenPos.Y), color);
+                //_spriteBatch.DrawString(_font, _axisText[i], new Vector2(screenPos.X, screenPos.Y), color);
             }
 
             // -- Draw StatusInfo -- //
-            var statusInfo = GetStatusInfo();
+            /*var statusInfo = GetStatusInfo();
             var stringDims = _font.MeasureString(statusInfo);
             var position = new Vector2(_graphics.Viewport.Width - stringDims.X, _graphics.Viewport.Height - stringDims.Y);
 
             _spriteBatch.DrawString(_font, statusInfo, position, Color.White);
-            _spriteBatch.End();
+            _spriteBatch.End();*/
         }
 
         /// <summary>

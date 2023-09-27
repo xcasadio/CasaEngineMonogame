@@ -34,13 +34,6 @@
 #begin Entities/weapon_sword.entity
 /copy:Entities/weapon_sword.entity
 
-#begin GizmoFont.spritefont
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
-/build:GizmoFont.spritefont
-
 #begin Maps/map_1_1.tileMap
 /copy:Maps/map_1_1.tileMap
 

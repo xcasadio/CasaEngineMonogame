@@ -13,10 +13,3 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin GizmoFont.spritefont
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
-/build:GizmoFont.spritefont
-

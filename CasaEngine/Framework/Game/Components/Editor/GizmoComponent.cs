@@ -27,8 +27,8 @@ public class GizmoComponent : DrawableGameComponent
         base.LoadContent();
         var spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        var font = Game.Content.Load<SpriteFont>("GizmoFont");
-        Gizmo = new Gizmo(Game.GraphicsDevice, spriteBatch, font);
+        _game.GameManager.FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Arial.ttf"));
+        Gizmo = new Gizmo(Game.GraphicsDevice);
 
         Gizmo.TranslateEvent += GizmoTranslateEvent;
         Gizmo.RotateEvent += GizmoRotateEvent;
