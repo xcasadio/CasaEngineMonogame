@@ -83,7 +83,7 @@ public class RpgGame : CasaEngineGame
         var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
         var scriptPlayer = new ScriptPlayer();
         gamePlayComponent.ExternalComponent = scriptPlayer;
-        scriptPlayer.Initialize(entity, this);
+        scriptPlayer.Initialize(entity);
         scriptPlayer.Character.AnimatationPrefix = "swordman";
         var weaponEntity = GameManager.SpawnEntity("weapon_sword");
         scriptPlayer.Character.SetWeapon(new MeleeWeapon(this, weaponEntity));
@@ -107,7 +107,7 @@ public class RpgGame : CasaEngineGame
         var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
         var scriptEnemy = new ScriptEnemy();
         gamePlayComponent.ExternalComponent = scriptEnemy;
-        scriptEnemy.Initialize(entity, this);
+        scriptEnemy.Initialize(entity);
         scriptEnemy.Character.AnimatationPrefix = "octopus";
         scriptEnemy.Character.SetWeapon(new ThrowableWeapon(this, "weapon_rock"));
         (scriptEnemy.Controller as EnemyController).PlayerHunted = playerCharacter;
