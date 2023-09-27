@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Engine.Plugins;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.RPGDemo.Scripts;
+using System.Runtime.CompilerServices;
 
 namespace CasaEngine.RPGDemo;
 
