@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
+using FontStashSharp;
 
 namespace CasaEngine.Framework.Debugger;
 
@@ -54,7 +55,7 @@ public class FpsCounter : DrawableGameComponent
     private int _numberOfFpsCount;
 
     private bool _firstCompute = true;
-    private SpriteFont? _font;
+    private SpriteFontBase? _font;
     private SpriteBatch? _spriteBatch;
 
     public FpsCounter(Microsoft.Xna.Framework.Game game) : base(game)
@@ -87,7 +88,7 @@ public class FpsCounter : DrawableGameComponent
 
     protected override void LoadContent()
     {
-        _font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;
+        _font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
         _spriteBatch = ((CasaEngineGame)Game).GameManager.SpriteBatch;
         _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
 
@@ -193,7 +194,11 @@ public class FpsCounter : DrawableGameComponent
 
         // Draw
         _renderer2dComponent.DrawRectangle(pos.X, pos.Y, rc.Width, rc.Height, _colorBackground, 0.001f);
-        _renderer2dComponent.DrawText(_font, _stringBuilder.ToString(), pos, 0.0f, Vector2.One, Color.White, 0f);
+        //_renderer2dComponent.DrawText(_font, _stringBuilder.ToString(), pos, 0.0f, Vector2.One, Color.White, 0f);
+
+        _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+        _spriteBatch.DrawString(_font, _stringBuilder.ToString(), pos, Color.White);
+        _spriteBatch.End();
 
         base.Draw(gameTime);
     }

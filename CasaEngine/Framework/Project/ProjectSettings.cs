@@ -118,8 +118,9 @@ public class ProjectSettings
         WindowTitle = ProjectName;
         ProjectName = projectName;
         ProjectFileOpened = fullFileName;
-        CreateDefaultItem(fullFileName);
-        Save(fullFileName);
+        throw new NotImplementedException();
+        //CreateDefaultItem(fullFileName);
+        //Save(fullFileName);
 
         ProjectLoaded?.Invoke(this, EventArgs.Empty);
 
@@ -131,7 +132,7 @@ public class ProjectSettings
         }
 #endif
     }
-
+    /*
     private void CreateDefaultItem(string fullFileName)
     {
         var projectPath = Path.GetDirectoryName(fullFileName);
@@ -140,7 +141,7 @@ public class ProjectSettings
         world.AssetInfo.FileName = world.AssetInfo.FileName;
         AssetSaver.SaveAsset(world.AssetInfo.FileName, world);
         FirstWorldLoaded = world.AssetInfo.FileName;
-    }
+    }*/
 
     public bool Save(string fileName)
     {

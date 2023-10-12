@@ -21,6 +21,7 @@ namespace CasaEngine.Editor.Controls.WorldControls
             GameScreenControl.gameEditor.GameStarted += OnGameStarted;
             EntitiesControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
             EntityControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
+            WorldPropertiesControlControl.InitializeFromGameEditor(GameScreenControl.gameEditor);
         }
 
         private void OnGameStarted(object? sender, EventArgs e)
@@ -36,6 +37,7 @@ namespace CasaEngine.Editor.Controls.WorldControls
                 "Details" => EntityControl,
                 "Game Screen" => GameScreenControl,
                 "Place Actors" => PlaceActorsControl,
+                "World Properties" => WorldPropertiesControlControl,
                 "Logs" => this.FindParent<MainWindow>().LogsControl,
                 "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
                 _ => e.Content

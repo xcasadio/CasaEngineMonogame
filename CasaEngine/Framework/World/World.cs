@@ -6,6 +6,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -14,15 +15,17 @@ namespace CasaEngine.Framework.World;
 public sealed class World : Asset
 {
     private readonly List<EntityReference> _entityReferences = new();
-
     private readonly List<Entity> _entities = new();
     private readonly List<Entity> _baseObjectsToAdd = new();
 
-    public event EventHandler? Initializing;
-    public event EventHandler? LoadingContent;
-    public event EventHandler? Starting;
-
     public IList<Entity> Entities => _entities;
+    public ExternalComponent? ExternalComponent { get; set; }
+    public CasaEngineGame Game { get; }
+
+    public World(CasaEngineGame game)
+    {
+        Game = game;
+    }
 
     public void AddEntityImmediately(Entity entity)
     {
@@ -56,12 +59,12 @@ public sealed class World : Asset
         _entityReferences.Clear();
     }
 
-    public void Initialize(CasaEngineGame game)
+    public void Initialize()
     {
-        Initialize(game, GameSettings.AssetInfoManager.IsLoaded);
+        Initialize(GameSettings.AssetInfoManager.IsLoaded);
     }
 
-    private void Initialize(CasaEngineGame game, bool withReference)
+    private void Initialize(bool withReference)
     {
         if (withReference)
         {
@@ -71,14 +74,14 @@ public sealed class World : Asset
 
             foreach (var entityReference in _entityReferences)
             {
-                EntityLoader.LoadFromEntityReference(entityReference, game.GameManager.AssetContentManager, game.GraphicsDevice);
+                EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager, Game.GraphicsDevice);
                 AddEntityImmediately(entityReference.Entity);
             }
         }
 
         foreach (var entity in _entities)
         {
-            entity.Initialize(game);
+            entity.Initialize(Game);
         }
 
 #if !EDITOR
@@ -87,20 +90,24 @@ public sealed class World : Asset
             .Select(x => x.ComponentManager.Components.FirstOrDefault(y => y is CameraComponent) as CameraComponent)
             .FirstOrDefault(x => x != null);
 
-        game.GameManager.ActiveCamera = camera;
+        Game.GameManager.ActiveCamera = camera;
 #endif
-
-        Initializing?.Invoke(this, EventArgs.Empty);
     }
 
-    public void LoadContent()
+    public void BeginPlay()
     {
-        LoadingContent?.Invoke(this, EventArgs.Empty);
-    }
+        ExternalComponent?.OnBeginPlay(this);
 
-    public void Start()
-    {
-        Starting?.Invoke(this, EventArgs.Empty);
+        foreach (var entity in _entities)
+        {
+            foreach (var component in entity.ComponentManager.Components)
+            {
+                if (component is GamePlayComponent gamePlayComponent)
+                {
+                    gamePlayComponent.ExternalComponent?.OnBeginPlay(this);
+                }
+            }
+        }
     }
 
     public void Update(float elapsedTime)
@@ -140,7 +147,8 @@ public sealed class World : Asset
     public void Load(string fileName, SaveOption option)
     {
         LogManager.Instance.WriteLineInfo($"Load world {fileName}");
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
+        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fullFileName));
         Load(jsonDocument.RootElement, option);
     }
 
@@ -155,6 +163,11 @@ public sealed class World : Asset
             var entityReference = new EntityReference();
             entityReference.Load(entityReferenceNode, option);
             _entityReferences.Add(entityReference);
+        }
+
+        if (element.TryGetProperty("external_component", out var externalComponentNode))
+        {
+            ExternalComponent = GameSettings.ScriptLoader.Load(externalComponentNode);
         }
     }
 
@@ -181,6 +194,10 @@ public sealed class World : Asset
         }
 
         jObject.Add("entity_references", entitiesJArray);
+
+        var externalComponentNode = new JObject();
+        externalComponentNode.Add("type", ExternalComponent?.ExternalComponentId ?? -1);
+        jObject.Add("external_component", externalComponentNode);
     }
 
     public void AddEntityReference(EntityReference entityReference)

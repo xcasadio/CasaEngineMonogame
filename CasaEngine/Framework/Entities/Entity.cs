@@ -135,7 +135,7 @@ public class Entity : Asset
 
         foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
         {
-            ComponentManager.Components.Add(GameSettings.ComponentLoader.Load(this, item));
+            ComponentManager.Components.Add(GameSettings.ComponentLoader.Load(item));
         }
 
         var jsonCoordinate = element.GetJsonPropertyByName("coordinates").Value;

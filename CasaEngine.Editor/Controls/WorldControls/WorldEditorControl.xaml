@@ -51,6 +51,9 @@
 							<xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
 								<worldControls:PlaceActorsControl x:Name="PlaceActorsControl"/>
 							</xcad:LayoutAnchorable>
+							<xcad:LayoutAnchorable x:Name="WorldPropertiesLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="World Properties" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
+								<worldControls:WorldPropertiesControl x:Name="WorldPropertiesControlControl"/>
+							</xcad:LayoutAnchorable>
 						</xcad:LayoutAnchorGroup>
 					</xcad:LayoutAnchorSide>
 				</xcad:LayoutRoot.LeftSide>

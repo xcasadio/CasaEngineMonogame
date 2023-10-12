@@ -1,8 +1,6 @@
 ﻿using CasaEngine.Engine.Plugins;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Scripting;
 using CasaEngine.RPGDemo.Scripts;
-using System.Runtime.CompilerServices;
 
 namespace CasaEngine.RPGDemo;
 
@@ -14,5 +12,6 @@ public class Plugin : IPlugin
         GameSettings.ScriptLoader.Register<ScriptEnemy>(new ScriptEnemy().ExternalComponentId);
         GameSettings.ScriptLoader.Register<ScriptPlayerWeapon>(new ScriptPlayerWeapon().ExternalComponentId);
         GameSettings.ScriptLoader.Register<ScriptEnemyWeapon>(new ScriptEnemyWeapon().ExternalComponentId);
+        GameSettings.ScriptLoader.Register<ScriptWorld>(new ScriptWorld().ExternalComponentId);
     }
 }

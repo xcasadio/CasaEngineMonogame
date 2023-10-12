@@ -47,10 +47,8 @@ public class RpgGame : CasaEngineGame
 
     protected override void LoadContent()
     {
-        GameManager.DefaultSpriteFont = Content.Load<SpriteFont>("GizmoFont");
-
         //TODO : find a way to load the very first world just before LoadContent and Initialize it after this call
-        var world = new World();
+        var world = new World(this);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
         world.Load(fileName, SaveOption.Editor);
         GameManager.CurrentWorld = world;

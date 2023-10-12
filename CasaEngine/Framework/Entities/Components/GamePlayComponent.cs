@@ -13,13 +13,7 @@ public class GamePlayComponent : Component
 {
     public override int ComponentId => (int)ComponentIds.GamePlay;
 
-    private ExternalComponent? _externalComponent;
-
-    public ExternalComponent? ExternalComponent
-    {
-        get => _externalComponent;
-        set => _externalComponent = value;
-    }
+    public ExternalComponent? ExternalComponent { get; set; }
 
     public override void Initialize(Entity entity)
     {
@@ -33,6 +27,13 @@ public class GamePlayComponent : Component
 
     public override void Update(float elapsedTime)
     {
+#if EDITOR
+        if (!Owner.Game.GameManager.IsRunningInGameEditorMode && Owner.Game.GameManager.ActiveCamera.Owner != Owner)
+        {
+            return;
+        }
+#endif
+
         ExternalComponent?.Update(elapsedTime);
     }
 
@@ -53,7 +54,7 @@ public class GamePlayComponent : Component
 
     public override Component Clone()
     {
-        return new GamePlayComponent { _externalComponent = _externalComponent };
+        return new GamePlayComponent { ExternalComponent = ExternalComponent };
     }
 
     public override void Load(JsonElement element, SaveOption option)
@@ -62,7 +63,7 @@ public class GamePlayComponent : Component
         if (element.TryGetProperty("external_component", out var externalComponentNode))
         {
             //var type = GameSettings.ScriptLoader.GetTypeFromId(externalComponentId);
-            ExternalComponent = GameSettings.ScriptLoader.Load(Owner, externalComponentNode);
+            ExternalComponent = GameSettings.ScriptLoader.Load(externalComponentNode);
         }
     }
 

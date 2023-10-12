@@ -1,12 +1,16 @@
-﻿using System.Text.Json;
+﻿using System.Linq;
+using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Controllers.EnemyState;
+using CasaEngine.RPGDemo.Weapons;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -24,6 +28,7 @@ public class ScriptEnemy : ExternalComponent, IScriptCharacter
         Character = new Character(_entity, entity.Game);
         Controller = new EnemyController(Character);
 
+        Character.AnimatationPrefix = "octopus";
         Character.Initialize(entity.Game);
         Controller.Initialize(entity.Game);
         Character.AnimatedSpriteComponent.AnimationFinished += OnAnimationFinished;
@@ -47,6 +52,18 @@ public class ScriptEnemy : ExternalComponent, IScriptCharacter
     public override void OnHitEnded(Collision collision)
     {
         //Controller.OnHitEnded(collision);
+    }
+
+    public override void OnBeginPlay(World world)
+    {
+        var animatedSprite = _entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        animatedSprite.SetCurrentAnimation("octopus_stand_right", true);
+
+        Character.SetWeapon(new ThrowableWeapon(_entity.Game, "weapon_rock"));
+
+        var entity = _entity.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
+        var gameplayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
+        (Controller as EnemyController).PlayerHunted = (gameplayComponent.ExternalComponent as IScriptCharacter).Character;
     }
 
     private void OnAnimationFinished(object sender, CasaEngine.Framework.Assets.Animations.Animation2d animation2d)

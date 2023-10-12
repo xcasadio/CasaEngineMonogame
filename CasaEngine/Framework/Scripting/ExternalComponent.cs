@@ -15,6 +15,7 @@ public abstract class ExternalComponent : ISaveLoad
     public abstract void Draw();
     public abstract void OnHit(Collision collision);
     public abstract void OnHitEnded(Collision collision);
+    public abstract void OnBeginPlay(World.World world);
 
     public abstract void Load(JsonElement element, SaveOption option);
 

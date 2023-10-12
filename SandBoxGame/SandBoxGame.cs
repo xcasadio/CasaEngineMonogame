@@ -48,9 +48,7 @@ namespace SandBoxGame
 
         protected override void LoadContent()
         {
-            GameManager.DefaultSpriteFont = Content.Load<SpriteFont>("GizmoFont");
-
-            var world = new World();
+            var world = new World(this);
             GameManager.CurrentWorld = world;
 
             //============ Camera ===============

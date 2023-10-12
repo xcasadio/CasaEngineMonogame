@@ -1,6 +1,7 @@
 {
   "asset": {
     "id": 10066,
+    "name": "character_octopus",
     "file_name": "Entities\\character_octopus.entity"
   },
   "version": 1,
@@ -38,12 +39,27 @@
         "a": 255
       },
       "sprite_effect": "None",
-      "animations": [216, 217,218,219,220,221,222,223,224,225,226,227]
+      "animations": [
+        216,
+        217,
+        218,
+        219,
+        220,
+        221,
+        222,
+        223,
+        224,
+        225,
+        226,
+        227
+      ]
     },
     {
       "version": 1,
       "type": 1,
-      "external_component_id": -1
+      "external_component": {
+        "type": 1004
+      }
     },
     {
       "version": 1,

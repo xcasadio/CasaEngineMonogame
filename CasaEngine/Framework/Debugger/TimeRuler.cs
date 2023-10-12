@@ -11,6 +11,8 @@ using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
+using FontStashSharp;
+using Microsoft.Xna.Framework.Graphics;
 
 #if EDITOR
 //using CasaEngine.Editor.GameComponent;
@@ -569,7 +571,7 @@ namespace CasaEngine.Framework.Debugger
             // Reset update count.
             Interlocked.Exchange(ref updateCount, 0);
 
-            var font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;//debugManager.DebugFont;
+            SpriteFontBase font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
             var texture = debugManager.WhiteTexture;
             var depth_ = 0.0f;
 
@@ -665,7 +667,7 @@ namespace CasaEngine.Framework.Debugger
             if (ShowLog)
             {
                 // Generate log string.
-                y = startY - font.LineSpacing;
+                y = startY - font.LineHeight;
                 logString.Length = 0;
                 foreach (var markerInfo in markers)
                 {
@@ -687,7 +689,7 @@ namespace CasaEngine.Framework.Debugger
                             logString.AppendNumber(markerInfo.Logs[i].SnapAvg);
                             logString.Append("ms ");
 
-                            y -= font.LineSpacing;
+                            y -= font.LineHeight;
                         }
                     }
                 }
@@ -698,12 +700,16 @@ namespace CasaEngine.Framework.Debugger
                 _renderer2dComponent.DrawRectangle(ref rc, _backgroundColor, depth_ + 0.5f);
 
                 // Draw log string.
-                _renderer2dComponent.DrawText(font, logString.ToString(),
+                /*_renderer2dComponent.DrawText(font, logString.ToString(),
                                         new Vector2(position.X + 12, y), 0.0f,
-                                        Vector2.One, Color.White, depth_);
+                                        Vector2.One, Color.White, depth_);*/
+
+                _renderer2dComponent.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+                _renderer2dComponent.SpriteBatch.DrawString(font, logString.ToString(), new Vector2(position.X + 12, y), Color.White);
+                _renderer2dComponent.SpriteBatch.End();
 
                 // Draw log color boxes.
-                y += (int)(font.LineSpacing * 0.3f);
+                y += (int)(font.LineHeight * 0.3f);
                 rc = new Rectangle((int)position.X + 4, y, 10, 10);
                 var rc2 = new Rectangle((int)position.X + 5, y + 1, 8, 8);
                 foreach (var markerInfo in markers)
@@ -717,7 +723,7 @@ namespace CasaEngine.Framework.Debugger
                             _renderer2dComponent.DrawRectangle(ref rc, Color.White, depth_);
                             _renderer2dComponent.DrawRectangle(ref rc, markerInfo.Logs[i].Color, depth_);
 
-                            y += font.LineSpacing;
+                            y += font.LineHeight;
                         }
                     }
                 }

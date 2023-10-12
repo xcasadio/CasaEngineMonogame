@@ -5,6 +5,7 @@ using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -89,6 +90,11 @@ public class ScriptEnemyWeapon : ExternalComponent
 
     public override void OnHitEnded(Collision collision)
     {
+    }
+
+    public override void OnBeginPlay(World world)
+    {
+
     }
 
     public override void Load(JsonElement element, SaveOption option)

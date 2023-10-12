@@ -51,10 +51,6 @@ public class GameManager
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
-#if !FINAL
-    public SpriteFont? DefaultSpriteFont { get; set; }
-#endif
-
     public World.World? CurrentWorld
     {
         get => _currentWorld;
@@ -170,6 +166,8 @@ public class GameManager
 #else
         ContentPath = "Content";
 #endif
+        //default font
+        FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
 
         _game.Content.RootDirectory = ContentPath;
         _game.Window.Title = GameSettings.ProjectSettings.WindowTitle;
@@ -227,11 +225,12 @@ public class GameManager
                 throw new InvalidOperationException("FirstWorldLoaded is undefined");
             }
 
-            CurrentWorld = new World.World();
+            CurrentWorld = new World.World(_game);
             CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded, SaveOption.Editor);
         }
 
-        CurrentWorld.Initialize(_game);
+        CurrentWorld.Initialize();
+        CurrentWorld.BeginPlay();
         //_physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(CurrentWorld.Physic2dWorld);
 #else
         //in editor the active camera is debug camera and it isn't belong to the world
@@ -245,10 +244,11 @@ public class GameManager
         if (CurrentWorld == null)
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
-            CurrentWorld = new World.World();
+            CurrentWorld = new World.World(_game);
             var fileName = Path.Combine(EngineEnvironment.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
             CurrentWorld.Load(fileName, SaveOption.Editor);
-            CurrentWorld.Initialize(_game);
+            CurrentWorld.Initialize();
+            CurrentWorld.BeginPlay();
         }
 
 #if !FINAL

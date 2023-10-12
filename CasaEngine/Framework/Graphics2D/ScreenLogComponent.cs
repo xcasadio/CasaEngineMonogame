@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
+using FontStashSharp;
 
 namespace CasaEngine.Framework.Graphics2D;
 
@@ -10,14 +11,14 @@ public class ScreenLogComponent : DrawableGameComponent
     private class LogText
     {
         public string Text = string.Empty;
-        public SpriteFont SpriteFont;
+        public SpriteFontBase SpriteFont;
         public Color Color = Color.White;
         public float Time;
     }
 
     private readonly List<LogText> _logText = new();
     private Renderer2dComponent _renderer2dComponent;
-    private SpriteFont? _font;
+    private SpriteFontBase? _font;
 
     public ScreenLogComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -51,7 +52,7 @@ public class ScreenLogComponent : DrawableGameComponent
         AddText(text, _font, Color.White);
     }
 
-    public void AddText(string text, SpriteFont spriteFont)
+    public void AddText(string text, SpriteFontBase spriteFont)
     {
         AddText(text, spriteFont, Color.White);
     }
@@ -61,7 +62,7 @@ public class ScreenLogComponent : DrawableGameComponent
         AddText(text, _font, color);
     }
 
-    public void AddText(string text, SpriteFont spriteFont, Color color)
+    public void AddText(string text, SpriteFontBase spriteFont, Color color)
     {
         var log = new LogText
         {
@@ -74,7 +75,7 @@ public class ScreenLogComponent : DrawableGameComponent
 
     protected override void LoadContent()
     {
-        _font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;
+        _font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
         _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
         base.LoadContent();
     }
@@ -114,7 +115,10 @@ public class ScreenLogComponent : DrawableGameComponent
 
         for (var i = _logText.Count - 1; i >= 0; i--)
         {
-            _renderer2dComponent.DrawText(_logText[i].SpriteFont, _logText[i].Text, pos, 0.0f, Vector2.One, _logText[i].Color, 0.99f);
+            _renderer2dComponent.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            _renderer2dComponent.SpriteBatch.DrawString(_logText[i].SpriteFont, _logText[i].Text, pos, _logText[i].Color);
+            _renderer2dComponent.SpriteBatch.End();
+
             pos.Y -= _logText[i].SpriteFont.MeasureString(_logText[i].Text).Y + 5;
         }
 

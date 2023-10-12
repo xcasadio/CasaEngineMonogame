@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.Core.Design;
@@ -20,7 +19,7 @@ public class ElementLoader<T> where T : ISaveLoad
         _TypesById[id] = typeof(TU);
     }
 
-    public T Load(Entity owner, JsonElement element)
+    public T Load(JsonElement element)
     {
         var id = element.GetJsonPropertyByName("type").Value.GetInt32();
 

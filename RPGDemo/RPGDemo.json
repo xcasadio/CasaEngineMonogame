@@ -6,7 +6,7 @@
   "IsFixedTimeStep": false,
   "IsMouseVisible": true,
   "FirstWorldLoaded": "DefaultWorld.world",
-  "GameplayDllName": "",
+  "GameplayDllName": "CasaEngine.RPGDemo.dll",
   "DebugIsFullScreen": false,
   "DebugWidth": 1024,
   "DebugHeight": 768,

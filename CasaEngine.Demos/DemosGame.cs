@@ -38,7 +38,7 @@ public class DemosGame : CasaEngineGame
     {
         GameSettings.AssetInfoManager.Load("Content\\AssetInfos.json", SaveOption.Editor);
 
-        var world = new World();
+        var world = new World(this);
         GameManager.CurrentWorld = world;
         //PhysicsDebugViewRendererComponent.DisplayPhysics = true;
         base.LoadContent();
@@ -58,7 +58,7 @@ public class DemosGame : CasaEngineGame
         _currentDemo = _demos[index];
         _currentDemo.Initialize(this);
         var camera = _currentDemo.CreateCamera(this);
-        GameManager.CurrentWorld.Initialize(this);
+        GameManager.CurrentWorld.Initialize();
         _currentDemo.InitializeCamera(camera);
         GameManager.ActiveCamera = camera;
 

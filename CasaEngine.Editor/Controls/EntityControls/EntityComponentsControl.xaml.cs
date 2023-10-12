@@ -21,21 +21,21 @@ namespace CasaEngine.Editor.Controls.EntityControls
 
         private void OnComponentsChanged(object? sender, EventArgs e)
         {
-            if (sender is Entity entity)
+            if (sender is EntityViewModel entityViewModel)
             {
-                RefreshComponentsList(entity);
+                RefreshComponentsList(entityViewModel);
             }
         }
 
-        private void RefreshComponentsList(Entity entity)
+        private void RefreshComponentsList(EntityViewModel entityViewModel)
         {
             ListBoxComponents.DataContext = null;
-            ListBoxComponents.DataContext = entity;
+            ListBoxComponents.DataContext = entityViewModel;
         }
 
         private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
         {
-            if (DataContext is not Entity entity)
+            if (DataContext is not EntityViewModel entityViewModel)
             {
                 return;
             }
@@ -51,10 +51,10 @@ namespace CasaEngine.Editor.Controls.EntityControls
             {
                 var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
                 var component = (Component)Activator.CreateInstance(componentType);
-                component.Initialize(entity);
-                entity.ComponentManager.Components.Add(component);
+                component.Initialize(entityViewModel.Entity);
+                entityViewModel.Entity.ComponentManager.Components.Add(component);
 
-                RefreshComponentsList(entity);
+                RefreshComponentsList(entityViewModel);
             }
         }
 
@@ -63,7 +63,7 @@ namespace CasaEngine.Editor.Controls.EntityControls
             if (sender is FrameworkElement { DataContext: Component component })
             {
                 component.Owner.ComponentManager.Components.Remove(component);
-                RefreshComponentsList(component.Owner);
+                RefreshComponentsList(DataContext as EntityViewModel);
             }
         }
     }

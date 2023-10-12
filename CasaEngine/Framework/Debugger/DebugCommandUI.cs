@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.Game.Components.Physics;
+using FontStashSharp;
 
 
 namespace CasaEngine.Framework.Debugger;
@@ -66,7 +67,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
     private float _stateTransition;
 
     // Registered echo listeners.
-    private readonly List<IDebugEchoListner> _listenrs = new();
+    private readonly List<IDebugEchoListner> _listeners = new();
 
     // Registered command executioner.
     private readonly Stack<IDebugCommandExecutioner> _executioners = new();
@@ -105,7 +106,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
 
     // Key repeat duration in seconds after the first key press.
     private readonly float _keyRepeatDuration = 0.03f;
-    private SpriteFont? _font;
+    private SpriteFontBase? _font;
 
 
     public DebugCommandUi(Microsoft.Xna.Framework.Game game)
@@ -131,7 +132,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
                     maxLen = Math.Max(maxLen, cmd.Command.Length);
                 }
 
-                var fmt = string.Format("{{0,-{0}}}    {{1}}", maxLen);
+                var fmt = $"{{0,-{maxLen}}}    {{1}}";
 
                 foreach (var cmd in _commandTable.Values)
                 {
@@ -215,7 +216,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
             throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2dComponent is null");
         }
 
-        _font = ((CasaEngineGame)Game).GameManager.DefaultSpriteFont;
+        _font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
 
         base.LoadContent();
     }
@@ -229,7 +230,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         if (_commandTable.ContainsKey(lowerCommand))
         {
             throw new InvalidOperationException(
-                string.Format("Command \"{0}\" is already registered.", command));
+                $"Command \"{command}\" is already registered.");
         }
 
         _commandTable.Add(
@@ -242,7 +243,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         if (!_commandTable.ContainsKey(lowerCommand))
         {
             throw new InvalidOperationException(
-                string.Format("Command \"{0}\" is not registered.", command));
+                $"Command \"{command}\" is not registered.");
         }
 
         _commandTable.Remove(command);
@@ -303,12 +304,12 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
 
     public void RegisterEchoListner(IDebugEchoListner listner)
     {
-        _listenrs.Add(listner);
+        _listeners.Add(listner);
     }
 
     public void UnregisterEchoListner(IDebugEchoListner listner)
     {
-        _listenrs.Remove(listner);
+        _listeners.Remove(listner);
     }
 
     public void Echo(DebugCommandMessage messageType, string text)
@@ -318,7 +319,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
             _lines.Dequeue();
 
         // Call registered listeners.
-        foreach (var listner in _listenrs)
+        foreach (var listner in _listeners)
         {
             listner.Echo(messageType, text);
         }
@@ -547,13 +548,13 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         rect.X = (int)leftMargin;
         rect.Y = (int)topMargin;
         rect.Width = (int)(w * 0.8f);
-        rect.Height = (int)(MaxLineCount * _font.LineSpacing);
+        rect.Height = (int)(MaxLineCount * _font.LineHeight);
 
         //Todo : add transformation to add transition when closing/opening
         /*Matrix mtx = Matrix.CreateTranslation(
                     new Vector3(0, -rect.Height * (1.0f - stateTransition), 0));*/
 
-        //spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState, mtx);
+        ((CasaEngineGame)Game).GameManager.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
         //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
         _renderer2dComponent.DrawRectangle(ref rect, _backgroundColor, depth + 0.001f);
@@ -562,9 +563,8 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         var pos = new Vector2(leftMargin, topMargin);
         foreach (var line in _lines)
         {
-            //spriteBatch.DrawString(font, line, pos, Color.White);
-            _renderer2dComponent.DrawText(_font, line, pos, 0.0f, Vector2.One, Color.White, depth);
-            pos.Y += _font.LineSpacing;
+            ((CasaEngineGame)Game).GameManager.SpriteBatch.DrawString(_font, line, pos, Color.White);
+            pos.Y += _font.LineHeight;
         }
 
         // Draw prompt string.
@@ -572,13 +572,10 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         var cursorPos = pos + _font.MeasureString(leftPart);
         cursorPos.Y = pos.Y;
 
-        // spriteBatch.DrawString(font,
-        //String.Format("{0}{1}", Prompt, commandLine), pos, Color.White);
-        _renderer2dComponent.DrawText(_font, string.Format("{0}{1}", Prompt, _commandLine), pos, 0.0f, Vector2.One, Color.White, depth);
-        //spriteBatch.DrawString(font, Cursor, cursorPos, Color.White);
-        _renderer2dComponent.DrawText(_font, Cursor, cursorPos, 0.0f, Vector2.One, Color.White, depth);
+        ((CasaEngineGame)Game).GameManager.SpriteBatch.DrawString(_font, $"{Prompt}{_commandLine}", pos, Color.White);
+        ((CasaEngineGame)Game).GameManager.SpriteBatch.DrawString(_font, Cursor, cursorPos, Color.White);
 
-        //spriteBatch.End();
+        ((CasaEngineGame)Game).GameManager.SpriteBatch.End();
     }
 
 

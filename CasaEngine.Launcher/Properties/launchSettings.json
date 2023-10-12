@@ -2,8 +2,8 @@
   "profiles": {
     "CasaEngineLauncher": {
       "commandName": "Project",
-      "commandLineArgs": "ProjectTest.json",
-      "workingDirectory": "C:\\Users\\casad\\dev\\repo\\CasaEngineXNA\\SampleProjects\\ProjectTest"
+      "commandLineArgs": "$(ProjectDir)..\\RPGDemo\\RPGDemo.json",
+      "remoteDebugEnabled": false
     }
   }
 }
