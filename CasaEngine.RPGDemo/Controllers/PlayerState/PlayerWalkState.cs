@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.AI.Messaging;
+﻿using System.IO;
+using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
 using Microsoft.Xna.Framework;
 

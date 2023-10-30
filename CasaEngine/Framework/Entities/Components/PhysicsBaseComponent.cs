@@ -128,6 +128,7 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     {
         Owner.HitEnded(collision, this);
     }
+
     protected void Clone(PhysicsBaseComponent component)
     {
         component._velocity = _velocity;
@@ -135,6 +136,11 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         component._maxForce = _maxForce;
         component._maxTurnRate = _maxTurnRate;
         component.PhysicsDefinition.CopyFrom(PhysicsDefinition);
+    }
+
+    public void DisablePhysics()
+    {
+        DestroyPhysicsObject();
     }
 
     private void DestroyPhysicsObject()

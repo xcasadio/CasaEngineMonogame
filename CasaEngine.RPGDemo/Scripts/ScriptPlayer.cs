@@ -78,6 +78,9 @@ public class ScriptPlayer : ExternalComponent, IScriptCharacter
 
     public void Dying()
     {
+        var physics2dComponent = Character.Owner.ComponentManager.GetComponent<Physics2dComponent>();
+        physics2dComponent.DisablePhysics();
+
         Controller.StateMachine.Transition(Controller.GetState((int)PlayerControllerState.Dying));
     }
 

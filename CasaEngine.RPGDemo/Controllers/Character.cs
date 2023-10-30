@@ -65,6 +65,7 @@ public class Character
     public string AnimatationPrefix { get; set; }
 
     public bool CanAttack => _delayBeforeNewAttack <= 0.0f;
+    public bool IsDead => HP <= 0;
 
 
     public int Strength { get; set; } = 5;
@@ -183,9 +184,9 @@ public class Character
     //    _animatedSpriteComponent.SetCurrentAnimation(animationName, true);
     //}
 
-    public void SetAnimation(AnimationIndices animationIndex)
+    public void SetAnimation(AnimationIndices animationIndex, bool withDirection = true)
     {
-        var animationName = GetAnimationName(animationIndex);
+        var animationName = GetAnimationName(animationIndex, null, withDirection);
 
         if (AnimatedSpriteComponent?.CurrentAnimation?.Animation2dData.AssetInfo.Name == animationName)
         {
@@ -196,9 +197,19 @@ public class Character
         AnimatedSpriteComponent.SetCurrentAnimation(animationName, true);
     }
 
-    private string GetAnimationName(AnimationIndices animationIndex, string prefix = null)
+    private string GetAnimationName(AnimationIndices animationIndex, string prefix = null, bool withDirection = true)
     {
-        return $"{(prefix == null ? AnimatationPrefix : prefix)}_{Enum.GetName(animationIndex)}_{Enum.GetName(CurrentDirection)}".ToLower();
+        string format = "{0}_{1}_{2}";
+        if (!withDirection)
+        {
+            format = "{0}_{1}";
+        }
+
+        return string.Format(format,
+            prefix == null ? AnimatationPrefix : prefix,
+            Enum.GetName(animationIndex),
+            Enum.GetName(CurrentDirection))
+            .ToLower();
     }
 
     private int GetAnimationDirectionOffset()
@@ -214,7 +225,8 @@ public class Character
 
         if (opponentGamePlayComponent != null)
         {
-            if (opponentGamePlayComponent.ExternalComponent is IScriptCharacter opponentScriptCharacter)
+            if (opponentGamePlayComponent.ExternalComponent is IScriptCharacter opponentScriptCharacter
+                && !IsDead)
             {
                 var physics2dComponent = opponentScriptCharacter.Character.Owner.ComponentManager.GetComponent<Physics2dComponent>();
                 var impulse = Vector3.UnitX * 300f; //Vector3.Normalize(hitParameters.Entity.Coordinates.WorldMatrix.Forward) * -100f;

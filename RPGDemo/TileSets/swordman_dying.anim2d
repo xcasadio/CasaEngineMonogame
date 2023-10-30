@@ -7,27 +7,51 @@
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": 41
+      "sprite_id": 52
     },
     {
       "duration": 0.15,
-      "sprite_id": 42
+      "sprite_id": 54
     },
     {
       "duration": 0.15,
-      "sprite_id": 43
+      "sprite_id": 57
     },
     {
       "duration": 0.15,
-      "sprite_id": 44
+      "sprite_id": 59
     },
     {
       "duration": 0.15,
-      "sprite_id": 45
+      "sprite_id": 52
     },
     {
       "duration": 0.15,
-      "sprite_id": 46
+      "sprite_id": 54
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 57
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 59
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 52
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 54
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 57
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": 59
     }
   ]
 }

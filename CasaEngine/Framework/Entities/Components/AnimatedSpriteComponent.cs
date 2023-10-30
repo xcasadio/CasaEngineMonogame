@@ -44,6 +44,8 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
     [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
 
+    public bool CreatePhysicsForEachFrame { get; set; } = true;
+
     public AnimatedSpriteComponent() : base()
     {
         Color = Color.White;
@@ -251,7 +253,8 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     private void AddOrUdpateCollisionFromFrame(long frameId, bool addCollision)
     {
-        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
+        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects)
+            && CreatePhysicsForEachFrame)
         {
             var spriteData = _assetContentManager.GetAsset<SpriteData>(frameId);
 

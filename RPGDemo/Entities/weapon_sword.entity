@@ -1,6 +1,7 @@
 {
   "asset": {
     "id": 10272,
+    "name": "weapon_sword",
     "file_name": "Entities\\weapon_sword.entity"
   },
   "version": 1,
@@ -38,12 +39,27 @@
         "a": 255
       },
       "sprite_effect": "None",
-      "animations": [ 204,205, 206,207,208,209,210,211,212,213,214,215 ]
+      "animations": [
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215
+      ]
     },
     {
       "version": 1,
       "type": 1,
-      "external_component_id": -1
+      "external_component": {
+        "type": 1001
+      }
     }
   ]
 }

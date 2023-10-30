@@ -31,6 +31,7 @@ public class HumanPlayerController : Controller
         AddState((int)PlayerControllerState.Attack, new PlayerAttackState());
         AddState((int)PlayerControllerState.Attack2, new PlayerAttack2State());
         AddState((int)PlayerControllerState.Attack3, new PlayerAttack3State());
+        AddState((int)PlayerControllerState.Dying, new PlayerDyingState());
 
         Character.CurrentDirection = Character2dDirection.Right;
         StateMachine.Transition(GetState((int)PlayerControllerState.Idle));
