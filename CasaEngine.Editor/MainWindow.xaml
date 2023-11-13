@@ -9,6 +9,7 @@
         xmlns:worldControls="clr-namespace:CasaEngine.Editor.Controls.WorldControls"
         xmlns:entityControls="clr-namespace:CasaEngine.Editor.Controls.EntityControls"
         xmlns:tileMapControls="clr-namespace:CasaEngine.Editor.Controls.TileMapControls"
+        xmlns:flowGraphControls="clr-namespace:CasaEngine.Editor.Controls.FlowGraphControls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
     <Grid>
@@ -61,6 +62,7 @@
             <TabItem Header="Settings">
                 <controls:SettingsControl x:Name="SettingsControl"/>
             </TabItem>
+
         </TabControl>
 
         <StatusBar Grid.Row="2">

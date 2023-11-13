@@ -431,7 +431,7 @@
                 <wpfControls:Vector2Editor Grid.Row="0" Grid.Column="1" Value="{Binding Shape.Position}"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Orientation" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <xctk:SingleUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Shape.Orientation}" Increment="0.1"/>
+                <xctk:SingleUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Shape.Rotation}" Increment="0.1"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Shape.Type}"/>
                 <Button Grid.Row="2" Grid.Column="1" Click="PhysicComponent_ShapeSelection_OnClick" Content="Select Shape" 

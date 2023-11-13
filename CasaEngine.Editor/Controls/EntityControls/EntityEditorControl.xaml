@@ -6,40 +6,50 @@
              xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
              xmlns:controls="clr-namespace:CasaEngine.Editor.Controls"
              xmlns:entityControls="clr-namespace:CasaEngine.Editor.Controls.EntityControls"
+             xmlns:flowGraphControls="clr-namespace:CasaEngine.Editor.Controls.FlowGraphControls"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 	<Grid>
-		<xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-			<xcad:DockingManager.Theme>
-				<xcad:GenericTheme/>
-			</xcad:DockingManager.Theme>
+		<TabControl>
+			<TabItem Header="Viewport">
+				<xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<xcad:DockingManager.Theme>
+						<xcad:GenericTheme/>
+					</xcad:DockingManager.Theme>
 
-			<xcad:LayoutRoot>
-				<xcad:LayoutRoot.RootPanel>
-					<xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
+					<xcad:LayoutRoot>
+						<xcad:LayoutRoot.RootPanel>
+							<xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
 
-						<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
-							<xcad:LayoutDocumentPane>
-								<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
-									<entityControls:GameEditorEntityControl x:Name="GameScreenControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
-								</xcad:LayoutDocument>
-							</xcad:LayoutDocumentPane>
-						</xcad:LayoutDocumentPaneGroup>
+								<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
+									<xcad:LayoutDocumentPane>
+										<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
+											<entityControls:GameEditorEntityControl x:Name="GameScreenControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
+										</xcad:LayoutDocument>
+									</xcad:LayoutDocumentPane>
+								</xcad:LayoutDocumentPaneGroup>
 
-						<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
-							<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-								<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-									<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-										<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
-									</xcad:LayoutAnchorable>
-								</xcad:LayoutAnchorablePane>
-							</xcad:LayoutAnchorablePaneGroup>
-						</xcad:LayoutAnchorablePaneGroup>
-					</xcad:LayoutPanel>
+								<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
+									<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+										<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+											<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
+												<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
+											</xcad:LayoutAnchorable>
+										</xcad:LayoutAnchorablePane>
+									</xcad:LayoutAnchorablePaneGroup>
+								</xcad:LayoutAnchorablePaneGroup>
+							</xcad:LayoutPanel>
 
-				</xcad:LayoutRoot.RootPanel>
+						</xcad:LayoutRoot.RootPanel>
 
-			</xcad:LayoutRoot>
-		</xcad:DockingManager>
+					</xcad:LayoutRoot>
+				</xcad:DockingManager>
+			</TabItem>
+
+			<TabItem Header="Flow Graph">
+				<flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl"/>
+			</TabItem>
+
+		</TabControl>
 	</Grid>
 </controls:EditorControlBase>

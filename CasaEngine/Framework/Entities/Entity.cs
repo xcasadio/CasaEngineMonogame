@@ -72,8 +72,8 @@ public class Entity : Asset
     [Category("Object"), ReadOnly(true)]
     public bool IsTemporary { get; internal set; }
 
-    public event EventHandler<EventCollisionArgs> OnHit;
-    public event EventHandler<EventCollisionArgs> OnHitEnded;
+    public event EventHandler<EventCollisionArgs>? OnHit;
+    public event EventHandler<EventCollisionArgs>? OnHitEnded;
 
     public void Initialize(CasaEngineGame game)
     {
@@ -185,7 +185,7 @@ public class Entity : Asset
     {
         base.Save(jObject, option);
 
-        jObject.Add("version", 1);
+        jObject.Add("version", Version);
         //jObject.Add("id", Id);
         //jObject.Add("name", Name);
 
@@ -235,8 +235,6 @@ public class Entity : Asset
 
     public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
     public Vector3 Up => Vector3.Transform(Vector3.Up, Orientation);
-
-    //TODO : compute real BoundingBox
 
     public BoundingBox BoundingBox => ComputeBoundingBox();
 

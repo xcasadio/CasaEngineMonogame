@@ -185,6 +185,13 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     public override void Update(float elapsedTime)
     {
+#if EDITOR
+        if (!Owner.Game.GameManager.IsRunningInGameEditorMode)
+        {
+            return;
+        }
+#endif
+
         if (CurrentAnimation != null)
         {
             CurrentAnimation?.Update(elapsedTime);
@@ -214,11 +221,6 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
                 Owner.Coordinates.Position.Z);
         }
     }
-
-    /*void HandleEvent(const Event* pEvent_)
-    {
-
-    }*/
 
     public void AddAnimation(Animation2d animation2d)
     {

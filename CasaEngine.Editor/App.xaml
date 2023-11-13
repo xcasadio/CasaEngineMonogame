@@ -1,6 +1,7 @@
 ﻿<Application x:Class="CasaEngine.Editor.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
              StartupUri="ProjectLauncherWindow.xaml">
     <Application.Resources>
         <RoutedUICommand x:Key="Commands.Sprite.Load" />
@@ -11,5 +12,36 @@
 
         <RoutedUICommand x:Key="Commands.TileMap.Load" />
         <RoutedUICommand x:Key="Commands.TileMap.Save" />
+
+        <!-- FlowGraph -->
+        <xcad:BoolToVisibilityConverter x:Key="boolToVisibilityConverter" />
+
+        <!-- flow graph debugging -->
+        <RoutedUICommand x:Key="Commands.FlowGraph.Launch" />
+        <RoutedUICommand x:Key="Commands.FlowGraph.Resume" />
+        <RoutedUICommand x:Key="Commands.FlowGraph.NextStep" />
+        <RoutedUICommand x:Key="Commands.FlowGraph.Pause" />
+        <RoutedUICommand x:Key="Commands.FlowGraph.Stop" />
+
+        <RoutedUICommand x:Key="Commands.OpenGraph" />
+        <RoutedUICommand x:Key="Commands.CreateGraph" />
+        <RoutedUICommand x:Key="Commands.RenameGraph" />
+        <RoutedUICommand x:Key="Commands.DeleteGraph" />
+
+        <RoutedUICommand x:Key="Commands.OpenFunction" />
+        <RoutedUICommand x:Key="Commands.CreateFunction" />
+        <RoutedUICommand x:Key="Commands.RenameFunction" />
+        <RoutedUICommand x:Key="Commands.DeleteFunction" />
+
+        <RoutedUICommand x:Key="Commands.CreateNamedVar" />
+        <RoutedUICommand x:Key="Commands.RenameNamedVar" />
+        <RoutedUICommand x:Key="Commands.DeleteNamedVar" />
+
+        <RoutedUICommand x:Key="Commands.EditCustomVariable" />
+
+        <RoutedUICommand x:Key="Commands.OpenScript" />
+        <RoutedUICommand x:Key="Commands.CreateScript" />
+        <RoutedUICommand x:Key="Commands.RenameScript" />
+        <RoutedUICommand x:Key="Commands.DeleteScript" />
     </Application.Resources>
 </Application>
