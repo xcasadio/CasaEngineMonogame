@@ -10,6 +10,7 @@ using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContentBrowser;
 using CasaEngine.Editor.Windows;
 using TabItem = System.Windows.Controls.TabItem;
+using FlowGraphUI;
 
 namespace CasaEngine.Editor
 {
