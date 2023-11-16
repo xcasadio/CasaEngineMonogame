@@ -10,7 +10,6 @@ using CasaEngine.Framework.Game;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
-using SharpDX.XInput;
 
 namespace CasaEngine.RPGDemo.Controllers;
 

@@ -13,7 +13,6 @@ using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.RPGDemo;

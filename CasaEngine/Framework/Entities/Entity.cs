@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logger;
@@ -23,19 +22,28 @@ public class Entity : Asset
     private Entity? _parent;
     private bool _isEnabled = true;
 
+    public event EventHandler? BeginPlay;
+    public event EventHandler? EndPlay;
+    public event EventHandler? Destroyed;
+    public event EventHandler<float>? Tick;
+    public event EventHandler? OnReset;
+    //public event EventHandler<EventCollisionArgs>? Damaged;
+    //public event EventHandler<EventCollisionArgs>? Hit;
+    //public event EventHandler<EventCollisionArgs>? BeginOverlap;
+    //public event EventHandler<EventCollisionArgs>? EndOverlap;
+    public event EventHandler<EventCollisionArgs>? OnHit;
+    public event EventHandler<EventCollisionArgs>? OnHitEnded;
+
     public CasaEngineGame Game { get; private set; }
 
-    [Category("Asset")]
     public long Id => AssetInfo.Id;
 
-    [Category("Asset")]
     public string Name
     {
         get => AssetInfo.Name;
         set => AssetInfo.Name = value;
     }
 
-    [Browsable(false)]
     public Entity? Parent
     {
         get => _parent;
@@ -46,12 +54,10 @@ public class Entity : Asset
         }
     }
 
-    [Browsable(false)] public ComponentManager ComponentManager { get; } = new();
+    public ComponentManager ComponentManager { get; } = new();
 
-    [Category("Object")]
     public Coordinates Coordinates { get; } = new();
 
-    [Category("Object")]
     public bool IsEnabled
     {
         get => _isEnabled;
@@ -63,17 +69,12 @@ public class Entity : Asset
         }
     }
 
-    [Category("Object")]
     public bool IsVisible { get; set; } = true;
 
-    [Browsable(false)]
     public bool ToBeRemoved { get; set; }
 
-    [Category("Object"), ReadOnly(true)]
     public bool IsTemporary { get; internal set; }
 
-    public event EventHandler<EventCollisionArgs>? OnHit;
-    public event EventHandler<EventCollisionArgs>? OnHitEnded;
 
     public void Initialize(CasaEngineGame game)
     {
@@ -89,6 +90,8 @@ public class Entity : Asset
         }
 
         ComponentManager.Update(elapsedTime);
+
+        Tick?.Invoke(this, elapsedTime);
     }
 
     public void Draw()
@@ -125,6 +128,8 @@ public class Entity : Asset
         ToBeRemoved = true;
         IsEnabled = false;
         IsVisible = false;
+
+        OnDestroyed();
     }
 
     public override void Load(JsonElement element, SaveOption option)
@@ -172,6 +177,42 @@ public class Entity : Asset
     {
         //LogManager.Instance.WriteLineTrace($"OnHitEnded : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHitEnded?.Invoke(this, new EventCollisionArgs(collision, component));
+    }
+
+    public void OnBeginPlay(World.World world)
+    {
+        foreach (var component in ComponentManager.Components)
+        {
+            if (component is GamePlayComponent gamePlayComponent)
+            {
+                gamePlayComponent.ExternalComponent?.OnBeginPlay(world);
+            }
+        }
+
+        BeginPlay?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void OnEndPlay(World.World world)
+    {
+        foreach (var component in ComponentManager.Components)
+        {
+            if (component is GamePlayComponent gamePlayComponent)
+            {
+                gamePlayComponent.ExternalComponent?.OnEndPlay(world);
+            }
+        }
+
+        EndPlay?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void OnEndPlay()
+    {
+        EndPlay?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void OnDestroyed()
+    {
+        Destroyed?.Invoke(this, EventArgs.Empty);
     }
 
 #if EDITOR

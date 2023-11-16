@@ -4,11 +4,9 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
-using CasaEngine.RPGDemo.Controllers.EnemyState;
 using CasaEngine.RPGDemo.Controllers.PlayerState;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
@@ -65,6 +63,11 @@ public class ScriptPlayer : ExternalComponent, IScriptCharacter
         Character.SetWeapon(new MeleeWeapon(_entity.Game, weaponEntity));
         weaponEntity.IsVisible = false;
         weaponEntity.IsEnabled = false;
+    }
+
+    public override void OnEndPlay(World world)
+    {
+
     }
 
     private void OnAnimationFinished(object sender, Framework.Assets.Animations.Animation2d animation2d)

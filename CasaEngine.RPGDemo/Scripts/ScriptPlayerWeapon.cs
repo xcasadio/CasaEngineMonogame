@@ -93,6 +93,11 @@ public class ScriptPlayerWeapon : ExternalComponent
 
     }
 
+    public override void OnEndPlay(World world)
+    {
+
+    }
+
     public override void Load(JsonElement element, SaveOption option)
     {
 

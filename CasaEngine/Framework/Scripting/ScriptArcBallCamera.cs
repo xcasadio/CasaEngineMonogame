@@ -158,6 +158,11 @@ public class ScriptArcBallCamera : ExternalComponent
 
     }
 
+    public override void OnEndPlay(World.World world)
+    {
+
+    }
+
     public override void Load(JsonElement element, SaveOption option)
     {
 

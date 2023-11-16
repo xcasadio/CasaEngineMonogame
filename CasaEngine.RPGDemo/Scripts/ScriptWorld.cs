@@ -41,6 +41,11 @@ public class ScriptWorld : ExternalComponent
         camera3dIn2dAxisComponent.Target = new Vector3(world.Game.Window.ClientBounds.Size.X / 2f, world.Game.Window.ClientBounds.Size.Y / 2f, 0.0f);
     }
 
+    public override void OnEndPlay(World world)
+    {
+
+    }
+
     public override void Load(JsonElement element, SaveOption option)
     {
     }

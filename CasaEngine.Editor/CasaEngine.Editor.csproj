@@ -56,11 +56,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
+		<ProjectReference Include="..\CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj" />
+		<ProjectReference Include="..\CasaEngine.FlowGraphNodes\CasaEngine.FlowGraphNodes.csproj" />
 		<ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
 		<ProjectReference Include="..\CasaEngine.WpfControls\CasaEngine.WpfControls.csproj" />
 		<ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
 		<ProjectReference Include="..\FlowGraph\Controls\AdornedControl\AdornedControl.csproj" />
-		<ProjectReference Include="..\FlowGraph\Controls\CustomNode\CustomNode.csproj" />
 		<ProjectReference Include="..\FlowGraph\Controls\FlowGraphUI\FlowGraphUI.csproj" />
 		<ProjectReference Include="..\FlowGraph\Controls\MouseDragDropScrollViewer\MouseDragScrollViewer.csproj" />
 		<ProjectReference Include="..\FlowGraph\Controls\NetworkModel\NetworkModel.csproj" />

@@ -100,13 +100,7 @@ public sealed class World : Asset
 
         foreach (var entity in _entities)
         {
-            foreach (var component in entity.ComponentManager.Components)
-            {
-                if (component is GamePlayComponent gamePlayComponent)
-                {
-                    gamePlayComponent.ExternalComponent?.OnBeginPlay(this);
-                }
-            }
+            entity.OnBeginPlay(this);
         }
     }
 

@@ -10,7 +10,6 @@ using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Controllers.EnemyState;
 using CasaEngine.RPGDemo.Weapons;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -64,6 +63,11 @@ public class ScriptEnemy : ExternalComponent, IScriptCharacter
         var entity = _entity.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
         var gameplayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
         (Controller as EnemyController).PlayerHunted = (gameplayComponent.ExternalComponent as IScriptCharacter).Character;
+    }
+
+    public override void OnEndPlay(World world)
+    {
+
     }
 
     private void OnAnimationFinished(object sender, CasaEngine.Framework.Assets.Animations.Animation2d animation2d)
