@@ -1,0 +1,412 @@
+<Project>
+  <PropertyGroup>
+    <AssemblyName>CasaEngine.Editor</AssemblyName>
+    <IntermediateOutputPath>obj\Debug\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath>C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\</MSBuildProjectExtensionsPath>
+    <_TargetAssemblyProjectName>CasaEngine.Editor</_TargetAssemblyProjectName>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <StartupObject>CasaEngine.Editor.App</StartupObject>
+    <PlatformTarget>x64</PlatformTarget>
+    <Configurations>Debug;Release;DebugEditor</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugEditor|AnyCPU'">
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources\add-icon.png" />
+    <None Remove="Resources\cross-icon.png" />
+    <None Remove="Resources\delete-icon.png" />
+    <None Remove="Resources\exclamation-icon.png" />
+    <None Remove="Resources\fichier-50.png" />
+    <None Remove="Resources\file-folder-48.png" />
+    <None Remove="Resources\icon_arrowDown_16x16.png" />
+    <None Remove="Resources\icon_arrowUP_16x16.png" />
+    <None Remove="Resources\icon_edit_16x16.png" />
+    <None Remove="Resources\icon_first_16x16.png" />
+    <None Remove="Resources\icon_last_16x16.png" />
+    <None Remove="Resources\icon_left_arrow.png" />
+    <None Remove="Resources\icon_Minus_16x16.png" />
+    <None Remove="Resources\icon_pause_16x16.png" />
+    <None Remove="Resources\icon_play_16x16.png" />
+    <None Remove="Resources\icon_Plus_16x16.png" />
+    <None Remove="Resources\Icon_Rotate.png" />
+    <None Remove="Resources\Icon_Rotate_gray.png" />
+    <None Remove="Resources\Icon_Scale.png" />
+    <None Remove="Resources\Icon_Scale_gray.png" />
+    <None Remove="Resources\Icon_Translate.png" />
+    <None Remove="Resources\Icon_Translate_gray.png" />
+    <None Remove="Resources\non_visible_icon.png" />
+    <None Remove="Resources\open-file-folder-48.png" />
+    <None Remove="Resources\save-44-48.png" />
+    <None Remove="Resources\Save-icon.png" />
+    <None Remove="Resources\scissors.png" />
+    <None Remove="Resources\tick_16.png" />
+    <None Remove="Resources\visible_icon.png" />
+    <None Remove="Resources\warning-icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+    <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
+    <ProjectReference Include="..\CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj" />
+    <ProjectReference Include="..\CasaEngine.FlowGraphNodes\CasaEngine.FlowGraphNodes.csproj" />
+    <ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
+    <ProjectReference Include="..\CasaEngine.WpfControls\CasaEngine.WpfControls.csproj" />
+    <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
+    <ProjectReference Include="..\FlowGraph\Controls\AdornedControl\AdornedControl.csproj" />
+    <ProjectReference Include="..\FlowGraph\Controls\FlowGraphUI\FlowGraphUI.csproj" />
+    <ProjectReference Include="..\FlowGraph\Controls\MouseDragDropScrollViewer\MouseDragScrollViewer.csproj" />
+    <ProjectReference Include="..\FlowGraph\Controls\NetworkModel\NetworkModel.csproj" />
+    <ProjectReference Include="..\FlowGraph\Controls\NetworkUI\NetworkUI.csproj" />
+    <ProjectReference Include="..\FlowGraph\Controls\Utils\Utils.csproj" />
+    <ProjectReference Include="..\FlowGraph\Controls\ZoomAndPan\ZoomAndPan.csproj" />
+    <ProjectReference Include="..\FlowGraph\FlowGraph\FlowGraph.csproj" />
+    <ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
+    <ProjectReference Include="..\MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Controls\TileMapControls\TilesDefinitionControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TileMapControls\TileMapEditorControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TileMapControls\TileMapDetailsControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TileMapControls\GameEditorTileMapControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\Common\InputTextBox.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\EntityControls\EntityEditorControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\EntityControls\GameEditorEntityControl.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+    <Message Text="Restoring dotnet tools" Importance="High" />
+    <Exec Command="dotnet tool restore" />
+  </Target>
+  <ItemGroup>
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\Accessibility.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\AdornedControl\bin\Debug\net6.0-windows\AdornedControl.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\assimpnet\4.1.0\lib\netstandard1.3\AssimpNet.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Compiler\bin\Debug\net6.0\CasaEngine.Compiler.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine\bin\Debug\net6.0-windows\CasaEngine.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.DotNetCompiler\bin\Debug\net6.0\CasaEngine.DotNetCompiler.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.FlowGraphNodes\bin\Debug\net6.0\CasaEngine.FlowGraphNodes.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Shaders\bin\Debug\net6.0\CasaEngine.Shaders.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.WpfControls\bin\Debug\net6.0-windows\CasaEngine.WpfControls.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\cyotek.drawing.bitmapfont\2.0.4\lib\net5.0\Cyotek.Drawing.BitmapFont.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\FlowGraph\bin\Debug\net6.0\FlowGraph.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\FlowGraphUI\bin\Debug\net6.0-windows\FlowGraphUI.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\fontstashsharp.base\1.1.8\lib\netstandard2.0\FontStashSharp.Base.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\fontstashsharp.monogame\1.2.8\lib\netstandard2.0\FontStashSharp.MonoGame.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\fontstashsharp.rasterizers.stbtruetypesharp\1.1.8\lib\netstandard2.0\FontStashSharp.Rasterizers.StbTrueTypeSharp.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\GizmoTool\bin\Debug\net6.0-windows\GizmoTools.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\avalonedit\6.3.0.90\lib\net6.0-windows7.0\ICSharpCode.AvalonEdit.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\Logger\bin\Debug\net6.0\Logger.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\microsoft.codeanalysis.csharp\4.7.0\lib\net6.0\Microsoft.CodeAnalysis.CSharp.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\microsoft.codeanalysis.common\4.7.0\lib\net6.0\Microsoft.CodeAnalysis.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\Microsoft.CSharp.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\Microsoft.VisualBasic.Core.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\Microsoft.VisualBasic.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\Microsoft.VisualBasic.Forms.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\Microsoft.Win32.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\Microsoft.Win32.Registry.AccessControl.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\Microsoft.Win32.Registry.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\Microsoft.Win32.SystemEvents.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\monogame.framework.windowsdx\3.8.1.303\lib\net6.0-windows7.0\MonoGame.Framework.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\MonoGame.Framework.Wpf.Core\bin\Debug\net6.0-windows\MonoGame.Framework.Wpf.Core.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\MouseDragDropScrollViewer\bin\Debug\net6.0-windows\MouseDragScrollViewer.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\mscorlib.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\netstandard.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\NetworkModel\bin\Debug\net6.0-windows\NetworkModel.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\NetworkUI\bin\Debug\net6.0-windows\NetworkUI.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\newtonsoft.json\13.0.3\lib\net6.0\Newtonsoft.Json.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\ookii.dialogs.wpf\5.0.1\lib\net6.0-windows7.0\Ookii.Dialogs.Wpf.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationCore.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationFramework.Aero.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationFramework.Aero2.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationFramework.AeroLite.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationFramework.Classic.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationFramework.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationFramework.Luna.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationFramework.Royale.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\PresentationUI.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\ReachFramework.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.direct2d1\4.0.1\lib\netcoreapp1.0\SharpDX.Direct2D1.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.direct3d11\4.0.1\lib\netcoreapp1.0\SharpDX.Direct3D11.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.direct3d9\4.0.1\lib\netcoreapp1.0\SharpDX.Direct3D9.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx\4.0.1\lib\netcoreapp1.0\SharpDX.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.dxgi\4.0.1\lib\netcoreapp1.0\SharpDX.DXGI.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.mathematics\4.0.1\lib\netcoreapp1.0\SharpDX.Mathematics.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.mediafoundation\4.0.1\lib\netcoreapp1.0\SharpDX.MediaFoundation.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.xaudio2\4.0.1\lib\netcoreapp1.0\SharpDX.XAudio2.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\sharpdx.xinput\4.0.1\lib\netcoreapp1.0\SharpDX.XInput.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\stbimagesharp\2.27.13\lib\netstandard2.0\StbImageSharp.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\stbtruetypesharp\1.26.11\lib\netstandard2.0\StbTrueTypeSharp.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.AppContext.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Buffers.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.CodeDom.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Collections.Concurrent.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Collections.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\system.collections.immutable\7.0.0\lib\net6.0\System.Collections.Immutable.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Collections.NonGeneric.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Collections.Specialized.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ComponentModel.Annotations.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ComponentModel.DataAnnotations.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ComponentModel.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ComponentModel.EventBasedAsync.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ComponentModel.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ComponentModel.TypeConverter.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Configuration.ConfigurationManager.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Configuration.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Console.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Core.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Data.Common.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Data.DataSetExtensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Data.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Design.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.Contracts.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.Debug.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.DiagnosticSource.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.EventLog.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.FileVersionInfo.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.PerformanceCounter.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.Process.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.StackTrace.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.TextWriterTraceListener.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.Tools.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.TraceSource.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Diagnostics.Tracing.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.DirectoryServices.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Drawing.Common.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Drawing.Design.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Drawing.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Drawing.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Dynamic.Runtime.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Formats.Asn1.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Globalization.Calendars.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Globalization.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Globalization.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.Compression.Brotli.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.Compression.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.Compression.FileSystem.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.Compression.ZipFile.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.FileSystem.AccessControl.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.FileSystem.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.FileSystem.DriveInfo.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.FileSystem.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.FileSystem.Watcher.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.IsolatedStorage.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.MemoryMappedFiles.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.IO.Packaging.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.Pipes.AccessControl.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.Pipes.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.IO.UnmanagedMemoryStream.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Linq.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Linq.Expressions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Linq.Parallel.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Linq.Queryable.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Memory.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Http.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Http.Json.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.HttpListener.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Mail.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.NameResolution.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.NetworkInformation.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Ping.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Requests.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Security.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.ServicePoint.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.Sockets.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.WebClient.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.WebHeaderCollection.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.WebProxy.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.WebSockets.Client.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Net.WebSockets.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Numerics.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Numerics.Vectors.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ObjectModel.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Printing.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.DispatchProxy.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.Emit.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.Emit.ILGeneration.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.Emit.Lightweight.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.Extensions.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\system.reflection.metadata\7.0.0\lib\net6.0\System.Reflection.Metadata.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Reflection.TypeExtensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Resources.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Resources.Reader.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Resources.ResourceManager.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Resources.Writer.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.CompilerServices.Unsafe.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.CompilerServices.VisualC.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Handles.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.InteropServices.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.InteropServices.RuntimeInformation.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Intrinsics.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Loader.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Numerics.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Serialization.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Serialization.Formatters.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Serialization.Json.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Serialization.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Runtime.Serialization.Xml.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.AccessControl.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Claims.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.Algorithms.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.Cng.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.Csp.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.Encoding.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.OpenSsl.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.Pkcs.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.ProtectedData.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.X509Certificates.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Security.Cryptography.Xml.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Security.Permissions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Principal.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.Principal.Windows.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Security.SecureString.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ServiceModel.Web.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ServiceProcess.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Text.Encoding.CodePages.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Text.Encoding.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Text.Encoding.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Text.Encodings.Web.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Text.Json.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Text.RegularExpressions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Threading.AccessControl.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Channels.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Overlapped.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Tasks.Dataflow.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Tasks.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Tasks.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Tasks.Parallel.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Thread.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.ThreadPool.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Threading.Timer.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Transactions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Transactions.Local.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.ValueTuple.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Web.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Web.HttpUtility.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Controls.Ribbon.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Windows.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Forms.Design.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Forms.Design.Editors.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Forms.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Forms.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Input.Manipulations.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Windows.Presentation.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\System.Xaml.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.Linq.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.ReaderWriter.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.Serialization.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.XDocument.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.XmlDocument.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.XmlSerializer.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.XPath.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\ref\net6.0\System.Xml.XPath.XDocument.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\TomShane.Neoforce.Controls\bin\Debug\net6.0-windows\TomShane.Neoforce.Controls.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\UIAutomationClient.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\UIAutomationClientSideProviders.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\UIAutomationProvider.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\UIAutomationTypes.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\UiTools\bin\Debug\net6.0\UiTools.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\Utils\bin\Debug\net6.0-windows\Utils.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\WindowsBase.dll" />
+    <ReferencePath Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\ref\net6.0\WindowsFormsIntegration.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\extended.wpf.toolkit\4.5.1\lib\net5.0\Xceed.Wpf.AvalonDock.NET5.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\extended.wpf.toolkit\4.5.1\lib\net5.0\Xceed.Wpf.AvalonDock.Themes.Aero.NET5.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\extended.wpf.toolkit\4.5.1\lib\net5.0\Xceed.Wpf.AvalonDock.Themes.Metro.NET5.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\extended.wpf.toolkit\4.5.1\lib\net5.0\Xceed.Wpf.AvalonDock.Themes.VS2010.NET5.dll" />
+    <ReferencePath Include="C:\Users\casad\.nuget\packages\extended.wpf.toolkit\4.5.1\lib\net5.0\Xceed.Wpf.Toolkit.NET5.dll" />
+    <ReferencePath Include="C:\Users\casad\dev\repo\CasaEngineXNA\FlowGraph\Controls\ZoomAndPan\bin\Debug\net6.0-windows\ZoomAndPan.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\Animation2dControls\Animation2dDetailsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\Animation2dControls\Animation2dEditorControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\Animation2dControls\Animation2dListControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\Animation2dControls\GameEditorAnimation2dControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\Common\AssetSelectorControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\Common\InputComboBox.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\Common\InputTextBox.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\ContentBrowser\ContentBrowserControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\Animation2dListSelectedControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\Animation2dListSelectorWindow.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\EntitiesControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\EntityComponentControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\EntityComponentsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\EntityControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\EntityEditorControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\EntityControls\GameEditorEntityControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\FlowGraphControls\FlowGraphEditControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\LogsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\SettingsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\SpriteControls\GameEditorSpriteControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\SpriteControls\SpriteCollisionsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\SpriteControls\SpriteDetailsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\SpriteControls\SpriteEditorControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\SpriteControls\SpriteListControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\SpriteControls\SpriteSocketsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\TileMapControls\GameEditorTileMapControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\TileMapControls\TileMapDetailsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\TileMapControls\TileMapEditorControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\TileMapControls\TilesDefinitionControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\WorldControls\GameEditorWorldControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\WorldControls\PlaceActorsControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\WorldControls\WorldEditorControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Controls\WorldControls\WorldPropertiesControl.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\MainWindow.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\ProjectLauncherWindow.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Windows\NewProjectWindow.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Windows\SelectPhysicsShapeWindow.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\Windows\SelectStaticMeshWindow.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\App.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\CasaEngine.Editor_Content.g.cs" />
+    <Compile Include="C:\Users\casad\dev\repo\CasaEngineXNA\CasaEngine.Editor\obj\Debug\net6.0-windows\GeneratedInternalTypeHelper.g.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="C:\Program Files\dotnet\sdk\7.0.302\Sdks\Microsoft.NET.Sdk\targets\..\analyzers\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll" />
+    <Analyzer Include="C:\Program Files\dotnet\sdk\7.0.302\Sdks\Microsoft.NET.Sdk\targets\..\analyzers\Microsoft.CodeAnalysis.NetAnalyzers.dll" />
+    <Analyzer Include="C:\Users\casad\.nuget\packages\microsoft.codeanalysis.analyzers\3.3.4\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
+    <Analyzer Include="C:\Users\casad\.nuget\packages\microsoft.codeanalysis.analyzers\3.3.4\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    <Analyzer Include="C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.16\analyzers/dotnet/cs/System.Text.Json.SourceGeneration.dll" />
+    <Analyzer Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\analyzers/dotnet/System.Windows.Forms.Analyzers.dll" />
+    <Analyzer Include="C:\Program Files\dotnet\packs\Microsoft.WindowsDesktop.App.Ref\6.0.16\analyzers/dotnet/cs/System.Windows.Forms.Analyzers.CSharp.dll" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

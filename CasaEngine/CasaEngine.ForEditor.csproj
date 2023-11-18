@@ -11,12 +11,18 @@
 		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' ">
-		<DefineConstants>$(DefineConstants)</DefineConstants>
+		<DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
 		<Optimize>False</Optimize>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' ">
-		<DefineConstants>$(DefineConstants)</DefineConstants>
+		<DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
 		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="AssimpNet" Version="4.1.0" />
@@ -24,6 +30,11 @@
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
+		<ProjectReference Include="..\CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj" />
+		<ProjectReference Include="..\FlowGraph\DotNetCodeGenerator\DotNetCodeGenerator.csproj" />
+		<ProjectReference Include="..\FlowGraph\FlowGraph\FlowGraph.csproj" />
+		<ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
 		<ProjectReference Include="..\TomShane.Neoforce.Controls\TomShane.Neoforce.Controls.csproj" />
 	</ItemGroup>
 	<ItemGroup>

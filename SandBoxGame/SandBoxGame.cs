@@ -11,12 +11,15 @@ using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Materials.Graph;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
-using CasaEngine.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
+
+#if EDITOR
+using CasaEngine.Shaders;
+#endif
 
 namespace SandBoxGame
 {
@@ -79,10 +82,10 @@ namespace SandBoxGame
             var materialDiffuse = new MaterialColor();
             materialDiffuse.Color = Color.Green;
             _materialColor.Diffuse = materialDiffuse;
-
+            /*
             var byteCode = CompileShaderFromMaterial(_materialColor);
             _effectColor = new Effect(GraphicsDevice, byteCode);
-
+            
             //=====
             _materialTexture = new Material();
             var materialTextureDiffuse = new MaterialTexture();
@@ -110,13 +113,13 @@ namespace SandBoxGame
 
             byteCode = CompileShaderFromMaterialGraph(materialGraph);
             _effectTexture2 = new Effect(GraphicsDevice, byteCode);
-
+            */
             base.LoadContent();
 
             camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
             GameManager.ActiveCamera = camera;
         }
-
+        /*
         private byte[] CompileShaderFromMaterial(Material material)
         {
             var shaderWriter = new ShaderWriter();
@@ -136,7 +139,7 @@ namespace SandBoxGame
             var shaderCompiled = ShaderCompiler.Compile(tempFileName, null, TargetPlatform.Windows);
             return shaderCompiled.ByteCode;
         }
-
+        */
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))

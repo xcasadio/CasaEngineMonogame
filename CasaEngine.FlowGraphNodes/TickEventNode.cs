@@ -14,7 +14,7 @@ public class TickEventNode : EventNode
 
     public override string Title => "Tick";
 
-    protected override SequenceNode CopyImpl()
+    public override SequenceNode Copy()
     {
         return new TickEventNode();
     }

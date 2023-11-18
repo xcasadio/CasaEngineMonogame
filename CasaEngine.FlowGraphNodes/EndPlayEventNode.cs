@@ -11,7 +11,7 @@ public class EndPlayEventNode : EventNode
     {
     }
 
-    protected override SequenceNode CopyImpl()
+    public override SequenceNode Copy()
     {
         return new EndPlayEventNode();
     }
@@ -26,7 +26,7 @@ public class EndPlayEventNode : EventNode
         AddSlot(0, "", SlotType.NodeOut);
     }
 
-    protected override SequenceNode CopyImpl()
+    public override SequenceNode Copy()
     {
         return new EndPlayEventNode();
     }

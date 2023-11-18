@@ -1,11 +1,11 @@
-﻿using CasaEngine.Engine.Input;
+﻿#if EDITOR
+
+using CasaEngine.Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using XNAGizmo;
 
 namespace CasaEngine.Framework.Game.Components.Editor;
-
-#if EDITOR
 
 public class GizmoComponent : DrawableGameComponent
 {

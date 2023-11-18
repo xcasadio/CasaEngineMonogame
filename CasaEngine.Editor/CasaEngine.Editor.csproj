@@ -57,7 +57,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
-		<ProjectReference Include="..\CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj" />
 		<ProjectReference Include="..\CasaEngine.FlowGraphNodes\CasaEngine.FlowGraphNodes.csproj" />
 		<ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
 		<ProjectReference Include="..\CasaEngine.WpfControls\CasaEngine.WpfControls.csproj" />
@@ -70,6 +69,7 @@
 		<ProjectReference Include="..\FlowGraph\Controls\Utils\Utils.csproj" />
 		<ProjectReference Include="..\FlowGraph\Controls\ZoomAndPan\ZoomAndPan.csproj" />
 		<ProjectReference Include="..\FlowGraph\FlowGraph\FlowGraph.csproj" />
+		<ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
 		<ProjectReference Include="..\MonoGame.Framework.Wpf.Core\MonoGame.Framework.Wpf.Core.csproj" />
 	</ItemGroup>
 

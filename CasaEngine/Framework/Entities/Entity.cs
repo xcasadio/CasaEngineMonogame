@@ -8,9 +8,12 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
-using XNAGizmo;
 using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
+
+#if EDITOR
+using XNAGizmo;
+#endif
 
 namespace CasaEngine.Framework.Entities;
 

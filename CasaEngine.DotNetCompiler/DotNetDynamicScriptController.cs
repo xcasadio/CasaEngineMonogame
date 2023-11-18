@@ -22,24 +22,24 @@ public abstract class DotNetDynamicScriptController : IDynamicScriptController<D
     public IEnumerable<ParameterDefinition> OutputParameters
         => _operationParams.Parameters.Where(x => x.Direction is ParameterDirection.Output or ParameterDirection.InputOutput);
 
-    public EvaluationResult Evaluate(DotNetDynamicScriptParameter p)
+    public EvaluationResult Evaluate(DotNetDynamicScriptParameter parameter)
     {
-        _operationParams = p;
+        _operationParams = parameter;
 
-        var code = _codeTemplate.Build(p);
+        var code = _codeTemplate.Build(parameter);
 
         var syntaxTree = GetSyntaxTree(code);
 
         var rootPath = Path.GetDirectoryName(typeof(object).Assembly.Location) + Path.DirectorySeparatorChar;
 
-        var compilation = GetCompilationForAssembly(p.AssemblyName)
+        var compilation = GetCompilationForAssembly(parameter.AssemblyName)
             .WithOptions(GetOptions())
             .AddSyntaxTrees(syntaxTree);
 
         compilation = AddDefaultReferences(rootPath, compilation);
         compilation = AddReferences(rootPath, compilation);
 
-        foreach (var reference in p.References)
+        foreach (var reference in parameter.References)
         {
             compilation = compilation.AddReferences(MetadataReference.CreateFromFile(reference));
         }
