@@ -1050,19 +1050,19 @@
     },
     {
       "id": 10036,
-      "file_name": "Entities\\weapon_rock.entity"
+      "file_name": "Entities\\weapon_rock.entityFlowgraph"
     },
     {
       "id": 10065,
-      "file_name": "Entities\\character_link.entity"
+      "file_name": "Entities\\character_link.entityFlowgraph"
     },
     {
       "id": 10066,
-      "file_name": "Entities\\character_octopus.entity"
+      "file_name": "Entities\\character_octopus.entityFlowgraph"
     },
     {
       "id": 10272,
-      "file_name": "Entities\\weapon_sword.entity"
+      "file_name": "Entities\\weapon_sword.entityFlowgraph"
     },
     {
       "id": 10479,
@@ -1114,7 +1114,7 @@
     },
     {
       "id": 10901,
-      "file_name": "Entities\\smoke_ring_effect.entity"
+      "file_name": "Entities\\smoke_ring_effect.entityFlowgraph"
     }
   ]
 }

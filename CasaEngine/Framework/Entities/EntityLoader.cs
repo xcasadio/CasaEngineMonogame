@@ -3,18 +3,11 @@ using System.Text.Json;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Entities;
 
 public class EntityLoader
 {
-    public static Entity Load(string fileName)
-    {
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
-        return Load(jsonDocument.RootElement, SaveOption.Editor);
-    }
-
     public static Entity Load(JsonElement element, SaveOption option)
     {
         var entity = new Entity();
@@ -22,8 +15,7 @@ public class EntityLoader
         return entity;
     }
 
-    public static void LoadFromEntityReference(EntityReference entityReference, AssetContentManager assetContentManager,
-        GraphicsDevice graphicsDevice)
+    public static void LoadFromEntityReference(EntityReference entityReference, AssetContentManager assetContentManager)
     {
         if (entityReference.AssetId != IdManager.InvalidId)
         {
@@ -34,17 +26,5 @@ public class EntityLoader
             entity.Name = entityReference.Name;
             entity.Coordinates.CopyFrom(entityReference.InitialCoordinates);
         }
-    }
-
-    public static List<Entity> LoadFromArray(JsonElement element, SaveOption option)
-    {
-        var entities = new List<Entity>();
-
-        foreach (var item in element.EnumerateArray())
-        {
-            entities.Add(Load(item, option));
-        }
-
-        return entities;
     }
 }

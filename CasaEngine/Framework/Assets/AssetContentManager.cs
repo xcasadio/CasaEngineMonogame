@@ -182,6 +182,7 @@ public class AssetContentManager
 
         return assets;
     }
+
 #endif
 
     private class AssetDictionary : IEnumerable<object>

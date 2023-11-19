@@ -193,6 +193,7 @@ public class GameManager
         AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
         AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
 
+        AssetContentManager.RegisterAssetLoader(typeof(EntityFlowGraph), new AssetLoader<EntityFlowGraph>());
         AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
         AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());

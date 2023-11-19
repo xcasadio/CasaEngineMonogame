@@ -33,7 +33,7 @@
 									<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 										<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
 											<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-												<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
+												<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem, Mode = OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
 											</xcad:LayoutAnchorable>
 										</xcad:LayoutAnchorablePane>
 									</xcad:LayoutAnchorablePaneGroup>
@@ -47,7 +47,7 @@
 			</TabItem>
 
 			<TabItem Header="Flow Graph">
-				<flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl"/>
+				<flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl" SelectedItem="{Binding Path=SelectedItem, Mode = OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}" />
 			</TabItem>
 
 		</TabControl>

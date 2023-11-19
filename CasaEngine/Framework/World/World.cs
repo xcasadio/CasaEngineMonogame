@@ -74,7 +74,7 @@ public sealed class World : Asset
 
             foreach (var entityReference in _entityReferences)
             {
-                EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager, Game.GraphicsDevice);
+                EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager);
                 AddEntityImmediately(entityReference.Entity);
             }
         }

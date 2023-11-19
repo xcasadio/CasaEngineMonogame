@@ -6,9 +6,9 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using CasaEngine.DotNetCompiler;
 using CasaEngine.DotNetCompiler.CSharp;
+using System.Diagnostics;
 
 #if EDITOR
-using System.Diagnostics;
 using FlowGraph;
 #endif
 
@@ -43,16 +43,15 @@ public class EntityFlowGraph : Entity
         var stream = new StringWriter();
         var dotNetWriter = new CSharpWriter(stream);
         dotNetWriter.GenerateCode(FlowGraph);
-        Debug.WriteLine(stream.ToString());
 
         var controller = new CSharpDynamicScriptController(new ClassCodeTemplate());
         var result = controller.Evaluate(new DotNetDynamicScriptParameter(stream.ToString()));
 
-        var executionResult = controller.Execute(
+        /*var executionResult = controller.Execute(
             new DotNetCallArguments(namespaceName: "Test", className: "TestClass", methodName: "Run"),
-            new List<ParameterArgument>() { });
+            new List<ParameterArgument>() { });*/
 
-        return true;
+        return result.Success;
     }
 
 #endif

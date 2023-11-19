@@ -54,6 +54,11 @@ public class AssetInfoManager
         return _assetInfos.Values.FirstOrDefault(x => x.Name == name);
     }
 
+    public AssetInfo? GetByFileName(string fileName)
+    {
+        return _assetInfos.Values.FirstOrDefault(x => x.FileName == fileName);
+    }
+
     public void Load(string fileName, SaveOption option)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));

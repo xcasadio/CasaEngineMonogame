@@ -38,7 +38,7 @@
                                 <xcad:LayoutAnchorablePane >
                                     <xcad:LayoutAnchorable x:Name="flowGraphLayout" Title="Flow Graph">
                                         <Grid x:Name="containerFlowGraph">
-                                            <flowGraphUi:FlowGraphControl x:Name="flowGraphControl" />
+                                            <flowGraphUi:FlowGraphControl x:Name="flowGraphControl" DataContext="{Binding SequenceViewModel}"/>
                                         </Grid>
                                     </xcad:LayoutAnchorable>
 

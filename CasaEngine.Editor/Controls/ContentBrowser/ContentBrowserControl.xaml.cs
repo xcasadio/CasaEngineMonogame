@@ -90,10 +90,10 @@ namespace CasaEngine.Editor.Controls.ContentBrowser
 
             switch (extension)
             {
-                case Constants.FileNameExtensions.Entity:
+                case Constants.FileNameExtensions.EntityFlowGraph:
                     var entityControl = window.GetEditorControl<EntityEditorControl>();
                     window.ActivateEditorControl<EntityEditorControl>();
-                    entityControl.LoadEntity(contentItem.FullPath);
+                    entityControl.LoadEntity(contentItem.Path + contentItem.FileExtension);
                     break;
                 case Constants.FileNameExtensions.Sprite:
                     var spriteControl = window.GetEditorControl<SpriteEditorControl>();
