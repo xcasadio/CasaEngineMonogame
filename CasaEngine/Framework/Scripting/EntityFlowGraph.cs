@@ -18,13 +18,6 @@ public class EntityFlowGraph : Entity
         //FlowGraph.Load(element.GetElement("flow_graph"), option);
     }
 
-    public override void Save(JObject jObject, SaveOption option)
-    {
-        base.Save(jObject, option);
-
-        //FlowGraph.Save(jObject, option);
-    }
-
 #if EDITOR
 
     public FlowGraphManager FlowGraph { get; } = new();
@@ -33,5 +26,11 @@ public class EntityFlowGraph : Entity
 
     public ExternalComponent InstanciatedObject { get; set; }
 
+    public override void Save(JObject jObject, SaveOption option)
+    {
+        base.Save(jObject, option);
+
+        //FlowGraph.Save(jObject, option);
+    }
 #endif
 }
