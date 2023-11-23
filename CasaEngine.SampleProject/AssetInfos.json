@@ -2,11 +2,11 @@
   "asset_infos": [
     {
       "id": 2,
-      "file_name": "Entities\\Box.entity"
+      "file_name": "Entities\\Box.entityFlowgraph"
     },
     {
       "id": 25,
-      "file_name": "Entities\\camera.entity"
+      "file_name": "Entities\\camera.entityFlowgraph"
     },
     {
       "id": 27,
