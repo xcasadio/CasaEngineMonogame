@@ -57,6 +57,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
+		<ProjectReference Include="..\CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj" />
 		<ProjectReference Include="..\CasaEngine.FlowGraphNodes\CasaEngine.FlowGraphNodes.csproj" />
 		<ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
 		<ProjectReference Include="..\CasaEngine.WpfControls\CasaEngine.WpfControls.csproj" />

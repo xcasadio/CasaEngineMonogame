@@ -19,9 +19,14 @@ public class DotNetCallArguments : CallArguments
         get
         {
             if (!string.IsNullOrWhiteSpace(NamespaceName) && !string.IsNullOrWhiteSpace(ClassName))
+            {
                 return $"{NamespaceName}.{ClassName}";
+            }
+
             if (string.IsNullOrWhiteSpace(NamespaceName) && !string.IsNullOrWhiteSpace(ClassName))
+            {
                 return ClassName;
+            }
 
             return string.Empty;
         }

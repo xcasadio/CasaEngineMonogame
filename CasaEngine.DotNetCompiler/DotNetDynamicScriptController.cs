@@ -22,6 +22,11 @@ public abstract class DotNetDynamicScriptController : IDynamicScriptController<D
     public IEnumerable<ParameterDefinition> OutputParameters
         => _operationParams.Parameters.Where(x => x.Direction is ParameterDirection.Output or ParameterDirection.InputOutput);
 
+    public object CreateInstance()
+    {
+        return _codeTemplate.CreateInstance(new DotNetCallArguments(), _assembly).Instance;
+    }
+
     public EvaluationResult Evaluate(DotNetDynamicScriptParameter parameter)
     {
         _operationParams = parameter;
@@ -92,7 +97,9 @@ public abstract class DotNetDynamicScriptController : IDynamicScriptController<D
 
             var res = ExecutionResult.Ok();
             if (instanceResult.Method.ReturnType != typeof(void))
+            {
                 res.Add(new MethodReturnValue(methodResult));
+            }
 
             foreach (var outParam in OutputParameters)
             {

@@ -8,7 +8,7 @@ public class ClassCodeTemplate : CodeTemplate
 
     protected override string GetCodeTemplate() => "{code}";
 
-    protected override List<string> DefaultImports => new List<string>();
+    protected override List<string> DefaultImports => new();
 
     protected override void BuildImports(List<string> imports, ref string code) { }
 
@@ -24,7 +24,9 @@ public class ClassCodeTemplate : CodeTemplate
             instance = Activator.CreateInstance(type);
         }
         else
+        {
             instance = assembly.CreateInstance(args.InstanceSignature);
+        }
 
         var method = instance.GetType().GetMethod(args.MethodName ?? GetMethodName());
 

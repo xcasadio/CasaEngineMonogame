@@ -6,17 +6,6 @@ namespace CasaEngine.FlowGraphNodes;
 [Name("Begin Play")]
 public class BeginPlayEventNode : EventNode
 {
-#if EDITOR
-    public BeginPlayEventNode()
-    {
-    }
-
-    public override SequenceNode Copy()
-    {
-        return new BeginPlayEventNode();
-    }
-#endif
-
     public override string Title => "Begin Play";
 
     protected override void InitializeSlots()
@@ -34,4 +23,15 @@ public class BeginPlayEventNode : EventNode
     protected override void TriggeredImpl(object? para)
     {
     }
+
+#if EDITOR
+    public BeginPlayEventNode()
+    {
+    }
+
+    public override SequenceNode Copy()
+    {
+        return new BeginPlayEventNode();
+    }
+#endif
 }

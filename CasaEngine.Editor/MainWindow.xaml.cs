@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -71,6 +72,20 @@ namespace CasaEngine.Editor
             LogManager.Instance.WriteLineInfo($"Project opened {projectFileName}");
 
             GameSettings.Load(projectFileName);
+
+            RegisterFlowGraphNodes();
+        }
+
+        private static void RegisterFlowGraphNodes()
+        {
+            NodeRegister.Clear();
+
+            var dllFileName = Path.Combine(Environment.CurrentDirectory, "FlowGraph.dll");
+            NodeRegister.Register(Assembly.LoadFrom(dllFileName));
+
+            //TODO : register nodes from plugin
+            dllFileName = Path.Combine(Environment.CurrentDirectory, "CasaEngine.FlowGraphNodes.dll");
+            NodeRegister.Register(Assembly.LoadFile(dllFileName));
         }
 
         private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)

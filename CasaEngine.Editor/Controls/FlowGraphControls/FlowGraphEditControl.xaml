@@ -8,7 +8,11 @@
              xmlns:flowGraphUi="clr-namespace:FlowGraphUI;assembly=FlowGraphUI"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <DockPanel>
+        <ToolBar DockPanel.Dock="Top" >
+            <Button Content="Compile" Click="ButtonCompile_OnClick"/>
+        </ToolBar>
+
         <xcad:DockingManager x:Name="dockingManagerFlowGraph" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <xcad:DockingManager.Theme>
                 <xcad:GenericTheme/>
@@ -50,5 +54,5 @@
                 </xcad:LayoutPanel>
             </xcad:LayoutRoot>
         </xcad:DockingManager>
-    </Grid>
+    </DockPanel>
 </UserControl>

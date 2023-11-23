@@ -17,7 +17,7 @@ namespace {GeneratedCodeNamespaceName} {{
         code.Substring(0, code.IndexOf($"public void {GeneratedCodeMethodName}"))
             .Count(x => x == '\n');
 
-    protected override List<string> DefaultImports => new List<string>()
+    protected override List<string> DefaultImports => new()
     {
         "System",
         "System.Linq"

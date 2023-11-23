@@ -9,15 +9,13 @@ public class CSharpDynamicScriptController : DotNetDynamicScriptController
     {
     }
 
-    protected override Compilation GetCompilationForAssembly(string assemblyName)
-        => CSharpCompilation.Create(assemblyName);
+    protected override Compilation GetCompilationForAssembly(string assemblyName) => CSharpCompilation.Create(assemblyName);
 
-    protected override CompilationOptions GetOptions()
-        => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+    protected override CompilationOptions GetOptions() => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
     protected override SyntaxTree GetSyntaxTree(string code)
     {
-        var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5);
+        var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11);
         return CSharpSyntaxTree.ParseText(code, options);
     }
 

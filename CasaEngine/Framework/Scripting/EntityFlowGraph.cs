@@ -1,12 +1,7 @@
 ﻿using System.Text.Json;
-using CasaEngine.Compiler;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
-using System.IO;
-using CasaEngine.DotNetCompiler;
-using CasaEngine.DotNetCompiler.CSharp;
-using System.Diagnostics;
 
 #if EDITOR
 using FlowGraph;
@@ -37,22 +32,6 @@ public class EntityFlowGraph : Entity
     public string CompiledCodeFileName { get; set; }
 
     public ExternalComponent InstanciatedObject { get; set; }
-
-    public bool CompileFlowGraph()
-    {
-        var stream = new StringWriter();
-        var dotNetWriter = new CSharpWriter(stream);
-        dotNetWriter.GenerateCode(FlowGraph);
-
-        var controller = new CSharpDynamicScriptController(new ClassCodeTemplate());
-        var result = controller.Evaluate(new DotNetDynamicScriptParameter(stream.ToString()));
-
-        /*var executionResult = controller.Execute(
-            new DotNetCallArguments(namespaceName: "Test", className: "TestClass", methodName: "Run"),
-            new List<ParameterArgument>() { });*/
-
-        return result.Success;
-    }
 
 #endif
 }

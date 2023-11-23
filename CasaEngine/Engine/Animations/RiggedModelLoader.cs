@@ -479,7 +479,7 @@ public class RiggedModelLoader
                     {
                         Console.Write("  LinkedNodesOffset IsABone: ");
                     }
-                    //Console.GenerateCode("  LinkedNodesOffset: " + modelnode.OffsetMatrixMg.ToAssimpTransposed().SrtInfoToString(""));
+                    //Console.GenerateClassCode("  LinkedNodesOffset: " + modelnode.OffsetMatrixMg.ToAssimpTransposed().SrtInfoToString(""));
                 }
                 m.MeshInitialTransformFromNodeMg = m.NodeRefContainingAnimatedTransform.LocalTransformMg;
                 m.MeshCombinedFinalTransformMg = Matrix.Identity;
@@ -1446,7 +1446,7 @@ public class RiggedModelLoader
                 for (int j = 0; j < channel.Count; j++)
                 {
                     // holds uvs and shit i think
-                    //Console.GenerateCode(" channel[" + j + "].Count: " + channel.Count);
+                    //Console.GenerateClassCode(" channel[" + j + "].Count: " + channel.Count);
                 }
             }
             if (StartupConsoleinfo)

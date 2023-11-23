@@ -8,7 +8,10 @@ public abstract class MethodBodyCodeTemplate : CodeTemplate
     {
         var methodParameters = string.Empty;
         if (operationParams != null && operationParams.Parameters != null && operationParams.Parameters.Any())
+        {
             methodParameters = DoBuildMethodParameters(operationParams.Parameters);
+        }
+
         code = code.Replace("{methodParameters}", methodParameters);
     }
 

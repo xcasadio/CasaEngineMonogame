@@ -6,17 +6,6 @@ namespace CasaEngine.FlowGraphNodes;
 [Name("End Play")]
 public class EndPlayEventNode : EventNode
 {
-#if EDITOR
-    public EndPlayEventNode()
-    {
-    }
-
-    public override SequenceNode Copy()
-    {
-        return new EndPlayEventNode();
-    }
-#endif
-
     public override string Title => "End Play";
 
     protected override void InitializeSlots()
@@ -34,4 +23,15 @@ public class EndPlayEventNode : EventNode
     protected override void TriggeredImpl(object? para)
     {
     }
+
+#if EDITOR
+    public EndPlayEventNode()
+    {
+    }
+
+    public override SequenceNode Copy()
+    {
+        return new EndPlayEventNode();
+    }
+#endif
 }
