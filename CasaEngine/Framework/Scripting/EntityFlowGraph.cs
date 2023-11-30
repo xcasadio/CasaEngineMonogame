@@ -4,6 +4,7 @@ using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 
 #if EDITOR
+using CasaEngine.Framework.Entities.Components;
 using FlowGraph;
 #endif
 
@@ -24,7 +25,24 @@ public class EntityFlowGraph : Entity
 
     public string CompiledCodeFileName { get; set; }
 
-    public ExternalComponent InstanciatedObject { get; set; }
+    public ExternalComponent InstanciatedObject { get; private set; }
+
+    public void InitializeScript(ExternalComponent externalComponent)
+    {
+        InstanciatedObject = externalComponent;
+        InstanciatedObject.Initialize(this);
+
+        var gamePlayComponent = ComponentManager.GetComponent<GamePlayComponent>();
+
+        if (gamePlayComponent == null)
+        {
+            gamePlayComponent = new GamePlayComponent();
+            ComponentManager.Add(gamePlayComponent);
+            gamePlayComponent.Initialize(this);
+        }
+
+        gamePlayComponent.ExternalComponent = InstanciatedObject;
+    }
 
     public override void Save(JObject jObject, SaveOption option)
     {

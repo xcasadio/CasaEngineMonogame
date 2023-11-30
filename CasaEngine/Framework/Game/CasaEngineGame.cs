@@ -12,8 +12,15 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
     public CasaEngineGame(string? projectFileName = null, IGraphicsDeviceService? graphicsDeviceService = null)
     {
+        AppDomain.CurrentDomain.UnhandledException += HandleUnhandledExceptions;
+
         _projectFileName = projectFileName;
         GameManager = new GameManager(this, graphicsDeviceService);
+    }
+
+    private void HandleUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
+    {
+        LogManager.Instance.WriteException((e.ExceptionObject as Exception)!);
     }
 
     protected override void Initialize()
@@ -24,7 +31,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         }
 
         GameManager.Initialize();
-
 
         base.Initialize();
     }

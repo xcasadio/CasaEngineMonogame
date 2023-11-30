@@ -1,15 +1,10 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.DotNetCompiler;
 using CasaEngine.DotNetCompiler.CSharp;
 using CasaEngine.Editor.Controls.EntityControls;
-using CasaEngine.FlowGraphNodes;
 using CasaEngine.Framework.Scripting;
-using DotNetCodeGenerator;
-using FlowGraph;
-using FlowGraph.Nodes;
 using FlowGraphUI;
 
 namespace CasaEngine.Editor.Controls.FlowGraphControls
@@ -29,24 +24,6 @@ namespace CasaEngine.Editor.Controls.FlowGraphControls
         public FlowGraphEditControl()
         {
             InitializeComponent();
-
-            //test
-            /*var flowGraphManager = new FlowGraphManager();
-            FlowGraphViewModel wm = new FlowGraphViewModel(flowGraphManager);
-
-            flowGraphControl.DataContext = wm.SequenceViewModel;
-
-            var entityFlowGraph = new EntityFlowGraph();
-
-            var logMessageNode = new LogMessageNode();
-            logMessageNode.SetValueInSlot((int)LogMessageNode.NodeSlotId.Message, "Voici est un message");
-            entityFlowGraph.FlowGraph.Sequence.AddNode(logMessageNode);
-            var tickEventNode = new TickEventNode();
-            entityFlowGraph.FlowGraph.Sequence.AddNode(tickEventNode);
-
-            tickEventNode.SlotConnectorOut.First().ConnectTo(logMessageNode.SlotConnectorIn);
-
-            entityFlowGraph.CompileFlowGraph();*/
         }
 
         private static void OnComponentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -60,33 +37,28 @@ namespace CasaEngine.Editor.Controls.FlowGraphControls
             }
         }
 
-
         private void ButtonCompile_OnClick(object sender, RoutedEventArgs e)
         {
-            //var flowGraphViewModel = DataContext as FlowGraphViewModel;
             CompileFlowGraph();
         }
 
         private bool CompileFlowGraph()
         {
-            var stream = new StringWriter();
-            var dotNetWriter = new CSharpWriter(stream);
-
-            var methodsAst = EntityFlowGraph.FlowGraph.Sequence.Nodes
-                .Where(x => x is EventNode)
-                .Select(x => x.GenerateAst());
-            //.Concat(FlowGraph.Functions.Select(x => x.Nodes.Where(y => y is CallFunctionNode)))
-
-            dotNetWriter.GenerateClassCode(methodsAst);
+            var generatedClassInformations = FlowGraphToCSharp.GenerateClassCode(EntityFlowGraph.FlowGraph);
 
             var controller = new CSharpDynamicScriptController(new ClassCodeTemplate());
-            var result = controller.Evaluate(new DotNetDynamicScriptParameter(stream.ToString()));
+            var result = controller.Evaluate(new DotNetDynamicScriptParameter(
+                generatedClassInformations.Code,
+                $"flowGraphFrom_{EntityFlowGraph.Name}",
+                new List<string> { "CasaEngine.Core.Maths", "CasaEngine.Framework.Entities", "CasaEngine.Framework.Entities.Components" },
+                new List<string> { "CasaEngine.dll", "MonoGame.Framework.dll" }));
 
-            EntityFlowGraph.InstanciatedObject = (ExternalComponent)controller.CreateInstance();
+            var externalComponent = (ExternalComponent)controller.CreateInstance(
+                generatedClassInformations.Namespace,
+                generatedClassInformations.ClassName);
 
-            /*var executionResult = controller.Execute(
-                new DotNetCallArguments(namespaceName: "Test", className: "TestClass", methodName: "Run"),
-                new List<ParameterArgument>() { });*/
+            //sauvegarder le fichier .cs
+            EntityFlowGraph.InitializeScript(externalComponent);
 
             return result.Success;
         }

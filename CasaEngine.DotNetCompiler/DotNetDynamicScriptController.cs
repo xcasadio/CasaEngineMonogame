@@ -22,9 +22,10 @@ public abstract class DotNetDynamicScriptController : IDynamicScriptController<D
     public IEnumerable<ParameterDefinition> OutputParameters
         => _operationParams.Parameters.Where(x => x.Direction is ParameterDirection.Output or ParameterDirection.InputOutput);
 
-    public object CreateInstance()
+    public object CreateInstance(string namespaceName, string className)
     {
-        return _codeTemplate.CreateInstance(new DotNetCallArguments(), _assembly).Instance;
+        var dotNetCallArguments = new DotNetCallArguments(namespaceName, className, null);
+        return _codeTemplate.CreateInstance(dotNetCallArguments, _assembly).Instance;
     }
 
     public EvaluationResult Evaluate(DotNetDynamicScriptParameter parameter)
@@ -147,6 +148,8 @@ public abstract class DotNetDynamicScriptController : IDynamicScriptController<D
             .AddReferences(MetadataReference.CreateFromFile(typeof(File).Assembly.Location))
             .AddReferences(MetadataReference.CreateFromFile(typeof(Attribute).Assembly.Location))
             .AddReferences(MetadataReference.CreateFromFile(typeof(AssemblyTitleAttribute).Assembly.Location))
+            .AddReferences(MetadataReference.CreateFromFile(typeof(System.Text.StringBuilder).Assembly.Location))
+            .AddReferences(MetadataReference.CreateFromFile(typeof(System.Text.Json.JsonSerializer).Assembly.Location))
             .AddReferences(MetadataReference.CreateFromFile(Path.Combine(rootPath, "System.dll")))
             .AddReferences(MetadataReference.CreateFromFile(Path.Combine(rootPath, "netstandard.dll")))
             .AddReferences(MetadataReference.CreateFromFile(Path.Combine(rootPath, "System.Runtime.dll")));

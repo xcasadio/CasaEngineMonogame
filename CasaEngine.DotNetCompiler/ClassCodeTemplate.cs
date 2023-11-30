@@ -16,7 +16,6 @@ public class ClassCodeTemplate : CodeTemplate
 
     public override CodeTemplateResult CreateInstance(DotNetCallArguments args, Assembly assembly)
     {
-        // foreach class find method? i to methodtocall na einai klasi me ola ta parameters
         object instance = null;
         if (string.IsNullOrEmpty(args.InstanceSignature))
         {

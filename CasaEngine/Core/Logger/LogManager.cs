@@ -122,26 +122,6 @@ public sealed class LogManager
             return;
         }
 
-        var message = new StringBuilder();
-
-        message.AppendLine(e.Message);
-
-        var ex = e;
-        var tab = "\t";
-
-        while (ex.InnerException != null)
-        {
-            message.Append(tab);
-            message.AppendLine(ex.Message);
-            ex = ex.InnerException;
-            tab += "\t";
-        }
-
-        if (writeStackTrace)
-        {
-            message.AppendLine(e.StackTrace);
-        }
-
-        WriteLineError(message.ToString());
+        WriteLineError(e.ToString());
     }
 }

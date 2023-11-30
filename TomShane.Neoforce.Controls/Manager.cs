@@ -441,7 +441,7 @@ public class Manager : DrawableGameComponent
     {
         _disposing = false;
 
-        AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleUnhadledExceptions);
+        //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleUnhadledExceptions);
 
         _content = new ArchiveManager(Game.Services);
         _input = new InputSystem(this, new InputOffset(0, 0, 1f, 1f));
@@ -1057,7 +1057,7 @@ public class Manager : DrawableGameComponent
         }
         return null;
     }
-
+    /*
     private void HandleUnhadledExceptions(object sender, UnhandledExceptionEventArgs e)
     {
         if (LogUnhandledExceptions)
@@ -1065,7 +1065,7 @@ public class Manager : DrawableGameComponent
             LogException(e.ExceptionObject as Exception);
         }
     }
-
+    */
     private void GraphicsDevice_DeviceReset(object sender, System.EventArgs e)
     {
         _deviceReset = true;
