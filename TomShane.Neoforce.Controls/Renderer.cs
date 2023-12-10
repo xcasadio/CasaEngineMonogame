@@ -2,6 +2,7 @@ using System;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -92,11 +93,6 @@ public class Renderer : Component
             }
         }
         base.Dispose(disposing);
-    }
-
-    public override void Init()
-    {
-        base.Init();
     }
 
     public virtual void Begin(BlendingMode mode)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -138,13 +139,13 @@ public class SpinBox : TextBox
         _btnUp = new Button(Manager);
         _btnUp.Init();
         _btnUp.CanFocus = false;
-        _btnUp.MousePress += new MouseEventHandler(btn_MousePress);
+        _btnUp.MousePress += btn_MousePress;
         Add(_btnUp, false);
 
         _btnDown = new Button(Manager);
         _btnDown.Init();
         _btnDown.CanFocus = false;
-        _btnDown.MousePress += new MouseEventHandler(btn_MousePress);
+        _btnDown.MousePress += btn_MousePress;
         Add(_btnDown, false);
 
     }

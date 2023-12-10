@@ -27,7 +27,7 @@ public class ModalContainer : Container
 
     public ModalContainer(Manager manager) : base(manager)
     {
-        Manager.Input.GamePadDown += new GamePadEventHandler(Input_GamePadDown);
+        Manager.Input.GamePadDown += Input_GamePadDown;
         GamePadActions = new WindowGamePadActions();
     }
 
@@ -35,8 +35,8 @@ public class ModalContainer : Container
     {
         _lastModal = Manager.ModalWindow;
         Manager.ModalWindow = this;
-        Manager.Input.KeyDown += new KeyEventHandler(Input_KeyDown);
-        Manager.Input.GamePadDown += new GamePadEventHandler(Input_GamePadDown);
+        Manager.Input.KeyDown += Input_KeyDown;
+        Manager.Input.GamePadDown += Input_GamePadDown;
     }
 
     public virtual void Close()

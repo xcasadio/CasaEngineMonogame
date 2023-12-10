@@ -1,9 +1,8 @@
 ﻿using System.Diagnostics;
-using System.Globalization;
 
 namespace CasaEngine.Core.Logger;
 
-public class DebugLogger : ILog
+public class DebugLogger : ILog, TomShane.Neoforce.Controls.Logs.ILog
 {
     private readonly string _trace = "[Trace] ";
     private readonly string _debug = "[Debug] ";

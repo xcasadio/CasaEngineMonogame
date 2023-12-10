@@ -124,4 +124,10 @@ public sealed class LogManager
 
         WriteLineError(e.ToString());
     }
+
+    [Obsolete("refactor logging")]
+    public TomShane.Neoforce.Controls.Logs.ILog GetLoggerForGUI()
+    {
+        return (TomShane.Neoforce.Controls.Logs.ILog)_loggers.FirstOrDefault(x => x is TomShane.Neoforce.Controls.Logs.ILog);
+    }
 }

@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -109,6 +110,12 @@ public class Button : ButtonBase
 
     protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
     {
+        var layer = Skin.Layers[LrButton];
+
+        if (layer == null)
+        {
+            return;
+        }
 
         if (Mode == ButtonMode.PushButton && _pushed)
         {
@@ -124,8 +131,13 @@ public class Button : ButtonBase
             base.DrawControl(renderer, rect, gameTime);
         }
 
-        var layer = Skin.Layers[LrButton];
-        var font = layer.Text != null && layer.Text.Font != null ? layer.Text.Font.Resource : null;
+        var font = layer.Text?.Font?.Resource;
+
+        if (font == null)
+        {
+            return;
+        }
+
         var col = Color.White;
         var ox = 0; var oy = 0;
 

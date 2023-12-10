@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using FontStashSharp;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -368,7 +369,7 @@ public class TextBox : ClipControl
         SetDefaultSize(128, 20);
         Lines.Add("");
 
-        ClientArea.Draw += new DrawEventHandler(ClientArea_Draw);
+        ClientArea.Draw += ClientArea_Draw;
 
         _vert = new ScrollBar(manager, Orientation.Vertical);
         _horz = new ScrollBar(manager, Orientation.Horizontal);
@@ -383,14 +384,14 @@ public class TextBox : ClipControl
         _vert.PageSize = 1;
         _vert.Value = 0;
         _vert.Anchor = Anchors.Top | Anchors.Right | Anchors.Bottom;
-        _vert.ValueChanged += new EventHandler(sb_ValueChanged);
+        _vert.ValueChanged += sb_ValueChanged;
 
         _horz.Init();
         _horz.Range = ClientArea.Width;
         _horz.PageSize = ClientArea.Width;
         _horz.Value = 0;
         _horz.Anchor = Anchors.Right | Anchors.Left | Anchors.Bottom;
-        _horz.ValueChanged += new EventHandler(sb_ValueChanged);
+        _horz.ValueChanged += sb_ValueChanged;
 
         _horz.Visible = false;
         _vert.Visible = false;
@@ -403,8 +404,8 @@ public class TextBox : ClipControl
     {
         base.InitSkin();
         Skin = new SkinControl(Manager.Skin.Controls[SkTextBox]);
-        Cursor = Manager.Skin.Cursors[CrText].Resource;
-        _font = Skin.Layers[LrTextBox].Text != null ? Skin.Layers[LrTextBox].Text.Font.Resource : null;
+        Cursor = Manager.Skin.Cursors[CrText]?.Resource;
+        _font = Skin.Layers[LrTextBox]?.Text?.Font.Resource;
     }
 
     protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
@@ -435,7 +436,7 @@ public class TextBox : ClipControl
 
     private void DeterminePages()
     {
-        if (ClientArea != null)
+        if (ClientArea != null && _font != null)
         {
             var sizey = _font.LineHeight;
             _linesDrawn = ClientArea.Height / sizey;
@@ -467,7 +468,13 @@ public class TextBox : ClipControl
     void ClientArea_Draw(object sender, DrawEventArgs e)
     {
         var layer = Skin.Layers[LrTextBox];
-        var col = Skin.Layers[LrTextBox].Text.Colors.Enabled;
+
+        if (layer == null || _font == null)
+        {
+            return;
+        }
+
+        var col = layer.Text.Colors.Enabled;
         var cursor = Skin.Layers[LrCursor];
         var al = _mode == TextBoxMode.Multiline ? Alignment.TopLeft : Alignment.MiddleLeft;
         var renderer = e.Renderer;
@@ -475,7 +482,7 @@ public class TextBox : ClipControl
         var drawsel = !_selection.IsEmpty;
         var tmpText = "";
 
-        _font = Skin.Layers[LrTextBox].Text != null ? Skin.Layers[LrTextBox].Text.Font.Resource : null;
+        _font = layer.Text?.Font.Resource;
 
         if (Text != null && _font != null)
         {
@@ -595,6 +602,11 @@ public class TextBox : ClipControl
         if (count > text.Length)
         {
             count = text.Length;
+        }
+
+        if (_font == null)
+        {
+            return 0;
         }
 
         return (int)_font.MeasureString(text.Substring(0, count)).X;
@@ -1223,7 +1235,7 @@ public class TextBox : ClipControl
             _vert.Range = Lines.Count;
         }
 
-        if (_horz != null)
+        if (_horz != null && _font != null)
         {
             _horz.Range = (int)_font.MeasureString(GetMaxLine()).X;
             if (_horz.Range == 0)
@@ -1281,21 +1293,21 @@ public class TextBox : ClipControl
         if (_horz != null && !_horz.Visible)
         {
             _vert.Height = Height - 4;
-            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, ClientMargins.Right, Skin.ClientMargins.Bottom);
+            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, ClientMargins.Right, (Skin == null ? 0 : Skin.ClientMargins.Bottom));
         }
         else
         {
-            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, ClientMargins.Right, 18 + Skin.ClientMargins.Bottom);
+            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, ClientMargins.Right, 18 + (Skin == null ? 0 : Skin.ClientMargins.Bottom));
         }
 
         if (_vert != null && !_vert.Visible)
         {
             _horz.Width = Width - 4;
-            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, Skin.ClientMargins.Right, ClientMargins.Bottom);
+            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, (Skin == null ? 0 : Skin.ClientMargins.Right), ClientMargins.Bottom);
         }
         else
         {
-            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, 18 + Skin.ClientMargins.Right, ClientMargins.Bottom);
+            ClientMargins = new Margins(ClientMargins.Left, ClientMargins.Top, 18 + (Skin == null ? 0 : Skin.ClientMargins.Right), ClientMargins.Bottom);
         }
         base.AdjustMargins();
     }

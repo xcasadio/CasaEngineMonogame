@@ -7,7 +7,8 @@ using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System.Text;
 using System.Media;
-using SharpDX.Direct3D9;
+using TomShane.Neoforce.Controls.Logs;
+using TomShane.Neoforce.Controls.Skins;
 
 [assembly: CLSCompliant(false)]
 
@@ -15,7 +16,6 @@ namespace TomShane.Neoforce.Controls;
 
 public class Manager : DrawableGameComponent
 {
-
     private struct ControlStates
     {
         public Control[] Buttons;
@@ -33,11 +33,11 @@ public class Manager : DrawableGameComponent
     internal const int _ToolTipDelay = 500;
     internal const int _DoubleClickTime = 500;
     internal const int _TextureResizeIncrement = 32;
-    internal const RenderTargetUsage RenderTargetUsage = Microsoft.Xna.Framework.Graphics.RenderTargetUsage.DiscardContents;
+    //change how the render target are used because DiscardContent is better for the performance
+    internal const RenderTargetUsage RenderTargetUsage = Microsoft.Xna.Framework.Graphics.RenderTargetUsage.PreserveContents;//Microsoft.Xna.Framework.Graphics.RenderTargetUsage.DiscardContents;
 
     private bool _deviceReset;
     private bool _renderTargetValid;
-    private RenderTarget2D _renderTarget;
     private int _targetFrames = 60;
     private long _drawTime;
     private long _updateTime;
@@ -49,6 +49,7 @@ public class Manager : DrawableGameComponent
     private ControlsList _controls;
     private Skin _skin;
     private string _skinName = DefaultSkin;
+    private readonly IArchiveManager _archiveManager;
     private string _layoutDirectory = _LayoutDirectory;
     private string _skinDirectory = _SkinDirectory;
     private Control _focusedControl;
@@ -59,6 +60,8 @@ public class Manager : DrawableGameComponent
     private bool _disposing;
     private bool _autoUnfocus = true;
     private bool _autoCreateRenderTarget = true;
+
+    public ILog Logger { get; }
 
     /// <summary>
     /// Gets a value indicating whether Manager is in the process of disposing.
@@ -73,7 +76,7 @@ public class Manager : DrawableGameComponent
     /// <summary>
     /// Should a software cursor be drawn? Very handy on a PC build.
     /// </summary>
-    public bool ShowSoftwareCursor { get; set; }
+    public bool ShowSoftwareCursor { get; set; } = true;
 
     /// <summary>
     /// Returns associated <see cref="GraphicsDeviceManager"/>.
@@ -136,11 +139,6 @@ public class Manager : DrawableGameComponent
     public virtual bool ToolTipsEnabled { get; set; } = true;
 
     /// <summary>
-    /// Enables or disables logging of unhandled exceptions. 
-    /// </summary>
-    public virtual bool LogUnhandledExceptions { get; set; } = true;
-
-    /// <summary>
     /// Enables or disables input processing.                   
     /// </summary>
     public virtual bool InputEnabled
@@ -152,11 +150,7 @@ public class Manager : DrawableGameComponent
     /// <summary>
     /// Gets or sets render target for drawing.                 
     /// </summary>    
-    public virtual RenderTarget2D RenderTarget
-    {
-        get => _renderTarget;
-        set => _renderTarget = value;
-    }
+    public RenderTarget2D RenderTarget { get; set; }
 
     /// <summary>
     /// Gets or sets update interval for drawing, logic and input.                           
@@ -270,9 +264,9 @@ public class Manager : DrawableGameComponent
     {
         get
         {
-            if (_renderTarget != null)
+            if (RenderTarget != null)
             {
-                return _renderTarget.Width;
+                return RenderTarget.Width;
             }
 
             return ScreenWidth;
@@ -286,9 +280,9 @@ public class Manager : DrawableGameComponent
     {
         get
         {
-            if (_renderTarget != null)
+            if (RenderTarget != null)
             {
-                return _renderTarget.Height;
+                return RenderTarget.Height;
             }
 
             return ScreenHeight;
@@ -428,20 +422,20 @@ public class Manager : DrawableGameComponent
     /// Initializes a new instance of the Manager class.
     /// </summary>
     /// <param name="game">
-    /// The Game class.
+    ///     The Game class.
     /// </param>
     /// <param name="graphics">
-    /// The GraphicsDeviceManager class provided by the Game class.
+    ///     The GraphicsDeviceManager class provided by the Game class.
     /// </param>
     /// <param name="skin">
-    /// The name of the skin being loaded at the start.
+    ///     The name of the skin being loaded at the start.
     /// </param>
-    public Manager(Game game, IGraphicsDeviceService graphics, string skin)
+    /// <param name="archiveManager"></param>
+    /// <param name="logger"></param>
+    public Manager(Game game, IGraphicsDeviceService graphics, string skin, IArchiveManager archiveManager, ILog logger)
         : base(game)
     {
         _disposing = false;
-
-        //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleUnhadledExceptions);
 
         _content = new ArchiveManager(Game.Services);
         _input = new InputSystem(this, new InputOffset(0, 0, 1f, 1f));
@@ -450,11 +444,13 @@ public class Manager : DrawableGameComponent
         OrderList = new ControlsList();
 
         Graphics = graphics;
-        graphics.DeviceReset += GraphicsOnDeviceReset; //new EventHandler<PreparingDeviceSettingsEventArgs>(PrepareGraphicsDevice);
+        graphics.DeviceReset += GraphicsOnDeviceReset;
         graphics.DeviceResetting += GraphicsOnDeviceReset;
         graphics.DeviceCreated += GraphicsOnDeviceReset;
 
         _skinName = skin;
+        _archiveManager = archiveManager;
+        Logger = logger;
 
 #if (XBOX_FAKE)
         game.Window.Title += " (XBOX_FAKE)";
@@ -464,19 +460,19 @@ public class Manager : DrawableGameComponent
         _states.Click = -1;
         _states.Over = null;
 
-        _input.MouseDown += new MouseEventHandler(MouseDownProcess);
-        _input.MouseUp += new MouseEventHandler(MouseUpProcess);
-        _input.MousePress += new MouseEventHandler(MousePressProcess);
-        _input.MouseMove += new MouseEventHandler(MouseMoveProcess);
-        _input.MouseScroll += new MouseEventHandler(MouseScrollProcess);
+        _input.MouseDown += MouseDownProcess;
+        _input.MouseUp += MouseUpProcess;
+        _input.MousePress += MousePressProcess;
+        _input.MouseMove += MouseMoveProcess;
+        _input.MouseScroll += MouseScrollProcess;
 
-        _input.GamePadDown += new GamePadEventHandler(GamePadDownProcess);
-        _input.GamePadUp += new GamePadEventHandler(GamePadUpProcess);
-        _input.GamePadPress += new GamePadEventHandler(GamePadPressProcess);
+        _input.GamePadDown += GamePadDownProcess;
+        _input.GamePadUp += GamePadUpProcess;
+        _input.GamePadPress += GamePadPressProcess;
 
-        _input.KeyDown += new KeyEventHandler(KeyDownProcess);
-        _input.KeyUp += new KeyEventHandler(KeyUpProcess);
-        _input.KeyPress += new KeyEventHandler(KeyPressProcess);
+        _input.KeyDown += KeyDownProcess;
+        _input.KeyUp += KeyUpProcess;
+        _input.KeyPress += KeyPressProcess;
 
         _keyboardLayouts.Add(new KeyboardLayout());
         _keyboardLayouts.Add(new CzechKeyboardLayout());
@@ -492,8 +488,8 @@ public class Manager : DrawableGameComponent
     /// <param name="skin">
     /// The name of the skin being loaded at the start.
     /// </param>
-    public Manager(Game game, string skin)
-        : this(game, game.Services.GetService<IGraphicsDeviceService>(), skin)
+    public Manager(Game game, string skin, IArchiveManager archiveManager, ILog logger)
+        : this(game, game.Services.GetService<IGraphicsDeviceService>(), skin, archiveManager, logger)
     {
     }
 
@@ -501,13 +497,14 @@ public class Manager : DrawableGameComponent
     /// Initializes a new instance of the Manager class, loads the default skin and registers manager in the game class automatically.
     /// </summary>
     /// <param name="game">
-    /// The Game class.
+    ///     The Game class.
     /// </param>
     /// <param name="graphics">
-    /// The GraphicsDeviceManager class provided by the Game class.
+    ///     The GraphicsDeviceManager class provided by the Game class.
     /// </param>
-    public Manager(Game game, IGraphicsDeviceService graphics)
-        : this(game, graphics, DefaultSkin)
+    /// <param name="archiveManager"></param>
+    public Manager(Game game, IGraphicsDeviceService graphics, IArchiveManager archiveManager, ILog logger)
+        : this(game, graphics, DefaultSkin, archiveManager, logger)
     {
     }
 
@@ -517,8 +514,12 @@ public class Manager : DrawableGameComponent
     /// <param name="game">
     /// The Game class.
     /// </param>
-    public Manager(Game game)
-        : this(game, game.Services.GetService(typeof(IGraphicsDeviceManager)) as GraphicsDeviceManager, DefaultSkin)
+    public Manager(Game game, ILog logger)
+        : this(game,
+            game.Services.GetService(typeof(IGraphicsDeviceManager)) as GraphicsDeviceManager,
+            DefaultSkin,
+            new ArchiveManager(game.Services),
+            logger)
     {
     }
 
@@ -574,7 +575,7 @@ public class Manager : DrawableGameComponent
         }
         if (GraphicsDevice != null)
         {
-            GraphicsDevice.DeviceReset -= new EventHandler<System.EventArgs>(GraphicsDevice_DeviceReset);
+            GraphicsDevice.DeviceReset -= GraphicsDevice_DeviceReset;
         }
 
         base.Dispose(disposing);
@@ -676,22 +677,22 @@ public class Manager : DrawableGameComponent
     {
         base.Initialize();
 
-        Game.Window.ClientSizeChanged += (object sender, System.EventArgs e) =>
+        Game.Window.ClientSizeChanged += (sender, e) =>
         {
             InvalidateRenderTarget();
         };
 
         if (_autoCreateRenderTarget)
         {
-            _renderTarget?.Dispose();
-            _renderTarget = CreateRenderTarget();
+            RenderTarget?.Dispose();
+            RenderTarget = CreateRenderTarget();
         }
 
-        GraphicsDevice.DeviceReset += new EventHandler<System.EventArgs>(GraphicsDevice_DeviceReset);
+        GraphicsDevice.DeviceReset += GraphicsDevice_DeviceReset;
 
         _input.Initialize();
         _renderer = new Renderer(this);
-        SetSkin(_skinName);
+        SetSkin(_skinName, _archiveManager);
     }
 
     private void InvalidateRenderTarget()
@@ -714,11 +715,12 @@ public class Manager : DrawableGameComponent
     /// Sets and loads the new skin.
     /// </summary>
     /// <param name="name">
-    /// The name of the skin being loaded.
+    ///     The name of the skin being loaded.
     /// </param>
-    public virtual void SetSkin(string name)
+    /// <param name="archiveManager"></param>
+    public virtual void SetSkin(string name, IArchiveManager archiveManager)
     {
-        var skin = new Skin(this, name);
+        var skin = new Skin(this, name, archiveManager);
         SetSkin(skin);
     }
 
@@ -892,9 +894,9 @@ public class Manager : DrawableGameComponent
                     item.Focused = true;
                 }
 
-                DeviceSettingsChanged += new DeviceEventHandler(item.OnDeviceSettingsChanged);
-                SkinChanging += new SkinEventHandler(item.OnSkinChanging);
-                SkinChanged += new SkinEventHandler(item.OnSkinChanged);
+                DeviceSettingsChanged += item.OnDeviceSettingsChanged;
+                SkinChanging += item.OnSkinChanging;
+                SkinChanged += item.OnSkinChanged;
             }
             else if (!(component is Control) && !_components.Contains(component))
             {
@@ -949,7 +951,7 @@ public class Manager : DrawableGameComponent
     {
         if (!_renderTargetValid && AutoCreateRenderTarget)
         {
-            if (_renderTarget != null)
+            if (RenderTarget != null)
             {
                 RenderTarget.Dispose();
             }
@@ -958,21 +960,23 @@ public class Manager : DrawableGameComponent
             _renderer = new Renderer(this);
             _renderTargetValid = true;
         }
-        Draw(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
     {
-        if (_renderTarget != null)
-        {
-            _drawTime += gameTime.ElapsedGameTime.Ticks;
-            var ms = TimeSpan.FromTicks(_drawTime).TotalMilliseconds;
+        BeginDraw(gameTime);
+        DrawInternal(gameTime);
+        EndDraw();
+    }
 
-            //if (targetFrames == 0 || (ms == 0 || ms >= (1000f / targetFrames)))
-            //{
+    private void DrawInternal(GameTime gameTime)
+    {
+        if (RenderTarget != null)
+        {
+            /*_drawTime += gameTime.ElapsedGameTime.Ticks;
             var span = TimeSpan.FromTicks(_drawTime);
             gameTime = new GameTime(gameTime.TotalGameTime, span);
-            _drawTime = 0;
+            _drawTime = 0;*/
 
             if (_controls != null)
             {
@@ -984,8 +988,9 @@ public class Manager : DrawableGameComponent
                     c.PrepareTexture(_renderer, gameTime);
                 }
 
-                GraphicsDevice.SetRenderTarget(_renderTarget);
-                GraphicsDevice.Clear(Color.Transparent);
+                //TODO : handle rendertarget differently => SetRenderTarget() => clear the backbuffer
+                //GraphicsDevice.SetRenderTarget(RenderTarget);
+                //GraphicsDevice.Clear(Color.Transparent);
 
                 if (_renderer != null)
                 {
@@ -998,24 +1003,22 @@ public class Manager : DrawableGameComponent
 
             if (ShowSoftwareCursor && Cursor != null)
             {
-                if (Cursor.CursorTexture == null)
-                {
-                    Cursor.CursorTexture = Texture2D.FromStream(GraphicsDevice, new FileStream(
-                        Cursor.CursorPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None));
-                }
                 _renderer.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
                 var mstate = Mouse.GetState();
                 var rect = new Rectangle(mstate.X, mstate.Y, Cursor.Width, Cursor.Height);
                 _renderer.SpriteBatch.Draw(Cursor.CursorTexture, rect, null, Color.White, 0f, Cursor.HotSpot, SpriteEffects.None, 0f);
                 _renderer.SpriteBatch.End();
             }
+            /*
+            var fileStream = File.Create("d:\\screenshot_renderer.jpeg");
+            _renderTarget.SaveAsJpeg(fileStream, _renderTarget.Width, _renderTarget.Height);
+            fileStream.Dispose();*/
 
             GraphicsDevice.SetRenderTarget(null);
-            //}
         }
         else
         {
-            throw new Exception("Manager.RenderTarget has to be specified. Assign a render target or set Manager.AutoCreateRenderTarget property to true.");
+            Logger.WriteLineError("Manager.RenderTarget has to be specified. Assign a render target or set Manager.AutoCreateRenderTarget property to true.");
         }
     }
 
@@ -1034,7 +1037,7 @@ public class Manager : DrawableGameComponent
 
     public virtual void EndDraw(Rectangle rect)
     {
-        if (_renderTarget != null && !_deviceReset)
+        if (RenderTarget != null && !_deviceReset)
         {
             _renderer.Begin(BlendingMode.Default);
             _renderer.Draw(RenderTarget, rect, Color.White);
@@ -1050,50 +1053,18 @@ public class Manager : DrawableGameComponent
     {
         foreach (var c in Controls)
         {
-            if (c.Name.ToLower() == name.ToLower())
+            if (string.Equals(c.Name, name, StringComparison.InvariantCultureIgnoreCase))
             {
                 return c;
             }
         }
         return null;
     }
-    /*
-    private void HandleUnhadledExceptions(object sender, UnhandledExceptionEventArgs e)
-    {
-        if (LogUnhandledExceptions)
-        {
-            LogException(e.ExceptionObject as Exception);
-        }
-    }
-    */
+
     private void GraphicsDevice_DeviceReset(object sender, System.EventArgs e)
     {
         _deviceReset = true;
         InvalidateRenderTarget();
-        /*if (AutoCreateRenderTarget) 
-        {
-          if (renderTarget != null) RenderTarget.Dispose();
-          RenderTarget = CreateRenderTarget();        
-        }
-        }*/
-    }
-
-    public virtual void LogException(Exception e)
-    {
-
-        var an = Assembly.GetEntryAssembly().Location;
-        var asm = Assembly.GetAssembly(typeof(Manager));
-        var path = Path.GetDirectoryName(an);
-        var fn = path + "\\" + Path.GetFileNameWithoutExtension(asm.Location) + ".log";
-
-        File.AppendAllText(fn, "////////////////////////////////////////////////////////////////\n" +
-                               "    Date: " + DateTime.Now.ToString() + "\n" +
-                               "Assembly: " + Path.GetFileName(asm.Location) + "\n" +
-                               " Version: " + asm.GetName().Version.ToString() + "\n" +
-                               " Message: " + e.Message + "\n" +
-                               "////////////////////////////////////////////////////////////////\n" +
-                               e.StackTrace + "\n" +
-                               "////////////////////////////////////////////////////////////////\n\n", Encoding.Default);
     }
 
     private bool CheckParent(Control control, Point pos)

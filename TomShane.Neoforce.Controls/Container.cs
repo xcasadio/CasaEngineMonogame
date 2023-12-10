@@ -138,7 +138,7 @@ public class Container : ClipControl
         VerticalScrollBar.Init();
         VerticalScrollBar.Detached = false;
         VerticalScrollBar.Anchor = Anchors.Top | Anchors.Right | Anchors.Bottom;
-        VerticalScrollBar.ValueChanged += new EventHandler(ScrollBarValueChanged);
+        VerticalScrollBar.ValueChanged += ScrollBarValueChanged;
         VerticalScrollBar.Range = 0;
         VerticalScrollBar.PageSize = 0;
         VerticalScrollBar.Value = 0;
@@ -148,7 +148,7 @@ public class Container : ClipControl
         HorizontalScrollBar.Init();
         HorizontalScrollBar.Detached = false;
         HorizontalScrollBar.Anchor = Anchors.Right | Anchors.Left | Anchors.Bottom;
-        HorizontalScrollBar.ValueChanged += new EventHandler(ScrollBarValueChanged);
+        HorizontalScrollBar.ValueChanged += ScrollBarValueChanged;
         HorizontalScrollBar.Range = 0;
         HorizontalScrollBar.PageSize = 0;
         HorizontalScrollBar.Value = 0;

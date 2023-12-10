@@ -23,7 +23,7 @@ public class Component : Disposable
         }
         else
         {
-            throw new Exception("Component cannot be created. Manager instance is needed.");
+            Manager.Logger.WriteLineError("Component cannot be created. Manager instance is needed.");
         }
     }
 

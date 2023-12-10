@@ -1,4 +1,6 @@
-﻿namespace TomShane.Neoforce.Controls;
+﻿using TomShane.Neoforce.Controls.Skins;
+
+namespace TomShane.Neoforce.Controls;
 
 public class ToolBarButton : Button
 {

@@ -31,9 +31,6 @@
 			<HintPath>..\ThirdParties\BulletSharp\BulletSharp.dll</HintPath>
 		</Reference>
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Engine\Graphics\" />
-	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
 		<Message Text="Restoring dotnet tools" Importance="High" />
 		<Exec Command="dotnet tool restore" />

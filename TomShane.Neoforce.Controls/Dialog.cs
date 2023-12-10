@@ -1,3 +1,5 @@
+using TomShane.Neoforce.Controls.Skins;
+
 namespace TomShane.Neoforce.Controls;
 
 public class Dialog : Window

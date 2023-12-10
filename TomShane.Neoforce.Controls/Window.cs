@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -109,8 +110,8 @@ public class Window : ModalContainer
         _btnClose.Detached = true;
         _btnClose.CanFocus = false;
         _btnClose.Text = null;
-        _btnClose.Click += new EventHandler(btnClose_Click);
-        _btnClose.SkinChanged += new EventHandler(btnClose_SkinChanged);
+        _btnClose.Click += btnClose_Click;
+        _btnClose.SkinChanged += btnClose_SkinChanged;
 
         AdjustMargins();
 

@@ -114,7 +114,7 @@ public class ListBox : Control
         _pane.Anchor = Anchors.All;
         _pane.Passive = true;
         _pane.CanFocus = false;
-        _pane.Draw += new DrawEventHandler(DrawPane);
+        _pane.Draw += DrawPane;
 
         CanFocus = true;
         Passive = false;

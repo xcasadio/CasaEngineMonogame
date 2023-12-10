@@ -1,353 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using FontStashSharp;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace TomShane.Neoforce.Controls;
-
-public struct SkinStates<T>
-{
-    public T Enabled;
-    public T Hovered;
-    public T Pressed;
-    public T Focused;
-    public T Disabled;
-
-    public SkinStates(T enabled, T hovered, T pressed, T focused, T disabled)
-    {
-        Enabled = enabled;
-        Hovered = hovered;
-        Pressed = pressed;
-        Focused = focused;
-        Disabled = disabled;
-    }
-}
-
-public struct LayerStates
-{
-    public int Index;
-    public Color Color;
-    public bool Overlay;
-}
-
-public struct LayerOverlays
-{
-    public int Index;
-    public Color Color;
-}
-
-public struct SkinInfo
-{
-    public string Name;
-    public string Description;
-    public string Author;
-    public string Version;
-}
-
-public class SkinList<T> : List<T>
-{
-
-    public T this[string index]
-    {
-        get
-        {
-            for (var i = 0; i < Count; i++)
-            {
-                var s = (SkinBase)(object)this[i];
-                if (s.Name.ToLower() == index.ToLower())
-                {
-                    return this[i];
-                }
-            }
-            return default(T);
-        }
-
-        set
-        {
-            for (var i = 0; i < Count; i++)
-            {
-                var s = (SkinBase)(object)this[i];
-                if (s.Name.ToLower() == index.ToLower())
-                {
-                    this[i] = value;
-                }
-            }
-        }
-    }
-
-    public SkinList()
-        : base()
-    {
-    }
-
-    public SkinList(SkinList<T> source)
-        : base()
-    {
-        for (var i = 0; i < source.Count; i++)
-        {
-            var t = new Type[1];
-            t[0] = typeof(T);
-
-            var p = new object[1];
-            p[0] = source[i];
-
-            Add((T)t[0].GetConstructor(t).Invoke(p));
-        }
-    }
-
-}
-
-public class SkinBase
-{
-
-    public string Name;
-    public bool Archive;
-
-    public SkinBase()
-        : base()
-    {
-        Archive = false;
-    }
-
-    public SkinBase(SkinBase source)
-        : base()
-    {
-        if (source != null)
-        {
-            Name = source.Name;
-            Archive = source.Archive;
-        }
-    }
-
-}
-
-public class SkinLayer : SkinBase
-{
-
-    public SkinImage Image = new();
-    public int Width;
-    public int Height;
-    public int OffsetX;
-    public int OffsetY;
-    public Alignment Alignment;
-    public Margins SizingMargins;
-    public Margins ContentMargins;
-    public SkinStates<LayerStates> States;
-    public SkinStates<LayerOverlays> Overlays;
-    public readonly SkinText Text = new();
-    public readonly SkinList<SkinAttribute> Attributes = new();
-
-    public SkinLayer()
-        : base()
-    {
-        States.Enabled.Color = Color.White;
-        States.Pressed.Color = Color.White;
-        States.Focused.Color = Color.White;
-        States.Hovered.Color = Color.White;
-        States.Disabled.Color = Color.White;
-
-        Overlays.Enabled.Color = Color.White;
-        Overlays.Pressed.Color = Color.White;
-        Overlays.Focused.Color = Color.White;
-        Overlays.Hovered.Color = Color.White;
-        Overlays.Disabled.Color = Color.White;
-    }
-
-    public SkinLayer(SkinLayer source)
-        : base(source)
-    {
-        if (source != null)
-        {
-            Image = new SkinImage(source.Image);
-            Width = source.Width;
-            Height = source.Height;
-            OffsetX = source.OffsetX;
-            OffsetY = source.OffsetY;
-            Alignment = source.Alignment;
-            SizingMargins = source.SizingMargins;
-            ContentMargins = source.ContentMargins;
-            States = source.States;
-            Overlays = source.Overlays;
-            Text = new SkinText(source.Text);
-            Attributes = new SkinList<SkinAttribute>(source.Attributes);
-        }
-        else
-        {
-            throw new Exception("Parameter for SkinLayer copy constructor cannot be null.");
-        }
-    }
-
-}
-
-public class SkinText : SkinBase
-{
-
-    public SkinFont Font;
-    public int OffsetX;
-    public int OffsetY;
-    public Alignment Alignment;
-    public SkinStates<Color> Colors;
-
-    public SkinText()
-        : base()
-    {
-        Colors.Enabled = Color.White;
-        Colors.Pressed = Color.White;
-        Colors.Focused = Color.White;
-        Colors.Hovered = Color.White;
-        Colors.Disabled = Color.White;
-    }
-
-    public SkinText(SkinText source)
-        : base(source)
-    {
-        if (source != null)
-        {
-            Font = new SkinFont(source.Font);
-            OffsetX = source.OffsetX;
-            OffsetY = source.OffsetY;
-            Alignment = source.Alignment;
-            Colors = source.Colors;
-        }
-    }
-
-}
-
-public class SkinFont : SkinBase
-{
-
-    public SpriteFontBase Resource;
-    public string Asset;
-    public string Addon;
-
-    public int Height
-    {
-        get
-        {
-            if (Resource != null)
-            {
-                return (int)Resource.MeasureString("AaYy").Y;
-            }
-            return 0;
-        }
-    }
-
-    public SkinFont()
-        : base()
-    {
-    }
-
-    public SkinFont(SkinFont source)
-        : base(source)
-    {
-        if (source != null)
-        {
-            Resource = source.Resource;
-            Asset = source.Asset;
-        }
-    }
-
-}
-
-public class SkinImage : SkinBase
-{
-
-    public Texture2D Resource;
-    public string Asset;
-    public string Addon;
-
-    public SkinImage()
-        : base()
-    {
-    }
-
-    public SkinImage(SkinImage source)
-        : base(source)
-    {
-        Resource = source.Resource;
-        Asset = source.Asset;
-    }
-
-}
-
-public class SkinCursor : SkinBase
-{
-    public Cursor Resource;
-
-    public string Asset;
-    public string Addon;
-
-    public SkinCursor()
-        : base()
-    {
-    }
-
-    public SkinCursor(SkinCursor source)
-        : base(source)
-    {
-        Resource = source.Resource;
-
-        Asset = source.Asset;
-    }
-
-}
-
-public class SkinControl : SkinBase
-{
-
-    public string Inherits;
-    public Size DefaultSize;
-    public int ResizerSize;
-    public Size MinimumSize;
-    public Margins OriginMargins;
-    public Margins ClientMargins;
-    public readonly SkinList<SkinLayer> Layers = new();
-    public readonly SkinList<SkinAttribute> Attributes = new();
-
-    public SkinControl()
-        : base()
-    {
-    }
-
-    public SkinControl(SkinControl source)
-        : base(source)
-    {
-        Inherits = source.Inherits;
-        DefaultSize = source.DefaultSize;
-        MinimumSize = source.MinimumSize;
-        OriginMargins = source.OriginMargins;
-        ClientMargins = source.ClientMargins;
-        ResizerSize = source.ResizerSize;
-        Layers = new SkinList<SkinLayer>(source.Layers);
-        Attributes = new SkinList<SkinAttribute>(source.Attributes);
-    }
-
-}
-
-public class SkinAttribute : SkinBase
-{
-
-    public string Value;
-
-    public SkinAttribute()
-        : base()
-    {
-    }
-
-    public SkinAttribute(SkinAttribute source)
-        : base(source)
-    {
-        Value = source.Value;
-    }
-
-}
+namespace TomShane.Neoforce.Controls.Skins;
 
 public class Skin : Component
 {
-
     SkinXmlDocument _doc;
     private string _name;
     private Version _version;
@@ -357,7 +18,7 @@ public class Skin : Component
     private SkinList<SkinCursor> _cursors;
     private SkinList<SkinImage> _images;
     private SkinList<SkinAttribute> _attributes;
-    private ArchiveManager _content;
+    private IArchiveManager _content;
 
     public virtual string Name => _name;
     public virtual Version Version => _version;
@@ -368,11 +29,11 @@ public class Skin : Component
     public virtual SkinList<SkinImage> Images => _images;
     public virtual SkinList<SkinAttribute> Attributes => _attributes;
 
-    public Skin(Manager manager, string name)
+    public Skin(Manager manager, string name, IArchiveManager content)
         : base(manager)
     {
         _name = name;
-        _content = new ArchiveManager(Manager.Game.Services, GetArchiveLocation(name + Manager.SkinExtension));
+        _content = content ?? new ArchiveManager(Manager.Game.Services);
         _content.RootDirectory = GetFolder();
         _doc = new SkinXmlDocument();
         _controls = new SkinList<SkinControl>();
@@ -396,12 +57,12 @@ public class Skin : Component
 
         var addons = _content.GetDirectories(folder);
 
-        if (addons != null && addons.Length > 0)
+        if (addons is { Length: > 0 })
         {
             for (var i = 0; i < addons.Length; i++)
             {
                 var d = new DirectoryInfo(GetAddonsFolder() + addons[i]);
-                if (!((d.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden) || _content.UseArchive)
+                if ((d.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden || _content.UseArchive)
                 {
                     LoadSkin(addons[i].Replace("\\", ""), _content.UseArchive);
                 }
@@ -427,7 +88,7 @@ public class Skin : Component
     private string GetArchiveLocation(string name)
     {
         var path = Path.GetFullPath(Manager.SkinDirectory) + Path.GetFileNameWithoutExtension(name) + "\\";
-        if (!Directory.Exists(path) || !File.Exists(path + "Skin.xnb"))
+        if (!Directory.Exists(path) /*|| !File.Exists(path + "Skin.xnb")*/)
         {
             path = Path.GetFullPath(Manager.SkinDirectory) + name;
             return path;
@@ -439,9 +100,9 @@ public class Skin : Component
     private string GetFolder()
     {
         var path = Path.GetFullPath(Manager.SkinDirectory) + _name + "\\";
-        if (!Directory.Exists(path) || !File.Exists(path + "Skin.xnb"))
+        if (!Directory.Exists(path) /*|| !File.Exists(path + "Skin.xnb")*/)
         {
-            path = "";
+            path = string.Empty;
         }
 
         return path;
@@ -470,7 +131,7 @@ public class Skin : Component
     private string GetAsset(string type, string asset, string addon)
     {
         var ret = GetFolder(type) + asset;
-        if (addon != null && addon != "")
+        if (!string.IsNullOrEmpty(addon))
         {
             ret = GetAddonsFolder() + addon + "\\" + type + "\\" + asset;
         }
@@ -484,7 +145,7 @@ public class Skin : Component
         for (var i = 0; i < _fonts.Count; i++)
         {
             _content.UseArchive = _fonts[i].Archive;
-            var asset = GetAsset("Fonts", _fonts[i].Asset, _fonts[i].Addon);
+            var asset = GetAsset("Fonts", _fonts[i].Asset + ".ttf", _fonts[i].Addon);
             asset = _content.UseArchive ? asset : Path.GetFullPath(asset);
 
             //TODO
@@ -498,7 +159,7 @@ public class Skin : Component
         for (var i = 0; i < _cursors.Count; i++)
         {
             _content.UseArchive = _cursors[i].Archive;
-            var asset = GetAsset("Cursors", _cursors[i].Asset, _cursors[i].Addon);
+            var asset = GetAsset("Cursors", _cursors[i].Asset + ".cur", _cursors[i].Addon);
             asset = _content.UseArchive ? asset : Path.GetFullPath(asset);
             _cursors[i].Resource = _content.Load<Cursor>(asset);
         }
@@ -506,7 +167,7 @@ public class Skin : Component
         for (var i = 0; i < _images.Count; i++)
         {
             _content.UseArchive = _images[i].Archive;
-            var asset = GetAsset("Images", _images[i].Asset, _images[i].Addon);
+            var asset = GetAsset("Textures", _images[i].Asset + ".png", _images[i].Addon);
             asset = _content.UseArchive ? asset : Path.GetFullPath(asset);
             _images[i].Resource = _content.Load<Texture2D>(asset);
         }
@@ -545,7 +206,7 @@ public class Skin : Component
 
         if (needed)
         {
-            throw new Exception("Missing required attribute \"" + attrib + "\" in the skin file.");
+            Manager.Logger.WriteLineError("Missing required attribute \"" + attrib + "\" in the skin file.");
         }
         return defval;
     }
@@ -561,7 +222,7 @@ public class Skin : Component
         }
         else if (needed)
         {
-            throw new Exception("Missing required attribute \"" + attrib + "\" in the skin file.");
+            Manager.Logger.WriteLineError("Missing required attribute \"" + attrib + "\" in the skin file.");
         }
         else
         {
@@ -621,16 +282,18 @@ public class Skin : Component
     {
         try
         {
-            var isaddon = addon != null && addon != "";
+            var isaddon = !string.IsNullOrEmpty(addon);
             var file = GetFolder();
             if (isaddon)
             {
                 file = GetAddonsFolder() + addon + "\\";
             }
-            file += "Skin";
+
+            file += "Description.skin";
 
             file = archive ? file : Path.GetFullPath(file);
-            _doc = _content.Load<SkinXmlDocument>(file);
+            _doc = new SkinXmlDocument();
+            _doc.Load(file);
 
             var e = _doc["Skin"];
             if (e != null)
@@ -638,18 +301,18 @@ public class Skin : Component
                 var xname = ReadAttribute(e, "Name", null, true);
                 if (!isaddon)
                 {
-                    if (_name.ToLower() != xname.ToLower())
+                    if (!string.Equals(_name, xname, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        throw new Exception("Skin name defined in the skin file doesn't match requested skin.");
+                        Manager.Logger.WriteLineError("Skin name defined in the skin file doesn't match requested skin.");
                     }
 
                     _name = xname;
                 }
                 else
                 {
-                    if (addon.ToLower() != xname.ToLower())
+                    if (!string.Equals(addon, xname, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        throw new Exception("Skin name defined in the skin file doesn't match addon name.");
+                        Manager.Logger.WriteLineError("Skin name defined in the skin file doesn't match addon name.");
                     }
                 }
 
@@ -660,12 +323,12 @@ public class Skin : Component
                 }
                 catch (Exception x)
                 {
-                    throw new Exception("Unable to resolve skin file version. " + x.Message);
+                    Manager.Logger.WriteLineError("Unable to resolve skin file version. " + x.Message);
                 }
 
                 if (xversion != Manager.SkinVersion)
                 {
-                    throw new Exception("This version of Neoforce Controls can only read skin files in version of " + Manager.SkinVersion.ToString() + ".");
+                    Manager.Logger.WriteLineError("This version of Neoforce Controls can only read skin files in version of " + Manager.SkinVersion.ToString() + ".");
                 }
 
                 if (!isaddon)
@@ -709,7 +372,7 @@ public class Skin : Component
         }
         catch (Exception x)
         {
-            throw new Exception("Unable to load skin file. " + x.Message);
+            Manager.Logger.WriteLineError("Unable to load skin file. " + x.Message);
         }
     }
 

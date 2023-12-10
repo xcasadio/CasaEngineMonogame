@@ -3,9 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
-/// <summary>
-/// Provides a basic Software cursor
-/// </summary>
 public class Cursor
 {
     public Texture2D CursorTexture { get; set; }

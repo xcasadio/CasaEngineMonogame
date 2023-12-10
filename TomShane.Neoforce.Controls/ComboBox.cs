@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -100,7 +101,7 @@ public class ComboBox : TextBox
         _btnDown.Init();
         _btnDown.Skin = new SkinControl(Manager.Skin.Controls["ComboBox.Button"]);
         _btnDown.CanFocus = false;
-        _btnDown.Click += new EventHandler(btnDown_Click);
+        _btnDown.Click += btnDown_Click;
         Add(_btnDown, false);
 
         _lstCombo = new ListBox(Manager);
@@ -108,10 +109,10 @@ public class ComboBox : TextBox
         _lstCombo.HotTrack = true;
         _lstCombo.Detached = true;
         _lstCombo.Visible = false;
-        _lstCombo.Click += new EventHandler(lstCombo_Click);
-        _lstCombo.FocusLost += new EventHandler(lstCombo_FocusLost);
+        _lstCombo.Click += lstCombo_Click;
+        _lstCombo.FocusLost += lstCombo_FocusLost;
         _lstCombo.Items = _items;
-        manager.Input.MouseDown += new MouseEventHandler(Input_MouseDown);
+        manager.Input.MouseDown += Input_MouseDown;
     }
 
     protected override void Dispose(bool disposing)

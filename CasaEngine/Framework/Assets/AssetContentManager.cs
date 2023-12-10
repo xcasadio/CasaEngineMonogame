@@ -114,6 +114,22 @@ public class AssetContentManager
         return newAsset;
     }
 
+    [Obsolete("Used only for neoforce controls")]
+    public T LoadDirectly<T>(string assetFileName)
+    {
+        var type = typeof(T);
+
+        if (!_assetLoaderByType.ContainsKey(type))
+        {
+            throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
+        }
+
+        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetFileName);
+        LogManager.Instance.WriteLineTrace($"Load asset {fullFileName}");
+        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+        return newAsset;
+    }
+
     public void Unload(string categoryName)
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList) == false)

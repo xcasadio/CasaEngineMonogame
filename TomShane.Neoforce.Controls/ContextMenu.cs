@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -18,7 +19,7 @@ public class ContextMenu : MenuBase
         Detached = true;
         StayOnBack = true;
 
-        Manager.Input.MouseDown += new MouseEventHandler(Input_MouseDown);
+        Manager.Input.MouseDown += Input_MouseDown;
     }
 
     protected override void Dispose(bool disposing)

@@ -92,7 +92,7 @@ public class TabControl : Container
     public TabControl(Manager manager) : base(manager)
     {
         GamePadActions = new TabControlGamePadActions();
-        Manager.Input.GamePadDown += new GamePadEventHandler(Input_GamePadDown);
+        Manager.Input.GamePadDown += Input_GamePadDown;
         CanFocus = false;
     }
 

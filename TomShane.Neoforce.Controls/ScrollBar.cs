@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -152,7 +153,7 @@ public class ScrollBar : Control
         _btnMinus = new Button(Manager);
         _btnMinus.Init();
         _btnMinus.Text = "";
-        _btnMinus.MousePress += new MouseEventHandler(ArrowPress);
+        _btnMinus.MousePress += ArrowPress;
         _btnMinus.CanFocus = false;
 
         _btnSlider = new Button(Manager);
@@ -165,10 +166,10 @@ public class ScrollBar : Control
         _btnPlus = new Button(Manager);
         _btnPlus.Init();
         _btnPlus.Text = "";
-        _btnPlus.MousePress += new MouseEventHandler(ArrowPress);
+        _btnPlus.MousePress += ArrowPress;
         _btnPlus.CanFocus = false;
 
-        _btnSlider.Move += new MoveEventHandler(btnSlider_Move);
+        _btnSlider.Move += btnSlider_Move;
 
         Add(_btnMinus);
         Add(_btnSlider);
@@ -293,7 +294,9 @@ public class ScrollBar : Control
 
     private void RecalcParams()
     {
-        if (_btnMinus != null && _btnPlus != null && _btnSlider != null)
+        var skinLayerSlider = Skin?.Layers[_strSlider];
+
+        if (_btnMinus != null && _btnPlus != null && _btnSlider != null && skinLayerSlider != null)
         {
             if (_orientation == Orientation.Horizontal)
             {
@@ -306,7 +309,7 @@ public class ScrollBar : Control
                 _btnPlus.Top = 0;
 
                 _btnSlider.Movable = true;
-                var size = _btnMinus.Width + Skin.Layers[_strSlider].OffsetX;
+                var size = _btnMinus.Width + skinLayerSlider.OffsetX;
 
                 _btnSlider.MinimumWidth = Height;
                 var w = Width - 2 * size;
@@ -336,7 +339,7 @@ public class ScrollBar : Control
                 _btnPlus.Top = Height - Width;
 
                 _btnSlider.Movable = true;
-                var size = _btnMinus.Height + Skin.Layers[_strSlider].OffsetY;
+                var size = _btnMinus.Height + skinLayerSlider.OffsetY;
 
                 _btnSlider.MinimumHeight = Width;
                 var h = Height - 2 * size;

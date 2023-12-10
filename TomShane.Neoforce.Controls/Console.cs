@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -142,9 +143,9 @@ public class Console : Container
         get => _buffer;
         set
         {
-            _buffer.ItemAdded -= new EventHandler(buffer_ItemAdded);
+            _buffer.ItemAdded -= buffer_ItemAdded;
             _buffer = value;
-            _buffer.ItemAdded += new EventHandler(buffer_ItemAdded);
+            _buffer.ItemAdded += buffer_ItemAdded;
         }
     }
 
@@ -153,9 +154,9 @@ public class Console : Container
         get => _channels;
         set
         {
-            _channels.ItemAdded -= new EventHandler(channels_ItemAdded);
+            _channels.ItemAdded -= channels_ItemAdded;
             _channels = value;
-            _channels.ItemAdded += new EventHandler(channels_ItemAdded);
+            _channels.ItemAdded += channels_ItemAdded;
             channels_ItemAdded(null, null);
         }
     }
@@ -240,23 +241,23 @@ public class Console : Container
         _txtMain.Anchor = Anchors.Left | Anchors.Bottom | Anchors.Right;
         _txtMain.Detached = false;
         _txtMain.Visible = _textBoxVisible;
-        _txtMain.KeyDown += new KeyEventHandler(txtMain_KeyDown);
-        _txtMain.GamePadDown += new GamePadEventHandler(txtMain_GamePadDown);
-        _txtMain.FocusGained += new EventHandler(txtMain_FocusGained);
+        _txtMain.KeyDown += txtMain_KeyDown;
+        _txtMain.GamePadDown += txtMain_GamePadDown;
+        _txtMain.FocusGained += txtMain_FocusGained;
         Add(_txtMain, false);
 
         VerticalScrollBar.Top = 2;
         VerticalScrollBar.Left = Width - 18;
         VerticalScrollBar.Range = 1;
         VerticalScrollBar.PageSize = 1;
-        VerticalScrollBar.ValueChanged += new EventHandler(VerticalScrollBar_ValueChanged);
+        VerticalScrollBar.ValueChanged += VerticalScrollBar_ValueChanged;
         VerticalScrollBar.Visible = true;
 
-        ClientArea.Draw += new DrawEventHandler(ClientArea_Draw);
+        ClientArea.Draw += ClientArea_Draw;
 
-        _buffer.ItemAdded += new EventHandler(buffer_ItemAdded);
-        _channels.ItemAdded += new EventHandler(channels_ItemAdded);
-        _channels.ItemRemoved += new EventHandler(channels_ItemRemoved);
+        _buffer.ItemAdded += buffer_ItemAdded;
+        _channels.ItemAdded += channels_ItemAdded;
+        _channels.ItemRemoved += channels_ItemRemoved;
 
         PositionControls();
     }

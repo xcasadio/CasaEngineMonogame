@@ -9,6 +9,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Screen = CasaEngine.Framework.GUI.Screen;
 
 namespace CasaEngine.Framework.World;
 
@@ -17,6 +18,8 @@ public sealed class World : Asset
     private readonly List<EntityReference> _entityReferences = new();
     private readonly List<Entity> _entities = new();
     private readonly List<Entity> _baseObjectsToAdd = new();
+
+    private List<GUI.Screen> Screens = new();
 
     public IList<Entity> Entities => _entities;
     public ExternalComponent? ExternalComponent { get; set; }
@@ -162,6 +165,34 @@ public sealed class World : Asset
         if (element.TryGetProperty("external_component", out var externalComponentNode))
         {
             ExternalComponent = GameSettings.ScriptLoader.Load(externalComponentNode);
+        }
+    }
+
+    public void AddScreen(Screen screen)
+    {
+        Screens.Add(screen);
+
+        foreach (var control in screen.Controls)
+        {
+            Game.GameManager.UiManager.Add(control);
+        }
+    }
+
+    public void RemoveScreen(Screen screen)
+    {
+        Screens.Remove(screen);
+
+        foreach (var control in screen.Controls)
+        {
+            Game.GameManager.UiManager.Remove(control);
+        }
+    }
+
+    public void ClearScreens()
+    {
+        foreach (var screen in Screens)
+        {
+            RemoveScreen(screen);
         }
     }
 

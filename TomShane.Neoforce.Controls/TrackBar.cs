@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using System;
+using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -131,9 +132,9 @@ public class TrackBar : Control
         _btnSlider.Anchor = Anchors.Left | Anchors.Top | Anchors.Bottom;
         _btnSlider.Detached = true;
         _btnSlider.Movable = true;
-        _btnSlider.Move += new MoveEventHandler(btnSlider_Move);
-        _btnSlider.KeyPress += new KeyEventHandler(btnSlider_KeyPress);
-        _btnSlider.GamePadPress += new GamePadEventHandler(btnSlider_GamePadPress);
+        _btnSlider.Move += btnSlider_Move;
+        _btnSlider.KeyPress += btnSlider_KeyPress;
+        _btnSlider.GamePadPress += btnSlider_GamePadPress;
     }
 
     public override void Init()

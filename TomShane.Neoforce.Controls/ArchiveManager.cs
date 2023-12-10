@@ -2,24 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework.Content;
+using TomShane.Neoforce.Controls.Skins;
 using TomShane.Neoforce.External.Zip;
 
 namespace TomShane.Neoforce.Controls;
 
-/// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Class[@name="ArchiveManager"]/*' />          
-public class ArchiveManager : ContentManager
+public class ArchiveManager : ContentManager, IArchiveManager
 {
     private ZipFile _archive;
 
-    /// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Member[@name="ArchivePath"]/*' />          
     public virtual string ArchivePath { get; }
 
     public bool UseArchive { get; set; }
 
-    /// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Member[@name="ArchiveManager"]/*' />              
     public ArchiveManager(IServiceProvider serviceProvider) : this(serviceProvider, null) { }
 
-    /// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Member[@name="ArchiveManager1"]/*' />                  
     public ArchiveManager(IServiceProvider serviceProvider, string archive) : base(serviceProvider)
     {
         if (archive != null)
@@ -30,7 +27,6 @@ public class ArchiveManager : ContentManager
         }
     }
 
-    /// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Member[@name="OpenStream"]/*' />
     protected override Stream OpenStream(string assetName)
     {
         if (UseArchive && _archive != null)
@@ -60,7 +56,6 @@ public class ArchiveManager : ContentManager
         return base.OpenStream(assetName);
     }
 
-    /// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Member[@name="GetAssetNames"]/*' />
     public string[] GetAssetNames()
     {
         if (UseArchive && _archive != null)
@@ -82,7 +77,6 @@ public class ArchiveManager : ContentManager
         return null;
     }
 
-    /// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Member[@name="GetAssetNames1"]/*' />        
     public string[] GetAssetNames(string path)
     {
         if (UseArchive && _archive != null)
@@ -131,7 +125,6 @@ public class ArchiveManager : ContentManager
         return null;
     }
 
-    /// <include file='Documents/ArchiveManager.xml' path='ArchiveManager/Member[@name="GetFileStream"]/*' />
     public Stream GetFileStream(string filename)
     {
         if (UseArchive && _archive != null)
@@ -210,5 +203,4 @@ public class ArchiveManager : ContentManager
         }
         return null;
     }
-
 }
