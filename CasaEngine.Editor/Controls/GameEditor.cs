@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
-using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Editor.Inputs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -15,6 +15,7 @@ public class GameEditor : WpfGame
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
+    public bool UseGui { get; protected set; } = false;
 
     protected override bool CanRender => _isInitialized && IsVisible;
 
@@ -22,8 +23,11 @@ public class GameEditor : WpfGame
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
         Game = new CasaEngineGame(null, graphicsDeviceService);
+        Game.GameManager.UseGui = UseGui;
         Game.GameManager.Initialize();
-        Game.GameManager.SetInputProvider(new KeyboardStateProvider(new WpfKeyboard(this)), new MouseStateProvider(new WpfMouse(this)));
+        Game.GameManager.SetInputProvider(
+            new KeyboardStateProvider(new WpfKeyboard(this)),
+            new MouseStateProvider(new WpfMouse(this)));
 
         //In editor mode the game is in idle mode so we don't update physics
         Game.GameManager.PhysicsEngineComponent.Enabled = false;
@@ -61,12 +65,15 @@ public class GameEditor : WpfGame
     {
         Game.GameManager.BeginUpdate(gameTime);
 
-        foreach (var component in Game.Components)
+        var sortedGameComponents = new List<GameComponent>(Game.Components.Count);
+        sortedGameComponents.AddRange(Game.Components
+            .Where(x => x is IUpdateable { Enabled: true })
+            .Cast<GameComponent>()
+            .OrderBy(x => x.UpdateOrder));
+
+        foreach (var component in sortedGameComponents)
         {
-            if (component is IUpdateable { Enabled: true } updateable)
-            {
-                updateable.Update(gameTime);
-            }
+            component.Update(gameTime);
         }
 
         base.Update(gameTime);
@@ -77,16 +84,18 @@ public class GameEditor : WpfGame
     {
         Game.GameManager.BeginDraw(gameTime);
 
-        foreach (var component in Game.Components)
+        var sortedGameComponents = new List<IDrawable>(Game.Components.Count);
+        sortedGameComponents.AddRange(Game.Components
+            .Where(x => x is IDrawable { Visible: true })
+            .Cast<IDrawable>()
+            .OrderBy(x => x.DrawOrder));
+
+        foreach (var component in sortedGameComponents)
         {
-            if (component is IDrawable { Visible: true } drawable)
-            {
-                drawable.Draw(gameTime);
-            }
+            component.Draw(gameTime);
         }
 
         base.Draw(gameTime);
         Game.GameManager.EndDraw(gameTime);
     }
-
 }

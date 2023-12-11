@@ -1069,7 +1069,9 @@ namespace XNAGizmo
                 return;
             }
 
+            _graphics.RasterizerState = RasterizerState.CullCounterClockwise;
             _graphics.DepthStencilState = DepthStencilState.None;
+            _graphics.BlendState = BlendState.Opaque;
 
             if (_view == Matrix.Identity || _projection == Matrix.Identity)
             {
@@ -1236,7 +1238,6 @@ namespace XNAGizmo
             }
 
             _graphics.DepthStencilState = DepthStencilState.Default;
-
             //if (_showLines)
             //  _lineRenderer.Draw(_gizmoWorld);
 

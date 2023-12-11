@@ -1,18 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
-	<ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Product>MonoGame</Product>
-    <PackageProjectUrl>https://www.monogame.net/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/h3ml/MonoGame.Framework.Wpf.Core</RepositoryUrl>
-    <Company>Contoso</Company>
-    <Authors>Contoso</Authors>
-    <Copyright></Copyright>
-  </PropertyGroup>
-  <ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Product>MonoGame</Product>
+		<PackageProjectUrl>https://www.monogame.net/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/h3ml/MonoGame.Framework.Wpf.Core</RepositoryUrl>
+		<Company>Contoso</Company>
+		<Authors>Contoso</Authors>
+		<Copyright></Copyright>
+	</PropertyGroup>
+	<ItemGroup>
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
-  </ItemGroup>
+	</ItemGroup>
 </Project>

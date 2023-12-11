@@ -9,7 +9,7 @@ namespace Microsoft.Xna.Framework
 {
     public abstract class D3D11Host : Image, IDisposable
     {
-        static readonly object GraphicsDeviceLock = new object();
+        static readonly object GraphicsDeviceLock = new();
         bool _isRendering;
 
         static GraphicsDevice _staticGraphicsDevice;
@@ -21,7 +21,7 @@ namespace Microsoft.Xna.Framework
         bool _disposed;
         TimeSpan _lastRenderingTime;
         bool _loaded;
-        bool GraphicsDeviceInitialized;
+        bool _graphicsDeviceInitialized;
 
         RenderTarget2D _sharedRenderTarget;
         RenderTarget2D _cachedRenderTarget;
@@ -30,8 +30,10 @@ namespace Microsoft.Xna.Framework
         bool _isActive;
         SpriteBatch _spriteBatch;
         double _dpiScalingFactor = 1;
-        static bool _useASingleSharedGraphicsDevice = false;
-        readonly List<IDisposable> _toBeDisposedNextFrame = new List<IDisposable>();
+        static bool _useASingleSharedGraphicsDevice;
+        readonly List<IDisposable> _toBeDisposedNextFrame = new();
+
+        public RenderTarget2D RenderTargetBackBuffer => _cachedRenderTarget;
 
         protected D3D11Host()
         {
@@ -49,10 +51,10 @@ namespace Microsoft.Xna.Framework
             StopRendering();
             UninitializeImageSource();
             DisposeRenderTargetsFromPreviousFrames();
-            if (GraphicsDeviceInitialized)
+            if (_graphicsDeviceInitialized)
             {
                 UninitializeGraphicsDevice();
-                GraphicsDeviceInitialized = false;
+                _graphicsDeviceInitialized = false;
             }
 
             if (_disposed)
@@ -263,7 +265,7 @@ namespace Microsoft.Xna.Framework
             });
         }
 
-        void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
+        protected virtual void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
         {
             var width = pp.BackBufferWidth;
             var height = pp.BackBufferHeight;
@@ -330,10 +332,10 @@ namespace Microsoft.Xna.Framework
                 IsActive = true;
             }
 
-            if (!GraphicsDeviceInitialized)
+            if (!_graphicsDeviceInitialized)
             {
                 InitializeGraphicsDevice();
-                GraphicsDeviceInitialized = true;
+                _graphicsDeviceInitialized = true;
             }
             InitializeImageSource();
             try

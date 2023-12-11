@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net6.0-windows</TargetFramework>
@@ -124,10 +123,13 @@
 			<SubType>Code</SubType>
 		</Compile>
 		<Compile Update="Controls\EntityControls\EntityEditorControl.xaml.cs">
-		  <SubType>Code</SubType>
+			<SubType>Code</SubType>
 		</Compile>
 		<Compile Update="Controls\EntityControls\GameEditorEntityControl.xaml.cs">
-		  <SubType>Code</SubType>
+			<SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Controls\GuiEditorControls\GuiEditorControl.xaml.cs">
+			<SubType>Code</SubType>
 		</Compile>
 	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">

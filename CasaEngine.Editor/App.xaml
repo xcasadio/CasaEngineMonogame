@@ -4,6 +4,9 @@
              xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
              StartupUri="ProjectLauncherWindow.xaml">
     <Application.Resources>
+        <RoutedUICommand x:Key="Commands.GUI.Load" />
+        <RoutedUICommand x:Key="Commands.GUI.Save" />
+
         <RoutedUICommand x:Key="Commands.Sprite.Load" />
         <RoutedUICommand x:Key="Commands.Sprite.Save" />
 

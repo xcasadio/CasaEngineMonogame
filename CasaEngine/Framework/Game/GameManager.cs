@@ -1,5 +1,6 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Logger;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
@@ -19,7 +20,6 @@ using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TomShane.Neoforce.Controls;
-using Cursor = System.Windows.Forms.Cursor;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -40,6 +40,8 @@ public class GameManager
     private string ProjectFile { get; set; } = string.Empty;
     public AssetContentManager AssetContentManager { get; } = new();
     public Manager UiManager { get; private set; }
+    public GuiEndRendererComponent UiManagerEnd { get; private set; }
+
     public FontSystem FontSystem { get; private set; }
     public SpriteBatch? SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
@@ -138,10 +140,6 @@ public class GameManager
     public void Initialize()
     {
         RegisterLoaders();
-        AssetContentManager.Initialize(_game.GraphicsDevice);
-        AssetContentManager.RootDirectory = ContentPath;
-
-        DebugSystem.Initialize(_game);
 
         Line3dRendererComponent = new Line3dRendererComponent(_game);
         SpriteBatch = new SpriteBatch(_game.GraphicsDevice);
@@ -166,8 +164,8 @@ public class GameManager
 #else
         ContentPath = "Content";
 #endif
-        //default font
-        FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
+
+        AssetContentManager.RootDirectory = ContentPath;
 
         _game.Content.RootDirectory = ContentPath;
         _game.Window.Title = GameSettings.ProjectSettings.WindowTitle;
@@ -175,8 +173,43 @@ public class GameManager
         _game.IsFixedTimeStep = GameSettings.ProjectSettings.IsFixedTimeStep;
         _game.IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
 
-        UiManager = new Manager(_game, _game.Services.GetService<IGraphicsDeviceService>());
-        UiManager.OnScreenResize(_game.GraphicsDevice.PresentationParameters.BackBufferWidth, _game.GraphicsDevice.PresentationParameters.BackBufferWidth);
+        //default font
+        FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
+
+        DebugSystem.Initialize(_game);
+        AssetContentManager.Initialize(_game.GraphicsDevice);
+
+#if EDITOR
+        if (UseGui)
+        {
+            InitializeGui();
+        }
+#else
+        InitializeGui();
+#endif
+    }
+
+    private void InitializeGui()
+    {
+        UiManager = new Manager(_game, _game.Services.GetService<IGraphicsDeviceService>(), "Default",
+            new AssetContentManagerAdapter(AssetContentManager), LogManager.Instance.GetLoggerForGUI());
+        UiManager.UpdateOrder = (int)ComponentUpdateOrder.GUI;
+        UiManager.DrawOrder = (int)ComponentDrawOrder.GUIBegin;
+        _game.Components.Add(UiManager);
+        //UiManager.Visible = false;
+        UiManager.SkinDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Skins");
+        UiManager.LayoutDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Layout");
+
+        UiManager.AutoCreateRenderTarget = true;
+        UiManager.TargetFrames = 60;
+        UiManager.ShowSoftwareCursor = true;
+        //UiManager.GlobalDepth = 1.0f;
+
+        UiManager.OnScreenResize(_game.GraphicsDevice.PresentationParameters.BackBufferWidth,
+            _game.GraphicsDevice.PresentationParameters.BackBufferWidth);
+
+
+        UiManagerEnd = new GuiEndRendererComponent(_game);
     }
 
     public Entity SpawnEntity(string assetName)
@@ -191,7 +224,8 @@ public class GameManager
     private void RegisterLoaders()
     {
         AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
-        AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+        //AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
+        AssetContentManager.RegisterAssetLoader(typeof(TomShane.Neoforce.Controls.Cursor), new NeoForceCursorLoader());
 
         AssetContentManager.RegisterAssetLoader(typeof(EntityFlowGraph), new AssetLoader<EntityFlowGraph>());
         AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
@@ -296,7 +330,6 @@ public class GameManager
 
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
         CurrentWorld?.Draw(elapsedTime);
-        //UiManager.Draw(gameTime);
     }
 
     public void EndDraw(GameTime gameTime)
@@ -323,6 +356,7 @@ public class GameManager
     private Entity _cameraEditorEntity;
 
     public bool IsRunningInGameEditorMode { get; set; }
+    public bool UseGui { get; set; }
 
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {

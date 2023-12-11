@@ -83,14 +83,15 @@ public class GridComponent : DrawableGameComponent
             return;
         }
 
-        GridEffect.World = Matrix.Identity;
-        GridEffect.View = camera.ViewMatrix;
-        GridEffect.Projection = camera.ProjectionMatrix;
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         GraphicsDevice.BlendState = BlendState.Opaque;
         GraphicsDevice.Indices = null;
         GraphicsDevice.SetVertexBuffer(null);
+
+        GridEffect.World = Matrix.Identity;
+        GridEffect.View = camera.ViewMatrix;
+        GridEffect.Projection = camera.ProjectionMatrix;
 
         foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
         {

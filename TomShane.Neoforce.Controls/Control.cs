@@ -1431,7 +1431,7 @@ public class Control : Component
                     var rect = new Rectangle(0, 0, OriginWidth, OriginHeight);
                     DrawControls(renderer, rect, gameTime, false);
 
-                    Manager.GraphicsDevice.SetRenderTarget(null);
+                    Manager.GraphicsDevice.SetRenderTarget(Manager.DefaultRenderTarget);
                 }
                 _invalidated = false;
             }

@@ -33,8 +33,7 @@ public class Manager : DrawableGameComponent
     internal const int _ToolTipDelay = 500;
     internal const int _DoubleClickTime = 500;
     internal const int _TextureResizeIncrement = 32;
-    //change how the render target are used because DiscardContent is better for the performance
-    internal const RenderTargetUsage RenderTargetUsage = Microsoft.Xna.Framework.Graphics.RenderTargetUsage.PreserveContents;//Microsoft.Xna.Framework.Graphics.RenderTargetUsage.DiscardContents;
+    internal const RenderTargetUsage RenderTargetUsage = Microsoft.Xna.Framework.Graphics.RenderTargetUsage.DiscardContents;
 
     private bool _deviceReset;
     private bool _renderTargetValid;
@@ -42,7 +41,6 @@ public class Manager : DrawableGameComponent
     private long _drawTime;
     private long _updateTime;
     private ArchiveManager _content;
-    private Renderer _renderer;
     private InputSystem _input;
     private bool _inputEnabled = true;
     private List<Component> _components;
@@ -78,15 +76,9 @@ public class Manager : DrawableGameComponent
     /// </summary>
     public bool ShowSoftwareCursor { get; set; } = true;
 
-    /// <summary>
-    /// Returns associated <see cref="GraphicsDeviceManager"/>.
-    /// </summary>
-    public virtual IGraphicsDeviceService Graphics { get; }
+    public IGraphicsDeviceService Graphics { get; }
 
-    /// <summary>
-    /// Returns <see cref="Renderer"/> used for rendering controls.
-    /// </summary>
-    public virtual Renderer Renderer => _renderer;
+    public Renderer Renderer { get; set; }
 
     /// <summary>
     /// Returns <see cref="ArchiveManager"/> used for loading assets.
@@ -148,9 +140,11 @@ public class Manager : DrawableGameComponent
     }
 
     /// <summary>
-    /// Gets or sets render target for drawing.                 
-    /// </summary>    
-    public RenderTarget2D RenderTarget { get; set; }
+    /// Gets or sets the default render target to set after drawing.                           
+    /// </summary>  
+    public RenderTarget2D? DefaultRenderTarget { get; set; }
+
+    private RenderTarget2D RenderTarget { get; set; }
 
     /// <summary>
     /// Gets or sets update interval for drawing, logic and input.                           
@@ -562,10 +556,10 @@ public class Manager : DrawableGameComponent
                 _content = null;
             }
 
-            if (_renderer != null)
+            if (Renderer != null)
             {
-                _renderer.Dispose();
-                _renderer = null;
+                Renderer.Dispose();
+                Renderer = null;
             }
             if (_input != null)
             {
@@ -691,7 +685,7 @@ public class Manager : DrawableGameComponent
         GraphicsDevice.DeviceReset += GraphicsDevice_DeviceReset;
 
         _input.Initialize();
-        _renderer = new Renderer(this);
+        Renderer = new Renderer(this);
         SetSkin(_skinName, _archiveManager);
     }
 
@@ -957,7 +951,7 @@ public class Manager : DrawableGameComponent
             }
 
             RenderTarget = CreateRenderTarget();
-            _renderer = new Renderer(this);
+            Renderer = new Renderer(this);
             _renderTargetValid = true;
         }
     }
@@ -966,7 +960,6 @@ public class Manager : DrawableGameComponent
     {
         BeginDraw(gameTime);
         DrawInternal(gameTime);
-        EndDraw();
     }
 
     private void DrawInternal(GameTime gameTime)
@@ -985,36 +978,35 @@ public class Manager : DrawableGameComponent
 
                 foreach (var c in list)
                 {
-                    c.PrepareTexture(_renderer, gameTime);
+                    c.PrepareTexture(Renderer, gameTime);
                 }
 
-                //TODO : handle rendertarget differently => SetRenderTarget() => clear the backbuffer
-                //GraphicsDevice.SetRenderTarget(RenderTarget);
-                //GraphicsDevice.Clear(Color.Transparent);
+                GraphicsDevice.SetRenderTarget(RenderTarget);
+                GraphicsDevice.Clear(Color.Transparent);
 
-                if (_renderer != null)
+                if (Renderer != null)
                 {
                     foreach (var c in list)
                     {
-                        c.Render(_renderer, gameTime);
+                        c.Render(Renderer, gameTime);
                     }
                 }
             }
 
             if (ShowSoftwareCursor && Cursor != null)
             {
-                _renderer.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                Renderer.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
                 var mstate = Mouse.GetState();
                 var rect = new Rectangle(mstate.X, mstate.Y, Cursor.Width, Cursor.Height);
-                _renderer.SpriteBatch.Draw(Cursor.CursorTexture, rect, null, Color.White, 0f, Cursor.HotSpot, SpriteEffects.None, 0f);
-                _renderer.SpriteBatch.End();
+                Renderer.SpriteBatch.Draw(Cursor.CursorTexture, rect, null, Color.White, 0f, Cursor.HotSpot, SpriteEffects.None, 0f);
+                Renderer.SpriteBatch.End();
             }
             /*
             var fileStream = File.Create("d:\\screenshot_renderer.jpeg");
             _renderTarget.SaveAsJpeg(fileStream, _renderTarget.Width, _renderTarget.Height);
             fileStream.Dispose();*/
 
-            GraphicsDevice.SetRenderTarget(null);
+            GraphicsDevice.SetRenderTarget(DefaultRenderTarget);
         }
         else
         {
@@ -1039,9 +1031,9 @@ public class Manager : DrawableGameComponent
     {
         if (RenderTarget != null && !_deviceReset)
         {
-            _renderer.Begin(BlendingMode.Default);
-            _renderer.Draw(RenderTarget, rect, Color.White);
-            _renderer.End();
+            Renderer.Begin(BlendingMode.Default);
+            Renderer.Draw(RenderTarget, rect, Color.White);
+            Renderer.End();
         }
         else if (_deviceReset)
         {

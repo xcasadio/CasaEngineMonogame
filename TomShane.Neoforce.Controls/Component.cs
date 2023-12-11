@@ -5,26 +5,15 @@ namespace TomShane.Neoforce.Controls;
 
 public class Component : Disposable
 {
-    private Manager _manager;
     private bool _initialized;
 
-    public virtual Manager Manager
-    {
-        get => _manager;
-        set => _manager = value;
-    }
-    public virtual bool Initialized => _initialized;
+    public Manager Manager { get; set; }
 
-    public Component(Manager manager)
+    public bool Initialized => _initialized;
+
+    protected Component(Manager manager)
     {
-        if (manager != null)
-        {
-            _manager = manager;
-        }
-        else
-        {
-            Manager.Logger.WriteLineError("Component cannot be created. Manager instance is needed.");
-        }
+        Manager = manager;
     }
 
     protected override void Dispose(bool disposing)
@@ -43,5 +32,4 @@ public class Component : Disposable
     protected internal virtual void Update(GameTime gameTime)
     {
     }
-
 }

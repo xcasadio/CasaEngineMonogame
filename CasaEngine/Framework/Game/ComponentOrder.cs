@@ -14,6 +14,7 @@ public enum ComponentUpdateOrder
     DebugManager = 20,
     ScreenLogComponent = 526,
     ScreenManagerComponent = 530,
+    GUI = 531,
     ViewComponent = 540,
     Physics = 545,
     Gameplay = 560,
@@ -30,6 +31,7 @@ public enum ComponentUpdateOrder
 //For reorder drawable component
 public enum ComponentDrawOrder
 {
+    GUIBegin = 0,
     GameManager = 500,
     DebugManager = 501,
     Input = 510,
@@ -43,6 +45,7 @@ public enum ComponentDrawOrder
     Renderer2dComponent = 5150,
     Renderer3dComponent,
     Line3dComponent,
-    DebugPhysics = 5200,
-    Manipulator = 51000
+    DebugPhysics = 6000,
+    Manipulator = 51000,
+    GUIEnd = 100000
 }
