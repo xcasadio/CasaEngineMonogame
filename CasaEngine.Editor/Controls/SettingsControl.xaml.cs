@@ -2,20 +2,19 @@
 using System.Windows.Controls;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls
-{
-    public partial class SettingsControl : UserControl
-    {
-        public SettingsControl()
-        {
-            InitializeComponent();
-        }
+namespace CasaEngine.Editor.Controls;
 
-        private void SettingsControl_OnGotFocus(object sender, RoutedEventArgs e)
-        {
-            PropertyGridProjectSettings.SelectedObject = GameSettings.ProjectSettings;
-            PropertyGridPhysiscSettings.SelectedObject = GameSettings.PhysicsEngineSettings;
-            PropertyGridGraphicsSettings.SelectedObject = GameSettings.GraphicsSettings;
-        }
+public partial class SettingsControl : UserControl
+{
+    public SettingsControl()
+    {
+        InitializeComponent();
+    }
+
+    private void SettingsControl_OnGotFocus(object sender, RoutedEventArgs e)
+    {
+        PropertyGridProjectSettings.SelectedObject = GameSettings.ProjectSettings;
+        PropertyGridPhysiscSettings.SelectedObject = GameSettings.PhysicsEngineSettings;
+        PropertyGridGraphicsSettings.SelectedObject = GameSettings.GraphicsSettings;
     }
 }

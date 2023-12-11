@@ -23,369 +23,368 @@ using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 using Point = System.Windows.Point;
 
-namespace CasaEngine.Editor.Controls.ContentBrowser
+namespace CasaEngine.Editor.Controls.ContentBrowser;
+
+public partial class ContentBrowserControl : UserControl
 {
-    public partial class ContentBrowserControl : UserControl
+    private GameEditor _gameEditor;
+    private object? _dragAndDropData;
+
+    public AssetInfo? SelectedItem
     {
-        private GameEditor _gameEditor;
-        private object? _dragAndDropData;
-
-        public AssetInfo? SelectedItem
-        {
-            get
-            {
-                if (ListBoxFolderContent.SelectedItem is not FolderItem &&
-                    ListBoxFolderContent.SelectedItem is ContentItem contentItem)
-                {
-                    return contentItem.AssetInfo;
-                }
-
-                return null;
-            }
-        }
-
-        public ContentBrowserControl()
-        {
-            InitializeComponent();
-
-            GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
-        }
-
-        public void InitializeFromGameEditor(GameEditor gameEditor)
-        {
-            _gameEditor = gameEditor;
-            var contentBrowserViewModel = DataContext as ContentBrowserViewModel;
-            contentBrowserViewModel.Initialize(gameEditor);
-        }
-
-        private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            LogManager.Instance.WriteLineDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
-
-            if (sender is not FrameworkElement frameworkElement)
-            {
-                return;
-            }
-
-            switch (frameworkElement.DataContext)
-            {
-                case FolderItem folderItem:
-                    SelectTreeViewItem(folderItem);
-                    break;
-                case ContentItem contentItem:
-                    TryToOpenFile(contentItem);
-                    break;
-            }
-        }
-
-        private void TryToOpenFile(ContentItem contentItem)
-        {
-            var extension = Path.GetExtension(contentItem.AssetInfo.FileName);
-            var window = this.FindParent<MainWindow>();
-
-            if (window == null)
-            {
-                return;
-            }
-
-            switch (extension)
-            {
-                case Constants.FileNameExtensions.EntityFlowGraph:
-                    var entityControl = window.GetEditorControl<EntityEditorControl>();
-                    window.ActivateEditorControl<EntityEditorControl>();
-                    entityControl.LoadEntity(contentItem.Path + contentItem.FileExtension);
-                    break;
-                case Constants.FileNameExtensions.Sprite:
-                    var spriteControl = window.GetEditorControl<SpriteEditorControl>();
-                    window.ActivateEditorControl<SpriteEditorControl>();
-                    spriteControl.OpenSprite(contentItem.FullPath);
-                    break;
-                case Constants.FileNameExtensions.Animation2d:
-                    var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
-                    window.ActivateEditorControl<Animation2dEditorControl>();
-                    animation2dControl.OpenAnimations2d(contentItem.FullPath);
-                    break;
-                case Constants.FileNameExtensions.TileMap:
-                    var tileMapEditorControl = window.GetEditorControl<TileMapEditorControl>();
-                    window.ActivateEditorControl<TileMapEditorControl>();
-                    tileMapEditorControl.OpenMap(contentItem.FullPath);
-                    break;
-                case Constants.FileNameExtensions.World:
-                    var worldEditorControl = window.GetEditorControl<WorldEditorControl>();
-                    window.ActivateEditorControl<WorldEditorControl>();
-                    worldEditorControl.LoadWorld(contentItem.FullPath);
-                    break;
-            }
-        }
-
-        private void SelectTreeViewItem(FolderItem folderItem)
-        {
-            Stack<FolderItem> parents = new();
-            parents.Push(folderItem);
-            var root = folderItem;
-
-            while (root != null)
-            {
-                parents.Push(root);
-                root = root.Parent;
-            }
-
-            ItemsControl itemsControl = treeViewFolders;
-
-            while (parents.TryPop(out var folder))
-            {
-                if (itemsControl.ItemContainerGenerator.ContainerFromItem(folder) is TreeViewItem treeViewItem)
-                {
-                    itemsControl = treeViewItem;
-                    treeViewItem.IsExpanded = true;
-                    treeViewItem.IsSelected = true;
-                    treeViewItem.UpdateLayout();
-                }
-            }
-        }
-
-        private void OnDragEnter(object sender, DragEventArgs e)
-        {
-            //if (e.Data.GetDataPresent(DataFormats.UnicodeText))
-            //{
-            //    var data = e.Data.GetData(DataFormats.UnicodeText) as byte[];
-            //    Debug.WriteLine(data);
-            //}
-            //if (e.Data.GetDataPresent(DataFormats.Bitmap))
-            //{
-            //    var data = e.Data.GetData(DataFormats.Bitmap);
-            //    Debug.WriteLine(data);
-            //}
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
-
-                foreach (var fileName in fileNames)
-                {
-                    if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
-                    {
-                        e.Effects = DragDropEffects.Copy;
-                    }
-                }
-            }
-        }
-
-        private void OnDrop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
-                var folderItem = treeViewFolders.SelectedItem as FolderItem;
-                var folderPath = folderItem.FullPath;
-
-                foreach (var fileName in fileNames)
-                {
-                    if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
-                    {
-                        if (Texture2DLoader.IsTextureFile(fileName))
-                        {
-                            var destFileName = Path.Combine(EngineEnvironment.ProjectPath, folderPath, Path.GetFileName(fileName));
-                            if (!File.Exists(destFileName))
-                            {
-                                //copy file
-                                File.Copy(fileName, destFileName, true);
-                                LogManager.Instance.WriteLineTrace($"Copy {fileName} -> {destFileName}");
-
-                                //create assetinfo
-                                var textureAssetInfo = new AssetInfo();
-                                textureAssetInfo.FileName = destFileName
-                                    .Replace(EngineEnvironment.ProjectPath, string.Empty)
-                                    .TrimStart(Path.DirectorySeparatorChar);
-                                textureAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
-
-                                //Create texture asset
-                                var texture = new Texture(textureAssetInfo.Id, _gameEditor.Game.GraphicsDevice);
-                                texture.AssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
-                                texture.AssetInfo.FileName = Path.Combine(
-                                    Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty)), texture.AssetInfo.Name + Constants.FileNameExtensions.Texture)
-                                    .TrimStart(Path.DirectorySeparatorChar);
-                                //texture.Load(assetInfo, _gameEditor.Game.GameManager.AssetContentManager);
-                                AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, texture.AssetInfo.FileName), texture);
-
-                                GameSettings.AssetInfoManager.Add(texture.AssetInfo);
-                                GameSettings.AssetInfoManager.Add(textureAssetInfo);
-                                GameSettings.AssetInfoManager.Save();
-
-                                ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
-                            }
-                            else
-                            {
-                                MessageBox.Show(Application.Current.MainWindow, $"The file {Path.GetFileName(fileName)} already exists!", "File already exists", MessageBoxButton.OK);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
-        {
-            GameSettings.AssetInfoManager.Save();
-        }
-
-        private void ListBoxFolderContentCreate_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void MenuItemCreateEntity_OnClick(object sender, RoutedEventArgs e)
-        {
-            //ask name
-            var entity = new Entity();
-            var inputTextBox = new InputTextBox();
-            inputTextBox.Text = entity.Name;
-
-            if (inputTextBox.ShowDialog() == true)
-            {
-                //add asset
-
-                var folderItem = treeViewFolders.SelectedItem as FolderItem;
-                var contentItem = new ContentItem(entity.AssetInfo);
-                //folderItem.Contents.Add(contentItem);
-                ListBoxFolderContent.SelectedItem = contentItem;
-
-                //save entity
-                entity.Name = inputTextBox.Text;
-                entity.AssetInfo.FileName = Path.Combine(folderItem.FullPath, entity.Name + Constants.FileNameExtensions.Entity);
-
-                GameSettings.AssetInfoManager.Add(entity.AssetInfo);
-                AssetSaver.SaveAsset(entity.AssetInfo.FileName, entity);
-                GameSettings.AssetInfoManager.Save();
-            }
-        }
-
-        private void ListBoxFolderContentDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (ListBoxFolderContent.SelectedItem == null)
-            {
-                return;
-            }
-
-            var contentItem = ListBoxFolderContent.SelectedItem as ContentItem;
-
-            GameSettings.AssetInfoManager.Remove(contentItem.AssetInfo.Id);
-        }
-
-        private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
-        {
-            if (sender is not ListBoxItem listBoxItem)
-            {
-                return;
-            }
-
-            foreach (MenuItem menuItem in listBoxItem.ContextMenu.Items)
-            {
-                if (string.Equals(menuItem.Name, "Delete", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    menuItem.Visibility = Visibility.Collapsed;
-                }
-            }
-
-            if (ListBoxFolderContent.SelectedItem is not FolderItem &&
-                ListBoxFolderContent.SelectedItem is ContentItem contentItem)
-            {
-                if (contentItem.FileExtension == Constants.FileNameExtensions.Texture)
-                {
-                    foreach (MenuItem menuItem in listBoxItem.ContextMenu.Items)
-                    {
-                        if (menuItem.Name == "menuItemCreateSprites")
-                        {
-                            menuItem.Visibility = Visibility.Visible;
-                        }
-                    }
-                }
-            }
-        }
-
-        private void MenuItemCreateSprites_Click(object sender, RoutedEventArgs e)
+        get
         {
             if (ListBoxFolderContent.SelectedItem is not FolderItem &&
                 ListBoxFolderContent.SelectedItem is ContentItem contentItem)
-            {
-                //TODO create an editor which find sprites
-                var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
-                var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo);
-                texture.Load(assetContentManager);
-                var spriteData = new SpriteData();
-                spriteData.PositionInTexture = texture.Resource.Bounds;
-                spriteData.SpriteSheetAssetId = contentItem.AssetInfo.Id;
-
-                spriteData.AssetInfo.Name = texture.AssetInfo.Name;
-                spriteData.AssetInfo.FileName = texture.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture,
-                    Constants.FileNameExtensions.Sprite);
-                AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, spriteData.AssetInfo.FileName), spriteData);
-
-                GameSettings.AssetInfoManager.Add(spriteData.AssetInfo);
-                GameSettings.AssetInfoManager.Save();
-            }
-        }
-
-        private void ListBox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is ListBoxItem listBoxItem && listBoxItem.DataContext is ContentItem contentItem)
-            {
-                _dragAndDropData = contentItem.AssetInfo;
-            }
-        }
-
-        private void ListBox_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            _dragAndDropData = null;
-        }
-
-        private void ListBox_OnMouseMove(object sender, MouseEventArgs e)
-        {
-            if (_dragAndDropData != null && e.LeftButton == MouseButtonState.Pressed /* && detect moving ?? */
-                && sender is DependencyObject dependencyObject)
-            {
-                DragDrop.DoDragDrop(dependencyObject, _dragAndDropData, DragDropEffects.Move);
-                e.Handled = true;
-            }
-        }
-
-        private static object GetDataFromListBox(ListBox source, Point point)
-        {
-            if (source.InputHitTest(point) is FrameworkElement { DataContext: ContentItem { AssetInfo: { } } contentItem })
             {
                 return contentItem.AssetInfo;
             }
 
             return null;
         }
+    }
 
-        private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
+    public ContentBrowserControl()
+    {
+        InitializeComponent();
+
+        GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
+    }
+
+    public void InitializeFromGameEditor(GameEditor gameEditor)
+    {
+        _gameEditor = gameEditor;
+        var contentBrowserViewModel = DataContext as ContentBrowserViewModel;
+        contentBrowserViewModel.Initialize(gameEditor);
+    }
+
+    private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        LogManager.Instance.WriteLineDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
+
+        if (sender is not FrameworkElement frameworkElement)
         {
-            if (DataContext is ContentBrowserViewModel contentBrowserViewModel)
+            return;
+        }
+
+        switch (frameworkElement.DataContext)
+        {
+            case FolderItem folderItem:
+                SelectTreeViewItem(folderItem);
+                break;
+            case ContentItem contentItem:
+                TryToOpenFile(contentItem);
+                break;
+        }
+    }
+
+    private void TryToOpenFile(ContentItem contentItem)
+    {
+        var extension = Path.GetExtension(contentItem.AssetInfo.FileName);
+        var window = this.FindParent<MainWindow>();
+
+        if (window == null)
+        {
+            return;
+        }
+
+        switch (extension)
+        {
+            case Constants.FileNameExtensions.EntityFlowGraph:
+                var entityControl = window.GetEditorControl<EntityEditorControl>();
+                window.ActivateEditorControl<EntityEditorControl>();
+                entityControl.LoadEntity(contentItem.Path + contentItem.FileExtension);
+                break;
+            case Constants.FileNameExtensions.Sprite:
+                var spriteControl = window.GetEditorControl<SpriteEditorControl>();
+                window.ActivateEditorControl<SpriteEditorControl>();
+                spriteControl.OpenSprite(contentItem.FullPath);
+                break;
+            case Constants.FileNameExtensions.Animation2d:
+                var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
+                window.ActivateEditorControl<Animation2dEditorControl>();
+                animation2dControl.OpenAnimations2d(contentItem.FullPath);
+                break;
+            case Constants.FileNameExtensions.TileMap:
+                var tileMapEditorControl = window.GetEditorControl<TileMapEditorControl>();
+                window.ActivateEditorControl<TileMapEditorControl>();
+                tileMapEditorControl.OpenMap(contentItem.FullPath);
+                break;
+            case Constants.FileNameExtensions.World:
+                var worldEditorControl = window.GetEditorControl<WorldEditorControl>();
+                window.ActivateEditorControl<WorldEditorControl>();
+                worldEditorControl.LoadWorld(contentItem.FullPath);
+                break;
+        }
+    }
+
+    private void SelectTreeViewItem(FolderItem folderItem)
+    {
+        Stack<FolderItem> parents = new();
+        parents.Push(folderItem);
+        var root = folderItem;
+
+        while (root != null)
+        {
+            parents.Push(root);
+            root = root.Parent;
+        }
+
+        ItemsControl itemsControl = treeViewFolders;
+
+        while (parents.TryPop(out var folder))
+        {
+            if (itemsControl.ItemContainerGenerator.ContainerFromItem(folder) is TreeViewItem treeViewItem)
             {
-                foreach (var contentItem in contentBrowserViewModel.ContentItems)
+                itemsControl = treeViewItem;
+                treeViewItem.IsExpanded = true;
+                treeViewItem.IsSelected = true;
+                treeViewItem.UpdateLayout();
+            }
+        }
+    }
+
+    private void OnDragEnter(object sender, DragEventArgs e)
+    {
+        //if (e.Data.GetDataPresent(DataFormats.UnicodeText))
+        //{
+        //    var data = e.Data.GetData(DataFormats.UnicodeText) as byte[];
+        //    Debug.WriteLine(data);
+        //}
+        //if (e.Data.GetDataPresent(DataFormats.Bitmap))
+        //{
+        //    var data = e.Data.GetData(DataFormats.Bitmap);
+        //    Debug.WriteLine(data);
+        //}
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
+
+            foreach (var fileName in fileNames)
+            {
+                if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
                 {
-                    if (contentItem is not FolderItem && contentItem.Name == e.Value2)
+                    e.Effects = DragDropEffects.Copy;
+                }
+            }
+        }
+    }
+
+    private void OnDrop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
+            var folderItem = treeViewFolders.SelectedItem as FolderItem;
+            var folderPath = folderItem.FullPath;
+
+            foreach (var fileName in fileNames)
+            {
+                if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
+                {
+                    if (Texture2DLoader.IsTextureFile(fileName))
                     {
-                        contentItem.Name = e.Value.Name;
+                        var destFileName = Path.Combine(EngineEnvironment.ProjectPath, folderPath, Path.GetFileName(fileName));
+                        if (!File.Exists(destFileName))
+                        {
+                            //copy file
+                            File.Copy(fileName, destFileName, true);
+                            LogManager.Instance.WriteLineTrace($"Copy {fileName} -> {destFileName}");
+
+                            //create assetinfo
+                            var textureAssetInfo = new AssetInfo();
+                            textureAssetInfo.FileName = destFileName
+                                .Replace(EngineEnvironment.ProjectPath, string.Empty)
+                                .TrimStart(Path.DirectorySeparatorChar);
+                            textureAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+
+                            //Create texture asset
+                            var texture = new Texture(textureAssetInfo.Id, _gameEditor.Game.GraphicsDevice);
+                            texture.AssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+                            texture.AssetInfo.FileName = Path.Combine(
+                                    Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty)), texture.AssetInfo.Name + Constants.FileNameExtensions.Texture)
+                                .TrimStart(Path.DirectorySeparatorChar);
+                            //texture.Load(assetInfo, _gameEditor.Game.GameManager.AssetContentManager);
+                            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, texture.AssetInfo.FileName), texture);
+
+                            GameSettings.AssetInfoManager.Add(texture.AssetInfo);
+                            GameSettings.AssetInfoManager.Add(textureAssetInfo);
+                            GameSettings.AssetInfoManager.Save();
+
+                            ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
+                        }
+                        else
+                        {
+                            MessageBox.Show(Application.Current.MainWindow, $"The file {Path.GetFileName(fileName)} already exists!", "File already exists", MessageBoxButton.OK);
+                        }
                     }
                 }
             }
         }
+    }
 
-        private void MenuItemNewFolder_Click(object sender, ExecutedRoutedEventArgs e)
+    private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
+    {
+        GameSettings.AssetInfoManager.Save();
+    }
+
+    private void ListBoxFolderContentCreate_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void MenuItemCreateEntity_OnClick(object sender, RoutedEventArgs e)
+    {
+        //ask name
+        var entity = new Entity();
+        var inputTextBox = new InputTextBox();
+        inputTextBox.Text = entity.Name;
+
+        if (inputTextBox.ShowDialog() == true)
         {
-            if (e.OriginalSource is TreeViewItem { DataContext: FolderItem folderItem })
+            //add asset
+
+            var folderItem = treeViewFolders.SelectedItem as FolderItem;
+            var contentItem = new ContentItem(entity.AssetInfo);
+            //folderItem.Contents.Add(contentItem);
+            ListBoxFolderContent.SelectedItem = contentItem;
+
+            //save entity
+            entity.Name = inputTextBox.Text;
+            entity.AssetInfo.FileName = Path.Combine(folderItem.FullPath, entity.Name + Constants.FileNameExtensions.Entity);
+
+            GameSettings.AssetInfoManager.Add(entity.AssetInfo);
+            AssetSaver.SaveAsset(entity.AssetInfo.FileName, entity);
+            GameSettings.AssetInfoManager.Save();
+        }
+    }
+
+    private void ListBoxFolderContentDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (ListBoxFolderContent.SelectedItem == null)
+        {
+            return;
+        }
+
+        var contentItem = ListBoxFolderContent.SelectedItem as ContentItem;
+
+        GameSettings.AssetInfoManager.Remove(contentItem.AssetInfo.Id);
+    }
+
+    private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        if (sender is not ListBoxItem listBoxItem)
+        {
+            return;
+        }
+
+        foreach (MenuItem menuItem in listBoxItem.ContextMenu.Items)
+        {
+            if (string.Equals(menuItem.Name, "Delete", StringComparison.InvariantCultureIgnoreCase))
             {
-                var newFolderName = "New_Folder";
-                int index = -1;
-
-                while (folderItem.Contents.Any(x => string.Equals(x.Name, newFolderName)))
-                {
-                    newFolderName = $"New_Folder_{++index}";
-                }
-
-                folderItem.Contents.Add(new FolderItem { Name = newFolderName });
+                menuItem.Visibility = Visibility.Collapsed;
             }
+        }
+
+        if (ListBoxFolderContent.SelectedItem is not FolderItem &&
+            ListBoxFolderContent.SelectedItem is ContentItem contentItem)
+        {
+            if (contentItem.FileExtension == Constants.FileNameExtensions.Texture)
+            {
+                foreach (MenuItem menuItem in listBoxItem.ContextMenu.Items)
+                {
+                    if (menuItem.Name == "menuItemCreateSprites")
+                    {
+                        menuItem.Visibility = Visibility.Visible;
+                    }
+                }
+            }
+        }
+    }
+
+    private void MenuItemCreateSprites_Click(object sender, RoutedEventArgs e)
+    {
+        if (ListBoxFolderContent.SelectedItem is not FolderItem &&
+            ListBoxFolderContent.SelectedItem is ContentItem contentItem)
+        {
+            //TODO create an editor which find sprites
+            var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
+            var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo);
+            texture.Load(assetContentManager);
+            var spriteData = new SpriteData();
+            spriteData.PositionInTexture = texture.Resource.Bounds;
+            spriteData.SpriteSheetAssetId = contentItem.AssetInfo.Id;
+
+            spriteData.AssetInfo.Name = texture.AssetInfo.Name;
+            spriteData.AssetInfo.FileName = texture.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture,
+                Constants.FileNameExtensions.Sprite);
+            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, spriteData.AssetInfo.FileName), spriteData);
+
+            GameSettings.AssetInfoManager.Add(spriteData.AssetInfo);
+            GameSettings.AssetInfoManager.Save();
+        }
+    }
+
+    private void ListBox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListBoxItem listBoxItem && listBoxItem.DataContext is ContentItem contentItem)
+        {
+            _dragAndDropData = contentItem.AssetInfo;
+        }
+    }
+
+    private void ListBox_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _dragAndDropData = null;
+    }
+
+    private void ListBox_OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_dragAndDropData != null && e.LeftButton == MouseButtonState.Pressed /* && detect moving ?? */
+                                     && sender is DependencyObject dependencyObject)
+        {
+            DragDrop.DoDragDrop(dependencyObject, _dragAndDropData, DragDropEffects.Move);
+            e.Handled = true;
+        }
+    }
+
+    private static object GetDataFromListBox(ListBox source, Point point)
+    {
+        if (source.InputHitTest(point) is FrameworkElement { DataContext: ContentItem { AssetInfo: { } } contentItem })
+        {
+            return contentItem.AssetInfo;
+        }
+
+        return null;
+    }
+
+    private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
+    {
+        if (DataContext is ContentBrowserViewModel contentBrowserViewModel)
+        {
+            foreach (var contentItem in contentBrowserViewModel.ContentItems)
+            {
+                if (contentItem is not FolderItem && contentItem.Name == e.Value2)
+                {
+                    contentItem.Name = e.Value.Name;
+                }
+            }
+        }
+    }
+
+    private void MenuItemNewFolder_Click(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.OriginalSource is TreeViewItem { DataContext: FolderItem folderItem })
+        {
+            var newFolderName = "New_Folder";
+            int index = -1;
+
+            while (folderItem.Contents.Any(x => string.Equals(x.Name, newFolderName)))
+            {
+                newFolderName = $"New_Folder_{++index}";
+            }
+
+            folderItem.Contents.Add(new FolderItem { Name = newFolderName });
         }
     }
 }

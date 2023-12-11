@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Assets;
@@ -9,7 +8,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Editor.DragAndDrop;
 using Microsoft.Xna.Framework;
-using static Assimp.Metadata;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Editor.Controls.WorldControls;
 
@@ -18,15 +17,28 @@ public class GameEditorWorld : GameEditor
     public GameEditorWorld()
     {
         Drop += OnDrop;
+        UseGui = true;
     }
 
     protected override void LoadContent()
     {
         var gizmoComponent = new GizmoComponent(Game);
         var gridComponent = new GridComponent(Game);
-        new AxisComponent(Game);
+        var axisComponent = new AxisComponent(Game);
 
         base.LoadContent();
+
+        Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+    }
+
+    protected override void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
+    {
+        base.CreateGraphicsDeviceDependentResources(pp);
+
+        if (Game?.GameManager?.UiManager != null)
+        {
+            Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+        }
     }
 
     private void OnDrop(object sender, DragEventArgs e)

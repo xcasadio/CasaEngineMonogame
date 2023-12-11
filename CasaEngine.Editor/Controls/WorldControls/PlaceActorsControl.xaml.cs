@@ -4,28 +4,27 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Editor.DragAndDrop;
 
-namespace CasaEngine.Editor.Controls.WorldControls
+namespace CasaEngine.Editor.Controls.WorldControls;
+
+public partial class PlaceActorsControl : UserControl
 {
-    public partial class PlaceActorsControl : UserControl
+    public PlaceActorsControl()
     {
-        public PlaceActorsControl()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+    }
 
-        private void OnMouseMove(object sender, MouseEventArgs e)
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (sender != null && e.LeftButton == MouseButtonState.Pressed)
         {
-            if (sender != null && e.LeftButton == MouseButtonState.Pressed)
-            {
-                var frameworkElement = sender as FrameworkElement;
+            var frameworkElement = sender as FrameworkElement;
 
-                DragDrop.DoDragDrop(frameworkElement,
-                    JsonSerializer.Serialize(new DragAndDropInfo
-                    {
-                        Action = DragAndDropInfoAction.Create,
-                        Type = frameworkElement.Tag.ToString()
-                    }), DragDropEffects.Copy);
-            }
+            DragDrop.DoDragDrop(frameworkElement,
+                JsonSerializer.Serialize(new DragAndDropInfo
+                {
+                    Action = DragAndDropInfoAction.Create,
+                    Type = frameworkElement.Tag.ToString()
+                }), DragDropEffects.Copy);
         }
     }
 }

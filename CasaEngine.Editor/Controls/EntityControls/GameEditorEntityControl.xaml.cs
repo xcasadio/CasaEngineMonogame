@@ -3,27 +3,26 @@ using System.Windows.Controls;
 using CasaEngine.Core.Logger;
 using CasaEngine.Framework.Assets;
 
-namespace CasaEngine.Editor.Controls.EntityControls
+namespace CasaEngine.Editor.Controls.EntityControls;
+
+public partial class GameEditorEntityControl : UserControl
 {
-    public partial class GameEditorEntityControl : UserControl
+    private EntityViewModel? EntityControlViewModel => DataContext as EntityViewModel;
+
+    public GameEditorEntityControl()
     {
-        private EntityViewModel? EntityControlViewModel => DataContext as EntityViewModel;
+        InitializeComponent();
+    }
 
-        public GameEditorEntityControl()
+    private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (EntityControlViewModel == null)
         {
-            InitializeComponent();
+            return;
         }
 
-        private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (EntityControlViewModel == null)
-            {
-                return;
-            }
-
-            var fileName = EntityControlViewModel.Entity.AssetInfo.FileName;
-            AssetSaver.SaveAsset(fileName, EntityControlViewModel.Entity);
-            LogManager.Instance.WriteLineInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({fileName})");
-        }
+        var fileName = EntityControlViewModel.Entity.AssetInfo.FileName;
+        AssetSaver.SaveAsset(fileName, EntityControlViewModel.Entity);
+        LogManager.Instance.WriteLineInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({fileName})");
     }
 }

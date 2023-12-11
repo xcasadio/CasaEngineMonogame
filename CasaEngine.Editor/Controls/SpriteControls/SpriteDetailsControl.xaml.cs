@@ -1,12 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace CasaEngine.Editor.Controls.SpriteControls
+namespace CasaEngine.Editor.Controls.SpriteControls;
+
+public partial class SpriteDetailsControl : UserControl
 {
-    public partial class SpriteDetailsControl : UserControl
+    public SpriteDetailsControl()
     {
-        public SpriteDetailsControl()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

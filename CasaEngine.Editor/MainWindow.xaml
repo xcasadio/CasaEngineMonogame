@@ -10,6 +10,7 @@
         xmlns:entityControls="clr-namespace:CasaEngine.Editor.Controls.EntityControls"
         xmlns:tileMapControls="clr-namespace:CasaEngine.Editor.Controls.TileMapControls"
         xmlns:flowGraphControls="clr-namespace:CasaEngine.Editor.Controls.FlowGraphControls"
+        xmlns:guiEditorControls="clr-namespace:CasaEngine.Editor.Controls.GuiEditorControls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
     <Grid>
@@ -58,6 +59,9 @@
             </TabItem>
             <TabItem Header="Tile Map">
                 <tileMapControls:TileMapEditorControl/>
+            </TabItem>
+            <TabItem Header="Screen">
+                <guiEditorControls:GuiEditorControl/>
             </TabItem>
             <TabItem Header="Settings">
                 <controls:SettingsControl x:Name="SettingsControl"/>

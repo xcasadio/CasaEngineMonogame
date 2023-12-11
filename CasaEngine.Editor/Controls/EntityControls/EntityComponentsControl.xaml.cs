@@ -8,63 +8,62 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls.EntityControls
+namespace CasaEngine.Editor.Controls.EntityControls;
+
+public partial class EntityComponentsControl : UserControl
 {
-    public partial class EntityComponentsControl : UserControl
+    public EntityComponentsControl()
     {
-        public EntityComponentsControl()
+        InitializeComponent();
+    }
+
+    public CasaEngineGame Game { get; set; }
+
+    private void OnComponentsChanged(object? sender, EventArgs e)
+    {
+        if (sender is EntityViewModel entityViewModel)
         {
-            InitializeComponent();
+            RefreshComponentsList(entityViewModel);
+        }
+    }
+
+    private void RefreshComponentsList(EntityViewModel entityViewModel)
+    {
+        ListBoxComponents.DataContext = null;
+        ListBoxComponents.DataContext = entityViewModel;
+    }
+
+    private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not EntityViewModel entityViewModel)
+        {
+            return;
         }
 
-        public CasaEngineGame Game { get; set; }
-
-        private void OnComponentsChanged(object? sender, EventArgs e)
+        var inputComboBox = new InputComboBox(Application.Current.MainWindow)
         {
-            if (sender is EntityViewModel entityViewModel)
-            {
-                RefreshComponentsList(entityViewModel);
-            }
+            Title = "Add a new component",
+            Description = "Choose the type of component to add",
+            Items = ElementRegister.EntityComponentNames.Keys.ToList()
+        };
+
+        if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
+        {
+            var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
+            var component = (Component)Activator.CreateInstance(componentType);
+            component.Initialize(entityViewModel.Entity);
+            entityViewModel.Entity.ComponentManager.Components.Add(component);
+
+            RefreshComponentsList(entityViewModel);
         }
+    }
 
-        private void RefreshComponentsList(EntityViewModel entityViewModel)
+    private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: Component component })
         {
-            ListBoxComponents.DataContext = null;
-            ListBoxComponents.DataContext = entityViewModel;
-        }
-
-        private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
-        {
-            if (DataContext is not EntityViewModel entityViewModel)
-            {
-                return;
-            }
-
-            var inputComboBox = new InputComboBox(Application.Current.MainWindow)
-            {
-                Title = "Add a new component",
-                Description = "Choose the type of component to add",
-                Items = ElementRegister.EntityComponentNames.Keys.ToList()
-            };
-
-            if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
-            {
-                var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
-                var component = (Component)Activator.CreateInstance(componentType);
-                component.Initialize(entityViewModel.Entity);
-                entityViewModel.Entity.ComponentManager.Components.Add(component);
-
-                RefreshComponentsList(entityViewModel);
-            }
-        }
-
-        private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement { DataContext: Component component })
-            {
-                component.Owner.ComponentManager.Components.Remove(component);
-                RefreshComponentsList(DataContext as EntityViewModel);
-            }
+            component.Owner.ComponentManager.Components.Remove(component);
+            RefreshComponentsList(DataContext as EntityViewModel);
         }
     }
 }

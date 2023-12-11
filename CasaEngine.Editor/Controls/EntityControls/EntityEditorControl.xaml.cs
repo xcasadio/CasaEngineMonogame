@@ -7,57 +7,56 @@ using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls.EntityControls
+namespace CasaEngine.Editor.Controls.EntityControls;
+
+public partial class EntityEditorControl : EditorControlBase
 {
-    public partial class EntityEditorControl : EditorControlBase
+    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(EntityViewModel), typeof(EntityEditorControl));
+
+    public EntityViewModel SelectedItem
     {
-        public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(EntityViewModel), typeof(EntityEditorControl));
+        get => (EntityViewModel)GetValue(SelectedItemProperty);
+        set => SetValue(SelectedItemProperty, value);
+    }
 
-        public EntityViewModel SelectedItem
+    protected override string LayoutFileName => "entityEditorLayout.xml";
+    public override DockingManager DockingManager => dockingManagerWorld;
+
+    public event EventHandler GameStarted;
+
+    public GameEditorEntity GameEditorEntity => GameScreenControl.gameEntityEditor;
+
+    public EntityEditorControl()
+    {
+        InitializeComponent();
+
+        GameScreenControl.gameEntityEditor.GameStarted += OnGameStarted;
+        EntityControl.InitializeFromGameEditor(GameScreenControl.gameEntityEditor);
+    }
+
+    private void OnGameStarted(object? sender, EventArgs e)
+    {
+        GameStarted?.Invoke(this, e);
+    }
+
+    protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
+    {
+        e.Content = e.Model.Title switch
         {
-            get => (EntityViewModel)GetValue(SelectedItemProperty);
-            set => SetValue(SelectedItemProperty, value);
-        }
+            "Details" => EntityControl,
+            "Game Screen" => GameScreenControl,
+            "Logs" => this.FindParent<MainWindow>().LogsControl,
+            "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
+            _ => e.Content
+        };
+    }
 
-        protected override string LayoutFileName => "entityEditorLayout.xml";
-        public override DockingManager DockingManager => dockingManagerWorld;
-
-        public event EventHandler GameStarted;
-
-        public GameEditorEntity GameEditorEntity => GameScreenControl.gameEntityEditor;
-
-        public EntityEditorControl()
-        {
-            InitializeComponent();
-
-            GameScreenControl.gameEntityEditor.GameStarted += OnGameStarted;
-            EntityControl.InitializeFromGameEditor(GameScreenControl.gameEntityEditor);
-        }
-
-        private void OnGameStarted(object? sender, EventArgs e)
-        {
-            GameStarted?.Invoke(this, e);
-        }
-
-        protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
-        {
-            e.Content = e.Model.Title switch
-            {
-                "Details" => EntityControl,
-                "Game Screen" => GameScreenControl,
-                "Logs" => this.FindParent<MainWindow>().LogsControl,
-                "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
-                _ => e.Content
-            };
-        }
-
-        public void LoadEntity(string fileName)
-        {
-            //EntityFlowGraph
-            var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
-            var entity = GameScreenControl.gameEntityEditor.Game.GameManager.AssetContentManager.Load<EntityFlowGraph>(assetInfo);
-            //var entity = EntityLoader.Load(fileName)
-            SelectedItem = new EntityViewModel(entity);
-        }
+    public void LoadEntity(string fileName)
+    {
+        //EntityFlowGraph
+        var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
+        var entity = GameScreenControl.gameEntityEditor.Game.GameManager.AssetContentManager.Load<EntityFlowGraph>(assetInfo);
+        //var entity = EntityLoader.Load(fileName)
+        SelectedItem = new EntityViewModel(entity);
     }
 }

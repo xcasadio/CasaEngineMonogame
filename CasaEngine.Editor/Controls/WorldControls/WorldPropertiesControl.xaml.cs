@@ -5,42 +5,41 @@ using System.Windows.Data;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
 
-namespace CasaEngine.Editor.Controls.WorldControls
+namespace CasaEngine.Editor.Controls.WorldControls;
+
+public partial class WorldPropertiesControl : UserControl
 {
-    public partial class WorldPropertiesControl : UserControl
+    private CasaEngineGame? _game;
+
+    public WorldPropertiesControl()
     {
-        private CasaEngineGame? _game;
+        InitializeComponent();
+    }
 
-        public WorldPropertiesControl()
+    public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)
+    {
+        gameEditorWorld.GameStarted += OnGameGameStarted;
+    }
+
+    private void OnGameGameStarted(object? sender, EventArgs e)
+    {
+        _game = (CasaEngineGame)sender;
+
+        var binding = new Binding
         {
-            InitializeComponent();
-        }
+            Source = Resources["ExternalComponentRegistered"],
+            Converter = (IValueConverter)Resources["ExternalComponentConverter"]
+        };
 
-        public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)
+        BindingOperations.SetBinding(comboBoxExternalComponent, ItemsControl.ItemsSourceProperty, binding);
+    }
+
+    private void ComboBoxExternalComponent_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox comboBox)
         {
-            gameEditorWorld.GameStarted += OnGameGameStarted;
-        }
-
-        private void OnGameGameStarted(object? sender, EventArgs e)
-        {
-            _game = (CasaEngineGame)sender;
-
-            var binding = new Binding
-            {
-                Source = Resources["ExternalComponentRegistered"],
-                Converter = (IValueConverter)Resources["ExternalComponentConverter"]
-            };
-
-            BindingOperations.SetBinding(comboBoxExternalComponent, ItemsControl.ItemsSourceProperty, binding);
-        }
-
-        private void ComboBoxExternalComponent_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (sender is ComboBox comboBox)
-            {
-                var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
-                _game.GameManager.CurrentWorld.ExternalComponent = externalComponent;
-            }
+            var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
+            _game.GameManager.CurrentWorld.ExternalComponent = externalComponent;
         }
     }
 }
