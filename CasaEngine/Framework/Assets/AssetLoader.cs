@@ -10,9 +10,9 @@ public class AssetLoader<T> : IAssetLoader where T : ISaveLoad, new()
     public object LoadAsset(string fileName, GraphicsDevice device)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
-        var entity = new T();
-        entity.Load(jsonDocument.RootElement, SaveOption.Editor);
-        return entity;
+        var asset = new T();
+        asset.Load(jsonDocument.RootElement, SaveOption.Editor);
+        return asset;
     }
 
     public bool IsFileSupported(string fileName)

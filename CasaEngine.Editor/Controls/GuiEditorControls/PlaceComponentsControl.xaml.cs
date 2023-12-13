@@ -56,7 +56,7 @@ public partial class PlaceComponentsControl : UserControl
             {
                 Content = type.Name,
                 Cursor = Cursors.Hand,
-                Tag = type.Name
+                Tag = type.FullName
             };
             label.MouseMove += OnMouseMove;
 

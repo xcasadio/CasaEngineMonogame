@@ -22,6 +22,7 @@ using Microsoft.Xna.Framework.Graphics;
 using TomShane.Neoforce.Controls;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
+using Screen = CasaEngine.Framework.GUI.Screen;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Game;
@@ -234,6 +235,7 @@ public class GameManager
         AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
         AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
         AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
+        AssetContentManager.RegisterAssetLoader(typeof(Screen), new AssetLoader<Screen>());
     }
 
     public void BeginLoadContent()

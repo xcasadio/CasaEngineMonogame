@@ -7,13 +7,13 @@ namespace CasaEngine.Editor.Controls.GuiEditorControls;
 
 public partial class ComponentListControl : UserControl
 {
-    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(ComponentModelView), typeof(ComponentListControl));
+    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(ControlViewModel), typeof(ComponentListControl));
 
     private GameEditorGui _gameEditor;
 
-    public ComponentModelView SelectedItem
+    public ControlViewModel SelectedItem
     {
-        get => (ComponentModelView)GetValue(SelectedItemProperty);
+        get => (ControlViewModel)GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
     }
 
@@ -30,15 +30,12 @@ public partial class ComponentListControl : UserControl
 
     private void OnGameStarted(object? sender, EventArgs e)
     {
-        DataContext = new ComponentModelView();
+        //DataContext = new ScreenViewModel();
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        /*
-        var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-        var spriteData = _gameEditor.Game.GameManager.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo);
-        SelectedItem = new ComponentModelView();*/
+        SelectedItem = ListBox.SelectedItem as ControlViewModel;
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

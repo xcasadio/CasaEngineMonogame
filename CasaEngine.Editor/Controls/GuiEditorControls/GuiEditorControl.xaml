@@ -26,7 +26,7 @@
                         <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
                             <xcad:LayoutDocumentPane>
                                 <xcad:LayoutDocument x:Name="guiViewLayout" Title="Screen View" CanFloat="False" CanClose="False">
-                                    <local:GameEditorGuiControl x:Name="GameEditorGuiControl" DataContext="{Binding ElementName=SpriteListControl, Path=SelectedItem}"/>
+                                    <local:GameEditorGuiControl x:Name="GameEditorGuiControl" AllowDrop="True"/>
                                 </xcad:LayoutDocument>
                             </xcad:LayoutDocumentPane>
                         </xcad:LayoutDocumentPaneGroup>
@@ -34,13 +34,13 @@
                         <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
                             <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
                                 <xcad:LayoutAnchorable x:Name="guiLayout" Title="Components">
-                                    <local:ComponentListControl x:Name="ComponentListControl"/>
+                                    <local:ComponentListControl x:Name="ComponentListControl" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=local:GuiEditorControl}}" />
                                 </xcad:LayoutAnchorable>
                             </xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                 <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                     <xcad:LayoutAnchorable x:Name="guiDetailsLayout" Title="Details">
-                                        <local:ComponentDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding ElementName=SpriteListControl, Path=SelectedItem}"/>
+                                        <local:ComponentDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding ElementName=ComponentListControl, Path=SelectedItem}"/>
                                     </xcad:LayoutAnchorable>
                                 </xcad:LayoutAnchorablePane>
                             </xcad:LayoutAnchorablePaneGroup>

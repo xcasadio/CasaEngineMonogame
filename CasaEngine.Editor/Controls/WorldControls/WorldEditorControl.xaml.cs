@@ -44,7 +44,7 @@ public partial class WorldEditorControl : EditorControlBase
         };
     }
 
-    public void LoadWorld(string fileName)
+    public void OpenWorld(string fileName)
     {
         //GameEditor.Game.GameManager.CurrentWorld = 
     }

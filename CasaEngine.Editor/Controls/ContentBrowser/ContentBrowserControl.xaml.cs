@@ -16,10 +16,12 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Editor.Controls.Animation2dControls;
 using CasaEngine.Editor.Controls.Common;
 using CasaEngine.Editor.Controls.EntityControls;
+using CasaEngine.Editor.Controls.GuiEditorControls;
 using CasaEngine.Editor.Controls.SpriteControls;
 using CasaEngine.Editor.Controls.TileMapControls;
 using CasaEngine.Editor.Controls.WorldControls;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Point = System.Windows.Point;
 
@@ -88,32 +90,39 @@ public partial class ContentBrowserControl : UserControl
             return;
         }
 
+        var fileRelativePath = contentItem.Path + contentItem.FileExtension;
+
         switch (extension)
         {
             case Constants.FileNameExtensions.EntityFlowGraph:
                 var entityControl = window.GetEditorControl<EntityEditorControl>();
                 window.ActivateEditorControl<EntityEditorControl>();
-                entityControl.LoadEntity(contentItem.Path + contentItem.FileExtension);
+                entityControl.LoadEntity(fileRelativePath);
                 break;
             case Constants.FileNameExtensions.Sprite:
                 var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                 window.ActivateEditorControl<SpriteEditorControl>();
-                spriteControl.OpenSprite(contentItem.FullPath);
+                spriteControl.OpenSprite(fileRelativePath);
                 break;
             case Constants.FileNameExtensions.Animation2d:
                 var animation2dControl = window.GetEditorControl<Animation2dEditorControl>();
                 window.ActivateEditorControl<Animation2dEditorControl>();
-                animation2dControl.OpenAnimations2d(contentItem.FullPath);
+                animation2dControl.OpenAnimations2d(fileRelativePath);
                 break;
             case Constants.FileNameExtensions.TileMap:
                 var tileMapEditorControl = window.GetEditorControl<TileMapEditorControl>();
                 window.ActivateEditorControl<TileMapEditorControl>();
-                tileMapEditorControl.OpenMap(contentItem.FullPath);
+                tileMapEditorControl.OpenMap(fileRelativePath);
                 break;
             case Constants.FileNameExtensions.World:
                 var worldEditorControl = window.GetEditorControl<WorldEditorControl>();
                 window.ActivateEditorControl<WorldEditorControl>();
-                worldEditorControl.LoadWorld(contentItem.FullPath);
+                worldEditorControl.OpenWorld(fileRelativePath);
+                break;
+            case Constants.FileNameExtensions.Screen:
+                var guiEditorControl = window.GetEditorControl<GuiEditorControl>();
+                window.ActivateEditorControl<GuiEditorControl>();
+                guiEditorControl.OpenScreen(fileRelativePath);
                 break;
         }
     }
@@ -235,26 +244,30 @@ public partial class ContentBrowserControl : UserControl
 
     private void MenuItemCreateEntity_OnClick(object sender, RoutedEventArgs e)
     {
-        //ask name
-        var entity = new Entity();
+        CreateAsset(new Entity(), Constants.FileNameExtensions.Entity);
+    }
+    private void MenuItemCreateScreen_OnClick(object sender, RoutedEventArgs e)
+    {
+        CreateAsset(new Screen(), Constants.FileNameExtensions.Screen);
+    }
+
+    private void CreateAsset(Asset asset, string extension)
+    {
         var inputTextBox = new InputTextBox();
-        inputTextBox.Text = entity.Name;
+        inputTextBox.Text = asset.AssetInfo.Name;
 
         if (inputTextBox.ShowDialog() == true)
         {
-            //add asset
-
+            //add
             var folderItem = treeViewFolders.SelectedItem as FolderItem;
-            var contentItem = new ContentItem(entity.AssetInfo);
-            //folderItem.Contents.Add(contentItem);
+            var contentItem = new ContentItem(asset.AssetInfo);
             ListBoxFolderContent.SelectedItem = contentItem;
 
-            //save entity
-            entity.Name = inputTextBox.Text;
-            entity.AssetInfo.FileName = Path.Combine(folderItem.FullPath, entity.Name + Constants.FileNameExtensions.Entity);
-
-            GameSettings.AssetInfoManager.Add(entity.AssetInfo);
-            AssetSaver.SaveAsset(entity.AssetInfo.FileName, entity);
+            //save asset
+            asset.AssetInfo.Name = inputTextBox.Text;
+            asset.AssetInfo.FileName = Path.Combine(folderItem.FullPath, asset.AssetInfo.Name + extension);
+            GameSettings.AssetInfoManager.Add(asset.AssetInfo);
+            AssetSaver.SaveAsset(asset.AssetInfo.FileName, asset);
             GameSettings.AssetInfoManager.Save();
         }
     }

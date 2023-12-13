@@ -15,6 +15,7 @@ public class Constants
         public const string Sprite = ".sprite";
         public const string Animation2d = ".anim2d";
         public const string TileMap = ".tileMap";
+        public const string Screen = ".screen";
 
         //project
         public const string Project = ".json";

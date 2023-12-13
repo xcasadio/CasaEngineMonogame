@@ -14,7 +14,10 @@
 
         <TextBox Grid.Row="0" Grid.Column="0"/>
 
-        <ListBox Grid.Row="1" x:Name="ListBox" ItemsSource="{Binding SpriteAssetInfos}" DisplayMemberPath="Name" SelectionChanged="OnSelectionChanged"
+        <ListBox Grid.Row="1" x:Name="ListBox" 
+                 ItemsSource="{Binding Controls}" 
+                 DisplayMemberPath="ControlName" 
+                 SelectionChanged="OnSelectionChanged"
                  MouseDoubleClick="ListBox_OnMouseDoubleClick"/>
     </Grid>
 </UserControl>

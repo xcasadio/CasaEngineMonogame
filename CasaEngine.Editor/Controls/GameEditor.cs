@@ -6,6 +6,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Editor.Inputs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Editor.Controls;
 
@@ -15,16 +16,29 @@ public class GameEditor : WpfGame
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
-    public bool UseGui { get; protected set; } = false;
+    public bool UseGui { get; protected init; }
 
     protected override bool CanRender => _isInitialized && IsVisible;
+
+    protected GameEditor(bool useGui = false)
+    {
+        UseGui = useGui;
+    }
 
     protected override void Initialize()
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
         Game = new CasaEngineGame(null, graphicsDeviceService);
+
         Game.GameManager.UseGui = UseGui;
+
         Game.GameManager.Initialize();
+
+        if (UseGui)
+        {
+            Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+        }
+
         Game.GameManager.SetInputProvider(
             new KeyboardStateProvider(new WpfKeyboard(this)),
             new MouseStateProvider(new WpfMouse(this)));
@@ -97,5 +111,15 @@ public class GameEditor : WpfGame
 
         base.Draw(gameTime);
         Game.GameManager.EndDraw(gameTime);
+    }
+
+    protected override void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
+    {
+        base.CreateGraphicsDeviceDependentResources(pp);
+
+        if (UseGui && Game?.GameManager?.UiManager != null)
+        {
+            Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+        }
     }
 }

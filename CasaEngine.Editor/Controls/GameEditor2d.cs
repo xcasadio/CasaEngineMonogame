@@ -27,6 +27,10 @@ public abstract class GameEditor2d : GameEditor
         }
     }
 
+    protected GameEditor2d(bool useGui = false) : base(useGui)
+    {
+    }
+
     protected abstract void CreateEntityComponents(Entity entity);
 
     protected override void LoadContent()

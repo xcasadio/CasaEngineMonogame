@@ -8,16 +8,14 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Editor.DragAndDrop;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Editor.Controls.WorldControls;
 
 public class GameEditorWorld : GameEditor
 {
-    public GameEditorWorld()
+    public GameEditorWorld() : base(true)
     {
         Drop += OnDrop;
-        UseGui = true;
     }
 
     protected override void LoadContent()
@@ -27,18 +25,6 @@ public class GameEditorWorld : GameEditor
         var axisComponent = new AxisComponent(Game);
 
         base.LoadContent();
-
-        Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
-    }
-
-    protected override void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
-    {
-        base.CreateGraphicsDeviceDependentResources(pp);
-
-        if (Game?.GameManager?.UiManager != null)
-        {
-            Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
-        }
     }
 
     private void OnDrop(object sender, DragEventArgs e)

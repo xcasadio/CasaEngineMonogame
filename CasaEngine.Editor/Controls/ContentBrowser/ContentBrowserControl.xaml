@@ -95,6 +95,7 @@
                 <ContextMenu>
                     <MenuItem Header="Create">
                         <MenuItem Header="Entity" Click="MenuItemCreateEntity_OnClick" />
+                        <MenuItem Header="Screen" Click="MenuItemCreateScreen_OnClick" />
                     </MenuItem>
                     <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
                 </ContextMenu>

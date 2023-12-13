@@ -109,12 +109,12 @@ public class Control : Component
     /// <summary>
     /// Gets a list of all child controls.
     /// </summary>
-    public virtual IEnumerable<Control> Controls => _controls;
+    public IEnumerable<Control> Controls => _controls;
 
     /// <summary>
     /// Gets or sets a rectangular area that reacts on moving the control with the mouse.
     /// </summary>
-    public virtual Rectangle MovableArea
+    public Rectangle MovableArea
     {
         get => _movableArea;
         set => _movableArea = value;
@@ -123,37 +123,37 @@ public class Control : Component
     /// <summary>
     /// Gets a value indicating whether this control is a child control.
     /// </summary>
-    public virtual bool IsChild => _parent != null;
+    public bool IsChild => _parent != null;
 
     /// <summary>
     /// Gets a value indicating whether this control is a parent control.
     /// </summary>
-    public virtual bool IsParent => _controls != null && _controls.Count > 0;
+    public bool IsParent => _controls != null && _controls.Count > 0;
 
     /// <summary>
     /// Gets a value indicating whether this control is a root control.
     /// </summary>
-    public virtual bool IsRoot => _root == this;
+    public bool IsRoot => _root == this;
 
     /// <summary>
     /// Gets or sets a value indicating whether this control can receive focus. 
     /// </summary>
-    public virtual bool CanFocus { get; set; } = true;
+    public bool CanFocus { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether this control is rendered off the parents texture.
     /// </summary>
-    public virtual bool Detached { get; set; }
+    public bool Detached { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this controls can receive user input events.
     /// </summary>
-    public virtual bool Passive { get; set; }
+    public bool Passive { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this control can be moved by the mouse.
     /// </summary>
-    public virtual bool Movable
+    public bool Movable
     {
         get => _movable;
         set => _movable = value;
@@ -162,7 +162,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this control can be resized by the mouse.
     /// </summary>
-    public virtual bool Resizable
+    public bool Resizable
     {
         get => _resizable;
         set => _resizable = value;
@@ -171,7 +171,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the size of the rectangular borders around the control used for resizing by the mouse.
     /// </summary>
-    public virtual int ResizerSize
+    public int ResizerSize
     {
         get => _resizerSize;
         set => _resizerSize = value;
@@ -180,7 +180,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the ContextMenu associated with this control.
     /// </summary>
-    public virtual ContextMenu ContextMenu
+    public ContextMenu ContextMenu
     {
         get => _contextMenu;
         set => _contextMenu = value;
@@ -189,7 +189,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this control should process mouse double-clicks.
     /// </summary>
-    public virtual bool DoubleClicks
+    public bool DoubleClicks
     {
         get => _doubleClicks;
         set => _doubleClicks = value;
@@ -198,7 +198,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this control should use ouline resizing.
     /// </summary>
-    public virtual bool OutlineResizing
+    public bool OutlineResizing
     {
         get => _outlineResizing;
         set => _outlineResizing = value;
@@ -207,7 +207,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this control should use outline moving.
     /// </summary>
-    public virtual bool OutlineMoving
+    public bool OutlineMoving
     {
         get => _outlineMoving;
         set => _outlineMoving = value;
@@ -216,27 +216,27 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the object that contains data about the control.
     /// </summary>
-    public virtual object Tag { get; set; }
+    public object Tag { get; set; }
 
     /// <summary>
     /// Gets or sets the value indicating the distance from another control. Usable with StackPanel control.
     /// </summary>
-    public virtual Margins Margins { get; set; } = new(4, 4, 4, 4);
+    public Margins Margins { get; set; } = new(4, 4, 4, 4);
 
     /// <summary>
     /// Gets or sets the value indicating wheter control is in design mode.
     /// </summary>
-    public virtual bool DesignMode { get; set; }
+    public bool DesignMode { get; set; }
 
     /// <summary>
     /// Gets or sets gamepad actions for the control.
     /// </summary>
-    public virtual GamePadActions GamePadActions { get; set; } = new();
+    public GamePadActions GamePadActions { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the value indicating whether the control outline is displayed only for certain edges. 
     /// </summary>   
-    public virtual bool PartialOutline
+    public bool PartialOutline
     {
         get => _partialOutline;
         set => _partialOutline = value;
@@ -245,7 +245,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the value indicating whether the control is allowed to be brought in the front.
     /// </summary>
-    public virtual bool StayOnBack
+    public bool StayOnBack
     {
         get => _stayOnBack;
         set
@@ -262,7 +262,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the value indicating that the control should stay on top of other controls.
     /// </summary>
-    public virtual bool StayOnTop
+    public bool StayOnTop
     {
         get => _stayOnTop;
         set
@@ -279,12 +279,12 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a name of the control.
     /// </summary>
-    public virtual string Name { get; set; } = "Control";
+    public string Name { get; set; } = "Control";
 
     /// <summary>
     /// Gets or sets a value indicating whether this control has input focus.
     /// </summary>
-    public virtual bool Focused
+    public bool Focused
     {
         get => Manager.FocusedControl == this;
         set
@@ -358,7 +358,7 @@ public class Control : Component
         }
     }
 
-    public virtual Type ToolTipType
+    public Type ToolTipType
     {
         get => _toolTipType;
         set
@@ -372,7 +372,7 @@ public class Control : Component
         }
     }
 
-    public virtual ToolTip ToolTip
+    public ToolTip ToolTip
     {
         get
         {
@@ -390,7 +390,7 @@ public class Control : Component
         set => _toolTip = value;
     }
 
-    protected internal virtual bool IsPressed
+    protected internal bool IsPressed
     {
         get
         {
@@ -405,22 +405,22 @@ public class Control : Component
         }
     }
 
-    internal virtual int TopModifier
+    internal int TopModifier
     {
         get => _topModifier;
         set => _topModifier = value;
     }
 
-    internal virtual int LeftModifier
+    internal int LeftModifier
     {
         get => _leftModifier;
         set => _leftModifier = value;
     }
 
-    internal virtual int VirtualHeight => GetVirtualHeight();
+    internal int VirtualHeight => GetVirtualHeight();
 
     //set { virtualHeight = value; }
-    internal virtual int VirtualWidth => GetVirtualWidth();
+    internal int VirtualWidth => GetVirtualWidth();
 
     //set { virtualWidth = value; }
     /// <summary>
@@ -431,18 +431,18 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this control should receive any events.
     /// </summary>
-    public virtual bool Suspended { get; set; }
+    public bool Suspended { get; set; }
 
-    protected internal virtual bool Hovered => _hovered;
+    protected internal bool Hovered => _hovered;
 
-    protected internal virtual bool Inside => _inside;
+    protected internal bool Inside => _inside;
 
-    protected internal virtual bool[] Pressed => _pressed;
+    protected internal bool[] Pressed => _pressed;
 
     /// <summary>
     /// Gets or sets a value indicating whether this controls is currently being moved.
     /// </summary>
-    protected virtual bool IsMoving
+    protected bool IsMoving
     {
         get => _isMoving;
         set => _isMoving = value;
@@ -451,7 +451,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this controls is currently being resized.
     /// </summary>
-    protected virtual bool IsResizing
+    protected bool IsResizing
     {
         get => _isResizing;
         set => _isResizing = value;
@@ -460,7 +460,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the edges of the container to which a control is bound and determines how a control is resized with its parent.
     /// </summary>
-    public virtual Anchors Anchor
+    public Anchors Anchor
     {
         get => _anchor;
         set
@@ -477,7 +477,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the edges of the contol which are allowed for resizing.
     /// </summary>
-    public virtual Anchors ResizeEdge
+    public Anchors ResizeEdge
     {
         get => _resizeEdge;
         set => _resizeEdge = value;
@@ -486,7 +486,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the skin used for rendering the control.
     /// </summary>
-    public virtual SkinControl Skin
+    public SkinControl Skin
     {
         get => _skin;
         set
@@ -516,7 +516,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the alpha value for this control.
     /// </summary>
-    public virtual byte Alpha
+    public byte Alpha
     {
         get => _alpha;
         set
@@ -532,7 +532,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the background color for the control.
     /// </summary>
-    public virtual Color BackColor
+    public Color BackColor
     {
         get => _backColor;
         set
@@ -549,7 +549,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the color for the control.
     /// </summary>
-    public virtual Color Color
+    public Color Color
     {
         get => _color;
         set
@@ -569,7 +569,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the text color for the control.
     /// </summary>
-    public virtual Color TextColor
+    public Color TextColor
     {
         get => _textColor;
         set
@@ -589,7 +589,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether the control can respond to user interaction.
     /// </summary>
-    public virtual bool Enabled
+    public bool Enabled
     {
         get => _enabled;
         set
@@ -635,7 +635,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the parent for the control.
     /// </summary>
-    public virtual Control Parent
+    public Control Parent
     {
         get => _parent;
         set
@@ -657,7 +657,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the root for the control.
     /// </summary>
-    public virtual Control Root
+    public Control Root
     {
         get => _root;
         private set
@@ -682,7 +682,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the distance, in pixels, between the left edge of the control and the left edge of its parent.
     /// </summary>
-    public virtual int Left
+    public int Left
     {
         get => _left;
         set
@@ -705,7 +705,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the distance, in pixels, between the top edge of the control and the top edge of its parent.
     /// </summary>
-    public virtual int Top
+    public int Top
     {
         get => _top;
         set
@@ -728,7 +728,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the width of the control.
     /// </summary>
-    public virtual int Width
+    public int Width
     {
         get => _width;
         set
@@ -779,7 +779,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the height of the control.
     /// </summary>
-    public virtual int Height
+    public int Height
     {
         get => _height;
         set
@@ -833,7 +833,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the minimum width in pixels the control can be sized to.
     /// </summary>
-    public virtual int MinimumWidth
+    public int MinimumWidth
     {
         get => _minimumWidth;
         set
@@ -885,7 +885,7 @@ public class Control : Component
     /// <summary>
     /// /// Gets or sets the maximum width in pixels the control can be sized to.
     /// </summary>
-    public virtual int MaximumWidth
+    public int MaximumWidth
     {
         get
         {
@@ -915,7 +915,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the maximum height in pixels the control can be sized to.
     /// </summary>
-    public virtual int MaximumHeight
+    public int MaximumHeight
     {
         get
         {
@@ -942,7 +942,7 @@ public class Control : Component
         }
     }
 
-    public virtual int AbsoluteLeft
+    public int AbsoluteLeft
     {
         get
         {
@@ -959,7 +959,7 @@ public class Control : Component
         }
     }
 
-    public virtual int AbsoluteTop
+    public int AbsoluteTop
     {
         get
         {
@@ -976,7 +976,7 @@ public class Control : Component
         }
     }
 
-    public virtual int OriginLeft
+    public int OriginLeft
     {
         get
         {
@@ -989,7 +989,7 @@ public class Control : Component
         }
     }
 
-    public virtual int OriginTop
+    public int OriginTop
     {
         get
         {
@@ -1002,7 +1002,7 @@ public class Control : Component
         }
     }
 
-    public virtual int OriginWidth
+    public int OriginWidth
     {
         get
         {
@@ -1015,7 +1015,7 @@ public class Control : Component
         }
     }
 
-    public virtual int OriginHeight
+    public int OriginHeight
     {
         get
         {
@@ -1030,15 +1030,15 @@ public class Control : Component
 
     public virtual Margins ClientMargins { get; set; }
 
-    public virtual int ClientLeft =>
+    public int ClientLeft =>
         //if (skin == null) return Left;
         ClientMargins.Left;
 
-    public virtual int ClientTop =>
+    public int ClientTop =>
         //if (skin == null) return Top;
         ClientMargins.Top;
 
-    public virtual int ClientWidth
+    public int ClientWidth
     {
         get =>
             //if (skin == null) return Width;
@@ -1046,7 +1046,7 @@ public class Control : Component
         set => Width = value + ClientMargins.Horizontal - _skin.OriginMargins.Horizontal;
     }
 
-    public virtual int ClientHeight
+    public int ClientHeight
     {
         get =>
             //if (skin == null) return Height;
@@ -1054,13 +1054,13 @@ public class Control : Component
         set => Height = value + ClientMargins.Vertical - _skin.OriginMargins.Vertical;
     }
 
-    public virtual Rectangle AbsoluteRect => new Rectangle(AbsoluteLeft, AbsoluteTop, OriginWidth, OriginHeight);
+    public Rectangle AbsoluteRect => new Rectangle(AbsoluteLeft, AbsoluteTop, OriginWidth, OriginHeight);
 
-    public virtual Rectangle OriginRect => new Rectangle(OriginLeft, OriginTop, OriginWidth, OriginHeight);
+    public Rectangle OriginRect => new Rectangle(OriginLeft, OriginTop, OriginWidth, OriginHeight);
 
-    public virtual Rectangle ClientRect => new Rectangle(ClientLeft, ClientTop, ClientWidth, ClientHeight);
+    public Rectangle ClientRect => new Rectangle(ClientLeft, ClientTop, ClientWidth, ClientHeight);
 
-    public virtual Rectangle ControlRect
+    public Rectangle ControlRect
     {
         get => new Rectangle(Left, Top, Width, Height);
         set
@@ -1391,7 +1391,7 @@ public class Control : Component
         return null;
     }
 
-    internal virtual void PrepareTexture(Renderer renderer, GameTime gameTime)
+    internal void PrepareTexture(Renderer renderer, GameTime gameTime)
     {
         if (_visible)
         {
@@ -1611,13 +1611,13 @@ public class Control : Component
         }
     }
 
-    public virtual void SetPosition(int left, int top)
+    public void SetPosition(int left, int top)
     {
         _left = left;
         _top = top;
     }
 
-    public virtual void SetSize(int width, int height)
+    public void SetSize(int width, int height)
     {
         _width = width;
         _height = height;
@@ -1725,7 +1725,7 @@ public class Control : Component
         }
     }
 
-    protected virtual void SetMinimumSize(int minimumWidth, int minimumHeight)
+    protected void SetMinimumSize(int minimumWidth, int minimumHeight)
     {
         if (_skin.MinimumSize.Width > 0)
         {
@@ -1783,7 +1783,7 @@ public class Control : Component
         }
     }
 
-    protected internal virtual void CheckLayer(SkinControl skin, string layer)
+    protected internal void CheckLayer(SkinControl skin, string layer)
     {
         if (!(skin != null && skin.Layers != null && skin.Layers.Count > 0 && skin.Layers[layer] != null))
         {
@@ -1791,7 +1791,7 @@ public class Control : Component
         }
     }
 
-    protected internal virtual void CheckLayer(SkinControl skin, int layer)
+    protected internal void CheckLayer(SkinControl skin, int layer)
     {
         if (!(skin != null && skin.Layers != null && skin.Layers.Count > 0 && skin.Layers[layer] != null))
         {
@@ -1799,7 +1799,7 @@ public class Control : Component
         }
     }
 
-    public virtual Control GetControl(string name)
+    public Control GetControl(string name)
     {
         Control ret = null;
         foreach (var c in Controls)
@@ -1888,7 +1888,7 @@ public class Control : Component
         }
     }
 
-    public virtual bool Contains(Control control, bool recursively)
+    public bool Contains(Control control, bool recursively)
     {
         if (Controls != null)
         {
@@ -1915,12 +1915,12 @@ public class Control : Component
         _parent?.Invalidate();
     }
 
-    public virtual void BringToFront()
+    public void BringToFront()
     {
         Manager?.BringToFront(this);
     }
 
-    public virtual void SendToBack()
+    public void SendToBack()
     {
         Manager?.SendToBack(this);
     }
@@ -1930,23 +1930,23 @@ public class Control : Component
         Visible = true;
     }
 
-    public virtual void Hide()
+    public void Hide()
     {
         Visible = false;
     }
 
-    public virtual void Refresh()
+    public void Refresh()
     {
         OnMove(new MoveEventArgs(_left, _top, _left, _top));
         OnResize(new ResizeEventArgs(_width, _height, _width, _height));
     }
 
-    public virtual void SendMessage(Message message, EventArgs e)
+    public void SendMessage(Message message, EventArgs e)
     {
         MessageProcess(message, e);
     }
 
-    protected virtual void MessageProcess(Message message, EventArgs e)
+    protected void MessageProcess(Message message, EventArgs e)
     {
         switch (message)
         {
@@ -2723,7 +2723,7 @@ public class Control : Component
         MouseMove?.Invoke(this, e);
     }
 
-    protected virtual void OnMouseOver(MouseEventArgs e)
+    protected void OnMouseOver(MouseEventArgs e)
     {
         MouseOver?.Invoke(this, e);
     }
@@ -2743,7 +2743,7 @@ public class Control : Component
         DoubleClick?.Invoke(this, e);
     }
 
-    protected virtual void OnMove(MoveEventArgs e)
+    protected void OnMove(MoveEventArgs e)
     {
         _parent?.Invalidate();
 
@@ -2756,12 +2756,12 @@ public class Control : Component
         Resize?.Invoke(this, e);
     }
 
-    protected virtual void OnValidateResize(ResizeEventArgs e)
+    protected void OnValidateResize(ResizeEventArgs e)
     {
         ValidateResize?.Invoke(this, e);
     }
 
-    protected virtual void OnValidateMove(MoveEventArgs e)
+    protected void OnValidateMove(MoveEventArgs e)
     {
         ValidateMove?.Invoke(this, e);
     }
@@ -2776,22 +2776,22 @@ public class Control : Component
         MoveEnd?.Invoke(this, e);
     }
 
-    protected virtual void OnResizeBegin(EventArgs e)
+    protected void OnResizeBegin(EventArgs e)
     {
         ResizeBegin?.Invoke(this, e);
     }
 
-    protected virtual void OnResizeEnd(EventArgs e)
+    protected void OnResizeEnd(EventArgs e)
     {
         ResizeEnd?.Invoke(this, e);
     }
 
-    protected virtual void OnParentResize(object sender, ResizeEventArgs e)
+    protected void OnParentResize(object sender, ResizeEventArgs e)
     {
         ProcessAnchor(e);
     }
 
-    protected virtual void OnKeyUp(KeyEventArgs e)
+    protected void OnKeyUp(KeyEventArgs e)
     {
         KeyUp?.Invoke(this, e);
     }
@@ -2806,7 +2806,7 @@ public class Control : Component
         KeyPress?.Invoke(this, e);
     }
 
-    protected virtual void OnGamePadUp(GamePadEventArgs e)
+    protected void OnGamePadUp(GamePadEventArgs e)
     {
         GamePadUp?.Invoke(this, e);
     }
@@ -2831,17 +2831,17 @@ public class Control : Component
         DrawTexture?.Invoke(this, e);
     }
 
-    protected virtual void OnColorChanged(EventArgs e)
+    protected void OnColorChanged(EventArgs e)
     {
         ColorChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnTextColorChanged(EventArgs e)
+    protected void OnTextColorChanged(EventArgs e)
     {
         TextColorChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnBackColorChanged(EventArgs e)
+    protected void OnBackColorChanged(EventArgs e)
     {
         BackColorChanged?.Invoke(this, e);
     }
@@ -2851,7 +2851,7 @@ public class Control : Component
         TextChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnAnchorChanged(EventArgs e)
+    protected void OnAnchorChanged(EventArgs e)
     {
         AnchorChanged?.Invoke(this, e);
     }
@@ -2861,32 +2861,32 @@ public class Control : Component
         SkinChanged?.Invoke(this, e);
     }
 
-    protected internal virtual void OnSkinChanging(EventArgs e)
+    protected internal void OnSkinChanging(EventArgs e)
     {
         SkinChanging?.Invoke(this, e);
     }
 
-    protected virtual void OnParentChanged(EventArgs e)
+    protected void OnParentChanged(EventArgs e)
     {
         ParentChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnRootChanged(EventArgs e)
+    protected void OnRootChanged(EventArgs e)
     {
         RootChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnVisibleChanged(EventArgs e)
+    protected void OnVisibleChanged(EventArgs e)
     {
         VisibleChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnEnabledChanged(EventArgs e)
+    protected void OnEnabledChanged(EventArgs e)
     {
         EnabledChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnAlphaChanged(EventArgs e)
+    protected void OnAlphaChanged(EventArgs e)
     {
         AlphaChanged?.Invoke(this, e);
     }
