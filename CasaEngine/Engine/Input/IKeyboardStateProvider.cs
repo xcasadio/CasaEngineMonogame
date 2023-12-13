@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Engine.Input;
 
-public interface IKeyboardStateProvider
+public interface IKeyboardStateProvider : TomShane.Neoforce.Controls.IKeyboardStateProvider
 {
     KeyboardState GetState();
 }

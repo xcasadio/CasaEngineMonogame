@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
@@ -108,7 +108,7 @@ public class AssetContentManager
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
-        LogManager.Instance.WriteLineTrace($"Load asset {fullFileName}");
+        LogManager.Instance.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;
@@ -125,7 +125,7 @@ public class AssetContentManager
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetFileName);
-        LogManager.Instance.WriteLineTrace($"Load asset {fullFileName}");
+        LogManager.Instance.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         return newAsset;
     }

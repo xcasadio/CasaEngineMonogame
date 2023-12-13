@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
@@ -15,6 +15,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 
 namespace CasaEngine.Framework.Entities.Components;
 
@@ -207,7 +208,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
             if (spriteData == null)
             {
-                LogManager.Instance.WriteLineError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
+                LogManager.Instance.WriteError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
                 return;
             }
 

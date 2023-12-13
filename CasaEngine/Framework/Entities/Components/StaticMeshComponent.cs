@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Design;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;
@@ -11,7 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Static Mesh")]
-public class StaticMeshComponent : Component, IBoundingBoxComputable
+public class StaticMeshComponent : Component, IBoundingBoxable
 {
     public override int ComponentId => (int)ComponentIds.Mesh;
     private StaticMeshRendererComponent? _meshRendererComponent;

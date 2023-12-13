@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 
 namespace CasaEngine.Framework.Assets.Animations;
 

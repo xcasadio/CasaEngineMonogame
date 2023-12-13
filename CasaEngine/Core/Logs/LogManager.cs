@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace CasaEngine.Core.Logger;
+﻿namespace CasaEngine.Core.Logs;
 
 public enum LogVerbosity
 {
@@ -12,7 +10,7 @@ public enum LogVerbosity
     None = 5
 }
 
-public sealed class LogManager
+public sealed class LogManager : ILogger, TomShane.Neoforce.Controls.Logs.ILogger
 {
 
     private static LogManager? _instance;
@@ -50,7 +48,7 @@ public sealed class LogManager
         _loggers.Clear();
     }
 
-    public void WriteLineTrace(string msg)
+    public void WriteTrace(string msg)
     {
         if (_verbosity > LogVerbosity.Trace)
         {
@@ -59,11 +57,11 @@ public sealed class LogManager
 
         foreach (var log in _loggers)
         {
-            log.WriteLineTrace(msg);
+            log.WriteTrace(msg);
         }
     }
 
-    public void WriteLineDebug(string msg)
+    public void WriteDebug(string msg)
     {
         if (_verbosity > LogVerbosity.Debug)
         {
@@ -72,11 +70,11 @@ public sealed class LogManager
 
         foreach (var log in _loggers)
         {
-            log.WriteLineDebug(msg);
+            log.WriteDebug(msg);
         }
     }
 
-    public void WriteLineInfo(string msg)
+    public void WriteInfo(string msg)
     {
         if (_verbosity > LogVerbosity.Info)
         {
@@ -85,11 +83,11 @@ public sealed class LogManager
 
         foreach (var log in _loggers)
         {
-            log.WriteLineInfo(msg);
+            log.WriteInfo(msg);
         }
     }
 
-    public void WriteLineWarning(string msg)
+    public void WriteWarning(string msg)
     {
         if (_verbosity > LogVerbosity.Warning)
         {
@@ -98,11 +96,11 @@ public sealed class LogManager
 
         foreach (var log in _loggers)
         {
-            log.WriteLineWarning(msg);
+            log.WriteWarning(msg);
         }
     }
 
-    public void WriteLineError(string msg)
+    public void WriteError(string msg)
     {
         if (_verbosity > LogVerbosity.Error)
         {
@@ -111,23 +109,17 @@ public sealed class LogManager
 
         foreach (var log in _loggers)
         {
-            log.WriteLineError(msg);
+            log.WriteError(msg);
         }
     }
 
-    public void WriteException(Exception e, bool writeStackTrace = true)
+    public void WriteException(Exception e)
     {
         if (_verbosity > LogVerbosity.Error)
         {
             return;
         }
 
-        WriteLineError(e.ToString());
-    }
-
-    [Obsolete("refactor logging")]
-    public TomShane.Neoforce.Controls.Logs.ILog GetLoggerForGUI()
-    {
-        return (TomShane.Neoforce.Controls.Logs.ILog)_loggers.FirstOrDefault(x => x is TomShane.Neoforce.Controls.Logs.ILog);
+        WriteError(e.ToString());
     }
 }

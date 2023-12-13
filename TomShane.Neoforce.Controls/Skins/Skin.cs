@@ -206,7 +206,7 @@ public class Skin : Component
 
         if (needed)
         {
-            Manager.Logger.WriteLineError("Missing required attribute \"" + attrib + "\" in the skin file.");
+            Manager.Logger.WriteError("Missing required attribute \"" + attrib + "\" in the skin file.");
         }
         return defval;
     }
@@ -222,7 +222,7 @@ public class Skin : Component
         }
         else if (needed)
         {
-            Manager.Logger.WriteLineError("Missing required attribute \"" + attrib + "\" in the skin file.");
+            Manager.Logger.WriteError("Missing required attribute \"" + attrib + "\" in the skin file.");
         }
         else
         {
@@ -303,7 +303,7 @@ public class Skin : Component
                 {
                     if (!string.Equals(_name, xname, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Manager.Logger.WriteLineError("Skin name defined in the skin file doesn't match requested skin.");
+                        Manager.Logger.WriteError("Skin name defined in the skin file doesn't match requested skin.");
                     }
 
                     _name = xname;
@@ -312,7 +312,7 @@ public class Skin : Component
                 {
                     if (!string.Equals(addon, xname, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Manager.Logger.WriteLineError("Skin name defined in the skin file doesn't match addon name.");
+                        Manager.Logger.WriteError("Skin name defined in the skin file doesn't match addon name.");
                     }
                 }
 
@@ -323,12 +323,12 @@ public class Skin : Component
                 }
                 catch (Exception x)
                 {
-                    Manager.Logger.WriteLineError("Unable to resolve skin file version. " + x.Message);
+                    Manager.Logger.WriteError("Unable to resolve skin file version. " + x.Message);
                 }
 
                 if (xversion != Manager.SkinVersion)
                 {
-                    Manager.Logger.WriteLineError("This version of Neoforce Controls can only read skin files in version of " + Manager.SkinVersion.ToString() + ".");
+                    Manager.Logger.WriteError("This version of Neoforce Controls can only read skin files in version of " + Manager.SkinVersion.ToString() + ".");
                 }
 
                 if (!isaddon)
@@ -372,7 +372,7 @@ public class Skin : Component
         }
         catch (Exception x)
         {
-            Manager.Logger.WriteLineError("Unable to load skin file. " + x.Message);
+            Manager.Logger.WriteError("Unable to load skin file. " + x.Message);
         }
     }
 

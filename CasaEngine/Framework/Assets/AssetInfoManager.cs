@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,7 +20,7 @@ public class AssetInfoManager
         _assetInfos.Add(assetInfo.Id, assetInfo);
 
 #if EDITOR
-        LogManager.Instance.WriteLineTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+        LogManager.Instance.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         AssetAdded?.Invoke(this, assetInfo);
 #endif
     }
@@ -87,7 +87,7 @@ public class AssetInfoManager
 
     public void Save(string fileName, SaveOption option)
     {
-        LogManager.Instance.WriteLineInfo($"Asset infos saved in {fileName}");
+        LogManager.Instance.WriteInfo($"Asset infos saved in {fileName}");
 
         JObject root = new();
         var assetInfoJArray = new JArray();
@@ -111,7 +111,7 @@ public class AssetInfoManager
     public void Remove(long id)
     {
         _assetInfos.TryGetValue(id, out var assetInfo);
-        LogManager.Instance.WriteLineTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+        LogManager.Instance.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         _assetInfos.Remove(id);
         DeleteFile(assetInfo);
         Save();
@@ -129,7 +129,7 @@ public class AssetInfoManager
 
     public void Clear()
     {
-        LogManager.Instance.WriteLineTrace("Clear all assets");
+        LogManager.Instance.WriteTrace("Clear all assets");
 
         _assetInfos.Clear();
         AssetCleared?.Invoke(this, EventArgs.Empty);

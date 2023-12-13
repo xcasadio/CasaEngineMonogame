@@ -1,0 +1,11 @@
+﻿namespace CasaEngine.Core.Logs;
+
+public interface ILogger
+{
+    void WriteTrace(string msg);
+    void WriteDebug(string msg);
+    void WriteInfo(string msg);
+    void WriteWarning(string msg);
+    void WriteError(string msg);
+    void WriteException(Exception e);
+}

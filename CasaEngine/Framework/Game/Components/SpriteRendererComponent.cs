@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Sprites;
@@ -116,6 +117,8 @@ public class SpriteRendererComponent : DrawableGameComponent
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
 
+        var scissorRectangle = graphicsDevice.ScissorRectangle;
+
         _effect.Parameters["ViewProj"].SetValue(view * projection);
 
         for (var i = 0; i < _spriteDatas.Count; i++)
@@ -132,6 +135,42 @@ public class SpriteRendererComponent : DrawableGameComponent
                 _effect.CurrentTechnique.Passes[j].Apply();
                 graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, i * 4, 0, 2);
             }
+        }
+
+        graphicsDevice.ScissorRectangle = scissorRectangle;
+    }
+
+    public void DrawDirectly(Texture2D texture)
+    {
+        var graphicsDevice = _effect.GraphicsDevice;
+
+        graphicsDevice.DepthStencilState = DepthStencilState.None;
+        graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        graphicsDevice.BlendState = BlendState.AlphaBlend; //_blendState
+        graphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
+
+        var camera = _game.GameManager.ActiveCamera;
+        _effect.Parameters["ViewProj"].SetValue(camera.ViewMatrix * camera.ProjectionMatrix);
+        _effect.Parameters["Texture"].SetValue(texture);
+        _effect.Parameters["Color"].SetValue(Color.White.ToVector4());
+        _effect.Parameters["World"].SetValue(Matrix.Identity);
+        var z = 0.0f;
+
+        var vertices = new VertexPositionColorTexture[]
+        {
+            new(new Vector3(0, 0, z), Color.White, Vector2.UnitY),
+            new(new Vector3(texture.Width, 0, z), Color.White, Vector2.One),
+            new(new Vector3(texture.Width, texture.Height, z), Color.White, Vector2.UnitX),
+            new(new Vector3(0, texture.Height, z), Color.White, Vector2.Zero)
+        };
+
+        for (var j = 0; j < _effect.CurrentTechnique.Passes.Count; j++)
+        {
+            _effect.CurrentTechnique.Passes[j].Apply();
+            graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList,
+                vertices, 0, 4,
+                new short[] { 0, 2, 1, 0, 3, 2 }, 0,
+                2);
         }
     }
 

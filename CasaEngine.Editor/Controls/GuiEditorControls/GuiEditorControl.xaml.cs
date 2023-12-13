@@ -37,6 +37,7 @@ public partial class GuiEditorControl : EditorControlBase
     {
         var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
         var screen = GameEditorGuiControl.GameEditor.Game.GameManager.AssetContentManager.Load<Screen>(assetInfo);
+        screen.Initialize(GameEditorGuiControl.GameEditor.Game);
         DataContext = new ScreenViewModel(screen);
         //ComponentListControl.DataContext = DataContext;
     }

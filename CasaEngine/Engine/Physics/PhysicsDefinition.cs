@@ -2,6 +2,7 @@
 using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 

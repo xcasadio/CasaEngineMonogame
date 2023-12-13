@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using JsonSerializer = System.Text.Json.JsonSerializer;

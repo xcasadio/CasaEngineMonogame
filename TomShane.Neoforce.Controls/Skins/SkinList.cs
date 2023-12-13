@@ -17,7 +17,7 @@ public class SkinList<T> : List<T>
                     return this[i];
                 }
             }
-            return default(T);
+            return default;
         }
 
         set

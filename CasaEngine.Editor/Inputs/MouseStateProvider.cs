@@ -5,15 +5,15 @@ namespace CasaEngine.Editor.Inputs;
 
 public class MouseStateProvider : IMouseStateProvider
 {
-    private readonly WpfMouse _keyboard;
+    private readonly WpfMouse _mouse;
 
-    public MouseStateProvider(WpfMouse keyboard)
+    public MouseStateProvider(WpfMouse mouse)
     {
-        _keyboard = keyboard;
+        _mouse = mouse;
     }
 
     public MouseState GetState()
     {
-        return _keyboard.GetState();
+        return _mouse.GetState();
     }
 }

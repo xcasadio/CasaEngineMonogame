@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Input.InputSequence;
+using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Engine.Input;

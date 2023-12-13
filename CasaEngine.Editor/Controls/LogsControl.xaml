@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:CasaEngine.Editor.Controls"
              xmlns:logs="clr-namespace:CasaEngine.Editor.Logs"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-             xmlns:logger="clr-namespace:CasaEngine.Core.Logger;assembly=CasaEngine"
+             xmlns:logger="clr-namespace:CasaEngine.Core.Logs;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>

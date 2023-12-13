@@ -2,6 +2,7 @@
 using CasaEngine.Engine.Physics;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Framework.Scripting;

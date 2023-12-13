@@ -1151,13 +1151,13 @@ public class Control : Component
     {
         if (Manager == null)
         {
-            Manager.Logger.WriteLineError("Control cannot be created. Manager instance is needed.");
+            Manager.Logger.WriteError("Control cannot be created. Manager instance is needed.");
             return;
         }
 
         if (Manager.Skin == null)
         {
-            Manager.Logger.WriteLineError("Control cannot be created. No skin loaded.");
+            Manager.Logger.WriteError("Control cannot be created. No skin loaded.");
             return;
         }
 
@@ -1686,64 +1686,27 @@ public class Control : Component
 
     protected internal virtual void InitSkin()
     {
-        if (Manager != null && Manager.Skin != null && Manager.Skin.Controls != null)
+        if (Manager?.Skin?.Controls != null)
         {
-            var s = Manager.Skin.Controls[Utilities.DeriveControlName(this)];
-            if (s != null)
-            {
-                Skin = new SkinControl(s);
-            }
-            else
-            {
-                Skin = new SkinControl(Manager.Skin.Controls["Control"]);
-            }
+            var skinControl = Manager.Skin.Controls[Utilities.DeriveControlName(this)];
+            Skin = new SkinControl(skinControl ?? Manager.Skin.Controls["Control"]);
         }
-        else
+        else if (Manager != null)
         {
-            Manager.Logger.WriteLineError("Control skin cannot be initialized. No skin loaded.");
+            Manager.Logger.WriteError("Control skin cannot be initialized. No skin loaded.");
         }
     }
 
     protected void SetDefaultSize(int width, int height)
     {
-        if (_skin?.DefaultSize.Width > 0)
-        {
-            Width = _skin.DefaultSize.Width;
-        }
-        else
-        {
-            Width = width;
-        }
-
-        if (_skin?.DefaultSize.Height > 0)
-        {
-            Height = _skin.DefaultSize.Height;
-        }
-        else
-        {
-            Height = height;
-        }
+        Width = _skin?.DefaultSize.Width > 0 ? _skin.DefaultSize.Width : width;
+        Height = _skin?.DefaultSize.Height > 0 ? _skin.DefaultSize.Height : height;
     }
 
     protected void SetMinimumSize(int minimumWidth, int minimumHeight)
     {
-        if (_skin.MinimumSize.Width > 0)
-        {
-            MinimumWidth = _skin.MinimumSize.Width;
-        }
-        else
-        {
-            MinimumWidth = minimumWidth;
-        }
-
-        if (_skin.MinimumSize.Height > 0)
-        {
-            MinimumHeight = _skin.MinimumSize.Height;
-        }
-        else
-        {
-            MinimumHeight = minimumHeight;
-        }
+        MinimumWidth = _skin.MinimumSize.Width > 0 ? _skin.MinimumSize.Width : minimumWidth;
+        MinimumHeight = _skin.MinimumSize.Height > 0 ? _skin.MinimumSize.Height : minimumHeight;
     }
 
     protected internal void OnDeviceSettingsChanged(DeviceEventArgs e)
@@ -1785,17 +1748,17 @@ public class Control : Component
 
     protected internal void CheckLayer(SkinControl skin, string layer)
     {
-        if (!(skin != null && skin.Layers != null && skin.Layers.Count > 0 && skin.Layers[layer] != null))
+        if (!(skin?.Layers?.Count > 0 && skin.Layers[layer] != null))
         {
-            Manager.Logger.WriteLineError("Unable to read skin layer \"" + layer + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
+            Manager.Logger.WriteError("Unable to read skin layer \"" + layer + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
         }
     }
 
     protected internal void CheckLayer(SkinControl skin, int layer)
     {
-        if (!(skin != null && skin.Layers != null && skin.Layers.Count > 0 && skin.Layers[layer] != null))
+        if (!(skin?.Layers?.Count > 0 && skin.Layers[layer] != null))
         {
-            Manager.Logger.WriteLineError("Unable to read skin layer with index \"" + layer.ToString() + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
+            Manager.Logger.WriteError("Unable to read skin layer with index \"" + layer.ToString() + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
         }
     }
 
@@ -1804,7 +1767,7 @@ public class Control : Component
         Control ret = null;
         foreach (var c in Controls)
         {
-            if (c.Name.ToLower() == name.ToLower())
+            if (string.Equals(c.Name, name, StringComparison.InvariantCultureIgnoreCase))
             {
                 ret = c;
                 break;

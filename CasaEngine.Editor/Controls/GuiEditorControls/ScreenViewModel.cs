@@ -27,13 +27,13 @@ public class ScreenViewModel
 
     public void Add(Control control)
     {
-        Screen.Controls.Add(control);
+        Screen.Add(control);
         Controls.Add(new ControlViewModel(control));
     }
 
     public void Remove(ControlViewModel controlViewModel)
     {
-        Screen.Controls.Remove(controlViewModel.Control);
+        Screen.Remove(controlViewModel.Control);
         Controls.Remove(controlViewModel);
     }
 }

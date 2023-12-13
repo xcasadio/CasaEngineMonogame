@@ -58,13 +58,18 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
     }
 
+    public override void ScreenResized(int width, int height)
+    {
+        base.ScreenResized(width, height);
+        _needToComputeViewMatrix = true;
+    }
+
     public override Component Clone()
     {
-        var component = new Camera3dIn2dAxisComponent();
-
-        component._up = _up;
-        component._target = _target;
-
-        return component;
+        return new Camera3dIn2dAxisComponent
+        {
+            _up = _up,
+            _target = _target
+        };
     }
 }

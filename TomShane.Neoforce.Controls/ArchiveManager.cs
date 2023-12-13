@@ -173,7 +173,7 @@ public class ArchiveManager : ContentManager, IArchiveManager
                 foreach (var entry in _archive)
                 {
                     var name = entry.FileName;
-                    if (name.ToLower().StartsWith(path.ToLower()))
+                    if (name.ToLower().StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
                     {
                         var i = name.IndexOf("/", path.Length);
                         var item = name.Substring(path.Length, i - path.Length) + "\\";
@@ -196,7 +196,7 @@ public class ArchiveManager : ContentManager, IArchiveManager
             for (var i = 0; i < dirs.Length; i++)
             {
                 var parts = dirs[i].Split('\\');
-                dirs[i] = parts[parts.Length - 1] + '\\';
+                dirs[i] = parts[^1] + '\\';
             }
 
             return dirs;

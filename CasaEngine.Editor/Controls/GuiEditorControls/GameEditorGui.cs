@@ -53,6 +53,7 @@ public class GameEditorGui : GameEditor2d
         //Game.GameManager.CurrentWorld.AddScreen(_screen);
 
         //DataContext = new ScreenViewModel(_screen);
+        Game.GameManager.UiManager.SetSkin();
     }
 
     private void OnDrop(object sender, DragEventArgs e)
@@ -69,17 +70,12 @@ public class GameEditorGui : GameEditor2d
                 e.Handled = true;
 
                 var position = e.GetPosition(this);
-                var camera = Game?.GameManager.ActiveCamera;
-                var ray = RayHelper.CalculateRayFromScreenCoordinate(
-                    new Vector2((float)position.X, (float)position.Y),
-                    camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
-
-
                 var type = _types[dragAndDropInfo.Type];
                 var control = (Control)Activator.CreateInstance(type, Game.GameManager.UiManager);
 
-                control.SetPosition((int)ray.Position.X, (int)ray.Position.Y);
-                control.SetSize(100, 100);
+                control.SetPosition((int)position.X, (int)position.Y);
+                control.Movable = true;
+                control.MovableArea = new Rectangle(0, 0, 800, 600);
                 control.Tag = type.Name;
 
                 (DataContext as ScreenViewModel).Add(control);

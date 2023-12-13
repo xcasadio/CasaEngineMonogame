@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core.Logger;
+﻿using CasaEngine.Core.Logs;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System;
@@ -129,7 +129,7 @@ public abstract class EditorControlBase : UserControl, IEditorControl
             layoutSerializer.LayoutSerializationCallback += layoutSerializationCallback;
             using var reader = new StreamReader(fileName);
             layoutSerializer.Deserialize(reader);
-            LogManager.Instance.WriteLineDebug($"Load Layout '{fileName}'");
+            LogManager.Instance.WriteDebug($"Load Layout '{fileName}'");
         }
         catch (Exception e)
         {
@@ -144,7 +144,7 @@ public abstract class EditorControlBase : UserControl, IEditorControl
             XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManager);
             using var writer = new StreamWriter(fileName);
             layoutSerializer.Serialize(writer);
-            LogManager.Instance.WriteLineDebug($"Save Layout '{fileName}'");
+            LogManager.Instance.WriteDebug($"Save Layout '{fileName}'");
 
         }
         catch (Exception e)

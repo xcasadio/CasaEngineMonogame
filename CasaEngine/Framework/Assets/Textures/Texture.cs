@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;

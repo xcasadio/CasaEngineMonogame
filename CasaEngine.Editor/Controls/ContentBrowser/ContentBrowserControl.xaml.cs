@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
@@ -62,7 +62,7 @@ public partial class ContentBrowserControl : UserControl
 
     private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        LogManager.Instance.WriteLineDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
+        LogManager.Instance.WriteDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
 
         if (sender is not FrameworkElement frameworkElement)
         {
@@ -198,7 +198,7 @@ public partial class ContentBrowserControl : UserControl
                         {
                             //copy file
                             File.Copy(fileName, destFileName, true);
-                            LogManager.Instance.WriteLineTrace($"Copy {fileName} -> {destFileName}");
+                            LogManager.Instance.WriteTrace($"Copy {fileName} -> {destFileName}");
 
                             //create assetinfo
                             var textureAssetInfo = new AssetInfo();

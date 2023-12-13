@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

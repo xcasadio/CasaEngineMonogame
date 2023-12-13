@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
 public class GuiEndRendererComponent : DrawableGameComponent
 {
     private readonly CasaEngineGame _game;
+    private SpriteRendererComponent? _spriteRendererComponent;
 
     public GuiEndRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -15,8 +17,21 @@ public class GuiEndRendererComponent : DrawableGameComponent
         DrawOrder = (int)ComponentDrawOrder.GUIEnd;
     }
 
+    protected override void LoadContent()
+    {
+        base.LoadContent();
+
+        _spriteRendererComponent = Game.GetDrawableGameComponent<SpriteRendererComponent>();
+    }
+
     public override void Draw(GameTime gameTime)
     {
-        _game.GameManager.UiManager.EndDraw();
+        if (!_game.GameManager.UiManager.DeviceReset)
+        {
+            _spriteRendererComponent.DrawDirectly(_game.GameManager.UiManager.RenderTarget);
+            //new Rectangle(0, 0, ScreenWidth, ScreenHeight));
+            //
+            //_game.GameManager.UiManager.EndDraw();
+        }
     }
 }

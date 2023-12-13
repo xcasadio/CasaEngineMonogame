@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Framework.Game;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContentBrowser;
@@ -65,11 +65,11 @@ public partial class MainWindow : Window
 
         if (!File.Exists(projectFileName))
         {
-            LogManager.Instance.WriteLineError($"Can't open project {projectFileName}");
+            LogManager.Instance.WriteError($"Can't open project {projectFileName}");
             return;
         }
 
-        LogManager.Instance.WriteLineInfo($"Project opened {projectFileName}");
+        LogManager.Instance.WriteInfo($"Project opened {projectFileName}");
 
         GameSettings.Load(projectFileName);
 
@@ -171,7 +171,7 @@ public partial class MainWindow : Window
             //
             GameSettings.ProjectSettings.CreateProject(dialog.ProjectName, dialog.ProjectPath);
 
-            LogManager.Instance.WriteLineInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
+            LogManager.Instance.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
         }
     }
 

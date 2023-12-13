@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Design;
+namespace CasaEngine.Framework.Assets;
 
 public enum SaveOption
 {

@@ -2,6 +2,7 @@
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Animations;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using Microsoft.Xna.Framework;
@@ -10,7 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Skinned Mesh")]
-public class SkinnedMeshComponent : Component, IBoundingBoxComputable
+public class SkinnedMeshComponent : Component, IBoundingBoxable
 {
     public override int ComponentId => (int)ComponentIds.SkinnedMesh;
 

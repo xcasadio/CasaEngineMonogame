@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Core.Design;
 
-public interface IBoundingBoxComputable
+public interface IBoundingBoxable
 {
 #if EDITOR
     BoundingBox BoundingBox { get; }

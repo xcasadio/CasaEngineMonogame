@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
@@ -143,7 +143,7 @@ public sealed class World : Asset
     //TODO : remove it, use AssetContentManager
     public void Load(string fileName, SaveOption option)
     {
-        LogManager.Instance.WriteLineInfo($"Load world {fileName}");
+        LogManager.Instance.WriteInfo($"Load world {fileName}");
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fullFileName));
         Load(jsonDocument.RootElement, option);

@@ -155,6 +155,8 @@ public class InputSystem : Disposable
     private GamePadState _gamePadState;
     private Manager _manager;
     private InputOffset _inputOffset = new(0, 0, 1.0f, 1.0f);
+    private IKeyboardStateProvider? _keyboardStateProvider;
+    private IMouseStateProvider? _mouseStateProvider;
     private InputMethods _inputMethods = InputMethods.All;
     private ActivePlayer _activePlayer = ActivePlayer.None;
 
@@ -202,11 +204,12 @@ public class InputSystem : Disposable
 
     public InputSystem(Manager manager, InputOffset offset)
     {
-        _inputOffset = offset;
         _manager = manager;
+        _inputOffset = offset;
     }
 
-    public InputSystem(Manager manager) : this(manager, new InputOffset(0, 0, 1.0f, 1.0f))
+    public InputSystem(Manager manager) :
+        this(manager, new InputOffset(0, 0, 1.0f, 1.0f))
     {
     }
 
@@ -260,36 +263,33 @@ public class InputSystem : Disposable
             return;
         }
 
-        var ms = Mouse.GetState();
-        var ks = Keyboard.GetState();
+        var ms = _mouseStateProvider?.GetState() ?? Mouse.GetState();
+        var ks = _keyboardStateProvider?.GetState() ?? Keyboard.GetState();
 
+        if ((_inputMethods & InputMethods.Mouse) == InputMethods.Mouse)
         {
+            UpdateMouse(ms, gameTime);
+        }
 
-            if ((_inputMethods & InputMethods.Mouse) == InputMethods.Mouse)
-            {
-                UpdateMouse(ms, gameTime);
-            }
+        if ((_inputMethods & InputMethods.Keyboard) == InputMethods.Keyboard)
+        {
+            UpdateKeys(ks, gameTime);
+        }
 
-            if ((_inputMethods & InputMethods.Keyboard) == InputMethods.Keyboard)
+        if ((_inputMethods & InputMethods.GamePad) == InputMethods.GamePad)
+        {
+            var index = PlayerIndex.One;
+            if (_activePlayer == ActivePlayer.None)
             {
-                UpdateKeys(ks, gameTime);
+                var i = 0; // Have to be done this way, else it crashes for player other than one
+                index = Enum.GetValues<PlayerIndex>().FirstOrDefault(x => GamePad.GetState(x).IsConnected);
             }
-
-            if ((_inputMethods & InputMethods.GamePad) == InputMethods.GamePad)
+            else if (_activePlayer != ActivePlayer.None)
             {
-                var index = PlayerIndex.One;
-                if (_activePlayer == ActivePlayer.None)
-                {
-                    var i = 0; // Have to be done this way, else it crashes for player other than one
-                    index = Enum.GetValues<PlayerIndex>().FirstOrDefault(x => GamePad.GetState(x).IsConnected);
-                }
-                else if (_activePlayer != ActivePlayer.None)
-                {
-                    index = (PlayerIndex)_activePlayer;
-                }
-                var gs = GamePad.GetState(index);
-                UpdateGamePad(index, gs, gameTime);
+                index = (PlayerIndex)_activePlayer;
             }
+            var gs = GamePad.GetState(index);
+            UpdateGamePad(index, gs, gameTime);
         }
     }
 
@@ -577,7 +577,6 @@ public class InputSystem : Disposable
 
     private void UpdateMouse(MouseState state, GameTime gameTime)
     {
-
         if (state.X != _mouseState.X || state.Y != _mouseState.Y)
         {
             var e = new MouseEventArgs();
@@ -696,4 +695,9 @@ public class InputSystem : Disposable
         }
     }
 
+    public void SetProviders(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
+    {
+        _keyboardStateProvider = keyboardStateProvider;
+        _mouseStateProvider = mouseStateProvider;
+    }
 }

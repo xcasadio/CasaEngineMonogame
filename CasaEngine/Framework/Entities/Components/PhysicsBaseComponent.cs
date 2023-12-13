@@ -5,6 +5,7 @@ using BulletSharp;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;

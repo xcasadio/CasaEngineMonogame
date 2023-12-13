@@ -44,18 +44,19 @@ public class ScriptWorld : ExternalComponent
 
         //world 
         var screen = new Screen();
+        screen.Initialize(world.Game);
 
         var textBox = new TextBox(world.Game.GameManager.UiManager);
-        textBox.Text = "Ceci est un test";
+        textBox.Text = "textbox";
         textBox.SetPosition(50, 50);
         textBox.SetSize(200, 100);
-        screen.Controls.Add(textBox);
+        screen.Add(textBox);
 
         var button = new Button(world.Game.GameManager.UiManager);
-        button.Text = "Ceci est un test";
+        button.Text = "button";
         button.SetPosition(350, 50);
         button.SetSize(200, 100);
-        screen.Controls.Add(button);
+        screen.Add(button);
 
         world.AddScreen(screen);
     }

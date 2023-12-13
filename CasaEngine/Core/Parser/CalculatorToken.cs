@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
+using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
@@ -13,7 +14,7 @@ internal enum CalculatorTokenType
     Function
 }
 
-internal abstract class CalculatorToken : ISaveLoad
+internal abstract class CalculatorToken
 {
     private readonly Calculator _calculator;
 

@@ -1,9 +1,10 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Scripting;
 
-namespace CasaEngine.Core.Design;
+namespace CasaEngine.Framework.Assets;
 
 public class ElementLoader<T> where T : ISaveLoad
 {
@@ -25,7 +26,7 @@ public class ElementLoader<T> where T : ISaveLoad
 
         if (!_TypesById.ContainsKey(id))
         {
-            LogManager.Instance.WriteLineError($"The component with the type {id} is not supported. Please Register it before load it.");
+            LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
         }
 
         var component = (T)Activator.CreateInstance(_TypesById[id]);
@@ -47,7 +48,7 @@ public class ElementLoader<T> where T : ISaveLoad
     {
         if (!_TypesById.ContainsKey(id))
         {
-            LogManager.Instance.WriteLineError($"The component with the type {id} is not supported. Please Register it before load it.");
+            LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
         }
 
         var component = (ExternalComponent)Activator.CreateInstance(_TypesById[id]);

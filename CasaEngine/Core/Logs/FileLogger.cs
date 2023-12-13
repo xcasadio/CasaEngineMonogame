@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Core.Logger;
+﻿namespace CasaEngine.Core.Logs;
 
 public class FileLogger : ILog
 {
@@ -48,27 +48,27 @@ public class FileLogger : ILog
         }
     }
 
-    public void WriteLineTrace(string msg)
+    public void WriteTrace(string msg)
     {
         Write(_trace + msg + Environment.NewLine);
     }
 
-    public void WriteLineDebug(string msg)
+    public void WriteDebug(string msg)
     {
         Write(_debug + msg + Environment.NewLine);
     }
 
-    public void WriteLineInfo(string msg)
+    public void WriteInfo(string msg)
     {
         Write(_info + msg + Environment.NewLine);
     }
 
-    public void WriteLineWarning(string msg)
+    public void WriteWarning(string msg)
     {
         Write(_warning + msg + Environment.NewLine);
     }
 
-    public void WriteLineError(string msg)
+    public void WriteError(string msg)
     {
         Write(_error + msg + Environment.NewLine);
     }

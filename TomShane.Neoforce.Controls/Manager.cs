@@ -35,7 +35,6 @@ public class Manager : DrawableGameComponent
     internal const int _TextureResizeIncrement = 32;
     internal const RenderTargetUsage RenderTargetUsage = Microsoft.Xna.Framework.Graphics.RenderTargetUsage.DiscardContents;
 
-    private bool _deviceReset;
     private bool _renderTargetValid;
     private int _targetFrames = 60;
     private long _drawTime;
@@ -58,8 +57,11 @@ public class Manager : DrawableGameComponent
     private bool _disposing;
     private bool _autoUnfocus = true;
     private bool _autoCreateRenderTarget = true;
+    private IMouseStateProvider _mouseStateProvider;
 
-    public ILog Logger { get; }
+    public bool DeviceReset { get; private set; }
+
+    public ILogger Logger { get; }
 
     /// <summary>
     /// Gets a value indicating whether Manager is in the process of disposing.
@@ -144,7 +146,7 @@ public class Manager : DrawableGameComponent
     /// </summary>  
     public RenderTarget2D? DefaultRenderTarget { get; set; }
 
-    private RenderTarget2D RenderTarget { get; set; }
+    public RenderTarget2D RenderTarget { get; private set; }
 
     /// <summary>
     /// Gets or sets update interval for drawing, logic and input.                           
@@ -426,7 +428,7 @@ public class Manager : DrawableGameComponent
     /// </param>
     /// <param name="archiveManager"></param>
     /// <param name="logger"></param>
-    public Manager(Game game, IGraphicsDeviceService graphics, string skin, IArchiveManager archiveManager, ILog logger)
+    public Manager(Game game, IGraphicsDeviceService graphics, string skin, IArchiveManager archiveManager, ILogger logger)
         : base(game)
     {
         _disposing = false;
@@ -445,10 +447,6 @@ public class Manager : DrawableGameComponent
         _skinName = skin;
         _archiveManager = archiveManager;
         Logger = logger;
-
-#if (XBOX_FAKE)
-        game.Window.Title += " (XBOX_FAKE)";
-#endif
 
         _states.Buttons = new Control[32];
         _states.Click = -1;
@@ -482,7 +480,7 @@ public class Manager : DrawableGameComponent
     /// <param name="skin">
     /// The name of the skin being loaded at the start.
     /// </param>
-    public Manager(Game game, string skin, IArchiveManager archiveManager, ILog logger)
+    public Manager(Game game, string skin, IArchiveManager archiveManager, ILogger logger)
         : this(game, game.Services.GetService<IGraphicsDeviceService>(), skin, archiveManager, logger)
     {
     }
@@ -497,7 +495,7 @@ public class Manager : DrawableGameComponent
     ///     The GraphicsDeviceManager class provided by the Game class.
     /// </param>
     /// <param name="archiveManager"></param>
-    public Manager(Game game, IGraphicsDeviceService graphics, IArchiveManager archiveManager, ILog logger)
+    public Manager(Game game, IGraphicsDeviceService graphics, IArchiveManager archiveManager, ILogger logger)
         : this(game, graphics, DefaultSkin, archiveManager, logger)
     {
     }
@@ -508,7 +506,7 @@ public class Manager : DrawableGameComponent
     /// <param name="game">
     /// The Game class.
     /// </param>
-    public Manager(Game game, ILog logger)
+    public Manager(Game game, ILogger logger)
         : this(game,
             game.Services.GetService(typeof(IGraphicsDeviceManager)) as GraphicsDeviceManager,
             DefaultSkin,
@@ -636,6 +634,16 @@ public class Manager : DrawableGameComponent
         }
     }
 
+    public void OnScreenResized(int width, int height)
+    {
+        InvalidateRenderTarget();
+
+        GraphicsDevice.PresentationParameters.BackBufferWidth = width;
+        GraphicsDevice.PresentationParameters.BackBufferHeight = height;
+
+        OnScreenResize(width, height);
+    }
+
     public void OnScreenResize(int width, int height)
     {
         foreach (var c in Controls)
@@ -712,9 +720,9 @@ public class Manager : DrawableGameComponent
     ///     The name of the skin being loaded.
     /// </param>
     /// <param name="archiveManager"></param>
-    public virtual void SetSkin(string name, IArchiveManager archiveManager)
+    public virtual void SetSkin(string name = null, IArchiveManager archiveManager = null)
     {
-        var skin = new Skin(this, name, archiveManager);
+        var skin = new Skin(this, name ?? _skinName, archiveManager ?? _archiveManager);
         SetSkin(skin);
     }
 
@@ -853,12 +861,9 @@ public class Manager : DrawableGameComponent
 
             var list = new ControlsList(_controls);
 
-            if (list != null)
+            foreach (var c in list)
             {
-                foreach (var c in list)
-                {
-                    c.Update(gameTime);
-                }
+                c.Update(gameTime);
             }
 
             OrderList.Clear();
@@ -982,7 +987,7 @@ public class Manager : DrawableGameComponent
                 }
 
                 GraphicsDevice.SetRenderTarget(RenderTarget);
-                GraphicsDevice.Clear(Color.Transparent);
+                GraphicsDevice.Clear(Color.CornflowerBlue);
 
                 if (Renderer != null)
                 {
@@ -996,21 +1001,21 @@ public class Manager : DrawableGameComponent
             if (ShowSoftwareCursor && Cursor != null)
             {
                 Renderer.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                var mstate = Mouse.GetState();
+                var mstate = _mouseStateProvider?.GetState() ?? Mouse.GetState();
                 var rect = new Rectangle(mstate.X, mstate.Y, Cursor.Width, Cursor.Height);
                 Renderer.SpriteBatch.Draw(Cursor.CursorTexture, rect, null, Color.White, 0f, Cursor.HotSpot, SpriteEffects.None, 0f);
                 Renderer.SpriteBatch.End();
             }
             /*
             var fileStream = File.Create("d:\\screenshot_renderer.jpeg");
-            _renderTarget.SaveAsJpeg(fileStream, _renderTarget.Width, _renderTarget.Height);
+            RenderTarget.SaveAsJpeg(fileStream, RenderTarget.Width, RenderTarget.Height);
             fileStream.Dispose();*/
 
             GraphicsDevice.SetRenderTarget(DefaultRenderTarget);
         }
         else
         {
-            Logger.WriteLineError("Manager.RenderTarget has to be specified. Assign a render target or set Manager.AutoCreateRenderTarget property to true.");
+            Logger.WriteError("Manager.RenderTarget has to be specified. Assign a render target or set Manager.AutoCreateRenderTarget property to true.");
         }
     }
 
@@ -1029,15 +1034,15 @@ public class Manager : DrawableGameComponent
 
     public virtual void EndDraw(Rectangle rect)
     {
-        if (RenderTarget != null && !_deviceReset)
+        if (RenderTarget != null && !DeviceReset)
         {
             Renderer.Begin(BlendingMode.Default);
             Renderer.Draw(RenderTarget, rect, Color.White);
             Renderer.End();
         }
-        else if (_deviceReset)
+        else if (DeviceReset)
         {
-            _deviceReset = false;
+            DeviceReset = false;
         }
     }
 
@@ -1055,7 +1060,7 @@ public class Manager : DrawableGameComponent
 
     private void GraphicsDevice_DeviceReset(object sender, System.EventArgs e)
     {
-        _deviceReset = true;
+        DeviceReset = true;
         InvalidateRenderTarget();
     }
 
@@ -1591,4 +1596,9 @@ public class Manager : DrawableGameComponent
         }
     }
 
+    public void SetProviders(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
+    {
+        _mouseStateProvider = mouseStateProvider;
+        _input.SetProviders(keyboardStateProvider, mouseStateProvider);
+    }
 }

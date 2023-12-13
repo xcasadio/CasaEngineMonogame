@@ -1,6 +1,6 @@
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
@@ -22,6 +22,8 @@ using Microsoft.Xna.Framework.Graphics;
 using TomShane.Neoforce.Controls;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
+using IKeyboardStateProvider = CasaEngine.Engine.Input.IKeyboardStateProvider;
+using IMouseStateProvider = CasaEngine.Engine.Input.IMouseStateProvider;
 using Screen = CasaEngine.Framework.GUI.Screen;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
@@ -136,6 +138,16 @@ public class GameManager
                 entity.ScreenResized(width, height);
             }
         }
+
+#if EDITOR
+        if (UseGui)
+        {
+            UiManager.OnScreenResized(width, height);
+        }
+#else
+        UiManager.OnScreenResized(width, height);
+#endif
+
     }
 
     public void Initialize()
@@ -193,7 +205,7 @@ public class GameManager
     private void InitializeGui()
     {
         UiManager = new Manager(_game, _game.Services.GetService<IGraphicsDeviceService>(), "Default",
-            new AssetContentManagerAdapter(AssetContentManager), LogManager.Instance.GetLoggerForGUI());
+            new AssetContentManagerAdapter(AssetContentManager), LogManager.Instance);
         UiManager.UpdateOrder = (int)ComponentUpdateOrder.GUI;
         UiManager.DrawOrder = (int)ComponentDrawOrder.GUIBegin;
         _game.Components.Add(UiManager);
@@ -363,6 +375,11 @@ public class GameManager
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
         InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
+
+        if (UseGui)
+        {
+            UiManager.SetProviders(keyboardStateProvider, mouseStateProvider);
+        }
     }
 
     private void CreateCameraEditor()

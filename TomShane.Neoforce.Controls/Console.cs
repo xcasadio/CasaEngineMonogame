@@ -31,12 +31,12 @@ public class ChannelList : EventedList<ConsoleChannel>
             for (var i = 0; i < Count; i++)
             {
                 var s = this[i];
-                if (s.Name.ToLower() == name.ToLower())
+                if (string.Equals(s.Name, name, StringComparison.CurrentCultureIgnoreCase))
                 {
                     return s;
                 }
             }
-            return default(ConsoleChannel);
+            return default;
         }
 
         set
@@ -44,7 +44,7 @@ public class ChannelList : EventedList<ConsoleChannel>
             for (var i = 0; i < Count; i++)
             {
                 var s = this[i];
-                if (s.Name.ToLower() == name.ToLower())
+                if (string.Equals(s.Name, name, StringComparison.CurrentCultureIgnoreCase))
                 {
                     this[i] = value;
                 }
@@ -64,7 +64,7 @@ public class ChannelList : EventedList<ConsoleChannel>
                     return s;
                 }
             }
-            return default(ConsoleChannel);
+            return default;
         }
 
         set

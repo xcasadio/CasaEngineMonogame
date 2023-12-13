@@ -1,5 +1,5 @@
 ﻿using System;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using System.Collections.ObjectModel;
 
 namespace CasaEngine.Editor.Logs;
@@ -17,27 +17,27 @@ public class LogEditor : ILog
     {
     }
 
-    public void WriteLineTrace(string msg)
+    public void WriteTrace(string msg)
     {
         AddLogEntry(LogVerbosity.Trace, msg);
     }
 
-    public void WriteLineDebug(string msg)
+    public void WriteDebug(string msg)
     {
         AddLogEntry(LogVerbosity.Debug, msg);
     }
 
-    public void WriteLineInfo(string msg)
+    public void WriteInfo(string msg)
     {
         AddLogEntry(LogVerbosity.Info, msg);
     }
 
-    public void WriteLineWarning(string msg)
+    public void WriteWarning(string msg)
     {
         AddLogEntry(LogVerbosity.Warning, msg);
     }
 
-    public void WriteLineError(string msg)
+    public void WriteError(string msg)
     {
         AddLogEntry(LogVerbosity.Error, msg);
     }

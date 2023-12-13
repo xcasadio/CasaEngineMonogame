@@ -1,7 +1,8 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
@@ -67,7 +68,7 @@ public class Entity : Asset
         set
         {
             _isEnabled = value;
-            LogManager.Instance.WriteLineTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
+            LogManager.Instance.WriteTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
             OnEnabledValueChange();
         }
     }
@@ -172,13 +173,13 @@ public class Entity : Asset
 
     public void Hit(Collision collision, Components.Component component)
     {
-        //LogManager.Instance.WriteLineTrace($"OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+        //LogManager.Instance.WriteTrace($"OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHit?.Invoke(this, new EventCollisionArgs(collision, component));
     }
 
     public void HitEnded(Collision collision, Components.Component component)
     {
-        //LogManager.Instance.WriteLineTrace($"OnHitEnded : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
+        //LogManager.Instance.WriteTrace($"OnHitEnded : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHitEnded?.Invoke(this, new EventCollisionArgs(collision, component));
     }
 
@@ -290,7 +291,7 @@ public class Entity : Asset
 
         foreach (var component in ComponentManager.Components)
         {
-            if (component is IBoundingBoxComputable boundingBoxComputable)
+            if (component is IBoundingBoxable boundingBoxComputable)
             {
                 var boundingBox = boundingBoxComputable.BoundingBox;
                 min = Vector3.Min(min, boundingBox.Min);

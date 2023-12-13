@@ -1,12 +1,10 @@
-﻿using System;
-using System.Text.Json;
-using CasaEngine.Core.Design;
+﻿using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using Size = CasaEngine.Core.Maths.Size;
 
-namespace CasaEngine.Core.Helpers;
+namespace CasaEngine.Core.Serialization;
 
 public static class JsonHelper
 {

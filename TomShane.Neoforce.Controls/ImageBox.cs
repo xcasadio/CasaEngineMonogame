@@ -5,7 +5,6 @@ namespace TomShane.Neoforce.Controls;
 
 public class ImageBox : Control
 {
-
     private Texture2D _image;
     private SizeMode _sizeMode = SizeMode.Normal;
     private Rectangle _sourceRect = Rectangle.Empty;

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System.Diagnostics;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 
 namespace CasaEngine.Engine.Animations;
 
@@ -137,9 +137,9 @@ public class RiggedModelLoader
         var importer = new AssimpContext();
         try
         {
-            //LogManager.Instance.WriteLineTrace("(not sure this works) Model scale: " + importer.Scale);
+            //LogManager.Instance.WriteTrace("(not sure this works) Model scale: " + importer.Scale);
             //importer.Scale = 1f / importer.Scale;
-            //LogManager.Instance.WriteLineTrace("(not sure this works) Model scale: " + importer.Scale);
+            //LogManager.Instance.WriteTrace("(not sure this works) Model scale: " + importer.Scale);
 
             _scene = importer.ImportFile(filepathorname,
                             PostProcessSteps.FlipUVs                // currently need
@@ -167,7 +167,7 @@ public class RiggedModelLoader
         }
         catch (Exception e)
         {
-            LogManager.Instance.WriteLineTrace(e.Message);
+            LogManager.Instance.WriteTrace(e.Message);
             Debug.Assert(false, filePathorFileName + "\n\n" + "A problem loading the model occured: \n " + filePathorFileName + " \n" + e.Message);
             _scene = null;
         }
@@ -189,33 +189,33 @@ public class RiggedModelLoader
         }
 
         // prep to build a models tree.
-        LogManager.Instance.WriteLineTrace("\n@@@CreateRootNode   prep to build a models tree. Set Up the Models RootNode");
+        LogManager.Instance.WriteTrace("\n@@@CreateRootNode   prep to build a models tree. Set Up the Models RootNode");
         CreateRootNode(model, _scene);
 
         // create the models meshes
-        LogManager.Instance.WriteLineTrace("\n@@@CreateModelMeshesSetUpMeshMaterialsAndTextures");
+        LogManager.Instance.WriteTrace("\n@@@CreateModelMeshesSetUpMeshMaterialsAndTextures");
         CreateModelMeshesSetUpMeshMaterialsAndTextures(model, _scene, 0);
 
         // set up a dummy bone.
-        LogManager.Instance.WriteLineTrace("\n@@@CreateDummyFlatListNodeZero");
+        LogManager.Instance.WriteTrace("\n@@@CreateDummyFlatListNodeZero");
         CreateDummyFlatListNodeZero(model);
 
         // recursively search and add the nodes to our model from the scene.
-        LogManager.Instance.WriteLineTrace("\n@@@CreateModelNodeTreeTransformsRecursively");
+        LogManager.Instance.WriteTrace("\n@@@CreateModelNodeTreeTransformsRecursively");
         CreateModelNodeTreeTransformsRecursively(model, model.RootNodeOfTree, _scene.RootNode, 0);
 
         // find the actual and real first bone with a offset.
-        LogManager.Instance.WriteLineTrace("\n@@@FindFirstBoneInModel");
+        LogManager.Instance.WriteTrace("\n@@@FindFirstBoneInModel");
         FindFirstBoneInModel(model, _scene.RootNode);
 
         // get the animations in the file into each nodes animations framelist
-        LogManager.Instance.WriteLineTrace("\n@@@CreateOriginalAnimations\n");
+        LogManager.Instance.WriteTrace("\n@@@CreateOriginalAnimations\n");
         CreateOriginalAnimations(model, _scene);
 
         // this is the last thing we will do because we need the nodes set up first.
 
         // get the vertice data from the meshes.
-        LogManager.Instance.WriteLineTrace("\n@@@CreateVerticeIndiceData");
+        LogManager.Instance.WriteTrace("\n@@@CreateVerticeIndiceData");
         CreateVerticeIndiceData(model, _scene, 0);
 
         // this calls the models function to create the interpolated animtion frames.
@@ -224,23 +224,23 @@ public class RiggedModelLoader
         // this way is a lot more memory but saves speed. 
         // the other way is a lot less memory but requires a lot more cpu calculations and twice as many look ups.
         //
-        LogManager.Instance.WriteLineTrace("\n@@@model.CreateStaticAnimationLookUpFrames");
+        LogManager.Instance.WriteTrace("\n@@@model.CreateStaticAnimationLookUpFrames");
         model.CreateStaticAnimationLookUpFrames(_defaultAnimatedFramesPerSecondLod, AddAdditionalLoopingTime);
 
-        LogManager.Instance.WriteLineTrace("\n@@@InfoFlatBones");
+        LogManager.Instance.WriteTrace("\n@@@InfoFlatBones");
         InfoFlatBones(model);
 
         //// take a look at material information.
         if (StartupMaterialConsoleInfo)
         {
-            LogManager.Instance.WriteLineTrace("\n@@@InfoForMaterials");
+            LogManager.Instance.WriteTrace("\n@@@InfoForMaterials");
             InfoForMaterials(model, _scene);
         }
 
         // if we want to see the original animation data all this console crap is for debuging.
         if (StartupAnimationConsoleInfo)
         {
-            LogManager.Instance.WriteLineTrace("\n@@@InfoForAnimData");
+            LogManager.Instance.WriteTrace("\n@@@InfoForAnimData");
             InfoForAnimData(_scene);
         }
 
@@ -283,7 +283,7 @@ public class RiggedModelLoader
             riggedModelMesh.MaterialIndex = mesh.MaterialIndex;
             if (StartupMaterialConsoleInfo)
             {
-                LogManager.Instance.WriteLineTrace("scene.Meshes[" + index + "] " + " Material index: " + riggedModelMesh.MaterialIndex + " (material associated to this mesh)  " + "  Name " + mesh.Name);
+                LogManager.Instance.WriteTrace("scene.Meshes[" + index + "] " + " Material index: " + riggedModelMesh.MaterialIndex + " (material associated to this mesh)  " + "  Name " + mesh.Name);
             }
 
             model.Meshes[index] = riggedModelMesh;
@@ -292,7 +292,7 @@ public class RiggedModelLoader
             //{
             //if (i == riggedModelMesh.MaterialIndex)
             //{
-            LogManager.Instance.WriteLineTrace("  Materials[" + riggedModelMesh.MaterialIndex + "]   get material textures");
+            LogManager.Instance.WriteTrace("  Materials[" + riggedModelMesh.MaterialIndex + "]   get material textures");
             var material = scene.Materials[riggedModelMesh.MaterialIndex];
 
             //riggedModelMesh.ambient = assimpMaterial.ColorAmbient.ToMg();    // minimum light color
@@ -343,7 +343,7 @@ public class RiggedModelLoader
 
                 if (StartupMaterialConsoleInfo)
                 {
-                    LogManager.Instance.WriteLineTrace("      Texture[" + j + "] " + "   Index: " + tindex.ToString().PadRight(5) + "   Type: " + ttype.PadRight(15) + "   Filepath: " + tfilepath.PadRight(15) + " Name: " + tfilename.PadRight(15) + "  ExistsInContent: " + tfileexists);
+                    LogManager.Instance.WriteTrace("      Texture[" + j + "] " + "   Index: " + tindex.ToString().PadRight(5) + "   Type: " + ttype.PadRight(15) + "   Filepath: " + tfilepath.PadRight(15) + " Name: " + tfilename.PadRight(15) + "  ExistsInContent: " + tfileexists);
                 }
 
                 Texture2D texture = null;
@@ -351,7 +351,7 @@ public class RiggedModelLoader
                 if (Content != null && tfileexists)
                 {
                     texture = Content.Load<Texture2D>(tfilename);
-                    LogManager.Instance.WriteLineTrace("      ...Texture loaded: ... " + tfilename);
+                    LogManager.Instance.WriteTrace("      ...Texture loaded: ... " + tfilename);
                 }
 
                 if (ttype == "Diffuse")
@@ -492,9 +492,9 @@ public class RiggedModelLoader
         }
         if (StartupNodeTreeConsoleInfo && StartUpMatrixInfo)
         {
-            LogManager.Instance.WriteLineTrace("");
+            LogManager.Instance.WriteTrace("");
             string ntab2 = ntab + "    ";
-            LogManager.Instance.WriteLineTrace(ntab2 + "curAssimpNode.Transform: " + curAssimpNode.Transform.SrtInfoToString(ntab2));
+            LogManager.Instance.WriteTrace(ntab2 + "curAssimpNode.Transform: " + curAssimpNode.Transform.SrtInfoToString(ntab2));
         }
 
         // add node to flat node list
@@ -533,7 +533,7 @@ public class RiggedModelLoader
             Mesh mesh = scene.Meshes[mloop];
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace(
+                LogManager.Instance.WriteTrace(
                 "\n" + "__________________________" +
                 "\n" + "scene.Meshes[" + mloop + "] " +
                 "\n" + " FaceCount: " + mesh.FaceCount +
@@ -542,14 +542,14 @@ public class RiggedModelLoader
                 "\n" + " BoneCount: " + mesh.BoneCount +
                 "\n" + " MaterialIndex: " + mesh.MaterialIndex
                 );
-                LogManager.Instance.WriteLineTrace("  mesh.UVComponentCount.Length: " + mesh.UVComponentCount.Length);
+                LogManager.Instance.WriteTrace("  mesh.UVComponentCount.Length: " + mesh.UVComponentCount.Length);
             }
             for (int i = 0; i < mesh.UVComponentCount.Length; i++)
             {
                 int val = mesh.UVComponentCount[i];
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace("       mesh.UVComponentCount[" + i + "] : " + val);
+                    LogManager.Instance.WriteTrace("       mesh.UVComponentCount[" + i + "] : " + val);
                 }
             }
 
@@ -637,7 +637,7 @@ public class RiggedModelLoader
             // Note 4D coords are not supported
 
             // Uv
-            LogManager.Instance.WriteLineTrace("");
+            LogManager.Instance.WriteTrace("");
             var uvchannels = mesh.TextureCoordinateChannels;
             for (int k = 0; k < uvchannels.Length; k++)
             {
@@ -688,7 +688,7 @@ public class RiggedModelLoader
                 var meshBones = mesh.Bones;
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace("meshBones.Count: " + meshBones.Count);
+                    LogManager.Instance.WriteTrace("meshBones.Count: " + meshBones.Count);
                 }
 
                 for (int meshBoneIndex = 0; meshBoneIndex < meshBones.Count; meshBoneIndex++)
@@ -700,7 +700,7 @@ public class RiggedModelLoader
                     if (StartupConsoleinfo)
                     {
                         string str = "  mesh.Name: " + mesh.Name + "mesh[" + mloop + "] " + " bone.Name: " + boneInMeshName.PadRight(17) + "     meshLocalBoneListIndex: " + meshBoneIndex.ToString().PadRight(4) + " flatBoneListIndex: " + correspondingFlatBoneListIndex.ToString().PadRight(4) + " WeightCount: " + boneInMesh.VertexWeightCount;
-                        LogManager.Instance.WriteLineTrace(str);
+                        LogManager.Instance.WriteTrace(str);
                     }
 
                     // loop thru this bones vertice listings with the weights for it.
@@ -878,22 +878,22 @@ public class RiggedModelLoader
     }
 
     /*  well need this later on if we want these other standard types of animations
-            LogManager.Instance.WriteLineTrace($"  HasMeshAnimations: {anim.HasMeshAnimations} ");
-            LogManager.Instance.WriteLineTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
+            LogManager.Instance.WriteTrace($"  HasMeshAnimations: {anim.HasMeshAnimations} ");
+            LogManager.Instance.WriteTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
             foreach (var chan in anim.MeshAnimationChannels)
             {
-                LogManager.Instance.WriteLineTrace($"  Channel MeshName {chan.MeshName}");        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
-                LogManager.Instance.WriteLineTrace($"    HasMeshKeys: {chan.HasMeshKeys}");       // access via chan.PositionKeys
-                LogManager.Instance.WriteLineTrace($"    MeshKeyCount: {chan.MeshKeyCount}");       // 
-                //LogManager.Instance.WriteLineTrace($"    Scaling  Keys: {chan.MeshKeys}");        // 
+                LogManager.Instance.WriteTrace($"  Channel MeshName {chan.MeshName}");        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
+                LogManager.Instance.WriteTrace($"    HasMeshKeys: {chan.HasMeshKeys}");       // access via chan.PositionKeys
+                LogManager.Instance.WriteTrace($"    MeshKeyCount: {chan.MeshKeyCount}");       // 
+                //LogManager.Instance.WriteTrace($"    Scaling  Keys: {chan.MeshKeys}");        // 
             }
-            LogManager.Instance.WriteLineTrace($"  Mesh Morph Channels: {anim.MeshMorphAnimationChannelCount} ");
+            LogManager.Instance.WriteTrace($"  Mesh Morph Channels: {anim.MeshMorphAnimationChannelCount} ");
             foreach (var chan in anim.MeshMorphAnimationChannels)
             {
-                LogManager.Instance.WriteLineTrace($"  Channel {chan.Name}");
-                LogManager.Instance.WriteLineTrace($"    HasMeshMorphKeys: {chan.HasMeshMorphKeys}");       // 
-                LogManager.Instance.WriteLineTrace($"     MeshMorphKeyCount: {chan.MeshMorphKeyCount}");       // 
-                //LogManager.Instance.WriteLineTrace($"    Scaling  Keys: {chan.MeshMorphKeys}");        // 
+                LogManager.Instance.WriteTrace($"  Channel {chan.Name}");
+                LogManager.Instance.WriteTrace($"    HasMeshMorphKeys: {chan.HasMeshMorphKeys}");       // 
+                LogManager.Instance.WriteTrace($"     MeshMorphKeyCount: {chan.MeshMorphKeyCount}");       // 
+                //LogManager.Instance.WriteTrace($"    Scaling  Keys: {chan.MeshMorphKeys}");        // 
             }
      */
 
@@ -995,7 +995,7 @@ public class RiggedModelLoader
         {
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("**** No Index found for the named bone (" + nameToFind + ") this is not good ");
+                LogManager.Instance.WriteTrace("**** No Index found for the named bone (" + nameToFind + ") this is not good ");
             }
         }
         return index;
@@ -1170,47 +1170,47 @@ public class RiggedModelLoader
 
     public void MinimalInfo(RiggedModel model, string filePath)
     {
-        LogManager.Instance.WriteLineTrace("\n");
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace("Model Loaded");
-        LogManager.Instance.WriteLineTrace("");
-        LogManager.Instance.WriteLineTrace(filePath);
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace("Materials");
-        LogManager.Instance.WriteLineTrace("");
+        LogManager.Instance.WriteTrace("\n");
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace("Model Loaded");
+        LogManager.Instance.WriteTrace("");
+        LogManager.Instance.WriteTrace(filePath);
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace("Materials");
+        LogManager.Instance.WriteTrace("");
         InfoForMaterials(model, _scene);
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace("Animations");
-        LogManager.Instance.WriteLineTrace("");
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace("Animations");
+        LogManager.Instance.WriteTrace("");
         for (int i = 0; i < _scene.Animations.Count; i++)
         {
             var anim = _scene.Animations[i];
-            LogManager.Instance.WriteLineTrace($"_____________________________________");
-            LogManager.Instance.WriteLineTrace($"Anim #[{i}] Name: {anim.Name}");
-            LogManager.Instance.WriteLineTrace($"_____________________________________");
-            LogManager.Instance.WriteLineTrace($"  Duration: {anim.DurationInTicks} / {anim.TicksPerSecond} sec.   total duration in seconds: {anim.DurationInTicks / anim.TicksPerSecond}");
-            LogManager.Instance.WriteLineTrace($"  Node Animation Channels: {anim.NodeAnimationChannelCount} ");
-            LogManager.Instance.WriteLineTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
-            LogManager.Instance.WriteLineTrace($"  Mesh Morph     Channels: {anim.MeshMorphAnimationChannelCount} ");
+            LogManager.Instance.WriteTrace($"_____________________________________");
+            LogManager.Instance.WriteTrace($"Anim #[{i}] Name: {anim.Name}");
+            LogManager.Instance.WriteTrace($"_____________________________________");
+            LogManager.Instance.WriteTrace($"  Duration: {anim.DurationInTicks} / {anim.TicksPerSecond} sec.   total duration in seconds: {anim.DurationInTicks / anim.TicksPerSecond}");
+            LogManager.Instance.WriteTrace($"  Node Animation Channels: {anim.NodeAnimationChannelCount} ");
+            LogManager.Instance.WriteTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
+            LogManager.Instance.WriteTrace($"  Mesh Morph     Channels: {anim.MeshMorphAnimationChannelCount} ");
         }
-        LogManager.Instance.WriteLineTrace("");
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace("Node Heirarchy");
-        LogManager.Instance.WriteLineTrace("");
+        LogManager.Instance.WriteTrace("");
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace("Node Heirarchy");
+        LogManager.Instance.WriteTrace("");
         InfoRiggedModelNode(model.RootNodeOfTree, 0);
-        LogManager.Instance.WriteLineTrace("");
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace($"Model");
-        LogManager.Instance.WriteLineTrace($"{GetFileName(filePath, true)} Loaded");
-        LogManager.Instance.WriteLineTrace("");
-        LogManager.Instance.WriteLineTrace("Model number of bones:    " + (model.NumberOfBonesInUse - 1).ToString() + " +1 dummy bone"); // -1 dummy bone.
-        LogManager.Instance.WriteLineTrace("Model number of animaton: " + model.OriginalAnimations.Count);
-        LogManager.Instance.WriteLineTrace("Model number of meshes:   " + model.Meshes.Length);
-        LogManager.Instance.WriteLineTrace("BoneRoot's Node Name:     " + model.RootNodeOfTree.Name);
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        LogManager.Instance.WriteLineTrace("\n");
+        LogManager.Instance.WriteTrace("");
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace($"Model");
+        LogManager.Instance.WriteTrace($"{GetFileName(filePath, true)} Loaded");
+        LogManager.Instance.WriteTrace("");
+        LogManager.Instance.WriteTrace("Model number of bones:    " + (model.NumberOfBonesInUse - 1).ToString() + " +1 dummy bone"); // -1 dummy bone.
+        LogManager.Instance.WriteTrace("Model number of animaton: " + model.OriginalAnimations.Count);
+        LogManager.Instance.WriteTrace("Model number of meshes:   " + model.Meshes.Length);
+        LogManager.Instance.WriteTrace("BoneRoot's Node Name:     " + model.RootNodeOfTree.Name);
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        LogManager.Instance.WriteTrace("\n");
     }
     public void InfoRiggedModelNode(RiggedModel.RiggedModelNode n, int tabLevel)
     {
@@ -1249,7 +1249,7 @@ public class RiggedModelLoader
             msg += $", isTheFirstMeshNode".PadRight(20);
         }
 
-        LogManager.Instance.WriteLineTrace(msg);
+        LogManager.Instance.WriteTrace(msg);
 
         for (int i = 0; i < n.Children.Count; i++)
         {
@@ -1265,7 +1265,7 @@ public class RiggedModelLoader
         if (StartupConsoleinfo)
         {
             string str = "\n\n AssimpSceneConsoleOutput ========= Animation Data========= \n\n";
-            LogManager.Instance.WriteLineTrace(str);
+            LogManager.Instance.WriteTrace(str);
         }
 
         for (int i = 0; i < scene.Animations.Count; i++)
@@ -1273,44 +1273,44 @@ public class RiggedModelLoader
             var anim = scene.Animations[i];
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace($"_________________________________");
-                LogManager.Instance.WriteLineTrace($"Anim #[{i}] Name: {anim.Name}");
-                LogManager.Instance.WriteLineTrace($"_________________________________");
-                LogManager.Instance.WriteLineTrace($"  Duration: {anim.DurationInTicks} / {anim.TicksPerSecond} sec.   total duration in seconds: {anim.DurationInTicks / anim.TicksPerSecond}");
-                LogManager.Instance.WriteLineTrace($"  HasMeshAnimations: {anim.HasMeshAnimations} ");
-                LogManager.Instance.WriteLineTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
+                LogManager.Instance.WriteTrace($"_________________________________");
+                LogManager.Instance.WriteTrace($"Anim #[{i}] Name: {anim.Name}");
+                LogManager.Instance.WriteTrace($"_________________________________");
+                LogManager.Instance.WriteTrace($"  Duration: {anim.DurationInTicks} / {anim.TicksPerSecond} sec.   total duration in seconds: {anim.DurationInTicks / anim.TicksPerSecond}");
+                LogManager.Instance.WriteTrace($"  HasMeshAnimations: {anim.HasMeshAnimations} ");
+                LogManager.Instance.WriteTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
             }
             foreach (var chan in anim.MeshAnimationChannels)
             {
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace($"  Channel MeshName {chan.MeshName}");        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
-                    LogManager.Instance.WriteLineTrace($"    HasMeshKeys: {chan.HasMeshKeys}");       // access via chan.PositionKeys
-                    LogManager.Instance.WriteLineTrace($"    MeshKeyCount: {chan.MeshKeyCount}");       // 
-                                                                                                        //LogManager.Instance.WriteLineTrace($"    Scaling  Keys: {chan.MeshKeys}");        // 
+                    LogManager.Instance.WriteTrace($"  Channel MeshName {chan.MeshName}");        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
+                    LogManager.Instance.WriteTrace($"    HasMeshKeys: {chan.HasMeshKeys}");       // access via chan.PositionKeys
+                    LogManager.Instance.WriteTrace($"    MeshKeyCount: {chan.MeshKeyCount}");       // 
+                                                                                                    //LogManager.Instance.WriteTrace($"    Scaling  Keys: {chan.MeshKeys}");        // 
                 }
             }
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace($"  Mesh Morph Channels: {anim.MeshMorphAnimationChannelCount} ");
+                LogManager.Instance.WriteTrace($"  Mesh Morph Channels: {anim.MeshMorphAnimationChannelCount} ");
             }
 
             foreach (var chan in anim.MeshMorphAnimationChannels)
             {
                 if (StartupConsoleinfo && (TargetNodeConsoleName != "" || TargetNodeConsoleName == chan.Name))
                 {
-                    LogManager.Instance.WriteLineTrace($"  Channel {chan.Name}");
-                    LogManager.Instance.WriteLineTrace($"    HasMeshMorphKeys: {chan.HasMeshMorphKeys}");       // 
-                    LogManager.Instance.WriteLineTrace($"     MeshMorphKeyCount: {chan.MeshMorphKeyCount}");       // 
-                                                                                                                   //LogManager.Instance.WriteLineTrace($"    Scaling  Keys: {chan.MeshMorphKeys}");        // 
+                    LogManager.Instance.WriteTrace($"  Channel {chan.Name}");
+                    LogManager.Instance.WriteTrace($"    HasMeshMorphKeys: {chan.HasMeshMorphKeys}");       // 
+                    LogManager.Instance.WriteTrace($"     MeshMorphKeyCount: {chan.MeshMorphKeyCount}");       // 
+                                                                                                               //LogManager.Instance.WriteTrace($"    Scaling  Keys: {chan.MeshMorphKeys}");        // 
                 }
             }
             if (StartupConsoleinfo)
             {
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace($"  HasNodeAnimations: {anim.HasNodeAnimations} ");
-                    LogManager.Instance.WriteLineTrace($"   Node Channels: {anim.NodeAnimationChannelCount}");
+                    LogManager.Instance.WriteTrace($"  HasNodeAnimations: {anim.HasNodeAnimations} ");
+                    LogManager.Instance.WriteTrace($"   Node Channels: {anim.NodeAnimationChannelCount}");
                 }
             }
             foreach (var chan in anim.NodeAnimationChannels)
@@ -1320,32 +1320,32 @@ public class RiggedModelLoader
                     Console.Write($"   Channel {chan.NodeName}".PadRight(35));        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
                     Console.Write($"     Position Keys: {chan.PositionKeyCount}".PadRight(25));         // access via chan.PositionKeys
                     Console.Write($"     Rotation Keys: {chan.RotationKeyCount}".PadRight(25));      // 
-                    LogManager.Instance.WriteLineTrace($"     Scaling  Keys: {chan.ScalingKeyCount}".PadRight(25));        // 
+                    LogManager.Instance.WriteTrace($"     Scaling  Keys: {chan.ScalingKeyCount}".PadRight(25));        // 
                 }
             }
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("\n");
-                LogManager.Instance.WriteLineTrace("\n Ok so this is all gonna go into our model class basically as is kinda. frownzers i needed it like this after all.");
+                LogManager.Instance.WriteTrace("\n");
+                LogManager.Instance.WriteTrace("\n Ok so this is all gonna go into our model class basically as is kinda. frownzers i needed it like this after all.");
             }
             foreach (var anode in anim.NodeAnimationChannels)
             {
                 if (StartupConsoleinfo && (TargetNodeConsoleName == "" || TargetNodeConsoleName == anode.NodeName))
                 {
-                    LogManager.Instance.WriteLineTrace($"   Channel {anode.NodeName}\n   (time is in animation ticks it shouldn't exceed anim.DurationInTicks {anim.DurationInTicks} or total duration in seconds: {anim.DurationInTicks / anim.TicksPerSecond})");        // the node name has to be used to tie this channel to the originally printed hierarchy.  node names must be unique.
-                    LogManager.Instance.WriteLineTrace($"     Position Keys: {anode.PositionKeyCount}");       // access via chan.PositionKeys
+                    LogManager.Instance.WriteTrace($"   Channel {anode.NodeName}\n   (time is in animation ticks it shouldn't exceed anim.DurationInTicks {anim.DurationInTicks} or total duration in seconds: {anim.DurationInTicks / anim.TicksPerSecond})");        // the node name has to be used to tie this channel to the originally printed hierarchy.  node names must be unique.
+                    LogManager.Instance.WriteTrace($"     Position Keys: {anode.PositionKeyCount}");       // access via chan.PositionKeys
 
                     for (int j = 0; j < anode.PositionKeys.Count; j++)
                     {
                         var key = anode.PositionKeys[j];
                         if (StartupConsoleinfo)
                         {
-                            LogManager.Instance.WriteLineTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToString().PadRight(17) + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  Position: {" + key.Value.ToStringTrimed() + "}");
+                            LogManager.Instance.WriteTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToString().PadRight(17) + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  Position: {" + key.Value.ToStringTrimed() + "}");
                         }
                     }
                     if (StartupConsoleinfo)
                     {
-                        LogManager.Instance.WriteLineTrace($"     Rotation Keys: {anode.RotationKeyCount}");       // 
+                        LogManager.Instance.WriteTrace($"     Rotation Keys: {anode.RotationKeyCount}");       // 
                     }
 
                     for (int j = 0; j < anode.RotationKeys.Count; j++)
@@ -1353,12 +1353,12 @@ public class RiggedModelLoader
                         var key = anode.RotationKeys[j];
                         if (StartupConsoleinfo)
                         {
-                            LogManager.Instance.WriteLineTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToStringTrimed() + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  QRotation: {" + key.Value.ToStringTrimed() + "}");
+                            LogManager.Instance.WriteTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToStringTrimed() + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  QRotation: {" + key.Value.ToStringTrimed() + "}");
                         }
                     }
                     if (StartupConsoleinfo)
                     {
-                        LogManager.Instance.WriteLineTrace($"     Scaling  Keys: {anode.ScalingKeyCount}");        // 
+                        LogManager.Instance.WriteTrace($"     Scaling  Keys: {anode.ScalingKeyCount}");        // 
                     }
 
                     for (int j = 0; j < anode.ScalingKeys.Count; j++)
@@ -1366,7 +1366,7 @@ public class RiggedModelLoader
                         var key = anode.ScalingKeys[j];
                         if (StartupConsoleinfo)
                         {
-                            LogManager.Instance.WriteLineTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToStringTrimed() + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  Scaling: {" + key.Value.ToStringTrimed() + "}");
+                            LogManager.Instance.WriteTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToStringTrimed() + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  Scaling: {" + key.Value.ToStringTrimed() + "}");
                         }
                     }
                 }
@@ -1386,14 +1386,14 @@ public class RiggedModelLoader
         // just print out the flat node bones before we start so i can see whats up.
         if (StartupConsoleinfo)
         {
-            LogManager.Instance.WriteLineTrace("");
-            LogManager.Instance.WriteLineTrace("Flat bone nodes count: " + model.FlatListToBoneNodes.Count());
+            LogManager.Instance.WriteTrace("");
+            LogManager.Instance.WriteTrace("Flat bone nodes count: " + model.FlatListToBoneNodes.Count());
             for (int i = 0; i < model.FlatListToBoneNodes.Count(); i++)
             {
                 var b = model.FlatListToBoneNodes[i];
-                LogManager.Instance.WriteLineTrace(b.Name);
+                LogManager.Instance.WriteTrace(b.Name);
             }
-            LogManager.Instance.WriteLineTrace("");
+            LogManager.Instance.WriteTrace("");
         }
     }
 
@@ -1407,7 +1407,7 @@ public class RiggedModelLoader
 
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace(
+                LogManager.Instance.WriteTrace(
                 "\n" + "__________________________" +
                 "\n" + "Scene.Meshes[" + mloop + "] " +
                 "\n" + "Mesh.Name: " + mesh.Name +
@@ -1417,30 +1417,30 @@ public class RiggedModelLoader
                 "\n" + " BoneCount: " + mesh.BoneCount +
                 "\n" + " MaterialIndex: " + mesh.MaterialIndex
                 );
-                LogManager.Instance.WriteLineTrace("  mesh.UVComponentCount.Length: " + mesh.UVComponentCount.Length);
+                LogManager.Instance.WriteTrace("  mesh.UVComponentCount.Length: " + mesh.UVComponentCount.Length);
             }
             for (int i = 0; i < mesh.UVComponentCount.Length; i++)
             {
                 int val = mesh.UVComponentCount[i];
                 if (StartupConsoleinfo && val > 0)
                 {
-                    LogManager.Instance.WriteLineTrace("     mesh.UVComponentCount[" + i + "] : int value: " + val);
+                    LogManager.Instance.WriteTrace("     mesh.UVComponentCount[" + i + "] : int value: " + val);
                 }
             }
             var tcc = mesh.TextureCoordinateChannelCount;
             var tc = mesh.TextureCoordinateChannels;
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("  mesh.HasMeshAnimationAttachments: " + mesh.HasMeshAnimationAttachments);
-                LogManager.Instance.WriteLineTrace("  mesh.TextureCoordinateChannelCount: " + mesh.TextureCoordinateChannelCount);
-                LogManager.Instance.WriteLineTrace("  mesh.TextureCoordinateChannels.Length:" + mesh.TextureCoordinateChannels.Length);
+                LogManager.Instance.WriteTrace("  mesh.HasMeshAnimationAttachments: " + mesh.HasMeshAnimationAttachments);
+                LogManager.Instance.WriteTrace("  mesh.TextureCoordinateChannelCount: " + mesh.TextureCoordinateChannelCount);
+                LogManager.Instance.WriteTrace("  mesh.TextureCoordinateChannels.Length:" + mesh.TextureCoordinateChannels.Length);
             }
             for (int i = 0; i < mesh.TextureCoordinateChannels.Length; i++)
             {
                 var channel = mesh.TextureCoordinateChannels[i];
                 if (StartupConsoleinfo && channel.Count > 0)
                 {
-                    LogManager.Instance.WriteLineTrace("     mesh.TextureCoordinateChannels[" + i + "]  count " + channel.Count);
+                    LogManager.Instance.WriteTrace("     mesh.TextureCoordinateChannels[" + i + "]  count " + channel.Count);
                 }
 
                 for (int j = 0; j < channel.Count; j++)
@@ -1451,11 +1451,11 @@ public class RiggedModelLoader
             }
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("");
+                LogManager.Instance.WriteTrace("");
             }
 
             //// Uv
-            //LogManager.Instance.WriteLineTrace("");
+            //LogManager.Instance.WriteTrace("");
             //var uvchannels = mesh.TextureCoordinateChannels;
             //for (int k = 0; k < uvchannels.Length; k++)
             //{
@@ -1477,7 +1477,7 @@ public class RiggedModelLoader
             var textures = scene.Textures;
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("\nTextures " + " Count " + texturescount + "\n");
+                LogManager.Instance.WriteTrace("\nTextures " + " Count " + texturescount + "\n");
             }
 
             for (int i = 0; i < textures.Count; i++)
@@ -1485,7 +1485,7 @@ public class RiggedModelLoader
                 var name = textures[i];
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace("Textures[" + i + "] " + name);
+                    LogManager.Instance.WriteTrace("Textures[" + i + "] " + name);
                 }
             }
         }
@@ -1493,7 +1493,7 @@ public class RiggedModelLoader
         {
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("\nTextures " + " None ");
+                LogManager.Instance.WriteTrace("\nTextures " + " None ");
             }
         }
 
@@ -1501,16 +1501,16 @@ public class RiggedModelLoader
         {
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("\nMaterials scene.MaterialCount " + scene.MaterialCount + "\n");
+                LogManager.Instance.WriteTrace("\nMaterials scene.MaterialCount " + scene.MaterialCount + "\n");
             }
 
             for (int i = 0; i < scene.Materials.Count; i++)
             {
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace("");
-                    LogManager.Instance.WriteLineTrace("Material[" + i + "] ");
-                    LogManager.Instance.WriteLineTrace("Material[" + i + "].Name " + scene.Materials[i].Name);
+                    LogManager.Instance.WriteTrace("");
+                    LogManager.Instance.WriteTrace("Material[" + i + "] ");
+                    LogManager.Instance.WriteTrace("Material[" + i + "].Name " + scene.Materials[i].Name);
                 }
                 var m = scene.Materials[i];
                 if (m.HasName)
@@ -1523,8 +1523,8 @@ public class RiggedModelLoader
                 var t = m.GetAllMaterialTextures();
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace("  GetAllMaterialTextures Length " + t.Length);
-                    LogManager.Instance.WriteLineTrace("");
+                    LogManager.Instance.WriteTrace("  GetAllMaterialTextures Length " + t.Length);
+                    LogManager.Instance.WriteTrace("");
                 }
                 for (int j = 0; j < t.Length; j++)
                 {
@@ -1535,34 +1535,34 @@ public class RiggedModelLoader
                     // J matches up to the texture coordinate channel uv count it looks like.
                     if (StartupConsoleinfo)
                     {
-                        LogManager.Instance.WriteLineTrace("   Texture[" + j + "] " + "   Index:" + tindex + "   Type: " + ttype + "   Filepath: " + tfilepath);
+                        LogManager.Instance.WriteTrace("   Texture[" + j + "] " + "   Index:" + tindex + "   Type: " + ttype + "   Filepath: " + tfilepath);
                     }
                 }
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace("");
+                    LogManager.Instance.WriteTrace("");
                 }
 
                 // added info
                 if (StartupConsoleinfo)
                 {
-                    LogManager.Instance.WriteLineTrace("   Material[" + i + "] " + "  HasBlendMode:" + m.HasBlendMode + "  HasBumpScaling: " + m.HasBumpScaling + "  HasOpacity: " + m.HasOpacity + "  HasShadingMode: " + m.HasShadingMode + "  HasTwoSided: " + m.HasTwoSided + "  IsTwoSided: " + m.IsTwoSided);
-                    LogManager.Instance.WriteLineTrace("   Material[" + i + "] " + "  HasBlendMode:" + m.HasShininess + "  HasTextureDisplacement:" + m.HasTextureDisplacement + "  HasTextureEmissive:" + m.HasTextureEmissive + "  HasTextureReflection:" + m.HasTextureReflection);
-                    LogManager.Instance.WriteLineTrace("   Material[" + i + "] " + "  HasTextureReflection " + scene.Materials[i].HasTextureReflection + "  HasTextureLightMap " + scene.Materials[i].HasTextureLightMap + "  Reflectivity " + scene.Materials[i].Reflectivity);
-                    LogManager.Instance.WriteLineTrace("   Material[" + i + "] " + "  ColorAmbient:" + m.ColorAmbient + "  ColorDiffuse: " + m.ColorDiffuse + "  ColorSpecular: " + m.ColorSpecular);
-                    LogManager.Instance.WriteLineTrace("   Material[" + i + "] " + "  ColorReflective:" + m.ColorReflective + "  ColorEmissive: " + m.ColorEmissive + "  ColorTransparent: " + m.ColorTransparent);
+                    LogManager.Instance.WriteTrace("   Material[" + i + "] " + "  HasBlendMode:" + m.HasBlendMode + "  HasBumpScaling: " + m.HasBumpScaling + "  HasOpacity: " + m.HasOpacity + "  HasShadingMode: " + m.HasShadingMode + "  HasTwoSided: " + m.HasTwoSided + "  IsTwoSided: " + m.IsTwoSided);
+                    LogManager.Instance.WriteTrace("   Material[" + i + "] " + "  HasBlendMode:" + m.HasShininess + "  HasTextureDisplacement:" + m.HasTextureDisplacement + "  HasTextureEmissive:" + m.HasTextureEmissive + "  HasTextureReflection:" + m.HasTextureReflection);
+                    LogManager.Instance.WriteTrace("   Material[" + i + "] " + "  HasTextureReflection " + scene.Materials[i].HasTextureReflection + "  HasTextureLightMap " + scene.Materials[i].HasTextureLightMap + "  Reflectivity " + scene.Materials[i].Reflectivity);
+                    LogManager.Instance.WriteTrace("   Material[" + i + "] " + "  ColorAmbient:" + m.ColorAmbient + "  ColorDiffuse: " + m.ColorDiffuse + "  ColorSpecular: " + m.ColorSpecular);
+                    LogManager.Instance.WriteTrace("   Material[" + i + "] " + "  ColorReflective:" + m.ColorReflective + "  ColorEmissive: " + m.ColorEmissive + "  ColorTransparent: " + m.ColorTransparent);
                 }
             }
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("");
+                LogManager.Instance.WriteTrace("");
             }
         }
         else
         {
             if (StartupConsoleinfo)
             {
-                LogManager.Instance.WriteLineTrace("\n   No Materials Present. \n");
+                LogManager.Instance.WriteTrace("\n   No Materials Present. \n");
             }
         }
     }

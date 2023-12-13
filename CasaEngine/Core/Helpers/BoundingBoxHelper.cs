@@ -5,10 +5,6 @@ namespace CasaEngine.Core.Helpers;
 
 public static class BoundingBoxHelper
 {
-    /// <summary>
-    /// Calculates the bounding box that contains the sum of the bounding boxes
-    /// of the model node's mesh parts (Editor only)
-    /// </summary>
     public static BoundingBox CalculateBoundingBoxFromModel(Model model)
     {
         // NOTE: we could use ModelMesh's built in BoundingSphere property 

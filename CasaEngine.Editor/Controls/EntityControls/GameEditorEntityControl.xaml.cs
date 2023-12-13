@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.Editor.Controls.EntityControls;
@@ -23,6 +23,6 @@ public partial class GameEditorEntityControl : UserControl
 
         var fileName = EntityControlViewModel.Entity.AssetInfo.FileName;
         AssetSaver.SaveAsset(fileName, EntityControlViewModel.Entity);
-        LogManager.Instance.WriteLineInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({fileName})");
+        LogManager.Instance.WriteInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({fileName})");
     }
 }

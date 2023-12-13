@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.Editor.Controls.TileMapControls;
@@ -44,6 +44,6 @@ public partial class GameEditorTileMapControl : UserControl
         }
 
         AssetSaver.SaveAsset(tileMapDataViewModel.TileMapData.FileName, tileMapDataViewModel.TileMapData);
-        LogManager.Instance.WriteLineInfo($"Entity {tileMapDataViewModel.TileMapData.Name} saved ({tileMapDataViewModel.TileMapData.FileName})");
+        LogManager.Instance.WriteInfo($"Entity {tileMapDataViewModel.TileMapData.Name} saved ({tileMapDataViewModel.TileMapData.FileName})");
     }
 }

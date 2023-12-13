@@ -14,7 +14,7 @@ using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Tile Map")]
-public class TileMapComponent : Component, IBoundingBoxComputable, ICollideableComponent
+public class TileMapComponent : Component, IBoundingBoxable, ICollideableComponent
 {
     public override int ComponentId => (int)ComponentIds.TileMap;
 
