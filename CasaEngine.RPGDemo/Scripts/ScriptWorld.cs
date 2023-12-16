@@ -2,6 +2,7 @@
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GUI;

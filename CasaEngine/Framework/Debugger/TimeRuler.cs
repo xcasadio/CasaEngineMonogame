@@ -217,7 +217,7 @@ namespace CasaEngine.Framework.Debugger
                 throw new InvalidOperationException("TimeRuler.LoadContent() : Renderer2dComponent is null");
             }
 
-            OnResize(Game.Window.ClientBounds.Width, Game.Window.ClientBounds.Height);
+            OnResize((Game as CasaEngineGame).ScreenSizeWidth, (Game as CasaEngineGame).ScreenSizeHeight);
 
             base.LoadContent();
         }

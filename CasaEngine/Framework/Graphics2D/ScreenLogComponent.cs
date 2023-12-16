@@ -24,7 +24,7 @@ public class ScreenLogComponent : DrawableGameComponent
     {
         if (game == null)
         {
-            throw new ArgumentNullException("ScreenLogComponent : Game is null");
+            throw new ArgumentNullException(nameof(game));
         }
 
 

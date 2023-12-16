@@ -1,5 +1,4 @@
 using CasaEngine.Core.Logs;
-using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,6 +8,30 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 {
     private readonly string? _projectFileName;
     public GameManager GameManager { get; }
+
+    public int ScreenSizeWidth
+    {
+        get
+        {
+#if EDITOR
+            return GraphicsDevice.PresentationParameters.BackBufferWidth;
+#else
+            return Window.ClientBounds.Width;
+#endif
+        }
+    }
+
+    public int ScreenSizeHeight
+    {
+        get
+        {
+#if EDITOR
+            return GraphicsDevice.PresentationParameters.BackBufferHeight;
+#else
+            return Window.ClientBounds.Height;
+#endif
+        }
+    }
 
     public CasaEngineGame(string? projectFileName = null, IGraphicsDeviceService? graphicsDeviceService = null)
     {

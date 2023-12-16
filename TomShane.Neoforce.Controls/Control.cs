@@ -492,7 +492,7 @@ public class Control : Component
         set
         {
             _skin = value;
-            ClientMargins = _skin.ClientMargins;
+            ClientMargins = _skin?.ClientMargins ?? ClientMargins;
         }
     }
 
@@ -2215,7 +2215,7 @@ public class Control : Component
         Invalidate();
         _hovered = false;
         ToolTipOut();
-        Manager.Cursor = Manager.Skin.Cursors["Default"].Resource;
+        Manager.Cursor = Manager.Skin.Cursors["Default"]?.Resource;
 
         if (!Suspended)
         {

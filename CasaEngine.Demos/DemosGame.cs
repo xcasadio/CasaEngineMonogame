@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.World;

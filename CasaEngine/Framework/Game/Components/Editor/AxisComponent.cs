@@ -37,8 +37,8 @@ public class AxisComponent : DrawableGameComponent, IGameComponentResizable
             new(Vector3.Zero, Color.Blue), new(Vector3.UnitZ, Color.Blue)
         });
 
-        _width = _game.Window.ClientBounds.Size.X;
-        _height = _game.Window.ClientBounds.Size.Y;
+        _width = _game.ScreenSizeWidth;
+        _height = _game.ScreenSizeHeight;
     }
 
     public override void Draw(GameTime gameTime)
@@ -54,7 +54,6 @@ public class AxisComponent : DrawableGameComponent, IGameComponentResizable
             GraphicsDevice.Indices = null;
 
             //TODO : compute with screen height/width and aspect ratio
-            var screenSize = _game.Window.ClientBounds.Size;
             var forwardFactor = (float)_width / 800f * 20f;
             var leftFactor = (float)_width / 800f * 13f;
             var upFactor = (float)_height / 480f * 6f;

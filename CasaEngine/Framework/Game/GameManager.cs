@@ -131,6 +131,8 @@ public class GameManager
 
     public void OnScreenResized(int width, int height)
     {
+        _game.ScreenResize(width, height);
+
         if (CurrentWorld != null)
         {
             foreach (var entity in CurrentWorld.Entities)

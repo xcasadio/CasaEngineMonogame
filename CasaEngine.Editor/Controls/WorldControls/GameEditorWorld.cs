@@ -13,7 +13,7 @@ namespace CasaEngine.Editor.Controls.WorldControls;
 
 public class GameEditorWorld : GameEditor
 {
-    public GameEditorWorld() : base(false)
+    public GameEditorWorld() : base(true)
     {
         Drop += OnDrop;
     }

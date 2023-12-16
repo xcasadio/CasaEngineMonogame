@@ -530,7 +530,8 @@ public class InputSystem : Disposable
 
     private void AdjustPosition(ref MouseEventArgs e)
     {
-        var screen = _manager.Game.Window.ClientBounds;
+        var screenWidth = _manager.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        var screenHeight = _manager.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
 
         if (e.Position.X < 0)
         {
@@ -542,14 +543,14 @@ public class InputSystem : Disposable
             e.Position.Y = 0;
         }
 
-        if (e.Position.X >= screen.Width)
+        if (e.Position.X >= screenWidth)
         {
-            e.Position.X = screen.Width - 1;
+            e.Position.X = screenWidth - 1;
         }
 
-        if (e.Position.Y >= screen.Height)
+        if (e.Position.Y >= screenHeight)
         {
-            e.Position.Y = screen.Height - 1;
+            e.Position.Y = screenHeight - 1;
         }
     }
 

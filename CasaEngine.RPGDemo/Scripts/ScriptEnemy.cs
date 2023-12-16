@@ -3,6 +3,7 @@ using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Scripting;

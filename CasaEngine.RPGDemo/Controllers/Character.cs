@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -192,7 +192,7 @@ public class Character
             return;
         }
 
-        LogManager.Instance.WriteLineTrace($"{Owner.Name} SetAnimation : {animationName}");
+        LogManager.Instance.WriteTrace($"{Owner.Name} SetAnimation : {animationName}");
         AnimatedSpriteComponent.SetCurrentAnimation(animationName, true);
     }
 

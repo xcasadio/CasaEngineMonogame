@@ -7,6 +7,7 @@ using CasaEngine.Editor.Inputs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
+using System.Diagnostics;
 
 namespace CasaEngine.Editor.Controls;
 
@@ -66,10 +67,10 @@ public class GameEditor : WpfGame
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
-        //in editor the camera is an element of the world
         var newSizeWidth = (int)sizeInfo.NewSize.Width;
         var newSizeHeight = (int)sizeInfo.NewSize.Height;
-        Game?.ScreenResize(newSizeWidth, newSizeHeight);
+
+        //in editor the camera is an element of the world
         Game?.GameManager.ActiveCamera?.ScreenResized(newSizeWidth, newSizeHeight);
         Game?.GameManager.OnScreenResized(newSizeWidth, newSizeHeight);
         base.OnRenderSizeChanged(sizeInfo);

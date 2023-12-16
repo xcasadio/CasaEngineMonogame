@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Editor.DragAndDrop;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using TomShane.Neoforce.Controls;
@@ -23,6 +24,7 @@ public class GameEditorGui : GameEditor2d
 {
     private Screen _screen;
     private readonly Dictionary<string, Type> _types;
+    private Camera3dIn2dAxisComponent _camera;
 
     public GameEditorGui() : base(true)
     {
@@ -46,6 +48,14 @@ public class GameEditorGui : GameEditor2d
             Game.GameManager.CurrentWorld.AddScreen(_screen);
         }
     }
+    protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+    {
+        base.OnRenderSizeChanged(sizeInfo);
+
+        var screenXBy2 = (float)sizeInfo.NewSize.Width / 2f;
+        var screenYBy2 = (float)sizeInfo.NewSize.Height / 2f;
+        _camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
+    }
 
     protected override void CreateEntityComponents(Entity entity)
     {
@@ -54,6 +64,8 @@ public class GameEditorGui : GameEditor2d
 
         //DataContext = new ScreenViewModel(_screen);
         Game.GameManager.UiManager.SetSkin();
+
+        _camera = Game.GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
     }
 
     private void OnDrop(object sender, DragEventArgs e)

@@ -29,9 +29,6 @@ public class GuiEndRendererComponent : DrawableGameComponent
         if (!_game.GameManager.UiManager.DeviceReset)
         {
             _spriteRendererComponent.DrawDirectly(_game.GameManager.UiManager.RenderTarget);
-            //new Rectangle(0, 0, ScreenWidth, ScreenHeight));
-            //
-            //_game.GameManager.UiManager.EndDraw();
         }
     }
 }

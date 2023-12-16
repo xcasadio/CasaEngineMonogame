@@ -50,8 +50,6 @@ public partial class PlaceComponentsControl : UserControl
                          && t.IsSubclassOf(typeof(Component)))
                      .OrderBy(t => t.Name))
         {
-            Debug.WriteLine(type.Name);
-
             var label = new System.Windows.Controls.Label
             {
                 Content = type.Name,

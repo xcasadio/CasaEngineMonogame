@@ -636,11 +636,10 @@ public class Manager : DrawableGameComponent
 
     public void OnScreenResized(int width, int height)
     {
-        InvalidateRenderTarget();
-
         GraphicsDevice.PresentationParameters.BackBufferWidth = width;
         GraphicsDevice.PresentationParameters.BackBufferHeight = height;
 
+        InvalidateRenderTarget();
         OnScreenResize(width, height);
     }
 
@@ -987,7 +986,7 @@ public class Manager : DrawableGameComponent
                 }
 
                 GraphicsDevice.SetRenderTarget(RenderTarget);
-                GraphicsDevice.Clear(Color.CornflowerBlue);
+                GraphicsDevice.Clear(Color.Transparent);
 
                 if (Renderer != null)
                 {

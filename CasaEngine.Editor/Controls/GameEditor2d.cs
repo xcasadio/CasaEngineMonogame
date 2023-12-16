@@ -1,4 +1,5 @@
-﻿using CasaEngine.Engine.Input;
+﻿using System.Windows;
+using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -6,6 +7,7 @@ using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace CasaEngine.Editor.Controls;
 
@@ -33,6 +35,7 @@ public abstract class GameEditor2d : GameEditor
 
     protected abstract void CreateEntityComponents(Entity entity);
 
+
     protected override void LoadContent()
     {
         base.LoadContent();
@@ -40,8 +43,8 @@ public abstract class GameEditor2d : GameEditor
         CameraEntity = new Entity();
         var camera = new Camera3dIn2dAxisComponent();
         CameraEntity.ComponentManager.Components.Add(camera);
-        var screenXBy2 = Game.Window.ClientBounds.Width / 2f;
-        var screenYBy2 = Game.Window.ClientBounds.Height / 2f;
+        var screenXBy2 = Game.ScreenSizeWidth / 2f;
+        var screenYBy2 = Game.ScreenSizeHeight / 2f;
         camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
         CameraEntity.Initialize(Game);
         Game.GameManager.ActiveCamera = camera;

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Entities.Components;
@@ -20,21 +21,15 @@ public class CameraTargeted2dComponent : Camera3dComponent
     {
         get
         {
-            //const float w = _game.GraphicsDevice.Viewport.Width * Game::Instance().GetWindowSize().x;
-            //const float h = _game.GraphicsDevice.Viewport.Height * Game::Instance().GetWindowSize().Y;
-
-            float w = (float)Owner.Game.Window.ClientBounds.Width;
-            float h = (float)Owner.Game.Window.ClientBounds.Height;
-
             var fov = FieldOfView * 0.5f;
-            float z = -(h * 0.5f) / MathUtils.Tan(fov);
+            float z = -((float)Owner.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
             return new(-_offset.X, -_offset.Y, z);
         }
     }
 
     public Vector3 Up
     {
-        get { return _up; }
+        get => _up;
         set
         {
             _needToComputeViewMatrix = true;
@@ -42,11 +37,7 @@ public class CameraTargeted2dComponent : Camera3dComponent
         }
     }
 
-    public Entity? Target
-    {
-        get;
-        set;
-    }
+    public Entity? Target { get; set; }
 
     public override void Update(float elapsedTime)
     {
@@ -55,14 +46,15 @@ public class CameraTargeted2dComponent : Camera3dComponent
         if (Target != null)
         {
             var viewport = Owner.Game.GraphicsDevice.Viewport;
-            var winSize = Owner.Game.Window.ClientBounds.Size;
+            var screenWidth = Owner.Game.ScreenSizeWidth;
+            var screenHeight = Owner.Game.ScreenSizeHeight;
             var targetPosition = Target.Coordinates.Position;
 
             Rectangle deadZone = new Rectangle(
-                (int)(_offset.X + winSize.X * (1.0f - DeadZoneRatio.X) / 2.0f),
-                (int)(_offset.Y + winSize.Y * (1.0f - DeadZoneRatio.Y) / 2.0f),
-                (int)(winSize.X * DeadZoneRatio.X),
-                (int)(winSize.Y * DeadZoneRatio.Y));
+                (int)(_offset.X + screenWidth * (1.0f - DeadZoneRatio.X) / 2.0f),
+                (int)(_offset.Y + screenHeight * (1.0f - DeadZoneRatio.Y) / 2.0f),
+                (int)(screenWidth * DeadZoneRatio.X),
+                (int)(screenHeight * DeadZoneRatio.Y));
 
             if (deadZone.Contains(targetPosition.X, targetPosition.Y))
             {
@@ -85,9 +77,9 @@ public class CameraTargeted2dComponent : Camera3dComponent
                 }
 
                 //limits
-                if (_offset.X > Limits.Right - winSize.X)
+                if (_offset.X > Limits.Right - screenWidth)
                 {
-                    _offset.X = Limits.Right - winSize.X;
+                    _offset.X = Limits.Right - screenWidth;
                 }
 
                 if (_offset.X < Limits.Left)
@@ -95,9 +87,9 @@ public class CameraTargeted2dComponent : Camera3dComponent
                     _offset.X = Limits.Left;
                 }
 
-                if (_offset.Y > Limits.Bottom - winSize.Y)
+                if (_offset.Y > Limits.Bottom - screenHeight)
                 {
-                    _offset.Y = Limits.Bottom - winSize.Y;
+                    _offset.Y = Limits.Bottom - screenHeight;
                 }
 
                 if (_offset.Y < Limits.Top)
@@ -116,11 +108,12 @@ public class CameraTargeted2dComponent : Camera3dComponent
 
     public override Component Clone()
     {
-        var component = new CameraTargeted2dComponent();
-
-        component._up = _up;
-        component._target = _target;
-        component._offset = _offset;
+        var component = new CameraTargeted2dComponent
+        {
+            Up = _up,
+            Target = Target,
+            _offset = _offset
+        };
 
         return component;
     }

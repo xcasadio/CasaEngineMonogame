@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using CasaEngine.Core.Logger;
+using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 
