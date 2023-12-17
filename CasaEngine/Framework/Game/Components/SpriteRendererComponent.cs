@@ -146,7 +146,21 @@ public class SpriteRendererComponent : DrawableGameComponent
 
         graphicsDevice.DepthStencilState = DepthStencilState.None;
         graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        graphicsDevice.BlendState = BlendState.AlphaBlend; //_blendState
+        graphicsDevice.BlendState = BlendState.AlphaBlend; //BlendState.AlphaBlend; //_blendState
+        /*var BlendState = new BlendState();
+        BlendState.AlphaBlendFunction = BlendState.AlphaBlend.AlphaBlendFunction;
+        BlendState.AlphaDestinationBlend = BlendState.AlphaBlend.AlphaDestinationBlend;
+        BlendState.AlphaSourceBlend = BlendState.AlphaBlend.AlphaSourceBlend;
+        BlendState.BlendFactor = BlendState.AlphaBlend.BlendFactor;
+        BlendState.ColorBlendFunction = BlendState.AlphaBlend.ColorBlendFunction;
+        BlendState.ColorDestinationBlend = BlendState.AlphaBlend.ColorDestinationBlend;
+        BlendState.ColorSourceBlend = BlendState.AlphaBlend.ColorSourceBlend;
+        BlendState.ColorWriteChannels = BlendState.AlphaBlend.ColorWriteChannels;
+        BlendState.ColorWriteChannels1 = BlendState.AlphaBlend.ColorWriteChannels1;
+        BlendState.ColorWriteChannels2 = BlendState.AlphaBlend.ColorWriteChannels2;
+        BlendState.ColorWriteChannels3 = BlendState.AlphaBlend.ColorWriteChannels3;
+        BlendState.MultiSampleMask = BlendState.AlphaBlend.MultiSampleMask;
+        graphicsDevice.BlendState = BlendState;*/
         graphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
         var camera = _game.GameManager.ActiveCamera;

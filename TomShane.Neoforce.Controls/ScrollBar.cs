@@ -1,5 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -259,7 +261,7 @@ public class ScrollBar : Control
         Skin = new SkinControl(Manager.Skin.Controls["ScrollBar"]);
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         RecalcParams();
 

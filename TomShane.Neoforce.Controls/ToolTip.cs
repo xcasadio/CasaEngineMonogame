@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -43,7 +44,7 @@ public class ToolTip : Control
         Skin = Manager.Skin.Controls["ToolTip"];
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         renderer.DrawLayer(this, Skin.Layers[0], rect);
         renderer.DrawString(this, Skin.Layers[0], Text, rect, true);

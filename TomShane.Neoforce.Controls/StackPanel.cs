@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -68,7 +69,7 @@ public class StackPanel : Container
 
 
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         base.DrawControl(renderer, rect, gameTime);
     }

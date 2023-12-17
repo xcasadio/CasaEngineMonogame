@@ -223,7 +223,6 @@ public class GameManager
         UiManager.OnScreenResize(_game.GraphicsDevice.PresentationParameters.BackBufferWidth,
             _game.GraphicsDevice.PresentationParameters.BackBufferWidth);
 
-
         UiManagerEnd = new GuiEndRendererComponent(_game);
     }
 

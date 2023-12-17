@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Forms;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Editor.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
-using TomShane.Neoforce.Controls;
 using Button = TomShane.Neoforce.Controls.Button;
 using Control = TomShane.Neoforce.Controls.Control;
 using DataFormats = System.Windows.DataFormats;
@@ -31,6 +26,7 @@ public class GameEditorGui : GameEditor2d
         Drop += OnDrop;
         UseGui = true;
         DataContextChanged += OnDataContextChanged;
+        Cursor = System.Windows.Input.Cursors.None;
 
         _types = AppDomain.CurrentDomain
             .GetAssemblies()
@@ -59,12 +55,7 @@ public class GameEditorGui : GameEditor2d
 
     protected override void CreateEntityComponents(Entity entity)
     {
-        //_screen = new Screen();
-        //Game.GameManager.CurrentWorld.AddScreen(_screen);
-
-        //DataContext = new ScreenViewModel(_screen);
         Game.GameManager.UiManager.SetSkin();
-
         _camera = Game.GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
     }
 
@@ -87,8 +78,11 @@ public class GameEditorGui : GameEditor2d
 
                 control.SetPosition((int)position.X, (int)position.Y);
                 control.Movable = true;
-                control.MovableArea = new Rectangle(0, 0, 800, 600);
-                control.Tag = type.Name;
+                control.Resizable = true;
+                control.ResizerSize = 2;
+                control.DesignMode = true;
+                control.MovableArea = new Rectangle(0, 0, Game.ScreenSizeWidth, Game.ScreenSizeHeight);
+                control.Name = type.Name;
 
                 (DataContext as ScreenViewModel).Add(control);
             }

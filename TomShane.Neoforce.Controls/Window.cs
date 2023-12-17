@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -163,7 +165,7 @@ public class Window : ModalContainer
         _btnClose.Skin = new SkinControl(Manager.Skin.Controls[SkButton]);
     }
 
-    internal override void Render(Renderer renderer, GameTime gameTime)
+    internal override void Render(IRenderer renderer, GameTime gameTime)
     {
         if (Visible && Shadow)
         {
@@ -191,7 +193,7 @@ public class Window : ModalContainer
 
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         var l1 = _captionVisible ? Skin.Layers[LrCaption] : Skin.Layers[LrFrameTop];
         var l2 = Skin.Layers[LrFrameLeft];

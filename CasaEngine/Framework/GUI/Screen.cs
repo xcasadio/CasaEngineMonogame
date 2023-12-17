@@ -1,12 +1,8 @@
 ﻿using CasaEngine.Framework.Assets;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using CasaEngine.Core.Design;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Scripting;
+using Newtonsoft.Json.Linq;
 using Control = TomShane.Neoforce.Controls.Control;
 
 namespace CasaEngine.Framework.GUI
@@ -14,7 +10,9 @@ namespace CasaEngine.Framework.GUI
     public class Screen : Asset
     {
         private CasaEngineGame _game;
-        private readonly List<Control> _controls = new List<Control>();
+        private readonly List<Control> _controls = new();
+
+        private ExternalComponent ExternalComponent { get; set; }
 
         public string Name
         {
@@ -24,11 +22,6 @@ namespace CasaEngine.Framework.GUI
 
         public IEnumerable<Control> Controls => _controls;
 
-
-        public override void Load(JsonElement element, SaveOption option)
-        {
-            base.Load(element.GetProperty("asset"), option);
-        }
 
         public void Initialize(CasaEngineGame game)
         {
@@ -52,5 +45,39 @@ namespace CasaEngine.Framework.GUI
             _game.GameManager.UiManager.Remove(control);
 #endif
         }
+
+        public override void Load(JsonElement element, SaveOption option)
+        {
+            base.Load(element.GetProperty("asset"), option);
+        }
+
+#if EDITOR
+        public override void Save(JObject jObject, SaveOption option)
+        {
+            base.Save(jObject, option);
+
+            if (ExternalComponent != null)
+            {
+                var externalComponentNode = new JObject();
+                ExternalComponent.Save(externalComponentNode, option);
+                jObject.Add("external_component", externalComponentNode);
+            }
+            else
+            {
+                jObject.Add("external_component", "null");
+            }
+
+            var controlsNode = new JArray();
+
+            foreach (var control in _controls)
+            {
+                var controlNode = new JObject();
+                //control.Save(controlNode);
+                controlsNode.Add(controlNode);
+            }
+
+            jObject.Add("controls", controlsNode);
+        }
+#endif
     }
 }

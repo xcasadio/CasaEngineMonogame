@@ -1,4 +1,6 @@
 using Microsoft.Xna.Framework;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -42,7 +44,7 @@ public class CheckBox : ButtonBase
         Skin = new SkinControl(Manager.Skin.Controls[SkCheckBox]);
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         var layer = Skin.Layers[LrChecked];
         var font = Skin.Layers[LrChecked].Text;

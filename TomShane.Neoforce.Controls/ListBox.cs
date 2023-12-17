@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -169,7 +171,7 @@ public class ListBox : Control
         }
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         _sbVert.Invalidate();
         _pane.Invalidate();

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -149,7 +151,7 @@ public class ComboBox : TextBox
         ReadOnly = ReadOnly; // To init the right cursor
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         base.DrawControl(renderer, rect, gameTime);
 

@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -17,7 +18,7 @@ public class GroupPanel : Container
         base.Init();
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         var layer = Skin.Layers["Control"];
         var font = layer.Text != null && layer.Text.Font != null ? layer.Text.Font.Resource : null;

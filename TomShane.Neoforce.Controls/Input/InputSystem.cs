@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace TomShane.Neoforce.Controls;
+namespace TomShane.Neoforce.Controls.Input;
 
 [Flags]
 public enum InputMethods
@@ -282,7 +282,7 @@ public class InputSystem : Disposable
             if (_activePlayer == ActivePlayer.None)
             {
                 var i = 0; // Have to be done this way, else it crashes for player other than one
-                index = Enum.GetValues<PlayerIndex>().FirstOrDefault(x => GamePad.GetState(x).IsConnected);
+                index = Enum.GetValues<PlayerIndex>().FirstOrDefault(x => GamePad.GetState((PlayerIndex)x).IsConnected);
             }
             else if (_activePlayer != ActivePlayer.None)
             {

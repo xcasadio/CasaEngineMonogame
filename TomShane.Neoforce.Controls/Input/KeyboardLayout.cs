@@ -1,7 +1,7 @@
-using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework.Input;
 
-namespace TomShane.Neoforce.Controls;
+namespace TomShane.Neoforce.Controls.Input;
 
 public class KeyboardLayout
 {

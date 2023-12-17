@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Editor.DragAndDrop;
 using TomShane.Neoforce.Controls;
+using TomShane.Neoforce.Controls.Graphics;
 using TomShane.Neoforce.Controls.Skins;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 
@@ -45,7 +46,7 @@ public partial class PlaceComponentsControl : UserControl
         foreach (var type in assembly.GetTypes()
                      .Where(t =>
                          !string.Equals(nameof(Skin), t.Name, StringComparison.InvariantCultureIgnoreCase)
-                         && !string.Equals(nameof(Renderer), t.Name, StringComparison.InvariantCultureIgnoreCase)
+                         && !string.Equals(nameof(RendererSpriteBatch), t.Name, StringComparison.InvariantCultureIgnoreCase)
                          && t is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
                          && t.IsSubclassOf(typeof(Component)))
                      .OrderBy(t => t.Name))

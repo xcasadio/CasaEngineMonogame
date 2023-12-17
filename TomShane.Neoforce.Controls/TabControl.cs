@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -96,7 +98,7 @@ public class TabControl : Container
         CanFocus = false;
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         var l1 = Skin.Layers["Control"];
         var l2 = Skin.Layers["Header"];

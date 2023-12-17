@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -113,7 +114,7 @@ public class ImageBox : Control
         Color = Color.White;
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         if (_image != null)
         {
@@ -152,5 +153,4 @@ public class ImageBox : Control
     {
         SizeModeChanged?.Invoke(this, e);
     }
-
 }

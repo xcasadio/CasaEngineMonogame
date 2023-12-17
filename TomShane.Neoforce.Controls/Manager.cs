@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Media;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Reflection;
 using Microsoft.Xna.Framework.Input;
-using System.IO;
-using System.Text;
-using System.Media;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Logs;
 using TomShane.Neoforce.Controls.Skins;
 
@@ -80,7 +80,7 @@ public class Manager : DrawableGameComponent
 
     public IGraphicsDeviceService Graphics { get; }
 
-    public Renderer Renderer { get; set; }
+    public IRenderer Renderer { get; set; }
 
     /// <summary>
     /// Returns <see cref="ArchiveManager"/> used for loading assets.
@@ -144,7 +144,7 @@ public class Manager : DrawableGameComponent
     /// <summary>
     /// Gets or sets the default render target to set after drawing.                           
     /// </summary>  
-    public RenderTarget2D? DefaultRenderTarget { get; set; }
+    public RenderTarget2D DefaultRenderTarget { get; set; }
 
     public RenderTarget2D RenderTarget { get; private set; }
 
@@ -359,7 +359,7 @@ public class Manager : DrawableGameComponent
             {
                 if (value != null && value.CanFocus)
                 {
-                    if (_focusedControl == null || (_focusedControl != null && value.Root != _focusedControl.Root) || !value.IsRoot)
+                    if (_focusedControl == null || _focusedControl != null && value.Root != _focusedControl.Root || !value.IsRoot)
                     {
                         if (_focusedControl != null && _focusedControl != value)
                         {
@@ -434,7 +434,6 @@ public class Manager : DrawableGameComponent
         _disposing = false;
 
         _content = new ArchiveManager(Game.Services);
-        _input = new InputSystem(this, new InputOffset(0, 0, 1f, 1f));
         _components = new List<Component>();
         _controls = new ControlsList();
         OrderList = new ControlsList();
@@ -452,6 +451,7 @@ public class Manager : DrawableGameComponent
         _states.Click = -1;
         _states.Over = null;
 
+        _input = new InputSystem(this, new InputOffset(0, 0, 1f, 1f));
         _input.MouseDown += MouseDownProcess;
         _input.MouseUp += MouseUpProcess;
         _input.MousePress += MousePressProcess;
@@ -692,7 +692,7 @@ public class Manager : DrawableGameComponent
         GraphicsDevice.DeviceReset += GraphicsDevice_DeviceReset;
 
         _input.Initialize();
-        Renderer = new Renderer(this);
+        Renderer = new RendererSpriteBatch(this);
         SetSkin(_skinName, _archiveManager);
     }
 
@@ -955,7 +955,6 @@ public class Manager : DrawableGameComponent
             }
 
             RenderTarget = CreateRenderTarget();
-            Renderer = new Renderer(this);
             _renderTargetValid = true;
         }
     }
@@ -975,41 +974,37 @@ public class Manager : DrawableGameComponent
             gameTime = new GameTime(gameTime.TotalGameTime, span);
             _drawTime = 0;*/
 
+            var list = new ControlsList();
+
             if (_controls != null)
             {
-                var list = new ControlsList();
                 list.AddRange(_controls);
+            }
 
-                foreach (var c in list)
-                {
-                    c.PrepareTexture(Renderer, gameTime);
-                }
+            foreach (var c in list)
+            {
+                c.PrepareTexture(Renderer, gameTime);
+            }
 
-                GraphicsDevice.SetRenderTarget(RenderTarget);
-                GraphicsDevice.Clear(Color.Transparent);
+            GraphicsDevice.SetRenderTarget(RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
 
-                if (Renderer != null)
-                {
-                    foreach (var c in list)
-                    {
-                        c.Render(Renderer, gameTime);
-                    }
-                }
+            foreach (var c in list)
+            {
+                c.Render(Renderer, gameTime);
             }
 
             if (ShowSoftwareCursor && Cursor != null)
             {
-                Renderer.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                var mstate = _mouseStateProvider?.GetState() ?? Mouse.GetState();
-                var rect = new Rectangle(mstate.X, mstate.Y, Cursor.Width, Cursor.Height);
-                Renderer.SpriteBatch.Draw(Cursor.CursorTexture, rect, null, Color.White, 0f, Cursor.HotSpot, SpriteEffects.None, 0f);
-                Renderer.SpriteBatch.End();
+                var mouseState = _mouseStateProvider?.GetState() ?? Mouse.GetState();
+                var rect = new Rectangle(mouseState.X, mouseState.Y, Cursor.Width, Cursor.Height);
+                Renderer.DrawCursor(Cursor.CursorTexture, rect, Cursor.HotSpot);
             }
             /*
-            var fileStream = File.Create("d:\\screenshot_renderer.jpeg");
-            RenderTarget.SaveAsJpeg(fileStream, RenderTarget.Width, RenderTarget.Height);
-            fileStream.Dispose();*/
-
+            var fileStream = File.Create("d:\\screenshot_renderer.png");
+            RenderTarget.SaveAsPng(fileStream, RenderTarget.Width, RenderTarget.Height);
+            fileStream.Dispose();
+            */
             GraphicsDevice.SetRenderTarget(DefaultRenderTarget);
         }
         else
@@ -1202,8 +1197,8 @@ public class Manager : DrawableGameComponent
         {
             var index = -1;
 
-            if ((kbe.Key == Keys.Left && !kbe.Handled) ||
-                (gpe.Button == c.GamePadActions.Left && !gpe.Handled))
+            if (kbe.Key == Keys.Left && !kbe.Handled ||
+                gpe.Button == c.GamePadActions.Left && !gpe.Handled)
             {
                 var miny = int.MaxValue;
                 var minx = int.MinValue;
@@ -1226,8 +1221,8 @@ public class Manager : DrawableGameComponent
                     }
                 }
             }
-            else if ((kbe.Key == Keys.Right && !kbe.Handled) ||
-                     (gpe.Button == c.GamePadActions.Right && !gpe.Handled))
+            else if (kbe.Key == Keys.Right && !kbe.Handled ||
+                     gpe.Button == c.GamePadActions.Right && !gpe.Handled)
             {
                 var miny = int.MaxValue;
                 var minx = int.MaxValue;
@@ -1250,8 +1245,8 @@ public class Manager : DrawableGameComponent
                     }
                 }
             }
-            else if ((kbe.Key == Keys.Up && !kbe.Handled) ||
-                     (gpe.Button == c.GamePadActions.Up && !gpe.Handled))
+            else if (kbe.Key == Keys.Up && !kbe.Handled ||
+                     gpe.Button == c.GamePadActions.Up && !gpe.Handled)
             {
                 var miny = int.MinValue;
                 var minx = int.MaxValue;
@@ -1274,8 +1269,8 @@ public class Manager : DrawableGameComponent
                     }
                 }
             }
-            else if ((kbe.Key == Keys.Down && !kbe.Handled) ||
-                     (gpe.Button == c.GamePadActions.Down && !gpe.Handled))
+            else if (kbe.Key == Keys.Down && !kbe.Handled ||
+                     gpe.Button == c.GamePadActions.Down && !gpe.Handled)
             {
                 var miny = int.MaxValue;
                 var minx = int.MaxValue;
@@ -1404,7 +1399,7 @@ public class Manager : DrawableGameComponent
             var chpos = CheckPosition(c[i], e.Position);
             var chsta = CheckState(c[i]);
 
-            if (chsta && ((chpos && _states.Over == c[i]) || _states.Buttons[(int)e.Button] == c[i]))
+            if (chsta && (chpos && _states.Over == c[i] || _states.Buttons[(int)e.Button] == c[i]))
             {
                 c[i].SendMessage(Message.MouseMove, e);
                 break;
@@ -1414,7 +1409,7 @@ public class Manager : DrawableGameComponent
         for (var i = c.Count - 1; i >= 0; i--)
         {
             var chpos = CheckPosition(c[i], e.Position);
-            var chsta = CheckState(c[i]) || (c[i].ToolTip.Text != "" && c[i].ToolTip.Text != null && c[i].Visible);
+            var chsta = CheckState(c[i]) || c[i].ToolTip.Text != "" && c[i].ToolTip.Text != null && c[i].Visible;
 
             if (chsta && !chpos && _states.Over == c[i] && _states.Buttons[(int)e.Button] == null)
             {
@@ -1427,7 +1422,7 @@ public class Manager : DrawableGameComponent
         for (var i = c.Count - 1; i >= 0; i--)
         {
             var chpos = CheckPosition(c[i], e.Position);
-            var chsta = CheckState(c[i]) || (c[i].ToolTip.Text != "" && c[i].ToolTip.Text != null && c[i].Visible);
+            var chsta = CheckState(c[i]) || c[i].ToolTip.Text != "" && c[i].ToolTip.Text != null && c[i].Visible;
 
             if (chsta && chpos && _states.Over != c[i] && _states.Buttons[(int)e.Button] == null)
             {

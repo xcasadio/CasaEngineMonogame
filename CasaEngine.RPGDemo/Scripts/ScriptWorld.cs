@@ -1,10 +1,17 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
@@ -46,9 +53,9 @@ public class ScriptWorld : ExternalComponent
         //world 
         var screen = new Screen();
         screen.Initialize(world.Game);
-
+        /*
         var textBox = new TextBox(world.Game.GameManager.UiManager);
-        textBox.Text = "textbox";
+        textBox.Name = "textbox";
         textBox.SetPosition(50, 50);
         textBox.SetSize(200, 100);
         screen.Add(textBox);
@@ -56,10 +63,32 @@ public class ScriptWorld : ExternalComponent
         var button = new Button(world.Game.GameManager.UiManager);
         button.Text = "button";
         button.SetPosition(350, 50);
-        button.SetSize(200, 100);
-        screen.Add(button);
+        button.SetSize(200, 50);
+        screen.Add(button);*/
+
+        var assetInfo = GameSettings.AssetInfoManager.GetByFileName("Screens\\MainHUD\\link_hud_portrait.sprite");
+        var spriteData = world.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
+        var sprite = Sprite.Create(spriteData, world.Game.GameManager.AssetContentManager);
+
+        var imageBoxLink = new ImageBox(world.Game.GameManager.UiManager);
+        imageBoxLink.Name = "imageBoxLink";
+        imageBoxLink.SetSize(sprite.SpriteData.PositionInTexture.Width, sprite.SpriteData.PositionInTexture.Height);
+        imageBoxLink.SetPosition(10, world.Game.ScreenSizeHeight - sprite.SpriteData.PositionInTexture.Height - 50);
+        imageBoxLink.Image = sprite.Texture.Resource;
+        imageBoxLink.SourceRect = sprite.SpriteData.PositionInTexture;
+        screen.Add(imageBoxLink);
 
         world.AddScreen(screen);
+        /*
+        var mes = new List<string>();
+
+        foreach (var prop in imageBoxLink.GetType().GetProperties())
+        {
+            mes.Add($"node.Add(\"{prop.Name.ToLower()}\", {prop.Name});");
+
+        }
+        mes.Sort();
+        Debug.WriteLine(string.Join(Environment.NewLine, mes));*/
     }
 
     public override void OnEndPlay(World world)

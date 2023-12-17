@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using TomShane.Neoforce.Controls.Graphics;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -148,7 +149,7 @@ public class Panel : Container
         base.AdjustMargins();
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         var x = rect.Left;
         var y = rect.Top;

@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using System;
+using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -125,7 +126,7 @@ public class ProgressBar : Control
         CanFocus = false;
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         CheckLayer(Skin, "Control");
         CheckLayer(Skin, "Scale");

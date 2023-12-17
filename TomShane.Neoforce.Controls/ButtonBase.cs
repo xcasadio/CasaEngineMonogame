@@ -1,6 +1,7 @@
+using TomShane.Neoforce.Controls.Input;
+
 namespace TomShane.Neoforce.Controls;
 
-///  <include file='Documents/ButtonBase.xml' path='ButtonBase/Class[@name="ButtonBase"]/*' />          
 public abstract class ButtonBase : Control
 {
     public override ControlState ControlState

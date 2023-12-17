@@ -1,36 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
-
-/// <summary>
-/// Defines the gamepad actions mapping.
-/// </summary>
-public class GamePadActions
-{
-    public readonly GamePadButton Click = GamePadButton.A;
-    public readonly GamePadButton Press = GamePadButton.Y;
-    public readonly GamePadButton Left = GamePadButton.LeftStickLeft;
-    public readonly GamePadButton Right = GamePadButton.LeftStickRight;
-    public readonly GamePadButton Up = GamePadButton.LeftStickUp;
-    public readonly GamePadButton Down = GamePadButton.LeftStickDown;
-    public readonly GamePadButton NextControl = GamePadButton.RightShoulder;
-    public readonly GamePadButton PrevControl = GamePadButton.LeftShoulder;
-    public readonly GamePadButton ContextMenu = GamePadButton.X;
-}
-
-/// <summary>
-/// Defines type used as a controls collection.
-/// </summary>
-public class ControlsList : EventedList<Control>
-{
-    public ControlsList() : base() { }
-    public ControlsList(int capacity) : base(capacity) { }
-    public ControlsList(IEnumerable<Control> collection) : base(collection) { }
-}
 
 /// <summary>
 /// Defines the base class for all controls.
@@ -46,7 +24,6 @@ public class Control : Component
     private Color _backColor = Color.Transparent;
     private byte _alpha = 255;
     private Anchors _anchor = Anchors.Left | Anchors.Top;
-    private Anchors _resizeEdge = Anchors.All;
     private string _text = "Control";
     private bool _visible = true;
     private bool _enabled = true;
@@ -57,23 +34,14 @@ public class Control : Component
     private int _top;
     private int _width = 64;
     private int _height = 64;
-    private ContextMenu _contextMenu;
     private long _tooltipTimer;
     private long _doubleClickTimer;
     private MouseButton _doubleClickButton = MouseButton.None;
     private Type _toolTipType = typeof(ToolTip);
     private ToolTip _toolTip;
-    private bool _doubleClicks = true;
-    private bool _outlineResizing;
-    private bool _outlineMoving;
-    private bool _partialOutline = true;
 
     private ControlsList _controls = new();
-    private Rectangle _movableArea = Rectangle.Empty;
-    private bool _movable;
-    private bool _resizable;
     private bool _invalidated = true;
-    private int _resizerSize = 4;
     private int _minimumWidth;
     private int _maximumWidth = 4096;
     private int _minimumHeight;
@@ -114,11 +82,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a rectangular area that reacts on moving the control with the mouse.
     /// </summary>
-    public Rectangle MovableArea
-    {
-        get => _movableArea;
-        set => _movableArea = value;
-    }
+    public Rectangle MovableArea { get; set; } = Rectangle.Empty;
 
     /// <summary>
     /// Gets a value indicating whether this control is a child control.
@@ -153,65 +117,37 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this control can be moved by the mouse.
     /// </summary>
-    public bool Movable
-    {
-        get => _movable;
-        set => _movable = value;
-    }
+    public bool Movable { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this control can be resized by the mouse.
     /// </summary>
-    public bool Resizable
-    {
-        get => _resizable;
-        set => _resizable = value;
-    }
+    public bool Resizable { get; set; }
 
     /// <summary>
     /// Gets or sets the size of the rectangular borders around the control used for resizing by the mouse.
     /// </summary>
-    public int ResizerSize
-    {
-        get => _resizerSize;
-        set => _resizerSize = value;
-    }
+    public int ResizerSize { get; set; } = 4;
 
     /// <summary>
     /// Gets or sets the ContextMenu associated with this control.
     /// </summary>
-    public ContextMenu ContextMenu
-    {
-        get => _contextMenu;
-        set => _contextMenu = value;
-    }
+    public ContextMenu ContextMenu { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this control should process mouse double-clicks.
     /// </summary>
-    public bool DoubleClicks
-    {
-        get => _doubleClicks;
-        set => _doubleClicks = value;
-    }
+    public bool DoubleClicks { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether this control should use ouline resizing.
     /// </summary>
-    public bool OutlineResizing
-    {
-        get => _outlineResizing;
-        set => _outlineResizing = value;
-    }
+    public bool OutlineResizing { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this control should use outline moving.
     /// </summary>
-    public bool OutlineMoving
-    {
-        get => _outlineMoving;
-        set => _outlineMoving = value;
-    }
+    public bool OutlineMoving { get; set; }
 
     /// <summary>
     /// Gets or sets the object that contains data about the control.
@@ -236,11 +172,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the value indicating whether the control outline is displayed only for certain edges. 
     /// </summary>   
-    public bool PartialOutline
-    {
-        get => _partialOutline;
-        set => _partialOutline = value;
-    }
+    public bool PartialOutline { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the value indicating whether the control is allowed to be brought in the front.
@@ -477,11 +409,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets the edges of the contol which are allowed for resizing.
     /// </summary>
-    public Anchors ResizeEdge
-    {
-        get => _resizeEdge;
-        set => _resizeEdge = value;
-    }
+    public Anchors ResizeEdge { get; set; } = Anchors.All;
 
     /// <summary>
     /// Gets or sets the skin used for rendering the control.
@@ -1030,39 +958,31 @@ public class Control : Component
 
     public virtual Margins ClientMargins { get; set; }
 
-    public int ClientLeft =>
-        //if (skin == null) return Left;
-        ClientMargins.Left;
+    public int ClientLeft => ClientMargins.Left;
 
-    public int ClientTop =>
-        //if (skin == null) return Top;
-        ClientMargins.Top;
+    public int ClientTop => ClientMargins.Top;
 
     public int ClientWidth
     {
-        get =>
-            //if (skin == null) return Width;
-            OriginWidth - ClientMargins.Left - ClientMargins.Right;
+        get => OriginWidth - ClientMargins.Left - ClientMargins.Right;
         set => Width = value + ClientMargins.Horizontal - _skin.OriginMargins.Horizontal;
     }
 
     public int ClientHeight
     {
-        get =>
-            //if (skin == null) return Height;
-            OriginHeight - ClientMargins.Top - ClientMargins.Bottom;
+        get => OriginHeight - ClientMargins.Top - ClientMargins.Bottom;
         set => Height = value + ClientMargins.Vertical - _skin.OriginMargins.Vertical;
     }
 
-    public Rectangle AbsoluteRect => new Rectangle(AbsoluteLeft, AbsoluteTop, OriginWidth, OriginHeight);
+    public Rectangle AbsoluteRect => new(AbsoluteLeft, AbsoluteTop, OriginWidth, OriginHeight);
 
-    public Rectangle OriginRect => new Rectangle(OriginLeft, OriginTop, OriginWidth, OriginHeight);
+    public Rectangle OriginRect => new(OriginLeft, OriginTop, OriginWidth, OriginHeight);
 
-    public Rectangle ClientRect => new Rectangle(ClientLeft, ClientTop, ClientWidth, ClientHeight);
+    public Rectangle ClientRect => new(ClientLeft, ClientTop, ClientWidth, ClientHeight);
 
     public Rectangle ControlRect
     {
-        get => new Rectangle(Left, Top, Width, Height);
+        get => new(Left, Top, Width, Height);
         set
         {
             Left = value.Left;
@@ -1195,10 +1115,10 @@ public class Control : Component
 
             // Possibly we added the menu to another parent than this control, 
             // so we dispose it manually, beacause in logic it belongs to this control.        
-            if (_contextMenu != null)
+            if (ContextMenu != null)
             {
-                _contextMenu.Dispose();
-                _contextMenu = null;
+                ContextMenu.Dispose();
+                ContextMenu = null;
             }
 
             // Recursively disposing all controls. The collection might change from its children, 
@@ -1391,7 +1311,7 @@ public class Control : Component
         return null;
     }
 
-    internal void PrepareTexture(Renderer renderer, GameTime gameTime)
+    internal void PrepareTexture(IRenderer renderer, GameTime gameTime)
     {
         if (_visible)
         {
@@ -1430,8 +1350,12 @@ public class Control : Component
 
                     var rect = new Rectangle(0, 0, OriginWidth, OriginHeight);
                     DrawControls(renderer, rect, gameTime, false);
-
-                    Manager.GraphicsDevice.SetRenderTarget(Manager.DefaultRenderTarget);
+                    /*
+                    var fileStream = File.Create("d:\\image.png");
+                    _target.SaveAsPng(fileStream, _target.Width, _target.Height);
+                    fileStream.Dispose();
+                    */
+                    //Manager.GraphicsDevice.SetRenderTarget(Manager.DefaultRenderTarget);
                 }
                 _invalidated = false;
             }
@@ -1453,7 +1377,7 @@ public class Control : Component
         return c.Detached;
     }
 
-    private void DrawChildControls(Renderer renderer, GameTime gameTime, bool firstDetachedLevel)
+    private void DrawChildControls(IRenderer renderer, GameTime gameTime, bool firstDetachedLevel)
     {
         if (_controls != null)
         {
@@ -1490,7 +1414,7 @@ public class Control : Component
         }
     }
 
-    private void DrawControls(Renderer renderer, Rectangle rect, GameTime gameTime, bool firstDetach)
+    private void DrawControls(IRenderer renderer, Rectangle rect, GameTime gameTime, bool firstDetach)
     {
         renderer.Begin(BlendingMode.Default);
 
@@ -1508,7 +1432,7 @@ public class Control : Component
         DrawChildControls(renderer, gameTime, firstDetach);
     }
 
-    private void DrawDetached(Control control, Renderer renderer, GameTime gameTime)
+    private void DrawDetached(Control control, IRenderer renderer, GameTime gameTime)
     {
         if (control.Controls != null)
         {
@@ -1522,7 +1446,7 @@ public class Control : Component
         }
     }
 
-    internal virtual void Render(Renderer renderer, GameTime gameTime)
+    internal virtual void Render(IRenderer renderer, GameTime gameTime)
     {
         if (_visible && _target != null)
         {
@@ -1541,7 +1465,7 @@ public class Control : Component
         }
     }
 
-    private void DrawOutline(Renderer renderer, bool child)
+    private void DrawOutline(IRenderer renderer, bool child)
     {
         if (!OutlineRect.IsEmpty)
         {
@@ -1553,31 +1477,31 @@ public class Control : Component
 
             var t = Manager.Skin.Controls["Control.Outline"].Layers[0].Image.Resource;
 
-            var s = _resizerSize;
+            var s = ResizerSize;
             var r1 = new Rectangle(r.Left + _leftModifier, r.Top + _topModifier, r.Width, s);
-            var r2 = new Rectangle(r.Left + _leftModifier, r.Top + s + _topModifier, _resizerSize, r.Height - 2 * s);
+            var r2 = new Rectangle(r.Left + _leftModifier, r.Top + s + _topModifier, ResizerSize, r.Height - 2 * s);
             var r3 = new Rectangle(r.Right - s + _leftModifier, r.Top + s + _topModifier, s, r.Height - 2 * s);
             var r4 = new Rectangle(r.Left + _leftModifier, r.Bottom - s + _topModifier, r.Width, s);
 
             var c = Manager.Skin.Controls["Control.Outline"].Layers[0].States.Enabled.Color;
 
             renderer.Begin(BlendingMode.Default);
-            if ((ResizeEdge & Anchors.Top) == Anchors.Top || !_partialOutline)
+            if ((ResizeEdge & Anchors.Top) == Anchors.Top || !PartialOutline)
             {
                 renderer.Draw(t, r1, c);
             }
 
-            if ((ResizeEdge & Anchors.Left) == Anchors.Left || !_partialOutline)
+            if ((ResizeEdge & Anchors.Left) == Anchors.Left || !PartialOutline)
             {
                 renderer.Draw(t, r2, c);
             }
 
-            if ((ResizeEdge & Anchors.Right) == Anchors.Right || !_partialOutline)
+            if ((ResizeEdge & Anchors.Right) == Anchors.Right || !PartialOutline)
             {
                 renderer.Draw(t, r3, c);
             }
 
-            if ((ResizeEdge & Anchors.Bottom) == Anchors.Bottom || !_partialOutline)
+            if ((ResizeEdge & Anchors.Bottom) == Anchors.Bottom || !PartialOutline)
             {
                 renderer.Draw(t, r4, c);
             }
@@ -1594,9 +1518,9 @@ public class Control : Component
 
             var t = Manager.Skin.Controls["Control.Outline"].Layers[0].Image.Resource;
 
-            var s = _resizerSize;
+            var s = ResizerSize;
             var r1 = new Rectangle(r.Left + _leftModifier, r.Top + _topModifier, r.Width, s);
-            var r2 = new Rectangle(r.Left + _leftModifier, r.Top + s + _topModifier, _resizerSize, r.Height - 2 * s);
+            var r2 = new Rectangle(r.Left + _leftModifier, r.Top + s + _topModifier, ResizerSize, r.Height - 2 * s);
             var r3 = new Rectangle(r.Right - s + _leftModifier, r.Top + s + _topModifier, s, r.Height - 2 * s);
             var r4 = new Rectangle(r.Left + _leftModifier, r.Bottom - s + _topModifier, r.Width, s);
 
@@ -1717,7 +1641,7 @@ public class Control : Component
         }
     }
 
-    protected virtual void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected virtual void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         if (_backColor != UndefinedColor && _backColor != Color.Transparent)
         {
@@ -2011,7 +1935,7 @@ public class Control : Component
 
         if (e.Button == GamePadActions.ContextMenu && !e.Handled)
         {
-            _contextMenu?.Show(this, AbsoluteLeft + 8, AbsoluteTop + 8);
+            ContextMenu?.Show(this, AbsoluteLeft + 8, AbsoluteTop + 8);
         }
     }
 
@@ -2074,7 +1998,7 @@ public class Control : Component
 
         if (e.Key == Microsoft.Xna.Framework.Input.Keys.Apps && !e.Handled)
         {
-            _contextMenu?.Show(this, AbsoluteLeft + 8, AbsoluteTop + 8);
+            ContextMenu?.Show(this, AbsoluteLeft + 8, AbsoluteTop + 8);
         }
     }
 
@@ -2095,7 +2019,7 @@ public class Control : Component
                 _pressDiff[3] = Height - _pressSpot.Y;
 
                 IsResizing = true;
-                if (_outlineResizing)
+                if (OutlineResizing)
                 {
                     OutlineRect = ControlRect;
                 }
@@ -2108,7 +2032,7 @@ public class Control : Component
             else if (CheckMovableArea(e.Position))
             {
                 IsMoving = true;
-                if (_outlineMoving)
+                if (OutlineMoving)
                 {
                     OutlineRect = ControlRect;
                 }
@@ -2140,7 +2064,7 @@ public class Control : Component
                 if (IsResizing)
                 {
                     IsResizing = false;
-                    if (_outlineResizing)
+                    if (OutlineResizing)
                     {
                         Left = OutlineRect.Left;
                         Top = OutlineRect.Top;
@@ -2156,7 +2080,7 @@ public class Control : Component
                 else if (IsMoving)
                 {
                     IsMoving = false;
-                    if (_outlineMoving)
+                    if (OutlineMoving)
                     {
                         Left = OutlineRect.Left;
                         Top = OutlineRect.Top;
@@ -2255,7 +2179,7 @@ public class Control : Component
                 t = v.Top;
             }
 
-            if (_outlineMoving)
+            if (OutlineMoving)
             {
                 OutlineRect = new Rectangle(l, t, OutlineRect.Width, OutlineRect.Height);
                 _parent?.Invalidate();
@@ -2280,7 +2204,7 @@ public class Control : Component
         var ex = e is MouseEventArgs args ? args : new MouseEventArgs();
 
         if (_doubleClickTimer == 0 || timer - _doubleClickTimer > Manager.DoubleClickTime ||
-            !_doubleClicks)
+            !DoubleClicks)
         {
             var ts = new TimeSpan(DateTime.Now.Ticks);
             _doubleClickTimer = (long)ts.TotalMilliseconds;
@@ -2304,9 +2228,9 @@ public class Control : Component
             _doubleClickButton = MouseButton.None;
         }
 
-        if (ex.Button == MouseButton.Right && _contextMenu != null && !e.Handled)
+        if (ex.Button == MouseButton.Right && ContextMenu != null && !e.Handled)
         {
-            _contextMenu.Show(this, ex.Position.X, ex.Position.Y);
+            ContextMenu.Show(this, ex.Position.X, ex.Position.Y);
         }
     }
 
@@ -2353,9 +2277,9 @@ public class Control : Component
 
     private bool CheckMovableArea(Point pos)
     {
-        if (_movable)
+        if (Movable)
         {
-            var rect = _movableArea;
+            var rect = MovableArea;
 
             if (rect == Rectangle.Empty)
             {
@@ -2378,15 +2302,15 @@ public class Control : Component
 
     private bool CheckResizableArea(Point pos)
     {
-        if (_resizable)
+        if (Resizable)
         {
             pos.X -= AbsoluteLeft;
             pos.Y -= AbsoluteTop;
 
-            if ((pos.X >= 0 && pos.X < _resizerSize && pos.Y >= 0 && pos.Y < Height) ||
-                (pos.X >= Width - _resizerSize && pos.X < Width && pos.Y >= 0 && pos.Y < Height) ||
-                (pos.Y >= 0 && pos.Y < _resizerSize && pos.X >= 0 && pos.X < Width) ||
-                (pos.Y >= Height - _resizerSize && pos.Y < Height && pos.X >= 0 && pos.X < Width))
+            if ((pos.X >= 0 && pos.X < ResizerSize && pos.Y >= 0 && pos.Y < Height) ||
+                (pos.X >= Width - ResizerSize && pos.X < Width && pos.Y >= 0 && pos.Y < Height) ||
+                (pos.Y >= 0 && pos.Y < ResizerSize && pos.X >= 0 && pos.X < Width) ||
+                (pos.Y >= Height - ResizerSize && pos.Y < Height && pos.X >= 0 && pos.X < Width))
             {
                 return true;
             }
@@ -2442,7 +2366,7 @@ public class Control : Component
 
     private void PerformResize(MouseEventArgs e)
     {
-        if (_resizable && !IsMoving)
+        if (Resizable && !IsMoving)
         {
             if (!IsResizing)
             {
@@ -2461,28 +2385,28 @@ public class Control : Component
 
                 if ((_resizeArea == Alignment.TopCenter ||
                      _resizeArea == Alignment.TopLeft ||
-                     _resizeArea == Alignment.TopRight) && (_resizeEdge & Anchors.Top) == Anchors.Top)
+                     _resizeArea == Alignment.TopRight) && (ResizeEdge & Anchors.Top) == Anchors.Top)
                 {
                     top = true;
                 }
 
                 else if ((_resizeArea == Alignment.BottomCenter ||
                           _resizeArea == Alignment.BottomLeft ||
-                          _resizeArea == Alignment.BottomRight) && (_resizeEdge & Anchors.Bottom) == Anchors.Bottom)
+                          _resizeArea == Alignment.BottomRight) && (ResizeEdge & Anchors.Bottom) == Anchors.Bottom)
                 {
                     bottom = true;
                 }
 
                 if ((_resizeArea == Alignment.MiddleLeft ||
                      _resizeArea == Alignment.BottomLeft ||
-                     _resizeArea == Alignment.TopLeft) && (_resizeEdge & Anchors.Left) == Anchors.Left)
+                     _resizeArea == Alignment.TopLeft) && (ResizeEdge & Anchors.Left) == Anchors.Left)
                 {
                     left = true;
                 }
 
                 else if ((_resizeArea == Alignment.MiddleRight ||
                           _resizeArea == Alignment.BottomRight ||
-                          _resizeArea == Alignment.TopRight) && (_resizeEdge & Anchors.Right) == Anchors.Right)
+                          _resizeArea == Alignment.TopRight) && (ResizeEdge & Anchors.Right) == Anchors.Right)
                 {
                     right = true;
                 }
@@ -2492,7 +2416,7 @@ public class Control : Component
                 var l = Left;
                 var t = Top;
 
-                if (_outlineResizing && !OutlineRect.IsEmpty)
+                if (OutlineResizing && !OutlineRect.IsEmpty)
                 {
                     l = OutlineRect.Left;
                     t = OutlineRect.Top;
@@ -2545,7 +2469,7 @@ public class Control : Component
                     h = v.Height;
                 }
 
-                if (_outlineResizing)
+                if (OutlineResizing)
                 {
                     OutlineRect = new Rectangle(l, t, w, h);
                     _parent?.Invalidate();
@@ -2568,35 +2492,35 @@ public class Control : Component
         {
             case Alignment.TopCenter:
                 {
-                    return (_resizeEdge & Anchors.Top) == Anchors.Top ? Manager.Skin.Cursors["Vertical"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Top) == Anchors.Top ? Manager.Skin.Cursors["Vertical"].Resource : Cursor;
                 }
             case Alignment.BottomCenter:
                 {
-                    return (_resizeEdge & Anchors.Bottom) == Anchors.Bottom ? Manager.Skin.Cursors["Vertical"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Bottom) == Anchors.Bottom ? Manager.Skin.Cursors["Vertical"].Resource : Cursor;
                 }
             case Alignment.MiddleLeft:
                 {
-                    return (_resizeEdge & Anchors.Left) == Anchors.Left ? Manager.Skin.Cursors["Horizontal"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Left) == Anchors.Left ? Manager.Skin.Cursors["Horizontal"].Resource : Cursor;
                 }
             case Alignment.MiddleRight:
                 {
-                    return (_resizeEdge & Anchors.Right) == Anchors.Right ? Manager.Skin.Cursors["Horizontal"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Right) == Anchors.Right ? Manager.Skin.Cursors["Horizontal"].Resource : Cursor;
                 }
             case Alignment.TopLeft:
                 {
-                    return (_resizeEdge & Anchors.Left) == Anchors.Left && (_resizeEdge & Anchors.Top) == Anchors.Top ? Manager.Skin.Cursors["DiagonalLeft"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Left) == Anchors.Left && (ResizeEdge & Anchors.Top) == Anchors.Top ? Manager.Skin.Cursors["DiagonalLeft"].Resource : Cursor;
                 }
             case Alignment.BottomRight:
                 {
-                    return (_resizeEdge & Anchors.Bottom) == Anchors.Bottom && (_resizeEdge & Anchors.Right) == Anchors.Right ? Manager.Skin.Cursors["DiagonalLeft"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Bottom) == Anchors.Bottom && (ResizeEdge & Anchors.Right) == Anchors.Right ? Manager.Skin.Cursors["DiagonalLeft"].Resource : Cursor;
                 }
             case Alignment.TopRight:
                 {
-                    return (_resizeEdge & Anchors.Top) == Anchors.Top && (_resizeEdge & Anchors.Right) == Anchors.Right ? Manager.Skin.Cursors["DiagonalRight"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Top) == Anchors.Top && (ResizeEdge & Anchors.Right) == Anchors.Right ? Manager.Skin.Cursors["DiagonalRight"].Resource : Cursor;
                 }
             case Alignment.BottomLeft:
                 {
-                    return (_resizeEdge & Anchors.Bottom) == Anchors.Bottom && (_resizeEdge & Anchors.Left) == Anchors.Left ? Manager.Skin.Cursors["DiagonalRight"].Resource : Cursor;
+                    return (ResizeEdge & Anchors.Bottom) == Anchors.Bottom && (ResizeEdge & Anchors.Left) == Anchors.Left ? Manager.Skin.Cursors["DiagonalRight"].Resource : Cursor;
                 }
         }
         return Manager.Skin.Cursors["Default"].Resource;
@@ -2612,22 +2536,22 @@ public class Control : Component
 
         if (CheckResizableArea(e.Position))
         {
-            if (x < _resizerSize)
+            if (x < ResizerSize)
             {
                 l = true;
             }
 
-            if (x >= Width - _resizerSize)
+            if (x >= Width - ResizerSize)
             {
                 r = true;
             }
 
-            if (y < _resizerSize)
+            if (y < ResizerSize)
             {
                 t = true;
             }
 
-            if (y >= Height - _resizerSize)
+            if (y >= Height - ResizerSize)
             {
                 b = true;
             }
@@ -2872,5 +2796,108 @@ public class Control : Component
     protected virtual void OnMouseScroll(MouseEventArgs e)
     {
         MouseScroll?.Invoke(this, e);
+    }
+
+    public void Save(JObject node)
+    {
+        node.Add("type", GetType().Name);
+
+        node.Add("absolute_left", AbsoluteLeft);
+        node.Add("absolute_top", AbsoluteTop);
+        node.Add("alpha", Alpha);
+        node.Add("anchor", Anchor);
+        node.Add("back_color", BackColor);
+        node.Add("can_focus", CanFocus);
+        node.Add("client_height", ClientHeight);
+        node.Add("client_left", ClientLeft);
+        node.Add("client_margins", ClientMargins);
+        node.Add("client_top", ClientTop);
+        node.Add("client_width", ClientWidth);
+        node.Add("color", Color);
+        //node.Add("context_menu", ContextMenu);
+        //node.Add("controls", Controls);
+        //node.Add("cursor", Cursor);
+        node.Add("design_mode", DesignMode);
+        node.Add("detached", Detached);
+        node.Add("double_clicks", DoubleClicks);
+        node.Add("enabled", Enabled);
+        node.Add("focused", Focused);
+        node.Add("height", Height);
+        node.Add("left", Left);
+        node.Add("margins", Margins);
+        node.Add("maximum_height", MaximumHeight);
+        node.Add("maximum_width", MaximumWidth);
+        node.Add("minimum_height", MinimumHeight);
+        node.Add("minimum_width", MinimumWidth);
+        node.Add("movable", Movable);
+        node.Add("movable_area", MovableArea);
+        node.Add("name", Name);
+        node.Add("origin_height", OriginHeight);
+        node.Add("origin_left", OriginLeft);
+        node.Add("origin_top", OriginTop);
+        node.Add("origin_width", OriginWidth);
+        node.Add("outline_moving", OutlineMoving);
+        node.Add("outline_resizing", OutlineResizing);
+        //node.Add("parent", Parent);
+        node.Add("partial_outline", PartialOutline);
+        node.Add("passive", Passive);
+        node.Add("resizable", Resizable);
+        node.Add("resize_edge", ResizeEdge);
+        node.Add("resizer_size", ResizerSize);
+        node.Add("stay_on_back", StayOnBack);
+        node.Add("stay_on_top", StayOnTop);
+        node.Add("suspended", Suspended);
+        //node.Add("tag", Tag);
+        node.Add("text", Text);
+        node.Add("text_color", TextColor);
+        //node.Add("tooltip", ToolTip);
+        //node.Add("tooltip_type", ToolTipType);
+        node.Add("top", Top);
+        node.Add("visible", Visible);
+        node.Add("width", Width);
+
+        //node.Add("image", Image);
+        //node.Add("sourcerect", SourceRect);
+    }
+}
+
+public static class JsonExtension
+{
+    public static void Add(this JObject node, string name, Color color)
+    {
+        node.Add(name, new JObject
+        {
+            { "r", color.R },
+            { "g", color.G },
+            { "b", color.B },
+            { "a", color.A }
+        });
+    }
+
+    public static void Add(this JObject node, string name, Rectangle rectangle)
+    {
+        node.Add(name, new JObject
+        {
+            { "x", rectangle.X },
+            { "y", rectangle.Y },
+            { "w", rectangle.Width },
+            { "h", rectangle.Height }
+        });
+    }
+
+    public static void Add(this JObject node, string name, Margins margins)
+    {
+        node.Add(name, new JObject
+        {
+            { "l", margins.Left },
+            { "r", margins.Right },
+            { "t", margins.Top },
+            { "b", margins.Bottom }
+        });
+    }
+
+    public static void Add(this JObject node, string name, Enum value)
+    {
+        node.Add(name, Enum.GetName(value.GetType(), value));
     }
 }

@@ -4,68 +4,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TomShane.Neoforce.Controls.Skins;
 
-namespace TomShane.Neoforce.Controls;
+namespace TomShane.Neoforce.Controls.Graphics;
 
-public enum BlendingMode
+public class RendererSpriteBatch : Component, IRenderer
 {
-    Default,
-    None,
-    Additive,
-}
-
-public class DeviceStates
-{
-    public readonly BlendState BlendState;
-    public readonly RasterizerState RasterizerState;
-    public readonly DepthStencilState DepthStencilState;
-    public readonly SamplerState SamplerState;
-
-    public DeviceStates()
-    {
-        BlendState = new BlendState();
-        BlendState.AlphaBlendFunction = BlendState.AlphaBlend.AlphaBlendFunction;
-        BlendState.AlphaDestinationBlend = BlendState.AlphaBlend.AlphaDestinationBlend;
-        BlendState.AlphaSourceBlend = BlendState.AlphaBlend.AlphaSourceBlend;
-        BlendState.BlendFactor = BlendState.AlphaBlend.BlendFactor;
-        BlendState.ColorBlendFunction = BlendState.AlphaBlend.ColorBlendFunction;
-        BlendState.ColorDestinationBlend = BlendState.AlphaBlend.ColorDestinationBlend;
-        BlendState.ColorSourceBlend = BlendState.AlphaBlend.ColorSourceBlend;
-        BlendState.ColorWriteChannels = BlendState.AlphaBlend.ColorWriteChannels;
-        BlendState.ColorWriteChannels1 = BlendState.AlphaBlend.ColorWriteChannels1;
-        BlendState.ColorWriteChannels2 = BlendState.AlphaBlend.ColorWriteChannels2;
-        BlendState.ColorWriteChannels3 = BlendState.AlphaBlend.ColorWriteChannels3;
-        BlendState.MultiSampleMask = BlendState.AlphaBlend.MultiSampleMask;
-
-        RasterizerState = new RasterizerState();
-        RasterizerState.CullMode = RasterizerState.CullNone.CullMode;
-        RasterizerState.DepthBias = RasterizerState.CullNone.DepthBias;
-        RasterizerState.FillMode = RasterizerState.CullNone.FillMode;
-        RasterizerState.MultiSampleAntiAlias = RasterizerState.CullNone.MultiSampleAntiAlias;
-        RasterizerState.ScissorTestEnable = RasterizerState.CullNone.ScissorTestEnable;
-        RasterizerState.SlopeScaleDepthBias = RasterizerState.CullNone.SlopeScaleDepthBias;
-
-        RasterizerState.ScissorTestEnable = true;
-
-        SamplerState = new SamplerState();
-        SamplerState.AddressU = SamplerState.AnisotropicClamp.AddressU;
-        SamplerState.AddressV = SamplerState.AnisotropicClamp.AddressV;
-        SamplerState.AddressW = SamplerState.AnisotropicClamp.AddressW;
-        SamplerState.Filter = SamplerState.AnisotropicClamp.Filter;
-        SamplerState.MaxAnisotropy = SamplerState.AnisotropicClamp.MaxAnisotropy;
-        SamplerState.MaxMipLevel = SamplerState.AnisotropicClamp.MaxMipLevel;
-        SamplerState.MipMapLevelOfDetailBias = SamplerState.AnisotropicClamp.MipMapLevelOfDetailBias;
-
-        DepthStencilState = new DepthStencilState();
-        DepthStencilState = DepthStencilState.None;
-    }
-}
-
-public class Renderer : Component
-{
-
-    private SpriteBatch _sb;
-    private DeviceStates _states = new();
-    private BlendingMode _bmode = BlendingMode.Default;
+    private SpriteBatch _spriteBatch;
+    private readonly DeviceStates _deviceStates = new();
+    private BlendingMode _blendingMode = BlendingMode.Default;
     private Matrix? _customMatrix;
 
     public Matrix? CustomMatrix
@@ -74,74 +19,58 @@ public class Renderer : Component
         set => _customMatrix = value;
     }
 
-    public virtual SpriteBatch SpriteBatch => _sb;
+    public SpriteBatch SpriteBatch => _spriteBatch;
 
-    public Renderer(Manager manager)
+    public RendererSpriteBatch(Manager manager)
         : base(manager)
     {
-        _sb = new SpriteBatch(Manager.GraphicsDevice);
+        _spriteBatch = new SpriteBatch(Manager.GraphicsDevice);
     }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            if (_sb != null)
+            if (_spriteBatch != null)
             {
-                _sb.Dispose();
-                _sb = null;
+                _spriteBatch.Dispose();
+                _spriteBatch = null;
             }
         }
         base.Dispose(disposing);
     }
 
-    public virtual void Begin(BlendingMode mode)
+    public void Begin(BlendingMode mode)
     {
-        _bmode = mode;
-        if (mode != BlendingMode.None)
-        {
-            var state = _states.BlendState;
-            if (mode == BlendingMode.Additive)
-            {
-                state = BlendState.Additive;
-            }
+        _blendingMode = mode;
+        var state = BlendState.Opaque;
 
-            if (_customMatrix.HasValue)
-            {
-                _sb.Begin(SpriteSortMode.Immediate, state, _states.SamplerState, _states.DepthStencilState, _states.RasterizerState, null, _customMatrix.Value);
-            }
-            else
-            {
-                _sb.Begin(SpriteSortMode.Immediate, state, _states.SamplerState, _states.DepthStencilState, _states.RasterizerState);
-            }
-        }
-        else
+        if (mode == BlendingMode.Additive)
         {
-            if (_customMatrix.HasValue)
-            {
-                _sb.Begin(SpriteSortMode.Immediate, BlendState.Opaque, _states.SamplerState, _states.DepthStencilState, _states.RasterizerState, null, _customMatrix.Value);
-            }
-            else
-            {
-                _sb.Begin(SpriteSortMode.Immediate, BlendState.Opaque, _states.SamplerState, _states.DepthStencilState, _states.RasterizerState);
-            }
+            state = BlendState.Additive;
         }
+        else if (mode != BlendingMode.None)
+        {
+            state = _deviceStates.BlendState;
+        }
+
+        _spriteBatch.Begin(SpriteSortMode.Immediate, state, _deviceStates.SamplerState, _deviceStates.DepthStencilState, _deviceStates.RasterizerState, null, _customMatrix);
     }
 
-    public virtual void End()
+    public void End()
     {
-        _sb.End();
+        _spriteBatch.End();
     }
 
-    public virtual void Draw(Texture2D texture, Rectangle destination, Color color)
+    public void Draw(Texture2D texture, Rectangle destination, Color color)
     {
         if (destination.Width > 0 && destination.Height > 0)
         {
-            _sb.Draw(texture, destination, null, color, 0.0f, Vector2.Zero, SpriteEffects.None, Manager.GlobalDepth);
+            _spriteBatch.Draw(texture, destination, null, color, 0.0f, Vector2.Zero, SpriteEffects.None, Manager.GlobalDepth);
         }
     }
 
-    public virtual void DrawTileTexture(Texture2D texture, Rectangle destination, Color color)
+    public void DrawTileTexture(Texture2D texture, Rectangle destination, Color color)
     {
         if (destination.Width > 0 && destination.Height > 0)
         {
@@ -149,94 +78,92 @@ public class Renderer : Component
 
             if (_customMatrix.HasValue)
             {
-                _sb.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, _customMatrix.Value);
+                _spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, _customMatrix.Value);
             }
             else
             {
-                _sb.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone);
+                _spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone);
             }
-            _sb.Draw(texture, new Vector2(destination.X, destination.Y), destination, color, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+            _spriteBatch.Draw(texture, new Vector2(destination.X, destination.Y), destination, color, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
 
             End();
-            Begin(_bmode);
+            Begin(_blendingMode);
         }
     }
 
-    public virtual void Draw(Texture2D texture, Rectangle destination, Rectangle source, Color color)
+    public void Draw(Texture2D texture, Rectangle destination, Rectangle source, Color color)
     {
         if (source.Width > 0 && source.Height > 0 && destination.Width > 0 && destination.Height > 0)
         {
-            _sb.Draw(texture, destination, source, color, 0.0f, Vector2.Zero, SpriteEffects.None, Manager.GlobalDepth);
+            _spriteBatch.Draw(texture, destination, source, color, 0.0f, Vector2.Zero, SpriteEffects.None, Manager.GlobalDepth);
         }
     }
 
-    public virtual void Draw(Texture2D texture, int left, int top, Color color)
+    public void Draw(Texture2D texture, int left, int top, Color color)
     {
-        _sb.Draw(texture, new Vector2(left, top), null, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, Manager.GlobalDepth);
+        _spriteBatch.Draw(texture, new Vector2(left, top), null, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, Manager.GlobalDepth);
     }
 
-    public virtual void Draw(Texture2D texture, int left, int top, Rectangle source, Color color)
+    public void Draw(Texture2D texture, int left, int top, Rectangle source, Color color)
     {
         if (source.Width > 0 && source.Height > 0)
         {
-            _sb.Draw(texture, new Vector2(left, top), source, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, Manager.GlobalDepth);
+            _spriteBatch.Draw(texture, new Vector2(left, top), source, color, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, Manager.GlobalDepth);
         }
     }
 
-    public virtual void DrawString(SpriteFontBase font, string text, int left, int top, Color color)
+    public void DrawString(SpriteFontBase font, string text, int left, int top, Color color)
     {
-        font.DrawText(_sb, text, new Vector2(left, top), color, layerDepth: Manager.GlobalDepth);
+        font.DrawText(_spriteBatch, text, new Vector2(left, top), color, layerDepth: Manager.GlobalDepth);
     }
 
-    public virtual void DrawString(SpriteFontBase font, string text, Rectangle rect, Color color, Alignment alignment)
+    public void DrawString(SpriteFontBase font, string text, Rectangle rect, Color color, Alignment alignment)
     {
         DrawString(font, text, rect, color, alignment, 0, 0, true);
     }
 
-    public virtual void DrawString(SpriteFontBase font, string text, Rectangle rect, Color color, Alignment alignment, bool ellipsis)
+    public void DrawString(SpriteFontBase font, string text, Rectangle rect, Color color, Alignment alignment, bool ellipsis)
     {
         DrawString(font, text, rect, color, alignment, 0, 0, ellipsis);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect)
     {
         DrawString(control, layer, text, rect, true, 0, 0, true);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state)
     {
         DrawString(control, layer, text, rect, state, true, 0, 0, true);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, bool margins)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, bool margins)
     {
         DrawString(control, layer, text, rect, margins, 0, 0, true);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state, bool margins)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state, bool margins)
     {
         DrawString(control, layer, text, rect, state, margins, 0, 0, true);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, bool margins, int ox, int oy)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, bool margins, int ox, int oy)
     {
         DrawString(control, layer, text, rect, margins, ox, oy, true);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state, bool margins, int ox, int oy)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state, bool margins, int ox, int oy)
     {
         DrawString(control, layer, text, rect, state, margins, ox, oy, true);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, bool margins, int ox, int oy, bool ellipsis)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, bool margins, int ox, int oy, bool ellipsis)
     {
         DrawString(control, layer, text, rect, control.ControlState, margins, ox, oy, ellipsis);
     }
 
-    public virtual void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state, bool margins, int ox, int oy, bool ellipsis)
+    public void DrawString(Control control, SkinLayer layer, string text, Rectangle rect, ControlState state, bool margins, int ox, int oy, bool ellipsis)
     {
-        var col = Color.White;
-
         if (layer.Text != null)
         {
             if (margins)
@@ -245,6 +172,7 @@ public class Renderer : Component
                 rect = new Rectangle(rect.Left + m.Left, rect.Top + m.Top, rect.Width - m.Horizontal, rect.Height - m.Vertical);
             }
 
+            Color col;
             if (state == ControlState.Hovered && layer.States.Hovered.Index != -1)
             {
                 col = layer.Text.Colors.Hovered;
@@ -266,7 +194,7 @@ public class Renderer : Component
                 col = layer.Text.Colors.Enabled;
             }
 
-            if (text != null && text != "")
+            if (!string.IsNullOrEmpty(text))
             {
                 var font = layer.Text;
                 if (control.TextColor != Control.UndefinedColor && control.ControlState != ControlState.Disabled)
@@ -279,9 +207,8 @@ public class Renderer : Component
         }
     }
 
-    public virtual void DrawString(SpriteFontBase font, string text, Rectangle rect, Color color, Alignment alignment, int offsetX, int offsetY, bool ellipsis)
+    public void DrawString(SpriteFontBase font, string text, Rectangle rect, Color color, Alignment alignment, int offsetX, int offsetY, bool ellipsis)
     {
-
         if (ellipsis)
         {
             const string elli = "...";
@@ -362,7 +289,7 @@ public class Renderer : Component
         return (int)Math.Ceiling(size1 / 2 - size2 / 2);
     }
 
-    public virtual void DrawLayer(SkinLayer layer, Rectangle rect, Color color, int index)
+    public void DrawLayer(SkinLayer layer, Rectangle rect, Color color, int index)
     {
         var imageSize = new Size(layer.Image.Resource.Width, layer.Image.Resource.Height);
         var partSize = new Size(layer.Width, layer.Height);
@@ -602,12 +529,19 @@ public class Renderer : Component
         }
     }
 
-    public virtual void DrawLayer(Control control, SkinLayer layer, Rectangle rect)
+    public void DrawCursor(Texture2D texture, Rectangle destination, Vector2 hotSpot)
+    {
+        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+        _spriteBatch.Draw(texture, destination, null, Color.White, 0f, hotSpot, SpriteEffects.None, 0f);
+        _spriteBatch.End();
+    }
+
+    public void DrawLayer(Control control, SkinLayer layer, Rectangle rect)
     {
         DrawLayer(control, layer, rect, control.ControlState);
     }
 
-    public virtual void DrawLayer(Control control, SkinLayer layer, Rectangle rect, ControlState state)
+    public void DrawLayer(Control control, SkinLayer layer, Rectangle rect, ControlState state)
     {
         var c = Color.White;
         var oc = Color.White;
@@ -683,5 +617,4 @@ public class Renderer : Component
             DrawLayer(l, rect, oc, oi);
         }
     }
-
 }

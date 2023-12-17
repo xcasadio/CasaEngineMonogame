@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
+using TomShane.Neoforce.Controls.Graphics;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -355,7 +356,7 @@ public class Console : Container
         }
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         var h = _txtMain.Visible ? _txtMain.Height + 1 : 0;
         var r = new Rectangle(rect.Left, rect.Top, rect.Width, rect.Height - h);

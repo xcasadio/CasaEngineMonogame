@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using FontStashSharp;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -408,7 +410,7 @@ public class TextBox : ClipControl
         _font = Skin.Layers[LrTextBox]?.Text?.Font.Resource;
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         if (_drawBorders)
         {
@@ -644,7 +646,7 @@ public class TextBox : ClipControl
         }
     }
 
-    private void DrawSelection(Renderer renderer, Rectangle rect)
+    private void DrawSelection(IRenderer renderer, Rectangle rect)
     {
         if (!_selection.IsEmpty)
         {

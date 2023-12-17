@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using TomShane.Neoforce.Controls.Graphics;
+using TomShane.Neoforce.Controls.Input;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -118,7 +120,7 @@ public class GamePadEventArgs : EventArgs
 public class DrawEventArgs : EventArgs
 {
 
-    public Renderer Renderer;
+    public IRenderer Renderer;
     public Rectangle Rectangle = Rectangle.Empty;
     public GameTime GameTime;
 
@@ -126,7 +128,7 @@ public class DrawEventArgs : EventArgs
     {
     }
 
-    public DrawEventArgs(Renderer renderer, Rectangle rectangle, GameTime gameTime)
+    public DrawEventArgs(IRenderer renderer, Rectangle rectangle, GameTime gameTime)
     {
         Renderer = renderer;
         Rectangle = rectangle;

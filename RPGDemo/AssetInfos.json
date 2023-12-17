@@ -1115,6 +1115,22 @@
     {
       "id": 10901,
       "file_name": "Entities\\smoke_ring_effect.entityFlowgraph"
+    },
+    {
+      "id": 11432,
+      "file_name": "Screens\\MainHUD\\MainHUD.texture"
+    },
+    {
+      "id": 11431,
+      "file_name": "Screens\\MainHUD\\MainHUD.png"
+    },
+    {
+      "id": 11715,
+      "file_name": "Screens\\MainHUD\\link_hud_portrait.sprite"
+    },
+    {
+      "id": 11999,
+      "file_name": "Screens\\MainHUD\\MainHUD.screen"
     }
   ]
 }

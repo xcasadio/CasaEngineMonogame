@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
@@ -70,7 +71,7 @@ public class Bevel : Control
         Height = 64;
     }
 
-    protected override void DrawControl(Renderer renderer, Rectangle rect, GameTime gameTime)
+    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
     {
         if (Border != BevelBorder.None && Style != BevelStyle.None)
         {
@@ -88,7 +89,7 @@ public class Bevel : Control
         }
     }
 
-    private void DrawPart(Renderer renderer, Rectangle rect, BevelBorder pos, BevelStyle style, bool all)
+    private void DrawPart(IRenderer renderer, Rectangle rect, BevelBorder pos, BevelStyle style, bool all)
     {
         var layer = Skin.Layers["Control"];
         var c1 = Utilities.ParseColor(layer.Attributes["LightColor"].Value);

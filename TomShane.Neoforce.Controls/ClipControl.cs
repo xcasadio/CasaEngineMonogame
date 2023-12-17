@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-
 namespace TomShane.Neoforce.Controls;
 
 public class ClipControl : Control
