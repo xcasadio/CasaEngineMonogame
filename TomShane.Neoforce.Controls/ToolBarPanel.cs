@@ -5,15 +5,17 @@ namespace TomShane.Neoforce.Controls;
 
 public class ToolBarPanel : Control
 {
-    public ToolBarPanel(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         Width = 64;
         Height = 25;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["ToolBarPanel"]);
     }
 

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using TomShane.Neoforce.Controls.Graphics;
 using TomShane.Neoforce.Controls.Input;
+using TomShane.Neoforce.Controls.Serialization;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
@@ -310,11 +312,11 @@ public class Control : Component
         {
             if (_toolTip == null)
             {
-                var t = new Type[1] { typeof(Manager) };
-                var p = new object[1] { Manager };
+                var t = new Type[] { };
+                var p = new object[] { };
 
                 _toolTip = (ToolTip)_toolTipType.GetConstructor(t).Invoke(p);
-                _toolTip.Init();
+                _toolTip.Initialize(Manager);
                 _toolTip.Visible = false;
             }
             return _toolTip;
@@ -818,7 +820,7 @@ public class Control : Component
         get
         {
             var max = _maximumWidth;
-            if (max > Manager.TargetWidth)
+            if (max > Manager?.TargetWidth)
             {
                 max = Manager.TargetWidth;
             }
@@ -848,7 +850,7 @@ public class Control : Component
         get
         {
             var max = _maximumHeight;
-            if (max > Manager.TargetHeight)
+            if (max > Manager?.TargetHeight)
             {
                 max = Manager.TargetHeight;
             }
@@ -1066,35 +1068,8 @@ public class Control : Component
     public event EventHandler FocusGained;
     public event DrawEventHandler DrawTexture;
 
-    public Control(Manager manager)
-        : base(manager)
+    public Control()
     {
-        if (Manager == null)
-        {
-            Manager.Logger.WriteError("Control cannot be created. Manager instance is needed.");
-            return;
-        }
-
-        if (Manager.Skin == null)
-        {
-            Manager.Logger.WriteError("Control cannot be created. No skin loaded.");
-            return;
-        }
-
-        _text = Utilities.DeriveControlName(this);
-        _root = this;
-
-        InitSkin();
-
-        CheckLayer(_skin, "Control");
-
-        if (Skin != null)
-        {
-            SetDefaultSize(_width, _height);
-            SetMinimumSize(MinimumWidth, MinimumHeight);
-            ResizerSize = _skin.ResizerSize;
-        }
-
         Stack.Add(this);
     }
 
@@ -1600,15 +1575,41 @@ public class Control : Component
         }
     }
 
-    public override void Init()
+    public override void Initialize(Manager manager)
     {
-        base.Init();
+        base.Initialize(manager);
+
+        if (Manager == null)
+        {
+            Manager.Logger.WriteError("Control cannot be created. Manager instance is needed.");
+            return;
+        }
+
+        if (Manager.Skin == null)
+        {
+            Manager.Logger.WriteError("Control cannot be created. No skin loaded.");
+            return;
+        }
+
+        _text = Utilities.DeriveControlName(this);
+        _root = this;
+
+        InitializeSkin();
+
+        CheckLayer(_skin, "Control");
+
+        if (Skin != null)
+        {
+            SetDefaultSize(_width, _height);
+            SetMinimumSize(MinimumWidth, MinimumHeight);
+            ResizerSize = _skin.ResizerSize;
+        }
 
         OnMove(new MoveEventArgs());
         OnResize(new ResizeEventArgs());
     }
 
-    protected internal virtual void InitSkin()
+    protected internal virtual void InitializeSkin()
     {
         if (Manager?.Skin?.Controls != null)
         {
@@ -1721,7 +1722,7 @@ public class Control : Component
                     Manager.Remove(control);
                 }
 
-                control.Manager = Manager;
+                control.Initialize(Manager);
                 control._parent = this;
                 control.Root = _root;
                 control.Enabled = Enabled ? control.Enabled : Enabled;
@@ -2798,30 +2799,65 @@ public class Control : Component
         MouseScroll?.Invoke(this, e);
     }
 
+    public void Load(JsonElement element)
+    {
+        Alpha = element.GetProperty("alpha").GetByte();
+        if (!string.IsNullOrEmpty(element.GetProperty("anchor").GetString()))
+        {
+            Anchor = element.GetProperty("anchor").GetAnchors();
+        }
+        BackColor = element.GetProperty("back_color").GetColor();
+        CanFocus = element.GetProperty("can_focus").GetBoolean();
+        ClientMargins = element.GetProperty("client_margins").GetMargins();
+        Color = element.GetProperty("color").GetColor();
+        //DesignMode = element.GetProperty("design_mode").GetBoolean();
+        Detached = element.GetProperty("detached").GetBoolean();
+        DoubleClicks = element.GetProperty("double_clicks").GetBoolean();
+        Enabled = element.GetProperty("enabled").GetBoolean();
+        Height = element.GetProperty("height").GetInt32();
+        Left = element.GetProperty("left").GetInt32();
+        Margins = element.GetProperty("margins").GetMargins();
+        MaximumHeight = element.GetProperty("maximum_height").GetInt32();
+        MaximumWidth = element.GetProperty("maximum_width").GetInt32();
+        MinimumHeight = element.GetProperty("minimum_height").GetInt32();
+        MinimumWidth = element.GetProperty("minimum_width").GetInt32();
+        Movable = element.GetProperty("movable").GetBoolean();
+        MovableArea = element.GetProperty("movable_area").GetRectangle();
+        Name = element.GetProperty("name").GetString();
+        OutlineMoving = element.GetProperty("outline_moving").GetBoolean();
+        OutlineResizing = element.GetProperty("outline_resizing").GetBoolean();
+        PartialOutline = element.GetProperty("partial_outline").GetBoolean();
+        Passive = element.GetProperty("passive").GetBoolean();
+        Resizable = element.GetProperty("resizable").GetBoolean();
+        ResizeEdge = element.GetProperty("resize_edge").GetAnchors();
+        ResizerSize = element.GetProperty("resizer_size").GetInt32();
+        StayOnBack = element.GetProperty("stay_on_back").GetBoolean();
+        StayOnTop = element.GetProperty("stay_on_top").GetBoolean();
+        Suspended = element.GetProperty("suspended").GetBoolean();
+        Text = element.GetProperty("text").GetString();
+        TextColor = element.GetProperty("text_color").GetColor();
+        Top = element.GetProperty("top").GetInt32();
+        Visible = element.GetProperty("visible").GetBoolean();
+        Width = element.GetProperty("width").GetInt32();
+    }
+
     public void Save(JObject node)
     {
         node.Add("type", GetType().Name);
 
-        node.Add("absolute_left", AbsoluteLeft);
-        node.Add("absolute_top", AbsoluteTop);
         node.Add("alpha", Alpha);
         node.Add("anchor", Anchor);
         node.Add("back_color", BackColor);
         node.Add("can_focus", CanFocus);
-        node.Add("client_height", ClientHeight);
-        node.Add("client_left", ClientLeft);
         node.Add("client_margins", ClientMargins);
-        node.Add("client_top", ClientTop);
-        node.Add("client_width", ClientWidth);
         node.Add("color", Color);
         //node.Add("context_menu", ContextMenu);
         //node.Add("controls", Controls);
         //node.Add("cursor", Cursor);
-        node.Add("design_mode", DesignMode);
+        //node.Add("design_mode", DesignMode);
         node.Add("detached", Detached);
         node.Add("double_clicks", DoubleClicks);
         node.Add("enabled", Enabled);
-        node.Add("focused", Focused);
         node.Add("height", Height);
         node.Add("left", Left);
         node.Add("margins", Margins);
@@ -2832,10 +2868,6 @@ public class Control : Component
         node.Add("movable", Movable);
         node.Add("movable_area", MovableArea);
         node.Add("name", Name);
-        node.Add("origin_height", OriginHeight);
-        node.Add("origin_left", OriginLeft);
-        node.Add("origin_top", OriginTop);
-        node.Add("origin_width", OriginWidth);
         node.Add("outline_moving", OutlineMoving);
         node.Add("outline_resizing", OutlineResizing);
         //node.Add("parent", Parent);
@@ -2858,46 +2890,5 @@ public class Control : Component
 
         //node.Add("image", Image);
         //node.Add("sourcerect", SourceRect);
-    }
-}
-
-public static class JsonExtension
-{
-    public static void Add(this JObject node, string name, Color color)
-    {
-        node.Add(name, new JObject
-        {
-            { "r", color.R },
-            { "g", color.G },
-            { "b", color.B },
-            { "a", color.A }
-        });
-    }
-
-    public static void Add(this JObject node, string name, Rectangle rectangle)
-    {
-        node.Add(name, new JObject
-        {
-            { "x", rectangle.X },
-            { "y", rectangle.Y },
-            { "w", rectangle.Width },
-            { "h", rectangle.Height }
-        });
-    }
-
-    public static void Add(this JObject node, string name, Margins margins)
-    {
-        node.Add(name, new JObject
-        {
-            { "l", margins.Left },
-            { "r", margins.Right },
-            { "t", margins.Top },
-            { "b", margins.Bottom }
-        });
-    }
-
-    public static void Add(this JObject node, string name, Enum value)
-    {
-        node.Add(name, Enum.GetName(value.GetType(), value));
     }
 }

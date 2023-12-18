@@ -16,11 +16,9 @@ public enum SpinBoxMode
 
 public class SpinBox : TextBox
 {
-
     private Button _btnUp;
     private Button _btnDown;
-    private SpinBoxMode _mode = SpinBoxMode.List;
-    private List<object> _items = new();
+    private readonly List<object> _items = new();
     private float _value;
     private float _minimum;
     private float _maximum = 100;
@@ -28,11 +26,7 @@ public class SpinBox : TextBox
     private int _rounding = 2;
     private int _itemIndex = -1;
 
-    public new virtual SpinBoxMode Mode
-    {
-        get => _mode;
-        set => _mode = value;
-    }
+    public new virtual SpinBoxMode Mode { get; set; }
 
     public override bool ReadOnly
     {
@@ -108,7 +102,7 @@ public class SpinBox : TextBox
         get => _itemIndex;
         set
         {
-            if (_mode == SpinBoxMode.List)
+            if (Mode == SpinBoxMode.List)
             {
                 _itemIndex = value;
                 Text = _items[_itemIndex].ToString();
@@ -129,31 +123,21 @@ public class SpinBox : TextBox
         }
     }
 
-    public SpinBox(Manager manager, SpinBoxMode mode) : base(manager)
+    public override void Initialize(Manager manager)
     {
-        _mode = mode;
-        ReadOnly = true;
+        base.Initialize(manager);
 
-        Height = 20;
-        Width = 64;
-
-        _btnUp = new Button(Manager);
-        _btnUp.Init();
+        _btnUp = new Button();
+        _btnUp.Initialize(Manager);
         _btnUp.CanFocus = false;
         _btnUp.MousePress += btn_MousePress;
         Add(_btnUp, false);
 
-        _btnDown = new Button(Manager);
-        _btnDown.Init();
+        _btnDown = new Button();
+        _btnDown.Initialize(Manager);
         _btnDown.CanFocus = false;
         _btnDown.MousePress += btn_MousePress;
         Add(_btnDown, false);
-
-    }
-
-    public override void Init()
-    {
-        base.Init();
 
         var sc = new SkinControl(_btnUp.Skin);
         sc.Layers["Control"] = new SkinLayer(Skin.Layers["Button"]);
@@ -167,11 +151,16 @@ public class SpinBox : TextBox
         _btnDown.Glyph = new Glyph(Manager.Skin.Images["Shared.ArrowDown"].Resource);
         _btnDown.Glyph.SizeMode = SizeMode.Centered;
         _btnDown.Glyph.Color = Manager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled;
+
+        ReadOnly = true;
+
+        Height = 20;
+        Width = 64;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["SpinBox"]);
     }
 
@@ -212,7 +201,7 @@ public class SpinBox : TextBox
 
     private void ShiftIndex(bool direction)
     {
-        if (_mode == SpinBoxMode.List)
+        if (Mode == SpinBoxMode.List)
         {
             if (_items.Count > 0)
             {

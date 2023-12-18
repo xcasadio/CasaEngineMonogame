@@ -589,7 +589,7 @@ public class Manager : DrawableGameComponent
         // not added to the manager or another parent.
         foreach (var c in Control.Stack)
         {
-            c.InitSkin();
+            c.InitializeSkin();
         }
     }
 
@@ -599,7 +599,7 @@ public class Manager : DrawableGameComponent
         // not added to the manager or another parent.
         foreach (var c in Control.Stack)
         {
-            c.Init();
+            c.Initialize(this);
         }
     }
 
@@ -692,7 +692,9 @@ public class Manager : DrawableGameComponent
         GraphicsDevice.DeviceReset += GraphicsDevice_DeviceReset;
 
         _input.Initialize();
-        Renderer = new RendererSpriteBatch(this);
+        var rendererSpriteBatch = new RendererSpriteBatch();
+        rendererSpriteBatch.Initialize(this);
+        Renderer = rendererSpriteBatch;
         SetSkin(_skinName, _archiveManager);
     }
 
@@ -722,6 +724,7 @@ public class Manager : DrawableGameComponent
     public virtual void SetSkin(string name = null, IArchiveManager archiveManager = null)
     {
         var skin = new Skin(this, name ?? _skinName, archiveManager ?? _archiveManager);
+        skin.Initialize(this);
         SetSkin(skin);
     }
 
@@ -743,7 +746,6 @@ public class Manager : DrawableGameComponent
             GC.Collect();
         }
         _skin = skin;
-        _skin.Init();
         Add(_skin);
         _skinName = _skin.Name;
 
@@ -885,7 +887,6 @@ public class Manager : DrawableGameComponent
                 item.Parent?.Remove(item);
 
                 _controls.Add(item);
-                item.Manager = this;
                 item.Parent = null;
                 if (_focusedControl == null)
                 {
@@ -899,7 +900,7 @@ public class Manager : DrawableGameComponent
             else if (!(component is Control) && !_components.Contains(component))
             {
                 _components.Add(component);
-                component.Manager = this;
+                component.Initialize(this);
             }
         }
     }

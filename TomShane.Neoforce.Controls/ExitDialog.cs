@@ -2,24 +2,21 @@ namespace TomShane.Neoforce.Controls;
 
 public class ExitDialog : Dialog
 {
-    public readonly Button BtnYes;
-    public readonly Button BtnNo;
+    public Button BtnYes;
+    public Button BtnNo;
     private Label _lblMessage;
     private ImageBox _imgIcon;
 
-    public ExitDialog(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         var msg = "Do you really want to exit " + Manager.Game.Window.Title + "?";
         ClientWidth = (int)Manager.Skin.Controls["Label"].Layers[0].Text.Font.Resource.MeasureString(msg).X + 48 + 16 + 16 + 16;
-        ClientHeight = 120;
-        TopPanel.Visible = false;
-        IconVisible = true;
-        Resizable = false;
         Text = Manager.Game.Window.Title;
-        Center();
 
-        _imgIcon = new ImageBox(Manager);
-        _imgIcon.Init();
+        _imgIcon = new ImageBox();
+        _imgIcon.Initialize(Manager);
         _imgIcon.Image = Manager.Skin.Images["Icon.Question"].Resource;
         _imgIcon.Left = 16;
         _imgIcon.Top = 16;
@@ -27,8 +24,8 @@ public class ExitDialog : Dialog
         _imgIcon.Height = 48;
         _imgIcon.SizeMode = SizeMode.Stretched;
 
-        _lblMessage = new Label(Manager);
-        _lblMessage.Init();
+        _lblMessage = new Label();
+        _lblMessage.Initialize(Manager);
 
         _lblMessage.Left = 80;
         _lblMessage.Top = 16;
@@ -37,15 +34,15 @@ public class ExitDialog : Dialog
         _lblMessage.Alignment = Alignment.TopLeft;
         _lblMessage.Text = msg;
 
-        BtnYes = new Button(Manager);
-        BtnYes.Init();
+        BtnYes = new Button();
+        BtnYes.Initialize(Manager);
         BtnYes.Left = BottomPanel.ClientWidth / 2 - BtnYes.Width - 4;
         BtnYes.Top = 8;
         BtnYes.Text = "Yes";
         BtnYes.ModalResult = ModalResult.Yes;
 
-        BtnNo = new Button(Manager);
-        BtnNo.Init();
+        BtnNo = new Button();
+        BtnNo.Initialize(Manager);
         BtnNo.Left = BottomPanel.ClientWidth / 2 + 4;
         BtnNo.Top = 8;
         BtnNo.Text = "No";
@@ -57,11 +54,12 @@ public class ExitDialog : Dialog
         BottomPanel.Add(BtnNo);
 
         DefaultControl = BtnNo;
-    }
 
-    public override void Init()
-    {
-        base.Init();
+        ClientHeight = 120;
+        TopPanel.Visible = false;
+        IconVisible = true;
+        Resizable = false;
+        Center();
     }
 
 }

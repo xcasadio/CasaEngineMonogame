@@ -4,8 +4,10 @@ namespace TomShane.Neoforce.Controls;
 
 public class StatusBar : Control
 {
-    public StatusBar(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         Left = 0;
         Top = 0;
         Width = 64;
@@ -13,9 +15,9 @@ public class StatusBar : Control
         CanFocus = false;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["StatusBar"]);
     }
 }

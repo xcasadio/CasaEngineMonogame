@@ -4,15 +4,17 @@ namespace TomShane.Neoforce.Controls;
 
 public class ToolBarButton : Button
 {
-    public ToolBarButton(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         CanFocus = false;
         Text = "";
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["ToolBarButton"]);
     }
 }

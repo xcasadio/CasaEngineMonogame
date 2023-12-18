@@ -6,13 +6,12 @@ public class Component : Disposable
 {
     private bool _initialized;
 
-    public Manager Manager { get; set; }
+    public Manager Manager { get; private set; }
 
     public bool Initialized => _initialized;
 
-    protected Component(Manager manager)
+    protected Component()
     {
-        Manager = manager;
     }
 
     protected override void Dispose(bool disposing)
@@ -23,8 +22,9 @@ public class Component : Disposable
         base.Dispose(disposing);
     }
 
-    public virtual void Init()
+    public virtual void Initialize(Manager manager)
     {
+        Manager = manager;
         _initialized = true;
     }
 

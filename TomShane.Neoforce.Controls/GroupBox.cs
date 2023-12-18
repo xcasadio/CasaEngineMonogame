@@ -20,9 +20,10 @@ public class GroupBox : Container
         set { _type = value; Invalidate(); }
     }
 
-    public GroupBox(Manager manager)
-        : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         CheckLayer(Skin, "Control");
         CheckLayer(Skin, "Flat");
 
@@ -31,11 +32,6 @@ public class GroupBox : Container
         Width = 64;
         Height = 64;
         BackColor = Color.Transparent;
-    }
-
-    public override void Init()
-    {
-        base.Init();
     }
 
     private void AdjustClientMargins()

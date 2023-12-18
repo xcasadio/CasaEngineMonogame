@@ -5,17 +5,14 @@ namespace TomShane.Neoforce.Controls;
 
 public class GroupPanel : Container
 {
-    public GroupPanel(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         CanFocus = false;
         Passive = true;
         Width = 64;
         Height = 64;
-    }
-
-    public override void Init()
-    {
-        base.Init();
     }
 
     protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)

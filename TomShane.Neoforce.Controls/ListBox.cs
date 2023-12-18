@@ -87,15 +87,27 @@ public class ListBox : Control
     public event EventHandler ItemIndexChanged;
     public event EventHandler HideSelectionChanged;
 
-    public ListBox(Manager manager)
-        : base(manager)
+    public ListBox()
     {
+    }
+
+    public override void Initialize(Manager manager)
+    {
+        _sbVert = new ScrollBar(Orientation.Vertical);
+        _sbVert.Initialize(manager);
+
+        _pane = new ClipBox();
+        _pane.Initialize(manager);
+
+        base.Initialize(manager);
+
         Width = 64;
         Height = 64;
         MinimumHeight = 16;
 
-        _sbVert = new ScrollBar(Manager, Orientation.Vertical);
-        _sbVert.Init();
+        CanFocus = true;
+        Passive = false;
+
         _sbVert.Parent = this;
         _sbVert.Left = Left + Width - _sbVert.Width - Skin.Layers["Control"].ContentMargins.Right;
         _sbVert.Top = Top + Skin.Layers["Control"].ContentMargins.Top;
@@ -106,8 +118,6 @@ public class ListBox : Control
         _sbVert.PageSize = 1;
         _sbVert.StepSize = 10;
 
-        _pane = new ClipBox(manager);
-        _pane.Init();
         _pane.Parent = this;
         _pane.Top = Skin.Layers["Control"].ContentMargins.Top;
         _pane.Left = Skin.Layers["Control"].ContentMargins.Left;
@@ -117,14 +127,6 @@ public class ListBox : Control
         _pane.Passive = true;
         _pane.CanFocus = false;
         _pane.Draw += DrawPane;
-
-        CanFocus = true;
-        Passive = false;
-    }
-
-    public override void Init()
-    {
-        base.Init();
     }
 
     public virtual void AutoHeight(int maxItems)

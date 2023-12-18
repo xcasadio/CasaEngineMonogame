@@ -6,8 +6,8 @@ namespace TomShane.Neoforce.Controls;
 
 public class StackPanel : Container
 {
-
     private Orientation _orientation;
+
     public Orientation Orientation
     {
         get => _orientation;
@@ -23,20 +23,17 @@ public class StackPanel : Container
     /// </summary>
     public bool AutoRefresh { get; set; }
 
-
     private TimeSpan _refreshTimer;
     private const int RefreshTime = 300; //ms
 
-
-    public StackPanel(Manager manager, Orientation orientation) : base(manager)
+    public override void Initialize(Manager manager)
     {
-        _orientation = orientation;
+        base.Initialize(manager);
+
         Color = Color.Transparent;
         AutoRefresh = true;
         _refreshTimer = new TimeSpan(0, 0, 0, 0, RefreshTime);
     }
-
-
 
     private void CalcLayout()
     {
@@ -55,8 +52,7 @@ public class StackPanel : Container
                 top += m.Bottom;
                 c.Left = left;
             }
-
-            if (_orientation == Orientation.Horizontal)
+            else if (_orientation == Orientation.Horizontal)
             {
                 left += m.Left;
                 c.Left = left;
@@ -67,21 +63,11 @@ public class StackPanel : Container
         }
     }
 
-
-
-    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
-    {
-        base.DrawControl(renderer, rect, gameTime);
-    }
-
-
-
     protected override void OnResize(ResizeEventArgs e)
     {
         CalcLayout();
         base.OnResize(e);
     }
-
 
     protected internal override void Update(GameTime gameTime)
     {

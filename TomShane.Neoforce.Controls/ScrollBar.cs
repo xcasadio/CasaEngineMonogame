@@ -118,64 +118,10 @@ public class ScrollBar : Control
     public event EventHandler StepSizeChanged;
     public event EventHandler PageSizeChanged;
 
-    public ScrollBar(Manager manager, Orientation orientation) : base(manager)
+    public ScrollBar(Orientation orientation)
     {
         _orientation = orientation;
         CanFocus = false;
-
-        if (orientation == Orientation.Horizontal)
-        {
-            _strButton = "ScrollBar.ButtonHorz";
-            _strRail = "ScrollBar.RailHorz";
-            _strSlider = "ScrollBar.SliderHorz";
-            _strGlyph = "ScrollBar.GlyphHorz";
-            _strMinus = "ScrollBar.ArrowLeft";
-            _strPlus = "ScrollBar.ArrowRight";
-
-            MinimumHeight = 16;
-            MinimumWidth = 46;
-            Width = 64;
-            Height = 16;
-        }
-        else
-        {
-            _strButton = "ScrollBar.ButtonVert";
-            _strRail = "ScrollBar.RailVert";
-            _strSlider = "ScrollBar.SliderVert";
-            _strGlyph = "ScrollBar.GlyphVert";
-            _strMinus = "ScrollBar.ArrowUp";
-            _strPlus = "ScrollBar.ArrowDown";
-
-            MinimumHeight = 46;
-            MinimumWidth = 16;
-            Width = 16;
-            Height = 64;
-        }
-
-        _btnMinus = new Button(Manager);
-        _btnMinus.Init();
-        _btnMinus.Text = "";
-        _btnMinus.MousePress += ArrowPress;
-        _btnMinus.CanFocus = false;
-
-        _btnSlider = new Button(Manager);
-        _btnSlider.Init();
-        _btnSlider.Text = "";
-        _btnSlider.CanFocus = false;
-        _btnSlider.MinimumHeight = 16;
-        _btnSlider.MinimumWidth = 16;
-
-        _btnPlus = new Button(Manager);
-        _btnPlus.Init();
-        _btnPlus.Text = "";
-        _btnPlus.MousePress += ArrowPress;
-        _btnPlus.CanFocus = false;
-
-        _btnSlider.Move += btnSlider_Move;
-
-        Add(_btnMinus);
-        Add(_btnSlider);
-        Add(_btnPlus);
     }
 
     public void ScrollUp()
@@ -228,9 +174,63 @@ public class ScrollBar : Control
         }
     }
 
-    public override void Init()
+    public override void Initialize(Manager manager)
     {
-        base.Init();
+        base.Initialize(manager);
+
+        if (_orientation == Orientation.Horizontal)
+        {
+            _strButton = "ScrollBar.ButtonHorz";
+            _strRail = "ScrollBar.RailHorz";
+            _strSlider = "ScrollBar.SliderHorz";
+            _strGlyph = "ScrollBar.GlyphHorz";
+            _strMinus = "ScrollBar.ArrowLeft";
+            _strPlus = "ScrollBar.ArrowRight";
+
+            MinimumHeight = 16;
+            MinimumWidth = 46;
+            Width = 64;
+            Height = 16;
+        }
+        else
+        {
+            _strButton = "ScrollBar.ButtonVert";
+            _strRail = "ScrollBar.RailVert";
+            _strSlider = "ScrollBar.SliderVert";
+            _strGlyph = "ScrollBar.GlyphVert";
+            _strMinus = "ScrollBar.ArrowUp";
+            _strPlus = "ScrollBar.ArrowDown";
+
+            MinimumHeight = 46;
+            MinimumWidth = 16;
+            Width = 16;
+            Height = 64;
+        }
+
+        _btnMinus = new Button();
+        _btnMinus.Initialize(Manager);
+        _btnMinus.Text = "";
+        _btnMinus.MousePress += ArrowPress;
+        _btnMinus.CanFocus = false;
+
+        _btnSlider = new Button();
+        _btnSlider.Initialize(Manager);
+        _btnSlider.Text = "";
+        _btnSlider.CanFocus = false;
+        _btnSlider.MinimumHeight = 16;
+        _btnSlider.MinimumWidth = 16;
+
+        _btnPlus = new Button();
+        _btnPlus.Initialize(Manager);
+        _btnPlus.Text = "";
+        _btnPlus.MousePress += ArrowPress;
+        _btnPlus.CanFocus = false;
+
+        _btnSlider.Move += btnSlider_Move;
+
+        Add(_btnMinus);
+        Add(_btnSlider);
+        Add(_btnPlus);
 
         var sc = new SkinControl(_btnPlus.Skin);
         sc.Layers["Control"] = new SkinLayer(Skin.Layers[_strButton]);
@@ -252,12 +252,11 @@ public class ScrollBar : Control
 
         _btnSlider.Glyph = new Glyph(Skin.Layers[_strGlyph].Image.Resource);
         _btnSlider.Glyph.SizeMode = SizeMode.Centered;
-
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["ScrollBar"]);
     }
 

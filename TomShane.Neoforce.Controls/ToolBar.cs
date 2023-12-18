@@ -26,7 +26,7 @@ public class ToolBar : Control
 
     public virtual bool FullRow { get; set; }
 
-    public ToolBar(Manager manager) : base(manager)
+    public ToolBar()
     {
         Left = 0;
         Top = 0;
@@ -35,9 +35,9 @@ public class ToolBar : Control
         CanFocus = false;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["ToolBar"]);
     }
 }

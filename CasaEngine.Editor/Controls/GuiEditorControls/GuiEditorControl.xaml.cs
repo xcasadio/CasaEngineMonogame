@@ -38,6 +38,17 @@ public partial class GuiEditorControl : EditorControlBase
         var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
         var screen = GameEditorGuiControl.GameEditor.Game.GameManager.AssetContentManager.Load<Screen>(assetInfo);
         screen.Initialize(GameEditorGuiControl.GameEditor.Game);
+
+        foreach (var control in screen.Controls)
+        {
+            control.Movable = true;
+            control.Resizable = true;
+            control.ResizerSize = 2;
+            control.DesignMode = true;
+            control.MovableArea = new Rectangle(0, 0,
+                GameEditorGuiControl.GameEditor.Game.ScreenSizeWidth, GameEditorGuiControl.GameEditor.Game.ScreenSizeHeight);
+        }
+
         DataContext = new ScreenViewModel(screen);
         //ComponentListControl.DataContext = DataContext;
     }

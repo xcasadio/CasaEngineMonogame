@@ -21,9 +21,14 @@ public class RendererSpriteBatch : Component, IRenderer
 
     public SpriteBatch SpriteBatch => _spriteBatch;
 
-    public RendererSpriteBatch(Manager manager)
-        : base(manager)
+    public RendererSpriteBatch()
     {
+    }
+
+    public override void Initialize(Manager manager)
+    {
+        base.Initialize(manager);
+
         _spriteBatch = new SpriteBatch(Manager.GraphicsDevice);
     }
 

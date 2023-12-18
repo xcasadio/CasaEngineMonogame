@@ -25,10 +25,15 @@ public class ModalContainer : Container
     public event WindowClosingEventHandler Closing;
     public event WindowClosedEventHandler Closed;
 
-    public ModalContainer(Manager manager) : base(manager)
+    public ModalContainer()
     {
-        Manager.Input.GamePadDown += Input_GamePadDown;
         GamePadActions = new WindowGamePadActions();
+    }
+
+    public override void Initialize(Manager manager)
+    {
+        manager.Input.GamePadDown += Input_GamePadDown;
+        base.Initialize(manager);
     }
 
     public virtual void ShowModal()

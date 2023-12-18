@@ -8,7 +8,6 @@ namespace TomShane.Neoforce.Controls;
 
 public class TrackBar : Control
 {
-
     private int _range = 100;
     private int _value;
     private int _stepSize = 1;
@@ -120,14 +119,16 @@ public class TrackBar : Control
     public event EventHandler StepSizeChanged;
     public event EventHandler PageSizeChanged;
 
-    public TrackBar(Manager manager) : base(manager)
+    public TrackBar()
     {
-        Width = 64;
-        Height = 20;
-        CanFocus = false;
+    }
 
-        _btnSlider = new Button(Manager);
-        _btnSlider.Init();
+    public override void Initialize(Manager manager)
+    {
+        base.Initialize(manager);
+
+        _btnSlider = new Button();
+        _btnSlider.Initialize(Manager);
         _btnSlider.Text = "";
         _btnSlider.CanFocus = true;
         _btnSlider.Parent = this;
@@ -137,17 +138,16 @@ public class TrackBar : Control
         _btnSlider.Move += btnSlider_Move;
         _btnSlider.KeyPress += btnSlider_KeyPress;
         _btnSlider.GamePadPress += btnSlider_GamePadPress;
-    }
-
-    public override void Init()
-    {
-        base.Init();
         _btnSlider.Skin = new SkinControl(Manager.Skin.Controls["TrackBar.Button"]);
+
+        Width = 64;
+        Height = 20;
+        CanFocus = false;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["TrackBar"]);
     }
 

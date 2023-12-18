@@ -6,6 +6,7 @@ using System.Windows;
 using CasaEngine.Editor.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Button = TomShane.Neoforce.Controls.Button;
 using Control = TomShane.Neoforce.Controls.Control;
@@ -18,7 +19,6 @@ namespace CasaEngine.Editor.Controls.GuiEditorControls;
 public class GameEditorGui : GameEditor2d
 {
     private Screen _screen;
-    private readonly Dictionary<string, Type> _types;
     private Camera3dIn2dAxisComponent _camera;
 
     public GameEditorGui() : base(true)
@@ -27,12 +27,6 @@ public class GameEditorGui : GameEditor2d
         UseGui = true;
         DataContextChanged += OnDataContextChanged;
         Cursor = System.Windows.Input.Cursors.None;
-
-        _types = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .SelectMany(x => x.GetTypes())
-            .Where(x => x.Namespace == typeof(Button).Namespace)
-            .ToDictionary(x => x.FullName, x => x);
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -73,9 +67,10 @@ public class GameEditorGui : GameEditor2d
                 e.Handled = true;
 
                 var position = e.GetPosition(this);
-                var type = _types[dragAndDropInfo.Type];
-                var control = (Control)Activator.CreateInstance(type, Game.GameManager.UiManager);
+                var type = ControlHelper.TypesByName[dragAndDropInfo.Type];
+                var control = (Control)Activator.CreateInstance(type);
 
+                control.Initialize(Game.GameManager.UiManager);
                 control.SetPosition((int)position.X, (int)position.Y);
                 control.Movable = true;
                 control.Resizable = true;

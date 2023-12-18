@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using TomShane.Neoforce.Controls;
 
@@ -22,7 +23,7 @@ public class ScreenViewModel
 
     public void Save()
     {
-
+        AssetSaver.SaveAsset(Screen.AssetInfo.FileName, Screen);
     }
 
     public void Add(Control control)

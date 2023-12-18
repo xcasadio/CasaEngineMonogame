@@ -24,6 +24,7 @@ public static class JsonHelper
             Height = element.GetProperty("h").GetInt32()
         };
     }
+
     public static Point GetPoint(this JsonElement element)
     {
         return new Point

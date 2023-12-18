@@ -39,11 +39,16 @@ public abstract class ButtonBase : Control
         }
     }
 
-    protected ButtonBase(Manager manager)
-        : base(manager)
+    protected ButtonBase()
     {
-        SetDefaultSize(72, 24);
         DoubleClicks = false;
+    }
+
+    public override void Initialize(Manager manager)
+    {
+        base.Initialize(manager);
+
+        SetDefaultSize(72, 24);
     }
 
     protected override void OnClick(EventArgs e)

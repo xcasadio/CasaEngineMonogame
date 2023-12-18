@@ -86,9 +86,8 @@ public class Button : ButtonBase
 
     public event EventHandler GlyphChanged;
 
-    public Button(Manager manager) : base(manager)
+    public Button()
     {
-        SetDefaultSize(72, 24);
     }
 
     protected override void Dispose(bool disposing)
@@ -99,14 +98,16 @@ public class Button : ButtonBase
         base.Dispose(disposing);
     }
 
-    public override void Init()
+    public override void Initialize(Manager manager)
     {
-        base.Init();
+        base.Initialize(manager);
+
+        SetDefaultSize(72, 24);
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls[SkButton]);
     }
 

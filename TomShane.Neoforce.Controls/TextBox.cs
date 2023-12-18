@@ -18,7 +18,6 @@ public enum TextBoxMode
 
 public class TextBox : ClipControl
 {
-
     private struct Selection
     {
         private int _start;
@@ -363,32 +362,26 @@ public class TextBox : ClipControl
         }
     }
 
-    public TextBox(Manager manager)
-        : base(manager)
+    public override void Initialize(Manager manager)
     {
-        CheckLayer(Skin, LrCursor);
+        base.Initialize(manager);
 
-        SetDefaultSize(128, 20);
         Lines.Add("");
-
+        CheckLayer(Skin, LrCursor);
+        SetDefaultSize(128, 20);
         ClientArea.Draw += ClientArea_Draw;
 
-        _vert = new ScrollBar(manager, Orientation.Vertical);
-        _horz = new ScrollBar(manager, Orientation.Horizontal);
-    }
+        _vert = new ScrollBar(Orientation.Vertical);
+        _horz = new ScrollBar(Orientation.Horizontal);
 
-    public override void Init()
-    {
-        base.Init();
-
-        _vert.Init();
+        _vert.Initialize(manager);
         _vert.Range = 1;
         _vert.PageSize = 1;
         _vert.Value = 0;
         _vert.Anchor = Anchors.Top | Anchors.Right | Anchors.Bottom;
         _vert.ValueChanged += sb_ValueChanged;
 
-        _horz.Init();
+        _horz.Initialize(manager);
         _horz.Range = ClientArea.Width;
         _horz.PageSize = ClientArea.Width;
         _horz.Value = 0;
@@ -402,9 +395,9 @@ public class TextBox : ClipControl
         Add(_horz, false);
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls[SkTextBox]);
         Cursor = Manager.Skin.Cursors[CrText]?.Resource;
         _font = Skin.Layers[LrTextBox]?.Text?.Font.Resource;

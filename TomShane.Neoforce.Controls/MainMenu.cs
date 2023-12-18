@@ -11,8 +11,10 @@ public class MainMenu : MenuBase
     private Rectangle[] _rs;
     private int _lastIndex = -1;
 
-    public MainMenu(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         Left = 0;
         Top = 0;
         Height = 24;
@@ -29,9 +31,9 @@ public class MainMenu : MenuBase
         base.Dispose(disposing);
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["MainMenu"]);
     }
 
@@ -179,17 +181,20 @@ public class MainMenu : MenuBase
                         ChildMenu.Dispose();
                         ChildMenu = null;
                     }
-                    ChildMenu = new ContextMenu(Manager);
-                    (ChildMenu as ContextMenu).RootMenu = this;
-                    (ChildMenu as ContextMenu).ParentMenu = this;
-                    (ChildMenu as ContextMenu).Sender = Root;
+
+                    var contextMenu = new ContextMenu();
+                    contextMenu.Initialize(Manager);
+                    contextMenu.RootMenu = this;
+                    contextMenu.ParentMenu = this;
+                    contextMenu.Sender = Root;
+                    ChildMenu = contextMenu;
                     ChildMenu.Items.AddRange(Items[ItemIndex].Items);
 
                     var y = Root.AbsoluteTop + _rs[ItemIndex].Bottom + 1;
-                    (ChildMenu as ContextMenu).Show(Root, Root.AbsoluteLeft + _rs[ItemIndex].Left, y);
+                    contextMenu.Show(Root, Root.AbsoluteLeft + _rs[ItemIndex].Left, y);
                     if (ex.Button == MouseButton.None)
                     {
-                        (ChildMenu as ContextMenu).ItemIndex = 0;
+                        contextMenu.ItemIndex = 0;
                     }
                 }
                 else

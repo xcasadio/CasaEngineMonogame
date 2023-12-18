@@ -103,13 +103,9 @@ public class ImageBox : Control
     public event EventHandler ImageChanged;
     public event EventHandler SizeModeChanged;
 
-    public ImageBox(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
-    }
-
-    public override void Init()
-    {
-        base.Init();
+        base.Initialize(manager);
         CanFocus = false;
         Color = Color.White;
     }

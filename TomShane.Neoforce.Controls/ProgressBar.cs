@@ -12,7 +12,6 @@ public enum ProgressBarMode
 
 public class ProgressBar : Control
 {
-
     private int _range = 100;
     private int _value;
     private double _time;
@@ -115,9 +114,10 @@ public class ProgressBar : Control
     public event EventHandler RangeChanged;
     public event EventHandler ModeChanged;
 
-    public ProgressBar(Manager manager)
-        : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         Width = 128;
         Height = 16;
         MinimumHeight = 8;

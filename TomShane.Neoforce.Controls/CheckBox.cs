@@ -30,18 +30,23 @@ public class CheckBox : ButtonBase
 
     public event EventHandler CheckedChanged;
 
-    public CheckBox(Manager manager) : base(manager)
+    public CheckBox()
     {
-        CheckLayer(Skin, LrChecked);
-
         Width = 64;
         Height = 16;
     }
 
-    protected internal override void InitSkin()
+    public override void Initialize(Manager manager)
     {
-        base.InitSkin();
+        base.Initialize(manager);
+        CheckLayer(Skin, LrChecked);
+    }
+
+    protected internal override void InitializeSkin()
+    {
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls[SkCheckBox]);
+
     }
 
     protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)

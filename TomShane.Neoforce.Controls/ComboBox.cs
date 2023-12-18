@@ -93,30 +93,6 @@ public class ComboBox : TextBox
     public event EventHandler MaxItemsChanged;
     public event EventHandler ItemIndexChanged;
 
-    public ComboBox(Manager manager) : base(manager)
-    {
-        Height = 20;
-        Width = 64;
-        ReadOnly = true;
-
-        _btnDown = new Button(Manager);
-        _btnDown.Init();
-        _btnDown.Skin = new SkinControl(Manager.Skin.Controls["ComboBox.Button"]);
-        _btnDown.CanFocus = false;
-        _btnDown.Click += btnDown_Click;
-        Add(_btnDown, false);
-
-        _lstCombo = new ListBox(Manager);
-        _lstCombo.Init();
-        _lstCombo.HotTrack = true;
-        _lstCombo.Detached = true;
-        _lstCombo.Visible = false;
-        _lstCombo.Click += lstCombo_Click;
-        _lstCombo.FocusLost += lstCombo_FocusLost;
-        _lstCombo.Items = _items;
-        manager.Input.MouseDown += Input_MouseDown;
-    }
-
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -132,20 +108,42 @@ public class ComboBox : TextBox
         base.Dispose(disposing);
     }
 
-    public override void Init()
+    public override void Initialize(Manager manager)
     {
-        base.Init();
+        manager.Input.MouseDown += Input_MouseDown;
 
-        _lstCombo.Skin = new SkinControl(Manager.Skin.Controls["ComboBox.ListBox"]);
+        _btnDown = new Button();
+        _btnDown.Initialize(manager);
+        _btnDown.Skin = new SkinControl(manager.Skin.Controls["ComboBox.Button"]);
+        _btnDown.CanFocus = false;
+        _btnDown.Click += btnDown_Click;
 
-        _btnDown.Glyph = new Glyph(Manager.Skin.Images["Shared.ArrowDown"].Resource);
-        _btnDown.Glyph.Color = Manager.Skin.Controls["ComboBox.Button"].Layers["Control"].Text.Colors.Enabled;
+        _lstCombo = new ListBox();
+        _lstCombo.Initialize(manager);
+        _lstCombo.HotTrack = true;
+        _lstCombo.Detached = true;
+        _lstCombo.Visible = false;
+        _lstCombo.Click += lstCombo_Click;
+        _lstCombo.FocusLost += lstCombo_FocusLost;
+        _lstCombo.Items = _items;
+        _lstCombo.Skin = new SkinControl(manager.Skin.Controls["ComboBox.ListBox"]);
+
+        _btnDown.Glyph = new Glyph(manager.Skin.Images["Shared.ArrowDown"].Resource);
+        _btnDown.Glyph.Color = manager.Skin.Controls["ComboBox.Button"].Layers["Control"].Text.Colors.Enabled;
         _btnDown.Glyph.SizeMode = SizeMode.Centered;
+
+        base.Initialize(manager);
+
+        Add(_btnDown, false);
+
+        ReadOnly = true;
+        Height = 20;
+        Width = 64;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["ComboBox"]);
         AdjustMargins();
         ReadOnly = ReadOnly; // To init the right cursor

@@ -127,17 +127,17 @@ public class Container : ClipControl
     /// <summary>
     /// Gets the container's vertical scroll bar.
     /// </summary>
-    protected ScrollBar VerticalScrollBar { get; }
+    protected ScrollBar VerticalScrollBar { get; private set; }
 
     /// <summary>
     /// Gets the container's horizontal scroll bar.
     /// </summary>
-    protected ScrollBar HorizontalScrollBar { get; }
+    protected ScrollBar HorizontalScrollBar { get; private set; }
 
-    public Container(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
-        VerticalScrollBar = new ScrollBar(manager, Orientation.Vertical);
-        VerticalScrollBar.Init();
+        VerticalScrollBar = new ScrollBar(Orientation.Vertical);
+        VerticalScrollBar.Initialize(manager);
         VerticalScrollBar.Detached = false;
         VerticalScrollBar.Anchor = Anchors.Top | Anchors.Right | Anchors.Bottom;
         VerticalScrollBar.ValueChanged += ScrollBarValueChanged;
@@ -146,8 +146,8 @@ public class Container : ClipControl
         VerticalScrollBar.Value = 0;
         VerticalScrollBar.Visible = false;
 
-        HorizontalScrollBar = new ScrollBar(manager, Orientation.Horizontal);
-        HorizontalScrollBar.Init();
+        HorizontalScrollBar = new ScrollBar(Orientation.Horizontal);
+        HorizontalScrollBar.Initialize(manager);
         HorizontalScrollBar.Detached = false;
         HorizontalScrollBar.Anchor = Anchors.Right | Anchors.Left | Anchors.Bottom;
         HorizontalScrollBar.ValueChanged += ScrollBarValueChanged;
@@ -156,18 +156,10 @@ public class Container : ClipControl
         HorizontalScrollBar.Value = 0;
         HorizontalScrollBar.Visible = false;
 
+        base.Initialize(manager);
+
         Add(VerticalScrollBar, false);
         Add(HorizontalScrollBar, false);
-    }
-
-    public override void Init()
-    {
-        base.Init();
-    }
-
-    protected internal override void InitSkin()
-    {
-        base.InitSkin();
     }
 
     private void Bars_Resize(object sender, ResizeEventArgs e)
@@ -188,7 +180,7 @@ public class Container : ClipControl
         {
             if (!_mainMenu.Initialized)
             {
-                _mainMenu.Init();
+                _mainMenu.Initialize(Manager);
             }
 
             _mainMenu.Left = m.Left;
@@ -202,7 +194,7 @@ public class Container : ClipControl
         {
             if (!_toolBarPanel.Initialized)
             {
-                _toolBarPanel.Init();
+                _toolBarPanel.Initialize(Manager);
             }
 
             _toolBarPanel.Left = m.Left;
@@ -216,7 +208,7 @@ public class Container : ClipControl
         {
             if (!_statusBar.Initialized)
             {
-                _statusBar.Init();
+                _statusBar.Initialize(Manager);
             }
 
             _statusBar.Left = m.Left;

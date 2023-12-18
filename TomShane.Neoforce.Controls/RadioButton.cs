@@ -13,29 +13,14 @@ public enum RadioButtonMode
 
 public class RadioButton : CheckBox
 {
-
     private const string SkRadioButton = "RadioButton";
 
     public RadioButtonMode Mode { get; set; } = RadioButtonMode.Auto;
 
-    public RadioButton(Manager manager) : base(manager)
+    protected internal override void InitializeSkin()
     {
-    }
-
-    public override void Init()
-    {
-        base.Init();
-    }
-
-    protected internal override void InitSkin()
-    {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls[SkRadioButton]);
-    }
-
-    protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)
-    {
-        base.DrawControl(renderer, rect, gameTime);
     }
 
     protected override void OnClick(EventArgs e)
@@ -73,5 +58,4 @@ public class RadioButton : CheckBox
         }
         base.OnClick(e);
     }
-
 }

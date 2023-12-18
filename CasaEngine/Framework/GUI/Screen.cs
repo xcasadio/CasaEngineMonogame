@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Framework.Assets;
 using System.Text.Json;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
@@ -26,6 +27,11 @@ namespace CasaEngine.Framework.GUI
         public void Initialize(CasaEngineGame game)
         {
             _game = game;
+
+            foreach (var control in Controls)
+            {
+                control.Initialize(_game.GameManager.UiManager);
+            }
         }
 
         public void Add(Control control)
@@ -49,6 +55,20 @@ namespace CasaEngine.Framework.GUI
         public override void Load(JsonElement element, SaveOption option)
         {
             base.Load(element.GetProperty("asset"), option);
+
+            var externalComponentElement = element.GetProperty("external_component");
+            if (externalComponentElement.GetString() != "null")
+            {
+                //ExternalComponent = ;
+            }
+
+            foreach (var controlElement in element.GetProperty("controls").EnumerateArray())
+            {
+                var typeName = controlElement.GetProperty("type").GetString();
+
+                var control = ControlHelper.Load(typeName, controlElement);
+                _controls.Add(control);
+            }
         }
 
 #if EDITOR
@@ -72,7 +92,7 @@ namespace CasaEngine.Framework.GUI
             foreach (var control in _controls)
             {
                 var controlNode = new JObject();
-                //control.Save(controlNode);
+                control.Save(controlNode);
                 controlsNode.Add(controlNode);
             }
 

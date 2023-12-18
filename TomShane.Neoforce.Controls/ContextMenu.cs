@@ -9,19 +9,15 @@ namespace TomShane.Neoforce.Controls;
 
 public class ContextMenu : MenuBase
 {
-
     private long _timer;
 
     protected internal Control Sender { get; set; }
 
-    public ContextMenu(Manager manager)
-        : base(manager)
+    public ContextMenu()
     {
         Visible = false;
         Detached = true;
         StayOnBack = true;
-
-        Manager.Input.MouseDown += Input_MouseDown;
     }
 
     protected override void Dispose(bool disposing)
@@ -33,14 +29,16 @@ public class ContextMenu : MenuBase
         base.Dispose(disposing);
     }
 
-    public override void Init()
+    public override void Initialize(Manager manager)
     {
-        base.Init();
+        base.Initialize(manager);
+
+        Manager.Input.MouseDown += Input_MouseDown;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["ContextMenu"]);
     }
 
@@ -264,12 +262,14 @@ public class ContextMenu : MenuBase
                 {
                     if (ChildMenu == null)
                     {
-                        ChildMenu = new ContextMenu(Manager);
-                        (ChildMenu as ContextMenu).RootMenu = RootMenu;
-                        (ChildMenu as ContextMenu).ParentMenu = this;
-                        (ChildMenu as ContextMenu).Sender = Sender;
+                        var contextMenu = new ContextMenu();
+                        contextMenu.Initialize(Manager);
+                        ChildMenu = contextMenu;
+                        contextMenu.RootMenu = RootMenu;
+                        contextMenu.ParentMenu = this;
+                        contextMenu.Sender = Sender;
                         ChildMenu.Items.AddRange(Items[ItemIndex].Items);
-                        (ChildMenu as ContextMenu).AutoSize();
+                        contextMenu.AutoSize();
                     }
                     var y = AbsoluteTop + Skin.Layers["Control"].ContentMargins.Top + ItemIndex * LineHeight();
                     (ChildMenu as ContextMenu).Show(Sender, AbsoluteLeft + Width - 1, y);
@@ -425,7 +425,7 @@ public class ContextMenu : MenuBase
         base.Show();
         if (!Initialized)
         {
-            Init();
+            Initialize(Manager); ;
         }
 
         if (sender != null && sender.Root != null && sender.Root is Container container)

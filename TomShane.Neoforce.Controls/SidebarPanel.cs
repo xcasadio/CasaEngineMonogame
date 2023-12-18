@@ -2,8 +2,10 @@ namespace TomShane.Neoforce.Controls;
 
 public class SideBarPanel : Container
 {
-    public SideBarPanel(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
+
         CanFocus = false;
         Passive = true;
         Width = 64;

@@ -213,8 +213,7 @@ public class Console : Container
 
     public event ConsoleMessageEventHandler MessageSent;
 
-    public Console(Manager manager)
-        : base(manager)
+    public Console()
     {
         Width = 320;
         Height = 160;
@@ -223,9 +222,35 @@ public class Console : Container
         CanFocus = false;
         Resizable = false;
         Movable = false;
+    }
 
-        _cmbMain = new ComboBox(manager);
-        _cmbMain.Init();
+    private void PositionControls()
+    {
+        if (_txtMain != null)
+        {
+            _txtMain.Left = _channelsVisible ? _cmbMain.Width + 1 : 0;
+            _txtMain.Width = _channelsVisible ? Width - _cmbMain.Width - 1 : Width;
+
+            if (_textBoxVisible)
+            {
+                ClientMargins = new Margins(Skin.ClientMargins.Left, Skin.ClientMargins.Top + 4, VerticalScrollBar.Width + 6, _txtMain.Height + 4);
+                VerticalScrollBar.Height = Height - _txtMain.Height - 5;
+            }
+            else
+            {
+                ClientMargins = new Margins(Skin.ClientMargins.Left, Skin.ClientMargins.Top + 4, VerticalScrollBar.Width + 6, 2);
+                VerticalScrollBar.Height = Height - 4;
+            }
+            Invalidate();
+        }
+    }
+
+    public override void Initialize(Manager manager)
+    {
+        base.Initialize(manager);
+
+        _cmbMain = new ComboBox();
+        _cmbMain.Initialize(Manager);
         _cmbMain.Top = Height - _cmbMain.Height;
         _cmbMain.Left = 0;
         _cmbMain.Width = 128;
@@ -235,8 +260,8 @@ public class Console : Container
         _cmbMain.Visible = _channelsVisible;
         Add(_cmbMain, false);
 
-        _txtMain = new TextBox(manager);
-        _txtMain.Init();
+        _txtMain = new TextBox();
+        _txtMain.Initialize(Manager);
         _txtMain.Top = Height - _txtMain.Height;
         _txtMain.Left = _cmbMain.Width + 1;
         _txtMain.Anchor = Anchors.Left | Anchors.Bottom | Anchors.Right;
@@ -263,35 +288,9 @@ public class Console : Container
         PositionControls();
     }
 
-    private void PositionControls()
+    protected internal override void InitializeSkin()
     {
-        if (_txtMain != null)
-        {
-            _txtMain.Left = _channelsVisible ? _cmbMain.Width + 1 : 0;
-            _txtMain.Width = _channelsVisible ? Width - _cmbMain.Width - 1 : Width;
-
-            if (_textBoxVisible)
-            {
-                ClientMargins = new Margins(Skin.ClientMargins.Left, Skin.ClientMargins.Top + 4, VerticalScrollBar.Width + 6, _txtMain.Height + 4);
-                VerticalScrollBar.Height = Height - _txtMain.Height - 5;
-            }
-            else
-            {
-                ClientMargins = new Margins(Skin.ClientMargins.Left, Skin.ClientMargins.Top + 4, VerticalScrollBar.Width + 6, 2);
-                VerticalScrollBar.Height = Height - 4;
-            }
-            Invalidate();
-        }
-    }
-
-    public override void Init()
-    {
-        base.Init();
-    }
-
-    protected internal override void InitSkin()
-    {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["Console"]);
 
         PositionControls();

@@ -10,7 +10,7 @@ public class ToolTip : Control
     {
         set
         {
-            if (value && Text != null && Text != "" && Skin?.Layers[0] != null)
+            if (value && !string.IsNullOrEmpty(Text) && Skin?.Layers[0] != null)
             {
                 var size = Skin.Layers[0].Text.Font.Resource.MeasureString(Text);
                 Width = (int)size.X + Skin.Layers[0].ContentMargins.Horizontal;
@@ -26,21 +26,18 @@ public class ToolTip : Control
         }
     }
 
-    public ToolTip(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
-        Text = "";
-    }
+        base.Initialize(manager);
 
-    public override void Init()
-    {
-        base.Init();
+        Text = "";
         CanFocus = false;
         Passive = true;
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = Manager.Skin.Controls["ToolTip"];
     }
 

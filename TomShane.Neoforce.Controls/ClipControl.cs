@@ -20,17 +20,18 @@ public class ClipControl : Control
         }
     }
 
-    public ClipControl(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
-        ClientArea = new ClipBox(manager);
-
-        ClientArea.Init();
+        ClientArea = new ClipBox();
+        ClientArea.Initialize(manager);
         ClientArea.MinimumWidth = 0;
         ClientArea.MinimumHeight = 0;
         ClientArea.Left = ClientLeft;
         ClientArea.Top = ClientTop;
         ClientArea.Width = ClientWidth;
         ClientArea.Height = ClientHeight;
+
+        base.Initialize(manager);
 
         base.Add(ClientArea);
     }

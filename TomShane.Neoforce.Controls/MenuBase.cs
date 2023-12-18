@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace TomShane.Neoforce.Controls;
+
 public class MenuItem : Unknown
 {
-
     public readonly string Text = "MenuItem";
     public readonly List<MenuItem> Items = new();
     public readonly bool Separated;
@@ -53,7 +53,7 @@ public abstract class MenuBase : Control
 
     public List<MenuItem> Items { get; } = new();
 
-    public MenuBase(Manager manager) : base(manager)
+    protected MenuBase()
     {
         RootMenu = this;
     }

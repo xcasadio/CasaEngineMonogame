@@ -17,11 +17,13 @@ public class TabPage : Control
 {
     protected internal Rectangle HeaderRect { get; private set; } = Rectangle.Empty;
 
-    public TabPage(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
+        base.Initialize(manager);
         Color = Color.Transparent;
         Passive = true;
         CanFocus = false;
+
     }
 
     protected internal void CalcRect(Rectangle prev, SpriteFontBase font, Margins margins, Point offset, bool first)
@@ -35,7 +37,6 @@ public class TabPage : Control
 
         HeaderRect = new Rectangle(prev.Right + offset.X, prev.Top, size, prev.Height);
     }
-
 }
 
 public class TabControl : Container
@@ -91,9 +92,15 @@ public class TabControl : Container
 
     public event EventHandler PageChanged;
 
-    public TabControl(Manager manager) : base(manager)
+    public TabControl()
     {
         GamePadActions = new TabControlGamePadActions();
+    }
+
+    public override void Initialize(Manager manager)
+    {
+        base.Initialize(manager);
+
         Manager.Input.GamePadDown += Input_GamePadDown;
         CanFocus = false;
     }
@@ -167,8 +174,8 @@ public class TabControl : Container
 
     public virtual TabPage AddPage()
     {
-        var page = new TabPage(Manager);
-        page.Init();
+        var page = new TabPage();
+        page.Initialize(Manager);
         page.Left = 0;
         page.Top = 0;
         page.Width = ClientWidth;

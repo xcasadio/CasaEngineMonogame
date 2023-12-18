@@ -63,7 +63,7 @@ public class Bevel : Control
     public event EventHandler BorderChanged;
     public event EventHandler StyleChanged;
 
-    public Bevel(Manager manager) : base(manager)
+    public Bevel()
     {
         CanFocus = false;
         Passive = true;

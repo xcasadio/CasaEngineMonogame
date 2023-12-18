@@ -70,7 +70,8 @@ public class ScriptWorld : ExternalComponent
         var spriteData = world.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
         var sprite = Sprite.Create(spriteData, world.Game.GameManager.AssetContentManager);
 
-        var imageBoxLink = new ImageBox(world.Game.GameManager.UiManager);
+        var imageBoxLink = new ImageBox();
+        imageBoxLink.Initialize(world.Game.GameManager.UiManager);
         imageBoxLink.Name = "imageBoxLink";
         imageBoxLink.SetSize(sprite.SpriteData.PositionInTexture.Width, sprite.SpriteData.PositionInTexture.Height);
         imageBoxLink.SetPosition(10, world.Game.ScreenSizeHeight - sprite.SpriteData.PositionInTexture.Height - 50);

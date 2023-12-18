@@ -74,21 +74,10 @@ public class Panel : Container
     public event EventHandler BevelStyleChanged;
     public event EventHandler BevelMarginChanged;
 
-    public Panel(Manager manager) : base(manager)
+    public override void Initialize(Manager manager)
     {
-        Passive = false;
-        CanFocus = false;
-        Width = 64;
-        Height = 64;
-
-        _bevel = new Bevel(Manager);
-    }
-
-    public override void Init()
-    {
-        base.Init();
-
-        _bevel.Init();
+        _bevel = new Bevel();
+        _bevel.Initialize(manager);
         _bevel.Style = _bevelStyle;
         _bevel.Border = _bevelBorder;
         _bevel.Left = 0;
@@ -98,13 +87,21 @@ public class Panel : Container
         _bevel.Color = _bevelColor;
         _bevel.Visible = _bevelBorder != BevelBorder.None;
         _bevel.Anchor = Anchors.Left | Anchors.Top | Anchors.Right | Anchors.Bottom;
+
+        base.Initialize(manager);
+
+        Passive = false;
+        CanFocus = false;
+        Width = 64;
+        Height = 64;
+
         Add(_bevel, false);
         AdjustMargins();
     }
 
-    protected internal override void InitSkin()
+    protected internal override void InitializeSkin()
     {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls["Panel"]);
     }
 

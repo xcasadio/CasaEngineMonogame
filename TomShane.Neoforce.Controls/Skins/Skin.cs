@@ -30,44 +30,15 @@ public class Skin : Component
     public virtual SkinList<SkinAttribute> Attributes => _attributes;
 
     public Skin(Manager manager, string name, IArchiveManager content)
-        : base(manager)
     {
         _name = name;
         _content = content ?? new ArchiveManager(Manager.Game.Services);
-        _content.RootDirectory = GetFolder();
         _doc = new SkinXmlDocument();
         _controls = new SkinList<SkinControl>();
         _fonts = new SkinList<SkinFont>();
         _images = new SkinList<SkinImage>();
         _cursors = new SkinList<SkinCursor>();
         _attributes = new SkinList<SkinAttribute>();
-
-        LoadSkin(null, _content.UseArchive);
-
-        var folder = GetAddonsFolder();
-        if (folder == "")
-        {
-            _content.UseArchive = true;
-            folder = "Addons\\";
-        }
-        else
-        {
-            _content.UseArchive = false;
-        }
-
-        var addons = _content.GetDirectories(folder);
-
-        if (addons is { Length: > 0 })
-        {
-            for (var i = 0; i < addons.Length; i++)
-            {
-                var d = new DirectoryInfo(GetAddonsFolder() + addons[i]);
-                if ((d.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden || _content.UseArchive)
-                {
-                    LoadSkin(addons[i].Replace("\\", ""), _content.UseArchive);
-                }
-            }
-        }
     }
 
     protected override void Dispose(bool disposing)
@@ -138,9 +109,39 @@ public class Skin : Component
         return ret;
     }
 
-    public override void Init()
+    public override void Initialize(Manager manager)
     {
-        base.Init();
+        base.Initialize(manager);
+
+        _content.RootDirectory = GetFolder();
+
+        LoadSkin(null, _content.UseArchive);
+
+        var folder = GetAddonsFolder();
+        if (folder == "")
+        {
+            _content.UseArchive = true;
+            folder = "Addons\\";
+        }
+        else
+        {
+            _content.UseArchive = false;
+        }
+
+        var addons = _content.GetDirectories(folder);
+
+        if (addons is { Length: > 0 })
+        {
+            for (var i = 0; i < addons.Length; i++)
+            {
+                var d = new DirectoryInfo(GetAddonsFolder() + addons[i]);
+                if ((d.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden || _content.UseArchive)
+                {
+                    LoadSkin(addons[i].Replace("\\", ""), _content.UseArchive);
+                }
+            }
+        }
+
 
         for (var i = 0; i < _fonts.Count; i++)
         {

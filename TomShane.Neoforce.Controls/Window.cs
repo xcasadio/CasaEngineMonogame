@@ -92,8 +92,37 @@ public class Window : ModalContainer
         set => _dragAlpha = value;
     }
 
-    public Window(Manager manager) : base(manager)
+    protected override void Dispose(bool disposing)
     {
+        if (disposing)
+        {
+        }
+        base.Dispose(disposing);
+    }
+
+    public override void Initialize(Manager manager)
+    {
+        base.Initialize(manager);
+
+        _oldAlpha = Alpha;
+
+        _btnClose = new Button();
+        _btnClose.Initialize(manager);
+        _btnClose.Skin = new SkinControl(manager.Skin.Controls[SkButton]);
+        _btnClose.Detached = true;
+        _btnClose.CanFocus = false;
+        _btnClose.Text = null;
+        _btnClose.Click += btnClose_Click;
+        _btnClose.SkinChanged += btnClose_SkinChanged;
+        Add(_btnClose, false);
+
+        var lrButtonSkin = _btnClose.Skin.Layers[LrButton];
+        _btnClose.Width = lrButtonSkin.Width - _btnClose.Skin.OriginMargins.Horizontal;
+        _btnClose.Height = lrButtonSkin.Height - _btnClose.Skin.OriginMargins.Vertical;
+        _btnClose.Anchor = Anchors.Top | Anchors.Right;
+        _btnClose.Left = OriginWidth - Skin.OriginMargins.Right - _btnClose.Width + lrButtonSkin.OffsetX;
+        _btnClose.Top = Skin.OriginMargins.Top + lrButtonSkin.OffsetY;
+
         CheckLayer(Skin, LrWindow);
         CheckLayer(Skin, LrCaption);
         CheckLayer(Skin, LrFrameTop);
@@ -106,56 +135,17 @@ public class Window : ModalContainer
         SetDefaultSize(640, 480);
         SetMinimumSize(100, 75);
 
-        _btnClose = new Button(manager);
-        _btnClose.Skin = new SkinControl(Manager.Skin.Controls[SkButton]);
-        _btnClose.Init();
-        _btnClose.Detached = true;
-        _btnClose.CanFocus = false;
-        _btnClose.Text = null;
-        _btnClose.Click += btnClose_Click;
-        _btnClose.SkinChanged += btnClose_SkinChanged;
-
         AdjustMargins();
 
         AutoScroll = true;
         Movable = true;
         Resizable = true;
         Center();
-
-        Add(_btnClose, false);
-
-        _oldAlpha = Alpha;
     }
 
-    protected override void Dispose(bool disposing)
+    protected internal override void InitializeSkin()
     {
-        if (disposing)
-        {
-        }
-        base.Dispose(disposing);
-    }
-
-    public override void Init()
-    {
-        base.Init();
-
-        var l = _btnClose.Skin.Layers[LrButton];
-        _btnClose.Width = l.Width - _btnClose.Skin.OriginMargins.Horizontal;
-        _btnClose.Height = l.Height - _btnClose.Skin.OriginMargins.Vertical;
-        _btnClose.Left = OriginWidth - Skin.OriginMargins.Right - _btnClose.Width + l.OffsetX;
-        _btnClose.Top = Skin.OriginMargins.Top + l.OffsetY;
-        _btnClose.Anchor = Anchors.Top | Anchors.Right;
-
-        //SkinControl sc = new SkinControl(ClientArea.Skin);
-        //sc.Layers[0] = Skin.Layers[lrWindow];
-        //ClientArea.Color = Color.Transparent;
-        //ClientArea.BackColor = Color.Transparent;
-        //ClientArea.Skin = sc;                     
-    }
-
-    protected internal override void InitSkin()
-    {
-        base.InitSkin();
+        base.InitializeSkin();
         Skin = new SkinControl(Manager.Skin.Controls[SkWindow]);
         AdjustMargins();
     }
@@ -270,7 +260,7 @@ public class Window : ModalContainer
         Close(ModalResult = ModalResult.Cancel);
     }
 
-    public virtual void Center()
+    public void Center()
     {
         Left = Manager.ScreenWidth / 2 - Width / 2;
         Top = (Manager.ScreenHeight - Height) / 2;
