@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
@@ -16,9 +15,9 @@ public class ScriptPlayerWeapon : ExternalComponent
 
     private Entity _entity;
 
-    public override void Initialize(Entity entity)
+    public override void Initialize(EntityBase entityBase)
     {
-        _entity = entity;
+        _entity = entityBase as Entity;
         _entity.IsEnabled = false;
         _entity.IsVisible = false;
     }

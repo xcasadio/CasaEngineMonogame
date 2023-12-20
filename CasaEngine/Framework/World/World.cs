@@ -3,6 +3,7 @@ using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
@@ -97,7 +98,10 @@ public sealed class World : Asset
 
     public void BeginPlay()
     {
-        ExternalComponent?.OnBeginPlay(this);
+        if (!Game.GameManager.IsRunningInGameEditorMode)
+        {
+            ExternalComponent?.OnBeginPlay(this);
+        }
 
         foreach (var entity in _entities)
         {
@@ -128,6 +132,11 @@ public sealed class World : Asset
         {
             _entities.Remove(entity);
         }
+
+        foreach (var screen in _screens)
+        {
+            screen.Update(elapsedTime);
+        }
     }
 
     public void Draw(float elapsedTime)
@@ -135,6 +144,11 @@ public sealed class World : Asset
         foreach (var entity in _entities)
         {
             entity.Draw();
+        }
+
+        foreach (var screen in _screens)
+        {
+            screen.Draw();
         }
     }
 

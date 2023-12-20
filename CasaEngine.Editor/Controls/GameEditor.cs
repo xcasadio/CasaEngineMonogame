@@ -30,6 +30,7 @@ public class GameEditor : WpfGame
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
         Game = new CasaEngineGame(null, graphicsDeviceService);
+        Game.GameManager.IsRunningInGameEditorMode = true;
 
         Game.GameManager.UseGui = UseGui;
 

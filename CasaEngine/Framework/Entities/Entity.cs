@@ -18,12 +18,173 @@ using XNAGizmo;
 
 namespace CasaEngine.Framework.Entities;
 
-public class Entity : Asset
+public class Entity : EntityBase
+{
+    private Entity? _parent;
+
+    public Entity? Parent
+    {
+        get => _parent;
+        set
+        {
+            _parent = value;
+            Coordinates.Parent = _parent?.Coordinates;
+        }
+    }
+
+    public ComponentManager ComponentManager { get; } = new();
+
+    public override void Initialize(CasaEngineGame game)
+    {
+        base.Initialize(game);
+        ComponentManager.Initialize(this);
+    }
+
+    protected override void UpdateInternal(float elapsedTime)
+    {
+        ComponentManager.Update(elapsedTime);
+    }
+
+    protected override void DrawInternal()
+    {
+        ComponentManager.Draw();
+    }
+
+    public Entity Clone()
+    {
+        var entity = new Entity();
+        entity.CopyFrom(this);
+        return entity;
+    }
+
+    public void CopyFrom(Entity entity)
+    {
+        ComponentManager.CopyFrom(entity.ComponentManager);
+        Coordinates.CopyFrom(entity.Coordinates);
+        Parent = entity.Parent;
+
+        base.CopyFrom(entity);
+    }
+
+    public override void Load(JsonElement element, SaveOption option)
+    {
+        base.Load(element, option);
+
+        foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
+        {
+            ComponentManager.Components.Add(GameSettings.ComponentLoader.Load(item));
+        }
+    }
+
+    public override void ScreenResized(int width, int height)
+    {
+        var components = ComponentManager.Components;
+
+        for (var index = 0; index < components.Count; index++)
+        {
+            components[index].ScreenResized(width, height);
+        }
+
+        base.ScreenResized(width, height);
+    }
+
+    protected override void OnEnabledValueChange()
+    {
+        var components = ComponentManager.Components;
+
+        for (var index = 0; index < components.Count; index++)
+        {
+            components[index].OnEnabledValueChange();
+        }
+
+        base.OnEnabledValueChange();
+    }
+
+    public override void OnBeginPlay(World.World world)
+    {
+        foreach (var component in ComponentManager.Components)
+        {
+            if (component is GamePlayComponent gamePlayComponent)
+            {
+                gamePlayComponent.ExternalComponent?.OnBeginPlay(world);
+            }
+        }
+
+        base.OnBeginPlay(world);
+    }
+
+    public override void OnEndPlay(World.World world)
+    {
+        foreach (var component in ComponentManager.Components)
+        {
+            if (component is GamePlayComponent gamePlayComponent)
+            {
+                gamePlayComponent.ExternalComponent?.OnEndPlay(world);
+            }
+        }
+
+        base.OnEndPlay(world);
+    }
+
+#if EDITOR
+    private static readonly int Version = 1;
+
+    public override void Save(JObject jObject, SaveOption option)
+    {
+        base.Save(jObject, option);
+
+        //jObject.Add("version", Version);
+
+        var componentsJArray = new JArray();
+        foreach (var component in ComponentManager.Components)
+        {
+            JObject componentObject = new();
+            component.Save(componentObject, option);
+            componentsJArray.Add(componentObject);
+        }
+        jObject.Add("components", componentsJArray);
+    }
+
+    protected override BoundingBox ComputeBoundingBox()
+    {
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
+        bool found = false;
+
+        foreach (var component in ComponentManager.Components)
+        {
+            if (component is IBoundingBoxable boundingBoxComputable)
+            {
+                var boundingBox = boundingBoxComputable.BoundingBox;
+                min = Vector3.Min(min, boundingBox.Min);
+                max = Vector3.Max(max, boundingBox.Max);
+                found = true;
+            }
+        }
+
+        return found ? new BoundingBox(min, max) : new BoundingBox(Vector3.One / 2f, Vector3.One / 2f);
+    }
+#endif
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public class EntityBase : Asset
 #if EDITOR
     , ITransformable
 #endif
 {
-    private Entity? _parent;
     private bool _isEnabled = true;
 
     public event EventHandler? BeginPlay;
@@ -48,18 +209,6 @@ public class Entity : Asset
         set => AssetInfo.Name = value;
     }
 
-    public Entity? Parent
-    {
-        get => _parent;
-        set
-        {
-            _parent = value;
-            Coordinates.Parent = _parent?.Coordinates;
-        }
-    }
-
-    public ComponentManager ComponentManager { get; } = new();
-
     public Coordinates Coordinates { get; } = new();
 
     public bool IsEnabled
@@ -79,11 +228,9 @@ public class Entity : Asset
 
     public bool IsTemporary { get; internal set; }
 
-
     public virtual void Initialize(CasaEngineGame game)
     {
         Game = game;
-        ComponentManager.Initialize(this);
     }
 
     public void Update(float elapsedTime)
@@ -93,9 +240,13 @@ public class Entity : Asset
             return;
         }
 
-        ComponentManager.Update(elapsedTime);
+        UpdateInternal(elapsedTime);
 
         Tick?.Invoke(this, elapsedTime);
+    }
+
+    protected virtual void UpdateInternal(float elapsedTime)
+    {
     }
 
     public void Draw()
@@ -105,26 +256,27 @@ public class Entity : Asset
             return;
         }
 
-        ComponentManager.Draw();
+        DrawInternal();
     }
 
-    public Entity Clone()
+    protected virtual void DrawInternal()
     {
-        var entity = new Entity();
+    }
+
+    public EntityBase Clone()
+    {
+        var entity = new EntityBase();
         entity.CopyFrom(this);
         return entity;
     }
 
-    public void CopyFrom(Entity entity)
+    public void CopyFrom(EntityBase entityBase)
     {
-        ComponentManager.CopyFrom(entity.ComponentManager);
-        Coordinates.CopyFrom(entity.Coordinates);
+        Coordinates.CopyFrom(entityBase.Coordinates);
 
-        IsTemporary = entity.IsTemporary;
-        //Name = entity.Name + $"_{AssetInfo.Id}";
-        Parent = entity.Parent;
-        _isEnabled = entity._isEnabled;
-        IsVisible = entity.IsVisible;
+        IsTemporary = entityBase.IsTemporary;
+        _isEnabled = entityBase._isEnabled;
+        IsVisible = entityBase.IsVisible;
     }
 
     public void Destroy()
@@ -142,70 +294,37 @@ public class Entity : Asset
 
         //var version = element.GetJsonPropertyByName("version").Value.GetInt32();
 
-        foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
-        {
-            ComponentManager.Components.Add(GameSettings.ComponentLoader.Load(item));
-        }
-
         var jsonCoordinate = element.GetJsonPropertyByName("coordinates").Value;
         Coordinates.Load(jsonCoordinate);
     }
 
-    public void ScreenResized(int width, int height)
+    public virtual void ScreenResized(int width, int height)
     {
-        var components = ComponentManager.Components;
-
-        for (var index = 0; index < components.Count; index++)
-        {
-            components[index].ScreenResized(width, height);
-        }
     }
 
-    private void OnEnabledValueChange()
+    protected virtual void OnEnabledValueChange()
     {
-        var components = ComponentManager.Components;
-
-        for (var index = 0; index < components.Count; index++)
-        {
-            components[index].OnEnabledValueChange();
-        }
     }
 
-    public void Hit(Collision collision, Components.Component component)
+    public virtual void Hit(Collision collision, Components.Component component)
     {
         //LogManager.Instance.WriteTrace($"OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHit?.Invoke(this, new EventCollisionArgs(collision, component));
     }
 
-    public void HitEnded(Collision collision, Components.Component component)
+    public virtual void HitEnded(Collision collision, Components.Component component)
     {
         //LogManager.Instance.WriteTrace($"OnHitEnded : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHitEnded?.Invoke(this, new EventCollisionArgs(collision, component));
     }
 
-    public void OnBeginPlay(World.World world)
+    public virtual void OnBeginPlay(World.World world)
     {
-        foreach (var component in ComponentManager.Components)
-        {
-            if (component is GamePlayComponent gamePlayComponent)
-            {
-                gamePlayComponent.ExternalComponent?.OnBeginPlay(world);
-            }
-        }
-
         BeginPlay?.Invoke(this, EventArgs.Empty);
     }
 
-    public void OnEndPlay(World.World world)
+    public virtual void OnEndPlay(World.World world)
     {
-        foreach (var component in ComponentManager.Components)
-        {
-            if (component is GamePlayComponent gamePlayComponent)
-            {
-                gamePlayComponent.ExternalComponent?.OnEndPlay(world);
-            }
-        }
-
         EndPlay?.Invoke(this, EventArgs.Empty);
     }
 
@@ -231,21 +350,10 @@ public class Entity : Asset
         base.Save(jObject, option);
 
         jObject.Add("version", Version);
-        //jObject.Add("id", Id);
-        //jObject.Add("name", Name);
 
         var coordinatesObject = new JObject();
         Coordinates.Save(coordinatesObject);
         jObject.Add("coordinates", coordinatesObject);
-
-        var componentsJArray = new JArray();
-        foreach (var component in ComponentManager.Components)
-        {
-            JObject componentObject = new();
-            component.Save(componentObject, option);
-            componentsJArray.Add(componentObject);
-        }
-        jObject.Add("components", componentsJArray);
     }
 
     public Vector3 Position
@@ -283,24 +391,9 @@ public class Entity : Asset
 
     public BoundingBox BoundingBox => ComputeBoundingBox();
 
-    private BoundingBox ComputeBoundingBox()
+    protected virtual BoundingBox ComputeBoundingBox()
     {
-        var min = Vector3.One * int.MaxValue;
-        var max = Vector3.One * int.MinValue;
-        bool found = false;
-
-        foreach (var component in ComponentManager.Components)
-        {
-            if (component is IBoundingBoxable boundingBoxComputable)
-            {
-                var boundingBox = boundingBoxComputable.BoundingBox;
-                min = Vector3.Min(min, boundingBox.Min);
-                max = Vector3.Max(max, boundingBox.Max);
-                found = true;
-            }
-        }
-
-        return found ? new BoundingBox(min, max) : new BoundingBox(Vector3.One / 2f, Vector3.One / 2f);
+        return new BoundingBox(-Vector3.One / 2f, Vector3.One / 2f);
     }
 #endif
 }

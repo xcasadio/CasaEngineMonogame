@@ -4,6 +4,30 @@
     "name": "MainHUD",
     "file_name": "Screens\\MainHUD\\MainHUD.screen"
   },
+  "version": 1,
+  "coordinates": {
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "center_of_rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "scale": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    },
+    "rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "w": 1.0
+    }
+  },
   "external_component": "null",
   "controls": [
     {
@@ -99,7 +123,7 @@
       "detached": false,
       "double_clicks": true,
       "enabled": true,
-      "height": 15,
+      "height": 16,
       "left": 90,
       "margins": {
         "l": 4,
@@ -138,7 +162,7 @@
       },
       "top": 553,
       "visible": true,
-      "width": 100
+      "width": 128
     }
   ]
 }

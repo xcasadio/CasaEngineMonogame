@@ -8,31 +8,38 @@ using Control = TomShane.Neoforce.Controls.Control;
 
 namespace CasaEngine.Framework.GUI
 {
-    public class Screen : Asset
+    public class Screen : EntityBase
     {
-        public string Name
-        {
-            get => AssetInfo.Name;
-            set => AssetInfo.Name = value;
-        }
-
         private readonly List<Control> _controls = new();
-        public CasaEngineGame Game { get; private set; }
 
-        private ExternalComponent? ExternalComponent { get; set; }
+        public ExternalComponent? ExternalComponent { get; set; }
 
         public IEnumerable<Control> Controls => _controls;
 
-        public void Initialize(CasaEngineGame game)
+        public override void Initialize(CasaEngineGame game)
         {
-            Game = game;
+            base.Initialize(game);
 
             foreach (var control in Controls)
             {
                 control.Initialize(Game.GameManager.UiManager);
             }
 
-            //ExternalComponent?.Initialize(this);
+            ExternalComponent?.Initialize(this);
+        }
+
+        protected override void UpdateInternal(float elapsedTime)
+        {
+            base.UpdateInternal(elapsedTime);
+
+            ExternalComponent?.Update(elapsedTime);
+        }
+
+        protected override void DrawInternal()
+        {
+            base.DrawInternal();
+
+            ExternalComponent?.Draw();
         }
 
         public void Add(Control control)
@@ -53,9 +60,22 @@ namespace CasaEngine.Framework.GUI
 #endif
         }
 
+        public Control? GetControlByName(string name)
+        {
+            foreach (var control in _controls)
+            {
+                if (control.Name == name)
+                {
+                    return control;
+                }
+            }
+
+            return null;
+        }
+
         public override void Load(JsonElement element, SaveOption option)
         {
-            base.Load(element.GetProperty("asset"), option);
+            base.Load(element, option);
 
             var externalComponentElement = element.GetProperty("external_component");
             if (externalComponentElement.GetString() != "null")

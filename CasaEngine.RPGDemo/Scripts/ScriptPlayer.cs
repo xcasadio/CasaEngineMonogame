@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Assets;
@@ -22,8 +21,9 @@ public class ScriptPlayer : ExternalComponent, IScriptCharacter
     public Character Character { get; private set; }
     public Controller Controller { get; private set; }
 
-    public override void Initialize(Entity entity)
+    public override void Initialize(EntityBase entityBase)
     {
+        var entity = entityBase as Entity;
         _entity = entity;
         Character = new Character(_entity, entity.Game);
         Controller = new HumanPlayerController(Character, PlayerIndex.One);

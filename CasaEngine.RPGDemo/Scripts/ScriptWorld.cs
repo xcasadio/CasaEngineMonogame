@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
@@ -24,7 +18,7 @@ public class ScriptWorld : ExternalComponent
 {
     public override int ExternalComponentId => (int)RpgDemoScriptIds.World;
 
-    public override void Initialize(Entity entity)
+    public override void Initialize(EntityBase entityBase)
     {
     }
 
@@ -51,20 +45,8 @@ public class ScriptWorld : ExternalComponent
         camera3dIn2dAxisComponent.Target = new Vector3(world.Game.Window.ClientBounds.Size.X / 2f, world.Game.Window.ClientBounds.Size.Y / 2f, 0.0f);
 
         //world 
-        var screen = new Screen();
+        /*var screen = new Screen();
         screen.Initialize(world.Game);
-        /*
-        var textBox = new TextBox(world.Game.GameManager.UiManager);
-        textBox.Name = "textbox";
-        textBox.SetPosition(50, 50);
-        textBox.SetSize(200, 100);
-        screen.Add(textBox);
-
-        var button = new Button(world.Game.GameManager.UiManager);
-        button.Text = "button";
-        button.SetPosition(350, 50);
-        button.SetSize(200, 50);
-        screen.Add(button);*/
 
         var assetInfo = GameSettings.AssetInfoManager.GetByFileName("Screens\\MainHUD\\link_hud_portrait.sprite");
         var spriteData = world.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
@@ -79,17 +61,13 @@ public class ScriptWorld : ExternalComponent
         imageBoxLink.SourceRect = sprite.SpriteData.PositionInTexture;
         screen.Add(imageBoxLink);
 
+        world.AddScreen(screen);*/
+        var assetInfo = GameSettings.AssetInfoManager.GetByFileName("Screens\\MainHUD\\MainHUD.screen");
+        var screen = world.Game.GameManager.AssetContentManager.Load<Screen>(assetInfo);
+        screen.ExternalComponent = new ScriptMainHUDScreen();
+
+        screen.Initialize(world.Game);
         world.AddScreen(screen);
-        /*
-        var mes = new List<string>();
-
-        foreach (var prop in imageBoxLink.GetType().GetProperties())
-        {
-            mes.Add($"node.Add(\"{prop.Name.ToLower()}\", {prop.Name});");
-
-        }
-        mes.Sort();
-        Debug.WriteLine(string.Join(Environment.NewLine, mes));*/
     }
 
     public override void OnEndPlay(World world)

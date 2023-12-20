@@ -31,8 +31,9 @@ public class ScriptArcBallCamera : ExternalComponent
         InputDisplacementRate = 10.0f;
     }
 
-    public override void Initialize(Entity entity)
+    public override void Initialize(EntityBase entityBase)
     {
+        var entity = entityBase as Entity;
         _arcBallCameraComponent = entity.ComponentManager.GetComponent<ArcBallCameraComponent>();
         _inputComponent = entity.Game.GetGameComponent<InputComponent>();
     }

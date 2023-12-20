@@ -1,5 +1,4 @@
-﻿using CasaEngine.Core.Design;
-using CasaEngine.Engine.Physics;
+﻿using CasaEngine.Engine.Physics;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using CasaEngine.Framework.Assets;
@@ -11,7 +10,7 @@ public abstract class ExternalComponent : ISaveLoad
 {
     public abstract int ExternalComponentId { get; }
 
-    public abstract void Initialize(Entity entity);
+    public abstract void Initialize(EntityBase entityBase);
     public abstract void Update(float elapsedTime);
     public abstract void Draw();
     public abstract void OnHit(Collision collision);
