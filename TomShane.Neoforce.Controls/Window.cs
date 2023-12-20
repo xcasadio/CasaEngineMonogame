@@ -230,7 +230,7 @@ public class Window : ModalContainer
 
             if (_iconVisible && (_icon != null || l5 != null) && _captionVisible)
             {
-                var i = _icon != null ? _icon : l5.Image.Resource;
+                var i = _icon ?? l5.Image.Resource;
                 renderer.Draw(i, GetIconRect(), Color.White);
             }
 

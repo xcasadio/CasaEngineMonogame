@@ -16,8 +16,11 @@
 
         <ListBox Grid.Row="1" x:Name="ListBox" 
                  ItemsSource="{Binding Controls}" 
-                 DisplayMemberPath="Control.Name" 
+                 DisplayMemberPath="Control.Name"
+                 SelectedItem="{Binding SelectedControl}"
                  SelectionChanged="OnSelectionChanged"
-                 MouseDoubleClick="ListBox_OnMouseDoubleClick"/>
+                 MouseDoubleClick="ListBox_OnMouseDoubleClick"
+                 KeyDown="ListBox_OnKeyDown"
+                 KeyUp="ListBox_OnKeyUp"/>
     </Grid>
 </UserControl>

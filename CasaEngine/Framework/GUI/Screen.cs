@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.Assets;
 using System.Text.Json;
-using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
@@ -10,28 +10,29 @@ namespace CasaEngine.Framework.GUI
 {
     public class Screen : Asset
     {
-        private CasaEngineGame _game;
-        private readonly List<Control> _controls = new();
-
-        private ExternalComponent ExternalComponent { get; set; }
-
         public string Name
         {
             get => AssetInfo.Name;
             set => AssetInfo.Name = value;
         }
 
-        public IEnumerable<Control> Controls => _controls;
+        private readonly List<Control> _controls = new();
+        public CasaEngineGame Game { get; private set; }
 
+        private ExternalComponent? ExternalComponent { get; set; }
+
+        public IEnumerable<Control> Controls => _controls;
 
         public void Initialize(CasaEngineGame game)
         {
-            _game = game;
+            Game = game;
 
             foreach (var control in Controls)
             {
-                control.Initialize(_game.GameManager.UiManager);
+                control.Initialize(Game.GameManager.UiManager);
             }
+
+            //ExternalComponent?.Initialize(this);
         }
 
         public void Add(Control control)
@@ -39,7 +40,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Add(control);
 
 #if EDITOR
-            _game.GameManager.UiManager.Add(control);
+            Game.GameManager.UiManager.Add(control);
 #endif
         }
 
@@ -48,7 +49,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Remove(control);
 
 #if EDITOR
-            _game.GameManager.UiManager.Remove(control);
+            Game.GameManager.UiManager.Remove(control);
 #endif
         }
 

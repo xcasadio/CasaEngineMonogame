@@ -7,73 +7,6 @@
   "external_component": "null",
   "controls": [
     {
-      "type": "Button",
-      "alpha": 255,
-      "anchor": null,
-      "back_color": {
-        "r": 0,
-        "g": 0,
-        "b": 0,
-        "a": 0
-      },
-      "can_focus": true,
-      "client_margins": {
-        "l": 0,
-        "r": 0,
-        "t": 0,
-        "b": 0
-      },
-      "color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 0
-      },
-      "detached": false,
-      "double_clicks": false,
-      "enabled": true,
-      "height": 24,
-      "left": 19,
-      "margins": {
-        "l": 4,
-        "r": 4,
-        "t": 4,
-        "b": 4
-      },
-      "maximum_height": 632,
-      "maximum_width": 774,
-      "minimum_height": 0,
-      "minimum_width": 0,
-      "movable": true,
-      "movable_area": {
-        "x": 0,
-        "y": 0,
-        "w": 800,
-        "h": 480
-      },
-      "name": "Button",
-      "outline_moving": false,
-      "outline_resizing": false,
-      "partial_outline": true,
-      "passive": false,
-      "resizable": true,
-      "resize_edge": "All",
-      "resizer_size": 4,
-      "stay_on_back": false,
-      "stay_on_top": false,
-      "suspended": false,
-      "text": "Button",
-      "text_color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 0
-      },
-      "top": 18,
-      "visible": true,
-      "width": 72
-    },
-    {
       "type": "ImageBox",
       "alpha": 255,
       "anchor": null,
@@ -100,7 +33,7 @@
       "double_clicks": true,
       "enabled": true,
       "height": 64,
-      "left": 22,
+      "left": 18,
       "margins": {
         "l": 4,
         "r": 4,
@@ -108,7 +41,7 @@
         "b": 4
       },
       "maximum_height": 632,
-      "maximum_width": 774,
+      "maximum_width": 678,
       "minimum_height": 0,
       "minimum_width": 0,
       "movable": true,
@@ -125,7 +58,7 @@
       "passive": false,
       "resizable": true,
       "resize_edge": "All",
-      "resizer_size": 4,
+      "resizer_size": 2,
       "stay_on_back": false,
       "stay_on_top": false,
       "suspended": false,
@@ -136,9 +69,76 @@
         "b": 255,
         "a": 0
       },
-      "top": 549,
+      "top": 552,
       "visible": true,
       "width": 64
+    },
+    {
+      "type": "ProgressBar",
+      "alpha": 255,
+      "anchor": null,
+      "back_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "can_focus": false,
+      "client_margins": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      },
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "detached": false,
+      "double_clicks": true,
+      "enabled": true,
+      "height": 15,
+      "left": 90,
+      "margins": {
+        "l": 4,
+        "r": 4,
+        "t": 4,
+        "b": 4
+      },
+      "maximum_height": 632,
+      "maximum_width": 678,
+      "minimum_height": 8,
+      "minimum_width": 32,
+      "movable": true,
+      "movable_area": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480
+      },
+      "name": "ProgressBar",
+      "outline_moving": false,
+      "outline_resizing": false,
+      "partial_outline": true,
+      "passive": true,
+      "resizable": true,
+      "resize_edge": "All",
+      "resizer_size": 2,
+      "stay_on_back": false,
+      "stay_on_top": false,
+      "suspended": false,
+      "text": "ProgressBar",
+      "text_color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "top": 553,
+      "visible": true,
+      "width": 100
     }
   ]
 }

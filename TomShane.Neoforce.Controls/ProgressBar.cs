@@ -209,5 +209,4 @@ public class ProgressBar : Control
     {
         ModeChanged?.Invoke(this, e);
     }
-
 }

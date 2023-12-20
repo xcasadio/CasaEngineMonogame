@@ -42,7 +42,7 @@ public class Control : Component
     private Type _toolTipType = typeof(ToolTip);
     private ToolTip _toolTip;
 
-    private ControlsList _controls = new();
+    private readonly ControlsList _controls = new();
     private bool _invalidated = true;
     private int _minimumWidth;
     private int _maximumWidth = 4096;
@@ -57,12 +57,11 @@ public class Control : Component
 
     private RenderTarget2D _target;
     private Point _pressSpot = Point.Zero;
-    private int[] _pressDiff = new int[4];
+    private readonly int[] _pressDiff = new int[4];
     private Alignment _resizeArea = Alignment.None;
     private bool _hovered;
     private bool _inside;
-    private bool[] _pressed = new bool[32];
-    private bool _isMoving;
+    private readonly bool[] _pressed = new bool[32];
     private bool _isResizing;
     private Margins _anchorMargins;
     private Rectangle _outlineRect = Rectangle.Empty;
@@ -376,11 +375,7 @@ public class Control : Component
     /// <summary>
     /// Gets or sets a value indicating whether this controls is currently being moved.
     /// </summary>
-    protected bool IsMoving
-    {
-        get => _isMoving;
-        set => _isMoving = value;
-    }
+    protected bool IsMoving { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this controls is currently being resized.
@@ -2056,7 +2051,7 @@ public class Control : Component
     private void MouseUpProcess(MouseEventArgs e)
     {
         Invalidate();
-        if (_pressed[(int)e.Button] || _isMoving || _isResizing)
+        if (_pressed[(int)e.Button] || IsMoving || _isResizing)
         {
             _pressed[(int)e.Button] = false;
 
@@ -2165,8 +2160,8 @@ public class Control : Component
 
         if (!IsResizing && IsMoving)
         {
-            var x = _parent != null ? _parent.AbsoluteLeft : 0;
-            var y = _parent != null ? _parent.AbsoluteTop : 0;
+            var x = _parent?.AbsoluteLeft ?? 0;
+            var y = _parent?.AbsoluteTop ?? 0;
 
             var l = e.Position.X - x - _pressSpot.X - _leftModifier;
             var t = e.Position.Y - y - _pressSpot.Y - _topModifier;
@@ -2425,8 +2420,8 @@ public class Control : Component
                     h = OutlineRect.Height;
                 }
 
-                var px = e.Position.X - (_parent != null ? _parent.AbsoluteLeft : 0);
-                var py = e.Position.Y - (_parent != null ? _parent.AbsoluteTop : 0);
+                var px = e.Position.X - (_parent?.AbsoluteLeft ?? 0);
+                var py = e.Position.Y - (_parent?.AbsoluteTop ?? 0);
 
                 if (left)
                 {
@@ -2595,6 +2590,7 @@ public class Control : Component
             _resizeArea = Alignment.None;
         }
     }
+
 
     protected virtual void OnMouseUp(MouseEventArgs e)
     {

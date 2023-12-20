@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -7,15 +6,9 @@ namespace CasaEngine.Editor.Controls.GuiEditorControls;
 
 public partial class ComponentListControl : UserControl
 {
-    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(ControlViewModel), typeof(ComponentListControl));
-
     private GameEditorGui _gameEditor;
-
-    public ControlViewModel SelectedItem
-    {
-        get => (ControlViewModel)GetValue(SelectedItemProperty);
-        set => SetValue(SelectedItemProperty, value);
-    }
+    private bool _keyDeletePressed;
+    private bool selectionLock;
 
     public ComponentListControl()
     {
@@ -35,7 +28,12 @@ public partial class ComponentListControl : UserControl
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        SelectedItem = ListBox.SelectedItem as ControlViewModel;
+        if (selectionLock == false)
+        {
+            selectionLock = true;
+            (DataContext as ScreenViewModel).SelectedControl = ListBox.SelectedItem as ControlViewModel;
+            selectionLock = false;
+        }
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -43,6 +41,25 @@ public partial class ComponentListControl : UserControl
         if (sender is ListBox listBox && listBox.SelectedItem != null)
         {
 
+        }
+    }
+
+    private void ListBox_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (!_keyDeletePressed && e.Key == Key.Delete)
+        {
+            var screenViewModel = DataContext as ScreenViewModel;
+            screenViewModel.RemoveSelectedControl();
+
+            _keyDeletePressed = true;
+        }
+    }
+
+    private void ListBox_OnKeyUp(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete)
+        {
+            _keyDeletePressed = false;
         }
     }
 }

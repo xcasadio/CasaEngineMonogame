@@ -1,13 +1,29 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using TomShane.Neoforce.Controls;
 
 namespace CasaEngine.Editor.Controls.GuiEditorControls;
 
-public class ScreenViewModel
+public class ScreenViewModel : NotifyPropertyChangeBase
 {
+    private ControlViewModel? _selectedControl;
     public Screen Screen { get; }
+
+    public ControlViewModel? SelectedControl
+    {
+        get => _selectedControl;
+        set
+        {
+            SetField(ref _selectedControl, value);
+
+            /*foreach (var controlViewModel in Controls)
+            {
+                controlViewModel.Control.Selected(_selectedControl == controlViewModel);
+            }*/
+        }
+    }
 
     public ObservableCollection<ControlViewModel> Controls { get; } = new();
 
@@ -36,5 +52,26 @@ public class ScreenViewModel
     {
         Screen.Remove(controlViewModel.Control);
         Controls.Remove(controlViewModel);
+    }
+
+    public void RemoveSelectedControl()
+    {
+        if (SelectedControl != null)
+        {
+            Remove(SelectedControl);
+        }
+    }
+
+    public ControlViewModel? FindControlViewModel(Control control)
+    {
+        foreach (var controlViewModel in Controls)
+        {
+            if (control == controlViewModel.Control)
+            {
+                return controlViewModel;
+            }
+        }
+
+        return null;
     }
 }

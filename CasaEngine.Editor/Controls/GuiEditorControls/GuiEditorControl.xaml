@@ -40,7 +40,7 @@
                             <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                 <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                     <xcad:LayoutAnchorable x:Name="guiDetailsLayout" Title="Details">
-                                        <local:ComponentDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding ElementName=ComponentListControl, Path=SelectedItem}"/>
+                                        <local:ComponentDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding DataContext.SelectedControl, RelativeSource={RelativeSource AncestorType=local:GuiEditorControl}}"/>
                                     </xcad:LayoutAnchorable>
                                 </xcad:LayoutAnchorablePane>
                             </xcad:LayoutAnchorablePaneGroup>

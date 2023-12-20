@@ -26,8 +26,8 @@ public class Container : ClipControl
         get
         {
             var scb = new ScrollBarValue();
-            scb.Vertical = VerticalScrollBar != null ? VerticalScrollBar.Value : 0;
-            scb.Horizontal = HorizontalScrollBar != null ? HorizontalScrollBar.Value : 0;
+            scb.Vertical = VerticalScrollBar?.Value ?? 0;
+            scb.Horizontal = HorizontalScrollBar?.Value ?? 0;
             return scb;
         }
     }

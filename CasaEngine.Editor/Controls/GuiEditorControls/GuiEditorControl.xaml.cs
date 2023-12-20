@@ -5,6 +5,7 @@ using Xceed.Wpf.AvalonDock.Layout.Serialization;
 using Xceed.Wpf.AvalonDock;
 using System.Windows.Forms;
 using Screen = CasaEngine.Framework.GUI.Screen;
+using CasaEngine.Framework.GUI;
 
 namespace CasaEngine.Editor.Controls.GuiEditorControls;
 
@@ -47,10 +48,23 @@ public partial class GuiEditorControl : EditorControlBase
             control.DesignMode = true;
             control.MovableArea = new Rectangle(0, 0,
                 GameEditorGuiControl.GameEditor.Game.ScreenSizeWidth, GameEditorGuiControl.GameEditor.Game.ScreenSizeHeight);
+            control.FocusGained += Control_FocusGained;
+            control.FocusLost += Control_FocusLost;
         }
 
         DataContext = new ScreenViewModel(screen);
         //ComponentListControl.DataContext = DataContext;
+    }
+
+    private void Control_FocusLost(object sender, TomShane.Neoforce.Controls.EventArgs e)
+    {
+        (DataContext as ScreenViewModel).SelectedControl = null;
+    }
+
+    private void Control_FocusGained(object sender, TomShane.Neoforce.Controls.EventArgs e)
+    {
+        var screenViewModel = (DataContext as ScreenViewModel);
+        screenViewModel.SelectedControl = screenViewModel.FindControlViewModel(sender as TomShane.Neoforce.Controls.Control);
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)

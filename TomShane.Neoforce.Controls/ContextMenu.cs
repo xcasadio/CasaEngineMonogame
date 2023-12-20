@@ -459,7 +459,7 @@ public class ContextMenu : MenuBase
             }
             else if (ParentMenu != null)
             {
-                Left = Manager.TargetWidth - (Parent != null ? Parent.AbsoluteLeft : 0) - Width - 2;
+                Left = Manager.TargetWidth - (Parent?.AbsoluteLeft ?? 0) - Width - 2;
             }
         }
         if (AbsoluteTop + Height > Manager.TargetHeight)

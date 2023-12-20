@@ -1085,9 +1085,9 @@ public class Manager : DrawableGameComponent
 
     private bool CheckState(Control control)
     {
-        var modal = ModalWindow == null ? true : ModalWindow == control.Root;
+        var modal = ModalWindow == null || ModalWindow == control.Root;
 
-        return control != null && !control.Passive && control.Visible && control.Enabled && modal;
+        return control != null && (!control.Passive || control.DesignMode) && control.Visible && control.Enabled && modal;
     }
 
     private bool CheckOrder(Control control, Point pos)

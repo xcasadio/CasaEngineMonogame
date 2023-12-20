@@ -1,13 +1,10 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Screen = CasaEngine.Framework.GUI.Screen;
 
@@ -18,8 +15,9 @@ public sealed class World : Asset
     private readonly List<EntityReference> _entityReferences = new();
     private readonly List<Entity> _entities = new();
     private readonly List<Entity> _baseObjectsToAdd = new();
+    private readonly List<Screen> _screens = new();
 
-    private List<GUI.Screen> Screens = new();
+    public IEnumerable<Screen> Screens => _screens;
 
     public IList<Entity> Entities => _entities;
     public ExternalComponent? ExternalComponent { get; set; }
@@ -170,7 +168,7 @@ public sealed class World : Asset
 
     public void AddScreen(Screen screen)
     {
-        Screens.Add(screen);
+        _screens.Add(screen);
 
         foreach (var control in screen.Controls)
         {
@@ -180,7 +178,7 @@ public sealed class World : Asset
 
     public void RemoveScreen(Screen screen)
     {
-        Screens.Remove(screen);
+        _screens.Remove(screen);
 
         foreach (var control in screen.Controls)
         {
@@ -190,10 +188,15 @@ public sealed class World : Asset
 
     public void ClearScreens()
     {
-        foreach (var screen in Screens)
+        foreach (var screen in _screens)
         {
-            RemoveScreen(screen);
+            foreach (var control in screen.Controls)
+            {
+                Game.GameManager.UiManager.Remove(control);
+            }
         }
+
+        _screens.Clear();
     }
 
 #if EDITOR

@@ -80,7 +80,7 @@ public class Entity : Asset
     public bool IsTemporary { get; internal set; }
 
 
-    public void Initialize(CasaEngineGame game)
+    public virtual void Initialize(CasaEngineGame game)
     {
         Game = game;
         ComponentManager.Initialize(this);

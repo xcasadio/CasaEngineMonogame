@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Input;
 using CasaEngine.Editor.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -20,13 +21,14 @@ public class GameEditorGui : GameEditor2d
 {
     private Screen _screen;
     private Camera3dIn2dAxisComponent _camera;
+    private bool _keyDeletePressed = false;
 
     public GameEditorGui() : base(true)
     {
         Drop += OnDrop;
         UseGui = true;
         DataContextChanged += OnDataContextChanged;
-        Cursor = System.Windows.Input.Cursors.None;
+        Cursor = Cursors.None;
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -82,5 +84,28 @@ public class GameEditorGui : GameEditor2d
                 (DataContext as ScreenViewModel).Add(control);
             }
         }
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (!_keyDeletePressed && e.Key == Key.Delete)
+        {
+            var screenViewModel = DataContext as ScreenViewModel;
+            screenViewModel.RemoveSelectedControl();
+
+            _keyDeletePressed = true;
+        }
+
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete)
+        {
+            _keyDeletePressed = false;
+        }
+
+        base.OnKeyUp(e);
     }
 }
