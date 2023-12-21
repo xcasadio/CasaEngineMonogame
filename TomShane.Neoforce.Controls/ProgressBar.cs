@@ -23,27 +23,24 @@ public class ProgressBar : Control
         get => _value;
         set
         {
-            if (_mode == ProgressBarMode.Default)
+            if (_mode == ProgressBarMode.Default && _value != value)
             {
-                if (_value != value)
+                _value = value;
+                if (_value > _range)
                 {
-                    _value = value;
-                    if (_value > _range)
-                    {
-                        _value = _range;
-                    }
+                    _value = _range;
+                }
 
-                    if (_value < 0)
-                    {
-                        _value = 0;
-                    }
+                if (_value < 0)
+                {
+                    _value = 0;
+                }
 
-                    Invalidate();
+                Invalidate();
 
-                    if (!Suspended)
-                    {
-                        OnValueChanged(new EventArgs());
-                    }
+                if (!Suspended)
+                {
+                    OnValueChanged(new EventArgs());
                 }
             }
         }

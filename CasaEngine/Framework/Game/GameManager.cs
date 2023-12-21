@@ -260,9 +260,9 @@ public class GameManager
     {
         var texture2D = new Texture2D(_game.GraphicsDevice, 128, 128, true, SurfaceFormat.Color);
         texture2D.SetData(Enumerable.Repeat(Color.Orange, texture2D.Width * texture2D.Height).ToArray());
-        var texture = new Assets.Textures.Texture(texture2D);
-        texture.AssetInfo.Name = Assets.Textures.Texture.DefaultTextureName;
-        AssetContentManager.AddAsset(IdManager.GetId(), Assets.Textures.Texture.DefaultTextureName, texture);
+        var texture = new Texture(texture2D);
+        texture.AssetInfo.Name = Texture.DefaultTextureName;
+        AssetContentManager.AddAsset(IdManager.GetId(), Texture.DefaultTextureName, texture);
     }
 
     public void EndLoadContent()

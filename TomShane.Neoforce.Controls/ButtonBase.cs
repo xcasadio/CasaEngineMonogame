@@ -8,16 +8,17 @@ public abstract class ButtonBase : Control
     {
         get
         {
-            if (DesignMode)
+            /*if (DesignMode)
             {
                 return ControlState.Enabled;
-            }
+            }*/
 
-            if (Suspended)
+            if (Suspended && !DesignMode)
             {
                 return ControlState.Disabled;
             }
-            if (!Enabled)
+
+            if (!Enabled && !DesignMode)
             {
                 return ControlState.Disabled;
             }
@@ -31,10 +32,12 @@ public abstract class ButtonBase : Control
             {
                 return ControlState.Hovered;
             }
+
             if ((Focused && !Inside) || (Hovered && !Inside) || (Focused && !Hovered && Inside))
             {
                 return ControlState.Focused;
             }
+
             return ControlState.Enabled;
         }
     }

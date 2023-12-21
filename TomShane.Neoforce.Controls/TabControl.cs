@@ -76,7 +76,7 @@ public class TabControl : Container
 
     public virtual TabPage SelectedPage
     {
-        get => _tabPages[SelectedIndex];
+        get => SelectedIndex >= _tabPages.Count ? null : _tabPages[SelectedIndex];
         set
         {
             for (var i = 0; i < _tabPages.Count; i++)

@@ -900,7 +900,7 @@ public class Manager : DrawableGameComponent
             else if (!(component is Control) && !_components.Contains(component))
             {
                 _components.Add(component);
-                component.Initialize(this);
+                //component.Initialize(this);
             }
         }
     }

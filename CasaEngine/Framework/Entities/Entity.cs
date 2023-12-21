@@ -306,13 +306,13 @@ public class EntityBase : Asset
     {
     }
 
-    public virtual void Hit(Collision collision, Components.Component component)
+    public virtual void Hit(Collision collision, Component component)
     {
         //LogManager.Instance.WriteTrace($"OnHit : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHit?.Invoke(this, new EventCollisionArgs(collision, component));
     }
 
-    public virtual void HitEnded(Collision collision, Components.Component component)
+    public virtual void HitEnded(Collision collision, Component component)
     {
         //LogManager.Instance.WriteTrace($"OnHitEnded : {collision.ColliderA.Owner.Name} & {collision.ColliderB.Owner.Name}");
         OnHitEnded?.Invoke(this, new EventCollisionArgs(collision, component));

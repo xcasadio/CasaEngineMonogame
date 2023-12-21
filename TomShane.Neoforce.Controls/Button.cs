@@ -1,56 +1,12 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using TomShane.Neoforce.Controls.Graphics;
 using TomShane.Neoforce.Controls.Input;
 using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
-///  <include file='Documents/Button.xml' path='Button/Class[@name="SizeMode"]/*' />
-public enum SizeMode
-{
-    Normal,
-    Auto,
-    Centered,
-    Stretched,
-    /// <summary>
-    /// Only Supported by ImageBox
-    /// </summary>
-    Tiled
-}
-
-///  <include file='Documents/Button.xml' path='Button/Class[@name="SizeMode"]/*' />
-public enum ButtonMode
-{
-    Normal,
-    PushButton
-}
-
-///  <include file='Documents/Button.xml' path='Button/Class[@name="Glyph"]/*' />          
-public class Glyph
-{
-
-    public readonly Texture2D Image;
-    public SizeMode SizeMode = SizeMode.Stretched;
-    public Color Color = Color.White;
-    public Point Offset = Point.Zero;
-    public Rectangle SourceRect = Rectangle.Empty;
-
-    public Glyph(Texture2D image)
-    {
-        Image = image;
-    }
-
-    public Glyph(Texture2D image, Rectangle sourceRect) : this(image)
-    {
-        SourceRect = sourceRect;
-    }
-}
-
-///  <include file='Documents/Button.xml' path='Button/Class[@name="Button"]/*' />          
 public class Button : ButtonBase
 {
-
     private const string SkButton = "Button";
     private const string LrButton = "Control";
 
@@ -85,10 +41,6 @@ public class Button : ButtonBase
     }
 
     public event EventHandler GlyphChanged;
-
-    public Button()
-    {
-    }
 
     protected override void Dispose(bool disposing)
     {
@@ -196,5 +148,4 @@ public class Button : ButtonBase
             }
         }
     }
-
 }

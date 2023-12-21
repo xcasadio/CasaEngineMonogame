@@ -260,16 +260,17 @@ public class Control : Component
     {
         get
         {
-            if (DesignMode)
+            /*if (DesignMode)
             {
                 return ControlState.Enabled;
-            }
+            }*/
 
-            if (Suspended)
+            if (Suspended && !DesignMode)
             {
                 return ControlState.Disabled;
             }
-            if (!_enabled)
+
+            if (!_enabled && !DesignMode)
             {
                 return ControlState.Disabled;
             }
@@ -283,10 +284,13 @@ public class Control : Component
             {
                 return ControlState.Hovered;
             }
+
             if ((Focused && !_inside) || (_hovered && IsPressed && !_inside) || (Focused && !_hovered && _inside))
             {
                 return ControlState.Focused;
             }
+
+
             return ControlState.Enabled;
         }
     }
@@ -1420,18 +1424,13 @@ public class Control : Component
     {
         if (_visible && _target != null)
         {
-            var draw = true;
+            renderer.Begin(BlendingMode.Default);
+            renderer.Draw(_target, OriginLeft, OriginTop, new Rectangle(0, 0, OriginWidth, OriginHeight), Color.FromNonPremultiplied(255, 255, 255, Alpha));
+            renderer.End();
 
-            if (draw)
-            {
-                renderer.Begin(BlendingMode.Default);
-                renderer.Draw(_target, OriginLeft, OriginTop, new Rectangle(0, 0, OriginWidth, OriginHeight), Color.FromNonPremultiplied(255, 255, 255, Alpha));
-                renderer.End();
+            DrawDetached(this, renderer, gameTime);
 
-                DrawDetached(this, renderer, gameTime);
-
-                DrawOutline(renderer, false);
-            }
+            DrawOutline(renderer, false);
         }
     }
 
@@ -1717,7 +1716,6 @@ public class Control : Component
                     Manager.Remove(control);
                 }
 
-                control.Initialize(Manager);
                 control._parent = this;
                 control.Root = _root;
                 control.Enabled = Enabled ? control.Enabled : Enabled;

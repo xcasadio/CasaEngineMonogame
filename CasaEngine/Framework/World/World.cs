@@ -98,7 +98,9 @@ public sealed class World : Asset
 
     public void BeginPlay()
     {
+#if EDITOR
         if (!Game.GameManager.IsRunningInGameEditorMode)
+#endif
         {
             ExternalComponent?.OnBeginPlay(this);
         }

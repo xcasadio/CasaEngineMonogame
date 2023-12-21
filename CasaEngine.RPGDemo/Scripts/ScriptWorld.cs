@@ -44,28 +44,10 @@ public class ScriptWorld : ExternalComponent
         var camera3dIn2dAxisComponent = camera.ComponentManager.GetComponent<Camera3dIn2dAxisComponent>();
         camera3dIn2dAxisComponent.Target = new Vector3(world.Game.Window.ClientBounds.Size.X / 2f, world.Game.Window.ClientBounds.Size.Y / 2f, 0.0f);
 
-        //world 
-        /*var screen = new Screen();
-        screen.Initialize(world.Game);
-
-        var assetInfo = GameSettings.AssetInfoManager.GetByFileName("Screens\\MainHUD\\link_hud_portrait.sprite");
-        var spriteData = world.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
-        var sprite = Sprite.Create(spriteData, world.Game.GameManager.AssetContentManager);
-
-        var imageBoxLink = new ImageBox();
-        imageBoxLink.Initialize(world.Game.GameManager.UiManager);
-        imageBoxLink.Name = "imageBoxLink";
-        imageBoxLink.SetSize(sprite.SpriteData.PositionInTexture.Width, sprite.SpriteData.PositionInTexture.Height);
-        imageBoxLink.SetPosition(10, world.Game.ScreenSizeHeight - sprite.SpriteData.PositionInTexture.Height - 50);
-        imageBoxLink.Image = sprite.Texture.Resource;
-        imageBoxLink.SourceRect = sprite.SpriteData.PositionInTexture;
-        screen.Add(imageBoxLink);
-
-        world.AddScreen(screen);*/
+        //mainHUD
         var assetInfo = GameSettings.AssetInfoManager.GetByFileName("Screens\\MainHUD\\MainHUD.screen");
         var screen = world.Game.GameManager.AssetContentManager.Load<Screen>(assetInfo);
         screen.ExternalComponent = new ScriptMainHUDScreen();
-
         screen.Initialize(world.Game);
         world.AddScreen(screen);
     }

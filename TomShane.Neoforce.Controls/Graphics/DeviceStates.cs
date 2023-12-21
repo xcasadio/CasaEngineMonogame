@@ -11,7 +11,7 @@ public class DeviceStates
 
     public DeviceStates()
     {
-        BlendState = new BlendState();
+        /*BlendState = new BlendState();
         BlendState.AlphaBlendFunction = BlendState.AlphaBlend.AlphaBlendFunction;
         BlendState.AlphaDestinationBlend = BlendState.AlphaBlend.AlphaDestinationBlend;
         BlendState.AlphaSourceBlend = BlendState.AlphaBlend.AlphaSourceBlend;
@@ -23,7 +23,8 @@ public class DeviceStates
         BlendState.ColorWriteChannels1 = BlendState.AlphaBlend.ColorWriteChannels1;
         BlendState.ColorWriteChannels2 = BlendState.AlphaBlend.ColorWriteChannels2;
         BlendState.ColorWriteChannels3 = BlendState.AlphaBlend.ColorWriteChannels3;
-        BlendState.MultiSampleMask = BlendState.AlphaBlend.MultiSampleMask;
+        BlendState.MultiSampleMask = BlendState.AlphaBlend.MultiSampleMask;*/
+        BlendState = BlendState.AlphaBlend;
 
         RasterizerState = new RasterizerState();
         RasterizerState.CullMode = RasterizerState.CullNone.CullMode;
@@ -44,7 +45,7 @@ public class DeviceStates
         SamplerState.MaxMipLevel = SamplerState.AnisotropicClamp.MaxMipLevel;
         SamplerState.MipMapLevelOfDetailBias = SamplerState.AnisotropicClamp.MipMapLevelOfDetailBias;
 
-        DepthStencilState = new DepthStencilState();
+        //DepthStencilState = new DepthStencilState();
         DepthStencilState = DepthStencilState.None;
     }
 }

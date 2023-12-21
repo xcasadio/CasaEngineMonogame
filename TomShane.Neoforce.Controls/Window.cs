@@ -180,7 +180,6 @@ public class Window : ModalContainer
         return new Rectangle(DrawingRect.Left + l1.ContentMargins.Left + l5.OffsetX,
             DrawingRect.Top + l1.ContentMargins.Top + l5.OffsetY,
             s, s);
-
     }
 
     protected override void DrawControl(IRenderer renderer, Rectangle rect, GameTime gameTime)

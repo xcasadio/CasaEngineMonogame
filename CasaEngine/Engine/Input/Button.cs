@@ -1,4 +1,3 @@
-
 /*
 Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
                          Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
@@ -33,25 +32,16 @@ namespace CasaEngine.Engine.Input;
 
 public class Button : Disposable
 {
-
-
     public enum ButtonBehaviors
     {
         DigitalInput,
-        AnalogInput,
-    } // AxisBehaviors
+        AnalogInput
+    }
 
-
-
-    // Indicates if the virtual buttons was pressed.
     private bool _pressed;
-
-    // Indicates if the virtual buttons was pressed in this frame but not in the previous.
     private bool _pressedPreviousFrame;
 
-
-
-    public static List<Button> Buttons { get; set; }
+    public static List<Button> Buttons { get; } = new();
 
     public string Name { get; set; }
 
@@ -69,45 +59,28 @@ public class Button : Disposable
 
     public int GamePadNumber { get; set; }
 
-
-
     public Button()
     {
         DeadZone = 0.75f;
         Buttons.Add(this);
-    } // Button
-
-    static Button()
-    {
-        Buttons = new List<Button>();
-    } // Button
-
-
+    }
 
     protected override void DisposeManagedResources()
     {
         Buttons.Remove(this);
-    } // DisposeManagedResources
-
-
+    }
 
     internal void Update()
     {
         _pressedPreviousFrame = _pressed;
 
-
         if (ButtonBehavior == ButtonBehaviors.DigitalInput)
         {
-            // Check if the buttons were pressed.
             _pressed = KeyButton.Pressed(GamePadNumber) || AlternativeKeyButton.Pressed(GamePadNumber);
         }
-
-
-
         else if (ButtonBehavior == ButtonBehaviors.AnalogInput)
         {
             float valueRaw = 0;
-
 
             if (AnalogAxis == AnalogAxes.MouseX)
             {
@@ -121,9 +94,6 @@ public class Button : Disposable
             {
                 valueRaw = Mouse.WheelDelta;
             }
-
-
-
             else if (AnalogAxis == AnalogAxes.LeftStickX)
             {
                 if (GamePadNumber > 0 && GamePadNumber < 5)
@@ -196,13 +166,15 @@ public class Button : Disposable
             {
                 if (GamePadNumber > 0 && GamePadNumber < 5)
                 {
-                    valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger + GamePad.Player(GamePadNumber - 1).RightTrigger;
+                    valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger +
+                               GamePad.Player(GamePadNumber - 1).RightTrigger;
                 }
                 else
                 {
                     for (var i = 0; i < 4; i++)
                     {
-                        if (Math.Abs(valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
+                        if (Math.Abs(valueRaw) <
+                            Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
                         {
                             valueRaw = -GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger;
                         }
@@ -210,8 +182,6 @@ public class Button : Disposable
                 }
             }
 
-
-            // Invert if necessary.
             if (Invert)
             {
                 valueRaw *= -1;
@@ -219,11 +189,7 @@ public class Button : Disposable
 
             _pressed = valueRaw > DeadZone;
         }
-
-
-    } // Update
-
-
+    }
 
     public static bool Pressed(string buttonName)
     {
@@ -237,13 +203,14 @@ public class Button : Disposable
                 foundValue = foundValue || axis._pressed;
             }
         }
+
         if (!foundAxis)
         {
             throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
         }
 
         return foundValue;
-    } // Pressed
+    }
 
     public static bool JustPressed(string buttonName)
     {
@@ -259,14 +226,12 @@ public class Button : Disposable
                 foundPressedPreviousFrame = foundPressedPreviousFrame || axis._pressedPreviousFrame;
             }
         }
+
         if (!foundAxis)
         {
             throw new InvalidOperationException("Input: the button named " + buttonName + " does not exist.");
         }
 
         return foundPressed && !foundPressedPreviousFrame;
-    } // JustPressed
-
-
-} // Button
-  // XNAFinalEngine.Input
+    }
+}
