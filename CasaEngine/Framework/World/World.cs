@@ -5,9 +5,9 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
-using Screen = CasaEngine.Framework.GUI.Screen;
 
 namespace CasaEngine.Framework.World;
 
@@ -16,9 +16,9 @@ public sealed class World : Asset
     private readonly List<EntityReference> _entityReferences = new();
     private readonly List<Entity> _entities = new();
     private readonly List<Entity> _baseObjectsToAdd = new();
-    private readonly List<Screen> _screens = new();
+    private readonly List<ScreenGui> _screens = new();
 
-    public IEnumerable<Screen> Screens => _screens;
+    public IEnumerable<ScreenGui> Screens => _screens;
 
     public IList<Entity> Entities => _entities;
     public ExternalComponent? ExternalComponent { get; set; }
@@ -182,21 +182,21 @@ public sealed class World : Asset
         }
     }
 
-    public void AddScreen(Screen screen)
+    public void AddScreen(ScreenGui screenGui)
     {
-        _screens.Add(screen);
+        _screens.Add(screenGui);
 
-        foreach (var control in screen.Controls)
+        foreach (var control in screenGui.Controls)
         {
             Game.GameManager.UiManager.Add(control);
         }
     }
 
-    public void RemoveScreen(Screen screen)
+    public void RemoveScreen(ScreenGui screenGui)
     {
-        _screens.Remove(screen);
+        _screens.Remove(screenGui);
 
-        foreach (var control in screen.Controls)
+        foreach (var control in screenGui.Controls)
         {
             Game.GameManager.UiManager.Remove(control);
         }

@@ -48,8 +48,9 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new Collision2dBasicDemo());
         _demos.Add(new TileMapDemo());
         _demos.Add(new SkinnedMeshDemo());
+        _demos.Add(new SceneManagementDemo());
 
-        ChangeDemo(2);
+        ChangeDemo(4);
     }
 
     private void ChangeDemo(int index)
@@ -84,10 +85,5 @@ public class DemosGame : CasaEngineGame
         }
 
         base.Update(gameTime);
-    }
-
-    protected override void Draw(GameTime gameTime)
-    {
-        base.Draw(gameTime);
     }
 }

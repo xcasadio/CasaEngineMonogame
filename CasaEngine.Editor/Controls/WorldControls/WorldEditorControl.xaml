@@ -21,7 +21,7 @@
 
 						<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
 							<xcad:LayoutDocumentPane>
-								<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
+								<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game ScreenGui" CanFloat="False" CanClose="False">
 									<worldControls:GameEditorWorldControl x:Name="GameScreenControl" AllowDrop="True"/>
 								</xcad:LayoutDocument>
 							</xcad:LayoutDocumentPane>

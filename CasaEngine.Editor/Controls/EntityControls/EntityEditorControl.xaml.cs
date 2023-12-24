@@ -44,7 +44,7 @@ public partial class EntityEditorControl : EditorControlBase
         e.Content = e.Model.Title switch
         {
             "Details" => EntityControl,
-            "Game Screen" => GameScreenControl,
+            "Game ScreenGui" => GameScreenControl,
             "Logs" => this.FindParent<MainWindow>().LogsControl,
             "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
             _ => e.Content

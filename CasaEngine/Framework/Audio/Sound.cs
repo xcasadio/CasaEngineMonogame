@@ -5,26 +5,16 @@ namespace CasaEngine.Framework.Audio;
 public class Sound
 {
     private readonly SoundEffect _soundEffect;
-    private SoundEffectInstance _soundEffectInstance;
 
-    public SoundEffectInstance SoundEffectInstance
-    {
-        get => _soundEffectInstance;
-        set => _soundEffectInstance = value;
-    }
+    public SoundEffectInstance SoundEffectInstance { get; private set; }
 
     public Sound(SoundEffect soundEffect)
     {
-        if (soundEffect == null)
-        {
-            throw new ArgumentNullException(nameof(soundEffect));
-        }
-
-        _soundEffect = soundEffect;
+        _soundEffect = soundEffect ?? throw new ArgumentNullException(nameof(soundEffect));
     }
 
     public void Initialize()
     {
-        _soundEffectInstance = _soundEffect.CreateInstance();
+        SoundEffectInstance = _soundEffect.CreateInstance();
     }
 }

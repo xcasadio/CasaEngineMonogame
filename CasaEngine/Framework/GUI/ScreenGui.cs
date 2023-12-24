@@ -8,7 +8,7 @@ using Control = TomShane.Neoforce.Controls.Control;
 
 namespace CasaEngine.Framework.GUI
 {
-    public class Screen : EntityBase
+    public class ScreenGui : EntityBase
     {
         private readonly List<Control> _controls = new();
 

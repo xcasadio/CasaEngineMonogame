@@ -34,7 +34,6 @@ public class Texture : Asset
         internal set
         {
             Texture2d = value;
-            //ScreenSize = value == null ? new ScreenSize(0, 0, new Screen(GraphicsDevice)) : new ScreenSize(Texture2d.Width, Texture2d.Height, new Screen(GraphicsDevice));
         }
     }
 
@@ -63,7 +62,7 @@ public class Texture : Asset
     {
         AssetInfo.Name = "Texture";
         Texture2d = texture2d;
-        //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new Screen(GraphicsDevice));
+        //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new ScreenGui(GraphicsDevice));
     }
 
     [Obsolete("only for UI")]

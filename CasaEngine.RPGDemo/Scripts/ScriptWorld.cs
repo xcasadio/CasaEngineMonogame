@@ -46,7 +46,7 @@ public class ScriptWorld : ExternalComponent
 
         //mainHUD
         var assetInfo = GameSettings.AssetInfoManager.GetByFileName("Screens\\MainHUD\\MainHUD.screen");
-        var screen = world.Game.GameManager.AssetContentManager.Load<Screen>(assetInfo);
+        var screen = world.Game.GameManager.AssetContentManager.Load<ScreenGui>(assetInfo);
         screen.ExternalComponent = new ScriptMainHUDScreen();
         screen.Initialize(world.Game);
         world.AddScreen(screen);

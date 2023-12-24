@@ -16,7 +16,7 @@ namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptMainHUDScreen : ExternalComponent
 {
-    private Screen _screen;
+    private ScreenGui _screen;
     private ProgressBar _lifeBar;
     private Character _playerCharacter;
 
@@ -24,7 +24,7 @@ public class ScriptMainHUDScreen : ExternalComponent
 
     public override void Initialize(EntityBase entityBase)
     {
-        _screen = entityBase as Screen;
+        _screen = entityBase as ScreenGui;
         var entity = entityBase.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
         var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
         var scriptPlayer = gamePlayComponent.ExternalComponent as ScriptPlayer;

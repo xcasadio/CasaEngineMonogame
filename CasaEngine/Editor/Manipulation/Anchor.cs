@@ -66,35 +66,30 @@ public class Anchor
         set;
     }
 
-    [DefaultValue(null)]
     public Cursor CursorOverShiftPressed
     {
         get;
         set;
     }
 
-    [DefaultValue(null)]
     public Cursor CursorOverControlPressed
     {
         get;
         set;
     }
 
-    [DefaultValue(null)]
     public Cursor CursorOverAltPressed
     {
         get;
         set;
     }
 
-    [DefaultValue(null)]
     public Cursor CursorOver
     {
         get;
         set;
     }
 
-    [DefaultValue(null)]
     public Cursor CursorPressed
     {
         get;

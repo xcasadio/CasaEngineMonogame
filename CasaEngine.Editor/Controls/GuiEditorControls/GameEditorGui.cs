@@ -13,13 +13,12 @@ using Button = TomShane.Neoforce.Controls.Button;
 using Control = TomShane.Neoforce.Controls.Control;
 using DataFormats = System.Windows.DataFormats;
 using DragEventArgs = System.Windows.DragEventArgs;
-using Screen = CasaEngine.Framework.GUI.Screen;
 
 namespace CasaEngine.Editor.Controls.GuiEditorControls;
 
 public class GameEditorGui : GameEditor2d
 {
-    private Screen _screen;
+    private ScreenGui _screenGui;
     private Camera3dIn2dAxisComponent _camera;
     private bool _keyDeletePressed = false;
 
@@ -35,9 +34,9 @@ public class GameEditorGui : GameEditor2d
     {
         if (DataContext is ScreenViewModel screenViewModel)
         {
-            _screen = screenViewModel.Screen;
+            _screenGui = screenViewModel.ScreenGui;
             Game.GameManager.CurrentWorld.ClearScreens();
-            Game.GameManager.CurrentWorld.AddScreen(_screen);
+            Game.GameManager.CurrentWorld.AddScreen(_screenGui);
         }
     }
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)

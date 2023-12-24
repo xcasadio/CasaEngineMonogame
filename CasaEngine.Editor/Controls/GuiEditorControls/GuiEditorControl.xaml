@@ -25,7 +25,7 @@
 
                         <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
                             <xcad:LayoutDocumentPane>
-                                <xcad:LayoutDocument x:Name="guiViewLayout" Title="Screen View" CanFloat="False" CanClose="False">
+                                <xcad:LayoutDocument x:Name="guiViewLayout" Title="ScreenGui View" CanFloat="False" CanClose="False">
                                     <local:GameEditorGuiControl x:Name="GameEditorGuiControl" AllowDrop="True"/>
                                 </xcad:LayoutDocument>
                             </xcad:LayoutDocumentPane>

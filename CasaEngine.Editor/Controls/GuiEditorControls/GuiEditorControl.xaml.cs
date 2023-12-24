@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 using Xceed.Wpf.AvalonDock;
 using System.Windows.Forms;
-using Screen = CasaEngine.Framework.GUI.Screen;
 using CasaEngine.Framework.GUI;
 
 namespace CasaEngine.Editor.Controls.GuiEditorControls;
@@ -26,7 +25,7 @@ public partial class GuiEditorControl : EditorControlBase
         {
             "Place Components" => PlaceComponentsControl,
             "Components" => ComponentListControl,
-            "Screen View" => GameEditorGuiControl,
+            "ScreenGui View" => GameEditorGuiControl,
             "Details" => ComponentDetailsControl,
             "Logs" => this.FindParent<MainWindow>().LogsControl,
             "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
@@ -37,7 +36,7 @@ public partial class GuiEditorControl : EditorControlBase
     public void OpenScreen(string fileName)
     {
         var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
-        var screen = GameEditorGuiControl.GameEditor.Game.GameManager.AssetContentManager.Load<Screen>(assetInfo);
+        var screen = GameEditorGuiControl.GameEditor.Game.GameManager.AssetContentManager.Load<ScreenGui>(assetInfo);
         screen.Initialize(GameEditorGuiControl.GameEditor.Game);
 
         foreach (var control in screen.Controls)

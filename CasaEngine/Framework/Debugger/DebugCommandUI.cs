@@ -141,7 +141,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
             });
 
         // Clear screen command
-        RegisterCommand("cls", "Clear Screen",
+        RegisterCommand("cls", "Clear ScreenGui",
             delegate (IDebugCommandHost host, string command, IList<string> args)
             {
                 _lines.Clear();

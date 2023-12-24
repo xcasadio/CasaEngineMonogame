@@ -23,7 +23,7 @@
 
 								<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
 									<xcad:LayoutDocumentPane>
-										<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game Screen" CanFloat="False" CanClose="False">
+										<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game ScreenGui" CanFloat="False" CanClose="False">
 											<entityControls:GameEditorEntityControl x:Name="GameScreenControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
 										</xcad:LayoutDocument>
 									</xcad:LayoutDocumentPane>

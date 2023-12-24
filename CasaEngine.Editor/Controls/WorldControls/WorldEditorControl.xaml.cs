@@ -35,7 +35,7 @@ public partial class WorldEditorControl : EditorControlBase
         {
             "Entities" => EntitiesControl,
             "Details" => EntityControl,
-            "Game Screen" => GameScreenControl,
+            "Game ScreenGui" => GameScreenControl,
             "Place Actors" => PlaceActorsControl,
             "World Properties" => WorldPropertiesControlControl,
             "Logs" => this.FindParent<MainWindow>().LogsControl,
