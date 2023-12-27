@@ -18,10 +18,10 @@ public class CylinderPrimitive : GeometricPrimitive
         var topOffset = Vector3.UnitY * height;
 
         float radius = diameter / 2;
-        int stride = tessellation + 1;
+        uint stride = (uint)tessellation + 1;
 
         // Create a ring of triangles around the outside of the cylinder.
-        for (int i = 0; i <= tessellation; i++)
+        for (uint i = 0; i <= tessellation; i++)
         {
             var normal = GetCircleVector(i, tessellation);
 
@@ -48,7 +48,7 @@ public class CylinderPrimitive : GeometricPrimitive
         InitializePrimitive(graphicsDevice);
     }
 
-    private static Vector3 GetCircleVector(int i, int tessellation)
+    private static Vector3 GetCircleVector(uint i, int tessellation)
     {
         var angle = (float)(i * 2.0 * Math.PI / tessellation);
         var dx = (float)Math.Sin(angle);
@@ -60,17 +60,17 @@ public class CylinderPrimitive : GeometricPrimitive
     private void CreateCylinderCap(int tessellation, float height, float radius, bool isTop)
     {
         // Create cap indices.
-        for (int i = 0; i < tessellation - 2; i++)
+        for (uint i = 0; i < tessellation - 2; i++)
         {
-            int i1 = (i + 1) % tessellation;
-            int i2 = (i + 2) % tessellation;
+            uint i1 = (i + 1) % (uint)tessellation;
+            uint i2 = (i + 2) % (uint)tessellation;
 
             if (isTop)
             {
                 (i1, i2) = (i2, i1);
             }
 
-            int vbase = CurrentVertex;
+            uint vbase = CurrentVertex;
             AddIndex(vbase);
             AddIndex(vbase + i1);
             AddIndex(vbase + i2);
@@ -87,7 +87,7 @@ public class CylinderPrimitive : GeometricPrimitive
         }
 
         // Create cap vertices.
-        for (int i = 0; i < tessellation; i++)
+        for (uint i = 0; i < tessellation; i++)
         {
             var circleVector = GetCircleVector(i, tessellation);
             var position = (circleVector * radius) + (normal * height);

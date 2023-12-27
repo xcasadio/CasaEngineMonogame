@@ -56,15 +56,6 @@ public class Collision2dBasicDemo : Demo
         points.Add(new Vector3(0, u, 0));
         points.Add(new Vector3(-u, -u, 0));
         points.Add(new Vector3(u, -u, 0));
-        //ConvexShape boxShape = new Convex2dShape(new BoxShape(new Vector3(SCALING, SCALING, 0.04f)));
-        //
-        //ConvexShape triangleShape = new Convex2dShape(new ConvexHullShape(points, 3));
-        //Vector3 extents = new Vector3(SCALING, SCALING, 0.04f);
-        //ConvexShape cylinderShape = new Convex2dShape(new CylinderShapeZ(ref extents));
-        //
-        //boxShape.SetMargin(0.03f);
-        //m_collisionShapes.Add(boxShape);
-        //m_collisionShapes.Add(triangleShape);
 
         Matrix startTransform = Matrix.Identity;
         float mass = 1.0f;
@@ -87,31 +78,6 @@ public class Collision2dBasicDemo : Demo
 
             for (int j = i; j < ARRAY_SIZE_Y; ++j)
             {
-                //startTransform._origin = (y - new Vector3(-10, 0, 0));
-                //
-                ////using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-                //DefaultMotionState myMotionState = new DefaultMotionState(startTransform, Matrix.Identity);
-                //RigidBodyConstructionInfo rbInfo;
-                //switch (j % 3)
-                //{
-                //    case 0:
-                //        rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, boxShape, localInertia);
-                //        break;
-                //    case 1:
-                //        rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, triangleShape, localInertia);
-                //        break;
-                //    default:
-                //        rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, cylinderShape, localInertia);
-                //        break;
-                //}
-                //RigidBody body = new RigidBody(rbInfo);
-                //body.SetActivationState(ActivationState.ISLAND_SLEEPING);
-                //body.SetLinearFactor(new Vector3(1, 1, 0));
-                //body.SetAngularFactor(new Vector3(0, 0, 1));
-                //
-                //m_dynamicsWorld.AddRigidBody(body);
-                //body.SetActivationState(ActivationState.ISLAND_SLEEPING);
-
                 const int boxSize = 2;
 
                 //TODO

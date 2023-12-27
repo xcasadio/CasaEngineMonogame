@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Logs;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
@@ -86,4 +85,11 @@ public class DemosGame : CasaEngineGame
 
         base.Update(gameTime);
     }
+
+    /*protected override void Draw(GameTime gameTime)
+    {
+        base.Draw(gameTime);
+
+        _currentDemo.Update(gameTime);
+    }*/
 }

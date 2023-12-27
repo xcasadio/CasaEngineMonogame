@@ -1,11 +1,4 @@
-﻿//-----------------------------------------------------------------------------
-// CubePrimitive.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
@@ -24,40 +17,6 @@ public class BoxPrimitive : GeometricPrimitive
         _height = height;
         _length = length;
 #endif
-
-        // A box has six faces, each one pointing in a different direction.
-        /*Vector3[] normals =
-        {
-            new Vector3(0, 0, 1),
-            new Vector3(0, 0, -1),
-            new Vector3(1, 0, 0),
-            new Vector3(-1, 0, 0),
-            new Vector3(0, 1, 0),
-            new Vector3(0, -1, 0),
-        };
-
-        // Create each face in turn.
-        foreach (Vector3 normal in normals)
-        {
-            // Get two vectors perpendicular to the face normal and to each other.
-            Vector3 side1 = new Vector3(normal.Y, normal.Z, normal.X);
-            Vector3 side2 = Vector3.Cross(normal, side1);
-
-            // Six indices (two triangles) per face.
-            AddIndex(CurrentVertex + 0);
-            AddIndex(CurrentVertex + 1);
-            AddIndex(CurrentVertex + 2);
-
-            AddIndex(CurrentVertex + 0);
-            AddIndex(CurrentVertex + 2);
-            AddIndex(CurrentVertex + 3);
-
-            // Four vertices per face.
-            AddVertex((normal - side1 - side2) * size / 2, normal, Vector2.Zero);
-            AddVertex((normal - side1 + side2) * size / 2, normal, Vector2.UnitY);
-            AddVertex((normal + side1 + side2) * size / 2, normal, Vector2.One);
-            AddVertex((normal + side1 - side2) * size / 2, normal, Vector2.UnitX);
-        }*/
 
         //front
         AddVertex(false);

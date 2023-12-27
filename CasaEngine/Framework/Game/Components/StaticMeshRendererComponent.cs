@@ -35,8 +35,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         _effect = Game.Content.Load<Effect>("Shaders\\basicEffect");
         _effect.CurrentTechnique = _effect.Techniques["BasicEffect_PixelLighting_Texture"];
 
+        //_effect.Parameters["AmbientColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
-        _effect.Parameters["EmissiveColor"].SetValue(Vector3.Zero);
+        _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularPower"].SetValue(5.0f);
 
@@ -52,24 +53,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         _effect.Parameters["DirLight2DiffuseColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
         _effect.Parameters["DirLight2SpecularColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
 
-        //float alpha = 1.0f;
-        //Vector4 diffuse = new Vector4();
-        //Vector3 emissive = new Vector3();
-        //Vector3 ambientLightColor = new Vector3(0.75f, 0.75f, 0.75f); //new Vector3(0.05333332f, 0.09882354f, 0.1819608f);        
-        //
-        //
-        //diffuse.X = diffuseColor.X * alpha;
-        //diffuse.Y = diffuseColor.Y * alpha;
-        //diffuse.Z = diffuseColor.Z * alpha;
-        //diffuse.W = alpha;
-        //
-        //emissive.X = (emissiveColor.X + ambientLightColor.X * diffuseColor.X) * alpha;
-        //emissive.Y = (emissiveColor.Y + ambientLightColor.Y * diffuseColor.Y) * alpha;
-        //emissive.Z = (emissiveColor.Z + ambientLightColor.Z * diffuseColor.Z) * alpha;
-        //
-        //diffuseColorParam.SetValue(diffuse);
-        //emissiveColorParam.SetValue(emissive);
-
         base.LoadContent();
     }
 
@@ -78,7 +61,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
         graphicsDevice.DepthStencilState = DepthStencilState.Default;
         graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        graphicsDevice.BlendState = BlendState.AlphaBlend;
+        graphicsDevice.BlendState = BlendState.Opaque;
         graphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
         foreach (var meshInfo in _meshInfos)

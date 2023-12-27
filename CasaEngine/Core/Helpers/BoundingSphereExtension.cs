@@ -11,12 +11,12 @@ public static class BoundingSphereExtension
         return boundingSphere;
     }
 
-    public static bool Valid(this BoundingSphere boundingSphere)
+    public static bool Valid(this ref BoundingSphere boundingSphere)
     {
         return boundingSphere.Radius >= 0.0f;
     }
 
-    public static void Init(this BoundingSphere boundingSphere)
+    public static void Init(this ref BoundingSphere boundingSphere)
     {
         boundingSphere.Center.X = 0.0f;
         boundingSphere.Center.Y = 0.0f;
@@ -29,7 +29,7 @@ public static class BoundingSphereExtension
     /// The sphere center to minimize the radius increase.
     /// </summary>
     /// <param name="sh"></param>
-    public static void ExpandBy(this BoundingSphere boundingSphere, BoundingSphere sh)
+    public static void ExpandBy(this ref BoundingSphere boundingSphere, BoundingSphere sh)
     {
         // ignore operation if incoming BoundingSphere is invalid.
         if (!sh.Valid()) return;
@@ -78,7 +78,7 @@ public static class BoundingSphereExtension
         boundingSphere.Radius = (float)newRadius;
     }
 
-    public static void ExpandRadiusBy(this BoundingSphere boundingSphere, BoundingSphere sh)
+    public static void ExpandRadiusBy(this ref BoundingSphere boundingSphere, BoundingSphere sh)
     {
         if (!sh.Valid())
         {

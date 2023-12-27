@@ -12,7 +12,7 @@ public static class BoundingBoxHelper
         return boundingBox;
     }
 
-    public static void Init(this BoundingBox boundingBox)
+    public static void Init(this ref BoundingBox boundingBox)
     {
         boundingBox.Min.X = float.PositiveInfinity;
         boundingBox.Min.Y = float.PositiveInfinity;
@@ -23,14 +23,14 @@ public static class BoundingBoxHelper
         boundingBox.Max.Z = float.NegativeInfinity;
     }
 
-    public static bool Valid(this BoundingBox boundingBox)
+    public static bool Valid(this ref BoundingBox boundingBox)
     {
         return boundingBox.Max.X >= boundingBox.Min.X &&
                boundingBox.Max.Y >= boundingBox.Min.Y &&
                boundingBox.Max.Z >= boundingBox.Min.Z;
     }
 
-    public static void ExpandBy(this BoundingBox boundingBox, BoundingBox bb)
+    public static void ExpandBy(this ref BoundingBox boundingBox, BoundingBox bb)
     {
         if (!bb.Valid()) return;
 
@@ -44,7 +44,7 @@ public static class BoundingBoxHelper
         if (bb.Max.Z > boundingBox.Max.Z) boundingBox.Max.Z = bb.Max.Z;
     }
 
-    public static void ExpandBy(this BoundingBox boundingBox, BoundingSphere sh)
+    public static void ExpandBy(this ref BoundingBox boundingBox, BoundingSphere sh)
     {
         if (!sh.Valid()) return;
 
@@ -58,14 +58,38 @@ public static class BoundingBoxHelper
         if (sh.Center.Z + sh.Radius > boundingBox.Max.Z) boundingBox.Max.Z = sh.Center.Z + sh.Radius;
     }
 
-    public static Vector3 GetCenter(this BoundingBox boundingBox) => (boundingBox.Min + boundingBox.Max) * 0.5f;
+    public static void ExpandBy(this ref BoundingBox boundingBox, Vector3 v)
+    {
+        if (v.X < boundingBox.Min.X) boundingBox.Min.X = v.X;
+        if (v.X > boundingBox.Max.X) boundingBox.Max.X = v.X;
 
-    public static float GetRadius(this BoundingBox boundingBox)
+        if (v.Y < boundingBox.Min.Y) boundingBox.Min.Y = v.Y;
+        if (v.Y > boundingBox.Max.Y) boundingBox.Max.Y = v.Y;
+
+        if (v.Z < boundingBox.Min.Z) boundingBox.Min.Z = v.Z;
+        if (v.Z > boundingBox.Max.Z) boundingBox.Max.Z = v.Z;
+    }
+
+    public static void ExpandBy(this ref BoundingBox boundingBox, float x, float y, float z)
+    {
+        if (x < boundingBox.Min.X) boundingBox.Min.X = x;
+        if (x > boundingBox.Max.X) boundingBox.Max.X = x;
+
+        if (y < boundingBox.Min.Y) boundingBox.Min.Y = y;
+        if (y > boundingBox.Max.Y) boundingBox.Max.Y = y;
+
+        if (z < boundingBox.Min.Z) boundingBox.Min.Z = z;
+        if (z > boundingBox.Max.Z) boundingBox.Max.Z = z;
+    }
+
+    public static Vector3 GetCenter(this ref BoundingBox boundingBox) => (boundingBox.Min + boundingBox.Max) * 0.5f;
+
+    public static float GetRadius(this ref BoundingBox boundingBox)
     {
         return (float)Math.Sqrt(boundingBox.GetRadiusSquared());
     }
 
-    public static float GetRadiusSquared(this BoundingBox boundingBox)
+    public static float GetRadiusSquared(this ref BoundingBox boundingBox)
     {
         return 0.25f * ((boundingBox.Max - boundingBox.Min).LengthSquared());
     }
@@ -79,7 +103,7 @@ public static class BoundingBoxHelper
     /// </summary>
     /// <param name="pos"></param>
     /// <returns></returns>
-    public static Vector3 Corner(this BoundingBox boundingBox, uint pos)
+    public static Vector3 Corner(this ref BoundingBox boundingBox, uint pos)
     {
         return new Vector3(
             (pos & 1) > 0 ? boundingBox.Max.X : boundingBox.Min.X,

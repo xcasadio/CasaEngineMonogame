@@ -1,41 +1,79 @@
-﻿using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+﻿using System.Runtime.InteropServices;
+using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
-using TomShane.Neoforce.Controls.Graphics;
-using Veldrid.SceneGraph;
-using Veldrid.SceneGraph.Util;
+using Microsoft.Xna.Framework.Graphics;
+using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Demos.Demos;
 
 public class SceneManagementDemo : Demo
 {
-    private CasaEngineGame _game;
-    private Renderer _renderer;
-    private IGroup _root;
     public override string Title => "Scene management demo";
 
     public override void Initialize(CasaEngineGame game)
     {
-        _game = game;
-        var world = game.GameManager.CurrentWorld;
-
         var pipelineState = new PipelineState();
+        pipelineState.BlendStateDescription = BlendState.Opaque;
 
-        _root = Group.Create();
-        _root.NameString = "Root";
-        _root.PipelineState = pipelineState;
+        var root = game.GameManager.CurrentWorld.SceneRoot;
+        root.NameString = "Root";
+        root.PipelineState = pipelineState;
 
-        var scale_xform = MatrixTransform.Create(Matrix.CreateScale(0.05f));
+        var scale_xform = MatrixTransform.Create(Matrix.CreateScale(1f));
         scale_xform.PipelineState = pipelineState;
         scale_xform.NameString = "Scale XForm";
 
-        var cube = new GeometryNode(); //CreateCube();
+        var cube = new Geode(); //CreateCube();
+        var boxPrimitive = new BoxPrimitive(game.GraphicsDevice);
+        var staticMesh = boxPrimitive.CreateMesh();
+        staticMesh.Initialize(game.GraphicsDevice, null);
+
+        staticMesh.Texture = game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
+
+        var geometry = new Geometry<CasaEngine.Demos.Demos.VertexPositionNormalTexture>();
+        geometry.PipelineState = pipelineState;
+        geometry.Name = "geometry";
+        geometry.VertexLayout = CasaEngine.Demos.Demos.VertexPositionNormalTexture.VertexDeclaration;
+        geometry.Mesh = staticMesh;
+        cube.AddDrawable(geometry);
+
+        var indices = new uint[staticMesh.IndexBuffer.IndexCount];
+        staticMesh.IndexBuffer.GetData(indices);
+        geometry.IndexData = indices;
+
+        var vertices = new Microsoft.Xna.Framework.Graphics.VertexPositionNormalTexture[staticMesh.VertexBuffer.VertexCount];
+        staticMesh.VertexBuffer.GetData(vertices);
+        var vertices2 = new CasaEngine.Demos.Demos.VertexPositionNormalTexture[staticMesh.VertexBuffer.VertexCount];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertices2[i].Position = vertices[i].Position;
+            vertices2[i].Normal = vertices[i].Normal;
+            vertices2[i].TextureCoordinate = vertices[i].TextureCoordinate;
+        }
+        geometry.VertexData = vertices2;
+
+
+        var pSet = DrawElements<CasaEngine.Demos.Demos.VertexPositionNormalTexture>.Create(
+            geometry,
+            PrimitiveType.TriangleList,
+            (uint)geometry.IndexData.Length,
+            (uint)geometry.IndexData.Length / 3, //1,
+            0,
+            0,
+            0);
+
+        geometry.PrimitiveSets.Add(pSet);
+
+
+        cube.AddDrawable(geometry);
         cube.PipelineState = pipelineState;
         scale_xform.AddChild(cube);
 
         var gridSize = 10;
-        var transF = 2.0f / gridSize;
+        var transF = 1f; //2.0f / gridSize;
         for (var i = -gridSize; i <= gridSize; ++i)
         {
             for (var j = -gridSize; j <= gridSize; ++j)
@@ -44,43 +82,53 @@ public class SceneManagementDemo : Demo
                 xform.PipelineState = pipelineState;
                 xform.NameString = $"XForm[{i}, {j}]";
                 xform.AddChild(scale_xform);
-                _root.AddChild(xform);
+                root.AddChild(xform);
             }
         }
 
-        _renderer = new Renderer();
-        _renderer.Initialize(game.GraphicsDevice);
-        /*root.PipelineState = CreateSharedState();
-
-        viewer.SetSceneData(root);
-        viewer.ViewAll();
-        viewer.Run();*/
-    }
-
-    public override CameraComponent CreateCamera(CasaEngineGame game)
-    {
-        var entity = new Entity();
-        var camera = new ArcBallCameraComponent();
-        entity.ComponentManager.Components.Add(camera);
-        game.GameManager.CurrentWorld.AddEntityImmediately(entity);
-
-        return camera;
-    }
-
-    public override void InitializeCamera(CameraComponent camera)
-    {
-
+        var sceneGraphComponent = new SceneGraphComponent(game);
+        sceneGraphComponent.Initialize();
     }
 
     public override void Update(GameTime gameTime)
     {
-        _renderer.HandleOperation(_game.GraphicsDevice, _root,
-            _game.GameManager.ActiveCamera.ViewMatrix,
-            _game.GameManager.ActiveCamera.ProjectionMatrix);
     }
 
     protected override void Clean()
     {
 
     }
+}
+
+
+
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct VertexPositionNormalTexture : IVertexType, IPrimitiveElement
+{
+    public Vector3 Position;
+    public Vector3 Normal;
+    public Vector2 TextureCoordinate;
+
+    public Vector3 VertexPosition
+    {
+        readonly get => Position;
+        set => Position = value;
+    }
+
+    public static readonly VertexDeclaration VertexDeclaration = new VertexDeclaration(new VertexElement[3]
+    {
+        new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
+        new VertexElement(12, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
+        new VertexElement(24, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0)
+    });
+
+    public VertexPositionNormalTexture(Vector3 position, Vector3 normal, Vector2 textureCoordinate)
+    {
+        this.Position = position;
+        this.Normal = normal;
+        this.TextureCoordinate = textureCoordinate;
+    }
+
+    VertexDeclaration IVertexType.VertexDeclaration => VertexPositionNormalTexture.VertexDeclaration;
 }

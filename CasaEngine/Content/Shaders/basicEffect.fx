@@ -337,6 +337,7 @@ float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
     
     color.rgb *= lightResult.Diffuse;
+    color.rgb += float3(0.25, 0.25, 0.25); // TODO : remove, only used to see everything
 
     AddSpecular(color, lightResult.Specular);
     

@@ -13,7 +13,7 @@ namespace CasaEngine.Framework.Graphics;
 public class StaticMesh
 {
     private readonly List<VertexPositionNormalTexture> _vertices = new();
-    private readonly List<ushort> _indices = new();
+    private readonly List<uint> _indices = new();
 
     public VertexBuffer? VertexBuffer { get; private set; }
     public IndexBuffer? IndexBuffer { get; private set; }
@@ -33,7 +33,7 @@ public class StaticMesh
         VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
         VertexBuffer.SetData(_vertices.ToArray());
 
-        IndexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), _indices.Count, BufferUsage.None);
+        IndexBuffer = new IndexBuffer(graphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
 
         if (TextureAssetId != IdManager.InvalidId)
@@ -63,9 +63,14 @@ public class StaticMesh
         _vertices.AddRange(vertices);
     }
 
-    public void AddIndices(List<ushort> indices)
+    public void AddIndices(List<uint> indices)
     {
         _indices.AddRange(indices);
+    }
+
+    public IReadOnlyCollection<VertexPositionNormalTexture> GetVertices()
+    {
+        return _vertices;
     }
 
     public void Load(JsonElement element)
@@ -76,7 +81,7 @@ public class StaticMesh
         _vertices.AddRange(element.GetElements("vertices", o => o.GetVertexPositionNormalTexture()));
 
         _indices.Clear();
-        _indices.AddRange(element.GetElements("indices", o => o.GetUInt16()));
+        _indices.AddRange(element.GetElements("indices", o => o.GetUInt32()));
 
         TextureAssetId = element.GetProperty("texture_asset_id").GetInt64();
     }
@@ -85,10 +90,6 @@ public class StaticMesh
 
     private bool _isInitialized;
 
-    public IReadOnlyCollection<VertexPositionNormalTexture> GetVertices()
-    {
-        return _vertices;
-    }
 
     public void Save(JObject jObject, SaveOption option)
     {

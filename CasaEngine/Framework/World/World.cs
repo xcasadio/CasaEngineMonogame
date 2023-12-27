@@ -6,6 +6,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
 
@@ -18,11 +19,11 @@ public sealed class World : Asset
     private readonly List<Entity> _baseObjectsToAdd = new();
     private readonly List<ScreenGui> _screens = new();
 
-    public IEnumerable<ScreenGui> Screens => _screens;
-
-    public IList<Entity> Entities => _entities;
-    public ExternalComponent? ExternalComponent { get; set; }
     public CasaEngineGame Game { get; }
+    public IEnumerable<ScreenGui> Screens => _screens;
+    public ExternalComponent? ExternalComponent { get; set; }
+    public IGroup SceneRoot { get; } = new Group();
+    public IList<Entity> Entities => _entities;
 
     public World(CasaEngineGame game)
     {
