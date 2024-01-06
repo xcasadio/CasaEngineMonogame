@@ -11,8 +11,6 @@ public interface INode : IObject
     bool CullingActive { get; set; }
     int NumChildrenWithCullingDisabled { get; set; }
     bool IsCullingActive { get; }
-    IPipelineState PipelineState { get; set; }
-    bool HasPipelineState { get; }
     BoundingSphere InitialBound { get; set; }
     int GetNumChildrenRequiringEventTraversal();
     int GetNumChildrenRequiringUpdateTraversal();

@@ -6,16 +6,18 @@ using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
-public class StaticSpriteComponent : Component, ICollideableComponent
+public class StaticSpriteComponent : Component, ICollideableComponent, IComponentDrawable
 {
     public override int ComponentId => (int)ComponentIds.StaticSprite;
 
@@ -53,6 +55,34 @@ public class StaticSpriteComponent : Component, ICollideableComponent
         }
     }
 
+    public BoundingBox GetBoundingBox()
+    {
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
+
+        if (_spriteData != null)
+        {
+            var x = (float)_spriteData.PositionInTexture.X - _spriteData.Origin.X;
+            var y = (float)_spriteData.PositionInTexture.Y - _spriteData.Origin.Y;
+            var halfWidth = _spriteData.PositionInTexture.Width / 2f;
+            var halfHeight = _spriteData.PositionInTexture.Height / 2f;
+
+            min = Vector3.Min(min, new Vector3(x - halfWidth, y - halfHeight, 0f));
+            max = Vector3.Max(max, new Vector3(x + halfWidth, y + halfHeight, 0f));
+        }
+        else // default box
+        {
+            const float length = 0.5f;
+            min = Vector3.One * -length;
+            max = Vector3.One * length;
+        }
+
+        min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
+        max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+
+        return new BoundingBox(min, max);
+    }
+
     public override void Draw()
     {
         if (_spriteData == null || _sprite?.Texture?.Resource == null)
@@ -67,6 +97,11 @@ public class StaticSpriteComponent : Component, ICollideableComponent
             new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
             Color.White,
             Owner.Coordinates.Position.Z);
+    }
+
+    public void Apply(CullVisitor cullVisitor)
+    {
+        throw new NotImplementedException();
     }
 
     public override void OnEnabledValueChange()

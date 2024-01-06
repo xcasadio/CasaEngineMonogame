@@ -65,7 +65,7 @@ public class AssetInfoManager
 
         foreach (var assetInfoNode in jsonDocument.RootElement.GetProperty("asset_infos").EnumerateArray())
         {
-            var assetInfo = new AssetInfo(false);
+            var assetInfo = new AssetInfo();
             assetInfo.Load(assetInfoNode, option);
             Add(assetInfo);
         }

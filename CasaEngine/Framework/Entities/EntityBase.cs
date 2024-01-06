@@ -5,6 +5,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.Entities;
 
@@ -39,20 +40,22 @@ public class EntityBase : Asset
 
     public Coordinates Coordinates { get; } = new();
 
+    public List<EntityBase> Children { get; } = new();
+
     public bool IsEnabled
     {
         get => _isEnabled;
         set
         {
             _isEnabled = value;
-            LogManager.Instance.WriteTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
+            //LogManager.Instance.WriteTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
             OnEnabledValueChange();
         }
     }
 
     public bool IsVisible { get; set; } = true;
 
-    public bool ToBeRemoved { get; set; }
+    public bool ToBeRemoved { get; private set; }
 
     public bool IsTemporary { get; internal set; }
 
@@ -166,7 +169,13 @@ public class EntityBase : Asset
         Destroyed?.Invoke(this, EventArgs.Empty);
     }
 
+    public virtual void Accept(CullVisitor cullVisitor)
+    {
+        cullVisitor.Apply(this);
+    }
+
 #if EDITOR
+
     public event EventHandler? PositionChanged;
     public event EventHandler? OrientationChanged;
     public event EventHandler? ScaleChanged;
@@ -223,5 +232,16 @@ public class EntityBase : Asset
     {
         return new BoundingBox(-Vector3.One / 2f, Vector3.One / 2f);
     }
+
 #endif
+
+    public void Ascend(NodeVisitor nodeVisitor)
+    {
+        ///call parents
+    }
+
+    public void Traverse(NodeVisitor nodeVisitor)
+    {
+
+    }
 }

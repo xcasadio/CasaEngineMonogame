@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Framework.SceneManagement;
+﻿using CasaEngine.Framework.Entities;
+
+namespace CasaEngine.Framework.SceneManagement;
 
 public class NodeVisitor : INodeVisitor
 {
@@ -126,5 +128,22 @@ public class NodeVisitor : INodeVisitor
     public virtual void Apply(ITransform transform)
     {
         Apply((INode)transform);
+    }
+
+
+
+
+
+
+    protected void Traverse(EntityBase entityBase)
+    {
+        if (TraversalMode == TraversalModeType.TraverseParents)
+        {
+            entityBase.Ascend(this);
+        }
+        else if (TraversalMode != TraversalModeType.TraverseNone)
+        {
+            entityBase.Traverse(this);
+        }
     }
 }

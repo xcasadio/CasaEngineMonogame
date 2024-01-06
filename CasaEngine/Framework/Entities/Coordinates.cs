@@ -40,7 +40,7 @@ public class Coordinates
         set
         {
             _localCenterOfRotation = value;
-            _localMatrixChanged = true;
+            SetDirtyLocalMatrix();
         }
     }
 
@@ -51,7 +51,7 @@ public class Coordinates
         set
         {
             _localPosition = value;
-            _localMatrixChanged = true;
+            SetDirtyLocalMatrix();
         }
     }
 
@@ -62,7 +62,7 @@ public class Coordinates
         set
         {
             _localRotation = value;
-            _localMatrixChanged = true;
+            SetDirtyLocalMatrix();
         }
     }
 
@@ -73,7 +73,7 @@ public class Coordinates
         set
         {
             _localScale = value;
-            _localMatrixChanged = true;
+            SetDirtyLocalMatrix();
         }
     }
 
@@ -92,16 +92,22 @@ public class Coordinates
         LocalRotation = Quaternion.Identity;
         LocalMatrix = Matrix.Identity;
         _worldMatrix = Matrix.Identity;
+        SetDirtyLocalMatrix();
+    }
+
+    private void SetDirtyLocalMatrix()
+    {
+        _localMatrixChanged = true;
     }
 
     private void UpdateLocalMatrix()
     {
         if (_localMatrixChanged)
         {
-            Matrix translation = Matrix.CreateTranslation(LocalPosition);
-            Matrix translationRotation = Matrix.CreateTranslation(LocalCenterOfRotation);
-            Matrix scale = Matrix.CreateScale(LocalScale);
-            Matrix rotation = Matrix.CreateFromQuaternion(LocalRotation);
+            var translation = Matrix.CreateTranslation(LocalPosition);
+            var translationRotation = Matrix.CreateTranslation(LocalCenterOfRotation);
+            var scale = Matrix.CreateScale(LocalScale);
+            var rotation = Matrix.CreateFromQuaternion(LocalRotation);
             LocalMatrix = scale * rotation * translation * translationRotation;
             _localMatrixChanged = false;
         }
@@ -129,7 +135,7 @@ public class Coordinates
         _localPosition = coordinates._localPosition;
         _localRotation = coordinates._localRotation;
         _localScale = coordinates._localScale;
-        _localMatrixChanged = true;
+        SetDirtyLocalMatrix();
     }
 
     public void Load(JsonElement element)
@@ -138,6 +144,7 @@ public class Coordinates
         LocalCenterOfRotation = element.GetProperty("center_of_rotation").GetVector3();
         LocalScale = element.GetProperty("scale").GetVector3();
         LocalRotation = element.GetProperty("rotation").GetQuaternion();
+        SetDirtyLocalMatrix();
     }
 
 #if EDITOR

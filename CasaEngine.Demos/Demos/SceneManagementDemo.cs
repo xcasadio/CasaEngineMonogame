@@ -1,6 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
@@ -15,31 +17,23 @@ public class SceneManagementDemo : Demo
 
     public override void Initialize(CasaEngineGame game)
     {
-        var pipelineState = new PipelineState();
-        pipelineState.BlendStateDescription = BlendState.Opaque;
-
         var root = game.GameManager.CurrentWorld.SceneRoot;
         root.NameString = "Root";
-        root.PipelineState = pipelineState;
 
         var scale_xform = MatrixTransform.Create(Matrix.CreateScale(1f));
-        scale_xform.PipelineState = pipelineState;
         scale_xform.NameString = "Scale XForm";
 
-        var cube = new Geode(); //CreateCube();
+
         var boxPrimitive = new BoxPrimitive(game.GraphicsDevice);
         var staticMesh = boxPrimitive.CreateMesh();
         staticMesh.Initialize(game.GraphicsDevice, null);
 
         staticMesh.Texture = game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
 
-        var geometry = new Geometry<CasaEngine.Demos.Demos.VertexPositionNormalTexture>();
-        geometry.PipelineState = pipelineState;
+        var geometry = new Geometry<VertexPositionNormalTexture>();
         geometry.Name = "geometry";
-        geometry.VertexLayout = CasaEngine.Demos.Demos.VertexPositionNormalTexture.VertexDeclaration;
         geometry.Mesh = staticMesh;
-        cube.AddDrawable(geometry);
-
+        /*
         var indices = new uint[staticMesh.IndexBuffer.IndexCount];
         staticMesh.IndexBuffer.GetData(indices);
         geometry.IndexData = indices;
@@ -54,22 +48,9 @@ public class SceneManagementDemo : Demo
             vertices2[i].TextureCoordinate = vertices[i].TextureCoordinate;
         }
         geometry.VertexData = vertices2;
-
-
-        var pSet = DrawElements<CasaEngine.Demos.Demos.VertexPositionNormalTexture>.Create(
-            geometry,
-            PrimitiveType.TriangleList,
-            (uint)geometry.IndexData.Length,
-            (uint)geometry.IndexData.Length / 3, //1,
-            0,
-            0,
-            0);
-
-        geometry.PrimitiveSets.Add(pSet);
-
-
+        */
+        var cube = new Geode();
         cube.AddDrawable(geometry);
-        cube.PipelineState = pipelineState;
         scale_xform.AddChild(cube);
 
         var gridSize = 10;
@@ -79,15 +60,40 @@ public class SceneManagementDemo : Demo
             for (var j = -gridSize; j <= gridSize; ++j)
             {
                 var xform = MatrixTransform.Create(Matrix.CreateTranslation(transF * i, transF * j, 0.0f));
-                xform.PipelineState = pipelineState;
                 xform.NameString = $"XForm[{i}, {j}]";
                 xform.AddChild(scale_xform);
                 root.AddChild(xform);
             }
         }
 
-        var sceneGraphComponent = new SceneGraphComponent(game);
+        /////////////////////////////////////////////////////////////////////////////
+        var rootEntity = game.GameManager.CurrentWorld.RootEntity;
+
+        //var boxPrimitive = new BoxPrimitive(game.GraphicsDevice);
+        //var staticMesh = boxPrimitive.CreateMesh();
+        //staticMesh.Initialize(game.GraphicsDevice, null);
+
+
+
+        for (var i = -gridSize; i <= gridSize; ++i)
+        {
+            for (var j = -gridSize; j <= gridSize; ++j)
+            {
+                var entity = new Entity();
+                entity.Name = $"Cube[{i}, {j}]";
+                entity.Coordinates.LocalPosition = new Vector3(transF * i, transF * j, 0.0f);
+                var staticMeshComponent = new StaticMeshComponent();
+                staticMeshComponent.Mesh = staticMesh;
+                entity.ComponentManager.Add(staticMeshComponent);
+
+                rootEntity.Children.Add(entity);
+            }
+        }
+
+        var sceneGraphComponent = new SceneGraphComponent2(game);
         sceneGraphComponent.Initialize();
+
+        game.GameManager.CurrentWorld.Initialize();
     }
 
     public override void Update(GameTime gameTime)

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.SceneManagement;
-
+/*
 public class DrawElements<T> : PrimitiveSet where T : struct, IPrimitiveElement, IVertexType
 {
     private readonly uint _indexCount = 0;
@@ -66,4 +66,4 @@ public class DrawElements<T> : PrimitiveSet where T : struct, IPrimitiveElement,
 
         return bb;
     }
-}
+}*/

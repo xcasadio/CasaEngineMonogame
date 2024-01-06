@@ -7,6 +7,7 @@ namespace CasaEngine.Framework.SceneManagement;
 
 public class Geometry<T> : Drawable, IGeometry<T> where T : struct, IPrimitiveElement, IVertexType
 {
+    /*
     public T[] VertexData { get; set; }
     public uint[] IndexData { get; set; }
 
@@ -68,14 +69,14 @@ public class Geometry<T> : Drawable, IGeometry<T> where T : struct, IPrimitiveEl
         }
 
         return new BoundingBox(min, max);
-        /*
-        var bb = BoundingBoxHelper.Create();
-        foreach (var pset in PrimitiveSets)
-        {
-            bb.ExpandBy(pset.GetBoundingBox());
-        }
-
-        return bb;*/
+        
+        //var bb = BoundingBoxHelper.Create();
+        //foreach (var pset in PrimitiveSets)
+        //{
+        //    bb.ExpandBy(pset.GetBoundingBox());
+        //}
+        //
+        //return bb;
     }
 
     public override VertexBuffer GetVertexBufferForDevice(GraphicsDevice device)
@@ -100,5 +101,5 @@ public class Geometry<T> : Drawable, IGeometry<T> where T : struct, IPrimitiveEl
         {
             throw new Exception("No index buffer for device");
         }
-    }
+    }*/
 }

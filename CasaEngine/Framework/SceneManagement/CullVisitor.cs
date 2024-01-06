@@ -1,4 +1,6 @@
-﻿using CasaEngine.Framework.Graphics;
+﻿using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.SceneManagement;
@@ -70,5 +72,57 @@ public class CullVisitor : NodeVisitor, ICullVisitor
 
             Meshes.Add(new Tuple<StaticMesh, Matrix>(drawable.Mesh, modelMatrix));
         }
+    }
+
+
+
+
+
+
+    public void Apply(EntityBase entityBase)
+    {
+        Traverse(entityBase);
+
+        foreach (var child in entityBase.Children)
+        {
+            child.Accept(this);
+        }
+    }
+
+
+    public void Apply(Entity entity)
+    {
+        foreach (var component in entity.ComponentManager.Components)
+        {
+            if (component is IComponentDrawable componentDrawable)
+            {
+                componentDrawable.Apply(this);
+            }
+        }
+
+        Apply((EntityBase)entity);
+    }
+
+    public void Apply(IComponentDrawable drawableComponent)
+    {
+        /*
+        var curModel = ModelMatrixStack.Peek();
+        transform.ComputeLocalToWorldMatrix(ref curModel, this);
+        ModelMatrixStack.Push(curModel);
+
+        Apply((INode)transform);
+
+        ModelMatrixStack.Pop();
+         */
+
+        var boundingBox = drawableComponent.GetBoundingBox();
+        var modelMatrix = ModelMatrixStack.Peek();
+
+        if (IsCulled(boundingBox, modelMatrix))
+        {
+            return;
+        }
+
+        drawableComponent.Draw();
     }
 }

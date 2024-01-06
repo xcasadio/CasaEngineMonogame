@@ -6,18 +6,16 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.SceneManagement;
 
-public abstract class Drawable : Object, IDrawable
+public class Drawable : Object, IDrawable
 {
-    public string Name { get; set; } = string.Empty;
-
-    public Type VertexType => GetVertexType();
-
-
     protected bool _boundingSphereComputed = false;
     protected BoundingSphere _boundingSphere = BoundingSphereExtension.Create();
 
     protected BoundingBox _boundingBox;
     protected BoundingBox _initialBoundingBox = BoundingBoxHelper.Create();
+
+    public string Name { get; set; } = string.Empty;
+
     public BoundingBox InitialBoundingBox
     {
         get => _initialBoundingBox;
@@ -28,52 +26,7 @@ public abstract class Drawable : Object, IDrawable
         }
     }
 
-    public VertexDeclaration VertexLayout { get; set; }
-
-    public List<IPrimitiveSet> PrimitiveSets { get; } = new();
-
-    public event Func<Drawable, BoundingBox> ComputeBoundingBoxCallback;
-    public event Action<GraphicsDevice, Drawable> DrawImplementationCallback;
-
-    private IPipelineState _pipelineState = null;
-    public IPipelineState PipelineState
-    {
-        get => _pipelineState;
-        set => _pipelineState = value;
-    }
-
-    public bool HasPipelineState
-    {
-        get => null != _pipelineState;
-    }
-
     public StaticMesh Mesh { get; set; }
-
-    protected abstract Type GetVertexType();
-
-    public void Draw(GraphicsDevice device, List<Tuple<uint, ResourceSet>> resourceSets)
-    {
-        if (null != DrawImplementationCallback)
-        {
-            DrawImplementationCallback(device, this);
-        }
-        else
-        {
-            DrawImplementation(device, resourceSets);
-        }
-    }
-
-    protected abstract void DrawImplementation(GraphicsDevice device, List<Tuple<uint, ResourceSet>> resourceSets);
-
-    public virtual void ConfigureDeviceBuffers(GraphicsDevice device)
-    {
-        // Nothing by default
-    }
-
-    public virtual void ConfigurePipelinesForDevice(GraphicsDevice device)
-    {
-        // Nothing by default
-    }
 
     public void DirtyBound()
     {
@@ -94,9 +47,7 @@ public abstract class Drawable : Object, IDrawable
 
         _boundingBox = _initialBoundingBox;
 
-        _boundingBox.ExpandBy(null != ComputeBoundingBoxCallback
-            ? ComputeBoundingBoxCallback(this)
-            : ComputeBoundingBox());
+        _boundingBox.ExpandBy(ComputeBoundingBox());
 
         if (_boundingBox.Valid())
         {
@@ -113,11 +64,28 @@ public abstract class Drawable : Object, IDrawable
         return _boundingBox;
     }
 
-    protected abstract BoundingBox ComputeBoundingBox();
+    protected BoundingBox ComputeBoundingBox()
+    {
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
 
-    public abstract VertexBuffer GetVertexBufferForDevice(GraphicsDevice device);
+        if (Mesh != null)
+        {
+            var vertices = Mesh.GetVertices();
 
-    public abstract IndexBuffer GetIndexBufferForDevice(GraphicsDevice device);
+            foreach (var vertex in vertices)
+            {
+                min = Vector3.Min(min, vertex.Position);
+                max = Vector3.Max(max, vertex.Position);
+            }
+        }
+        else // default box
+        {
+            const float length = 0.5f;
+            min = Vector3.One * -length;
+            max = Vector3.One * length;
+        }
 
-
+        return new BoundingBox(min, max);
+    }
 }

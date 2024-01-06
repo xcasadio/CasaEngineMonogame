@@ -5,6 +5,7 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
@@ -122,6 +123,11 @@ public class Entity : EntityBase
         }
 
         base.OnEndPlay(world);
+    }
+
+    public override void Accept(CullVisitor cullVisitor)
+    {
+        cullVisitor.Apply(this);
     }
 
 #if EDITOR

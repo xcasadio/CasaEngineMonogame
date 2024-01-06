@@ -6,13 +6,14 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Static Mesh")]
-public class StaticMeshComponent : Component, IBoundingBoxable
+public class StaticMeshComponent : Component, IBoundingBoxable, IComponentDrawable
 {
     public override int ComponentId => (int)ComponentIds.Mesh;
     private StaticMeshRendererComponent? _meshRendererComponent;
@@ -53,6 +54,11 @@ public class StaticMeshComponent : Component, IBoundingBoxable
 
     public override void Update(float elapsedTime)
     {
+        //do nothing
+    }
+
+    public override void Draw()
+    {
         if (Mesh == null)
         {
             return;
@@ -61,6 +67,45 @@ public class StaticMeshComponent : Component, IBoundingBoxable
         var camera = Owner.Game.GameManager.ActiveCamera;
         var worldViewProj = Owner.Coordinates.WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
         _meshRendererComponent.AddMesh(Mesh, Material, Owner.Coordinates.WorldMatrix, worldViewProj, camera.Position);
+    }
+
+    public BoundingBox GetBoundingBox()
+    {
+        return this.BoundingBox;
+    }
+
+    public BoundingBox BoundingBox
+    {
+        get
+        {
+            var min = Vector3.One * int.MaxValue;
+            var max = Vector3.One * int.MinValue;
+
+            if (Mesh != null)
+            {
+                var vertices = Mesh.GetVertices();
+
+                foreach (var vertex in vertices)
+                {
+                    var position = Vector3.Transform(vertex.Position, Owner.Coordinates.WorldMatrix);
+                    min = Vector3.Min(min, position);
+                    max = Vector3.Max(max, position);
+                }
+            }
+            else // default box
+            {
+                const float length = 0.5f;
+                min = Vector3.One * -length;
+                max = Vector3.One * length;
+            }
+
+            return new BoundingBox(min, max);
+        }
+    }
+
+    public void Apply(CullVisitor cullVisitor)
+    {
+        cullVisitor.Apply(this);
     }
 
     public override Component Clone()
@@ -101,33 +146,5 @@ public class StaticMeshComponent : Component, IBoundingBoxable
         }
     }
 
-    public BoundingBox BoundingBox
-    {
-        get
-        {
-            var min = Vector3.One * int.MaxValue;
-            var max = Vector3.One * int.MinValue;
-
-            if (Mesh != null)
-            {
-                var vertices = Mesh.GetVertices();
-
-                foreach (var vertex in vertices)
-                {
-                    var position = Vector3.Transform(vertex.Position, Owner.Coordinates.WorldMatrix);
-                    min = Vector3.Min(min, position);
-                    max = Vector3.Max(max, position);
-                }
-            }
-            else // default box
-            {
-                const float length = 0.5f;
-                min = Vector3.One * -length;
-                max = Vector3.One * length;
-            }
-
-            return new BoundingBox(min, max);
-        }
-    }
 #endif
 }

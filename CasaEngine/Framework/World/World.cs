@@ -24,10 +24,12 @@ public sealed class World : Asset
     public ExternalComponent? ExternalComponent { get; set; }
     public IGroup SceneRoot { get; } = new Group();
     public IList<Entity> Entities => _entities;
+    public EntityBase RootEntity { get; }
 
     public World(CasaEngineGame game)
     {
         Game = game;
+        RootEntity = new EntityBase { Name = "RootEntity" };
     }
 
     public void AddEntityImmediately(Entity entity)
@@ -87,6 +89,8 @@ public sealed class World : Asset
             entity.Initialize(Game);
         }
 
+        InitializeEntities(RootEntity);
+
 #if !EDITOR
         //TODO : remove this, use a script tou set active camera
         var camera = _entities
@@ -95,6 +99,21 @@ public sealed class World : Asset
 
         Game.GameManager.ActiveCamera = camera;
 #endif
+    }
+
+    private void InitializeEntities(EntityBase? entityBase)
+    {
+        if (entityBase == null)
+        {
+            return;
+        }
+
+        entityBase.Initialize(Game);
+
+        foreach (var child in entityBase.Children)
+        {
+            InitializeEntities(child);
+        }
     }
 
     public void BeginPlay()
@@ -144,10 +163,10 @@ public sealed class World : Asset
 
     public void Draw(float elapsedTime)
     {
-        foreach (var entity in _entities)
-        {
-            entity.Draw();
-        }
+        //foreach (var entity in _entities)
+        //{
+        //    entity.Draw();
+        //}
 
         foreach (var screen in _screens)
         {

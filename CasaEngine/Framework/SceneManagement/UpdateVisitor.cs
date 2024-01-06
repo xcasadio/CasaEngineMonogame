@@ -33,15 +33,9 @@ public class UpdateVisitor : NodeVisitor, IUpdateVisitor
 
     protected void HandleCallbacksAndTraverse(INode node)
     {
-        if (node.HasPipelineState)
-        {
-            HandleCallbacks(node.PipelineState);
-        }
-
         var updateCallback = node.GetUpdateCallback();
         updateCallback?.Invoke(this, node);
 
         Traverse(node);
-
     }
 }

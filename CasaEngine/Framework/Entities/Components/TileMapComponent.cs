@@ -7,6 +7,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -14,7 +15,7 @@ using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Tile Map")]
-public class TileMapComponent : Component, IBoundingBoxable, ICollideableComponent
+public class TileMapComponent : Component, IBoundingBoxable, ICollideableComponent, IComponentDrawable
 {
     public override int ComponentId => (int)ComponentIds.TileMap;
 
@@ -162,6 +163,16 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
         }
     }
 
+    public BoundingBox GetBoundingBox()
+    {
+        return BoundingBox;
+    }
+
+    public void Apply(CullVisitor cullVisitor)
+    {
+        cullVisitor.Apply(this);
+    }
+
     public override void Draw()
     {
         if (TileMapData == null)
@@ -197,30 +208,6 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
         Layers[layer].Tiles[x + y * TileMapData.MapSize.Width] = new EmptyTile();
     }
 
-    public override Component Clone()
-    {
-        var component = new TileMapComponent();
-
-        component.Layers.AddRange(Layers);
-        component.TileMapData = TileMapData;
-        component.TileMapDataAssetId = TileMapDataAssetId;
-        return component;
-    }
-
-    public override void Load(JsonElement element, SaveOption option)
-    {
-        TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetInt64();
-    }
-
-#if EDITOR
-
-    public override void Save(JObject jObject, SaveOption option)
-    {
-        base.Save(jObject, option);
-        jObject.Add("tile_map_data_asset_id", TileMapDataAssetId);
-    }
-
-
     public BoundingBox BoundingBox
     {
         get
@@ -248,6 +235,29 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
 
             return new BoundingBox(min, max);
         }
+    }
+
+    public override Component Clone()
+    {
+        var component = new TileMapComponent();
+
+        component.Layers.AddRange(Layers);
+        component.TileMapData = TileMapData;
+        component.TileMapDataAssetId = TileMapDataAssetId;
+        return component;
+    }
+
+    public override void Load(JsonElement element, SaveOption option)
+    {
+        TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetInt64();
+    }
+
+#if EDITOR
+
+    public override void Save(JObject jObject, SaveOption option)
+    {
+        base.Save(jObject, option);
+        jObject.Add("tile_map_data_asset_id", TileMapDataAssetId);
     }
 
 #endif

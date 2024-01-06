@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Materials;
@@ -11,17 +13,16 @@ public class SceneGraphComponent : GameComponent
 {
     private readonly UpdateVisitor _updateVisitor;
     private readonly CullVisitor _cullVisitor;
-
     private readonly Stopwatch _stopWatch = new();
-    private CasaEngineGame _game;
-    private StaticMeshRendererComponent? _staticMeshRendererComponent;
+    private readonly CasaEngineGame _game;
+    private StaticMeshRendererComponent _staticMeshRendererComponent;
 
     public SceneGraphComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
+        _game = game as CasaEngineGame;
+
         _updateVisitor = new UpdateVisitor();
         _cullVisitor = new CullVisitor();
-
-        _game = game as CasaEngineGame;
 
         UpdateOrder = (int)ComponentUpdateOrder.ScreenManagerComponent;
         _game.Components.Add(this);
@@ -83,5 +84,63 @@ public class SceneGraphComponent : GameComponent
             _staticMeshRendererComponent.AddMesh(pair.Item1, material, pair.Item2,
                 pair.Item2 * viewProjectionMatrix, _game.GameManager.ActiveCamera.Position);
         }
+    }
+}
+
+
+public class SceneGraphComponent2 : GameComponent
+{
+    private readonly CasaEngineGame _game;
+    private readonly Stopwatch _stopWatch = new();
+    private readonly CullVisitor _cullVisitor;
+
+    public SceneGraphComponent2(Microsoft.Xna.Framework.Game game) : base(game)
+    {
+        game.Components.Add(this);
+        _game = game as CasaEngineGame;
+        UpdateOrder = (int)ComponentUpdateOrder.ScreenManagerComponent;
+        _cullVisitor = new CullVisitor();
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        _stopWatch.Reset();
+        _stopWatch.Start();
+
+        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
+        var rootEntity = _game.GameManager.CurrentWorld.RootEntity;
+        Update(rootEntity, elapsedTime);
+
+        var postUpdate = _stopWatch.ElapsedMilliseconds;
+        var camera = _game.GameManager.ActiveCamera;
+        Cull(rootEntity, camera.ViewMatrix, camera.ProjectionMatrix, _cullVisitor);
+
+        var postCull = _stopWatch.ElapsedMilliseconds;
+
+        Record(Game.GraphicsDevice);
+
+        var postRecord = _stopWatch.ElapsedMilliseconds;
+    }
+
+    private void Update(EntityBase entity, float elapsedTime)
+    {
+        entity.Update(elapsedTime);
+
+        foreach (var child in entity.Children)
+        {
+            Update(child, elapsedTime);
+        }
+    }
+
+    private static void Cull(EntityBase rootActor, Matrix viewMatrix, Matrix projectionMatrix, CullVisitor cullVisitor)
+    {
+        cullVisitor.Reset();
+        cullVisitor.SetView(viewMatrix, projectionMatrix);
+        rootActor.Accept(cullVisitor);
+    }
+
+    private void Record(GraphicsDevice device)
+    {
+
     }
 }

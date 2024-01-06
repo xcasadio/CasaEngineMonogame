@@ -6,31 +6,16 @@ namespace CasaEngine.Framework.Assets;
 
 public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
 {
-    private string _name;
-
     public long Id { get; private set; }
 
     public string FileName { get; set; }
 
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (!string.IsNullOrEmpty(value) && _name != value)
-            {
-                _name = value;
-            }
-        }
-    }
+    public string Name { get; set; }
 
-    public AssetInfo(bool initialize = true)
+    public AssetInfo()
     {
-        if (initialize)
-        {
-            Id = IdManager.GetId();
-            _name = "Asset_" + Id;
-        }
+        Id = IdManager.GetId();
+        Name = "Asset_" + Id;
     }
 
     public virtual void Load(JsonElement element, SaveOption option)
@@ -49,21 +34,12 @@ public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
         }
         else
         {
+            //TODO : remove this else
+            System.Diagnostics.Debugger.Break();
             Name = Path.GetFileNameWithoutExtension(FileName); //element.GetProperty("name").GetString();
         }
     }
 
-#if EDITOR
-    public virtual void Save(JObject jObject, SaveOption option)
-    {
-        var assetObject = new JObject(
-            new JProperty("id", Id),
-            new JProperty("name", Name),
-            new JProperty("file_name", FileName));
-
-        jObject.Add("asset", assetObject);
-    }
-#endif
     public bool Equals(AssetInfo? other)
     {
         if (ReferenceEquals(null, other))
@@ -76,7 +52,7 @@ public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
             return true;
         }
 
-        return _name == other._name && Id == other.Id && FileName == other.FileName;
+        return Name == other.Name && Id == other.Id && FileName == other.FileName;
     }
 
     public override bool Equals(object? obj)
@@ -101,6 +77,20 @@ public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(_name, Id, FileName);
+        return HashCode.Combine(Name, Id, FileName);
     }
+
+#if EDITOR
+
+    public virtual void Save(JObject jObject, SaveOption option)
+    {
+        var assetObject = new JObject(
+            new JProperty("id", Id),
+            new JProperty("name", Name),
+            new JProperty("file_name", FileName));
+
+        jObject.Add("asset", assetObject);
+    }
+
+#endif
 }
