@@ -5,7 +5,6 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
@@ -125,9 +124,24 @@ public class Entity : EntityBase
         base.OnEndPlay(world);
     }
 
-    public override void Accept(CullVisitor cullVisitor)
+    protected override BoundingBox ComputeBoundingBox()
     {
-        cullVisitor.Apply(this);
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
+        bool found = false;
+
+        foreach (var component in ComponentManager.Components)
+        {
+            if (component is IBoundingBoxable boundingBoxComputable)
+            {
+                var boundingBox = boundingBoxComputable.BoundingBox;
+                min = Vector3.Min(min, boundingBox.Min);
+                max = Vector3.Max(max, boundingBox.Max);
+                found = true;
+            }
+        }
+
+        return found ? new BoundingBox(min, max) : new BoundingBox(Vector3.One / 2f, Vector3.One / 2f);
     }
 
 #if EDITOR
@@ -149,24 +163,5 @@ public class Entity : EntityBase
         jObject.Add("components", componentsJArray);
     }
 
-    protected override BoundingBox ComputeBoundingBox()
-    {
-        var min = Vector3.One * int.MaxValue;
-        var max = Vector3.One * int.MinValue;
-        bool found = false;
-
-        foreach (var component in ComponentManager.Components)
-        {
-            if (component is IBoundingBoxable boundingBoxComputable)
-            {
-                var boundingBox = boundingBoxComputable.BoundingBox;
-                min = Vector3.Min(min, boundingBox.Min);
-                max = Vector3.Max(max, boundingBox.Max);
-                found = true;
-            }
-        }
-
-        return found ? new BoundingBox(min, max) : new BoundingBox(Vector3.One / 2f, Vector3.One / 2f);
-    }
 #endif
 }

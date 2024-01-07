@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -6,8 +7,9 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.SpacePartitioning.Octree;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.World;
@@ -19,22 +21,29 @@ public sealed class World : Asset
     private readonly List<Entity> _baseObjectsToAdd = new();
     private readonly List<ScreenGui> _screens = new();
 
+    private readonly Octree<EntityBase> _octree;
+    private readonly List<EntityBase> _entitiesVisible = new(1000);
+
     public CasaEngineGame Game { get; }
     public IEnumerable<ScreenGui> Screens => _screens;
     public ExternalComponent? ExternalComponent { get; set; }
-    public IGroup SceneRoot { get; } = new Group();
     public IList<Entity> Entities => _entities;
     public EntityBase RootEntity { get; }
+
 
     public World(CasaEngineGame game)
     {
         Game = game;
         RootEntity = new EntityBase { Name = "RootEntity" };
+
+        _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -25, Vector3.One * 25), 16);
     }
 
     public void AddEntityImmediately(Entity entity)
     {
         _entities.Add(entity);
+        _octree.AddItem(entity.BoundingBox, entity);
+
 #if EDITOR
         EntityAdded?.Invoke(this, entity);
 #endif
@@ -43,6 +52,7 @@ public sealed class World : Asset
     public void AddEntity(Entity entity)
     {
         _baseObjectsToAdd.Add(entity);
+        _octree.AddItem(entity.BoundingBox, entity);
     }
 
     public void RemoveEntity(Entity entity)
@@ -54,6 +64,8 @@ public sealed class World : Asset
     {
         _entities.Clear();
         _baseObjectsToAdd.Clear();
+
+        _octree.Clear();
 #if EDITOR
         EntitiesClear?.Invoke(this, EventArgs.Empty);
 #endif
@@ -143,10 +155,21 @@ public sealed class World : Asset
             if (entity.ToBeRemoved)
             {
                 toRemove.Add(entity);
+                _octree.RemoveItem(entity);
             }
             else
             {
                 entity.Update(elapsedTime);
+
+                if (entity.IsPositionUpdated && _octree.CurrentRoot.TryGetContainedOctreeItem(entity, out _))
+                {
+                    _octree.MoveItem(entity, entity.BoundingBox);
+                }
+
+                if (entity.Name == "Moving cube")
+                {
+                    _octree.MoveItem(entity, entity.BoundingBox);
+                }
             }
         }
 
@@ -155,18 +178,27 @@ public sealed class World : Asset
             _entities.Remove(entity);
         }
 
+        _octree.ApplyPendingMoves();
+
         foreach (var screen in _screens)
         {
             screen.Update(elapsedTime);
         }
     }
 
-    public void Draw(float elapsedTime)
+    public void Draw(Matrix viewProjection)
     {
-        //foreach (var entity in _entities)
-        //{
-        //    entity.Draw();
-        //}
+        var boundingFrustum = new BoundingFrustum(viewProjection);
+        _octree.GetContainedObjects(boundingFrustum, _entitiesVisible);
+
+        foreach (var entityBase in _entitiesVisible)
+        {
+            entityBase.Draw();
+        }
+
+        _entitiesVisible.Clear();
+
+        OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.GameManager.Line3dRendererComponent);
 
         foreach (var screen in _screens)
         {

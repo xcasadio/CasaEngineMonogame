@@ -6,7 +6,6 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
-using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -101,11 +100,6 @@ public class StaticMeshComponent : Component, IBoundingBoxable, IComponentDrawab
 
             return new BoundingBox(min, max);
         }
-    }
-
-    public void Apply(CullVisitor cullVisitor)
-    {
-        cullVisitor.Apply(this);
     }
 
     public override Component Clone()

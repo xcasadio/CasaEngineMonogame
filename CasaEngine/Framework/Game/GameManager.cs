@@ -343,8 +343,7 @@ public class GameManager
 
         _game.GraphicsDevice.Clear(Color.Black);
 
-        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
-        CurrentWorld?.Draw(elapsedTime);
+        CurrentWorld?.Draw(ActiveCamera.ViewMatrix * ActiveCamera.ProjectionMatrix);
     }
 
     public void EndDraw(GameTime gameTime)

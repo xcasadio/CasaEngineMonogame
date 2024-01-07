@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.SceneManagement;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;

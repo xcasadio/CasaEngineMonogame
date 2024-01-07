@@ -5,7 +5,11 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
+using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
+#if EDITOR
+using XNAGizmo;
+#endif
 
 namespace CasaEngine.Framework.Entities;
 
@@ -42,6 +46,9 @@ public class EntityBase : Asset
 
     public List<EntityBase> Children { get; } = new();
 
+    //Used for space partitioning
+    public bool IsPositionUpdated { get; set; }
+
     public bool IsEnabled
     {
         get => _isEnabled;
@@ -57,8 +64,6 @@ public class EntityBase : Asset
 
     public bool ToBeRemoved { get; private set; }
 
-    public bool IsTemporary { get; internal set; }
-
     public virtual void Initialize(CasaEngineGame game)
     {
         Game = game;
@@ -71,7 +76,11 @@ public class EntityBase : Asset
             return;
         }
 
+        var position = Coordinates.Position;
+
         UpdateInternal(elapsedTime);
+
+        IsPositionUpdated = Coordinates.Position != position;
 
         Tick?.Invoke(this, elapsedTime);
     }
@@ -105,7 +114,7 @@ public class EntityBase : Asset
     {
         Coordinates.CopyFrom(entityBase.Coordinates);
 
-        IsTemporary = entityBase.IsTemporary;
+        //IsTemporary = entityBase.IsTemporary;
         _isEnabled = entityBase._isEnabled;
         IsVisible = entityBase.IsVisible;
     }
@@ -169,9 +178,11 @@ public class EntityBase : Asset
         Destroyed?.Invoke(this, EventArgs.Empty);
     }
 
-    public virtual void Accept(CullVisitor cullVisitor)
+    public BoundingBox BoundingBox => ComputeBoundingBox();
+
+    protected virtual BoundingBox ComputeBoundingBox()
     {
-        cullVisitor.Apply(this);
+        return new BoundingBox(-Vector3.One / 2f, Vector3.One / 2f);
     }
 
 #if EDITOR
@@ -181,6 +192,8 @@ public class EntityBase : Asset
     public event EventHandler? ScaleChanged;
 
     private static readonly int Version = 1;
+
+    public bool IsTemporary { get; internal set; }
 
     public override void Save(JObject jObject, SaveOption option)
     {
@@ -226,22 +239,7 @@ public class EntityBase : Asset
     public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
     public Vector3 Up => Vector3.Transform(Vector3.Up, Orientation);
 
-    public BoundingBox BoundingBox => ComputeBoundingBox();
 
-    protected virtual BoundingBox ComputeBoundingBox()
-    {
-        return new BoundingBox(-Vector3.One / 2f, Vector3.One / 2f);
-    }
 
 #endif
-
-    public void Ascend(NodeVisitor nodeVisitor)
-    {
-        ///call parents
-    }
-
-    public void Traverse(NodeVisitor nodeVisitor)
-    {
-
-    }
 }

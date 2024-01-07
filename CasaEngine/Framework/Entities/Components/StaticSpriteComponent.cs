@@ -10,7 +10,6 @@ using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -97,11 +96,6 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
             new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
             Color.White,
             Owner.Coordinates.Position.Z);
-    }
-
-    public void Apply(CullVisitor cullVisitor)
-    {
-        throw new NotImplementedException();
     }
 
     public override void OnEnabledValueChange()

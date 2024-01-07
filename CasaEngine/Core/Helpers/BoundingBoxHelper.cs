@@ -111,6 +111,11 @@ public static class BoundingBoxHelper
             (pos & 4) > 0 ? boundingBox.Max.Z : boundingBox.Min.Z);
     }
 
+    public static Vector3 GetDimensions(this ref BoundingBox boundingBox)
+    {
+        return boundingBox.Max - boundingBox.Min;
+    }
+
     public static BoundingBox CalculateBoundingBoxFromModel(Model model)
     {
         // NOTE: we could use ModelMesh's built in BoundingSphere property 
@@ -201,5 +206,12 @@ public static class BoundingBoxHelper
         }
 
         return new BoundingBox(min, max);
+    }
+
+
+    public static bool ContainsNaN(this ref BoundingBox boundingBox)
+    {
+        return float.IsNaN(boundingBox.Min.X) || float.IsNaN(boundingBox.Min.Y) || float.IsNaN(boundingBox.Min.Z)
+               || float.IsNaN(boundingBox.Max.X) || float.IsNaN(boundingBox.Max.Y) || float.IsNaN(boundingBox.Max.Z);
     }
 }

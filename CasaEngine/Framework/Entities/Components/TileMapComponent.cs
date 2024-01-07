@@ -7,7 +7,6 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -166,11 +165,6 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
     public BoundingBox GetBoundingBox()
     {
         return BoundingBox;
-    }
-
-    public void Apply(CullVisitor cullVisitor)
-    {
-        cullVisitor.Apply(this);
     }
 
     public override void Draw()
