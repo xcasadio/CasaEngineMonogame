@@ -19,6 +19,7 @@ public class EntityBase : Asset
 #endif
 {
     private bool _isEnabled = true;
+    private Vector3 _lastPosition;
 
     public event EventHandler? BeginPlay;
     public event EventHandler? EndPlay;
@@ -47,7 +48,7 @@ public class EntityBase : Asset
     public List<EntityBase> Children { get; } = new();
 
     //Used for space partitioning
-    public bool IsPositionUpdated { get; set; }
+    public bool IsPositionUpdated { get; private set; }
 
     public bool IsEnabled
     {
@@ -76,11 +77,10 @@ public class EntityBase : Asset
             return;
         }
 
-        var position = Coordinates.Position;
-
         UpdateInternal(elapsedTime);
 
-        IsPositionUpdated = Coordinates.Position != position;
+        IsPositionUpdated = Coordinates.Position != _lastPosition;
+        _lastPosition = Coordinates.Position;
 
         Tick?.Invoke(this, elapsedTime);
     }

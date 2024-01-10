@@ -110,7 +110,7 @@ public class TileMapDemo : Demo
 
     }
 
-    protected override void Clean()
+    public override void Clean()
     {
 
     }

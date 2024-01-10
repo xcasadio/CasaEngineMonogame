@@ -7,8 +7,9 @@ namespace Microsoft.Xna.Framework
         readonly string _contentDir;
         ContentManager _content;
 
-
         protected abstract bool CanRender { get; }
+
+        public bool FocusOnMouseOver { get; set; } = true;
 
         protected WpfGame(string contentDir = "Content")
         {
@@ -27,14 +28,12 @@ namespace Microsoft.Xna.Framework
             Content?.Dispose();
         }
 
-        public bool FocusOnMouseOver { get; set; } = true;
-
-
         public ContentManager Content
         {
             get => _content;
             set => _content = value ?? throw new ArgumentNullException();
         }
+
         protected sealed override void Render(GameTime time)
         {
             if (!CanRender)
@@ -55,7 +54,6 @@ namespace Microsoft.Xna.Framework
         }
 
         protected virtual void LoadContent() { }
-
         protected virtual void UnloadContent() { }
         protected virtual void Update(GameTime gameTime) { }
         protected virtual void Draw(GameTime gameTime) { }

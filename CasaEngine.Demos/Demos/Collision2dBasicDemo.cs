@@ -120,7 +120,7 @@ public class Collision2dBasicDemo : Demo
 
     }
 
-    protected override void Clean()
+    public override void Clean()
     {
 
     }

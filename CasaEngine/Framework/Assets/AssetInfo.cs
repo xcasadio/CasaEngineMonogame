@@ -35,7 +35,7 @@ public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
         else
         {
             //TODO : remove this else
-            System.Diagnostics.Debugger.Break();
+            //System.Diagnostics.Debugger.Break();
             Name = Path.GetFileNameWithoutExtension(FileName); //element.GetProperty("name").GetString();
         }
     }

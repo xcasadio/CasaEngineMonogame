@@ -21,6 +21,7 @@ public abstract class Demo
         var gamePlayComponent = new GamePlayComponent();
         entity.ComponentManager.Components.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
+        entity.Initialize(game);
         game.GameManager.CurrentWorld.AddEntityImmediately(entity);
 
         return camera;
@@ -33,12 +34,5 @@ public abstract class Demo
 
     public abstract void Update(GameTime gameTime);
 
-    public void Clean(World world)
-    {
-        world.ClearEntities();
-
-        Clean();
-    }
-
-    protected abstract void Clean();
+    public abstract void Clean();
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -30,13 +29,15 @@ public sealed class World : Asset
     public IList<Entity> Entities => _entities;
     public EntityBase RootEntity { get; }
 
+    public bool DisplaySpacePartitioning { get; set; }
+
 
     public World(CasaEngineGame game)
     {
         Game = game;
         RootEntity = new EntityBase { Name = "RootEntity" };
 
-        _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -25, Vector3.One * 25), 16);
+        _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -100, Vector3.One * 100), 64);
     }
 
     public void AddEntityImmediately(Entity entity)
@@ -64,8 +65,8 @@ public sealed class World : Asset
     {
         _entities.Clear();
         _baseObjectsToAdd.Clear();
-
         _octree.Clear();
+
 #if EDITOR
         EntitiesClear?.Invoke(this, EventArgs.Empty);
 #endif
@@ -92,16 +93,17 @@ public sealed class World : Asset
             foreach (var entityReference in _entityReferences)
             {
                 EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager);
+                entityReference.Entity.Initialize(Game);
                 AddEntityImmediately(entityReference.Entity);
             }
         }
 
-        foreach (var entity in _entities)
-        {
-            entity.Initialize(Game);
-        }
+        //foreach (var entity in _entities)
+        //{
+        //    entity.Initialize(Game);
+        //}
 
-        InitializeEntities(RootEntity);
+        //InitializeEntities(RootEntity);
 
 #if !EDITOR
         //TODO : remove this, use a script tou set active camera
@@ -161,12 +163,7 @@ public sealed class World : Asset
             {
                 entity.Update(elapsedTime);
 
-                if (entity.IsPositionUpdated && _octree.CurrentRoot.TryGetContainedOctreeItem(entity, out _))
-                {
-                    _octree.MoveItem(entity, entity.BoundingBox);
-                }
-
-                if (entity.Name == "Moving cube")
+                if (entity.IsPositionUpdated)
                 {
                     _octree.MoveItem(entity, entity.BoundingBox);
                 }
@@ -198,7 +195,10 @@ public sealed class World : Asset
 
         _entitiesVisible.Clear();
 
-        OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.GameManager.Line3dRendererComponent);
+        if (DisplaySpacePartitioning)
+        {
+            OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.GameManager.Line3dRendererComponent);
+        }
 
         foreach (var screen in _screens)
         {

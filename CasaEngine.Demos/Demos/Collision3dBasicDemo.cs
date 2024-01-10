@@ -74,7 +74,7 @@ public class Collision3dBasicDemo : Demo
 
     }
 
-    protected override void Clean()
+    public override void Clean()
     {
 
     }

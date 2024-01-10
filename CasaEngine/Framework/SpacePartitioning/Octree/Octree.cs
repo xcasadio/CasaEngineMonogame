@@ -3,8 +3,6 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.SpacePartitioning.Octree;
 
-//Display boudingbox from the octree
-
 /// <summary>
 /// Maintains a reference to the current root node of a dynamic octree.
 /// The root node may change as items are added and removed from contained nodes.
@@ -13,7 +11,6 @@ namespace CasaEngine.Framework.SpacePartitioning.Octree;
 public class Octree<T>
 {
     private OctreeNode<T> _currentRoot;
-
     private readonly List<OctreeItem<T>> _pendingMoveStage = new();
 
     public Octree(BoundingBox boundingBox, int maxChildren)
@@ -21,9 +18,7 @@ public class Octree<T>
         _currentRoot = new OctreeNode<T>(boundingBox, maxChildren);
     }
 
-    /// <summary>
-    /// The current root node of the octree. This may change when items are added and removed.
-    /// </summary>
+    // The current root node of the octree. This may change when items are added and removed.
     public OctreeNode<T> CurrentRoot => _currentRoot;
 
     public OctreeItem<T> AddItem(BoundingBox itemBounds, T item)
@@ -74,13 +69,13 @@ public class Octree<T>
 
     public bool RemoveItem(T item)
     {
-        if (!_currentRoot.TryGetContainedOctreeItem(item, out var octreeItem))
+        if (_currentRoot.TryGetContainedOctreeItem(item, out var octreeItem))
         {
-            return false;
+            RemoveItem(octreeItem);
+            return true;
         }
 
-        RemoveItem(octreeItem);
-        return true;
+        return false;
     }
 
     public void RemoveItem(OctreeItem<T> octreeItem)
@@ -89,14 +84,15 @@ public class Octree<T>
         _currentRoot = _currentRoot.TryTrimChildren();
     }
 
-    public void MoveItem(T item, BoundingBox newBounds)
+    public bool MoveItem(T item, BoundingBox newBounds)
     {
-        if (!_currentRoot.TryGetContainedOctreeItem(item, out var octreeItem))
+        if (_currentRoot.TryGetContainedOctreeItem(item, out var octreeItem))
         {
-            throw new Exception(item + " is not contained in the octree. It cannot be moved.");
+            MoveItem(octreeItem, newBounds);
+            return true;
         }
 
-        MoveItem(octreeItem, newBounds);
+        return false;
     }
 
     public void MoveItem(OctreeItem<T> octreeItem, BoundingBox newBounds)
@@ -105,7 +101,9 @@ public class Octree<T>
         {
             throw new Exception("Invalid bounds: " + newBounds);
         }
+
         var newRoot = octreeItem.Container.MoveContainedItem(octreeItem, newBounds);
+
         if (newRoot != null)
         {
             _currentRoot = newRoot;
@@ -116,9 +114,7 @@ public class Octree<T>
 
     public void Clear() => _currentRoot.Clear();
 
-    /// <summary>
-    /// Apply pending moves. This may change the current root node.
-    /// </summary>
+    //Apply pending moves. This may change the current root node.
     public void ApplyPendingMoves()
     {
         _pendingMoveStage.Clear();

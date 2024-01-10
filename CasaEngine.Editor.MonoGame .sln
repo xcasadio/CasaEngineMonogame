@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.ForEditor", "CasaEngine\CasaEngine.ForEditor.csproj", "{36D16292-D92F-4087-8BE7-A09AD6D5AC05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.WithEditor", "CasaEngine\CasaEngine.WithEditor.csproj", "{36D16292-D92F-4087-8BE7-A09AD6D5AC05}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Editor", "CasaEngine.Editor\CasaEngine.Editor.csproj", "{F2707E78-7C71-43AC-A27A-0E2FB32BB684}"
 EndProject
@@ -52,6 +52,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCodeGenerator", "FlowGraph\DotNetCodeGenerator\DotNetCodeGenerator.csproj", "{B38C69EF-9D48-47FB-8D03-BBB3A7BEFBBC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.DotNetCompiler", "CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj", "{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CasaEngine.Tests", "CasaEngine.Tests\CasaEngine.Tests\CasaEngine.Tests.csproj", "{62962C96-5D18-4509-93BD-949563918D8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -234,6 +236,14 @@ Global
 		{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}.Release|Any CPU.Build.0 = Release|Any CPU
 		{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}.Release|x64.ActiveCfg = Release|Any CPU
 		{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}.Release|x64.Build.0 = Release|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|x64.Build.0 = Debug|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Release|x64.ActiveCfg = Release|Any CPU
+		{62962C96-5D18-4509-93BD-949563918D8D}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

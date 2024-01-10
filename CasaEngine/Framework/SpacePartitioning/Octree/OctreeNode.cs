@@ -8,17 +8,14 @@ namespace CasaEngine.Framework.SpacePartitioning.Octree;
 [DebuggerDisplay("{DebuggerDisplayString,nq}")]
 public class OctreeNode<T>
 {
+    private const int NumChildNodes = 8;
     private readonly List<OctreeItem<T>> _items = new();
     private readonly OctreeNodeCache _nodeCache;
-    private OctreeNode<T>[] _children = Array.Empty<OctreeNode<T>>();
 
     public BoundingBox Bounds { get; set; }
-
     public int MaxChildren { get; private set; }
-    public OctreeNode<T>[] Children { get => _children; private set => _children = value; }
     public OctreeNode<T>? Parent { get; private set; }
-
-    private const int NumChildNodes = 8;
+    public OctreeNode<T>[] Children { get; private set; } = Array.Empty<OctreeNode<T>>();
 
     public static OctreeNode<T> CreateNewTree(ref BoundingBox bounds, int maxChildren)
     {
@@ -84,9 +81,9 @@ public class OctreeNode<T>
             newRoot = null;
 
             // It may have moved into the bounds of a child node.
-            for (var i = 0; i < _children.Length; i++)
+            for (var i = 0; i < Children.Length; i++)
             {
-                if (_children[i].CoreAddItem(item))
+                if (Children[i].CoreAddItem(item))
                 {
                     _items.Remove(item);
                     break;
@@ -167,7 +164,7 @@ public class OctreeNode<T>
 
     private void ConsiderConsolidation()
     {
-        if (_children.Length > 0 && GetItemCount() < MaxChildren)
+        if (Children.Length > 0 && GetItemCount() < MaxChildren)
         {
             ConsolidateChildren();
             Parent?.ConsiderConsolidation();
@@ -176,9 +173,9 @@ public class OctreeNode<T>
 
     private void ConsolidateChildren()
     {
-        for (var i = 0; i < _children.Length; i++)
+        for (var i = 0; i < Children.Length; i++)
         {
-            var child = _children[i];
+            var child = Children[i];
             child.ConsolidateChildren();
 
             foreach (var childItem in child._items)
@@ -239,9 +236,9 @@ public class OctreeNode<T>
             }
         }
 
-        for (var i = 0; i < _children.Length; i++)
+        for (var i = 0; i < Children.Length; i++)
         {
-            numHits += _children[i].RayCast(ray, hits, filter);
+            numHits += Children[i].RayCast(ray, hits, filter);
         }
 
         return numHits;
@@ -263,9 +260,9 @@ public class OctreeNode<T>
             max = Vector3.Max(max, item.Bounds.Max);
         }
 
-        for (var i = 0; i < _children.Length; i++)
+        for (var i = 0; i < Children.Length; i++)
         {
-            _children[i].CoreGetPreciseBounds(ref min, ref max);
+            Children[i].CoreGetPreciseBounds(ref min, ref max);
         }
 
         return new BoundingBox(min, max);
@@ -274,9 +271,9 @@ public class OctreeNode<T>
     public int GetItemCount()
     {
         var count = _items.Count;
-        for (var i = 0; i < _children.Length; i++)
+        for (var i = 0; i < Children.Length; i++)
         {
-            count += _children[i].GetItemCount();
+            count += Children[i].GetItemCount();
         }
 
         return count;
@@ -303,9 +300,9 @@ public class OctreeNode<T>
                     }
                 }
             }
-            for (var i = 0; i < _children.Length; i++)
+            for (var i = 0; i < Children.Length; i++)
             {
-                _children[i].CoreGetContainedObjects(ref frustum, results, filter);
+                Children[i].CoreGetContainedObjects(ref frustum, results, filter);
             }
         }
     }
@@ -336,9 +333,9 @@ public class OctreeNode<T>
                 results.Add(octreeItem.Item);
             }
         }
-        for (var i = 0; i < _children.Length; i++)
+        for (var i = 0; i < Children.Length; i++)
         {
-            _children[i].CoreGetAllContainedObjects(results, filter);
+            Children[i].CoreGetAllContainedObjects(results, filter);
         }
     }
 
@@ -349,10 +346,10 @@ public class OctreeNode<T>
             throw new Exception("Can only clear the root OctreeNode.");
         }
 
-        RecycleNode();
+        RecycleNode(true, true);
     }
 
-    private void RecycleNode(bool recycleChildren = true)
+    private void RecycleNode(bool recycleChildren = true, bool isRootNode = false)
     {
         if (recycleChildren)
         {
@@ -360,21 +357,27 @@ public class OctreeNode<T>
         }
 
         _items.Clear();
-        _nodeCache.AddNode(this);
+
+        if (!isRootNode)
+        {
+            _nodeCache.AddNode(this);
+        }
     }
 
     private void RecycleChildren()
     {
-        if (_children.Length != 0)
+        if (Children.Length == 0)
         {
-            for (var i = 0; i < _children.Length; i++)
-            {
-                _children[i].RecycleNode();
-            }
-
-            _nodeCache.AddAndClearChildrenArray(_children);
-            _children = Array.Empty<OctreeNode<T>>();
+            return;
         }
+
+        for (var i = 0; i < Children.Length; i++)
+        {
+            Children[i].RecycleNode();
+        }
+
+        _nodeCache.AddAndClearChildrenArray(Children);
+        Children = Array.Empty<OctreeNode<T>>();
     }
 
     private bool CoreAddItem(OctreeItem<T> item)
@@ -384,7 +387,7 @@ public class OctreeNode<T>
             return false;
         }
 
-        if (_items.Count >= MaxChildren && _children.Length == 0)
+        if (_items.Count >= MaxChildren && Children.Length == 0)
         {
             var newNode = SplitChildren(ref item.Bounds, null);
             if (newNode != null)
@@ -394,11 +397,11 @@ public class OctreeNode<T>
                 return true;
             }
         }
-        else if (_children.Length > 0)
+        else if (Children.Length > 0)
         {
-            for (var i = 0; i < _children.Length; i++)
+            for (var i = 0; i < Children.Length; i++)
             {
-                if (_children[i].CoreAddItem(item))
+                if (Children[i].CoreAddItem(item))
                 {
                     return true;
                 }
@@ -407,7 +410,7 @@ public class OctreeNode<T>
 
         // Couldn't fit in any children.
 #if DEBUG
-        foreach (var child in _children)
+        foreach (var child in Children)
         {
             Debug.Assert(child.Bounds.Contains(item.Bounds) != ContainmentType.Contains);
         }
@@ -422,10 +425,10 @@ public class OctreeNode<T>
     // Splits the node into 8 children
     private OctreeNode<T> SplitChildren(ref BoundingBox itemBounds, OctreeNode<T> existingChild)
     {
-        Debug.Assert(_children.Length == 0, "Children must be empty before SplitChildren is called.");
+        Debug.Assert(Children.Length == 0, "Children must be empty before SplitChildren is called.");
 
         OctreeNode<T> childBigEnough = null;
-        _children = _nodeCache.GetChildrenArray();
+        Children = _nodeCache.GetChildrenArray();
         var boundingBox = Bounds;
         var center = boundingBox.GetCenter();
         var dimensions = boundingBox.GetDimensions();
@@ -461,7 +464,7 @@ public class OctreeNode<T>
                     }
 
                     newChild.Parent = this;
-                    _children[i] = newChild;
+                    Children[i] = newChild;
                     i++;
                 }
             }
@@ -469,9 +472,9 @@ public class OctreeNode<T>
 
         PushItemsToChildren();
 #if DEBUG
-        for (var g = 0; g < _children.Length; g++)
+        for (var g = 0; g < Children.Length; g++)
         {
-            Debug.Assert(_children[g] != null);
+            Debug.Assert(Children[g] != null);
         }
 #endif
         return childBigEnough;
@@ -482,9 +485,9 @@ public class OctreeNode<T>
         for (var i = 0; i < _items.Count; i++)
         {
             var item = _items[i];
-            for (var c = 0; c < _children.Length; c++)
+            for (var c = 0; c < Children.Length; c++)
             {
-                if (_children[c].CoreAddItem(item))
+                if (Children[c].CoreAddItem(item))
                 {
                     _items.Remove(item);
                     i--;
@@ -496,9 +499,9 @@ public class OctreeNode<T>
 #if DEBUG
         for (var i = 0; i < _items.Count; i++)
         {
-            for (var c = 0; c < _children.Length; c++)
+            for (var c = 0; c < Children.Length; c++)
             {
-                Debug.Assert(_children[c].Bounds.Contains(_items[i].Bounds) != ContainmentType.Contains);
+                Debug.Assert(Children[c].Bounds.Contains(_items[i].Bounds) != ContainmentType.Contains);
             }
         }
 #endif
@@ -573,10 +576,10 @@ public class OctreeNode<T>
         _items.Clear();
         Parent = null;
 
-        if (_children.Length != 0)
+        if (Children.Length != 0)
         {
             _nodeCache.AddAndClearChildrenArray(Children);
-            _children = Array.Empty<OctreeNode<T>>();
+            Children = Array.Empty<OctreeNode<T>>();
         }
     }
 
@@ -598,9 +601,9 @@ public class OctreeNode<T>
             }
         }
 
-        for (var i = 0; i < _children.Length; i++)
+        for (var i = 0; i < Children.Length; i++)
         {
-            var child = _children[i];
+            var child = Children[i];
             Debug.Assert(child != null, "node child cannot be null.");
             if (child.TryGetContainedOctreeItem(item, out octreeItem))
             {
@@ -621,9 +624,9 @@ public class OctreeNode<T>
         if (_items.Count == 0)
         {
             OctreeNode<T> loneChild = null;
-            for (var i = 0; i < _children.Length; i++)
+            for (var i = 0; i < Children.Length; i++)
             {
-                var child = _children[i];
+                var child = Children[i];
                 if (child.GetItemCount() != 0)
                 {
                     if (loneChild != null)
@@ -638,9 +641,9 @@ public class OctreeNode<T>
             if (loneChild != null)
             {
                 // Recycle excess
-                for (var i = 0; i < _children.Length; i++)
+                for (var i = 0; i < Children.Length; i++)
                 {
-                    var child = _children[i];
+                    var child = Children[i];
                     if (child != loneChild)
                     {
                         child.RecycleNode();
@@ -660,9 +663,9 @@ public class OctreeNode<T>
 
     internal void CollectPendingMoves(List<OctreeItem<T>> pendingMoves)
     {
-        for (var i = 0; i < _children.Length; i++)
+        for (var i = 0; i < Children.Length; i++)
         {
-            _children[i].CollectPendingMoves(pendingMoves);
+            Children[i].CollectPendingMoves(pendingMoves);
         }
 
         for (var i = 0; i < _items.Count; i++)
@@ -704,7 +707,7 @@ public class OctreeNode<T>
                     item.Container = null;
                 }
                 child.Parent = null;
-                child._children = Array.Empty<OctreeNode<T>>();
+                child.Children = Array.Empty<OctreeNode<T>>();
 
                 _cachedNodes.Push(child);
             }
@@ -751,7 +754,7 @@ public class OctreeNode<T>
             {
                 var children = _cachedChildren.Pop();
 #if DEBUG
-                Debug.Assert(children.Length == 8);
+                Debug.Assert(children.Length == NumChildNodes);
                 for (var i = 0; i < children.Length; i++)
                 {
                     Debug.Assert(children[i] == null);

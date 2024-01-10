@@ -39,7 +39,7 @@ public class SkinnedMeshDemo : Demo
 
     }
 
-    protected override void Clean()
+    public override void Clean()
     {
 
     }

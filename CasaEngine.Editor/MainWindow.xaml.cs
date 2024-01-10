@@ -49,8 +49,6 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        LoadWorkSpace();
-
         _isWindowLoaded = true;
         OpenProject(_projectFileName);
     }
@@ -74,6 +72,8 @@ public partial class MainWindow : Window
         GameSettings.Load(projectFileName);
 
         RegisterFlowGraphNodes();
+
+        LoadWorkSpace();
     }
 
     private static void RegisterFlowGraphNodes()
