@@ -20,7 +20,7 @@ using CasaEngine.Core.Serialization;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Animated Sprite")]
-public class AnimatedSpriteComponent : Component, ICollideableComponent
+public class AnimatedSpriteComponent : Component, ICollideableComponent, IComponentDrawable, IBoundingBoxable
 {
     public override int ComponentId => (int)ComponentIds.AnimatedSprite;
 
@@ -212,6 +212,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
                 return;
             }
 
+            //TODO : create list with all spriteData
             var sprite = Sprite.Create(spriteData, _assetContentManager);
             var worldMatrix = Owner.Coordinates.WorldMatrix;
             _spriteRenderer.DrawSprite(sprite,
@@ -243,6 +244,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
 
     private void OnFrameChanged(object? sender, (long oldFrame, long newFrame) arg)
     {
+        Owner.IsBoundingBoxDirty = true;
         RemoveCollisionsFromFrame(arg.oldFrame);
         AddOrUdpateCollisionFromFrame(arg.newFrame, true);
 
@@ -336,6 +338,35 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent
         component._animationAssetIds.AddRange(_animationAssetIds);
 
         return component;
+    }
+
+    public BoundingBox BoundingBox => GetBoundingBox();
+
+    public BoundingBox GetBoundingBox()
+    {
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
+
+        if (CurrentAnimation != null)
+        {
+            var spriteData = _assetContentManager.GetAsset<SpriteData>(CurrentAnimation.CurrentFrame);
+            var halfWidth = spriteData.PositionInTexture.Width / 2f;
+            var halfHeight = spriteData.PositionInTexture.Height / 2f;
+
+            min = Vector3.Min(min, new Vector3(-halfWidth, -halfHeight, 0f));
+            max = Vector3.Max(max, new Vector3(halfWidth, halfHeight, 0.1f));
+        }
+        else // default box
+        {
+            const float length = 0.5f;
+            min = Vector3.One * -length;
+            max = Vector3.One * length;
+        }
+
+        min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
+        max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+
+        return new BoundingBox(min, max);
     }
 
 #if EDITOR

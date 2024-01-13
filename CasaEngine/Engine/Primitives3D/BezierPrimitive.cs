@@ -30,14 +30,14 @@ public abstract class BezierPrimitive : GeometricPrimitive
     /// </summary>
     protected void CreatePatchIndices(int tessellation, bool isMirrored)
     {
-        var stride = tessellation + 1;
+        uint stride = (uint)tessellation + 1;
 
-        for (var i = 0; i < tessellation; i++)
+        for (uint i = 0; i < tessellation; i++)
         {
-            for (var j = 0; j < tessellation; j++)
+            for (uint j = 0; j < tessellation; j++)
             {
                 // Make a list of six index values (two triangles).
-                int[] indices =
+                uint[] indices =
                 {
                     i * stride + j,
                     (i + 1) * stride + j,

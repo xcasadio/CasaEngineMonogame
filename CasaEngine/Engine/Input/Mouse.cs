@@ -81,9 +81,9 @@ public static class Mouse
             trackDeltaOutsideScreen = value;
             if (value)
             {
-                Microsoft.Xna.Framework.Input.Mouse.SetPosition(Screen.Width / 2 - 1, Screen.Height / 2 - 1);
-                positionX = Screen.Width / 2 - 1;
-                positionY = Screen.Height / 2 - 1;
+                Microsoft.Xna.Framework.Input.Mouse.SetPosition(ScreenGui.Width / 2 - 1, ScreenGui.Height / 2 - 1);
+                positionX = ScreenGui.Width / 2 - 1;
+                positionY = ScreenGui.Height / 2 - 1;
             }
         }
     } // TrackDeltaOutsideScreen
@@ -93,12 +93,12 @@ public static class Mouse
         get
         {
             Point aux = new Point(positionX, positionY);
-            if (aux.X >= Screen.Width)
-                aux.X = Screen.Width - 1;
+            if (aux.X >= ScreenGui.Width)
+                aux.X = ScreenGui.Width - 1;
             if (aux.X < 0)
                 aux.X = 0;
-            if (aux.Y >= Screen.Height)
-                aux.Y = Screen.Height - 1;
+            if (aux.Y >= ScreenGui.Height)
+                aux.Y = ScreenGui.Height - 1;
             if (aux.Y < 0)
                 aux.Y = 0;
             return aux;
@@ -276,19 +276,19 @@ public static class Mouse
         }
         /*else
         {
-            deltaX = _currentState.X - Screen.Width / 2;
-            deltaY = _currentState.Y - Screen.Height / 2;
+            deltaX = _currentState.X - ScreenGui.Width / 2;
+            deltaY = _currentState.Y - ScreenGui.Height / 2;
             positionX += deltaX;
             positionY += deltaY;
-            if (positionX >= Screen.Width)
-                positionX = Screen.Width - 1;
+            if (positionX >= ScreenGui.Width)
+                positionX = ScreenGui.Width - 1;
             if (positionX < 0)
                 positionX = 0;
-            if (positionY >= Screen.Height)
-                positionY = Screen.Height - 1;
+            if (positionY >= ScreenGui.Height)
+                positionY = ScreenGui.Height - 1;
             if (positionY < 0)
                 positionY = 0;
-            Microsoft.Xna.Framework.Input.Mouse.SetPosition(Screen.Width / 2 - 1, Screen.Height / 2 - 1);
+            Microsoft.Xna.Framework.Input.Mouse.SetPosition(ScreenGui.Width / 2 - 1, ScreenGui.Height / 2 - 1);
         }*/
 
         // Dragging

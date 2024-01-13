@@ -31,7 +31,7 @@ public class SkinnedMeshDemo : Demo
         skinnedMeshComponent.SkinnedMesh = skinModel;
         skinModel.BeginAnimation(0);
 
-        world.AddEntityImmediately(entity);
+        world.AddEntity(entity);
     }
 
     public override void Update(GameTime gameTime)
@@ -39,7 +39,7 @@ public class SkinnedMeshDemo : Demo
 
     }
 
-    protected override void Clean()
+    public override void Clean()
     {
 
     }

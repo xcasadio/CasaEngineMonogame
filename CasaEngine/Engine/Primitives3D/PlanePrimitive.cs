@@ -35,8 +35,8 @@ public class PlanePrimitive : GeometricPrimitive
 
         var uv = Vector2.Zero;
 
-        var verticalSegments = tessellationVertical + 1;
-        var horizontalSegments = tessellationHorizontal + 1;
+        uint verticalSegments = (uint)tessellationVertical + 1;
+        uint horizontalSegments = (uint)tessellationHorizontal + 1;
 
         var sizeHBy2 = sizeH / 2.0f;
         var sizeVBy2 = sizeV / 2.0f;
@@ -63,9 +63,9 @@ public class PlanePrimitive : GeometricPrimitive
         }
 
         //Compute Index : compute quad
-        for (var iy = 0; iy < tessellationVertical; iy++)
+        for (uint iy = 0; iy < tessellationVertical; iy++)
         {
-            for (var ix = 0; ix < tessellationHorizontal; ix++)
+            for (uint ix = 0; ix < tessellationHorizontal; ix++)
             {
                 //first triangle
                 AddIndex(ix);

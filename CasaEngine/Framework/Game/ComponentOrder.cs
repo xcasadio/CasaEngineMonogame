@@ -1,51 +1,40 @@
 namespace CasaEngine.Framework.Game;
 
-//For reorder updateable component
 public enum ComponentUpdateOrder
 {
-    GameManager = 500,
+    DebugManager,
+    Input,
+    Manipulator,
+    ScreenManagerComponent,
+    ScreenLogComponent,
     Renderer2dComponent,
     Renderer3dComponent,
     Line3dComponent,
     MeshComponent,
     SkinnedMeshComponent,
-    Input = 510,
-    Manipulator,
-    DebugManager = 20,
-    ScreenLogComponent = 526,
-    ScreenManagerComponent = 530,
-    GUI = 531,
-    ViewComponent = 540,
-    Physics = 545,
-    Gameplay = 560,
-    ParticleComponent = 570,
-    SpacingComponent = 580,
+    ParticleComponent,
+    GUI,
+    Physics,
     DebugPhysics,
-    Default = 5100
+    Default
 
 #if EDITOR
-    , CasaEngineEditor = 51000
+    , CasaEngineEditor
 #endif
 }
 
-//For reorder drawable component
 public enum ComponentDrawOrder
 {
-    GUIBegin = 0,
-    GameManager = 500,
-    DebugManager = 501,
-    Input = 510,
-    ScreenManagerComponent = 530,
-    Gameplay = 551,
-    ParticleComponent = 554,
-    ScreenLogComponent = 556,
-    Default = 5100,
+    GUIBegin,
+    DebugManager,
     MeshComponent,
     SkinnedMeshComponent,
-    Renderer2dComponent = 5150,
+    Renderer2dComponent,
     Renderer3dComponent,
     Line3dComponent,
-    DebugPhysics = 6000,
-    Manipulator = 51000,
-    GUIEnd = 100000
+    ParticleComponent,
+    DebugPhysics,
+    Manipulator,
+    GUIEnd,
+    ScreenLogComponent
 }

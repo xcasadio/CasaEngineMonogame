@@ -14,6 +14,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
+using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using FontStashSharp;
@@ -24,7 +25,6 @@ using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using IKeyboardStateProvider = CasaEngine.Engine.Input.IKeyboardStateProvider;
 using IMouseStateProvider = CasaEngine.Engine.Input.IMouseStateProvider;
-using Screen = CasaEngine.Framework.GUI.Screen;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Game;
@@ -248,7 +248,7 @@ public class GameManager
         AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
         AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
         AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
-        AssetContentManager.RegisterAssetLoader(typeof(Screen), new AssetLoader<Screen>());
+        AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
     }
 
     public void BeginLoadContent()
@@ -343,8 +343,7 @@ public class GameManager
 
         _game.GraphicsDevice.Clear(Color.Black);
 
-        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
-        CurrentWorld?.Draw(elapsedTime);
+        CurrentWorld?.Draw(ActiveCamera.ViewMatrix * ActiveCamera.ProjectionMatrix);
     }
 
     public void EndDraw(GameTime gameTime)

@@ -9,13 +9,13 @@ public abstract class GeometricPrimitive : IDisposable
     private GeometricPrimitiveType _type;
 
     private readonly List<VertexPositionNormalTexture> _vertices = new();
-    private readonly List<ushort> _indices = new();
+    private readonly List<uint> _indices = new();
 
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
     private BasicEffect? _basicEffect;
 
-    protected int CurrentVertex => _vertices.Count;
+    protected uint CurrentVertex => (uint)_vertices.Count;
 
     protected GeometricPrimitive(GeometricPrimitiveType type)
     {
@@ -36,14 +36,14 @@ public abstract class GeometricPrimitive : IDisposable
         _vertices.Add(new VertexPositionNormalTexture(position, normal, uv));
     }
 
-    protected void AddIndex(int index)
+    protected void AddIndex(uint index)
     {
-        if (index > ushort.MaxValue)
+        if (index > uint.MaxValue)
         {
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        _indices.Add((ushort)index);
+        _indices.Add((uint)index);
     }
 
     protected void InitializePrimitive(GraphicsDevice graphicsDevice)
@@ -51,7 +51,7 @@ public abstract class GeometricPrimitive : IDisposable
         _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
         _vertexBuffer.SetData(_vertices.ToArray());
 
-        _indexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), _indices.Count, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(graphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
         _indexBuffer.SetData(_indices.ToArray());
 
         _basicEffect = new BasicEffect(graphicsDevice);

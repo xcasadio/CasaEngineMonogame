@@ -1,5 +1,4 @@
-﻿using CasaEngine.Core.Design;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;

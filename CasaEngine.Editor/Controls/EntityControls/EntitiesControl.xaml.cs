@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,7 +9,6 @@ using CasaEngine.Editor.Controls.WorldControls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using CasaEngine.Framework.World;
 using XNAGizmo;
 
 namespace CasaEngine.Editor.Controls.EntityControls;
@@ -23,6 +21,7 @@ public partial class EntitiesControl : UserControl
 
     private bool _isSelectionTriggerActive = true;
     private bool _isSelectionTriggerFromGizmoActive = true;
+    private GizmoComponent? _gizmoComponent;
 
     public EntityViewModel SelectedItem
     {
@@ -44,12 +43,14 @@ public partial class EntitiesControl : UserControl
     {
         Game = (CasaEngineGame)sender;
         Game.GameManager.WorldChanged += OnWorldChanged;
-        var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-        gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
-        gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
 
-        gizmoComponent.Gizmo.CopyTriggered -= OnCopyTriggered;
-        gizmoComponent.Gizmo.CopyTriggered += OnCopyTriggered;
+        _gizmoComponent = Game.GetGameComponent<GizmoComponent>();
+
+        _gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
+        _gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
+
+        _gizmoComponent.Gizmo.CopyTriggered -= OnCopyTriggered;
+        _gizmoComponent.Gizmo.CopyTriggered += OnCopyTriggered;
     }
 
     private void OnCopyTriggered(object? sender, List<ITransformable> entities)
@@ -61,25 +62,23 @@ public partial class EntitiesControl : UserControl
 
         _isSelectionTriggerActive = false;
 
-        var newEntities = new List<Entity>();
+        var entitiesViewModel = DataContext as EntitiesViewModel;
+        var newEntities = new List<EntityViewModel>();
 
         foreach (var entity in entities.Cast<Entity>())
         {
             var newEntity = entity.Clone();
             newEntity.Initialize(Game);
-            Game.GameManager.CurrentWorld.AddEntityImmediately(newEntity);
-            newEntities.Add(newEntity);
+            newEntities.Add(entitiesViewModel.Add(newEntity));
         }
 
-        var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-        gizmoComponent.Gizmo.Clear();
-        foreach (var entity in newEntities)
+        _gizmoComponent.Gizmo.Clear();
+        foreach (var entityViewModel in newEntities)
         {
-            gizmoComponent.Gizmo.Selection.Add(entity);
+            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity);
         }
 
-        var entitiesViewModel = DataContext as EntitiesViewModel;
-        SetSelectedItem(entitiesViewModel.GetFromEntity(newEntities[0]));
+        SetSelectedItem(newEntities[0]);
 
         _isSelectionTriggerActive = true;
     }
@@ -181,57 +180,5 @@ public partial class EntitiesControl : UserControl
         {
             //TODO : Camera in front of the Object
         }
-    }
-}
-
-internal class EntitiesViewModel
-{
-    public ObservableCollection<EntityViewModel> Entities { get; } = new();
-
-    public EntitiesViewModel(World world)
-    {
-        world.EntityAdded += OnEntityAdded;
-        world.EntityRemoved += OnEntityRemoved;
-        world.EntitiesClear += OnEntitiesClear;
-
-        foreach (var worldEntity in world.Entities)
-        {
-            Entities.Add(new EntityViewModel(worldEntity));
-        }
-    }
-
-    private void OnEntitiesClear(object? sender, EventArgs e)
-    {
-        Entities.Clear();
-    }
-
-    private void OnEntityRemoved(object? sender, Entity entity)
-    {
-        foreach (var entityViewModel in Entities)
-        {
-            if (entityViewModel.Entity == entity)
-            {
-                Entities.Remove(entityViewModel);
-                break;
-            }
-        }
-    }
-
-    private void OnEntityAdded(object? sender, Entity entity)
-    {
-        Entities.Add(new EntityViewModel(entity));
-    }
-
-    public EntityViewModel? GetFromEntity(Entity entity)
-    {
-        foreach (var entityViewModel in Entities)
-        {
-            if (entityViewModel.Entity == entity)
-            {
-                return entityViewModel;
-            }
-        }
-
-        return null;
     }
 }

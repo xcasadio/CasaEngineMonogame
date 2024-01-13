@@ -56,7 +56,7 @@ public partial class EntityControl : UserControl
             oldEntity.Entity.ScaleChanged -= OnEntityScaleChanged;
         }
 
-        //Attach event because we can modify coordinate with the mouse with the game screen
+        //Attach event because we can modify coordinate with the mouse with the game screenGui
         if (e.NewValue is EntityViewModel entity)
         {
             entity.Entity.PositionChanged += OnEntityPositionChanged;

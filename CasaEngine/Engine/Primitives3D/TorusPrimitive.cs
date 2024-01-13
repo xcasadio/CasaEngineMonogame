@@ -12,10 +12,10 @@ public class TorusPrimitive : GeometricPrimitive
             throw new ArgumentOutOfRangeException(nameof(tessellation));
         }
 
-        int stride = tessellation + 1;
+        uint stride = (uint)tessellation + 1;
 
         // First we loop around the main ring of the torus.
-        for (int i = 0; i <= tessellation; i++)
+        for (uint i = 0; i <= tessellation; i++)
         {
             float u = (float)i / tessellation;
 
@@ -26,7 +26,7 @@ public class TorusPrimitive : GeometricPrimitive
             var transform = Matrix.CreateTranslation(diameter / 2, 0, 0) * Matrix.CreateRotationY(outerAngle);
 
             // Now we loop along the other axis, around the side of the tube.
-            for (int j = 0; j <= tessellation; j++)
+            for (uint j = 0; j <= tessellation; j++)
             {
                 float v = 1 - (float)j / tessellation;
 
@@ -44,8 +44,8 @@ public class TorusPrimitive : GeometricPrimitive
                 AddVertex(position, normal, textureCoordinate);
 
                 // And create indices for two triangles.
-                int nextI = (i + 1) % stride;
-                int nextJ = (j + 1) % stride;
+                uint nextI = (i + 1) % stride;
+                uint nextJ = (j + 1) % stride;
 
                 AddIndex(i * stride + j);
                 AddIndex(i * stride + nextJ);

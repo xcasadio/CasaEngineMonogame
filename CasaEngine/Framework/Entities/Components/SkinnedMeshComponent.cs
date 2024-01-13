@@ -47,6 +47,14 @@ public class SkinnedMeshComponent : Component, IBoundingBoxable
         }
 
         SkinnedMesh.Update(elapsedTime);
+    }
+
+    public override void Draw()
+    {
+        if (SkinnedMesh == null)
+        {
+            return;
+        }
 
         var camera = Owner.Game.GameManager.ActiveCamera;
         _skinnedMeshRendererComponent.AddMesh(
@@ -55,6 +63,35 @@ public class SkinnedMeshComponent : Component, IBoundingBoxable
             camera.ViewMatrix,
             camera.ProjectionMatrix,
             camera.Position);
+    }
+
+    public BoundingBox BoundingBox
+    {
+        get
+        {
+            var min = Vector3.One * int.MaxValue;
+            var max = Vector3.One * int.MinValue;
+
+            if (SkinnedMesh != null)
+            {
+                foreach (var mesh in SkinnedMesh.Meshes)
+                {
+                    min = Vector3.Min(min, mesh.Min);
+                    max = Vector3.Max(max, mesh.Max);
+                }
+            }
+            else // default box
+            {
+                const float length = 0.5f;
+                min = Vector3.One * -length;
+                max = Vector3.One * length;
+            }
+
+            min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
+            max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+
+            return new BoundingBox(min, max);
+        }
     }
 
     public override Component Clone()
@@ -93,37 +130,6 @@ public class SkinnedMeshComponent : Component, IBoundingBoxable
         //{
         //    jObject.Add("mesh", "null");
         //}
-    }
-
-    public BoundingBox BoundingBox
-    {
-        get
-        {
-            var min = Vector3.One * int.MaxValue;
-            var max = Vector3.One * int.MinValue;
-
-            if (SkinnedMesh != null)
-            {
-                //var vertices = SkinnedMesh.GetVertices();
-                //
-                //foreach (var vertex in vertices)
-                //{
-                //    min = Vector3.Min(min, vertex.Position);
-                //    max = Vector3.Max(max, vertex.Position);
-                //}
-            }
-            else // default box
-            {
-                const float length = 0.5f;
-                min = Vector3.One * -length;
-                max = Vector3.One * length;
-            }
-
-            min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
-            max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
-
-            return new BoundingBox(min, max);
-        }
     }
 #endif
 }

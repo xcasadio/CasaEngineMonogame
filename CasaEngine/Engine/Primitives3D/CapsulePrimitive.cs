@@ -21,8 +21,8 @@ public class CapsulePrimitive : GeometricPrimitive
 
         if (tessellation < 3) tessellation = 3;
 
-        int verticalSegments = 2 * tessellation;
-        int horizontalSegments = 4 * tessellation;
+        uint verticalSegments = 2 * (uint)tessellation;
+        uint horizontalSegments = 4 * (uint)tessellation;
 
         var vertexCount = 0;
         // Create rings of vertices at progressively higher latitudes.
@@ -68,15 +68,15 @@ public class CapsulePrimitive : GeometricPrimitive
         }
 
         // Fill the index buffer with triangles joining each pair of latitude rings.
-        int stride = horizontalSegments + 1;
+        uint stride = horizontalSegments + 1;
 
         int indexCount = 0;
-        for (int i = 0; i < verticalSegments - 1; i++)
+        for (uint i = 0; i < verticalSegments - 1; i++)
         {
-            for (int j = 0; j <= horizontalSegments; j++)
+            for (uint j = 0; j <= horizontalSegments; j++)
             {
-                int nextI = i + 1;
-                int nextJ = (j + 1) % stride;
+                uint nextI = i + 1;
+                uint nextJ = (j + 1) % stride;
 
                 AddIndex(i * stride + j);
                 AddIndex(nextI * stride + j);

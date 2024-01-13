@@ -5,9 +5,11 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.SpacePartitioning.Octree;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
-using Screen = CasaEngine.Framework.GUI.Screen;
 
 namespace CasaEngine.Framework.World;
 
@@ -16,25 +18,26 @@ public sealed class World : Asset
     private readonly List<EntityReference> _entityReferences = new();
     private readonly List<Entity> _entities = new();
     private readonly List<Entity> _baseObjectsToAdd = new();
-    private readonly List<Screen> _screens = new();
+    private readonly List<ScreenGui> _screens = new();
 
-    public IEnumerable<Screen> Screens => _screens;
+    private readonly Octree<EntityBase> _octree;
+    private readonly List<EntityBase> _entitiesVisible = new(1000);
 
-    public IList<Entity> Entities => _entities;
-    public ExternalComponent? ExternalComponent { get; set; }
     public CasaEngineGame Game { get; }
+    public IEnumerable<ScreenGui> Screens => _screens;
+    public ExternalComponent? ExternalComponent { get; set; }
+    public IList<Entity> Entities => _entities;
+    public EntityBase RootEntity { get; }
+
+    public bool DisplaySpacePartitioning { get; set; }
+
 
     public World(CasaEngineGame game)
     {
         Game = game;
-    }
+        RootEntity = new EntityBase { Name = "RootEntity" };
 
-    public void AddEntityImmediately(Entity entity)
-    {
-        _entities.Add(entity);
-#if EDITOR
-        EntityAdded?.Invoke(this, entity);
-#endif
+        _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
     }
 
     public void AddEntity(Entity entity)
@@ -51,6 +54,8 @@ public sealed class World : Asset
     {
         _entities.Clear();
         _baseObjectsToAdd.Clear();
+        _octree.Clear();
+
 #if EDITOR
         EntitiesClear?.Invoke(this, EventArgs.Empty);
 #endif
@@ -77,17 +82,15 @@ public sealed class World : Asset
             foreach (var entityReference in _entityReferences)
             {
                 EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager);
-                AddEntityImmediately(entityReference.Entity);
+                entityReference.Entity.Initialize(Game);
+                AddEntity(entityReference.Entity);
             }
         }
 
-        foreach (var entity in _entities)
-        {
-            entity.Initialize(Game);
-        }
+        InternalAddEntities();
 
 #if !EDITOR
-        //TODO : remove this, use a script tou set active camera
+        //TODO : remove this, use a script to set active camera
         var camera = _entities
             .Select(x => x.ComponentManager.Components.FirstOrDefault(y => y is CameraComponent) as CameraComponent)
             .FirstOrDefault(x => x != null);
@@ -115,18 +118,23 @@ public sealed class World : Asset
     {
         var toRemove = new List<Entity>();
 
-        _entities.AddRange(_baseObjectsToAdd);
-        _baseObjectsToAdd.Clear();
+        InternalAddEntities();
 
         foreach (var entity in _entities)
         {
             if (entity.ToBeRemoved)
             {
                 toRemove.Add(entity);
+                _octree.RemoveItem(entity);
             }
             else
             {
                 entity.Update(elapsedTime);
+
+                if (entity.IsBoundingBoxDirty)
+                {
+                    _octree.MoveItem(entity, entity.BoundingBox);
+                }
             }
         }
 
@@ -135,17 +143,44 @@ public sealed class World : Asset
             _entities.Remove(entity);
         }
 
+        _octree.ApplyPendingMoves();
+
         foreach (var screen in _screens)
         {
             screen.Update(elapsedTime);
         }
     }
 
-    public void Draw(float elapsedTime)
+    private void InternalAddEntities()
     {
-        foreach (var entity in _entities)
+        foreach (var entityToAdd in _baseObjectsToAdd)
         {
-            entity.Draw();
+            entityToAdd.Initialize(Game);
+            _octree.AddItem(entityToAdd.BoundingBox, entityToAdd);
+#if EDITOR
+            EntityAdded?.Invoke(this, entityToAdd);
+#endif
+        }
+
+        _entities.AddRange(_baseObjectsToAdd);
+        _baseObjectsToAdd.Clear();
+    }
+
+    public void Draw(Matrix viewProjection)
+    {
+        var boundingFrustum = new BoundingFrustum(viewProjection);
+        _octree.GetContainedObjects(boundingFrustum, _entitiesVisible);
+
+        foreach (var entityBase in _entitiesVisible)
+        {
+            entityBase.Draw();
+        }
+
+        _entitiesVisible.Clear();
+
+        if (DisplaySpacePartitioning)
+        {
+            OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.GameManager.Line3dRendererComponent);
         }
 
         foreach (var screen in _screens)
@@ -182,21 +217,21 @@ public sealed class World : Asset
         }
     }
 
-    public void AddScreen(Screen screen)
+    public void AddScreen(ScreenGui screenGui)
     {
-        _screens.Add(screen);
+        _screens.Add(screenGui);
 
-        foreach (var control in screen.Controls)
+        foreach (var control in screenGui.Controls)
         {
             Game.GameManager.UiManager.Add(control);
         }
     }
 
-    public void RemoveScreen(Screen screen)
+    public void RemoveScreen(ScreenGui screenGui)
     {
-        _screens.Remove(screen);
+        _screens.Remove(screenGui);
 
-        foreach (var control in screen.Controls)
+        foreach (var control in screenGui.Controls)
         {
             Game.GameManager.UiManager.Remove(control);
         }
@@ -220,6 +255,13 @@ public sealed class World : Asset
     public event EventHandler? EntitiesClear;
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
+
+    public void AddEntityWithEditor(Entity entity)
+    {
+        entity.Initialize(Game);
+        _entities.Add(entity);
+        _octree.AddItem(entity.BoundingBox, entity);
+    }
 
     public override void Save(JObject jObject, SaveOption option)
     {

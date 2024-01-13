@@ -32,7 +32,7 @@ public class Collision3dBasicDemo : Demo
         meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
-        world.AddEntityImmediately(entity);
+        world.AddEntity(entity);
 
         //============ Create box ===============
         const float mass = 1.0f;
@@ -63,7 +63,7 @@ public class Collision3dBasicDemo : Demo
                     meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
                     fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
                     meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
-                    world.AddEntityImmediately(entity);
+                    world.AddEntity(entity);
                 }
             }
         }
@@ -74,7 +74,7 @@ public class Collision3dBasicDemo : Demo
 
     }
 
-    protected override void Clean()
+    public override void Clean()
     {
 
     }

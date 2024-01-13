@@ -59,7 +59,7 @@ public abstract class GameEditor2d : GameEditor
         CreateEntityComponents(_entity);
 
         _entity.Initialize(Game);
-        Game.GameManager.CurrentWorld.AddEntityImmediately(_entity);
+        Game.GameManager.CurrentWorld.AddEntity(_entity);
     }
 
     protected override void Update(GameTime gameTime)

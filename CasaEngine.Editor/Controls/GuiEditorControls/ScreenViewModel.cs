@@ -9,7 +9,7 @@ namespace CasaEngine.Editor.Controls.GuiEditorControls;
 public class ScreenViewModel : NotifyPropertyChangeBase
 {
     private ControlViewModel? _selectedControl;
-    public Screen Screen { get; }
+    public ScreenGui ScreenGui { get; }
 
     public ControlViewModel? SelectedControl
     {
@@ -27,11 +27,11 @@ public class ScreenViewModel : NotifyPropertyChangeBase
 
     public ObservableCollection<ControlViewModel> Controls { get; } = new();
 
-    public ScreenViewModel(Screen screen)
+    public ScreenViewModel(ScreenGui screenGui)
     {
-        Screen = screen;
+        ScreenGui = screenGui;
 
-        foreach (var control in Screen.Controls)
+        foreach (var control in ScreenGui.Controls)
         {
             Controls.Add(new ControlViewModel(control));
         }
@@ -39,18 +39,18 @@ public class ScreenViewModel : NotifyPropertyChangeBase
 
     public void Save()
     {
-        AssetSaver.SaveAsset(Screen.AssetInfo.FileName, Screen);
+        AssetSaver.SaveAsset(ScreenGui.AssetInfo.FileName, ScreenGui);
     }
 
     public void Add(Control control)
     {
-        Screen.Add(control);
+        ScreenGui.Add(control);
         Controls.Add(new ControlViewModel(control));
     }
 
     public void Remove(ControlViewModel controlViewModel)
     {
-        Screen.Remove(controlViewModel.Control);
+        ScreenGui.Remove(controlViewModel.Control);
         Controls.Remove(controlViewModel);
     }
 

@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CasaEngine\CasaEngine.ForEditor.csproj" />
+    <ProjectReference Include="..\CasaEngine\CasaEngine.WithEditor.csproj" />
   </ItemGroup>
 
 </Project>

@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{8C8D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TomShane.Neoforce.Controls", "TomShane.Neoforce.Controls\TomShane.Neoforce.Controls.csproj", "{81243B70-F3A8-43B8-8B98-ECF0B68F9894}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Tests", "CasaEngine.Tests\CasaEngine.Tests\CasaEngine.Tests.csproj", "{8241764B-2A92-431C-A5C4-C832FA873316}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +74,14 @@ Global
 		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Release|Any CPU.Build.0 = Release|Any CPU
 		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Release|x64.ActiveCfg = Release|Any CPU
 		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Release|x64.Build.0 = Release|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|x64.Build.0 = Debug|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|x64.ActiveCfg = Release|Any CPU
+		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

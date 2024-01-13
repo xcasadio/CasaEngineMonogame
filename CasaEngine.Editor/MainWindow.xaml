@@ -60,7 +60,7 @@
             <TabItem Header="Tile Map">
                 <tileMapControls:TileMapEditorControl/>
             </TabItem>
-            <TabItem Header="Screen">
+            <TabItem Header="ScreenGui">
                 <guiEditorControls:GuiEditorControl/>
             </TabItem>
             <TabItem Header="Settings">

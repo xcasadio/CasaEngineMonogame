@@ -17,8 +17,8 @@ public class SpherePrimitive : GeometricPrimitive
             throw new ArgumentOutOfRangeException(nameof(tessellation));
         }
 
-        var verticalSegments = tessellation;
-        var horizontalSegments = tessellation * 2;
+        uint verticalSegments = (uint)tessellation;
+        uint horizontalSegments = (uint)tessellation * 2;
 
         var radius = diameter / 2;
 
@@ -56,14 +56,14 @@ public class SpherePrimitive : GeometricPrimitive
         }
 
         // Fill the index buffer with triangles joining each pair of latitude rings.
-        int stride = horizontalSegments + 1;
+        uint stride = horizontalSegments + 1;
 
-        for (int i = 0; i < verticalSegments; i++)
+        for (uint i = 0; i < verticalSegments; i++)
         {
-            for (int j = 0; j <= horizontalSegments; j++)
+            for (uint j = 0; j <= horizontalSegments; j++)
             {
-                int nextI = i + 1;
-                int nextJ = (j + 1) % stride;
+                uint nextI = i + 1;
+                uint nextJ = (j + 1) % stride;
 
                 AddIndex(i * stride + j);
                 AddIndex(nextI * stride + j);

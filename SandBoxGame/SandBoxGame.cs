@@ -63,7 +63,7 @@ namespace SandBoxGame
             var gamePlayComponent = new GamePlayComponent();
             entity.ComponentManager.Components.Add(gamePlayComponent);
             gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
-            world.AddEntityImmediately(entity);
+            world.AddEntity(entity);
 
             //============ Box ===============
             entity = new Entity();
@@ -75,7 +75,7 @@ namespace SandBoxGame
             meshComponent.Mesh.Initialize(GraphicsDevice, GameManager.AssetContentManager);
             meshComponent.Mesh.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
             _staticMesh = meshComponent.Mesh;
-            world.AddEntityImmediately(entity);
+            world.AddEntity(entity);
 
             //============ Effect ===============
             _materialColor = new Material();

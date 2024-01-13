@@ -248,7 +248,7 @@ public partial class ContentBrowserControl : UserControl
     }
     private void MenuItemCreateScreen_OnClick(object sender, RoutedEventArgs e)
     {
-        CreateAsset(new Screen(), Constants.FileNameExtensions.Screen);
+        CreateAsset(new ScreenGui(), Constants.FileNameExtensions.Screen);
     }
 
     private void CreateAsset(Asset asset, string extension)

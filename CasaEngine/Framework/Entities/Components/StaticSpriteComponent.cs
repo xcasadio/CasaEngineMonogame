@@ -6,6 +6,7 @@ using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -15,7 +16,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
-public class StaticSpriteComponent : Component, ICollideableComponent
+public class StaticSpriteComponent : Component, ICollideableComponent, IComponentDrawable, IBoundingBoxable
 {
     public override int ComponentId => (int)ComponentIds.StaticSprite;
 
@@ -51,6 +52,34 @@ public class StaticSpriteComponent : Component, ICollideableComponent
         {
             Physics2dHelper.UpdateBodyTransformation(Owner, collisionObject, shape2d, _spriteData.Origin, _spriteData.PositionInTexture);
         }
+    }
+
+    public BoundingBox BoundingBox => GetBoundingBox();
+
+    public BoundingBox GetBoundingBox()
+    {
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
+
+        if (_spriteData != null)
+        {
+            var halfWidth = _spriteData.PositionInTexture.Width / 2f;
+            var halfHeight = _spriteData.PositionInTexture.Height / 2f;
+
+            min = Vector3.Min(min, new Vector3(-halfWidth, -halfHeight, 0f));
+            max = Vector3.Max(max, new Vector3(halfWidth, halfHeight, 0.1f));
+        }
+        else // default box
+        {
+            const float length = 0.5f;
+            min = Vector3.One * -length;
+            max = Vector3.One * length;
+        }
+
+        min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
+        max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+
+        return new BoundingBox(min, max);
     }
 
     public override void Draw()
@@ -116,6 +145,7 @@ public class StaticSpriteComponent : Component, ICollideableComponent
         _sprite = Sprite.Create(_spriteData, Owner.Game.GameManager.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
+        Owner.IsBoundingBoxDirty = true;
     }
     private void AddCollisions()
     {

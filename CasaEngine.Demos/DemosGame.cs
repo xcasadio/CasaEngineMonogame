@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Logs;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
@@ -48,13 +47,15 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new Collision2dBasicDemo());
         _demos.Add(new TileMapDemo());
         _demos.Add(new SkinnedMeshDemo());
+        _demos.Add(new SceneManagementDemo());
 
-        ChangeDemo(2);
+        ChangeDemo(0);
     }
 
     private void ChangeDemo(int index)
     {
-        _currentDemo?.Clean(GameManager.CurrentWorld);
+        GameManager.CurrentWorld.ClearEntities();
+        _currentDemo?.Clean();
 
         _currentDemo = _demos[index];
         _currentDemo.Initialize(this);
@@ -86,8 +87,10 @@ public class DemosGame : CasaEngineGame
         base.Update(gameTime);
     }
 
-    protected override void Draw(GameTime gameTime)
+    /*protected override void Draw(GameTime gameTime)
     {
         base.Draw(gameTime);
-    }
+
+        _currentDemo.Update(gameTime);
+    }*/
 }
