@@ -74,13 +74,11 @@ public class SkinnedMeshComponent : Component, IBoundingBoxable
 
             if (SkinnedMesh != null)
             {
-                //var vertices = SkinnedMesh.GetVertices();
-                //
-                //foreach (var vertex in vertices)
-                //{
-                //    min = Vector3.Min(min, vertex.Position);
-                //    max = Vector3.Max(max, vertex.Position);
-                //}
+                foreach (var mesh in SkinnedMesh.Meshes)
+                {
+                    min = Vector3.Min(min, mesh.Min);
+                    max = Vector3.Max(max, mesh.Max);
+                }
             }
             else // default box
             {

@@ -48,7 +48,7 @@ public class EntityBase : Asset
     public List<EntityBase> Children { get; } = new();
 
     //Used for space partitioning
-    public bool IsPositionUpdated { get; private set; }
+    public bool IsBoundingBoxDirty { get; internal set; }
 
     public bool IsEnabled
     {
@@ -79,7 +79,7 @@ public class EntityBase : Asset
 
         UpdateInternal(elapsedTime);
 
-        IsPositionUpdated = Coordinates.Position != _lastPosition;
+        IsBoundingBoxDirty = Coordinates.Position != _lastPosition;
         _lastPosition = Coordinates.Position;
 
         Tick?.Invoke(this, elapsedTime);

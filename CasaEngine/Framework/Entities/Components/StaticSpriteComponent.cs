@@ -16,7 +16,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities.Components;
 
-public class StaticSpriteComponent : Component, ICollideableComponent, IComponentDrawable
+public class StaticSpriteComponent : Component, ICollideableComponent, IComponentDrawable, IBoundingBoxable
 {
     public override int ComponentId => (int)ComponentIds.StaticSprite;
 
@@ -54,6 +54,8 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
         }
     }
 
+    public BoundingBox BoundingBox => GetBoundingBox();
+
     public BoundingBox GetBoundingBox()
     {
         var min = Vector3.One * int.MaxValue;
@@ -61,13 +63,11 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
 
         if (_spriteData != null)
         {
-            var x = (float)_spriteData.PositionInTexture.X - _spriteData.Origin.X;
-            var y = (float)_spriteData.PositionInTexture.Y - _spriteData.Origin.Y;
             var halfWidth = _spriteData.PositionInTexture.Width / 2f;
             var halfHeight = _spriteData.PositionInTexture.Height / 2f;
 
-            min = Vector3.Min(min, new Vector3(x - halfWidth, y - halfHeight, 0f));
-            max = Vector3.Max(max, new Vector3(x + halfWidth, y + halfHeight, 0f));
+            min = Vector3.Min(min, new Vector3(-halfWidth, -halfHeight, 0f));
+            max = Vector3.Max(max, new Vector3(halfWidth, halfHeight, 0.1f));
         }
         else // default box
         {
@@ -145,6 +145,7 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
         _sprite = Sprite.Create(_spriteData, Owner.Game.GameManager.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
+        Owner.IsBoundingBoxDirty = true;
     }
     private void AddCollisions()
     {

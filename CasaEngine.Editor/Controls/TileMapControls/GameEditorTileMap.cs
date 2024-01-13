@@ -37,8 +37,8 @@ public class GameEditorTileMap : GameEditor2d
     {
         _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData; //(DataContext as TileMapDataViewModel).TileMapData;
 
-        Game.GameManager.CurrentWorld.AddEntityImmediately(CameraEntity);
-        Game.GameManager.CurrentWorld.AddEntityImmediately(_entity);
+        Game.GameManager.CurrentWorld.AddEntity(CameraEntity);
+        Game.GameManager.CurrentWorld.AddEntity(_entity);
         _entity.Initialize(Game);
         //Game.GameManager.CurrentWorld.Initialize(Game);
     }

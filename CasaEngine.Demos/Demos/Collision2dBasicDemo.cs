@@ -48,7 +48,7 @@ public class Collision2dBasicDemo : Demo
         meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
-        world.AddEntityImmediately(entity);
+        world.AddEntity(entity);
 
         //============ Create bodies ===============
         float u = 1 * SCALING - 0.04f;
@@ -106,7 +106,7 @@ public class Collision2dBasicDemo : Demo
                 meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
                 fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
                 meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
-                world.AddEntityImmediately(entity);
+                world.AddEntity(entity);
 
                 y += deltaY;
             }

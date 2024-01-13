@@ -37,23 +37,12 @@ public sealed class World : Asset
         Game = game;
         RootEntity = new EntityBase { Name = "RootEntity" };
 
-        _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -100, Vector3.One * 100), 64);
-    }
-
-    public void AddEntityImmediately(Entity entity)
-    {
-        _entities.Add(entity);
-        _octree.AddItem(entity.BoundingBox, entity);
-
-#if EDITOR
-        EntityAdded?.Invoke(this, entity);
-#endif
+        _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
     }
 
     public void AddEntity(Entity entity)
     {
         _baseObjectsToAdd.Add(entity);
-        _octree.AddItem(entity.BoundingBox, entity);
     }
 
     public void RemoveEntity(Entity entity)
@@ -94,40 +83,20 @@ public sealed class World : Asset
             {
                 EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager);
                 entityReference.Entity.Initialize(Game);
-                AddEntityImmediately(entityReference.Entity);
+                AddEntity(entityReference.Entity);
             }
         }
 
-        //foreach (var entity in _entities)
-        //{
-        //    entity.Initialize(Game);
-        //}
-
-        //InitializeEntities(RootEntity);
+        InternalAddEntities();
 
 #if !EDITOR
-        //TODO : remove this, use a script tou set active camera
+        //TODO : remove this, use a script to set active camera
         var camera = _entities
             .Select(x => x.ComponentManager.Components.FirstOrDefault(y => y is CameraComponent) as CameraComponent)
             .FirstOrDefault(x => x != null);
 
         Game.GameManager.ActiveCamera = camera;
 #endif
-    }
-
-    private void InitializeEntities(EntityBase? entityBase)
-    {
-        if (entityBase == null)
-        {
-            return;
-        }
-
-        entityBase.Initialize(Game);
-
-        foreach (var child in entityBase.Children)
-        {
-            InitializeEntities(child);
-        }
     }
 
     public void BeginPlay()
@@ -149,8 +118,7 @@ public sealed class World : Asset
     {
         var toRemove = new List<Entity>();
 
-        _entities.AddRange(_baseObjectsToAdd);
-        _baseObjectsToAdd.Clear();
+        InternalAddEntities();
 
         foreach (var entity in _entities)
         {
@@ -163,7 +131,7 @@ public sealed class World : Asset
             {
                 entity.Update(elapsedTime);
 
-                if (entity.IsPositionUpdated)
+                if (entity.IsBoundingBoxDirty)
                 {
                     _octree.MoveItem(entity, entity.BoundingBox);
                 }
@@ -181,6 +149,21 @@ public sealed class World : Asset
         {
             screen.Update(elapsedTime);
         }
+    }
+
+    private void InternalAddEntities()
+    {
+        foreach (var entityToAdd in _baseObjectsToAdd)
+        {
+            entityToAdd.Initialize(Game);
+            _octree.AddItem(entityToAdd.BoundingBox, entityToAdd);
+#if EDITOR
+            EntityAdded?.Invoke(this, entityToAdd);
+#endif
+        }
+
+        _entities.AddRange(_baseObjectsToAdd);
+        _baseObjectsToAdd.Clear();
     }
 
     public void Draw(Matrix viewProjection)
@@ -272,6 +255,13 @@ public sealed class World : Asset
     public event EventHandler? EntitiesClear;
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
+
+    public void AddEntityWithEditor(Entity entity)
+    {
+        entity.Initialize(Game);
+        _entities.Add(entity);
+        _octree.AddItem(entity.BoundingBox, entity);
+    }
 
     public override void Save(JObject jObject, SaveOption option)
     {

@@ -33,8 +33,8 @@ public class GameEditorEntity : GameEditor
             entityViewModel.Entity.Initialize(Game);
             Game.GameManager.ActiveCamera = _camera;
             Game.GameManager.CurrentWorld.ClearEntities();
-            Game.GameManager.CurrentWorld.AddEntityImmediately(_cameraEntity);
-            Game.GameManager.CurrentWorld.AddEntityImmediately(entityViewModel.Entity);
+            Game.GameManager.CurrentWorld.AddEntity(_cameraEntity);
+            Game.GameManager.CurrentWorld.AddEntity(entityViewModel.Entity);
             //StaticSpriteComponent.TryLoadSpriteData(spriteData?.Name);
         }
     }
@@ -59,7 +59,7 @@ public class GameEditorEntity : GameEditor
 
         _camera.SetCamera(new Vector3(0, 5f, -10f), Vector3.Zero, Vector3.Up);
         Game.GameManager.ActiveCamera = _camera;
-        Game.GameManager.CurrentWorld.AddEntityImmediately(_cameraEntity);
+        Game.GameManager.CurrentWorld.AddEntity(_cameraEntity);
 
         //_inputComponent = Game.GetGameComponent<InputComponent>();
         //Game.Components.Remove(Game.GetGameComponent<GridComponent>());

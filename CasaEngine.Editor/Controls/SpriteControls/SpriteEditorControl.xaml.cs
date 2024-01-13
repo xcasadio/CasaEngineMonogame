@@ -27,17 +27,17 @@ public partial class SpriteEditorControl : EditorControlBase
         var layout = dockingManagerSprite.ActiveContent as LayoutContent;
         var binding = new Binding("SelectedItem");
 
-        if (layout.Content is SpriteListControl)
+        if (layout?.Content is SpriteListControl)
         {
             spriteDetailsControl.DataContext = SpriteListControl.SelectedItem;
             binding.Source = SpriteListControl;
         }
-        else if (layout.Content is SpriteSocketsControl)
+        else if (layout?.Content is SpriteSocketsControl)
         {
             spriteDetailsControl.DataContext = SpriteSocketsControl.SelectedItem;
             binding.Source = SpriteSocketsControl;
         }
-        else if (layout.Content is SpriteCollisionsControl)
+        else if (layout?.Content is SpriteCollisionsControl)
         {
             spriteDetailsControl.DataContext = SpriteCollisionsControl.SelectedItem;
             binding.Source = SpriteCollisionsControl;

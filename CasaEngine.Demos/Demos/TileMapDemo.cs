@@ -33,7 +33,7 @@ public class TileMapDemo : Demo
         tileMapComponent.TileMapData = tileMapData;
         entity.ComponentManager.Components.Add(tileMapComponent);
 
-        world.AddEntityImmediately(entity);
+        world.AddEntity(entity);
 
         //============ player ===============
         entity = new Entity();
@@ -60,7 +60,7 @@ public class TileMapDemo : Demo
 
         entity.ComponentManager.Components.Add(new PlayerComponent());
 
-        world.AddEntityImmediately(entity);
+        world.AddEntity(entity);
     }
 
     private void LoadSprites(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice)
@@ -96,7 +96,8 @@ public class TileMapDemo : Demo
         var camera = new Camera3dIn2dAxisComponent();
         camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f);
         entity.ComponentManager.Components.Add(camera);
-        game.GameManager.CurrentWorld.AddEntityImmediately(entity);
+        entity.Initialize(game);
+        game.GameManager.CurrentWorld.AddEntity(entity);
 
         return camera;
     }

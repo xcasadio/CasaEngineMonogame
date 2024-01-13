@@ -22,7 +22,7 @@ public abstract class Demo
         entity.ComponentManager.Components.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
         entity.Initialize(game);
-        game.GameManager.CurrentWorld.AddEntityImmediately(entity);
+        game.GameManager.CurrentWorld.AddEntity(entity);
 
         return camera;
     }

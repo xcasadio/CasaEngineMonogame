@@ -49,7 +49,7 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new SkinnedMeshDemo());
         _demos.Add(new SceneManagementDemo());
 
-        ChangeDemo(4);
+        ChangeDemo(0);
     }
 
     private void ChangeDemo(int index)
