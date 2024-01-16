@@ -23,7 +23,7 @@ public sealed class World : Asset
     private readonly Octree<EntityBase> _octree;
     private readonly List<EntityBase> _entitiesVisible = new(1000);
 
-    public CasaEngineGame Game { get; }
+    public CasaEngineGame Game { get; private set; }
     public IEnumerable<ScreenGui> Screens => _screens;
     public ExternalComponent? ExternalComponent { get; set; }
     public IList<Entity> Entities => _entities;
@@ -32,9 +32,8 @@ public sealed class World : Asset
     public bool DisplaySpacePartitioning { get; set; }
 
 
-    public World(CasaEngineGame game)
+    public World()
     {
-        Game = game;
         RootEntity = new EntityBase { Name = "RootEntity" };
 
         _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
@@ -66,8 +65,9 @@ public sealed class World : Asset
         _entityReferences.Clear();
     }
 
-    public void Initialize()
+    public void Initialize(CasaEngineGame game)
     {
+        Game = game;
         Initialize(GameSettings.AssetInfoManager.IsLoaded);
     }
 
@@ -211,7 +211,8 @@ public sealed class World : Asset
             _entityReferences.Add(entityReference);
         }
 
-        if (element.TryGetProperty("external_component", out var externalComponentNode))
+        if (element.TryGetProperty("external_component", out var externalComponentNode)
+            && externalComponentNode.GetInt32() != IdManager.InvalidId)
         {
             ExternalComponent = GameSettings.ScriptLoader.Load(externalComponentNode);
         }
@@ -281,9 +282,15 @@ public sealed class World : Asset
 
         jObject.Add("entity_references", entitiesJArray);
 
-        var externalComponentNode = new JObject();
-        externalComponentNode.Add("type", ExternalComponent?.ExternalComponentId ?? -1);
-        jObject.Add("external_component", externalComponentNode);
+        if (ExternalComponent == null || ExternalComponent.ExternalComponentId == IdManager.InvalidId)
+        {
+            jObject.Add("external_component", IdManager.InvalidId);
+        }
+        else
+        {
+            var externalComponentNode = new JObject { { "type", ExternalComponent.ExternalComponentId } };
+            jObject.Add("external_component", externalComponentNode);
+        }
     }
 
     public void AddEntityReference(EntityReference entityReference)

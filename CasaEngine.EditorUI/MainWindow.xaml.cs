@@ -10,6 +10,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContentBrowser;
 using CasaEngine.Editor.Windows;
+using CasaEngine.Framework.Project;
 using TabItem = System.Windows.Controls.TabItem;
 using FlowGraphUI;
 
@@ -166,11 +167,7 @@ public partial class MainWindow : Window
 
         if (dialog.ShowDialog() == true)
         {
-            //CREATE hiera folders
-            //create default settings
-            //
-            GameSettings.ProjectSettings.CreateProject(dialog.ProjectName, dialog.ProjectPath);
-
+            ProjectSettingsHelper.CreateProject(dialog.ProjectName, dialog.ProjectPath);
             LogManager.Instance.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
         }
     }

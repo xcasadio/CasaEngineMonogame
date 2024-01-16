@@ -47,7 +47,7 @@ public class GameEditorEntity : GameEditor
 
         base.LoadContent();
 
-        Game.GameManager.CurrentWorld = new World(Game);
+        Game.GameManager.CurrentWorld = new World();
 
         _cameraEntity = new Entity();
         _camera = new ArcBallCameraComponent();

@@ -26,7 +26,7 @@ public static class GameSettings
 
     public static void Load(string projectFileName)
     {
-        ProjectSettings.Load(projectFileName);
+        ProjectSettingsHelper.Load(projectFileName);
 
         var assetInfoFileName = Path.Combine(Path.GetDirectoryName(projectFileName), "AssetInfos.json");
 

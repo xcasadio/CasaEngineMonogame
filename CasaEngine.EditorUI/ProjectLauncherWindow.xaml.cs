@@ -10,6 +10,9 @@ using CasaEngine.Engine;
 using Newtonsoft.Json;
 using CasaEngine.Framework.Game;
 using MessageBox = System.Windows.MessageBox;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Project;
+using CasaEngine.Framework.World;
 
 namespace CasaEngine.Editor;
 
@@ -76,14 +79,13 @@ public partial class ProjectLauncherWindow : Window
 
         if (dialog.ShowDialog() == true)
         {
-            //create default settings
-            GameSettings.ProjectSettings.CreateProject(dialog.ProjectName, dialog.ProjectPath);
-            var projectFileName = Path.Combine(dialog.ProjectPath, dialog.ProjectName + Constants.FileNameExtensions.Project);
-            _projects.Add(projectFileName);
+            ProjectSettingsHelper.CreateProject(dialog.ProjectName, dialog.ProjectPath);
+            _projects.Add(GameSettings.ProjectSettings.ProjectFileOpened);
             LogManager.Instance.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
-            OpenEditor(projectFileName);
+            OpenEditor(GameSettings.ProjectSettings.ProjectFileOpened);
         }
     }
+
     private void ButtonOpenProject_Click(object sender, RoutedEventArgs e)
     {
         var fileDialog = new OpenFileDialog();

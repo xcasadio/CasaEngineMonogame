@@ -294,10 +294,10 @@ public class GameManager
         if (CurrentWorld == null)
         {
             //TODO : create something to know the new world to load and not the 'FirstWorldLoaded'
-            CurrentWorld = new World.World(_game);
+            CurrentWorld = new World.World();
             var fileName = Path.Combine(EngineEnvironment.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
             CurrentWorld.Load(fileName, SaveOption.Editor);
-            CurrentWorld.Initialize();
+            CurrentWorld.Initialize(_game);
             CurrentWorld.BeginPlay();
         }
 
