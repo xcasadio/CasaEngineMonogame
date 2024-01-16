@@ -10,7 +10,7 @@ public enum LogVerbosity
     None = 5
 }
 
-public sealed class LogManager : ILogger, TomShane.Neoforce.Controls.Logs.ILogger
+public sealed class LogManager : ILogger
 {
 
     private static LogManager? _instance;

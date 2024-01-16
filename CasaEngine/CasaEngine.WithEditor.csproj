@@ -37,12 +37,14 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<ProjectReference Include="..\FlowGraph\FlowGraph\FlowGraph.csproj" />
 		<ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
-		<ProjectReference Include="..\TomShane.Neoforce.Controls\TomShane.Neoforce.Controls.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="BulletSharp">
 			<HintPath>..\ThirdParties\BulletSharp\BulletSharp.dll</HintPath>
 		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Framework\GUI\Neoforce\" />
 	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
 		<Message Text="Restoring dotnet tools" Importance="High" />

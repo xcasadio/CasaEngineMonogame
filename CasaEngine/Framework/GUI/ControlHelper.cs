@@ -12,11 +12,8 @@ public static class ControlHelper
 
     static ControlHelper()
     {
-        var dllFileName = Path.Combine(Environment.CurrentDirectory, "TomShane.Neoforce.Controls.dll");
-        var assembly = Assembly.LoadFrom(dllFileName);
-
-        TypesByName = assembly
-            .GetTypes()
+        TypesByName = AppDomain.CurrentDomain.GetAssemblies().
+            SelectMany(x => x.GetTypes())
             .Where(t => t is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
                     && t.IsSubclassOf(typeof(Control)))
             .ToDictionary(x => x.Name, x => x);

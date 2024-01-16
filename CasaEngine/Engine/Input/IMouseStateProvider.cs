@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Engine.Input;
 
-public interface IMouseStateProvider : TomShane.Neoforce.Controls.Input.IMouseStateProvider
+public interface IMouseStateProvider
 {
     MouseState GetState();
 }

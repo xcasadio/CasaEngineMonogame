@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Demos", "CasaEng
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{8C8DDDBD-3694-406B-96FC-081E97566702}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TomShane.Neoforce.Controls", "TomShane.Neoforce.Controls\TomShane.Neoforce.Controls.csproj", "{81243B70-F3A8-43B8-8B98-ECF0B68F9894}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Tests", "CasaEngine.Tests\CasaEngine.Tests\CasaEngine.Tests.csproj", "{8241764B-2A92-431C-A5C4-C832FA873316}"
 EndProject
 Global
@@ -66,14 +64,6 @@ Global
 		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|x64.ActiveCfg = Release|Any CPU
 		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|x64.Build.0 = Release|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Debug|x64.Build.0 = Debug|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Release|Any CPU.Build.0 = Release|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Release|x64.ActiveCfg = Release|Any CPU
-		{81243B70-F3A8-43B8-8B98-ECF0B68F9894}.Release|x64.Build.0 = Release|Any CPU
 		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|x64.ActiveCfg = Debug|Any CPU

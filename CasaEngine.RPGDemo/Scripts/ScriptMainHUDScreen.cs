@@ -2,10 +2,8 @@
 using System.Text.Json;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
@@ -30,13 +28,6 @@ public class ScriptMainHUDScreen : ExternalComponent
         var scriptPlayer = gamePlayComponent.ExternalComponent as ScriptPlayer;
         _playerCharacter = scriptPlayer.Character;
         _lifeBar = (ProgressBar)_screen.GetControlByName("ProgressBar"); // linkLifeBar
-
-        var assetInfo = GameSettings.AssetInfoManager.GetByFileName("Screens\\MainHUD\\link_hud_portrait.sprite");
-        var spriteData = entityBase.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
-        var sprite = Sprite.Create(spriteData, entityBase.Game.GameManager.AssetContentManager);
-        var imageBox = (ImageBox)_screen.GetControlByName("ImageBox");
-        imageBox.Image = sprite.Texture.Resource;
-        imageBox.SourceRect = sprite.SpriteData.PositionInTexture;
     }
 
     public override void Update(float elapsedTime)

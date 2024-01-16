@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\CasaEngine.Editor\CasaEngine.Editor.csproj" />
+	  <ProjectReference Include="..\..\CasaEngine\CasaEngine.WithEditor.csproj" />
 	</ItemGroup>
 
 </Project>
