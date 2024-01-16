@@ -316,6 +316,7 @@ public sealed class World : Asset
     {
         _entityReferences.Add(entityReference);
         _entities.Add(entity);
+        _octree.AddItem(entity.BoundingBox, entity);
 
         EntityAdded?.Invoke(this, entity);
     }

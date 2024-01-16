@@ -110,29 +110,6 @@ public partial class EntityComponentControl : UserControl
         }
     }
 
-    private void SetAssetInfo_OnClick(object sender, RoutedEventArgs e)
-    {
-        var contentBrowserControl = this.FindParent<MainWindow>().ContentBrowserControl;
-
-        if (contentBrowserControl.SelectedItem != null && sender is FrameworkElement frameworkElement)
-        {
-            if (frameworkElement.DataContext is TileMapComponent tileMapComponent
-                && Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
-                Constants.FileNameExtensions.TileMap)
-            {
-                tileMapComponent.TileMapDataAssetId = contentBrowserControl.SelectedItem.Id;
-            }
-            else if (frameworkElement.DataContext is StaticMeshComponent staticMeshComponent
-                     && Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
-                     Constants.FileNameExtensions.Texture)
-            {
-                staticMeshComponent.Mesh.Texture =
-                    staticMeshComponent.Owner.Game.GameManager.AssetContentManager.Load<Texture>(
-                        contentBrowserControl.SelectedItem);
-            }
-        }
-    }
-
     private void ComboBoxExternalComponent_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is ComboBox comboBox && comboBox.DataContext is GamePlayComponent gamePlayComponent)

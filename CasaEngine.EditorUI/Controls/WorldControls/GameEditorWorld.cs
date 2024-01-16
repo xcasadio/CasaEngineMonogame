@@ -65,7 +65,6 @@ public class GameEditorWorld : GameEditor
                     camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
 
                 var entity = new Entity();
-                entity.Name = "Entity " + entity.AssetInfo.Id;
                 entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;
 
                 if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)
