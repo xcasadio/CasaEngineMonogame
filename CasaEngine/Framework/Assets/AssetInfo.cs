@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
@@ -7,10 +6,8 @@ namespace CasaEngine.Framework.Assets;
 public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
 {
     public long Id { get; private set; }
-
-    public string FileName { get; set; }
-
     public string Name { get; set; }
+    public string FileName { get; set; }
 
     public AssetInfo()
     {
@@ -77,7 +74,7 @@ public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Name, Id, FileName);
+        return (int)Id;
     }
 
 #if EDITOR

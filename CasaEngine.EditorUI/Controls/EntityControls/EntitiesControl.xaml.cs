@@ -166,10 +166,11 @@ public partial class EntitiesControl : UserControl
     {
         if (e.Key == Key.Delete && e.IsToggled)
         {
-            if (TreeView.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem)
+            if (TreeView.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem
+                && treeViewItem.DataContext is EntityViewModel entityViewModel)
             {
-                Game.GameManager.CurrentWorld.RemoveEntity(treeViewItem.DataContext as Entity);
-                //OnEntitiesChanged(this, EventArgs.Empty);
+                var entitiesViewModel = DataContext as EntitiesViewModel;
+                entitiesViewModel.Remove(entityViewModel);
             }
         }
     }

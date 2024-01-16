@@ -275,11 +275,11 @@ public class GameManager
                 throw new InvalidOperationException("FirstWorldLoaded is undefined");
             }
 
-            CurrentWorld = new World.World(_game);
+            CurrentWorld = new World.World();
             CurrentWorld.Load(GameSettings.ProjectSettings.FirstWorldLoaded, SaveOption.Editor);
         }
 
-        CurrentWorld.Initialize();
+        CurrentWorld.Initialize(_game);
         CurrentWorld.BeginPlay();
         //_physics2dDebugViewRendererComponent.SetCurrentPhysicsWorld(CurrentWorld.Physic2dWorld);
 #else

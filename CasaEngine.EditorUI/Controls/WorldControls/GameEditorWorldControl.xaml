@@ -72,7 +72,7 @@
                 <Separator />
                 <Button ToolTip="Snap to grid" Content="Snap" />
                 <Separator />
-                <Button Name="buttonLaunch" ToolTip="Launch game" Content="Launch" Click="ButtonLaunchGame_Click" />
+                <Button Name="buttonLaunch" ToolTip="Launch game" Content="Launch" Click="ButtonLaunchGame_Click" IsEnabled="false"/>
             </ToolBar>
         </ToolBarTray>
         <worldControls:GameEditorWorld Grid.Row="1" x:Name="gameEditor" AllowDrop="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>

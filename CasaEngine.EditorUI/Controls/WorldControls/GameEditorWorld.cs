@@ -1,19 +1,22 @@
-﻿using System.Text.Json;
+﻿using System.IO;
+using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Logs;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Editor.DragAndDrop;
+using CasaEngine.Engine;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Editor.Controls.WorldControls;
 
 public class GameEditorWorld : GameEditor
 {
-    public GameEditorWorld() : base(false)
+    public GameEditorWorld()
     {
         Drop += OnDrop;
     }
@@ -36,14 +39,24 @@ public class GameEditorWorld : GameEditor
             if (formats[0] == typeof(AssetInfo).FullName)
             {
                 var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
-                var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, Game.GameManager.AssetContentManager);
-                entityReference.Entity.Initialize(Game);
-                Game.GameManager.CurrentWorld.AddEntityReference(entityReference);
 
-                var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-                gizmoComponent.Gizmo.Clear();
-                gizmoComponent.Gizmo.Selection.Add(entityReference.Entity);
-                gizmoComponent.Gizmo.RaiseSelectionChanged();
+                var extension = Path.GetExtension(assetInfo.Name);
+
+                if (extension == Constants.FileNameExtensions.Entity)
+                {
+                    var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, Game.GameManager.AssetContentManager);
+                    entityReference.Entity.Initialize(Game);
+                    Game.GameManager.CurrentWorld.AddEntityReference(entityReference);
+
+                    var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
+                    gizmoComponent.Gizmo.Clear();
+                    gizmoComponent.Gizmo.Selection.Add(entityReference.Entity);
+                    gizmoComponent.Gizmo.RaiseSelectionChanged();
+                }
+                else
+                {
+                    LogManager.Instance.WriteWarning($"The asset with the type {extension} is not supported");
+                }
 
                 return;
             }

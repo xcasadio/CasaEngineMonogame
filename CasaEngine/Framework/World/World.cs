@@ -82,7 +82,6 @@ public sealed class World : Asset
             foreach (var entityReference in _entityReferences)
             {
                 EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager);
-                entityReference.Entity.Initialize(Game);
                 AddEntity(entityReference.Entity);
             }
         }
@@ -212,7 +211,7 @@ public sealed class World : Asset
         }
 
         if (element.TryGetProperty("external_component", out var externalComponentNode)
-            && externalComponentNode.GetInt32() != IdManager.InvalidId)
+            && externalComponentNode.GetProperty("type").GetInt32() != IdManager.InvalidId)
         {
             ExternalComponent = GameSettings.ScriptLoader.Load(externalComponentNode);
         }
@@ -323,12 +322,17 @@ public sealed class World : Asset
 
     public void RemoveEntityEditorMode(Entity entity)
     {
-        var entityReference = new EntityReference();
-        entityReference.Name = entity.Name;
-        entityReference.Entity = entity;
+        foreach (var entityReference in _entityReferences)
+        {
+            if (entityReference.AssetId == entity.AssetInfo.Id)
+            {
+                _entityReferences.Remove(entityReference);
+                break;
+            }
+        }
 
-        _entityReferences.Remove(entityReference);
         _entities.Remove(entity);
+        _octree.RemoveItem(entity);
 
         EntityRemoved?.Invoke(this, entity);
     }

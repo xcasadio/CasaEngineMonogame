@@ -53,15 +53,18 @@ public partial class AssetSelectorControl : UserControl
                      && System.IO.Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
                      Constants.FileNameExtensions.Texture)
             {
-                var assetContentManager = staticMeshComponent.Owner.Game.GameManager.AssetContentManager;
-                staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(contentBrowserControl.SelectedItem);
-
-                if (staticMeshComponent.Mesh.Texture?.Resource == null)
+                if (staticMeshComponent.Mesh != null)
                 {
-                    staticMeshComponent.Mesh.Texture.Load(assetContentManager);
-                }
+                    var assetContentManager = staticMeshComponent.Owner.Game.GameManager.AssetContentManager;
+                    staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(contentBrowserControl.SelectedItem);
 
-                SetAssetInfoDescription(contentBrowserControl.SelectedItem);
+                    if (staticMeshComponent.Mesh.Texture?.Resource == null)
+                    {
+                        staticMeshComponent.Mesh.Texture.Load(assetContentManager);
+                    }
+
+                    SetAssetInfoDescription(contentBrowserControl.SelectedItem);
+                }
             }
         }
     }

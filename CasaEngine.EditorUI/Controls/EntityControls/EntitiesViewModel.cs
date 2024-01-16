@@ -31,12 +31,15 @@ public class EntitiesViewModel
 
     private void OnEntityRemoved(object? sender, Entity entity)
     {
-        foreach (var entityViewModel in Entities)
+        if (!_lock)
         {
-            if (entityViewModel.Entity == entity)
+            foreach (var entityViewModel in Entities)
             {
-                Entities.Remove(entityViewModel);
-                break;
+                if (entityViewModel.Entity == entity)
+                {
+                    Entities.Remove(entityViewModel);
+                    break;
+                }
             }
         }
     }
@@ -73,5 +76,15 @@ public class EntitiesViewModel
         _lock = false;
 
         return entityViewModel;
+    }
+
+    public void Remove(EntityViewModel entityViewModel)
+    {
+        _lock = true;
+
+        Entities.Remove(entityViewModel);
+        _world.RemoveEntityEditorMode(entityViewModel.Entity);
+
+        _lock = false;
     }
 }

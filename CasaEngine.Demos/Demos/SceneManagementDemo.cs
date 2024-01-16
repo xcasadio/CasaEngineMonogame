@@ -51,7 +51,7 @@ public class SceneManagementDemo : Demo
         _entityCube.Initialize(game);
 
         world.AddEntity(_entityCube);
-        world.Initialize();
+        world.Initialize(game);
         world.DisplaySpacePartitioning = true;
     }
 

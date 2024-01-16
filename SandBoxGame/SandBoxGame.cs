@@ -51,7 +51,8 @@ namespace SandBoxGame
 
         protected override void LoadContent()
         {
-            var world = new World(this);
+            var world = new World();
+            world.Initialize(this);
             GameManager.CurrentWorld = world;
 
             //============ Camera ===============

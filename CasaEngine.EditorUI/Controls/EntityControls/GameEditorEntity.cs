@@ -48,6 +48,7 @@ public class GameEditorEntity : GameEditor
         base.LoadContent();
 
         Game.GameManager.CurrentWorld = new World();
+        Game.GameManager.CurrentWorld.Initialize(Game);
 
         _cameraEntity = new Entity();
         _camera = new ArcBallCameraComponent();
@@ -63,7 +64,6 @@ public class GameEditorEntity : GameEditor
 
         //_inputComponent = Game.GetGameComponent<InputComponent>();
         //Game.Components.Remove(Game.GetGameComponent<GridComponent>());
-
     }
 
     private void OnDrop(object sender, DragEventArgs e)

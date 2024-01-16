@@ -52,6 +52,7 @@ public abstract class GameEditor2d : GameEditor
         _inputComponent = Game.GetGameComponent<InputComponent>();
         Game.Components.Remove(Game.GetGameComponent<GridComponent>());
         Game.GameManager.CurrentWorld = new World();
+        Game.GameManager.CurrentWorld.Initialize(Game);
 
         _entity = new Entity();
         _entity.Coordinates.LocalPosition = new Vector3(screenXBy2, screenYBy2, 0.0f);
