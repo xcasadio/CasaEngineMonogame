@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace CasaEngine.Editor;
+namespace CasaEngine.EditorUI;
 
 /// <summary>
 /// Interaction logic for App.xaml

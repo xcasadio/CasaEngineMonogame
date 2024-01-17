@@ -5,7 +5,7 @@ using System.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class Animation2dListSelectorWindow : Window
 {

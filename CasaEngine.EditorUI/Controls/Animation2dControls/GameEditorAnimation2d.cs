@@ -2,7 +2,7 @@
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 
-namespace CasaEngine.Editor.Controls.Animation2dControls;
+namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public class GameEditorAnimation2d : GameEditor2d
 {

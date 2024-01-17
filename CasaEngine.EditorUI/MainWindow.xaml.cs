@@ -1,20 +1,18 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Logs;
+using CasaEngine.EditorUI.Controls;
+using CasaEngine.EditorUI.Controls.ContentBrowser;
+using CasaEngine.EditorUI.Windows;
 using CasaEngine.Framework.Game;
-using CasaEngine.Editor.Controls;
-using CasaEngine.Editor.Controls.ContentBrowser;
-using CasaEngine.Editor.Windows;
 using CasaEngine.Framework.Project;
-using TabItem = System.Windows.Controls.TabItem;
 using FlowGraphUI;
+using TabItem = System.Windows.Controls.TabItem;
 
-namespace CasaEngine.Editor;
+namespace CasaEngine.EditorUI;
 
 public partial class MainWindow : Window
 {

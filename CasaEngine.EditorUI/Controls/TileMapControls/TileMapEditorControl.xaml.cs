@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls.TileMapControls;
+namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public partial class TileMapEditorControl : EditorControlBase
 {

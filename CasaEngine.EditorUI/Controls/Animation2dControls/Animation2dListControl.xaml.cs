@@ -1,18 +1,14 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Engine;
+using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
-using CasaEngine.Editor.Controls.Common;
-using CasaEngine.Editor.Controls.SpriteControls;
 
-namespace CasaEngine.Editor.Controls.Animation2dControls;
+namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public partial class Animation2dListControl : UserControl
 {

@@ -1,20 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using CasaEngine.Core.Logs;
-using CasaEngine.Editor.Windows;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using CasaEngine.Engine;
-using Newtonsoft.Json;
+using CasaEngine.Core.Logs;
+using CasaEngine.EditorUI.Windows;
 using CasaEngine.Framework.Game;
-using MessageBox = System.Windows.MessageBox;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
-using CasaEngine.Framework.World;
+using Newtonsoft.Json;
+using MessageBox = System.Windows.MessageBox;
 
-namespace CasaEngine.Editor;
+namespace CasaEngine.EditorUI;
 
 public partial class ProjectLauncherWindow : Window
 {

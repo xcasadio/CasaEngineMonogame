@@ -1,31 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Core.Logs;
+using CasaEngine.EditorUI.Controls.Animation2dControls;
+using CasaEngine.EditorUI.Controls.Common;
+using CasaEngine.EditorUI.Controls.EntityControls;
+using CasaEngine.EditorUI.Controls.GuiEditorControls;
+using CasaEngine.EditorUI.Controls.SpriteControls;
+using CasaEngine.EditorUI.Controls.TileMapControls;
+using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Editor.Controls.Animation2dControls;
-using CasaEngine.Editor.Controls.Common;
-using CasaEngine.Editor.Controls.EntityControls;
-using CasaEngine.Editor.Controls.GuiEditorControls;
-using CasaEngine.Editor.Controls.SpriteControls;
-using CasaEngine.Editor.Controls.TileMapControls;
-using CasaEngine.Editor.Controls.WorldControls;
-using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Point = System.Windows.Point;
 
-namespace CasaEngine.Editor.Controls.ContentBrowser;
+namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
 public partial class ContentBrowserControl : UserControl
 {

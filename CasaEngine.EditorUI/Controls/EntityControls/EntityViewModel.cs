@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class EntityViewModel : NotifyPropertyChangeBase
 {

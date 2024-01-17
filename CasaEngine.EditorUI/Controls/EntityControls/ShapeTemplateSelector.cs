@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class ShapeTemplateSelector : DataTemplateSelector
 {

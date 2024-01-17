@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 
-namespace CasaEngine.Editor.Controls.SpriteControls;
+namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
 public class GameEditorSprite : GameEditor2d
 {

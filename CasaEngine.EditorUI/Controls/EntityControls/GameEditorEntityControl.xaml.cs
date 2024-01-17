@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using CasaEngine.Core.Logs;
 using CasaEngine.Framework.Assets;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class GameEditorEntityControl : UserControl
 {

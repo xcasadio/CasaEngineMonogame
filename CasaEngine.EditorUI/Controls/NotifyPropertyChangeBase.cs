@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace CasaEngine.Editor.Controls;
+namespace CasaEngine.EditorUI.Controls;
 
 public class NotifyPropertyChangeBase : INotifyPropertyChanged
 {

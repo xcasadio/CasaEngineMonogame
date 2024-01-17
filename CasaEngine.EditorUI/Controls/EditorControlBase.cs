@@ -1,15 +1,15 @@
-﻿using CasaEngine.Core.Logs;
-using Microsoft.Xna.Framework;
+﻿using System;
 using System.Collections.Generic;
-using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Controls;
+using CasaEngine.Core.Logs;
+using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls;
+namespace CasaEngine.EditorUI.Controls;
 
 public abstract class EditorControlBase : UserControl, IEditorControl
 {

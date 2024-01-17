@@ -2,13 +2,12 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using CasaEngine.Editor.Controls.Common;
 using CasaEngine.Editor.Tools;
+using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class EntityComponentsControl : UserControl
 {

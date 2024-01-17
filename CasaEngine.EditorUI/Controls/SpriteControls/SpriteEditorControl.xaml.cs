@@ -5,7 +5,7 @@ using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls.SpriteControls;
+namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
 public partial class SpriteEditorControl : EditorControlBase
 {

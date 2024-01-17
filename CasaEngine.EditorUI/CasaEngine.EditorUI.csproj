@@ -4,7 +4,7 @@
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
-		<StartupObject>CasaEngine.Editor.App</StartupObject>
+		<StartupObject>CasaEngine.EditorUI.App</StartupObject>
 		<PlatformTarget>x64</PlatformTarget>
 		<Configurations>Debug;Release;DebugEditor</Configurations>
 	</PropertyGroup>

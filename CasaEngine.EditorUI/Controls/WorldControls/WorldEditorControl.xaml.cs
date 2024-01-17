@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls.WorldControls;
+namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public partial class WorldEditorControl : EditorControlBase
 {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Editor.Controls.Common;
+using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.WpfControls;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class EntityControl : UserControl
 {

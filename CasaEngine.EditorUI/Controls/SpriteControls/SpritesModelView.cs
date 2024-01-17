@@ -6,7 +6,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using Path = System.IO.Path;
 
-namespace CasaEngine.Editor.Controls.SpriteControls;
+namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
 public class SpritesModelView
 {

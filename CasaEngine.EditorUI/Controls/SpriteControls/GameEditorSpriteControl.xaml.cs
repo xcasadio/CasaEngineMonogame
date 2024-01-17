@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 
-namespace CasaEngine.Editor.Controls.SpriteControls;
+namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
 public partial class GameEditorSpriteControl : UserControl
 {

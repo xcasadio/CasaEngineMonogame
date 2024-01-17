@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace CasaEngine.Editor.Controls.ContentBrowser;
+namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
 public class ContentBrowserItemDataTemplateSelector : DataTemplateSelector
 {

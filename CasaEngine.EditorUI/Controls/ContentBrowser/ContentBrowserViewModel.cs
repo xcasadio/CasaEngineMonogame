@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -10,7 +9,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 
-namespace CasaEngine.Editor.Controls.ContentBrowser;
+namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
 public class ContentBrowserViewModel : INotifyPropertyChanged
 {

@@ -5,7 +5,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls.TileMapControls;
+namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public class TileMapDataViewModel : NotifyPropertyChangeBase
 {

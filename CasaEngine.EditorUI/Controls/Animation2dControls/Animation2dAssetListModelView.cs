@@ -5,7 +5,8 @@ using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
-using CasaEngine.Editor.Controls;
+
+namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public class Animation2dAssetListModelView
 {

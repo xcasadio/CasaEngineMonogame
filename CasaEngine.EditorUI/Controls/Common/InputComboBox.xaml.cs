@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
 
-namespace CasaEngine.Editor.Controls.Common;
+namespace CasaEngine.EditorUI.Controls.Common;
 
 public partial class InputComboBox : Window
 {

@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Editor.DragAndDrop;
+using CasaEngine.EditorUI.DragAndDrop;
 
-namespace CasaEngine.Editor.Controls.WorldControls;
+namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public partial class PlaceActorsControl : UserControl
 {

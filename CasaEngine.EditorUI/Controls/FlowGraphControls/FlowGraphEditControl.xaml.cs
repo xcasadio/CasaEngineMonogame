@@ -3,11 +3,11 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.DotNetCompiler;
 using CasaEngine.DotNetCompiler.CSharp;
-using CasaEngine.Editor.Controls.EntityControls;
+using CasaEngine.EditorUI.Controls.EntityControls;
 using CasaEngine.Framework.Scripting;
 using FlowGraphUI;
 
-namespace CasaEngine.Editor.Controls.FlowGraphControls;
+namespace CasaEngine.EditorUI.Controls.FlowGraphControls;
 
 public partial class FlowGraphEditControl : UserControl
 {

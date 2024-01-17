@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using Xceed.Wpf.Toolkit.PropertyGrid.Editors;
 
-namespace CasaEngine.Editor.Controls.PropertyGridTypeEditor;
+namespace CasaEngine.EditorUI.Controls.PropertyGridTypeEditor;
 
 public class RectangleTypeEditorControl : ITypeEditor
 {

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CasaEngine.DotNetCompiler;
 using CasaEngine.FlowGraphNodes;
 using DotNetCodeGenerator;
 using DotNetCodeGenerator.Ast;
 using FlowGraph;
 using FlowGraph.Nodes;
 
-namespace CasaEngine.Editor.Controls.FlowGraphControls;
+namespace CasaEngine.EditorUI.Controls.FlowGraphControls;
 
 public static class FlowGraphToCSharp
 {

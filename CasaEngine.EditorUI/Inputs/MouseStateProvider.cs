@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Engine.Input;
 using Microsoft.Xna.Framework.Input;
 
-namespace CasaEngine.Editor.Inputs;
+namespace CasaEngine.EditorUI.Inputs;
 
 public class MouseStateProvider : IMouseStateProvider
 {

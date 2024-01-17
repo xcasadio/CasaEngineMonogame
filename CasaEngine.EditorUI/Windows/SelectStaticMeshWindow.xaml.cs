@@ -2,7 +2,7 @@
 using System.Windows;
 using CasaEngine.Engine.Primitives3D;
 
-namespace CasaEngine.Editor.Windows;
+namespace CasaEngine.EditorUI.Windows;
 
 public partial class SelectStaticMeshWindow : Window
 {

@@ -4,7 +4,7 @@ using CasaEngine.WpfControls;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using Xceed.Wpf.Toolkit.PropertyGrid.Editors;
 
-namespace CasaEngine.Editor.Controls.PropertyGridTypeEditor;
+namespace CasaEngine.EditorUI.Controls.PropertyGridTypeEditor;
 
 public class PointTypeEditorControl : ITypeEditor
 {

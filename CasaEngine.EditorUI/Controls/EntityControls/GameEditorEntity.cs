@@ -8,7 +8,7 @@ using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class GameEditorEntity : GameEditor
 {

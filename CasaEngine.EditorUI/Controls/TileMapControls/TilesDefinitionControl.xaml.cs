@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace CasaEngine.Editor.Controls.TileMapControls;
+namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public partial class TilesDefinitionControl : UserControl
 {

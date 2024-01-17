@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 
-namespace CasaEngine.Editor.Controls.Common;
+namespace CasaEngine.EditorUI.Controls.Common;
 
 public partial class InputTextBox : Window
 {

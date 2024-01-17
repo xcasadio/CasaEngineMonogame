@@ -1,12 +1,11 @@
 ﻿using System.Windows.Input;
 using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
-using Xceed.Wpf.AvalonDock.Layout.Serialization;
-using Xceed.Wpf.AvalonDock;
-using System.Windows.Forms;
 using CasaEngine.Framework.GUI;
+using Microsoft.Xna.Framework;
+using Xceed.Wpf.AvalonDock;
+using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls.GuiEditorControls;
+namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 
 public partial class GuiEditorControl : EditorControlBase
 {

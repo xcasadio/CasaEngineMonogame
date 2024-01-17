@@ -1,11 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using CasaEngine.EditorUI.Controls.PropertyGridTypeEditor;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Editor.Controls.PropertyGridTypeEditor;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Editor.Controls.SpriteControls;
+namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
 public class SpriteDataViewModel : NotifyPropertyChangeBase
 {

@@ -2,7 +2,8 @@
 using System.Collections.ObjectModel;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Editor.Controls;
+
+namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public class Animation2dDataViewModel : NotifyPropertyChangeBase
 {

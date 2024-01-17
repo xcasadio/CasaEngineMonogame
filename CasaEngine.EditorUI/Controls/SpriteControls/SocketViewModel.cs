@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Editor.Controls.SpriteControls;
+namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
 public class SocketViewModel : NotifyPropertyChangeBase
 {

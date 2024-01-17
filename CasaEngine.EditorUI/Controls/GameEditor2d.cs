@@ -1,15 +1,13 @@
-﻿using System.Windows;
-using CasaEngine.Engine.Input;
+﻿using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Point = Microsoft.Xna.Framework.Point;
 
-namespace CasaEngine.Editor.Controls;
+namespace CasaEngine.EditorUI.Controls;
 
 public abstract class GameEditor2d : GameEditor
 {

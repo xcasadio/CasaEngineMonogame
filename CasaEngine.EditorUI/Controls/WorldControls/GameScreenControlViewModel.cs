@@ -6,7 +6,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using XNAGizmo;
 
-namespace CasaEngine.Editor.Controls.WorldControls;
+namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public class GameScreenControlViewModel : INotifyPropertyChanged
 {

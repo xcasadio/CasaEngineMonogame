@@ -2,7 +2,7 @@
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 
-namespace CasaEngine.Editor.Controls.ContentBrowser;
+namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
 public class ContentItem : NotifyPropertyChangeBase
 {

@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls;
+namespace CasaEngine.EditorUI.Controls;
 
 public partial class SettingsControl : UserControl
 {

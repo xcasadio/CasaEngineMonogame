@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CasaEngine.Framework.Assets.TileMap;
 
-namespace CasaEngine.Editor.Controls.TileMapControls;
+namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public class TileMapLayerDataViewModel : NotifyPropertyChangeBase
 {

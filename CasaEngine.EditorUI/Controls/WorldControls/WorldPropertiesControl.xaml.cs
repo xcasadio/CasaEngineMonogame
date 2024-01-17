@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Data;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.World;
 
-namespace CasaEngine.Editor.Controls.WorldControls;
+namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public partial class WorldPropertiesControl : UserControl
 {

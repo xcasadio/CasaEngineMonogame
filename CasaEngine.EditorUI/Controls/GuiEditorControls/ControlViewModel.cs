@@ -1,6 +1,6 @@
 ﻿using TomShane.Neoforce.Controls;
 
-namespace CasaEngine.Editor.Controls.GuiEditorControls;
+namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 
 public class ControlViewModel
 {

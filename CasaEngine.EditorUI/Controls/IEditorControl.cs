@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace CasaEngine.Editor.Controls;
+namespace CasaEngine.EditorUI.Controls;
 
 public interface IEditorControl
 {

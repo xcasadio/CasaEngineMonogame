@@ -1,15 +1,8 @@
-﻿using System.Diagnostics;
-using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Logs;
-using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Editor.Controls.WorldControls;
+namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public partial class GameEditorWorldControl : UserControl
 {

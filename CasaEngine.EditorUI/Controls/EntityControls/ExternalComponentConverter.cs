@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Data;
 using CasaEngine.Framework.Scripting;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class ExternalComponentConverter : IValueConverter
 {

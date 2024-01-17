@@ -1,9 +1,8 @@
 ﻿using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 
-namespace CasaEngine.Editor.Controls.TileMapControls;
+namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public class GameEditorTileMap : GameEditor2d
 {

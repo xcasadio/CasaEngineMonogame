@@ -3,17 +3,17 @@ using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logs;
+using CasaEngine.EditorUI.DragAndDrop;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using CasaEngine.Editor.DragAndDrop;
-using CasaEngine.Engine;
-using Microsoft.Xna.Framework;
 using CasaEngine.Framework.Game.Components.Physics;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Editor.Controls.WorldControls;
+namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public class GameEditorWorld : GameEditor
 {

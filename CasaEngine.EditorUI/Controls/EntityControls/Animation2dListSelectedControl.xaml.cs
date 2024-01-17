@@ -6,7 +6,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class Animation2dListSelectedControl : UserControl
 {

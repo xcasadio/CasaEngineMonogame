@@ -2,7 +2,7 @@
 using System.Windows;
 using CasaEngine.Core.Shapes;
 
-namespace CasaEngine.Editor.Windows;
+namespace CasaEngine.EditorUI.Windows;
 
 /// <summary>
 /// Interaction logic for SelectPhysicsShapeWindow.xaml

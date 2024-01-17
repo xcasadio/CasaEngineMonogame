@@ -1,10 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-using System.Windows.Input;
-using CasaEngine.Framework.Assets.Animations;
-using Xceed.Wpf.AvalonDock.Layout.Serialization;
+﻿using System.Windows.Input;
+using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
+using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls.Animation2dControls;
+namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public partial class Animation2dEditorControl : EditorControlBase
 {

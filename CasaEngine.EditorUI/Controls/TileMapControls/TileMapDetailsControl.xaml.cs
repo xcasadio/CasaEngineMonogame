@@ -1,13 +1,9 @@
 ﻿using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Game;
 
-namespace CasaEngine.Editor.Controls.TileMapControls;
+namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public partial class TileMapDetailsControl : UserControl
 {

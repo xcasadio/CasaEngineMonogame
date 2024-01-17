@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using CasaEngine.Framework.Entities.Components;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class EntityComponentTemplateSelector : DataTemplateSelector
 {

@@ -3,11 +3,11 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Editor.DragAndDrop;
+using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.GUI;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 
-namespace CasaEngine.Editor.Controls.GuiEditorControls;
+namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 
 public partial class PlaceComponentsControl : UserControl
 {

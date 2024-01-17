@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
-using CasaEngine.Editor.Windows;
+using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -13,7 +13,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class EntityComponentControl : UserControl
 {

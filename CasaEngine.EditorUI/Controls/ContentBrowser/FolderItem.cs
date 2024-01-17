@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 
-namespace CasaEngine.Editor.Controls.ContentBrowser;
+namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
 public class FolderItem : ContentItem
 {

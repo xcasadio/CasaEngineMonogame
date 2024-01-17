@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Forms;
 using MessageBox = System.Windows.MessageBox;
 
-namespace CasaEngine.Editor.Windows;
+namespace CasaEngine.EditorUI.Windows;
 
 public partial class NewProjectWindow : Window
 {

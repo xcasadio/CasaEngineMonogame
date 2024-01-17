@@ -1,4 +1,4 @@
-﻿<Application x:Class="CasaEngine.Editor.App"
+﻿<Application x:Class="CasaEngine.EditorUI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"

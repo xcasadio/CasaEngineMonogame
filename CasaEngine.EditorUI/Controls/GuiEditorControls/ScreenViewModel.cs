@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using TomShane.Neoforce.Controls;
 
-namespace CasaEngine.Editor.Controls.GuiEditorControls;
+namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 
 public class ScreenViewModel : NotifyPropertyChangeBase
 {

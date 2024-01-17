@@ -1,8 +1,8 @@
 ﻿using System;
-using CasaEngine.Core.Logs;
 using System.Collections.ObjectModel;
+using CasaEngine.Core.Logs;
 
-namespace CasaEngine.Editor.Logs;
+namespace CasaEngine.EditorUI.Logs;
 
 public class LogEditor : ILog
 {

@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Editor.DragAndDrop;
+﻿namespace CasaEngine.EditorUI.DragAndDrop;
 
 public class DragAndDropInfoType
 {

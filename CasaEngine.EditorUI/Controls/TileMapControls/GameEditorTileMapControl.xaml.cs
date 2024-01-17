@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using CasaEngine.Core.Logs;
 using CasaEngine.Framework.Assets;
 
-namespace CasaEngine.Editor.Controls.TileMapControls;
+namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public partial class GameEditorTileMapControl : UserControl
 {

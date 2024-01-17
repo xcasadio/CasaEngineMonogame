@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
-using CasaEngine.Editor.DragAndDrop;
+using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
-using Button = TomShane.Neoforce.Controls.Button;
 using Control = TomShane.Neoforce.Controls.Control;
 using DataFormats = System.Windows.DataFormats;
 using DragEventArgs = System.Windows.DragEventArgs;
 
-namespace CasaEngine.Editor.Controls.GuiEditorControls;
+namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 
 public class GameEditorGui : GameEditor2d
 {

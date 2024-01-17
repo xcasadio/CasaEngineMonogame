@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
-namespace CasaEngine.Editor.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class EntityEditorControl : EditorControlBase
 {

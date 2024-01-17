@@ -2,7 +2,8 @@
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Game;
-using CasaEngine.Editor.Controls;
+
+namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public class FrameDataViewModel : NotifyPropertyChangeBase
 {

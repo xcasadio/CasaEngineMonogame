@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace CasaEngine.Editor.Controls.Animation2dControls;
+namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public partial class Animation2dDetailsControl : UserControl
 {

@@ -4,7 +4,7 @@ using CasaEngine.Framework.Scripting;
 using DotNetCodeGenerator;
 using DotNetCodeGenerator.Ast;
 
-namespace CasaEngine.Editor.Controls.FlowGraphControls;
+namespace CasaEngine.EditorUI.Controls.FlowGraphControls;
 
 public class CSharpWriter
 {

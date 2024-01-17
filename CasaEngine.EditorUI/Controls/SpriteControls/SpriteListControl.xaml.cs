@@ -1,14 +1,12 @@
 ﻿using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Engine;
+using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Editor.Controls.Common;
 
-namespace CasaEngine.Editor.Controls.SpriteControls;
+namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
 public partial class SpriteListControl : UserControl
 {

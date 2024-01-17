@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace CasaEngine.Editor.Controls.GuiEditorControls;
+namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 
 public partial class ComponentDetailsControl : UserControl
 {

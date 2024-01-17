@@ -1,13 +1,13 @@
-﻿using CasaEngine.Framework.Entities.Components;
-using Microsoft.Xna.Framework;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Editor.Controls.Common;
+namespace CasaEngine.EditorUI.Controls.Common;
 
 public partial class AssetSelectorControl : UserControl
 {

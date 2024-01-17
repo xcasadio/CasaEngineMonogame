@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CasaEngine.Editor.Logs;
+namespace CasaEngine.EditorUI.Logs;
 
 public class LogEntry
 {

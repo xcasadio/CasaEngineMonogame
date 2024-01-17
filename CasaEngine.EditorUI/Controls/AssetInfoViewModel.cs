@@ -1,7 +1,7 @@
 ﻿using System;
 using CasaEngine.Framework.Assets;
 
-namespace CasaEngine.Editor.Controls;
+namespace CasaEngine.EditorUI.Controls;
 
 public class AssetInfoViewModel : NotifyPropertyChangeBase, IEquatable<AssetInfoViewModel>
 {

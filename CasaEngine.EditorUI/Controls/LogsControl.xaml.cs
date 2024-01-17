@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using CasaEngine.Core.Logs;
-using CasaEngine.Editor.Logs;
+using CasaEngine.EditorUI.Logs;
 
-namespace CasaEngine.Editor.Controls;
+namespace CasaEngine.EditorUI.Controls;
 
 public partial class LogsControl : UserControl
 {
