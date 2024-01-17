@@ -2,11 +2,13 @@
 
 public class ComponentManager
 {
-    public List<Component> Components { get; } = new();
+    private readonly List<Component> _components = new();
+
+    public IReadOnlyCollection<Component> Components => _components;
 
     public void Update(float elapsedTime)
     {
-        foreach (var component in Components)
+        foreach (var component in _components)
         {
             component.Update(elapsedTime);
         }
@@ -14,7 +16,7 @@ public class ComponentManager
 
     public void Draw()
     {
-        foreach (var component in Components)
+        foreach (var component in _components)
         {
             component.Draw();
         }
@@ -22,7 +24,7 @@ public class ComponentManager
 
     public void Initialize(Entity entity)
     {
-        foreach (var component in Components)
+        foreach (var component in _components)
         {
             component.Initialize(entity);
         }
@@ -30,17 +32,29 @@ public class ComponentManager
 
     public void Add(Component component)
     {
-        Components.Add(component);
+        _components.Add(component);
+
+#if EDITOR
+        ComponentAdded?.Invoke(this, component);
+#endif
     }
 
     public void Remove(Component component)
     {
-        Components.Remove(component);
+        _components.Remove(component);
+
+#if EDITOR
+        ComponentRemoved?.Invoke(this, component);
+#endif
     }
 
     public void Clear()
     {
-        Components.Clear();
+        _components.Clear();
+
+#if EDITOR
+        ComponentClear?.Invoke(this, EventArgs.Empty);
+#endif
     }
 
     public List<T> GetComponents<T>() where T : Component
@@ -75,7 +89,32 @@ public class ComponentManager
     {
         foreach (var component in componentManager.Components)
         {
-            Components.Add(component.Clone());
+            _components.Add(component.Clone());
         }
     }
+
+    public void ScreenResized(int width, int height)
+    {
+        for (var index = 0; index < _components.Count; index++)
+        {
+            _components[index].ScreenResized(width, height);
+        }
+    }
+
+    public void OnEnabledValueChange()
+    {
+        for (var index = 0; index < _components.Count; index++)
+        {
+            _components[index].OnEnabledValueChange();
+        }
+    }
+
+#if EDITOR
+
+    public event EventHandler<Component> ComponentAdded;
+    public event EventHandler<Component> ComponentRemoved;
+    public event EventHandler? ComponentClear;
+
+
+#endif
 }

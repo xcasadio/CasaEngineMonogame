@@ -42,7 +42,7 @@ public abstract class GameEditor2d : GameEditor
 
         CameraEntity = new Entity();
         var camera = new Camera3dIn2dAxisComponent();
-        CameraEntity.ComponentManager.Components.Add(camera);
+        CameraEntity.ComponentManager.Add(camera);
         var screenXBy2 = Game.ScreenSizeWidth / 2f;
         var screenYBy2 = Game.ScreenSizeHeight / 2f;
         camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);

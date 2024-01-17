@@ -163,17 +163,17 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
 
                 if (args.Count == 1)
                 {
-                    if (args[0].ToLower().Equals("on"))
+                    switch (args[0].ToLower())
                     {
-                        state = true;
-                    }
-                    else if (args[0].ToLower().Equals("off"))
-                    {
-                        state = false;
-                    }
-                    else
-                    {
-                        error = true;
+                        case "on":
+                            state = true;
+                            break;
+                        case "off":
+                            state = false;
+                            break;
+                        default:
+                            error = true;
+                            break;
                     }
                 }
                 else
@@ -187,7 +187,11 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
                 }
                 else
                 {
-                    PhysicsDebugViewRendererComponent.DisplayPhysics = state;
+                    var physicsDebugViewRendererComponent = Game.GetGameComponent<PhysicsDebugViewRendererComponent>();
+                    if (physicsDebugViewRendererComponent != null)
+                    {
+                        physicsDebugViewRendererComponent.DisplayPhysics = state;
+                    }
                 }
             });
 

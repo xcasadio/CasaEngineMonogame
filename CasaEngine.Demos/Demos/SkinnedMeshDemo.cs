@@ -22,7 +22,7 @@ public class SkinnedMeshDemo : Demo
         entity.Coordinates.LocalRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
         entity.Coordinates.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
         var skinnedMeshComponent = new SkinnedMeshComponent();
-        entity.ComponentManager.Components.Add(skinnedMeshComponent);
+        entity.ComponentManager.Add(skinnedMeshComponent);
 
         var skinModelLoader = new RiggedModelLoader(game.Content, game.Content.Load<Effect>("Shaders\\skinEffect"));
         var debugTexture = game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName).Resource;

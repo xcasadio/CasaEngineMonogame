@@ -7,6 +7,7 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -41,7 +42,7 @@ public class DemosGame : CasaEngineGame
         var world = new World();
         world.Initialize(this);
         GameManager.CurrentWorld = world;
-        //PhysicsDebugViewRendererComponent.DisplayPhysics = true;
+        this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
         base.LoadContent();
 
         _demos.Add(new Collision3dBasicDemo());

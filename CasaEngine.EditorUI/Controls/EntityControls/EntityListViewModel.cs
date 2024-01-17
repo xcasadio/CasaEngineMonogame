@@ -5,13 +5,14 @@ using CasaEngine.Framework.World;
 
 namespace CasaEngine.Editor.Controls.EntityControls;
 
-public class EntitiesViewModel
+public class EntityListViewModel
 {
     private bool _lock;
-    private World _world;
+    private readonly World _world;
+
     public ObservableCollection<EntityViewModel> Entities { get; } = new();
 
-    public EntitiesViewModel(World world)
+    public EntityListViewModel(World world)
     {
         _world = world;
         world.EntityAdded += OnEntityAdded;

@@ -17,9 +17,9 @@ public abstract class Demo
     {
         var entity = new Entity();
         var camera = new ArcBallCameraComponent();
-        entity.ComponentManager.Components.Add(camera);
+        entity.ComponentManager.Add(camera);
         var gamePlayComponent = new GamePlayComponent();
-        entity.ComponentManager.Components.Add(gamePlayComponent);
+        entity.ComponentManager.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
         entity.Initialize(game);
         game.GameManager.CurrentWorld.AddEntity(entity);

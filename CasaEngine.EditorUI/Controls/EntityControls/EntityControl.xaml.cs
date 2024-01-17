@@ -27,14 +27,14 @@ public partial class EntityControl : UserControl
     private void OnGameStarted(object? sender, EventArgs e)
     {
         _game = (CasaEngineGame)sender;
-        entityComponentsControl.Game = _game;
+        entityComponentsControl.Initialize(_game);
 
         _game.GameManager.FrameComputed += OnFrameComputed;
     }
 
     private void OnFrameComputed(object? sender, EventArgs e)
     {
-        if (IsVisible && sender is GameManager gameManager && gameManager.IsRunningInGameEditorMode)
+        if (IsVisible && sender is GameManager { IsRunningInGameEditorMode: true })
         {
             var expression = Vector3ControlPosition.GetBindingExpression(Vector3Editor.ValueProperty);
             expression?.UpdateTarget();
@@ -85,9 +85,11 @@ public partial class EntityControl : UserControl
 
     private void ButtonRenameEntity_OnClick(object sender, RoutedEventArgs e)
     {
-        var inputTextBox = new InputTextBox();
-        inputTextBox.Description = "Enter a new name";
-        inputTextBox.Title = "Rename";
+        var inputTextBox = new InputTextBox
+        {
+            Description = "Enter a new name",
+            Title = "Rename"
+        };
         var entity = (DataContext as EntityViewModel);
         inputTextBox.Text = entity.Name;
         inputTextBox.Predicate = ValidateEntityNewName;

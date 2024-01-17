@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Text.Json;
-using CasaEngine.Core.Helpers;
+﻿using System.Text.Json;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -9,14 +7,40 @@ namespace CasaEngine.Core.Shapes;
 
 public abstract class Shape3d
 {
-    [Browsable(false)]
+    public event EventHandler<string> PropertyChanged;
+
+    private Vector3 _position;
+    private Quaternion _orientation;
+
     public Shape3dType Type { get; }
 
-    [Category("Coordinate")]
-    public Vector3 Position { get; set; }
+    public Vector3 Position
+    {
+        get => _position;
+        set
+        {
+            if (value != _position)
+            {
+                OnPropertyChange(nameof(Position));
+            }
 
-    [Category("Coordinate")]
-    public Quaternion Orientation { get; set; }
+            _position = value;
+        }
+    }
+
+    public Quaternion Orientation
+    {
+        get => _orientation;
+        set
+        {
+            if (value != _orientation)
+            {
+                OnPropertyChange(nameof(Orientation));
+            }
+
+            _orientation = value;
+        }
+    }
 
     protected Shape3d(Shape3dType type)
     {
@@ -27,6 +51,11 @@ public abstract class Shape3d
     {
         Position = element.GetProperty("position").GetVector3();
         Orientation = element.GetProperty("orientation").GetQuaternion();
+    }
+
+    protected void OnPropertyChange(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, propertyName);
     }
 
 #if EDITOR

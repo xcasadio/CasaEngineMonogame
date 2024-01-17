@@ -30,7 +30,7 @@ public class GameEditorTileMap : GameEditor2d
     {
         _entity = entity;
         _tileMapComponent = new TileMapComponent();
-        entity.ComponentManager.Components.Add(_tileMapComponent);
+        entity.ComponentManager.Add(_tileMapComponent);
     }
 
     public void CreateMapEntities(TileMapDataViewModel tileMapDataViewModel)

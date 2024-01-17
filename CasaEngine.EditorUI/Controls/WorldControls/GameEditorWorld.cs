@@ -11,6 +11,7 @@ using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Editor.DragAndDrop;
 using CasaEngine.Engine;
 using Microsoft.Xna.Framework;
+using CasaEngine.Framework.Game.Components.Physics;
 
 namespace CasaEngine.Editor.Controls.WorldControls;
 
@@ -26,6 +27,8 @@ public class GameEditorWorld : GameEditor
         var gizmoComponent = new GizmoComponent(Game);
         var gridComponent = new GridComponent(Game);
         var axisComponent = new AxisComponent(Game);
+
+        Game.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
         base.LoadContent();
     }

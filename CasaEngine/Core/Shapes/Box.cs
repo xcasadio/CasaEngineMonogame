@@ -6,7 +6,20 @@ namespace CasaEngine.Core.Shapes;
 
 public class Box : Shape3d, IEquatable<Box>
 {
-    public Vector3 Size { get; set; }
+    private Vector3 _size;
+
+    public Vector3 Size
+    {
+        get => _size;
+        set
+        {
+            if (value != _size)
+            {
+                OnPropertyChange(nameof(Size));
+            }
+            _size = value;
+        }
+    }
 
     public Box() : base(Shape3dType.Box)
     {

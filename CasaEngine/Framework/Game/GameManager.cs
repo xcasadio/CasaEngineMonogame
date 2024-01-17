@@ -388,9 +388,9 @@ public class GameManager
         _cameraEditorEntity.IsTemporary = true;
         _cameraEditorEntity.IsVisible = false;
         _cameraEditor = new ArcBallCameraComponent();
-        _cameraEditorEntity.ComponentManager.Components.Add(_cameraEditor);
+        _cameraEditorEntity.ComponentManager.Add(_cameraEditor);
         var gamePlayComponent = new GamePlayComponent();
-        _cameraEditorEntity.ComponentManager.Components.Add(gamePlayComponent);
+        _cameraEditorEntity.ComponentManager.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
 
         _cameraEditorEntity.Initialize(_game);

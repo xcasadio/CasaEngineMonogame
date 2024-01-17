@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Shapes;
-using CasaEngine.Editor.Controls.Common;
 using CasaEngine.Editor.Windows;
-using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -21,8 +17,6 @@ namespace CasaEngine.Editor.Controls.EntityControls;
 
 public partial class EntityComponentControl : UserControl
 {
-    public event EventHandler? ComponentsChanged;
-
     public EntityComponentControl()
     {
         InitializeComponent();
@@ -32,17 +26,16 @@ public partial class EntityComponentControl : UserControl
     {
         if (sender is FrameworkElement { DataContext: Component component })
         {
-            component.Owner.ComponentManager.Components.Remove(component);
-            ComponentsChanged?.Invoke(component.Owner, EventArgs.Empty);
+            component.Owner.ComponentManager.Remove(component);
         }
     }
 
     private void StaticMeshComponent_MeshSelection_OnClick(object sender, RoutedEventArgs e)
     {
         var selectStaticMeshWindow = new SelectStaticMeshWindow();
-        if (selectStaticMeshWindow.ShowDialog() == true && sender is FrameworkElement button)
+        if (selectStaticMeshWindow.ShowDialog() == true
+            && sender is FrameworkElement { DataContext: StaticMeshComponent staticMeshComponent })
         {
-            var staticMeshComponent = button.DataContext as StaticMeshComponent;
             var graphicsDevice = staticMeshComponent.Owner.Game.GraphicsDevice;
 
             staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
@@ -62,10 +55,9 @@ public partial class EntityComponentControl : UserControl
     private void PhysicComponent_ShapeSelection_OnClick(object sender, RoutedEventArgs e)
     {
         var selectPhysicsShapeWindow = new SelectPhysicsShapeWindow();
-        if (selectPhysicsShapeWindow.ShowDialog() == true && sender is FrameworkElement button)
+        if (selectPhysicsShapeWindow.ShowDialog() == true
+            && sender is FrameworkElement { DataContext: PhysicsComponent physicsComponent })
         {
-            var physicsComponent = button.DataContext as PhysicsComponent;
-
             var shape = (Shape3d)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
             SetParametersFromBoundingBox(shape, physicsComponent.Owner);
             shape.Position = physicsComponent.Owner.Position;
@@ -112,7 +104,8 @@ public partial class EntityComponentControl : UserControl
 
     private void ComboBoxExternalComponent_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is ComboBox comboBox && comboBox.DataContext is GamePlayComponent gamePlayComponent)
+        if (sender is ComboBox comboBox
+            && sender is FrameworkElement { DataContext: GamePlayComponent gamePlayComponent })
         {
             var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
             externalComponent.Initialize(gamePlayComponent.Owner);

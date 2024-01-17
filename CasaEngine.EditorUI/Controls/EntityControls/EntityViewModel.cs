@@ -1,12 +1,12 @@
 ﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.Editor.Controls.EntityControls;
 
 public class EntityViewModel : NotifyPropertyChangeBase
 {
     public Entity Entity { get; }
+    public ComponentListViewModel ComponentListViewModel { get; }
 
     public string Name
     {
@@ -16,6 +16,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
     public EntityViewModel(Entity entity)
     {
         Entity = entity;
+        ComponentListViewModel = new ComponentListViewModel(this);
 
         GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
     }

@@ -37,13 +37,13 @@ public class Collision2dBasicDemo : Demo
         var entity = new Entity();
         entity.Coordinates.LocalPosition = new Vector3(0, 0, 0);
         var physicsComponent = new Physics2dComponent();
-        entity.ComponentManager.Components.Add(physicsComponent);
+        entity.ComponentManager.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         var size = new Vector3(150, 1, 1f);
         physicsComponent.Shape = new ShapeRectangle(0, 0, (int)size.X, (int)size.Y);
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
         var meshComponent = new StaticMeshComponent();
-        entity.ComponentManager.Components.Add(meshComponent);
+        entity.ComponentManager.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, size.X, size.Y, size.Z).CreateMesh();
         meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
@@ -84,11 +84,11 @@ public class Collision2dBasicDemo : Demo
                 entity = new Entity();
                 entity.Coordinates.LocalPosition = new Vector3(i + boxSize + 1, 8 + j * boxSize, 0);
                 physicsComponent = new Physics2dComponent();
-                entity.ComponentManager.Components.Add(physicsComponent);
+                entity.ComponentManager.Add(physicsComponent);
                 physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
                 physicsComponent.PhysicsDefinition.Mass = mass;
                 meshComponent = new StaticMeshComponent();
-                entity.ComponentManager.Components.Add(meshComponent);
+                entity.ComponentManager.Add(meshComponent);
 
                 switch (j % 2)
                 {

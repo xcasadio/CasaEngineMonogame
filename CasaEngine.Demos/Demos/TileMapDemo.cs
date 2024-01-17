@@ -31,7 +31,7 @@ public class TileMapDemo : Demo
         entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
         var tileMapComponent = new TileMapComponent();
         tileMapComponent.TileMapData = tileMapData;
-        entity.ComponentManager.Components.Add(tileMapComponent);
+        entity.ComponentManager.Add(tileMapComponent);
 
         world.AddEntity(entity);
 
@@ -40,7 +40,7 @@ public class TileMapDemo : Demo
         entity.Name = "Link";
         entity.Coordinates.LocalPosition = new Vector3(100, 550, 0.3f);
         var physicsComponent = new Physics2dComponent();
-        entity.ComponentManager.Components.Add(physicsComponent);
+        entity.ComponentManager.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
         physicsComponent.PhysicsDefinition.Mass = 1.0f;
         physicsComponent.Shape = new ShapeCircle(25);
@@ -51,14 +51,14 @@ public class TileMapDemo : Demo
         var animations = LoadAnimations(game.GameManager.AssetContentManager, game.GraphicsDevice);
 
         var animatedSprite = new AnimatedSpriteComponent();
-        entity.ComponentManager.Components.Add(animatedSprite);
+        entity.ComponentManager.Add(animatedSprite);
         foreach (var animation in animations)
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
-        entity.ComponentManager.Components.Add(new PlayerComponent());
+        entity.ComponentManager.Add(new PlayerComponent());
 
         world.AddEntity(entity);
     }
@@ -95,7 +95,7 @@ public class TileMapDemo : Demo
         var entity = new Entity();
         var camera = new Camera3dIn2dAxisComponent();
         camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f);
-        entity.ComponentManager.Components.Add(camera);
+        entity.ComponentManager.Add(camera);
         entity.Initialize(game);
         game.GameManager.CurrentWorld.AddEntity(entity);
 

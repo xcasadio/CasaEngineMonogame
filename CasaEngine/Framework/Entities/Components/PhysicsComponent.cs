@@ -20,23 +20,41 @@ public class PhysicsComponent : PhysicsBaseComponent
         get => _shape;
         set
         {
+            if (_shape != null)
+            {
+                _shape.PropertyChanged -= OnPropertyChanged;
+            }
+
             _shape = value;
+
+            if (_shape != null)
+            {
+                _shape.PropertyChanged += OnPropertyChanged;
+            }
+
 #if EDITOR
+            ReCreatePhysicsObject();
             OnPropertyChanged();
 #endif
         }
     }
 
+    private void OnPropertyChanged(object? sender, string e)
+    {
+        ReCreatePhysicsObject();
+    }
+
     protected override void CreatePhysicsObject()
     {
-        if (_physicsEngineComponent == null || _shape == null)
+        if (PhysicsEngineComponent == null || _shape == null)
         {
             return;
         }
 
-        _shape.Position = Owner.Coordinates.LocalPosition;
-        _shape.Orientation = Owner.Coordinates.Rotation;
-
+        //TODO : _shape.Position & _shape.Orientation must be used
+        //in the worldmatrix or in the creation of the shape ?
+        //_shape.Position = Owner.Coordinates.LocalPosition;
+        //_shape.Orientation = Owner.Coordinates.Rotation;
         var worldMatrix = Matrix.CreateFromQuaternion(Owner.Coordinates.LocalRotation) *
                           Matrix.CreateTranslation(Owner.Coordinates.LocalPosition);
 
@@ -44,13 +62,13 @@ public class PhysicsComponent : PhysicsBaseComponent
         {
             case PhysicsType.Static:
                 _collisionObject =
-                    _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
+                    PhysicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
                 break;
             case PhysicsType.Kinetic:
-                _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
+                _collisionObject = PhysicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
                 break;
             default:
-                _rigidBody = _physicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
+                _rigidBody = PhysicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
                 break;
         }
     }

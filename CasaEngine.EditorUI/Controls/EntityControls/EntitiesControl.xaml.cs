@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Editor.Controls.Common;
 using CasaEngine.Editor.Controls.WorldControls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
@@ -62,7 +61,7 @@ public partial class EntitiesControl : UserControl
 
         _isSelectionTriggerActive = false;
 
-        var entitiesViewModel = DataContext as EntitiesViewModel;
+        var entitiesViewModel = DataContext as EntityListViewModel;
         var newEntities = new List<EntityViewModel>();
 
         foreach (var entity in entities.Cast<Entity>())
@@ -98,7 +97,7 @@ public partial class EntitiesControl : UserControl
             selectedEntity = (Entity)gizmoComponent.Gizmo.Selection[0];
         }
 
-        var entitiesViewModel = DataContext as EntitiesViewModel;
+        var entitiesViewModel = DataContext as EntityListViewModel;
         SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity));
 
         _isSelectionTriggerActive = true;
@@ -106,7 +105,7 @@ public partial class EntitiesControl : UserControl
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
-        var entitiesViewModel = new EntitiesViewModel(Game.GameManager.CurrentWorld);
+        var entitiesViewModel = new EntityListViewModel(Game.GameManager.CurrentWorld);
         DataContext = entitiesViewModel;
         TreeView.ItemsSource = entitiesViewModel.Entities;
     }
@@ -169,7 +168,7 @@ public partial class EntitiesControl : UserControl
             if (TreeView.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem
                 && treeViewItem.DataContext is EntityViewModel entityViewModel)
             {
-                var entitiesViewModel = DataContext as EntitiesViewModel;
+                var entitiesViewModel = DataContext as EntityListViewModel;
                 entitiesViewModel.Remove(entityViewModel);
             }
         }

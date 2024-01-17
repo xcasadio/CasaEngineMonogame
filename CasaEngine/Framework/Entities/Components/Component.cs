@@ -13,7 +13,7 @@ public abstract class Component : ISaveLoad
     , INotifyPropertyChanged
 #endif
 {
-    public Entity Owner { get; private set; }
+    public Entity? Owner { get; private set; }
     public abstract int ComponentId { get; }
     public bool IsInitialized { get; private set; }
 

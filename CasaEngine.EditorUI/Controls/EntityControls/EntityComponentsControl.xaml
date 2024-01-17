@@ -22,7 +22,7 @@
         </Button>
 
         <ListBox x:Name="ListBoxComponents" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                 ItemsSource="{Binding Entity.ComponentManager.Components}"
+                 ItemsSource="{Binding ComponentListViewModel.Components}"
                  ScrollViewer.CanContentScroll="False">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
@@ -39,7 +39,7 @@
                                     <ColumnDefinition Width="Auto" MaxWidth="20" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" HorizontalAlignment="Stretch"/>
+                                <TextBlock Grid.Column="0" Text="{Binding Component.DisplayName}" HorizontalAlignment="Stretch"/>
                                 <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick">
                                     <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
                                 </Button>
@@ -47,8 +47,7 @@
                         </Expander.Header>
 
                         <Grid HorizontalAlignment="Stretch">
-                            <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                                                                   ComponentsChanged="OnComponentsChanged" DataContext="{Binding}"/>
+                            <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding Component }"/>
                         </Grid>
                     </Expander>
                 </DataTemplate>

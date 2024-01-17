@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;

@@ -22,12 +22,12 @@ public class Collision3dBasicDemo : Demo
         //============ Create ground ===============
         var entity = new Entity();
         var physicsComponent = new PhysicsComponent();
-        entity.ComponentManager.Components.Add(physicsComponent);
+        entity.ComponentManager.Add(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         physicsComponent.Shape = new Box { Size = new Vector3(50, 1, 50) };
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
         var meshComponent = new StaticMeshComponent();
-        entity.ComponentManager.Components.Add(meshComponent);
+        entity.ComponentManager.Add(meshComponent);
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
         meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
@@ -53,12 +53,12 @@ public class Collision3dBasicDemo : Demo
                     entity = new Entity();
                     entity.Coordinates.LocalPosition = start + new Vector3(i, k, j);
                     physicsComponent = new PhysicsComponent();
-                    entity.ComponentManager.Components.Add(physicsComponent);
+                    entity.ComponentManager.Add(physicsComponent);
                     physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
                     physicsComponent.Shape = new Box { Size = Vector3.One };
                     physicsComponent.PhysicsDefinition.Mass = mass;
                     meshComponent = new StaticMeshComponent();
-                    entity.ComponentManager.Components.Add(meshComponent);
+                    entity.ComponentManager.Add(meshComponent);
                     meshComponent.Mesh = boxPrimitive;
                     meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
                     fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Text.Json;
-using System.Windows;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Engine.Input;
+﻿using System.Windows;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
-using CasaEngine.Editor.Controls.SpriteControls;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Editor.Controls.EntityControls;
@@ -25,7 +21,7 @@ public class GameEditorEntity : GameEditor
         DataContextChanged += OnDataContextChanged;
     }
 
-    private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (DataContext != null)
         {
@@ -35,14 +31,11 @@ public class GameEditorEntity : GameEditor
             Game.GameManager.CurrentWorld.ClearEntities();
             Game.GameManager.CurrentWorld.AddEntity(_cameraEntity);
             Game.GameManager.CurrentWorld.AddEntity(entityViewModel.Entity);
-            //StaticSpriteComponent.TryLoadSpriteData(spriteData?.Name);
         }
     }
 
     protected override void LoadContent()
     {
-        //var gizmoComponent = new GizmoComponent(Game);
-        //var gridComponent = new GridComponent(Game);
         new AxisComponent(Game);
 
         base.LoadContent();
@@ -52,9 +45,9 @@ public class GameEditorEntity : GameEditor
 
         _cameraEntity = new Entity();
         _camera = new ArcBallCameraComponent();
-        _cameraEntity.ComponentManager.Components.Add(_camera);
+        _cameraEntity.ComponentManager.Add(_camera);
         var gamePlayComponent = new GamePlayComponent();
-        _cameraEntity.ComponentManager.Components.Add(gamePlayComponent);
+        _cameraEntity.ComponentManager.Add(gamePlayComponent);
         gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
         _cameraEntity.Initialize(Game);
 
@@ -62,8 +55,7 @@ public class GameEditorEntity : GameEditor
         Game.GameManager.ActiveCamera = _camera;
         Game.GameManager.CurrentWorld.AddEntity(_cameraEntity);
 
-        //_inputComponent = Game.GetGameComponent<InputComponent>();
-        //Game.Components.Remove(Game.GetGameComponent<GridComponent>());
+        Game.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
     }
 
     private void OnDrop(object sender, DragEventArgs e)

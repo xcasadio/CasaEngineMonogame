@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Entities;
-
-namespace CasaEngine.Editor.Controls.EntityControls;
+﻿namespace CasaEngine.Editor.Controls.EntityControls;
 /*
 public class EntityDataViewModel : NotifyPropertyChangeBase
 {

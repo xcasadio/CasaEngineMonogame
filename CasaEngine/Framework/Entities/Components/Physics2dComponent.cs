@@ -45,7 +45,7 @@ public class Physics2dComponent : PhysicsBaseComponent
 
     protected override void CreatePhysicsObject()
     {
-        if (_physicsEngineComponent == null || _shape == null)
+        if (PhysicsEngineComponent == null || _shape == null)
         {
             return;
         }
@@ -60,13 +60,13 @@ public class Physics2dComponent : PhysicsBaseComponent
         {
             case PhysicsType.Static:
                 _collisionObject =
-                    _physicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
+                    PhysicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
                 break;
             case PhysicsType.Kinetic:
-                _collisionObject = _physicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
+                _collisionObject = PhysicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
                 break;
             default:
-                _rigidBody = _physicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
+                _rigidBody = PhysicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
                 break;
         }
     }

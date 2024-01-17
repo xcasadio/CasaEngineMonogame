@@ -27,6 +27,6 @@ public class GameEditorAnimation2d : GameEditor2d
     protected override void CreateEntityComponents(Entity entity)
     {
         AnimatedSpriteComponent = new AnimatedSpriteComponent();
-        entity.ComponentManager.Components.Add(AnimatedSpriteComponent);
+        entity.ComponentManager.Add(AnimatedSpriteComponent);
     }
 }

@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using CasaEngine.Editor.Controls.Common;
 using CasaEngine.Editor.Tools;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 
@@ -12,25 +12,16 @@ namespace CasaEngine.Editor.Controls.EntityControls;
 
 public partial class EntityComponentsControl : UserControl
 {
+    public CasaEngineGame Game { get; private set; }
+
     public EntityComponentsControl()
     {
         InitializeComponent();
     }
 
-    public CasaEngineGame Game { get; set; }
-
-    private void OnComponentsChanged(object? sender, EventArgs e)
+    public void Initialize(CasaEngineGame game)
     {
-        if (sender is EntityViewModel entityViewModel)
-        {
-            RefreshComponentsList(entityViewModel);
-        }
-    }
-
-    private void RefreshComponentsList(EntityViewModel entityViewModel)
-    {
-        ListBoxComponents.DataContext = null;
-        ListBoxComponents.DataContext = entityViewModel;
+        Game = game;
     }
 
     private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
@@ -52,9 +43,7 @@ public partial class EntityComponentsControl : UserControl
             var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
             var component = (Component)Activator.CreateInstance(componentType);
             component.Initialize(entityViewModel.Entity);
-            entityViewModel.Entity.ComponentManager.Components.Add(component);
-
-            RefreshComponentsList(entityViewModel);
+            entityViewModel.Entity.ComponentManager.Add(component);
         }
     }
 
@@ -62,8 +51,7 @@ public partial class EntityComponentsControl : UserControl
     {
         if (sender is FrameworkElement { DataContext: Component component })
         {
-            component.Owner.ComponentManager.Components.Remove(component);
-            RefreshComponentsList(DataContext as EntityViewModel);
+            component.Owner.ComponentManager.Remove(component);
         }
     }
 }

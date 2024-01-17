@@ -70,31 +70,19 @@ public class Entity : EntityBase
 
         foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
         {
-            ComponentManager.Components.Add(GameSettings.ComponentLoader.Load(item));
+            ComponentManager.Add(GameSettings.ComponentLoader.Load(item));
         }
     }
 
     public override void ScreenResized(int width, int height)
     {
-        var components = ComponentManager.Components;
-
-        for (var index = 0; index < components.Count; index++)
-        {
-            components[index].ScreenResized(width, height);
-        }
-
+        ComponentManager.ScreenResized(width, height);
         base.ScreenResized(width, height);
     }
 
     protected override void OnEnabledValueChange()
     {
-        var components = ComponentManager.Components;
-
-        for (var index = 0; index < components.Count; index++)
-        {
-            components[index].OnEnabledValueChange();
-        }
-
+        ComponentManager.OnEnabledValueChange();
         base.OnEnabledValueChange();
     }
 

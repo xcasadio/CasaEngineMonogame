@@ -15,7 +15,7 @@ namespace CasaEngine.Framework.Entities.Components;
 
 public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 {
-    protected PhysicsEngineComponent _physicsEngineComponent;
+    protected PhysicsEngineComponent? PhysicsEngineComponent;
 
     //body
     private Vector3 _velocity;
@@ -23,6 +23,7 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     private float _maxForce;
     private float _maxTurnRate;
     protected RigidBody? _rigidBody;
+    private bool _lock;
 
     //static
     protected CollisionObject? _collisionObject;
@@ -33,19 +34,6 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     [Browsable(false)]
     public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
     public PhysicsDefinition PhysicsDefinition { get; } = new();
-
-    /*
-    public Shape3d? Shape
-    {
-        get => _shape;
-        set
-        {
-            _shape = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
-        }
-    }*/
 
     public Vector3 Velocity
     {
@@ -68,8 +56,8 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     {
         base.Initialize(entity);
 
-        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
-        Debug.Assert(_physicsEngineComponent != null);
+        PhysicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
+        Debug.Assert(PhysicsEngineComponent != null);
 
 #if EDITOR
         entity.PositionChanged += OnPositionChanged;
@@ -144,29 +132,29 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         DestroyPhysicsObject();
     }
 
+    protected abstract void CreatePhysicsObject();
+
     private void DestroyPhysicsObject()
     {
-        if (_physicsEngineComponent == null)
+        if (PhysicsEngineComponent == null)
         {
             return;
         }
 
         if (_collisionObject != null)
         {
-            _physicsEngineComponent.RemoveCollisionObject(_collisionObject);
+            PhysicsEngineComponent.RemoveCollisionObject(_collisionObject);
             _collisionObject = null;
         }
 
         if (_rigidBody != null)
         {
-            _physicsEngineComponent.RemoveRigidBody(_rigidBody);
+            PhysicsEngineComponent.RemoveRigidBody(_rigidBody);
             _rigidBody = null;
         }
 
-        _physicsEngineComponent.ClearCollisionDataOf(this);
+        PhysicsEngineComponent.ClearCollisionDataOf(this);
     }
-
-    protected abstract void CreatePhysicsObject();
 
     public void ApplyImpulse(Vector3 impulse, Vector3 relativePosition)
     {
@@ -181,6 +169,21 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     public override void Load(JsonElement element, SaveOption option)
     {
         PhysicsDefinition.Load(element.GetProperty("physics_definition"));
+    }
+
+    protected void ReCreatePhysicsObject()
+    {
+        if (_lock)
+        {
+            return;
+        }
+
+        _lock = true;
+
+        DestroyPhysicsObject();
+        CreatePhysicsObject();
+
+        _lock = false;
     }
 
 #if EDITOR
