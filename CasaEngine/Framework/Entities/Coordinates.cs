@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-using System.Text.Json;
-using CasaEngine.Core.Helpers;
+﻿using System.Text.Json;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -16,13 +14,10 @@ public class Coordinates
     private Vector3 _localScale;
     private bool _localMatrixChanged = true;
 
-    [Browsable(false)]
     public Coordinates? Parent { private get; set; }
 
-    [Category("Coordinates")]
     private Matrix LocalMatrix { get; set; }
 
-    [Category("Coordinates")]
     public Matrix WorldMatrix
     {
         get
@@ -33,7 +28,6 @@ public class Coordinates
         private set => _worldMatrix = value;
     }
 
-    [Category("Coordinates")]
     public Vector3 LocalCenterOfRotation
     {
         get => _localCenterOfRotation;
@@ -44,7 +38,6 @@ public class Coordinates
         }
     }
 
-    [Category("Coordinates")]
     public Vector3 LocalPosition
     {
         get => _localPosition;
@@ -55,7 +48,6 @@ public class Coordinates
         }
     }
 
-    [Category("Coordinates")]
     public Quaternion LocalRotation
     {
         get => _localRotation;
@@ -66,7 +58,6 @@ public class Coordinates
         }
     }
 
-    [Category("Coordinates")]
     public Vector3 LocalScale
     {
         get => _localScale;
@@ -77,13 +68,10 @@ public class Coordinates
         }
     }
 
-    [Category("Coordinates")]
     public Vector3 Position => Parent == null ? LocalPosition : LocalPosition + Parent.Position;
 
-    [Category("Coordinates")]
     public Quaternion Rotation => Parent == null ? LocalRotation : LocalRotation + Parent.Rotation;
 
-    [Category("Coordinates")]
     public Vector3 Scale => Parent == null ? LocalScale : LocalScale * Parent.Scale;
 
     public Coordinates()
@@ -164,6 +152,116 @@ public class Coordinates
 
         newObject = new JObject();
         LocalRotation.Save(newObject);
+        jObject.Add("rotation", newObject);
+    }
+
+#endif
+}
+
+
+
+public class Coordinates2
+{
+    private Vector3 _position;
+    private Quaternion _rotation;
+    private Vector3 _scale;
+    private Matrix _matrix;
+    private bool _matrixChanged = true;
+
+    public Matrix Matrix
+    {
+        get
+        {
+            UpdateMatrix();
+            return _matrix;
+        }
+        private set => _matrix = value;
+    }
+
+    public Vector3 Position
+    {
+        get => _position;
+        set
+        {
+            _position = value;
+            SetDirtyMatrix();
+        }
+    }
+
+    public Quaternion Rotation
+    {
+        get => _rotation;
+        set
+        {
+            _rotation = value;
+            SetDirtyMatrix();
+        }
+    }
+
+    public Vector3 Scale
+    {
+        get => _scale;
+        set
+        {
+            _scale = value;
+            SetDirtyMatrix();
+        }
+    }
+
+    public Coordinates2()
+    {
+        Scale = Vector3.One;
+        Rotation = Quaternion.Identity;
+        Matrix = Matrix.Identity;
+        SetDirtyMatrix();
+    }
+
+    private void SetDirtyMatrix()
+    {
+        _matrixChanged = true;
+    }
+
+    private void UpdateMatrix()
+    {
+        if (_matrixChanged)
+        {
+            var translation = Matrix.CreateTranslation(Position);
+            var scale = Matrix.CreateScale(Scale);
+            var rotation = Matrix.CreateFromQuaternion(Rotation);
+            Matrix = scale * rotation * translation;
+            _matrixChanged = false;
+        }
+    }
+
+    public void CopyFrom(Coordinates2 coordinates)
+    {
+        _position = coordinates._position;
+        _rotation = coordinates._rotation;
+        _scale = coordinates._scale;
+        SetDirtyMatrix();
+    }
+
+    public void Load(JsonElement element)
+    {
+        Position = element.GetProperty("position").GetVector3();
+        Scale = element.GetProperty("scale").GetVector3();
+        Rotation = element.GetProperty("rotation").GetQuaternion();
+        SetDirtyMatrix();
+    }
+
+#if EDITOR
+    public void Save(JObject jObject)
+    {
+        var newObject = new JObject();
+        Position.Save(newObject);
+        jObject.Add("position", newObject);
+
+        newObject = new JObject();
+        Scale.Save(newObject);
+        jObject.Add("scale", newObject);
+
+        newObject = new JObject();
+        Rotation.Save(newObject);
         jObject.Add("rotation", newObject);
     }
 

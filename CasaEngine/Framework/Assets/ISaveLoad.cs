@@ -17,3 +17,13 @@ public interface ISaveLoad
     void Save(JObject jObject, SaveOption option);
 #endif
 }
+
+
+public interface ISerializable
+{
+    void Load(JsonElement element);
+
+#if EDITOR
+    void Save(JObject node);
+#endif
+}
