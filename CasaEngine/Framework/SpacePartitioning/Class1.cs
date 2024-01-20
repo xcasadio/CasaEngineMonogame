@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using XNAGizmo;
 
 namespace CasaEngine.Framework.SpacePartitioning;
 
@@ -13,7 +14,6 @@ public class UObject : ISerializable
 
     public Guid Guid { get; private set; } = Guid.Empty;
     public string Name { get; set; }
-
 
     public void Initialize()
     {
@@ -82,10 +82,12 @@ public class AActor : UObject
     }
 
 #if EDITOR
+
     public override void Save(JObject node)
     {
         base.Save(node);
     }
+
 #endif
 }
 
@@ -133,23 +135,34 @@ public abstract class ActorComponent : UObject
 //Scene Components (class USceneComponent, a child of UActorComponent) support location-based behaviors that do not require
 //a geometric representation.
 //This includes spring arms, cameras, physical forces and constraints (but not physical objects), and even audio.
-public abstract class SceneComponent : ActorComponent
+public abstract class SceneComponent : ActorComponent, ITransformable
 {
     public AActor? Owner { get; }
     public Coordinates2 Coordinates { get; } = new();
 
-    public Matrix WorldMatrix
-    {
-        get
-        {
-            if (Owner?.Parent != null)
-            {
-                return Coordinates.Matrix * Owner.Parent.RootComponent.WorldMatrix;
-            }
+    public Matrix WorldMatrix => Coordinates.GetMatrix(Owner?.Parent?.RootComponent?.WorldMatrix);
 
-            return Coordinates.Matrix;
-        }
+    public Vector3 Position
+    {
+        get => Coordinates.Position;
+        set => Coordinates.Position = value;
     }
+    public Vector3 Scale
+    {
+        get => Coordinates.Scale;
+        set => Coordinates.Scale = value;
+    }
+
+    public Quaternion Orientation
+    {
+        get => Coordinates.Rotation;
+        set => Coordinates.Rotation = value;
+    }
+
+    public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
+    public Vector3 Up => Vector3.Transform(Vector3.Up, Orientation);
+
+    public abstract BoundingBox BoundingBox { get; }
 
     protected SceneComponent(AActor? owner = null)
     {

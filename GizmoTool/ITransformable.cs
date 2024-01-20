@@ -18,16 +18,38 @@
 
 #define USE_QUATERNION
 //#define USE_ROTATIONMATRIX
-#define USE_NAME
+//#define USE_NAME
 
 using Microsoft.Xna.Framework;
 
 namespace XNAGizmo
 {
-    /// <summary>
-    /// Interface describtion for any object in the world that is transformable by position, rotation and scale. 
-    /// </summary>
     public interface ITransformable
+    {
+#if USE_NAME
+        string Name { get; }
+#endif
+
+        Vector3 Position { get; set; }
+        Vector3 Scale { get; set; }
+
+#if USE_QUATERNION
+
+        Quaternion Orientation { get; set; }
+        Vector3 Forward { get; }
+        Vector3 Up { get; }
+
+#elif USE_ROTATIONMATRIX
+        Matrix Rotation { get; set; }
+#else
+        Vector3 Forward { get; set; }
+        Vector3 Up { get; set; }
+#endif
+
+        BoundingBox BoundingBox { get; }
+    }
+
+    public interface ITransformable2
     {
 #if USE_NAME
         string Name { get; }

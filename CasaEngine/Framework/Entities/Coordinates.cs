@@ -2,6 +2,7 @@
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace CasaEngine.Framework.Entities;
 
@@ -166,9 +167,13 @@ public class Coordinates2
     private Quaternion _rotation;
     private Vector3 _scale;
     private Matrix _matrix;
-    private bool _matrixChanged = true;
+    private bool _localMatrixChanged = true;
 
-    public Matrix Matrix
+    public event EventHandler? PositionChanged;
+    public event EventHandler? OrientationChanged;
+    public event EventHandler? ScaleChanged;
+
+    public Matrix LocalMatrix
     {
         get
         {
@@ -185,6 +190,7 @@ public class Coordinates2
         {
             _position = value;
             SetDirtyMatrix();
+            PositionChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -195,6 +201,7 @@ public class Coordinates2
         {
             _rotation = value;
             SetDirtyMatrix();
+            OrientationChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -205,6 +212,7 @@ public class Coordinates2
         {
             _scale = value;
             SetDirtyMatrix();
+            ScaleChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -212,25 +220,35 @@ public class Coordinates2
     {
         Scale = Vector3.One;
         Rotation = Quaternion.Identity;
-        Matrix = Matrix.Identity;
+        LocalMatrix = Matrix.Identity;
         SetDirtyMatrix();
     }
 
     private void SetDirtyMatrix()
     {
-        _matrixChanged = true;
+        _localMatrixChanged = true;
     }
 
     private void UpdateMatrix()
     {
-        if (_matrixChanged)
+        if (_localMatrixChanged)
         {
             var translation = Matrix.CreateTranslation(Position);
             var scale = Matrix.CreateScale(Scale);
             var rotation = Matrix.CreateFromQuaternion(Rotation);
-            Matrix = scale * rotation * translation;
-            _matrixChanged = false;
+            LocalMatrix = scale * rotation * translation;
+            _localMatrixChanged = false;
         }
+    }
+
+    public Matrix GetMatrix(Matrix? parentMatrix)
+    {
+        if (parentMatrix != null)
+        {
+            return LocalMatrix * parentMatrix.Value;
+        }
+
+        return LocalMatrix;
     }
 
     public void CopyFrom(Coordinates2 coordinates)
@@ -250,6 +268,7 @@ public class Coordinates2
     }
 
 #if EDITOR
+
     public void Save(JObject jObject)
     {
         var newObject = new JObject();
