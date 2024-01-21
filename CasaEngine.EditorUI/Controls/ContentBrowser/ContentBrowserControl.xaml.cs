@@ -21,6 +21,7 @@ using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Point = System.Windows.Point;
 
@@ -243,7 +244,7 @@ public partial class ContentBrowserControl : UserControl
 
     private void MenuItemCreateEntity_OnClick(object sender, RoutedEventArgs e)
     {
-        CreateAsset(new Entity(), Constants.FileNameExtensions.Entity);
+        CreateAsset(new AActor(), Constants.FileNameExtensions.Entity);
     }
     private void MenuItemCreateScreen_OnClick(object sender, RoutedEventArgs e)
     {

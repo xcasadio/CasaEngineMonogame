@@ -2,32 +2,37 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Component = CasaEngine.Framework.Entities.Components.Component;
 
 namespace CasaEngine.Demos;
 
 [DisplayName("PlayerComponent")]
-public class PlayerComponent : Component
+public class PlayerComponent : ActorComponent
 {
-    public override int ComponentId => (int)ComponentIds.Custom + 1;
-
     private Physics2dComponent _physics2dComponent;
     private AnimatedSpriteComponent _animatedSpriteComponent;
 
     int index = 0;
 
-    public override void Initialize(Entity entity)
+    protected override void InitializePrivate()
     {
-        base.Initialize(entity);
+        base.InitializePrivate();
 
-        _physics2dComponent = Owner.ComponentManager.GetComponent<Physics2dComponent>();
-        _animatedSpriteComponent = Owner.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        _physics2dComponent = Owner.GetComponent<Physics2dComponent>();
+        _animatedSpriteComponent = Owner.GetComponent<AnimatedSpriteComponent>();
+    }
+
+    public override void InitializeWithWorld(World world)
+    {
+        base.InitializeWithWorld(world);
+    }
+
+    public override PlayerComponent Clone()
+    {
+        throw new NotImplementedException();
     }
 
     public override void Update(float elapsedTime)
@@ -84,18 +89,7 @@ public class PlayerComponent : Component
         }
     }
 
-    public override void Draw()
-    {
-
-    }
-
-    public override Component Clone()
-    {
-        var component = new PlayerComponent();
-        return component;
-    }
-
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
 
     }

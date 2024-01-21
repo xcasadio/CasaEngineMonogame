@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
@@ -19,21 +21,11 @@ public class TileCollisionManager : ICollideableComponent
         _y = y;
     }
 
-    public Entity Owner => _tileMapComponent.Owner;
+    public AActor? Owner => _tileMapComponent.Owner;
 
     public PhysicsType PhysicsType { get; }
 
     public HashSet<Collision> Collisions { get; } = new();
-
-    public void OnHit(Collision collision)
-    {
-        Owner.Hit(collision, _tileMapComponent);
-    }
-
-    public void OnHitEnded(Collision collision)
-    {
-        Owner.HitEnded(collision, _tileMapComponent);
-    }
 
     public void RemoveTile()
     {

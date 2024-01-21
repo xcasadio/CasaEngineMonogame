@@ -1,8 +1,8 @@
 using System;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
 using Microsoft.Xna.Framework;
@@ -29,19 +29,18 @@ public class ThrowableWeapon : Weapon
         InitializeEntity(entity);
     }
 
-    private void InitializeEntity(Entity entity)
+    private void InitializeEntity(AActor entity)
     {
         //TODO : remove it => must be set by editor
-        var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
         var scriptEnemyWeapon = new ScriptEnemyWeapon();
-        gamePlayComponent.ExternalComponent = scriptEnemyWeapon;
+        entity.GameplayProxy = scriptEnemyWeapon;
 
-        entity.Initialize(Game);
+        entity.Initialize();
 
         var offsetLength = 20f;
 
-        var physics2dComponent = entity.ComponentManager.GetComponent<Physics2dComponent>();
-        var animatedSpriteComponent = entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        var physics2dComponent = entity.GetComponent<Physics2dComponent>();
+        var animatedSpriteComponent = entity.GetComponent<AnimatedSpriteComponent>();
 
         var offset = Character.CurrentDirection switch
         {
@@ -52,7 +51,7 @@ public class ThrowableWeapon : Weapon
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        physics2dComponent.SetPosition(Character.Owner.Coordinates.Position + new Vector3(offset, 0f));
+        physics2dComponent.SetPosition(Character.Owner.RootComponent.Position + new Vector3(offset, 0f));
 
         var direction = Character.CurrentDirection switch
         {

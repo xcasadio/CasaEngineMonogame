@@ -2,6 +2,8 @@
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -17,12 +19,12 @@ public class SkinnedMeshDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         //============ Create skinned mesh ===============
-        var entity = new Entity();
-        entity.Coordinates.LocalPosition = new Vector3(0, 0, 0);
-        entity.Coordinates.LocalRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
-        entity.Coordinates.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
+        var entity = new AActor();
         var skinnedMeshComponent = new SkinnedMeshComponent();
-        entity.ComponentManager.Add(skinnedMeshComponent);
+        entity.RootComponent = skinnedMeshComponent;
+        entity.RootComponent.Position = new Vector3(0, 0, 0);
+        entity.RootComponent.Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
+        entity.RootComponent.Scale = new Vector3(0.1f, 0.1f, 0.1f);
 
         var skinModelLoader = new RiggedModelLoader(game.Content, game.Content.Load<Effect>("Shaders\\skinEffect"));
         var debugTexture = game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName).Resource;

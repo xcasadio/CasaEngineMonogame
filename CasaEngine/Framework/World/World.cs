@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -6,6 +7,8 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
@@ -16,35 +19,34 @@ namespace CasaEngine.Framework.World;
 public sealed class World : Asset
 {
     private readonly List<EntityReference> _entityReferences = new();
-    private readonly List<Entity> _entities = new();
-    private readonly List<Entity> _baseObjectsToAdd = new();
+    private readonly List<AActor> _entities = new();
+    private readonly List<AActor> _baseObjectsToAdd = new();
     private readonly List<ScreenGui> _screens = new();
 
-    private readonly Octree<EntityBase> _octree;
-    private readonly List<EntityBase> _entitiesVisible = new(1000);
+    private readonly Octree<AActor> _octree;
+    private readonly List<AActor> _entitiesVisible = new(1000);
 
     public CasaEngineGame Game { get; private set; }
     public IEnumerable<ScreenGui> Screens => _screens;
-    public ExternalComponent? ExternalComponent { get; set; }
-    public IList<Entity> Entities => _entities;
-    public EntityBase RootEntity { get; }
+    public GameplayProxy? GameplayProxy { get; set; }
+    public IList<AActor> Entities => _entities;
 
     public bool DisplaySpacePartitioning { get; set; }
+
+    //UGameViewportClient ViewportClient
 
 
     public World()
     {
-        RootEntity = new EntityBase { Name = "RootEntity" };
-
-        _octree = new Octree<EntityBase>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
+        _octree = new Octree<AActor>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
     }
 
-    public void AddEntity(Entity entity)
+    public void AddEntity(AActor entity)
     {
         _baseObjectsToAdd.Add(entity);
     }
 
-    public void RemoveEntity(Entity entity)
+    public void RemoveEntity(AActor entity)
     {
         entity.Destroy();
     }
@@ -58,11 +60,6 @@ public sealed class World : Asset
 #if EDITOR
         EntitiesClear?.Invoke(this, EventArgs.Empty);
 #endif
-    }
-
-    public void ClearEntityReferences()
-    {
-        _entityReferences.Clear();
     }
 
     public void Initialize(CasaEngineGame game)
@@ -90,10 +87,7 @@ public sealed class World : Asset
 
 #if !EDITOR
         //TODO : remove this, use a script to set active camera
-        var camera = _entities
-            .Select(x => x.ComponentManager.Components.FirstOrDefault(y => y is CameraComponent) as CameraComponent)
-            .FirstOrDefault(x => x != null);
-
+        var camera = _entities.Select(x => x.GetComponent<CameraComponent>()).First(x => x != null);
         Game.GameManager.ActiveCamera = camera;
 #endif
     }
@@ -104,18 +98,18 @@ public sealed class World : Asset
         if (!Game.GameManager.IsRunningInGameEditorMode)
 #endif
         {
-            ExternalComponent?.OnBeginPlay(this);
+            GameplayProxy?.OnBeginPlay(this);
         }
 
         foreach (var entity in _entities)
         {
-            entity.OnBeginPlay(this);
+            entity.GameplayProxy?.OnBeginPlay(this);
         }
     }
 
     public void Update(float elapsedTime)
     {
-        var toRemove = new List<Entity>();
+        var toRemove = new List<AActor>();
 
         InternalAddEntities();
 
@@ -130,9 +124,9 @@ public sealed class World : Asset
             {
                 entity.Update(elapsedTime);
 
-                if (entity.IsBoundingBoxDirty)
+                if (IsBoundingBoxDirty(entity))
                 {
-                    _octree.MoveItem(entity, entity.BoundingBox);
+                    _octree.MoveItem(entity, GetBoundingBox(entity));
                 }
             }
         }
@@ -150,12 +144,46 @@ public sealed class World : Asset
         }
     }
 
+    private bool IsBoundingBoxDirty(AActor actor)
+    {
+        if (actor.RootComponent?.IsBoundingBoxDirty ?? false)
+        {
+            return true;
+        }
+
+        foreach (var component in actor.Components)
+        {
+            if (component is SceneComponent { IsBoundingBoxDirty: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private BoundingBox GetBoundingBox(AActor actor)
+    {
+        var boundingBox = actor.RootComponent?.BoundingBox ?? new BoundingBox();
+
+        foreach (var component in actor.Components)
+        {
+            if (component is SceneComponent sceneComponent)
+            {
+                boundingBox.ExpandBy(sceneComponent.BoundingBox);
+            }
+        }
+
+        return boundingBox;
+    }
+
     private void InternalAddEntities()
     {
         foreach (var entityToAdd in _baseObjectsToAdd)
         {
-            entityToAdd.Initialize(Game);
-            _octree.AddItem(entityToAdd.BoundingBox, entityToAdd);
+            entityToAdd.Initialize();
+            entityToAdd.InitializeWithWorld(this);
+            AddInSpacePartitioning(entityToAdd);
 #if EDITOR
             EntityAdded?.Invoke(this, entityToAdd);
 #endif
@@ -165,6 +193,11 @@ public sealed class World : Asset
         _baseObjectsToAdd.Clear();
     }
 
+    private void AddInSpacePartitioning(AActor actor)
+    {
+        _octree.AddItem(GetBoundingBox(actor), actor);
+    }
+
     public void Draw(Matrix viewProjection)
     {
         var boundingFrustum = new BoundingFrustum(viewProjection);
@@ -172,7 +205,10 @@ public sealed class World : Asset
 
         foreach (var entityBase in _entitiesVisible)
         {
-            entityBase.Draw();
+            if (entityBase.RootComponent != null)
+            {
+                entityBase.Draw(0f);
+            }
         }
 
         _entitiesVisible.Clear();
@@ -188,6 +224,14 @@ public sealed class World : Asset
         }
     }
 
+    public void ScreenResized(int width, int height)
+    {
+        foreach (var entity in Entities)
+        {
+            entity.ScreenResized(width, height);
+        }
+    }
+
     //TODO : remove it, use AssetContentManager
     public void Load(string fileName, SaveOption option)
     {
@@ -200,7 +244,7 @@ public sealed class World : Asset
     public override void Load(JsonElement element, SaveOption option)
     {
         ClearEntities();
-        ClearEntityReferences();
+        _entityReferences.Clear();
         base.Load(element.GetProperty("asset"), option);
 
         foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())
@@ -213,7 +257,8 @@ public sealed class World : Asset
         if (element.TryGetProperty("external_component", out var externalComponentNode)
             && externalComponentNode.GetProperty("type").GetInt32() != IdManager.InvalidId)
         {
-            ExternalComponent = GameSettings.ScriptLoader.Load(externalComponentNode);
+            System.Diagnostics.Debugger.Break();
+            //GameplayProxy = GameSettings.ScriptLoader.Load(externalComponentNode);
         }
     }
 
@@ -253,14 +298,14 @@ public sealed class World : Asset
 #if EDITOR
 
     public event EventHandler? EntitiesClear;
-    public event EventHandler<Entity> EntityAdded;
-    public event EventHandler<Entity> EntityRemoved;
+    public event EventHandler<AActor> EntityAdded;
+    public event EventHandler<AActor> EntityRemoved;
 
-    public void AddEntityWithEditor(Entity entity)
+    public void AddEntityWithEditor(AActor entity)
     {
-        entity.Initialize(Game);
+        entity.InitializeWithWorld(this);
         _entities.Add(entity);
-        _octree.AddItem(entity.BoundingBox, entity);
+        AddInSpacePartitioning(entity);
     }
 
     public override void Save(JObject jObject, SaveOption option)
@@ -271,7 +316,10 @@ public sealed class World : Asset
 
         foreach (var entityReference in _entityReferences)
         {
-            entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.Coordinates);
+            if (entityReference.Entity.RootComponent != null)
+            {
+                entityReference.InitialCoordinates = new Coordinates(entityReference.Entity.RootComponent?.Coordinates);
+            }
             //entityReference.Name = entityReference.Entity.Name;
 
             JObject entityObject = new();
@@ -281,13 +329,13 @@ public sealed class World : Asset
 
         jObject.Add("entity_references", entitiesJArray);
 
-        if (ExternalComponent == null || ExternalComponent.ExternalComponentId == IdManager.InvalidId)
+        if (GameplayProxy == null)
         {
-            jObject.Add("external_component", IdManager.InvalidId);
+            jObject.Add("external_component", "null");
         }
         else
         {
-            var externalComponentNode = new JObject { { "type", ExternalComponent.ExternalComponentId } };
+            var externalComponentNode = new JObject { { "type", GameplayProxy.GetType().Name } };
             jObject.Add("external_component", externalComponentNode);
         }
     }
@@ -302,7 +350,7 @@ public sealed class World : Asset
         _entityReferences.Remove(entityReference);
     }
 
-    public void AddEntityEditorMode(Entity entity)
+    public void AddEntityEditorMode(AActor entity)
     {
         var entityReference = new EntityReference();
         entityReference.Name = entity.Name;
@@ -311,20 +359,20 @@ public sealed class World : Asset
         AddEntityEditorMode(entityReference, entityReference.Entity);
     }
 
-    private void AddEntityEditorMode(EntityReference entityReference, Entity entity)
+    private void AddEntityEditorMode(EntityReference entityReference, AActor entity)
     {
         _entityReferences.Add(entityReference);
         _entities.Add(entity);
-        _octree.AddItem(entity.BoundingBox, entity);
+        AddInSpacePartitioning(entity);
 
         EntityAdded?.Invoke(this, entity);
     }
 
-    public void RemoveEntityEditorMode(Entity entity)
+    public void RemoveEntityEditorMode(AActor entity)
     {
         foreach (var entityReference in _entityReferences)
         {
-            if (entityReference.AssetId == entity.AssetInfo.Id)
+            if (entityReference.AssetId == entity.Id)
             {
                 _entityReferences.Remove(entityReference);
                 break;

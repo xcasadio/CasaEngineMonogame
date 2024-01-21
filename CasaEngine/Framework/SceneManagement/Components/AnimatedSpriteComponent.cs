@@ -1,29 +1,26 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
+using BulletSharp;
+using CasaEngine.Core.Design;
 using CasaEngine.Core.Logs;
+using CasaEngine.Core.Serialization;
+using CasaEngine.Core.Shapes;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
-using BulletSharp;
-using CasaEngine.Core.Shapes;
-using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Game.Components;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Serialization;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("Animated Sprite")]
-public class AnimatedSpriteComponent : Component, ICollideableComponent, IComponentDrawable, IBoundingBoxable
+public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable
 {
-    public override int ComponentId => (int)ComponentIds.AnimatedSprite;
-
     public event EventHandler<long>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
 
@@ -47,10 +44,19 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
 
     public bool CreatePhysicsForEachFrame { get; set; } = true;
 
-    public AnimatedSpriteComponent() : base()
+    public AnimatedSpriteComponent(AActor? actor = null) : base(actor)
     {
         Color = Color.White;
         SpriteEffect = SpriteEffects.None;
+    }
+
+    public AnimatedSpriteComponent(AnimatedSpriteComponent other) : base(other)
+    {
+        Color = other.Color;
+        SpriteEffect = other.SpriteEffect;
+        CurrentAnimation = other.CurrentAnimation;
+        Animations.AddRange(other.Animations);
+        _animationAssetIds.AddRange(other._animationAssetIds);
     }
 
     public void SetCurrentAnimation(Animation2d anim, bool forceReset)
@@ -131,18 +137,23 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
         return -1;
     }
 
-    public override void Initialize(Entity entity)
+    protected override void InitializePrivate()
     {
-        base.Initialize(entity);
+        base.InitializePrivate();
+    }
 
-        _spriteRenderer = Owner.Game.GetGameComponent<SpriteRendererComponent>();
-        _assetContentManager = Owner.Game.GameManager.AssetContentManager;
-        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
+
+        _spriteRenderer = World.Game.GetGameComponent<SpriteRendererComponent>();
+        _assetContentManager = World.Game.GameManager.AssetContentManager;
+        _physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
 
         foreach (var assetId in _animationAssetIds)
         {
             var assetInfo = GameSettings.AssetInfoManager.Get(assetId);
-            var animation2dData = Owner.Game.GameManager.AssetContentManager.Load<Animation2dData>(assetInfo);
+            var animation2dData = World.Game.GameManager.AssetContentManager.Load<Animation2dData>(assetInfo);
             var animation2d = new Animation2d(animation2dData);
             animation2d.Initialize();
             Animations.Add(animation2d);
@@ -153,7 +164,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
             foreach (var frame in animation.Animation2dData.Frames)
             {
                 var assetInfo = GameSettings.AssetInfoManager.Get(frame.SpriteId);
-                var spriteData = Owner.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
+                var spriteData = World.Game.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
                 if (spriteData.CollisionShapes.Count == 0)
                 {
                     continue;
@@ -167,7 +178,8 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
                 foreach (var collisionShape in spriteData.CollisionShapes)
                 {
                     var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, Owner, _physicsEngineComponent, this, color);
+                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, WorldMatrix,
+                        _physicsEngineComponent, this, color);
                     if (collisionObject != null)
                     {
                         _collisionObjectByFrameId[frame.SpriteId].Add(new(collisionShape.Shape, collisionObject));
@@ -184,10 +196,15 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
 #endif
     }
 
+    public override AnimatedSpriteComponent Clone()
+    {
+        return new AnimatedSpriteComponent(this);
+    }
+
     public override void Update(float elapsedTime)
     {
 #if EDITOR
-        if (!Owner.Game.GameManager.IsRunningInGameEditorMode)
+        if (!World.Game.GameManager.IsRunningInGameEditorMode)
         {
             return;
         }
@@ -200,7 +217,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
         }
     }
 
-    public override void Draw()
+    public override void Draw(float elapsedTime)
     {
         if (CurrentAnimation != null)
         {
@@ -214,13 +231,12 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
 
             //TODO : create list with all spriteData
             var sprite = Sprite.Create(spriteData, _assetContentManager);
-            var worldMatrix = Owner.Coordinates.WorldMatrix;
             _spriteRenderer.DrawSprite(sprite,
-                new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
+                new Vector2(WorldPosition.X, WorldPosition.Y),
                 0.0f,
-                new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
+                new Vector2(WorldScale.X, WorldScale.Y),
                 Color.White,
-                Owner.Coordinates.Position.Z);
+                WorldPosition.Z);
         }
     }
 
@@ -236,7 +252,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
         {
             if (frame.SpriteId == CurrentAnimation.CurrentFrame)
             {
-                return Owner.Game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+                return World.Game.GameManager.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
             }
         }
         return null;
@@ -244,7 +260,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
 
     private void OnFrameChanged(object? sender, (long oldFrame, long newFrame) arg)
     {
-        Owner.IsBoundingBoxDirty = true;
+        IsBoundingBoxDirty = true;
         RemoveCollisionsFromFrame(arg.oldFrame);
         AddOrUdpateCollisionFromFrame(arg.newFrame, true);
 
@@ -265,7 +281,8 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
 
             foreach (var (shape2d, collisionObject) in collisionObjects)
             {
-                Physics2dHelper.UpdateBodyTransformation(Owner, collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
+                Physics2dHelper.UpdateBodyTransformation(WorldPosition, WorldRotation, WorldScale,
+                    collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
                 if (addCollision)
                 {
                     _physicsEngineComponent.AddCollisionObject(collisionObject);
@@ -281,7 +298,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
             foreach (var (shape2d, collisionObject) in collisionObjects)
             {
                 _physicsEngineComponent.RemoveCollisionObject(collisionObject);
-                _physicsEngineComponent.ClearCollisionDataOf(this);
+                _physicsEngineComponent.ClearCollisionDataFrom(this);
             }
         }
     }
@@ -306,43 +323,7 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
         }
     }
 
-    public void OnHit(Collision collision)
-    {
-        Owner.Hit(collision, this);
-    }
-
-    public void OnHitEnded(Collision collision)
-    {
-        Owner.HitEnded(collision, this);
-    }
-
-    public override void Load(JsonElement element, SaveOption option)
-    {
-        Color = element.GetProperty("color").GetColor();
-        SpriteEffect = element.GetProperty("sprite_effect").GetEnum<SpriteEffects>();
-
-        foreach (var animationNode in element.GetProperty("animations").EnumerateArray())
-        {
-            _animationAssetIds.Add(animationNode.GetInt32());
-        }
-    }
-
-    public override Component Clone()
-    {
-        var component = new AnimatedSpriteComponent();
-
-        component.Color = Color;
-        component.SpriteEffect = SpriteEffect;
-        component.CurrentAnimation = CurrentAnimation;
-        component.Animations.AddRange(Animations);
-        component._animationAssetIds.AddRange(_animationAssetIds);
-
-        return component;
-    }
-
-    public BoundingBox BoundingBox => GetBoundingBox();
-
-    public BoundingBox GetBoundingBox()
+    public override BoundingBox GetBoundingBox()
     {
         var min = Vector3.One * int.MaxValue;
         var max = Vector3.One * int.MinValue;
@@ -363,18 +344,29 @@ public class AnimatedSpriteComponent : Component, ICollideableComponent, ICompon
             max = Vector3.One * length;
         }
 
-        min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
-        max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+        min = Vector3.Transform(min, WorldMatrix);
+        max = Vector3.Transform(max, WorldMatrix);
 
         return new BoundingBox(min, max);
+    }
+
+    public override void Load(JsonElement element)
+    {
+        Color = element.GetProperty("color").GetColor();
+        SpriteEffect = element.GetProperty("sprite_effect").GetEnum<SpriteEffects>();
+
+        foreach (var animationNode in element.GetProperty("animations").EnumerateArray())
+        {
+            _animationAssetIds.Add(animationNode.GetInt32());
+        }
     }
 
 #if EDITOR
     public List<long> AnimationAssetIds => _animationAssetIds;
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         var newJObject = new JObject();
         Color.Save(newJObject);

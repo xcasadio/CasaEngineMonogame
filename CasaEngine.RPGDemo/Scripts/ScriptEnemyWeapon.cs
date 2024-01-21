@@ -1,23 +1,15 @@
-﻿using System.Text.Json;
-using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
+﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
-public class ScriptEnemyWeapon : ExternalComponent
+public class ScriptEnemyWeapon : GameplayProxy
 {
-    public override int ExternalComponentId => (int)RpgDemoScriptIds.ThrowableWeapon;
-
-    private Entity _entity;
-
-    public override void Initialize(EntityBase entityBase)
+    public override void InitializeWithWorld(World world)
     {
-        _entity = entityBase as Entity;
+
     }
 
     public override void Update(float elapsedTime)
@@ -38,11 +30,11 @@ public class ScriptEnemyWeapon : ExternalComponent
     {
         TileCollisionManager tileCollisionManager = null;
 
-        if (collision.ColliderA.Owner == _entity)
+        if (collision.ColliderA.Owner == Owner)
         {
             tileCollisionManager = collision.ColliderB as TileCollisionManager;
         }
-        else if (collision.ColliderB.Owner == _entity)
+        else if (collision.ColliderB.Owner == Owner)
         {
             tileCollisionManager = collision.ColliderA as TileCollisionManager;
         }
@@ -52,7 +44,7 @@ public class ScriptEnemyWeapon : ExternalComponent
             var tileData = tileCollisionManager.GetTileData();
             if (tileData.CollisionType == TileCollisionType.Blocked)
             {
-                _entity.Destroy();
+                Owner.Destroy();
 
                 //var entity = Game.GameManager.SpawnEntity("Break effect");
             }
@@ -63,18 +55,18 @@ public class ScriptEnemyWeapon : ExternalComponent
     {
         ScriptPlayer scriptPlayer = null;
 
-        if (collision.ColliderA.Owner == _entity)
+        if (collision.ColliderA.Owner == Owner)
         {
-            scriptPlayer = collision.ColliderB.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptPlayer;
+            scriptPlayer = collision.ColliderB.Owner.GameplayProxy as ScriptPlayer;
         }
-        else if (collision.ColliderB.Owner == _entity)
+        else if (collision.ColliderB.Owner == Owner)
         {
-            scriptPlayer = collision.ColliderA.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptPlayer;
+            scriptPlayer = collision.ColliderA.Owner.GameplayProxy as ScriptPlayer;
         }
 
         if (scriptPlayer != null)
         {
-            _entity.Destroy();
+            Owner.Destroy();
 
             var hitParameters = new HitParameters
             {
@@ -101,18 +93,4 @@ public class ScriptEnemyWeapon : ExternalComponent
     {
 
     }
-
-    public override void Load(JsonElement element, SaveOption option)
-    {
-
-    }
-
-#if EDITOR
-
-    public override void Save(JObject jObject, SaveOption option)
-    {
-        base.Save(jObject, option);
-    }
-
-#endif
 }

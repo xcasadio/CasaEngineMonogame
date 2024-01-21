@@ -1,31 +1,18 @@
 ﻿using System.ComponentModel;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("Camera Target 2d")]
 public class CameraTargeted2dComponent : Camera3dComponent
 {
-    public override int ComponentId => (int)ComponentIds.CameraTarget2d;
-
     private Vector3 _up = Vector3.Up;
     private Vector3 _target;
     Vector3 _offset;
 
     public Vector2 DeadZoneRatio { get; set; } = Vector2.One;
     public Rectangle Limits { get; set; }
-
-    public override Vector3 Position
-    {
-        get
-        {
-            var fov = FieldOfView * 0.5f;
-            float z = -((float)Owner.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
-            return new(-_offset.X, -_offset.Y, z);
-        }
-    }
 
     public Vector3 Up
     {
@@ -37,7 +24,24 @@ public class CameraTargeted2dComponent : Camera3dComponent
         }
     }
 
-    public Entity? Target { get; set; }
+    public AActor? Target { get; set; }
+
+    public CameraTargeted2dComponent()
+    {
+
+    }
+
+    public CameraTargeted2dComponent(CameraTargeted2dComponent other) : base(other)
+    {
+        Up = other._up;
+        Target = other.Target;
+        _offset = other._offset;
+    }
+
+    public override CameraTargeted2dComponent Clone()
+    {
+        return new CameraTargeted2dComponent(this);
+    }
 
     public override void Update(float elapsedTime)
     {
@@ -45,10 +49,10 @@ public class CameraTargeted2dComponent : Camera3dComponent
 
         if (Target != null)
         {
-            var viewport = Owner.Game.GraphicsDevice.Viewport;
-            var screenWidth = Owner.Game.ScreenSizeWidth;
-            var screenHeight = Owner.Game.ScreenSizeHeight;
-            var targetPosition = Target.Coordinates.Position;
+            var viewport = World.Game.GraphicsDevice.Viewport;
+            var screenWidth = World.Game.ScreenSizeWidth;
+            var screenHeight = World.Game.ScreenSizeHeight;
+            var targetPosition = Target?.RootComponent?.Coordinates.Position ?? Vector3.Zero;
 
             Rectangle deadZone = new Rectangle(
                 (int)(_offset.X + screenWidth * (1.0f - DeadZoneRatio.X) / 2.0f),
@@ -102,19 +106,12 @@ public class CameraTargeted2dComponent : Camera3dComponent
 
     protected override void ComputeViewMatrix()
     {
+
+        var fov = FieldOfView * 0.5f;
+        float z = -((float)World.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
+        Position = new(-_offset.X, -_offset.Y, z);
+
         _target = new(-_offset.X, -_offset.Y, 0.0f);
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up); //Vector3 up = -Vector3::UnitY();
-    }
-
-    public override Component Clone()
-    {
-        var component = new CameraTargeted2dComponent
-        {
-            Up = _up,
-            Target = Target,
-            _offset = _offset
-        };
-
-        return component;
     }
 }

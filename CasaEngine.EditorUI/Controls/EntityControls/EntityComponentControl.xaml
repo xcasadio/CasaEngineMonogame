@@ -13,6 +13,7 @@
              xmlns:graphics="clr-namespace:Microsoft.Xna.Framework.Graphics;assembly=MonoGame.Framework"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
+             xmlns:components1="clr-namespace:CasaEngine.Framework.SceneManagement.Components;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
@@ -250,7 +251,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="ExternalComponent list" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="GameplayProxy list" VerticalAlignment="Center"/>
                 <ComboBox Grid.Row="1" Grid.Column="1" 
                           SelectionChanged="ComboBoxExternalComponent_OnSelectionChanged"
                           SelectedValue="{Binding Path=ExternalComponent, Converter={StaticResource ExternalComponentConverter}, Mode=OneWay}" 
@@ -259,7 +260,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="animatedSpriteComponentTemplate" DataType="{x:Type components:AnimatedSpriteComponent}">
+        <DataTemplate x:Key="animatedSpriteComponentTemplate" DataType="{x:Type components1:AnimatedSpriteComponent}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
@@ -286,7 +287,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="staticSpriteComponentTemplate" DataType="{x:Type components:StaticSpriteComponent}">
+        <DataTemplate x:Key="staticSpriteComponentTemplate" DataType="{x:Type components1:StaticSpriteComponent}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
@@ -310,7 +311,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
+        <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components1:StaticMeshComponent}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -332,7 +333,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
+        <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components1:ArcBallCameraComponent}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
@@ -380,7 +381,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="physicsComponentTemplate" DataType="{x:Type components:PhysicsComponent}">
+        <DataTemplate x:Key="physicsComponentTemplate" DataType="{x:Type components1:PhysicsComponent}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -413,7 +414,7 @@
         </DataTemplate>
 
 
-        <DataTemplate x:Key="physics2dComponentTemplate" DataType="{x:Type components:Physics2dComponent}">
+        <DataTemplate x:Key="physics2dComponentTemplate" DataType="{x:Type components1:Physics2dComponent}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -445,7 +446,7 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="tileMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
+        <DataTemplate x:Key="tileMapComponentTemplate" DataType="{x:Type components1:TileMapComponent}">
             <Grid>
                 <common:AssetSelectorControl AssetId="{Binding TileMapDataAssetId, Mode=TwoWay}"/>
             </Grid>

@@ -1,24 +1,18 @@
-﻿using Microsoft.Xna.Framework;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("LookAt Camera")]
 public class CameraLookAtComponent : Camera3dComponent
 {
-    public override int ComponentId => (int)ComponentIds.LookAtCamera;
     private Vector3 _up = Vector3.Up;
     private Vector3 _target;
     private Vector3 _lastPosition;
 
-    public override Vector3 Position
-    {
-        get { return Owner.Coordinates.Position; }
-    }
-
     public Vector3 Up
     {
-        get { return _up; }
+        get => _up;
         set
         {
             _needToComputeViewMatrix = true;
@@ -28,7 +22,7 @@ public class CameraLookAtComponent : Camera3dComponent
 
     public Vector3 Target
     {
-        get { return _target; }
+        get => _target;
         set
         {
             _needToComputeViewMatrix = true;
@@ -40,11 +34,23 @@ public class CameraLookAtComponent : Camera3dComponent
     {
     }
 
-    public override void Initialize(Entity entity)
+    public CameraLookAtComponent(CameraLookAtComponent other) : base(other)
     {
-        base.Initialize(entity);
+        other._up = _up;
+        other._target = _target;
+        other._lastPosition = _lastPosition;
+    }
 
-        _lastPosition = entity.Coordinates.Position;
+    public override CameraLookAtComponent Clone()
+    {
+        return new CameraLookAtComponent(this);
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
+
+        _lastPosition = Position;
     }
 
     public override void Update(float elapsedTime)
@@ -58,16 +64,5 @@ public class CameraLookAtComponent : Camera3dComponent
     protected override void ComputeViewMatrix()
     {
         _viewMatrix = Matrix.CreateLookAt(Position, Target, Up);
-    }
-
-    public override Component Clone()
-    {
-        var component = new CameraLookAtComponent();
-
-        component._up = _up;
-        component._target = _target;
-        component._lastPosition = _lastPosition;
-
-        return component;
     }
 }

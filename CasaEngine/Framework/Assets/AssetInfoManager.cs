@@ -43,6 +43,14 @@ public class AssetInfoManager
         return newAssetInfo;
     }
 
+    public AssetInfo? Get(Guid guid)
+    {
+        //_assetInfos.TryGetValue(guid, out var assetInfo);
+        //return assetInfo;
+        System.Diagnostics.Debugger.Break();
+        return null;
+    }
+
     public AssetInfo? Get(long assetId)
     {
         _assetInfos.TryGetValue(assetId, out var assetInfo);

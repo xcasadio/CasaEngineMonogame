@@ -5,7 +5,7 @@ public interface IMessageManager
 
     void ResetManager(double precision);
 
-    void SendMessage(long senderId, long recieverId, double delayTime, int type, object extraInfo);
+    void SendMessage(Guid senderId, Guid receiverId, double delayTime, int type, object extraInfo);
 
     void Update();
 

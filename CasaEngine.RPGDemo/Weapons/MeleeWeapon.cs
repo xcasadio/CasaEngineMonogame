@@ -1,6 +1,6 @@
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.RPGDemo.Weapons;
 
@@ -8,14 +8,14 @@ public class MeleeWeapon : Weapon
 {
     private AnimatedSpriteComponent _animatedSpriteComponent;
 
-    public MeleeWeapon(CasaEngineGame game, Entity entity) : base(game, entity)
+    public MeleeWeapon(CasaEngineGame game, AActor entity) : base(game, entity)
     {
     }
 
     protected override void Initialize()
     {
-        Entity.Parent = Character.Owner;
-        _animatedSpriteComponent = Entity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        Character.Owner.AddChild(Entity);
+        _animatedSpriteComponent = Entity.GetComponent<AnimatedSpriteComponent>();
     }
 
     public override void Attach()

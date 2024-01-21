@@ -51,8 +51,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCodeGenerator", "Flow
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.DotNetCompiler", "CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj", "{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Tests", "CasaEngine.Tests\CasaEngine.Tests\CasaEngine.Tests.csproj", "{62962C96-5D18-4509-93BD-949563918D8D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -226,14 +224,6 @@ Global
 		{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}.Release|Any CPU.Build.0 = Release|Any CPU
 		{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}.Release|x64.ActiveCfg = Release|Any CPU
 		{610E85FA-CBF1-4040-8A7A-DD64EC3F4889}.Release|x64.Build.0 = Release|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Debug|x64.Build.0 = Debug|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Release|x64.ActiveCfg = Release|Any CPU
-		{62962C96-5D18-4509-93BD-949563918D8D}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

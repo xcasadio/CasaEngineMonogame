@@ -1,5 +1,7 @@
 ﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
@@ -18,7 +20,7 @@ public class GameEditorSprite : GameEditor2d
         StaticSpriteComponent.TryLoadSpriteData(spriteData?.Name);
     }
 
-    protected override void CreateEntityComponents(Entity entity)
+    protected override void CreateEntityComponents(AActor entity)
     {
         StaticSpriteComponent = new StaticSpriteComponent();
         entity.ComponentManager.Add(StaticSpriteComponent);

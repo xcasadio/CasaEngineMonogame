@@ -1,8 +1,8 @@
-﻿using CasaEngine.Framework.Entities;
+﻿using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.AI.BehaviourTree;
 
-public abstract class BehaviourTreeNode<T> : Entity
+public abstract class BehaviourTreeNode<T> : AActor
 {
     private readonly string _name;
     private readonly BehaviourTreeNode<T> _parent = null;

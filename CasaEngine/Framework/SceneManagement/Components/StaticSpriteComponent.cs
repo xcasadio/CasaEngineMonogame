@@ -1,12 +1,9 @@
-﻿using System.ComponentModel;
-using System.Text.Json;
+﻿using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -14,49 +11,61 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
-public class StaticSpriteComponent : Component, ICollideableComponent, IComponentDrawable, IBoundingBoxable
+public class StaticSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable
 {
-    public override int ComponentId => (int)ComponentIds.StaticSprite;
-
     private Sprite? _sprite;
     private SpriteData? _spriteData;
     private SpriteRendererComponent? _spriteRendererComponent;
     private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
     private PhysicsEngineComponent? _physicsEngineComponent;
 
-    [Browsable(false)]
     public PhysicsType PhysicsType { get; }
 
-    [Browsable(false)]
     public HashSet<Collision> Collisions { get; }
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
 
-    public StaticSpriteComponent() : base()
-    { }
-
-    public override void Initialize(Entity entity)
+    public StaticSpriteComponent()
     {
-        base.Initialize(entity);
 
-        _spriteRendererComponent = Owner.Game.GetGameComponent<SpriteRendererComponent>();
-        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
+    }
+
+    public StaticSpriteComponent(StaticSpriteComponent other) : base(other)
+    {
+        _spriteData = other._spriteData;
+    }
+
+    protected override void InitializePrivate()
+    {
+        base.InitializePrivate();
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
+
+        _spriteRendererComponent = World.Game.GetGameComponent<SpriteRendererComponent>();
+        _physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
+    }
+
+    public override StaticSpriteComponent Clone()
+    {
+        return new StaticSpriteComponent(this);
     }
 
     public override void Update(float elapsedTime)
     {
         foreach (var (shape2d, collisionObject) in _collisionObjects)
         {
-            Physics2dHelper.UpdateBodyTransformation(Owner, collisionObject, shape2d, _spriteData.Origin, _spriteData.PositionInTexture);
+            Physics2dHelper.UpdateBodyTransformation(WorldPosition, WorldRotation, WorldScale,
+                collisionObject, shape2d, _spriteData.Origin, _spriteData.PositionInTexture);
         }
     }
 
-    public BoundingBox BoundingBox => GetBoundingBox();
-
-    public BoundingBox GetBoundingBox()
+    public override BoundingBox GetBoundingBox()
     {
         var min = Vector3.One * int.MaxValue;
         var max = Vector3.One * int.MinValue;
@@ -76,26 +85,25 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
             max = Vector3.One * length;
         }
 
-        min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
-        max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
+        min = Vector3.Transform(min, WorldMatrix);
+        max = Vector3.Transform(max, WorldMatrix);
 
         return new BoundingBox(min, max);
     }
 
-    public override void Draw()
+    public override void Draw(float elapsedTime)
     {
         if (_spriteData == null || _sprite?.Texture?.Resource == null)
         {
             return;
         }
 
-        var worldMatrix = Owner.Coordinates.WorldMatrix;
         _spriteRendererComponent.DrawSprite(_sprite,
-            new Vector2(worldMatrix.Translation.X, worldMatrix.Translation.Y),
+            new Vector2(WorldPosition.X, WorldPosition.Y),
             0.0f,
-            new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y),
+            new Vector2(WorldScale.X, WorldScale.Y),
             Color.White,
-            Owner.Coordinates.Position.Z);
+            WorldPosition.Z);
     }
 
     public override void OnEnabledValueChange()
@@ -110,26 +118,7 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
         }
     }
 
-    public void OnHit(Collision collision)
-    {
-
-    }
-
-    public void OnHitEnded(Collision collision)
-    {
-
-    }
-
-    public override Component Clone()
-    {
-        var component = new StaticSpriteComponent();
-
-        component._spriteData = _spriteData;
-
-        return component;
-    }
-
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         var spriteDataName = element.GetProperty("spriteDataName").GetString();
 
@@ -141,21 +130,24 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
 
     private void LoadSpriteData(string? spriteDataName)
     {
-        _spriteData = Owner.Game.GameManager.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
-        _sprite = Sprite.Create(_spriteData, Owner.Game.GameManager.AssetContentManager);
+        _spriteData = World.Game.GameManager.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
+        _sprite = Sprite.Create(_spriteData, World.Game.GameManager.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
-        Owner.IsBoundingBoxDirty = true;
+        IsBoundingBoxDirty = true;
     }
+
     private void AddCollisions()
     {
         foreach (var collisionShape in _spriteData.CollisionShapes)
         {
             var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, Owner, _physicsEngineComponent, this, color);
+            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, WorldMatrix,
+                _physicsEngineComponent, this, color);
             if (collisionObject != null)
             {
-                Physics2dHelper.UpdateBodyTransformation(Owner, collisionObject, collisionShape.Shape, _spriteData.Origin, _spriteData.PositionInTexture);
+                Physics2dHelper.UpdateBodyTransformation(WorldPosition, WorldRotation, WorldScale,
+                    collisionObject, collisionShape.Shape, _spriteData.Origin, _spriteData.PositionInTexture);
                 _physicsEngineComponent.AddCollisionObject(collisionObject);
                 _collisionObjects.Add(new(collisionShape.Shape, collisionObject));
             }
@@ -167,7 +159,7 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
         foreach (var (shape2d, collisionObject) in _collisionObjects)
         {
             _physicsEngineComponent.RemoveCollisionObject(collisionObject);
-            _physicsEngineComponent.ClearCollisionDataOf(this);
+            _physicsEngineComponent.ClearCollisionDataFrom(this);
         }
     }
 
@@ -183,10 +175,10 @@ public class StaticSpriteComponent : Component, ICollideableComponent, IComponen
         LoadSpriteData(spriteDataName);
     }
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.AssetInfo.Name);
-        base.Save(jObject, option);
+        base.Save(jObject);
     }
 
 #endif

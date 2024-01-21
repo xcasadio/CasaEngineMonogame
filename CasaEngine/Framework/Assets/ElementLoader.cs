@@ -2,6 +2,7 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logs;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.Framework.Assets;
@@ -44,14 +45,14 @@ public class ElementLoader<T> where T : ISaveLoad
         return type;
     }
 
-    public ExternalComponent Create(int id)
+    public GameplayProxy Create(int id)
     {
         if (!_TypesById.ContainsKey(id))
         {
             LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
         }
 
-        var component = (ExternalComponent)Activator.CreateInstance(_TypesById[id]);
+        var component = (GameplayProxy)Activator.CreateInstance(_TypesById[id]);
         return component;
     }
 

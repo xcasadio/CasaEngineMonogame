@@ -8,6 +8,6 @@ internal static class ModuleInitializerScripts
     [ModuleInitializer]
     public static void Initialize()
     {
-        GameSettings.ScriptLoader.Register<ScriptArcBallCamera>(new ScriptArcBallCamera().ExternalComponentId);
+        //GameSettings.ScriptLoader.Register<ScriptArcBallCamera>(new ScriptArcBallCamera().ExternalComponentId);
     }
 }

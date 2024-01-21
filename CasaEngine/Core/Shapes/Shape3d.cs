@@ -42,6 +42,8 @@ public abstract class Shape3d
         }
     }
 
+    public abstract BoundingBox BoundingBox { get; }
+
     protected Shape3d(Shape3dType type)
     {
         Type = type;

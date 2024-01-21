@@ -1,16 +1,12 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
-public abstract class CameraComponent : Component
+public abstract class CameraComponent : SceneComponent
 {
     protected Matrix _viewMatrix;
     protected Matrix _projectionMatrix;
@@ -18,8 +14,6 @@ public abstract class CameraComponent : Component
     protected float _viewDistance; // distance between the camera and the near far clip plane
     protected bool _needToComputeProjectionMatrix;
     protected bool _needToComputeViewMatrix;
-
-    public abstract Vector3 Position { get; }
 
     public Matrix ViewMatrix
     {
@@ -59,20 +53,28 @@ public abstract class CameraComponent : Component
         _needToComputeViewMatrix = true;
     }
 
-    public override void Initialize(Entity entity)
+    protected CameraComponent(CameraComponent other) : base(other)
     {
-        base.Initialize(entity);
+        _needToComputeProjectionMatrix = true;
+        _needToComputeViewMatrix = true;
 
-        _viewport.Width = Owner.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
-        _viewport.Height = Owner.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
-        _viewport.MinDepth = 1.0f;
-        _viewport.MaxDepth = 1000.0f;
+        other._viewport = _viewport;
+        other._viewDistance = _viewDistance;
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    protected override void InitializePrivate()
     {
-        _viewDistance = element.GetProperty("view_distance").GetSingle();
-        _viewport = element.GetJsonPropertyByName("viewport").Value.GetViewPort();
+        base.InitializePrivate();
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
+
+        _viewport.Width = World.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        _viewport.Height = World.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
+        _viewport.MinDepth = 1.0f;
+        _viewport.MaxDepth = 1000.0f;
     }
 
     protected abstract void ComputeProjectionMatrix();
@@ -85,11 +87,22 @@ public abstract class CameraComponent : Component
         _needToComputeProjectionMatrix = true;
     }
 
+    public override BoundingBox GetBoundingBox()
+    {
+        return new BoundingBox(-Vector3.One, Vector3.One);
+    }
+
+    public override void Load(JsonElement element)
+    {
+        _viewDistance = element.GetProperty("view_distance").GetSingle();
+        _viewport = element.GetJsonPropertyByName("viewport").Value.GetViewPort();
+    }
+
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         jObject.Add("view_distance", _viewDistance);
 

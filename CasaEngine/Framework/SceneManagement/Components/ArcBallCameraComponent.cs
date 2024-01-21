@@ -1,57 +1,38 @@
-﻿using Microsoft.Xna.Framework;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Assets;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("ArcBall Camera")]
 public class ArcBallCameraComponent : Camera3dComponent
 {
-    public override int ComponentId => (int)ComponentIds.ArcBallCamera;
-
     private Vector3 _target;
     private float _distance;
     private float _yaw, _pitch;
 
     public float Pitch
     {
-        get { return _pitch; }
+        get => _pitch;
         set
         {
             _pitch = value;
             _needToComputeViewMatrix = true;
             ComputeOrientation();
-#if EDITOR
-            OnPropertyChanged();
-#endif
-
         }
     }
 
     public float Yaw
     {
-        get { return _yaw; }
+        get => _yaw;
         set
         {
             _yaw = value;
             _needToComputeViewMatrix = true;
             ComputeOrientation();
-#if EDITOR
-            OnPropertyChanged();
-#endif
-
         }
-    }
-
-    private Quaternion Orientation
-    {
-        get => Owner.Coordinates.LocalRotation;
-        set => Owner.Coordinates.LocalRotation = value;
     }
 
     public Vector3 Direction
@@ -119,38 +100,25 @@ public class ArcBallCameraComponent : Camera3dComponent
         }
     }
 
-    public override Vector3 Position => _target - Direction * _distance;
-
     public Vector3 Target
     {
-        get { return _target; }
+        get => _target;
         set
         {
             _needToComputeViewMatrix = true;
             _target = value;
-            UpdatePosition();
-#if EDITOR
-            OnPropertyChanged();
-#endif
-
         }
     }
 
     public float Distance
     {
-        get { return _distance; }
+        get => _distance;
         set
         {
             _distance = value;
             _needToComputeViewMatrix = true;
-            UpdatePosition();
-#if EDITOR
-            OnPropertyChanged();
-#endif
-
         }
     }
-
 
     public ArcBallCameraComponent()
     {
@@ -160,14 +128,27 @@ public class ArcBallCameraComponent : Camera3dComponent
         _target = Vector3.Zero;
     }
 
-    public override void Initialize(Entity entity)
+    public ArcBallCameraComponent(ArcBallCameraComponent other) : base(other)
     {
-        base.Initialize(entity);
+        _distance = other._distance;
+        _yaw = other._yaw;
+        _pitch = other._pitch;
+        _target = other._target;
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
+
         //orientation quaternion assumes a PI rotation so you're facing the "front"
         //of the model (looking down the +Z axis)
         //Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
         ComputeOrientation();
-        UpdatePosition();
+    }
+
+    public override ArcBallCameraComponent Clone()
+    {
+        return new ArcBallCameraComponent(this);
     }
 
     public override void Update(float elapsedTime)
@@ -178,6 +159,7 @@ public class ArcBallCameraComponent : Camera3dComponent
     protected override void ComputeViewMatrix()
     {
         var position = _target - Direction * _distance;
+        Position = position;
         _viewMatrix = Matrix.CreateLookAt(position, _target, Up);
     }
 
@@ -301,27 +283,9 @@ public class ArcBallCameraComponent : Camera3dComponent
         Orientation = q1 * q2;
     }
 
-    private void UpdatePosition()
+    public override void Load(JsonElement element)
     {
-        Owner.Coordinates.LocalPosition = Position;
-    }
-
-    public override Component Clone()
-    {
-        var component = new ArcBallCameraComponent();
-
-        component._target = _target;
-        //component.Orientation = Orientation;
-        component._distance = _distance;
-        component._yaw = _yaw;
-        component._pitch = _pitch;
-
-        return component;
-    }
-
-    public override void Load(JsonElement element, SaveOption option)
-    {
-        base.Load(element, option);
+        base.Load(element);
 
         _target = element.GetProperty("target").GetVector3();
         _distance = element.GetProperty("distance").GetSingle();
@@ -331,9 +295,9 @@ public class ArcBallCameraComponent : Camera3dComponent
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         JObject newJObject = new();
         _target.Save(newJObject);

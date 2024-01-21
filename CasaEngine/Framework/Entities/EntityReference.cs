@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.SceneManagement;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
@@ -7,28 +8,29 @@ namespace CasaEngine.Framework.Entities;
 public class EntityReference : ISaveLoad
 {
     //if id = InvalidId => no reference, the world save the entire entity
-    public long AssetId { get; set; } = IdManager.InvalidId;
+    public Guid AssetId { get; set; } = Guid.Empty;
     public string Name { get; set; }
     public Coordinates InitialCoordinates { get; internal set; } = new();
-    public Entity Entity { get; internal set; }
+    public AActor Entity { get; internal set; }
 
     public static EntityReference CreateFromAssetInfo(AssetInfo assetInfo, AssetContentManager assetContentManager)
     {
         var entityReference = new EntityReference();
-        entityReference.AssetId = assetInfo.Id;
+        System.Diagnostics.Debugger.Break();
+        //entityReference.AssetId = assetInfo.Id;
         entityReference.Name = assetInfo.Name;
-        entityReference.Entity = assetContentManager.Load<Entity>(assetInfo);
-        entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.Coordinates);
+        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo);
+        //entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.Coordinates);
         return entityReference;
     }
 
     public void Load(JsonElement element, SaveOption option)
     {
-        AssetId = element.GetProperty("asset_id").GetInt64();
+        AssetId = element.GetProperty("asset_id").GetGuid();
 
-        if (AssetId == IdManager.InvalidId)
+        if (AssetId == Guid.Empty)
         {
-            Entity = EntityLoader.Load(element.GetProperty("entity"), option);
+            Entity = EntityLoader.Load(element.GetProperty("entity"));
         }
         else
         {
@@ -43,10 +45,10 @@ public class EntityReference : ISaveLoad
     {
         jObject.Add("asset_id", AssetId);
 
-        if (AssetId == IdManager.InvalidId)
+        if (AssetId == Guid.Empty)
         {
             var entityNode = new JObject();
-            Entity.Save(entityNode, option);
+            Entity.Save(entityNode);
             jObject.Add("entity", entityNode);
         }
         else

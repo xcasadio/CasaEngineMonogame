@@ -21,6 +21,16 @@ public class Box : Shape3d, IEquatable<Box>
         }
     }
 
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var position = Position;
+            var halfSize = Size / 2f;
+            return new BoundingBox(position - halfSize, position + halfSize);
+        }
+    }
+
     public Box() : base(Shape3dType.Box)
     {
         Size = Vector3.One;

@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.RPGDemo.Controllers.EnemyState;
 
@@ -11,9 +11,9 @@ public class EnemyDyingState : IState<Controller>
     public void Enter(Controller controller)
     {
         controller.Character.Dying();
-        var effectEntity = controller.Character.Owner.Game.GameManager.SpawnEntity("smoke_ring_effect");
-        effectEntity.Coordinates.LocalPosition = controller.Character.Owner.Coordinates.LocalPosition;
-        var animatedSpriteComponent = effectEntity.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        var effectEntity = controller.Character.Owner.RootComponent.World.Game.GameManager.SpawnEntity("smoke_ring_effect");
+        effectEntity.RootComponent.Coordinates.Position = controller.Character.Owner.RootComponent.WorldPosition;
+        var animatedSpriteComponent = effectEntity.GetComponent<AnimatedSpriteComponent>();
         animatedSpriteComponent.SetCurrentAnimation(0, true);
 
         animatedSpriteComponent.AnimationFinished += OnAnimationFinished;

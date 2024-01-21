@@ -5,8 +5,8 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Framework.Scripting;
-
-public abstract class ExternalComponent : ISaveLoad
+/*
+public abstract class GameplayProxy : ISaveLoad
 {
     public abstract int ExternalComponentId { get; }
 
@@ -29,4 +29,4 @@ public abstract class ExternalComponent : ISaveLoad
     }
 
 #endif
-}
+}*/

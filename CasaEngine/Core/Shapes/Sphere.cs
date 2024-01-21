@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
@@ -6,6 +7,16 @@ namespace CasaEngine.Core.Shapes;
 public class Sphere : Shape3d
 {
     public float Radius { get; set; }
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var position = Position;
+            var radiusVector = new Vector3(Radius);
+            return new BoundingBox(position - radiusVector, position + radiusVector);
+        }
+    }
 
     public Sphere() : base(Shape3dType.Sphere)
     {

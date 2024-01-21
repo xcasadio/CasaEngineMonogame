@@ -10,6 +10,8 @@ using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -26,39 +28,38 @@ public class TileMapDemo : Demo
         //============ tileMap ===============
         var tileMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
 
-        var entity = new Entity();
-        entity.Name = "TileMap";
-        entity.Coordinates.LocalPosition = new Vector3(0, 700, 0.0f);
-        var tileMapComponent = new TileMapComponent();
+        var entity = new AActor { Name = "TileMap" };
+        var tileMapComponent = new TileMapComponent(entity);
+        entity.RootComponent = tileMapComponent;
+        entity.RootComponent.Position = new Vector3(0, 700, 0.0f);
         tileMapComponent.TileMapData = tileMapData;
-        entity.ComponentManager.Add(tileMapComponent);
 
         world.AddEntity(entity);
 
         //============ player ===============
-        entity = new Entity();
-        entity.Name = "Link";
-        entity.Coordinates.LocalPosition = new Vector3(100, 550, 0.3f);
-        var physicsComponent = new Physics2dComponent();
-        entity.ComponentManager.Add(physicsComponent);
-        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
-        physicsComponent.PhysicsDefinition.Mass = 1.0f;
-        physicsComponent.Shape = new ShapeCircle(25);
-        physicsComponent.PhysicsDefinition.ApplyGravity = false;
-        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
+        entity = new AActor { Name = "Link" };
+        //===
+        var animatedSprite = new AnimatedSpriteComponent();
+        entity.RootComponent = animatedSprite;
+        entity.RootComponent.Position = new Vector3(100, 550, 0.3f);
         //ressources
         LoadSprites(game.GameManager.AssetContentManager, game.GraphicsDevice);
         var animations = LoadAnimations(game.GameManager.AssetContentManager, game.GraphicsDevice);
-
-        var animatedSprite = new AnimatedSpriteComponent();
-        entity.ComponentManager.Add(animatedSprite);
         foreach (var animation in animations)
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
+        //===
+        var physicsComponent = new Physics2dComponent();
+        entity.AddComponent(physicsComponent);
+        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+        physicsComponent.PhysicsDefinition.Mass = 1.0f;
+        physicsComponent.Shape = new ShapeCircle(25);
+        physicsComponent.PhysicsDefinition.ApplyGravity = false;
+        physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
 
-        entity.ComponentManager.Add(new PlayerComponent());
+        entity.AddComponent(new PlayerComponent());
 
         world.AddEntity(entity);
     }
@@ -92,11 +93,11 @@ public class TileMapDemo : Demo
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
-        var entity = new Entity();
+        var entity = new AActor();
         var camera = new Camera3dIn2dAxisComponent();
         camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f);
-        entity.ComponentManager.Add(camera);
-        entity.Initialize(game);
+        entity.AddComponent(camera);
+        entity.Initialize();
         game.GameManager.CurrentWorld.AddEntity(entity);
 
         return camera;

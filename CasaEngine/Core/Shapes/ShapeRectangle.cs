@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -8,6 +9,16 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
 {
     public int Width { get; set; }
     public int Height { get; set; }
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var position = Position.ToVector3();
+            var halfSize = new Vector3(Width / 2f, Height / 2f, 0f);
+            return new BoundingBox(position - halfSize, position + halfSize);
+        }
+    }
 
     public ShapeRectangle() : base(Shape2dType.Rectangle)
     {

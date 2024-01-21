@@ -1,27 +1,14 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("Camera 3d in 2d axis")]
 public class Camera3dIn2dAxisComponent : Camera3dComponent
 {
-    public override int ComponentId => (int)ComponentIds.Camera3dIn2dAxis;
-
     private Vector3 _up = Vector3.Up;
     private Vector3 _target;
-
-    public override Vector3 Position
-    {
-        get
-        {
-            var fov = FieldOfView * 0.5f;
-            float z = (Owner.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
-            return new(_target.X, _target.Y, _target.Z + z);
-        }
-    }
 
     public Vector3 Target
     {
@@ -43,6 +30,22 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         }
     }
 
+    public Camera3dIn2dAxisComponent()
+    {
+
+    }
+
+    public Camera3dIn2dAxisComponent(Camera3dIn2dAxisComponent other) : base(other)
+    {
+        _up = other._up;
+        _target = other._target;
+    }
+
+    public override Camera3dIn2dAxisComponent Clone()
+    {
+        return new Camera3dIn2dAxisComponent(this);
+    }
+
     public override void Update(float elapsedTime)
     {
         //Do nothing
@@ -50,6 +53,9 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
 
     protected override void ComputeViewMatrix()
     {
+        var fov = FieldOfView * 0.5f;
+        float z = (World.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
+        Position = new(_target.X, _target.Y, _target.Z + z);
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
     }
 
@@ -57,14 +63,5 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
     {
         base.ScreenResized(width, height);
         _needToComputeViewMatrix = true;
-    }
-
-    public override Component Clone()
-    {
-        return new Camera3dIn2dAxisComponent
-        {
-            _up = _up,
-            _target = _target
-        };
     }
 }

@@ -1,4 +1,4 @@
-﻿using CasaEngine.Framework.Entities;
+﻿using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
@@ -9,7 +9,7 @@ public class HitParameters
     public int Precision;
     public int MagicStrength;
 
-    public Entity Entity;
+    public AActor Entity;
 
     public Vector3 ContactPoint;
 }

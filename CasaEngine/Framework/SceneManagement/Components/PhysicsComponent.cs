@@ -1,19 +1,17 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("Physics")]
 public class PhysicsComponent : PhysicsBaseComponent
 {
-    public override int ComponentId => (int)ComponentIds.Physics;
     private Shape3d? _shape;
+    private BoundingBox _boundingBox;
 
     public Shape3d? Shape
     {
@@ -29,14 +27,31 @@ public class PhysicsComponent : PhysicsBaseComponent
 
             if (_shape != null)
             {
+                _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
                 _shape.PropertyChanged += OnPropertyChanged;
+                _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
             }
 
 #if EDITOR
             ReCreatePhysicsObject();
-            OnPropertyChanged();
+            //OnPropertyChanged();
 #endif
         }
+    }
+
+    public PhysicsComponent()
+    {
+
+    }
+
+    public PhysicsComponent(PhysicsComponent other) : base(other)
+    {
+        _shape = other._shape;
+    }
+
+    public override PhysicsComponent Clone()
+    {
+        return new PhysicsComponent(this);
     }
 
     private void OnPropertyChanged(object? sender, string e)
@@ -55,8 +70,9 @@ public class PhysicsComponent : PhysicsBaseComponent
         //in the worldmatrix or in the creation of the shape ?
         //_shape.Position = Owner.Coordinates.LocalPosition;
         //_shape.Orientation = Owner.Coordinates.Rotation;
-        var worldMatrix = Matrix.CreateFromQuaternion(Owner.Coordinates.LocalRotation) *
-                          Matrix.CreateTranslation(Owner.Coordinates.LocalPosition);
+
+        var worldMatrix = WorldMatrix;
+        //var worldMatrix = Matrix.CreateFromQuaternion(Orientation) * Matrix.CreateTranslation(Position);
 
         switch (PhysicsType)
         {
@@ -73,17 +89,14 @@ public class PhysicsComponent : PhysicsBaseComponent
         }
     }
 
-    public override Component Clone()
+    public override BoundingBox GetBoundingBox()
     {
-        var component = new PhysicsComponent();
-        component._shape = _shape;
-        Clone(component);
-        return component;
+        return _boundingBox;
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element, option);
+        base.Load(element);
 
         var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "null")
@@ -94,9 +107,9 @@ public class PhysicsComponent : PhysicsBaseComponent
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         if (_shape != null)
         {

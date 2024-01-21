@@ -5,14 +5,14 @@ using CasaEngine.Engine.Plugins;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Project;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.Framework.Game;
 
 public static class GameSettings
 {
-    public static ElementLoader<ExternalComponent> ScriptLoader { get; } = new();
-    public static ElementLoader<Component> ComponentLoader { get; } = new();
+    //public static ElementLoader<GameplayProxy> ScriptLoader { get; } = new();
     public static AssetInfoManager AssetInfoManager { get; } = new();
     public static ProjectSettings ProjectSettings { get; } = new();
     public static PluginManager PluginManager { get; } = new();

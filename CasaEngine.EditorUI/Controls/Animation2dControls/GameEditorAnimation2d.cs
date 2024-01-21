@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
@@ -24,9 +26,9 @@ public class GameEditorAnimation2d : GameEditor2d
         }
     }
 
-    protected override void CreateEntityComponents(Entity entity)
+    protected override void CreateEntityComponents(AActor entity)
     {
-        AnimatedSpriteComponent = new AnimatedSpriteComponent();
-        entity.ComponentManager.Add(AnimatedSpriteComponent);
+        AnimatedSpriteComponent = new AnimatedSpriteComponent(entity);
+        entity.RootComponent = AnimatedSpriteComponent;
     }
 }

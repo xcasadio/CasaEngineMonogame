@@ -62,7 +62,12 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
         GameManager.BeginLoadContent();
         base.LoadContent();
+        LoadContentPrivate();
         GameManager.EndLoadContent();
+    }
+
+    protected virtual void LoadContentPrivate()
+    {
     }
 
     protected override void Update(GameTime gameTime)

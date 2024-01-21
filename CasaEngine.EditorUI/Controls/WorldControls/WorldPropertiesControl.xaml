@@ -22,7 +22,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="ExternalComponent list" VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="GameplayProxy list" VerticalAlignment="Center"/>
         <ComboBox Grid.Row="0" Grid.Column="1" Name="comboBoxExternalComponent"
                       SelectionChanged="ComboBoxExternalComponent_OnSelectionChanged"
                       SelectedValue="{Binding Path=ExternalComponent, Converter={StaticResource ExternalComponentConverter}, Mode=OneWay}" 

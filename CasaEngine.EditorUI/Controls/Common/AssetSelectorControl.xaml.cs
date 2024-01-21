@@ -3,8 +3,8 @@ using System.Windows.Controls;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.Common;
@@ -55,7 +55,7 @@ public partial class AssetSelectorControl : UserControl
             {
                 if (staticMeshComponent.Mesh != null)
                 {
-                    var assetContentManager = staticMeshComponent.Owner.Game.GameManager.AssetContentManager;
+                    var assetContentManager = staticMeshComponent.Owner.RootComponent.World.Game.GameManager.AssetContentManager;
                     staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(contentBrowserControl.SelectedItem);
 
                     if (staticMeshComponent.Mesh.Texture?.Resource == null)

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
@@ -7,6 +8,16 @@ public class Capsule : Shape3d, IEquatable<Capsule>
 {
     public float Radius { get; set; }
     public float Length { get; set; }
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var position = Position;
+            var halfSize = new Vector3(Length / 2f + Radius, Radius, Radius); // X oriented
+            return new BoundingBox(position - halfSize, position + halfSize);
+        }
+    }
 
     public Capsule() : base(Shape3dType.Capsule)
     {

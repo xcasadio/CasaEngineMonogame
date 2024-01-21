@@ -9,6 +9,7 @@ using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -36,11 +37,11 @@ public partial class EntityComponentControl : UserControl
         if (selectStaticMeshWindow.ShowDialog() == true
             && sender is FrameworkElement { DataContext: StaticMeshComponent staticMeshComponent })
         {
-            var graphicsDevice = staticMeshComponent.Owner.Game.GraphicsDevice;
+            var graphicsDevice = staticMeshComponent.Owner.RootComponent.World.Game.GraphicsDevice;
 
             staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
-            staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.Game.GameManager.AssetContentManager);
-            staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
+            staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.RootComponent.World.Game.GameManager.AssetContentManager);
+            staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.World.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         }
     }
 
@@ -59,15 +60,16 @@ public partial class EntityComponentControl : UserControl
             && sender is FrameworkElement { DataContext: PhysicsComponent physicsComponent })
         {
             var shape = (Shape3d)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
-            SetParametersFromBoundingBox(shape, physicsComponent.Owner);
-            shape.Position = physicsComponent.Owner.Position;
-            shape.Orientation = physicsComponent.Owner.Orientation;
+            var entity = physicsComponent.Owner;
+            SetParametersFromBoundingBox(shape, entity.BoundingBox);
+            shape.Position = physicsComponent.Owner.RootComponent.Position;
+            shape.Orientation = physicsComponent.Owner.RootComponent.Orientation;
 
             physicsComponent.Shape = shape;
         }
     }
 
-    private void SetParametersFromBoundingBox(Shape3d shape, Entity entity)
+    private void SetParametersFromBoundingBox(Shape3d shape, BoundingBox boundingBox)
     {
         switch (shape.Type)
         {
@@ -76,26 +78,26 @@ public partial class EntityComponentControl : UserControl
                 break;
             case Shape3dType.Box:
                 var box = shape as Box;
-                var x = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
-                var y = entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y;
-                var z = entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z;
+                var x = boundingBox.Max.X - boundingBox.Min.X;
+                var y = boundingBox.Max.Y - boundingBox.Min.Y;
+                var z = boundingBox.Max.Z - boundingBox.Min.Z;
                 box.Size = new Vector3(x, y, z);
 
                 break;
             case Shape3dType.Capsule:
                 var capsule = shape as Capsule;
-                capsule.Length = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
-                capsule.Radius = Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z);
+                capsule.Length = boundingBox.Max.X - boundingBox.Min.X;
+                capsule.Radius = Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z);
                 break;
             case Shape3dType.Cylinder:
                 var cylinder = shape as Cylinder;
-                cylinder.Length = entity.BoundingBox.Max.X - entity.BoundingBox.Min.X;
-                cylinder.Radius = Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z);
+                cylinder.Length = boundingBox.Max.X - boundingBox.Min.X;
+                cylinder.Radius = Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z);
                 break;
             case Shape3dType.Sphere:
                 var sphere = shape as Sphere;
-                sphere.Radius = Math.Min(entity.BoundingBox.Max.X - entity.BoundingBox.Min.X,
-                    Math.Min(entity.BoundingBox.Max.Y - entity.BoundingBox.Min.Y, entity.BoundingBox.Max.Z - entity.BoundingBox.Min.Z));
+                sphere.Radius = Math.Min(boundingBox.Max.X - boundingBox.Min.X,
+                    Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z));
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

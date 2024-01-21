@@ -10,7 +10,7 @@ using FlowGraph;
 #endif
 
 namespace CasaEngine.Framework.Scripting;
-
+/*
 public class EntityFlowGraph : Entity
 {
     public override void Load(JsonElement element, SaveOption option)
@@ -26,9 +26,9 @@ public class EntityFlowGraph : Entity
 
     public string CompiledCodeFileName { get; set; }
 
-    public ExternalComponent InstanciatedObject { get; private set; }
+    public GameplayProxy InstanciatedObject { get; private set; }
 
-    public void InitializeScript(ExternalComponent externalComponent)
+    public void InitializeScript(GameplayProxy externalComponent)
     {
         InstanciatedObject = externalComponent;
         InstanciatedObject.Initialize(this);
@@ -42,7 +42,7 @@ public class EntityFlowGraph : Entity
             gamePlayComponent.Initialize(this);
         }
 
-        gamePlayComponent.ExternalComponent = InstanciatedObject;
+        gamePlayComponent.GameplayProxy = InstanciatedObject;
     }
 
     public override void Save(JObject jObject, SaveOption option)
@@ -52,4 +52,4 @@ public class EntityFlowGraph : Entity
         //FlowGraph.Save(jObject, option);
     }
 #endif
-}
+}*/

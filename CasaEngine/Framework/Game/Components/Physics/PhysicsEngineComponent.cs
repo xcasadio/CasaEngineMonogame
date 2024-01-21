@@ -4,6 +4,7 @@ using CasaEngine.Core.Shapes;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -244,7 +245,7 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.World.RemoveRigidBody(rigidBody);
     }
 
-    public void ClearCollisionDataOf(ICollideableComponent component)
+    public void ClearCollisionDataFrom(ICollideableComponent component)
     {
         PhysicsEngine.ClearCollisionDataOf(component);
     }

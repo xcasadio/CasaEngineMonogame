@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Controllers.PlayerState;
@@ -14,7 +14,7 @@ public class PlayerDyingState : IState<Controller>
         var joyDir = Vector2.Zero;
         controller.Character.Move(ref joyDir);
 
-        var animatedSpriteComponent = controller.Character.Owner.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        var animatedSpriteComponent = controller.Character.Owner.GetComponent<AnimatedSpriteComponent>();
         animatedSpriteComponent.CreatePhysicsForEachFrame = false;
 
         controller.Character.SetAnimation(Character.AnimationIndices.Dying, false);

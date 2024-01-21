@@ -9,6 +9,8 @@ using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Materials.Graph;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
@@ -25,7 +27,7 @@ namespace SandBoxGame
 {
     public class SandBoxGame : CasaEngineGame
     {
-        private Entity _boxEntity;
+        private AActor _boxEntity;
         private StaticMesh _staticMesh;
 
         private Effect _effectColor;
@@ -56,27 +58,25 @@ namespace SandBoxGame
             GameManager.CurrentWorld = world;
 
             //============ Camera ===============
-            var entity = new Entity();
+            var entity = new AActor { Name = "camera" };
             var camera = new ArcBallCameraComponent();
             //var camera = new Camera3dIn2dAxisComponent(entity);
             //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
-            entity.ComponentManager.Add(camera);
-            var gamePlayComponent = new GamePlayComponent();
-            entity.ComponentManager.Add(gamePlayComponent);
-            gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
+            entity.AddComponent(camera);
+            entity.GameplayProxy = new ScriptArcBallCamera();
             world.AddEntity(entity);
 
             //============ Box ===============
-            entity = new Entity();
-            _boxEntity = entity;
-            entity.Coordinates.LocalPosition = Vector3.Up * 0.5f;
+            _boxEntity = new AActor { Name = "box" };
             var meshComponent = new StaticMeshComponent();
-            entity.ComponentManager.Add(meshComponent);
+            _boxEntity.RootComponent.Position = Vector3.Up * 0.5f;
+            _boxEntity.AddComponent(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
             meshComponent.Mesh.Initialize(GraphicsDevice, GameManager.AssetContentManager);
             meshComponent.Mesh.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
             _staticMesh = meshComponent.Mesh;
-            world.AddEntity(entity);
+
+            world.AddEntity(_boxEntity);
 
             //============ Effect ===============
             _materialColor = new Material();
@@ -170,9 +170,9 @@ namespace SandBoxGame
             GraphicsDevice.SetVertexBuffer(_staticMesh.VertexBuffer);
             GraphicsDevice.Indices = _staticMesh.IndexBuffer;
 
-            DrawBoxWithEffect(gameTime, _effectColor, _materialColor, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(Vector3.UnitX * 2f));
-            DrawBoxWithEffect(gameTime, _effectTexture, _materialTexture, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 2f));
-            DrawBoxWithEffect(gameTime, _effectTexture2, _materialTexture, _boxEntity.Coordinates.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 4f));
+            DrawBoxWithEffect(gameTime, _effectColor, _materialColor, _boxEntity.RootComponent.WorldMatrix * Matrix.CreateTranslation(Vector3.UnitX * 2f));
+            DrawBoxWithEffect(gameTime, _effectTexture, _materialTexture, _boxEntity.RootComponent.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 2f));
+            DrawBoxWithEffect(gameTime, _effectTexture2, _materialTexture, _boxEntity.RootComponent.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 4f));
         }
 
         private void DrawBoxWithEffect(GameTime gameTime, Effect effect, Material material, Matrix world)

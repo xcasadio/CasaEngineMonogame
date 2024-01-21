@@ -1,25 +1,24 @@
 ﻿using System.Text.Json;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
-public class ScriptPlayerWeapon : ExternalComponent
+public class ScriptPlayerWeapon : GameplayProxy
 {
-    public override int ExternalComponentId => (int)RpgDemoScriptIds.SwordWeapon;
-
-    private Entity _entity;
-
-    public override void Initialize(EntityBase entityBase)
+    protected override void InitializePrivate()
     {
-        _entity = entityBase as Entity;
-        _entity.IsEnabled = false;
-        _entity.IsVisible = false;
+        base.InitializePrivate();
+
+        Owner.IsEnabled = false;
+        Owner.IsVisible = false;
+    }
+
+    public override void InitializeWithWorld(World world)
+    {
+
     }
 
     public override void Update(float elapsedTime)
@@ -40,11 +39,11 @@ public class ScriptPlayerWeapon : ExternalComponent
     {
         TileCollisionManager tileCollisionManager = null;
 
-        if (collision.ColliderA.Owner == _entity)
+        if (collision.ColliderA.Owner == Owner)
         {
             tileCollisionManager = collision.ColliderB as TileCollisionManager;
         }
-        else if (collision.ColliderB.Owner == _entity)
+        else if (collision.ColliderB.Owner == Owner)
         {
             tileCollisionManager = collision.ColliderA as TileCollisionManager;
         }
@@ -63,13 +62,13 @@ public class ScriptPlayerWeapon : ExternalComponent
     {
         ScriptEnemy scriptEnemy = null;
 
-        if (collision.ColliderA.Owner == _entity)
+        if (collision.ColliderA.Owner == Owner)
         {
-            scriptEnemy = collision.ColliderB.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptEnemy;
+            scriptEnemy = collision.ColliderB.Owner.GameplayProxy as ScriptEnemy;
         }
-        else if (collision.ColliderB.Owner == _entity)
+        else if (collision.ColliderB.Owner == Owner)
         {
-            scriptEnemy = collision.ColliderA.Owner.ComponentManager.GetComponent<GamePlayComponent>()?.ExternalComponent as ScriptEnemy;
+            scriptEnemy = collision.ColliderA.Owner.GameplayProxy as ScriptEnemy;
         }
 
         if (scriptEnemy != null)
@@ -98,7 +97,7 @@ public class ScriptPlayerWeapon : ExternalComponent
 
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
 
     }

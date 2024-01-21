@@ -1,39 +1,32 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using BulletSharp;
-using CasaEngine.Core.Design;
-using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
-public abstract class PhysicsBaseComponent : Component, ICollideableComponent
+public abstract class PhysicsBaseComponent : SceneComponent, ICollideableComponent
 {
     protected PhysicsEngineComponent? PhysicsEngineComponent;
+    private bool _lock;
 
-    //body
+    //dynamic
     private Vector3 _velocity;
     private float _maxSpeed;
     private float _maxForce;
     private float _maxTurnRate;
     protected RigidBody? _rigidBody;
-    private bool _lock;
 
     //static
     protected CollisionObject? _collisionObject;
 
-    [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
-
-    [Browsable(false)]
     public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
-    public PhysicsDefinition PhysicsDefinition { get; } = new();
+    public PhysicsDefinition PhysicsDefinition { get; }
 
     public Vector3 Velocity
     {
@@ -47,21 +40,36 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         }
     }
 
-    protected PhysicsBaseComponent()
+    protected PhysicsBaseComponent(AActor owner = null) : base(owner)
     {
+        PhysicsDefinition = new();
         PhysicsDefinition.PhysicsType = PhysicsType.Static;
     }
 
-    public override void Initialize(Entity entity)
+    protected PhysicsBaseComponent(PhysicsBaseComponent other) : base(other)
     {
-        base.Initialize(entity);
+        _velocity = other._velocity;
+        _maxSpeed = other._maxSpeed;
+        _maxForce = other._maxForce;
+        _maxTurnRate = other._maxTurnRate;
+        PhysicsDefinition = new(other.PhysicsDefinition);
+    }
 
-        PhysicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
+    protected override void InitializePrivate()
+    {
+        base.InitializePrivate();
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
+
+        PhysicsEngineComponent = world.Game.GetGameComponent<PhysicsEngineComponent>();
         Debug.Assert(PhysicsEngineComponent != null);
 
 #if EDITOR
-        entity.PositionChanged += OnPositionChanged;
-        entity.OrientationChanged += OnOrientationChanged;
+        Coordinates.PositionChanged += OnPositionChanged;
+        Coordinates.OrientationChanged += OnOrientationChanged;
         DestroyPhysicsObject();
 #endif
 
@@ -71,33 +79,31 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     public override void Update(float elapsedTime)
     {
 #if EDITOR
-        if (!Owner.Game.GameManager.IsRunningInGameEditorMode)
+        if (!World.Game.GameManager.IsRunningInGameEditorMode)
         {
             return;
         }
 #endif
 
-        CollisionObject? collisionObject = null;
-
-        if (_collisionObject != null)
-        {
-            collisionObject = _collisionObject;
-        }
-        else if (_rigidBody != null)
-        {
-            collisionObject = _rigidBody;
-        }
+        CollisionObject? collisionObject = _collisionObject ?? _rigidBody;
 
         if (collisionObject != null)
         {
             collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
-            Owner.Coordinates.LocalPosition = position;
-            Owner.Coordinates.LocalRotation = rotation;
+            //Set only the owner
+            //Test how to set all the hierarchy, but how we do with several physic component ?
+            Owner.RootComponent.Coordinates.Position = position;
+            Owner.RootComponent.Coordinates.Rotation = rotation;
         }
     }
 
     public override void OnEnabledValueChange()
     {
+        if (Owner == null)
+        {
+            return;
+        }
+
         if (Owner.IsEnabled)
         {
             CreatePhysicsObject();
@@ -106,25 +112,6 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         {
             DestroyPhysicsObject();
         }
-    }
-
-    public void OnHit(Collision collision)
-    {
-        Owner.Hit(collision, this);
-    }
-
-    public void OnHitEnded(Collision collision)
-    {
-        Owner.HitEnded(collision, this);
-    }
-
-    protected void Clone(PhysicsBaseComponent component)
-    {
-        component._velocity = _velocity;
-        component._maxSpeed = _maxSpeed;
-        component._maxForce = _maxForce;
-        component._maxTurnRate = _maxTurnRate;
-        component.PhysicsDefinition.CopyFrom(PhysicsDefinition);
     }
 
     public void DisablePhysics()
@@ -153,7 +140,7 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
             _rigidBody = null;
         }
 
-        PhysicsEngineComponent.ClearCollisionDataOf(this);
+        PhysicsEngineComponent.ClearCollisionDataFrom(this);
     }
 
     public void ApplyImpulse(Vector3 impulse, Vector3 relativePosition)
@@ -166,7 +153,7 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
         }
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         PhysicsDefinition.Load(element.GetProperty("physics_definition"));
     }
@@ -188,9 +175,9 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         JObject newJObject = new();
         PhysicsDefinition.Save(newJObject);
@@ -201,8 +188,8 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     {
         if (Owner != null)
         {
-            Owner.PositionChanged -= OnPositionChanged;
-            Owner.OrientationChanged -= OnOrientationChanged;
+            Coordinates.PositionChanged -= OnPositionChanged;
+            Coordinates.OrientationChanged -= OnOrientationChanged;
         }
     }
 
@@ -210,11 +197,12 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     {
         if (_collisionObject != null)
         {
-            _collisionObject.WorldTransform = Owner.Coordinates.WorldMatrix;
+            _collisionObject.WorldTransform = WorldMatrix;
         }
+
         if (_rigidBody != null)
         {
-            _rigidBody.WorldTransform = Owner.Coordinates.WorldMatrix;
+            _rigidBody.WorldTransform = WorldMatrix;
         }
     }
 
@@ -222,11 +210,12 @@ public abstract class PhysicsBaseComponent : Component, ICollideableComponent
     {
         if (_collisionObject != null)
         {
-            _collisionObject.WorldTransform = Owner.Coordinates.WorldMatrix;
+            _collisionObject.WorldTransform = WorldMatrix;
         }
+
         if (_rigidBody != null)
         {
-            _rigidBody.WorldTransform = Owner.Coordinates.WorldMatrix;
+            _rigidBody.WorldTransform = WorldMatrix;
         }
     }
 #endif

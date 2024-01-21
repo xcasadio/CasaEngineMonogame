@@ -1,10 +1,10 @@
 using CasaEngine.Framework.AI.Messaging;
-using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.AI.Goals;
 
 [Serializable]
-public abstract class Goal<T> : IMessageable where T : Entity
+public abstract class Goal<T> : IMessageable where T : AActor
 {
     protected internal T Owner;
     protected internal GoalProcessingState status;

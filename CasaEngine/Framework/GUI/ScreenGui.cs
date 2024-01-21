@@ -1,45 +1,22 @@
-﻿using CasaEngine.Framework.Assets;
-using System.Text.Json;
-using CasaEngine.Framework.Entities;
+﻿using System.Text.Json;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
 using Control = TomShane.Neoforce.Controls.Control;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.Framework.GUI
 {
-    public class ScreenGui : EntityBase
+    public class ScreenGui : AActor
     {
         private readonly List<Control> _controls = new();
 
-        public ExternalComponent? ExternalComponent { get; set; }
-
         public IEnumerable<Control> Controls => _controls;
+        private ScreenWidgetComponent ScreenWidgetComponent { get; }
 
-        public override void Initialize(CasaEngineGame game)
+        public ScreenGui()
         {
-            base.Initialize(game);
-
-            foreach (var control in Controls)
-            {
-                control.Initialize(Game.GameManager.UiManager);
-            }
-
-            ExternalComponent?.Initialize(this);
-        }
-
-        protected override void UpdateInternal(float elapsedTime)
-        {
-            base.UpdateInternal(elapsedTime);
-
-            ExternalComponent?.Update(elapsedTime);
-        }
-
-        protected override void DrawInternal()
-        {
-            base.DrawInternal();
-
-            ExternalComponent?.Draw();
+            //ScreenWidgetComponent = new ScreenWidgetComponent(this);
         }
 
         public void Add(Control control)
@@ -47,7 +24,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Add(control);
 
 #if EDITOR
-            Game.GameManager.UiManager.Add(control);
+            ScreenWidgetComponent.World.Game.GameManager.UiManager.Add(control);
 #endif
         }
 
@@ -56,7 +33,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Remove(control);
 
 #if EDITOR
-            Game.GameManager.UiManager.Remove(control);
+            ScreenWidgetComponent.World.Game.GameManager.UiManager.Remove(control);
 #endif
         }
 
@@ -73,14 +50,19 @@ namespace CasaEngine.Framework.GUI
             return null;
         }
 
-        public override void Load(JsonElement element, SaveOption option)
+        public void Draw()
         {
-            base.Load(element, option);
+            throw new NotImplementedException();
+        }
+
+        public override void Load(JsonElement element)
+        {
+            base.Load(element);
 
             var externalComponentElement = element.GetProperty("external_component");
             if (externalComponentElement.GetString() != "null")
             {
-                //ExternalComponent = ;
+                //GameplayProxy = ;
             }
 
             foreach (var controlElement in element.GetProperty("controls").EnumerateArray())
@@ -93,14 +75,14 @@ namespace CasaEngine.Framework.GUI
         }
 
 #if EDITOR
-        public override void Save(JObject jObject, SaveOption option)
+        public override void Save(JObject jObject)
         {
-            base.Save(jObject, option);
+            base.Save(jObject);
 
-            if (ExternalComponent != null)
+            if (GameplayProxy != null)
             {
                 var externalComponentNode = new JObject();
-                ExternalComponent.Save(externalComponentNode, option);
+                GameplayProxy.Save(externalComponentNode);
                 jObject.Add("external_component", externalComponentNode);
             }
             else

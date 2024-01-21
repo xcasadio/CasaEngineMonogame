@@ -1,9 +1,9 @@
-using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.AI.Goals;
 
 [Serializable]
-public abstract class GoalComposite<T> : Goal<T> where T : Entity
+public abstract class GoalComposite<T> : Goal<T> where T : AActor
 {
 
     protected internal List<Goal<T>> SubGoals;

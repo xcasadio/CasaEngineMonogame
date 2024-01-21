@@ -1,8 +1,9 @@
 ﻿using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.AI.BehaviourTree;
 
-public class BehaviourTree<T> where T : Entity
+public class BehaviourTree<T> where T : AActor
 {
     protected internal T Owner;
 

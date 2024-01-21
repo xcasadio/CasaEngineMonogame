@@ -12,6 +12,7 @@ public abstract class Shape2d
     public Shape2dType Type { get; }
     public Vector2 Position { get; set; } = Vector2.Zero;
     public float Rotation { get; set; }
+    public abstract BoundingBox BoundingBox { get; }
 
     protected Shape2d(Shape2dType type)
     {

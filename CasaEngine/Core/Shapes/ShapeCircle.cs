@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Helpers;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
@@ -6,6 +8,16 @@ namespace CasaEngine.Core.Shapes;
 public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
 {
     public float Radius { get; set; }
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var position = Position.ToVector3();
+            var radiusVector = new Vector3(Radius);
+            return new BoundingBox(position - radiusVector, position + radiusVector);
+        }
+    }
 
     public ShapeCircle() : base(Shape2dType.Circle)
     {

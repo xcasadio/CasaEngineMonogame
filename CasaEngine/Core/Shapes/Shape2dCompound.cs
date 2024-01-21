@@ -1,10 +1,27 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using CasaEngine.Core.Helpers;
+using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
 
 public class Shape2dCompound : Shape2d, IEquatable<Shape2dCompound>
 {
     public List<Shape2d> Shapes { get; } = new();
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var boundingBox = new BoundingBox();
+
+            foreach (var shape in Shapes)
+            {
+                boundingBox.ExpandBy(shape.BoundingBox);
+            }
+
+            return boundingBox;
+        }
+    }
 
     public Shape2dCompound() : base(Shape2dType.Compound)
     {

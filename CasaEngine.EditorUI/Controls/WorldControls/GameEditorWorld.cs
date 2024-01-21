@@ -11,6 +11,8 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
@@ -80,7 +82,7 @@ public class GameEditorWorld : GameEditor
                     new Vector2((float)position.X, (float)position.Y),
                     camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
 
-                var entity = new Entity();
+                var entity = new AActor();
                 entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;
 
                 if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)

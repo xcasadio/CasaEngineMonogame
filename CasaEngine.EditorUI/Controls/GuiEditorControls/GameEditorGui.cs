@@ -6,6 +6,8 @@ using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Control = TomShane.Neoforce.Controls.Control;
 using DataFormats = System.Windows.DataFormats;
@@ -45,7 +47,7 @@ public class GameEditorGui : GameEditor2d
         _camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
     }
 
-    protected override void CreateEntityComponents(Entity entity)
+    protected override void CreateEntityComponents(AActor entity)
     {
         Game.GameManager.UiManager.SetSkin();
         _camera = Game.GameManager.ActiveCamera as Camera3dIn2dAxisComponent;

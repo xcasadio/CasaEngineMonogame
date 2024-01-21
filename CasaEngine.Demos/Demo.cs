@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
@@ -15,13 +17,12 @@ public abstract class Demo
 
     public virtual CameraComponent CreateCamera(CasaEngineGame game)
     {
-        var entity = new Entity();
+        var entity = new AActor();
         var camera = new ArcBallCameraComponent();
-        entity.ComponentManager.Add(camera);
-        var gamePlayComponent = new GamePlayComponent();
-        entity.ComponentManager.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
-        entity.Initialize(game);
+        entity.RootComponent = camera;
+        entity.GameplayProxy = new ScriptArcBallCamera();
+        entity.Initialize();
+        //entity.InitializeWithWorld(game.GameManager.CurrentWorld);
         game.GameManager.CurrentWorld.AddEntity(entity);
 
         return camera;

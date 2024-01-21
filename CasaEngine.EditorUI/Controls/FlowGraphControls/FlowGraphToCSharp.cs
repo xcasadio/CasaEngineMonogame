@@ -178,7 +178,7 @@ using Microsoft.Xna.Framework;
 
 namespace generatedScope;
 
-public class GeneratedClass : ExternalComponent
+public class GeneratedClass : GameplayProxy
 {
     public override int ExternalComponentId => -1;
     public Entity Entity;

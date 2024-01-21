@@ -38,7 +38,7 @@ public partial class WorldPropertiesControl : UserControl
         if (sender is ComboBox comboBox)
         {
             var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
-            _game.GameManager.CurrentWorld.ExternalComponent = externalComponent;
+            _game.GameManager.CurrentWorld.GameplayProxy = externalComponent;
         }
     }
 }

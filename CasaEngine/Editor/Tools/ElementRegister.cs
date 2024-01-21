@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
-using Component = CasaEngine.Framework.Entities.Components.Component;
 
 namespace CasaEngine.Editor.Tools;
 

@@ -15,6 +15,8 @@ using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using FontStashSharp;
@@ -74,7 +76,7 @@ public class GameManager
             _activeCamera = value;
             if (_activeCamera != null)
             {
-                if (_activeCamera.IsInitialized == false)
+                if (_activeCamera.Owner.IsInitialized == false)
                 {
                     throw new InvalidOperationException("Initialize the camera before activate it");
                 }
@@ -132,19 +134,12 @@ public class GameManager
     public void OnScreenResized(int width, int height)
     {
         _game.ScreenResize(width, height);
-
-        if (CurrentWorld != null)
-        {
-            foreach (var entity in CurrentWorld.Entities)
-            {
-                entity.ScreenResized(width, height);
-            }
-        }
+        CurrentWorld?.ScreenResized(width, height);
 
 #if EDITOR
         if (UseGui)
         {
-            UiManager.OnScreenResized(width, height);
+            UiManager.ScreenResized(width, height);
         }
 #else
         UiManager.OnScreenResized(width, height);
@@ -226,11 +221,11 @@ public class GameManager
         UiManagerEnd = new GuiEndRendererComponent(_game);
     }
 
-    public Entity SpawnEntity(string assetName)
+    public AActor SpawnEntity(string assetName)
     {
         var assetInfo = GameSettings.AssetInfoManager.Get(assetName);
-        var entity = AssetContentManager.Load<Entity>(assetInfo).Clone();
-        entity.Initialize(_game);
+        var entity = AssetContentManager.Load<AActor>(assetInfo).Clone();
+        entity.Initialize();
         CurrentWorld.AddEntity(entity);
         return entity;
     }
@@ -241,14 +236,14 @@ public class GameManager
         //AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
         AssetContentManager.RegisterAssetLoader(typeof(TomShane.Neoforce.Controls.Cursor), new NeoForceCursorLoader());
 
-        AssetContentManager.RegisterAssetLoader(typeof(EntityFlowGraph), new AssetLoader<EntityFlowGraph>());
-        AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
+        //AssetContentManager.RegisterAssetLoader(typeof(EntityFlowGraph), new AssetLoader<EntityFlowGraph>());
+        //AssetContentManager.RegisterAssetLoader(typeof(AActor), new AssetLoader<AActor>());
         AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
         AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
         AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
         AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
-        AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
+        //AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
     }
 
     public void BeginLoadContent()
@@ -367,7 +362,7 @@ public class GameManager
     public event EventHandler? WorldChanged;
 
     private ArcBallCameraComponent _cameraEditor;
-    private Entity _cameraEditorEntity;
+    private AActor _cameraEditorEntity;
 
     public bool IsRunningInGameEditorMode { get; set; }
     public bool UseGui { get; set; }
@@ -384,14 +379,12 @@ public class GameManager
 
     private void CreateCameraEditor()
     {
-        _cameraEditorEntity = new Entity { Name = "Camera" };
+        _cameraEditorEntity = new AActor { Name = "Camera" };
         _cameraEditorEntity.IsTemporary = true;
         _cameraEditorEntity.IsVisible = false;
         _cameraEditor = new ArcBallCameraComponent();
         _cameraEditorEntity.ComponentManager.Add(_cameraEditor);
-        var gamePlayComponent = new GamePlayComponent();
-        _cameraEditorEntity.ComponentManager.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
+        _cameraEditorEntity.GameplayProxy = new ScriptArcBallCamera();
 
         _cameraEditorEntity.Initialize(_game);
 

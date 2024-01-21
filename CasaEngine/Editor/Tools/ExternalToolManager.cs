@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Editor.Tools;
 
@@ -85,9 +85,9 @@ public class ExternalToolManager
         return res.ToArray();
     }*/
 
-    public Entity CreateCustomObjectByName(string name)
+    public AActor CreateCustomObjectByName(string name)
     {
-        return (Entity)_customObjects[name].Assembly.CreateInstance(_customObjects[name].FullName);
+        return (AActor)_customObjects[name].Assembly.CreateInstance(_customObjects[name].FullName);
     }
 
     /*public void RunTool(System.Windows.Forms.Form parent, string name_)
@@ -115,7 +115,7 @@ public class ExternalToolManager
         _customObjectAssembly.Clear();
     }
 
-    public void RunSubEditor(string path, Entity obj)
+    public void RunSubEditor(string path, AActor obj)
     {
         if (obj == null)
         {

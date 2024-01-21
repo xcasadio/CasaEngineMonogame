@@ -6,6 +6,8 @@ using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -20,18 +22,21 @@ public class Collision3dBasicDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         //============ Create ground ===============
-        var entity = new Entity();
+        var entity = new AActor { Name = "ground" };
+        //===
         var physicsComponent = new PhysicsComponent();
-        entity.ComponentManager.Add(physicsComponent);
+        entity.AddComponent(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         physicsComponent.Shape = new Box { Size = new Vector3(50, 1, 50) };
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
+        //===
         var meshComponent = new StaticMeshComponent();
-        entity.ComponentManager.Add(meshComponent);
+        entity.RootComponent = meshComponent;
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
         meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+
         world.AddEntity(entity);
 
         //============ Create box ===============
@@ -50,19 +55,22 @@ public class Collision3dBasicDemo : Demo
             {
                 for (int j = 0; j < ArraySizeZ; j++)
                 {
-                    entity = new Entity();
-                    entity.Coordinates.LocalPosition = start + new Vector3(i, k, j);
+                    entity = new AActor { Name = $"box {i}-{k}" };
+                    //===
                     physicsComponent = new PhysicsComponent();
-                    entity.ComponentManager.Add(physicsComponent);
+                    physicsComponent.Position = start + new Vector3(i, k, j);
+                    entity.AddComponent(physicsComponent);
                     physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
                     physicsComponent.Shape = new Box { Size = Vector3.One };
                     physicsComponent.PhysicsDefinition.Mass = mass;
+                    //===
                     meshComponent = new StaticMeshComponent();
-                    entity.ComponentManager.Add(meshComponent);
+                    entity.RootComponent = meshComponent;
                     meshComponent.Mesh = boxPrimitive;
                     meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
                     fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
-                    meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+                    meshComponent.Mesh.Texture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+
                     world.AddEntity(entity);
                 }
             }

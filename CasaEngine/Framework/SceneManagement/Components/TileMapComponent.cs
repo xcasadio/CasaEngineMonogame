@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
-using CasaEngine.Core.Design;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
@@ -11,49 +11,40 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("Tile Map")]
-public class TileMapComponent : Component, IBoundingBoxable, ICollideableComponent, IComponentDrawable
+public class TileMapComponent : SceneComponent, ICollideableComponent
 {
-    public override int ComponentId => (int)ComponentIds.TileMap;
-
     public long TileMapDataAssetId { get; set; } = IdManager.InvalidId;
     public TileMapData TileMapData { get; set; }
     public TileSetData TileSetData { get; set; }
     private List<TileMapLayer> Layers { get; } = new();
-
-    [Browsable(false)]
     public PhysicsType PhysicsType { get; }
-
-    [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
 
-    public void OnHit(Collision collision)
-    {
-        Owner.Hit(collision, this);
-    }
-
-    public void OnHitEnded(Collision collision)
-    {
-        Owner.HitEnded(collision, this);
-    }
-
-    public TileMapComponent() : base()
+    public TileMapComponent(AActor? actor = null) : base(actor)
     {
         //Do nothing
     }
 
-    public override void Initialize(Entity entity)
+    public TileMapComponent(TileMapComponent other) : base(other)
     {
-        base.Initialize(entity);
+        Layers.AddRange(other.Layers);
+        TileMapData = other.TileMapData;
+        TileMapDataAssetId = other.TileMapDataAssetId;
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
 
         AssetInfo assetInfo;
 
         if (TileMapDataAssetId != IdManager.InvalidId)
         {
             assetInfo = GameSettings.AssetInfoManager.Get(TileMapDataAssetId);
-            TileMapData = Owner.Game.GameManager.AssetContentManager.Load<TileMapData>(assetInfo);
+            TileMapData = World.Game.GameManager.AssetContentManager.Load<TileMapData>(assetInfo);
         }
 
         if (TileMapData == null)
@@ -62,12 +53,12 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
         }
 
         assetInfo = GameSettings.AssetInfoManager.Get(TileMapData.TileSetDataAssetId);
-        TileSetData = Owner.Game.GameManager.AssetContentManager.Load<TileSetData>(assetInfo);
+        TileSetData = World.Game.GameManager.AssetContentManager.Load<TileSetData>(assetInfo);
         var tileSize = TileSetData.TileSize;
 
         assetInfo = GameSettings.AssetInfoManager.Get(TileSetData.SpriteSheetAssetId);
-        var texture = Owner.Game.GameManager.AssetContentManager.Load<Texture>(assetInfo);
-        texture.Load(Owner.Game.GameManager.AssetContentManager);
+        var texture = World.Game.GameManager.AssetContentManager.Load<Texture>(assetInfo);
+        texture.Load(World.Game.GameManager.AssetContentManager);
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -121,8 +112,8 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
                         {
                             case TileCollisionType.NoContactResponse:
                             case TileCollisionType.Blocked:
-                                var physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
-                                var worldMatrix = Owner.Coordinates.WorldMatrix;
+                                var physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
+                                var worldMatrix = WorldMatrix;
                                 worldMatrix.Translation += new Vector3(
                                     x * tileSize.Width + tileSize.Width / 2f,
                                     -y * tileSize.Height - tileSize.Height / 2f,
@@ -144,11 +135,16 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
                         }
                     }
 
-                    tile.Initialize(Owner.Game);
+                    tile.Initialize(World.Game);
                     tileMapLayer.Tiles.Add(tile);
                 }
             }
         }
+    }
+
+    public override TileMapComponent Clone()
+    {
+        return new TileMapComponent(this);
     }
 
     public override void Update(float elapsedTime)
@@ -162,24 +158,46 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
         }
     }
 
-    public BoundingBox GetBoundingBox()
+    public override BoundingBox GetBoundingBox()
     {
-        return BoundingBox;
+        var min = Vector3.One * int.MaxValue;
+        var max = Vector3.One * int.MinValue;
+
+        if (TileMapData != null)
+        {
+            min = Vector3.Min(min, new Vector3(0, 0, TileMapData.Layers.Min(x => x.zOffset)));
+            max = Vector3.Max(max, new Vector3(
+                TileMapData.MapSize.Width * TileSetData.TileSize.Width,
+                -TileMapData.MapSize.Height * TileSetData.TileSize.Height,
+                TileMapData.Layers.Max(x => x.zOffset)));
+        }
+        else // default box
+        {
+            const float length = 0.5f;
+            min = Vector3.One * -length;
+            max = Vector3.One * length;
+        }
+
+        min = Vector3.Transform(min, WorldMatrix);
+        max = Vector3.Transform(max, WorldMatrix);
+
+        return new BoundingBox(min, max);
     }
 
-    public override void Draw()
+    public override void Draw(float elapsedTime)
     {
         if (TileMapData == null)
         {
             return;
         }
 
-        var translation = Owner.Coordinates.WorldMatrix.Translation;
-        var scale = new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
+        var translation = WorldPosition;
+        var scale = WorldScale.ToVector2();//new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
+
         var mapWidth = TileMapData.MapSize.Width;
         var mapHeight = TileMapData.MapSize.Height;
-        var tileWidth = TileSetData.TileSize.Width * Owner.Coordinates.Scale.X;
-        var tileHeight = TileSetData.TileSize.Height * Owner.Coordinates.Scale.Y;
+        var tileWidth = TileSetData.TileSize.Width * scale.X;
+        var tileHeight = TileSetData.TileSize.Height * scale.Y;
         var mapPosX = translation.X;
         var mapPosY = translation.Y;
 
@@ -202,55 +220,17 @@ public class TileMapComponent : Component, IBoundingBoxable, ICollideableCompone
         Layers[layer].Tiles[x + y * TileMapData.MapSize.Width] = new EmptyTile();
     }
 
-    public BoundingBox BoundingBox
+    public override void Load(JsonElement element)
     {
-        get
-        {
-            var min = Vector3.One * int.MaxValue;
-            var max = Vector3.One * int.MinValue;
-
-            if (TileMapData != null)
-            {
-                min = Vector3.Min(min, new Vector3(0, 0, TileMapData.Layers.Min(x => x.zOffset)));
-                max = Vector3.Max(max, new Vector3(
-                    TileMapData.MapSize.Width * TileSetData.TileSize.Width,
-                    -TileMapData.MapSize.Height * TileSetData.TileSize.Height,
-                    TileMapData.Layers.Max(x => x.zOffset)));
-            }
-            else // default box
-            {
-                const float length = 0.5f;
-                min = Vector3.One * -length;
-                max = Vector3.One * length;
-            }
-
-            min = Vector3.Transform(min, Owner.Coordinates.WorldMatrix);
-            max = Vector3.Transform(max, Owner.Coordinates.WorldMatrix);
-
-            return new BoundingBox(min, max);
-        }
-    }
-
-    public override Component Clone()
-    {
-        var component = new TileMapComponent();
-
-        component.Layers.AddRange(Layers);
-        component.TileMapData = TileMapData;
-        component.TileMapDataAssetId = TileMapDataAssetId;
-        return component;
-    }
-
-    public override void Load(JsonElement element, SaveOption option)
-    {
+        base.Load(element);
         TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetInt64();
     }
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
         jObject.Add("tile_map_data_asset_id", TileMapDataAssetId);
     }
 

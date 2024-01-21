@@ -1,21 +1,18 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 [DisplayName("Physics 2d")]
 public class Physics2dComponent : PhysicsBaseComponent
 {
-    public override int ComponentId => (int)ComponentIds.Physics2d;
-
-    private Shape2d _shape;
+    private Shape2d? _shape;
+    private BoundingBox _boundingBox;
 
     public Shape2d? Shape
     {
@@ -23,16 +20,24 @@ public class Physics2dComponent : PhysicsBaseComponent
         set
         {
             _shape = value;
-#if EDITOR
-            OnPropertyChanged();
-#endif
+            _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
         }
     }
 
-    public Physics2dComponent()
+    public Physics2dComponent(AActor owner = null) : base(owner)
     {
         PhysicsDefinition.LinearFactor = new Vector3(1, 1, 0);
         PhysicsDefinition.AngularFactor = new Vector3(0, 0, 1);
+    }
+
+    public Physics2dComponent(Physics2dComponent other) : base(other)
+    {
+        _shape = other._shape;
+    }
+
+    public override Physics2dComponent Clone()
+    {
+        return new Physics2dComponent(this);
     }
 
     public void SetPosition(Vector3 position)
@@ -50,11 +55,11 @@ public class Physics2dComponent : PhysicsBaseComponent
             return;
         }
 
-        _shape.Position = Owner.Coordinates.LocalPosition.ToVector2();
+        _shape.Position = Position.ToVector2();
         //_shape.Rotation = Owner.Coordinates.Rotation;
 
-        var worldMatrix = Matrix.CreateFromQuaternion(Owner.Coordinates.LocalRotation) *
-                          Matrix.CreateTranslation(Owner.Coordinates.LocalPosition);
+        var worldMatrix = WorldMatrix;
+        //var worldMatrix = Matrix.CreateFromQuaternion(Orientation) * Matrix.CreateTranslation(Position);
 
         switch (PhysicsType)
         {
@@ -71,17 +76,11 @@ public class Physics2dComponent : PhysicsBaseComponent
         }
     }
 
-    public override Component Clone()
-    {
-        var component = new Physics2dComponent();
-        component._shape = _shape;
-        Clone(component);
-        return component;
-    }
+    public override BoundingBox GetBoundingBox() => _boundingBox;
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element, option);
+        base.Load(element);
 
         var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "\"null\"")
@@ -92,9 +91,9 @@ public class Physics2dComponent : PhysicsBaseComponent
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         if (_shape != null)
         {

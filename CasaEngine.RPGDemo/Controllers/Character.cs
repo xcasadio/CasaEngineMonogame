@@ -4,9 +4,9 @@ using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logs;
 using CasaEngine.Framework.AI.Messaging;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
@@ -15,7 +15,6 @@ namespace CasaEngine.RPGDemo.Controllers;
 
 public class Character
 {
-    private readonly CasaEngineGame _game;
     public const float DeadZone = 0.2f;
 
     public enum AnimationIndices
@@ -57,10 +56,10 @@ public class Character
     public AnimatedSpriteComponent AnimatedSpriteComponent { get; private set; }
 
     public Character2dDirection CurrentDirection { get; set; } = Character2dDirection.Right;
-    public Entity Owner { get; }
+    public AActor Owner { get; }
     public CharacterType Type { get; set; }
     public int ComboNumber { get; set; }
-    public Vector3 Position => Owner.Coordinates.Position;
+    public Vector3 Position => Owner.RootComponent?.Position ?? Vector3.Zero;
     public string AnimatationPrefix { get; set; }
 
     public bool CanAttack => _delayBeforeNewAttack <= 0.0f;
@@ -76,9 +75,8 @@ public class Character
     public int ExperienceBeforeNextLevel { get; set; } = 10;
 
 
-    public Character(Entity entity, CasaEngineGame game)
+    public Character(AActor entity)
     {
-        _game = game;
         Owner = entity;
 
         SetAnimationDirectionOffset(Character2dDirection.Down, (int)AnimationDirectionOffset.Down);
@@ -94,8 +92,8 @@ public class Character
 
     public void Initialize(CasaEngineGame game)
     {
-        _physics2dComponent = Owner.ComponentManager.GetComponent<Physics2dComponent>();
-        AnimatedSpriteComponent = Owner.ComponentManager.GetComponent<AnimatedSpriteComponent>();
+        _physics2dComponent = Owner.GetComponent<Physics2dComponent>();
+        AnimatedSpriteComponent = Owner.GetComponent<AnimatedSpriteComponent>();
     }
 
     public void Update(float elapsedTime)
@@ -220,14 +218,14 @@ public class Character
     {
         AddHitEffect(ref hitParameters.ContactPoint);
 
-        var opponentGamePlayComponent = hitParameters.Entity.ComponentManager.GetComponent<GamePlayComponent>();
+        var opponentGamePlayComponent = hitParameters.Entity;
 
         if (opponentGamePlayComponent != null)
         {
-            if (opponentGamePlayComponent.ExternalComponent is IScriptCharacter opponentScriptCharacter
+            if (opponentGamePlayComponent.GameplayProxy is IScriptCharacter opponentScriptCharacter
                 && !IsDead)
             {
-                var physics2dComponent = opponentScriptCharacter.Character.Owner.ComponentManager.GetComponent<Physics2dComponent>();
+                var physics2dComponent = opponentScriptCharacter.Character.Owner.GetComponent<Physics2dComponent>();
                 var impulse = Vector3.UnitX * 300f; //Vector3.Normalize(hitParameters.Entity.Coordinates.WorldMatrix.Forward) * -100f;
                 physics2dComponent.ApplyImpulse(impulse, Vector3.Zero);
 
@@ -241,8 +239,7 @@ public class Character
                     //var characterComponent = Owner.ComponentManager.GetComponent<CharacterComponent>();
                     //characterComponent.Controller.StateMachine.Transition(characterComponent.Controller.GetState(dying));
                     //Owner.Destroy();
-                    var gamePlayComponent = Owner.ComponentManager.GetComponent<GamePlayComponent>();
-                    if (gamePlayComponent.ExternalComponent is IScriptCharacter scriptCharacter)
+                    if (Owner.GameplayProxy is IScriptCharacter scriptCharacter)
                     {
                         scriptCharacter.Dying();
                     }
@@ -253,8 +250,8 @@ public class Character
                 }
                 else
                 {
-                    opponentScriptCharacter.Controller.StateMachine.HandleMessage(new Message(0, 0, (int)MessageType.Hit, 0,
-                        null));
+                    opponentScriptCharacter.Controller.StateMachine.HandleMessage(
+                        new Message(Guid.Empty, Guid.Empty, (int)MessageType.Hit, 0, null));
                 }
             }
         }

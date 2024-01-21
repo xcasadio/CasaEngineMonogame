@@ -3,6 +3,8 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Point = Microsoft.Xna.Framework.Point;
@@ -12,10 +14,10 @@ namespace CasaEngine.EditorUI.Controls;
 public abstract class GameEditor2d : GameEditor
 {
     private float _scale = 1.0f;
-    protected Entity _entity;
+    protected AActor _entity;
     private InputComponent? _inputComponent;
     private Point _lastMousePosition;
-    protected Entity CameraEntity { get; private set; }
+    protected AActor CameraEntity { get; private set; }
 
     public float Scale
     {
@@ -31,14 +33,14 @@ public abstract class GameEditor2d : GameEditor
     {
     }
 
-    protected abstract void CreateEntityComponents(Entity entity);
+    protected abstract void CreateEntityComponents(AActor entity);
 
 
     protected override void LoadContent()
     {
         base.LoadContent();
 
-        CameraEntity = new Entity();
+        CameraEntity = new AActor();
         var camera = new Camera3dIn2dAxisComponent();
         CameraEntity.ComponentManager.Add(camera);
         var screenXBy2 = Game.ScreenSizeWidth / 2f;
@@ -52,7 +54,7 @@ public abstract class GameEditor2d : GameEditor
         Game.GameManager.CurrentWorld = new World();
         Game.GameManager.CurrentWorld.Initialize(Game);
 
-        _entity = new Entity();
+        _entity = new AActor();
         _entity.Coordinates.LocalPosition = new Vector3(screenXBy2, screenYBy2, 0.0f);
 
         CreateEntityComponents(_entity);

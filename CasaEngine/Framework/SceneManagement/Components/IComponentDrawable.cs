@@ -1,9 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Entities.Components;
+namespace CasaEngine.Framework.SceneManagement.Components;
 
 public interface IComponentDrawable
 {
     BoundingBox GetBoundingBox();
-    void Draw();
+    void Draw(float elapsedTime);
 }

@@ -1,31 +1,25 @@
 ﻿using System.Linq;
 using System.Text.Json;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 using TomShane.Neoforce.Controls;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
-public class ScriptMainHUDScreen : ExternalComponent
+public class ScriptMainHUDScreen : GameplayProxy
 {
     private ScreenGui _screen;
     private ProgressBar _lifeBar;
     private Character _playerCharacter;
 
-    public override int ExternalComponentId => (int)RpgDemoScriptIds.World;
-
-    public override void Initialize(EntityBase entityBase)
+    public override void InitializeWithWorld(World world)
     {
-        _screen = entityBase as ScreenGui;
-        var entity = entityBase.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
-        var gamePlayComponent = entity.ComponentManager.GetComponent<GamePlayComponent>();
-        var scriptPlayer = gamePlayComponent.ExternalComponent as ScriptPlayer;
+        _screen = Owner as ScreenGui;
+        var entity = world.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
+        var scriptPlayer = entity.GameplayProxy as ScriptPlayer;
         _playerCharacter = scriptPlayer.Character;
         _lifeBar = (ProgressBar)_screen.GetControlByName("ProgressBar"); // linkLifeBar
     }
@@ -57,13 +51,13 @@ public class ScriptMainHUDScreen : ExternalComponent
 
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
     }
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         base.Save(jObject, option);
     }
