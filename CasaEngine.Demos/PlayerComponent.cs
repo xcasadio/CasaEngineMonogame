@@ -28,6 +28,8 @@ public class PlayerComponent : ActorComponent
     public override void InitializeWithWorld(World world)
     {
         base.InitializeWithWorld(world);
+
+        _animatedSpriteComponent.SetCurrentAnimation("swordman_stand_right", true);
     }
 
     public override PlayerComponent Clone()
@@ -66,14 +68,14 @@ public class PlayerComponent : ActorComponent
 
         _physics2dComponent.Velocity = new Vector3(velocityX, velocityY, 0f);
 
-        if (!string.IsNullOrWhiteSpace(animationName) && !animationName.Equals(_animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name))
+        if (!string.IsNullOrWhiteSpace(animationName) && !animationName.Equals(_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name))
         {
-            Debug.WriteLine(DateTime.Now.TimeOfDay + " " + animationName + " " + _animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name);
+            Debug.WriteLine(DateTime.Now.TimeOfDay + " " + animationName + " " + _animatedSpriteComponent.CurrentAnimation.Animation2dData.Name);
             _animatedSpriteComponent.SetCurrentAnimation(animationName, true);
         }
-        else if (string.IsNullOrWhiteSpace(animationName) && !_animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name.Contains("stand"))
+        else if (string.IsNullOrWhiteSpace(animationName) && !_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name.Contains("stand"))
         {
-            _animatedSpriteComponent.SetCurrentAnimation(_animatedSpriteComponent.CurrentAnimation.Animation2dData.AssetInfo.Name.Replace("walk", "stand"), true);
+            _animatedSpriteComponent.SetCurrentAnimation(_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name.Replace("walk", "stand"), true);
         }
 
         if (Keyboard.GetState().IsKeyDown(Keys.Add))

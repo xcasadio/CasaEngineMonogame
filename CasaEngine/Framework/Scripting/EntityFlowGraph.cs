@@ -1,12 +1,4 @@
-﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
-using Newtonsoft.Json.Linq;
-
-#if EDITOR
-using CasaEngine.Framework.Entities.Components;
-using FlowGraph;
+﻿#if EDITOR
 #endif
 
 namespace CasaEngine.Framework.Scripting;
@@ -31,7 +23,7 @@ public class EntityFlowGraph : Entity
     public void InitializeScript(GameplayProxy externalComponent)
     {
         InstanciatedObject = externalComponent;
-        InstanciatedObject.Initialize(this);
+        InstanciatedObject.LoadContent(this);
 
         var gamePlayComponent = ComponentManager.GetComponent<GamePlayComponent>();
 
@@ -39,7 +31,7 @@ public class EntityFlowGraph : Entity
         {
             gamePlayComponent = new GamePlayComponent();
             ComponentManager.Add(gamePlayComponent);
-            gamePlayComponent.Initialize(this);
+            gamePlayComponent.LoadContent(this);
         }
 
         gamePlayComponent.GameplayProxy = InstanciatedObject;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
@@ -41,10 +42,9 @@ public class TileMapDataViewModel : NotifyPropertyChangeBase
     {
         TileMapData = TileMapLoader.LoadMapFromFile(fileName);
 
-        if (TileMapData.TileSetDataAssetId != IdManager.InvalidId)
+        if (TileMapData.TileSetDataAssetId != Guid.Empty)
         {
-            var assetInfo = GameSettings.AssetInfoManager.Get(TileMapData.TileSetDataAssetId);
-            TileSetData = assetContentManager.Load<TileSetData>(assetInfo);
+            TileSetData = assetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetId);
         }
 
         foreach (var layer in TileMapData.Layers)

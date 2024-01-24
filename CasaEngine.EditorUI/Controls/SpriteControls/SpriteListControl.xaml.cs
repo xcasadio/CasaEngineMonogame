@@ -28,7 +28,7 @@ public partial class SpriteListControl : UserControl
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-        var spriteData = _gameEditor.Game.GameManager.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo);
+        var spriteData = _gameEditor.Game.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo.Id);
         SelectedItem = new SpriteDataViewModel(spriteData);
     }
 
@@ -55,7 +55,7 @@ public partial class SpriteListControl : UserControl
 
             if (inputTextBox.ShowDialog() == true)
             {
-                //_gameEditor.Game.GameManager.AssetContentManager.Rename(spriteDataViewModel.Name, inputTextBox.Text);
+                //_gameEditor.Game.AssetContentManager.Rename(spriteDataViewModel.Name, inputTextBox.Text);
                 spriteDataViewModel.Name = inputTextBox.Text;
             }
         }
@@ -80,7 +80,7 @@ public partial class SpriteListControl : UserControl
     {
         if (SelectedItem is SpriteDataViewModel spriteDataViewModel)
         {
-            AssetSaver.SaveAsset(spriteDataViewModel.AssetInfo.FileName, spriteDataViewModel.SpriteData);
+            AssetSaver.SaveAsset(spriteDataViewModel.SpriteData.FileName, spriteDataViewModel.SpriteData);
         }
     }
 }

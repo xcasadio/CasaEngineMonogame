@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using CasaEngine.Engine.Physics;
+﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.World;
@@ -96,18 +95,4 @@ public class ScriptPlayerWeapon : GameplayProxy
     {
 
     }
-
-    public override void Load(JsonElement element)
-    {
-
-    }
-
-#if EDITOR
-
-    public override void Save(JObject jObject, SaveOption option)
-    {
-        base.Save(jObject, option);
-    }
-
-#endif
 }

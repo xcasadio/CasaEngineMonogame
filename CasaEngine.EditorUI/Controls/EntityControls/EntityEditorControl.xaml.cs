@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
@@ -52,10 +53,8 @@ public partial class EntityEditorControl : EditorControlBase
 
     public void LoadEntity(string fileName)
     {
-        //EntityFlowGraph
-        var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
-        var entity = GameScreenControl.gameEntityEditor.Game.GameManager.AssetContentManager.Load<EntityFlowGraph>(assetInfo);
-        //var entity = EntityLoader.Load(fileName)
+        var assetInfo = GameSettings.AssetCatalog.GetByFileName(fileName);
+        var entity = GameScreenControl.gameEntityEditor.Game.AssetContentManager.Load<AActor>(assetInfo.Id);
         SelectedItem = new EntityViewModel(entity);
     }
 }

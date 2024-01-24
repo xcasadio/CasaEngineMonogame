@@ -2,10 +2,11 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Editor.Tools;
 using CasaEngine.EditorUI.Controls.Common;
+using CasaEngine.EditorUI.Plugins.Tools;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -40,17 +41,19 @@ public partial class EntityComponentsControl : UserControl
         if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
         {
             var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
-            var component = (Component)Activator.CreateInstance(componentType);
-            component.Initialize(entityViewModel.Entity);
-            entityViewModel.Entity.ComponentManager.Add(component);
+            var component = (ActorComponent)Activator.CreateInstance(componentType);
+            component.Initialize();
+            component.InitializeWithWorld(Game.GameManager.CurrentWorld);
+
+            entityViewModel.Entity.AddComponent(component);
         }
     }
 
     private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: Component component })
+        if (sender is FrameworkElement { DataContext: ActorComponent component })
         {
-            component.Owner.ComponentManager.Remove(component);
+            component.Owner.RemoveComponent(component);
         }
     }
 }

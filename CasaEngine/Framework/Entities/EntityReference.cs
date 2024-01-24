@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
 
-public class EntityReference : ISaveLoad
+public class EntityReference : ISerializable
 {
     //if id = InvalidId => no reference, the world save the entire entity
     public Guid AssetId { get; set; } = Guid.Empty;
@@ -17,16 +18,32 @@ public class EntityReference : ISaveLoad
     {
         var entityReference = new EntityReference();
         System.Diagnostics.Debugger.Break();
-        //entityReference.AssetId = assetInfo.Id;
+        entityReference.AssetId = assetInfo.Id;
         entityReference.Name = assetInfo.Name;
-        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo);
-        //entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.Coordinates);
+        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo.Id);
+
+        if (entityReference.Entity.RootComponent != null)
+        {
+            entityReference.Entity.RootComponent.Coordinates.CopyFrom(entityReference.InitialCoordinates);
+        }
+
         return entityReference;
     }
 
-    public void Load(JsonElement element, SaveOption option)
+    public void Load(JsonElement element)
     {
-        AssetId = element.GetProperty("asset_id").GetGuid();
+        //TODO : remove
+        var id = element.GetProperty("asset_id").GetInt32();
+
+        if (id >= 0)
+        {
+            AssetId = AssetInfo.GuidsById[id];
+            //AssetId = element.GetProperty("asset_id").GetGuid();
+        }
+        else
+        {
+            AssetId = Guid.Empty;
+        }
 
         if (AssetId == Guid.Empty)
         {
@@ -41,7 +58,7 @@ public class EntityReference : ISaveLoad
 
 #if EDITOR
 
-    public void Save(JObject jObject, SaveOption option)
+    public void Save(JObject jObject)
     {
         jObject.Add("asset_id", AssetId);
 

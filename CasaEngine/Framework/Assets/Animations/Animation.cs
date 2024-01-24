@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using CasaEngine.Core.Logs;
 
 namespace CasaEngine.Framework.Assets.Animations;
 
@@ -29,7 +28,7 @@ public class Animation
 
     public void Update(float elapsedTime)
     {
-        Debug.Assert(_isInitialized, "Animation::Update() : call Initialize before Update()");
+        Debug.Assert(_isInitialized, "Animation::Update() : call LoadContent before Update()");
 
         var totalTime = TotalTime;
         if (totalTime == 0.0f)

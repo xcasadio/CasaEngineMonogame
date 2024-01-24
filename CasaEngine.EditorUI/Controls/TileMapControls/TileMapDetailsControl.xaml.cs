@@ -50,7 +50,7 @@ public partial class TileMapDetailsControl : UserControl
             //
             //if (inputTextBox.ShowDialog() == true)
             //{
-            //    _gameEditor.Game.GameManager.AssetContentManager.Rename(TiledMapDataViewModel.Name, inputTextBox.Text);
+            //    _gameEditor.Game.AssetContentManager.Rename(TiledMapDataViewModel.Name, inputTextBox.Text);
             //    TiledMapDataViewModel.Name = inputTextBox.Text;
             //}
         }
@@ -61,9 +61,9 @@ public partial class TileMapDetailsControl : UserControl
         Clear();
 
         var tileMapDataViewModel = DataContext as TileMapDataViewModel;
-        tileMapDataViewModel.LoadMap(fileName, _gameEditor.Game.GameManager.AssetContentManager);
+        tileMapDataViewModel.LoadMap(fileName, _gameEditor.Game.AssetContentManager);
 
-        //var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
+        //var assetContentManager = _gameEditor.Game.AssetContentManager;
         //var projectPath = EngineEnvironment.ProjectPath;
 
         //foreach (var spriteSheetFileName in tileMapDataViewModel.TiledMapData.SpriteSheetFileNames)

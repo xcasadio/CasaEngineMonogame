@@ -4,8 +4,6 @@ using CasaEngine.Core.Shapes;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
@@ -42,12 +40,12 @@ public class Collision2dBasicDemo : Demo
         var meshComponent = new StaticMeshComponent();
         entity.RootComponent = meshComponent;
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, size.X, size.Y, size.Z).CreateMesh();
-        meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
+        meshComponent.Mesh.Initialize(game.GraphicsDevice, game.AssetContentManager);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
         entity.RootComponent.Position = new Vector3(0, 0, 0);
         //====
-        var physicsComponent = new Physics2dComponent(new AActor { Name = "actor physics 2d" });
+        var physicsComponent = new Physics2dComponent();
         entity.AddComponent(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         physicsComponent.Shape = new ShapeRectangle(0, 0, (int)size.X, (int)size.Y);
@@ -110,7 +108,7 @@ public class Collision2dBasicDemo : Demo
                         break;
                 }
 
-                meshComponent.Mesh.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
+                meshComponent.Mesh.Initialize(game.GraphicsDevice, game.AssetContentManager);
                 fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
                 meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
                 world.AddEntity(entity);

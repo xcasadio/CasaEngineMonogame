@@ -85,8 +85,8 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
             max = Vector3.One * length;
         }
 
-        min = Vector3.Transform(min, WorldMatrix);
-        max = Vector3.Transform(max, WorldMatrix);
+        min = Vector3.Transform(min, WorldMatrixWithScale);
+        max = Vector3.Transform(max, WorldMatrixWithScale);
 
         return new BoundingBox(min, max);
     }
@@ -130,8 +130,8 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     private void LoadSpriteData(string? spriteDataName)
     {
-        _spriteData = World.Game.GameManager.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
-        _sprite = Sprite.Create(_spriteData, World.Game.GameManager.AssetContentManager);
+        _spriteData = World.Game.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
+        _sprite = Sprite.Create(_spriteData, World.Game.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
         IsBoundingBoxDirty = true;
@@ -142,7 +142,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         foreach (var collisionShape in _spriteData.CollisionShapes)
         {
             var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, WorldMatrix,
+            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, WorldMatrixWithScale,
                 _physicsEngineComponent, this, color);
             if (collisionObject != null)
             {
@@ -177,7 +177,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     public override void Save(JObject jObject)
     {
-        jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.AssetInfo.Name);
+        jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.Name);
         base.Save(jObject);
     }
 

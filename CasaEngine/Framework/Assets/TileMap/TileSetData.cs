@@ -1,29 +1,28 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.SceneManagement;
 using Newtonsoft.Json.Linq;
-using SharpDX.Direct2D1.Effects;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
-public class TileSetData : AssetInfo
+public class TileSetData : UObject
 {
     private readonly Dictionary<int, TileData> _tileById = new();
 
-    public long SpriteSheetAssetId { get; set; }
+    public Guid SpriteSheetAssetId { get; set; }
     public Core.Maths.Size TileSize { get; set; }
     public List<TileData> Tiles { get; } = new();
-
 
     public TileData GetTileData(int tileId)
     {
         return _tileById[tileId];
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetInt64();
+        //TODO : remove
+        SpriteSheetAssetId = AssetInfo.GuidsById[element.GetProperty("sprite_sheet_asset_id").GetInt32()];
+        //SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
         TileSize = element.GetProperty("tile_size").GetSize();
 
         foreach (var tileNode in element.GetProperty("tiles").EnumerateArray())
@@ -58,7 +57,7 @@ public class TileSetData : AssetInfo
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         jObject.Add("sprite_sheet_file_name", SpriteSheetAssetId);
 

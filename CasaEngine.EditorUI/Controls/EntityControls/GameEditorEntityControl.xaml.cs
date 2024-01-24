@@ -21,7 +21,7 @@ public partial class GameEditorEntityControl : UserControl
             return;
         }
 
-        var fileName = EntityControlViewModel.Entity.AssetInfo.FileName;
+        var fileName = EntityControlViewModel.Entity.FileName;
         AssetSaver.SaveAsset(fileName, EntityControlViewModel.Entity);
         LogManager.Instance.WriteInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({fileName})");
     }

@@ -1,19 +1,16 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Engine;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
-public class Texture : Asset
+public class Texture : UObject, IAssetable
 {
     public static readonly string DefaultTextureName = "defaultTexture";
 
-    private long _texture2dAssetId = IdManager.InvalidId;
+    private Guid _texture2dAssetId = Guid.Empty;
     protected Texture2D? Texture2d;
 
     public GraphicsDevice GraphicsDevice { get; private set; }
@@ -45,7 +42,6 @@ public class Texture : Asset
 
     public Texture()
     {
-        AssetInfo.Name = "Empty Texture";
     }
 
     protected Texture(GraphicsDevice graphicsDevice) : this()
@@ -53,14 +49,13 @@ public class Texture : Asset
         GraphicsDevice = graphicsDevice;
     }
 
-    public Texture(long texture2dAssetId, GraphicsDevice graphicsDevice) : this(graphicsDevice)
+    public Texture(Guid texture2dAssetId, GraphicsDevice graphicsDevice) : this(graphicsDevice)
     {
         _texture2dAssetId = texture2dAssetId;
     }
 
     public Texture(Texture2D texture2d) : this(texture2d.GraphicsDevice)
     {
-        AssetInfo.Name = "Texture";
         Texture2d = texture2d;
         //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new ScreenGui(GraphicsDevice));
     }
@@ -68,51 +63,56 @@ public class Texture : Asset
     [Obsolete("only for UI")]
     public Texture(string filename, AssetContentManager assetContentManager) : this(assetContentManager.GraphicsDevice)
     {
-        AssetInfo.FileName = filename;
+        FileName = filename;
     }
 
     public void Load(AssetContentManager assetContentManager)
     {
         GraphicsDevice = assetContentManager.GraphicsDevice;
-        var assetInfo = GameSettings.AssetInfoManager.Get(_texture2dAssetId);
-        Texture2d = assetContentManager.Load<Texture2D>(assetInfo);
-        Resource.Name = AssetInfo.FileName;
+        Texture2d = assetContentManager.Load<Texture2D>(_texture2dAssetId);
+        Resource.Name = FileName;
     }
 
-    protected override void DisposeManagedResources()
+    public void Dispose()
     {
-        base.DisposeManagedResources();
+        DisposeManagedResources();
+    }
+
+    protected void DisposeManagedResources()
+    {
         if (Texture2d is { IsDisposed: false })
         {
             Resource?.Dispose();
         }
     }
 
-    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    public virtual void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         if (Resource == null)
         {
             return;
         }
 
-        if (string.IsNullOrEmpty(AssetInfo.FileName))
+        if (string.IsNullOrEmpty(FileName))
         {
             Texture2d = new Texture2D(device, Texture2d.Width, Texture2d.Height);
         }
         else if (Texture2d is { IsDisposed: true })
         {
-            Texture2d = assetContentManager.Load<Texture2D>(AssetInfo);
+            Texture2d = assetContentManager.Load<Texture2D>(_texture2dAssetId);
         }
 
         GraphicsDevice = device;
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element.GetProperty("asset"), option);
+        base.Load(element.GetProperty("asset"));
 
         PreferredSamplerState = element.GetProperty("sampler_state").GetSamplerState();
-        _texture2dAssetId = element.GetProperty("texture_asset_id").GetInt32();
+        //TODO : remove
+        _texture2dAssetId = AssetInfo.GuidsById[element.GetProperty("texture_asset_id").GetInt32()];
+        //_texture2dAssetId = element.GetProperty("texture_asset_id").GetGuid();
 
         //if (!string.IsNullOrEmpty(AssetInfo.FileName) && File.Exists(AssetInfo.FileName))
         //{
@@ -122,9 +122,9 @@ public class Texture : Asset
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         jObject.Add("texture_asset_id", _texture2dAssetId);
 

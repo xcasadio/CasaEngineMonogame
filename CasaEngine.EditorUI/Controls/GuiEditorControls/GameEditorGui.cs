@@ -38,6 +38,12 @@ public class GameEditorGui : GameEditor2d
             Game.GameManager.CurrentWorld.AddScreen(_screenGui);
         }
     }
+
+    protected override void InitializeGame()
+    {
+
+    }
+
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         base.OnRenderSizeChanged(sizeInfo);
@@ -49,7 +55,7 @@ public class GameEditorGui : GameEditor2d
 
     protected override void CreateEntityComponents(AActor entity)
     {
-        Game.GameManager.UiManager.SetSkin();
+        Game.UiManager.SetSkin();
         _camera = Game.GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
     }
 
@@ -70,7 +76,7 @@ public class GameEditorGui : GameEditor2d
                 var type = ControlHelper.TypesByName[dragAndDropInfo.Type];
                 var control = (Control)Activator.CreateInstance(type);
 
-                control.Initialize(Game.GameManager.UiManager);
+                control.Initialize(Game.UiManager);
                 control.SetPosition((int)position.X, (int)position.Y);
                 control.Movable = true;
                 control.Resizable = true;

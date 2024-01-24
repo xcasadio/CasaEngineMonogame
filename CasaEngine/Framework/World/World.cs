@@ -4,19 +4,17 @@ using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
-using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.World;
 
-public sealed class World : Asset
+public sealed class World : UObject
 {
     private readonly List<EntityReference> _entityReferences = new();
     private readonly List<AActor> _entities = new();
@@ -62,13 +60,13 @@ public sealed class World : Asset
 #endif
     }
 
-    public void Initialize(CasaEngineGame game)
+    public void LoadContent(CasaEngineGame game)
     {
         Game = game;
-        Initialize(GameSettings.AssetInfoManager.IsLoaded);
+        LoadContent(GameSettings.AssetCatalog.IsLoaded);
     }
 
-    private void Initialize(bool withReference)
+    private void LoadContent(bool withReference)
     {
         if (withReference)
         {
@@ -78,7 +76,7 @@ public sealed class World : Asset
 
             foreach (var entityReference in _entityReferences)
             {
-                EntityLoader.LoadFromEntityReference(entityReference, Game.GameManager.AssetContentManager);
+                EntityLoader.LoadFromEntityReference(entityReference, Game.AssetContentManager);
                 AddEntity(entityReference.Entity);
             }
         }
@@ -95,7 +93,7 @@ public sealed class World : Asset
     public void BeginPlay()
     {
 #if EDITOR
-        if (!Game.GameManager.IsRunningInGameEditorMode)
+        if (!Game.IsRunningInGameEditorMode)
 #endif
         {
             GameplayProxy?.OnBeginPlay(this);
@@ -215,7 +213,7 @@ public sealed class World : Asset
 
         if (DisplaySpacePartitioning)
         {
-            OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.GameManager.Line3dRendererComponent);
+            OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.Line3dRendererComponent);
         }
 
         foreach (var screen in _screens)
@@ -233,32 +231,40 @@ public sealed class World : Asset
     }
 
     //TODO : remove it, use AssetContentManager
-    public void Load(string fileName, SaveOption option)
+    public void Load(string fileName)
     {
         LogManager.Instance.WriteInfo($"Load world {fileName}");
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fullFileName));
-        Load(jsonDocument.RootElement, option);
+        Load(jsonDocument.RootElement);
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public void Load(JsonElement element)
     {
         ClearEntities();
         _entityReferences.Clear();
-        base.Load(element.GetProperty("asset"), option);
+        base.Load(element.GetProperty("asset"));
 
         foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())
         {
             var entityReference = new EntityReference();
-            entityReference.Load(entityReferenceNode, option);
+            entityReference.Load(entityReferenceNode);
             _entityReferences.Add(entityReference);
         }
 
+        /*
         if (element.TryGetProperty("external_component", out var externalComponentNode)
-            && externalComponentNode.GetProperty("type").GetInt32() != IdManager.InvalidId)
+            && externalComponentNode.GetProperty("type").GetGuid() != Guid.Empty)
         {
-            System.Diagnostics.Debugger.Break();
             //GameplayProxy = GameSettings.ScriptLoader.Load(externalComponentNode);
+        }*/
+
+        //TODO : remove
+        if (element.TryGetProperty("external_component", out var externalComponentNode)
+            && externalComponentNode.GetProperty("type").GetInt32() != -1)
+        {
+            var guid = externalComponentNode.GetProperty("type").GetInt32() == 1005 ? Guid.Parse("4A0E16E6-33F3-4D7B-A9E1-22A11F9EC910") : Guid.Empty;
+            GameplayProxy = (GameplayProxy)GameSettings.ElementFactory.Create(guid);
         }
     }
 
@@ -268,7 +274,7 @@ public sealed class World : Asset
 
         foreach (var control in screenGui.Controls)
         {
-            Game.GameManager.UiManager.Add(control);
+            Game.UiManager.Add(control);
         }
     }
 
@@ -278,7 +284,7 @@ public sealed class World : Asset
 
         foreach (var control in screenGui.Controls)
         {
-            Game.GameManager.UiManager.Remove(control);
+            Game.UiManager.Remove(control);
         }
     }
 
@@ -288,7 +294,7 @@ public sealed class World : Asset
         {
             foreach (var control in screen.Controls)
             {
-                Game.GameManager.UiManager.Remove(control);
+                Game.UiManager.Remove(control);
             }
         }
 
@@ -303,72 +309,29 @@ public sealed class World : Asset
 
     public void AddEntityWithEditor(AActor entity)
     {
-        entity.InitializeWithWorld(this);
-        _entities.Add(entity);
-        AddInSpacePartitioning(entity);
-    }
-
-    public override void Save(JObject jObject, SaveOption option)
-    {
-        base.Save(jObject, option);
-
-        var entitiesJArray = new JArray();
-
-        foreach (var entityReference in _entityReferences)
-        {
-            if (entityReference.Entity.RootComponent != null)
-            {
-                entityReference.InitialCoordinates = new Coordinates(entityReference.Entity.RootComponent?.Coordinates);
-            }
-            //entityReference.Name = entityReference.Entity.Name;
-
-            JObject entityObject = new();
-            entityReference.Save(entityObject, option);
-            entitiesJArray.Add(entityObject);
-        }
-
-        jObject.Add("entity_references", entitiesJArray);
-
-        if (GameplayProxy == null)
-        {
-            jObject.Add("external_component", "null");
-        }
-        else
-        {
-            var externalComponentNode = new JObject { { "type", GameplayProxy.GetType().Name } };
-            jObject.Add("external_component", externalComponentNode);
-        }
-    }
-
-    public void AddEntityReference(EntityReference entityReference)
-    {
-        AddEntityEditorMode(entityReference, entityReference.Entity);
-    }
-
-    public void RemoveEntityReference(EntityReference entityReference)
-    {
-        _entityReferences.Remove(entityReference);
-    }
-
-    public void AddEntityEditorMode(AActor entity)
-    {
         var entityReference = new EntityReference();
         entityReference.Name = entity.Name;
         entityReference.Entity = entity;
 
-        AddEntityEditorMode(entityReference, entityReference.Entity);
+        AddEntityReferenceWithEditor(entityReference, entityReference.Entity);
     }
 
-    private void AddEntityEditorMode(EntityReference entityReference, AActor entity)
+    public void AddEntityReference(EntityReference entityReference)
+    {
+        AddEntityReferenceWithEditor(entityReference, entityReference.Entity);
+    }
+
+    private void AddEntityReferenceWithEditor(EntityReference entityReference, AActor entity)
     {
         _entityReferences.Add(entityReference);
         _entities.Add(entity);
+        entity.InitializeWithWorld(this);
         AddInSpacePartitioning(entity);
 
         EntityAdded?.Invoke(this, entity);
     }
 
-    public void RemoveEntityEditorMode(AActor entity)
+    public void RemoveEntityWithEditor(AActor entity)
     {
         foreach (var entityReference in _entityReferences)
         {
@@ -383,6 +346,38 @@ public sealed class World : Asset
         _octree.RemoveItem(entity);
 
         EntityRemoved?.Invoke(this, entity);
+    }
+
+    public override void Save(JObject jObject)
+    {
+        base.Save(jObject);
+
+        var entitiesJArray = new JArray();
+
+        foreach (var entityReference in _entityReferences)
+        {
+            if (entityReference.Entity.RootComponent != null)
+            {
+                entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.RootComponent?.Coordinates);
+            }
+            //entityReference.Name = entityReference.Entity.Name;
+
+            JObject entityObject = new();
+            entityReference.Save(entityObject);
+            entitiesJArray.Add(entityObject);
+        }
+
+        jObject.Add("entity_references", entitiesJArray);
+
+        if (GameplayProxy == null)
+        {
+            jObject.Add("external_component", "null");
+        }
+        else
+        {
+            var externalComponentNode = new JObject { { "type", GameplayProxy.GetType().Name } };
+            jObject.Add("external_component", externalComponentNode);
+        }
     }
 
 #endif

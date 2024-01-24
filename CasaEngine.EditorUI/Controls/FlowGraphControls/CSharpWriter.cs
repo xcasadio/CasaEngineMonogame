@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 using DotNetCodeGenerator;
 using DotNetCodeGenerator.Ast;
@@ -39,7 +40,7 @@ public class CSharpWriter
         var namespaceName = "generatedScope";
         rootStatement.Statements.Add(new NamespaceDeclaration(namespaceName));
         var className = "GeneratedClass";
-        var classDeclaration = new ClassDeclaration(className, nameof(ExternalComponent));
+        var classDeclaration = new ClassDeclaration(className, nameof(GameplayProxy));
         rootStatement.Statements.Add(classDeclaration);
         classDeclaration.Body.Statements.AddRange(methodsStatement);
 

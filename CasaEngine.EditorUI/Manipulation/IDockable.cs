@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Editor.Manipulation;
+﻿namespace CasaEngine.EditorUI.Manipulation;
 
 public interface IDockable
 {

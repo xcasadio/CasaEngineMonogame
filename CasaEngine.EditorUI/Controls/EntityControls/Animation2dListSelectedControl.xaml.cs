@@ -70,7 +70,7 @@ internal class Animation2dSelectedListModelView
 
         foreach (var animationAssetId in _animatedSpriteComponent.AnimationAssetIds)
         {
-            var assetInfo = GameSettings.AssetInfoManager.Get(animationAssetId);
+            var assetInfo = GameSettings.AssetCatalog.Get(animationAssetId);
             Add(assetInfo);
         }
     }

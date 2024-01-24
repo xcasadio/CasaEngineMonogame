@@ -23,7 +23,7 @@ public class ScreenWidgetComponent : SceneComponent
 
         foreach (var control in ScreenGui.Controls)
         {
-            control.Initialize(World.Game.GameManager.UiManager);
+            control.Initialize(World.Game.UiManager);
         }
     }
 

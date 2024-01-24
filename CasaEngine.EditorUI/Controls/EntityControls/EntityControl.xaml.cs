@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.WpfControls;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -29,12 +30,12 @@ public partial class EntityControl : UserControl
         _game = (CasaEngineGame)sender;
         entityComponentsControl.Initialize(_game);
 
-        _game.GameManager.FrameComputed += OnFrameComputed;
+        _game.FrameComputed += OnFrameComputed;
     }
 
     private void OnFrameComputed(object? sender, EventArgs e)
     {
-        if (IsVisible && sender is GameManager { IsRunningInGameEditorMode: true })
+        if (IsVisible && sender is CasaEngineGame { IsRunningInGameEditorMode: true })
         {
             var expression = Vector3ControlPosition.GetBindingExpression(Vector3Editor.ValueProperty);
             expression?.UpdateTarget();
@@ -49,37 +50,37 @@ public partial class EntityControl : UserControl
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (e.OldValue is EntityViewModel oldEntity)
+        if (e.OldValue is EntityViewModel oldEntity && oldEntity.Entity.RootComponent != null)
         {
-            oldEntity.Entity.PositionChanged -= OnEntityPositionChanged;
-            oldEntity.Entity.OrientationChanged -= OnEntityOrientationChanged;
-            oldEntity.Entity.ScaleChanged -= OnEntityScaleChanged;
+            oldEntity.Entity.RootComponent.Coordinates.PositionChanged -= OnEntityPositionChanged;
+            oldEntity.Entity.RootComponent.Coordinates.OrientationChanged -= OnEntityOrientationChanged;
+            oldEntity.Entity.RootComponent.Coordinates.ScaleChanged -= OnEntityScaleChanged;
         }
 
         //Attach event because we can modify coordinate with the mouse with the game screenGui
-        if (e.NewValue is EntityViewModel entity)
+        if (e.NewValue is EntityViewModel entity && entity.Entity.RootComponent != null)
         {
-            entity.Entity.PositionChanged += OnEntityPositionChanged;
-            entity.Entity.OrientationChanged += OnEntityOrientationChanged;
-            entity.Entity.ScaleChanged += OnEntityScaleChanged;
+            entity.Entity.RootComponent.Coordinates.PositionChanged += OnEntityPositionChanged;
+            entity.Entity.RootComponent.Coordinates.OrientationChanged += OnEntityOrientationChanged;
+            entity.Entity.RootComponent.Coordinates.ScaleChanged += OnEntityScaleChanged;
         }
     }
 
     private void OnEntityOrientationChanged(object? sender, EventArgs e)
     {
-        var entity = sender as Entity;
-        RotationControl.Value = entity.Coordinates.LocalRotation;
+        var entity = sender as SceneComponent;
+        RotationControl.Value = entity.Coordinates.Rotation;
     }
 
     private void OnEntityPositionChanged(object? sender, EventArgs e)
     {
-        var entity = sender as Entity;
-        Vector3ControlPosition.Value = entity.Coordinates.LocalPosition;
+        var entity = sender as SceneComponent;
+        Vector3ControlPosition.Value = entity.Coordinates.Position;
     }
 
     private void OnEntityScaleChanged(object? sender, EventArgs e)
     {
-        var entity = sender as Entity;
+        var entity = sender as SceneComponent;
         Vector3ControlScale.Value = entity.Scale;
     }
 
@@ -96,15 +97,12 @@ public partial class EntityControl : UserControl
 
         if (inputTextBox.ShowDialog() == true)
         {
-            GameSettings.AssetInfoManager.Rename(entity.Entity.AssetInfo, inputTextBox.Text);
-            //_game.GameManager.AssetContentManager.Rename(entity.Entity.AssetInfo, inputTextBox.Text);
+            GameSettings.AssetCatalog.Rename(entity.Entity.Id, inputTextBox.Text);
         }
     }
 
     private bool ValidateEntityNewName(string? newName)
     {
-        var entity = (DataContext as EntityViewModel);
-        return GameSettings.AssetInfoManager.CanRename(entity.Entity.AssetInfo, newName);
-        //return _game.GameManager.AssetContentManager.CanRename(entity.Entity.AssetInfo, newName);
+        return GameSettings.AssetCatalog.CanRename(newName);
     }
 }

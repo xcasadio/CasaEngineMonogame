@@ -16,6 +16,11 @@ public class GameEditorTileMap : GameEditor2d
         DataContextChanged += OnDataContextChanged;
     }
 
+    protected override void InitializeGame()
+    {
+
+    }
+
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
         var tileMapDataViewModel = DataContext as TileMapDataViewModel;
@@ -23,7 +28,8 @@ public class GameEditorTileMap : GameEditor2d
         if (_tileMapComponent != null)
         {
             _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData;
-            _tileMapComponent.Initialize(_entity);
+            _tileMapComponent.Initialize();
+            _tileMapComponent.InitializeWithWorld(Game.GameManager.CurrentWorld);
         }
     }
 
@@ -31,7 +37,7 @@ public class GameEditorTileMap : GameEditor2d
     {
         _entity = entity;
         _tileMapComponent = new TileMapComponent();
-        entity.ComponentManager.Add(_tileMapComponent);
+        entity.RootComponent = _tileMapComponent;
     }
 
     public void CreateMapEntities(TileMapDataViewModel tileMapDataViewModel)
@@ -40,13 +46,13 @@ public class GameEditorTileMap : GameEditor2d
 
         Game.GameManager.CurrentWorld.AddEntity(CameraEntity);
         Game.GameManager.CurrentWorld.AddEntity(_entity);
-        _entity.Initialize(Game);
-        //Game.GameManager.CurrentWorld.Initialize(Game);
+        _entity.Initialize();
+        _entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
     }
 
     public void RemoveAllEntities()
     {
         Game.GameManager.CurrentWorld.ClearEntities();
-        Game.GameManager.AssetContentManager.Unload(AssetContentManager.DefaultCategory);
+        Game.AssetContentManager.Unload(AssetContentManager.DefaultCategory);
     }
 }

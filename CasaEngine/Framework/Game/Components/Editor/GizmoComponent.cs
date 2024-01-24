@@ -1,6 +1,8 @@
 ﻿#if EDITOR
 
 using CasaEngine.Engine.Input;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using XNAGizmo;
@@ -22,12 +24,11 @@ public class GizmoComponent : DrawableGameComponent
         DrawOrder = (int)ComponentDrawOrder.Manipulator;
     }
 
-    protected override void LoadContent()
+    public override void Initialize()
     {
-        base.LoadContent();
-        var spriteBatch = new SpriteBatch(GraphicsDevice);
+        base.Initialize();
 
-        _game.GameManager.FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Arial.ttf"));
+        _game.FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Arial.ttf"));
         Gizmo = new Gizmo(Game.GraphicsDevice);
 
         Gizmo.TranslateEvent += GizmoTranslateEvent;
@@ -41,7 +42,10 @@ public class GizmoComponent : DrawableGameComponent
     {
         if (Gizmo.GetSelectionPool() == null && _game.GameManager.CurrentWorld != null)
         {
-            Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.Entities);
+            foreach (var actor in _game.GameManager.CurrentWorld.Entities)
+            {
+                AddActor(actor);
+            }
         }
         else if (Gizmo.GetSelectionPool() == null)
         {
@@ -149,6 +153,27 @@ public class GizmoComponent : DrawableGameComponent
         }
         scale = Vector3.Clamp(scale, Vector3.Zero, scale);
         transformable.Scale = scale;
+    }
+
+    public void AddActor(AActor actor)
+    {
+        if (actor.RootComponent != null)
+        {
+            Gizmo.Selection.Add(actor.RootComponent);
+
+            foreach (var actorComponent in actor.Components)
+            {
+                if (actorComponent is SceneComponent sceneComponent)
+                {
+                    Gizmo.Selection.Add(sceneComponent);
+                }
+            }
+        }
+
+        foreach (var child in actor.Children)
+        {
+            AddActor(child);
+        }
     }
 }
 

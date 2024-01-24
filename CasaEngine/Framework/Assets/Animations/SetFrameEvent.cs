@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public class SetFrameEvent : AnimationEvent
 {
-    public long FrameId { get; set; }
+    public Guid FrameId { get; set; }
 
     public override void Activate(Animation anim)
     {
@@ -16,7 +16,7 @@ public class SetFrameEvent : AnimationEvent
         }
         else
         {
-            throw new InvalidOperationException($"SetFrameEvent.Activate() : Animation({anim.AnimationData.AssetInfo.Name}) is not a Animation2D");
+            throw new InvalidOperationException($"SetFrameEvent.Activate() : Animation({anim.AnimationData.Name}) is not a Animation2D");
         }
     }
 }

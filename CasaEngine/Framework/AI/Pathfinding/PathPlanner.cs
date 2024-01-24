@@ -73,7 +73,7 @@ public class PathPlanner<T> where T : WeightedEdge
             return false;
         }
 
-        //Initialize the search
+        //LoadContent the search
         search.Initialize(closestNodeToEntity, closestNodeTodestination);
 
         //Register the search in the PathManager

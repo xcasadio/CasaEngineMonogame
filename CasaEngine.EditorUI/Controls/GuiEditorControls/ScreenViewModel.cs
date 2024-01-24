@@ -38,7 +38,7 @@ public class ScreenViewModel : NotifyPropertyChangeBase
 
     public void Save()
     {
-        AssetSaver.SaveAsset(ScreenGui.AssetInfo.FileName, ScreenGui);
+        AssetSaver.SaveAsset(ScreenGui.FileName, ScreenGui);
     }
 
     public void Add(Control control)

@@ -40,7 +40,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         }
     }
 
-    protected PhysicsBaseComponent(AActor owner = null) : base(owner)
+    protected PhysicsBaseComponent()
     {
         PhysicsDefinition = new();
         PhysicsDefinition.PhysicsType = PhysicsType.Static;
@@ -79,7 +79,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     public override void Update(float elapsedTime)
     {
 #if EDITOR
-        if (!World.Game.GameManager.IsRunningInGameEditorMode)
+        if (!World.Game.IsRunningInGameEditorMode)
         {
             return;
         }
@@ -197,12 +197,12 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         if (_collisionObject != null)
         {
-            _collisionObject.WorldTransform = WorldMatrix;
+            _collisionObject.WorldTransform = WorldMatrixWithScale;
         }
 
         if (_rigidBody != null)
         {
-            _rigidBody.WorldTransform = WorldMatrix;
+            _rigidBody.WorldTransform = WorldMatrixWithScale;
         }
     }
 
@@ -210,12 +210,12 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         if (_collisionObject != null)
         {
-            _collisionObject.WorldTransform = WorldMatrix;
+            _collisionObject.WorldTransform = WorldMatrixWithScale;
         }
 
         if (_rigidBody != null)
         {
-            _rigidBody.WorldTransform = WorldMatrix;
+            _rigidBody.WorldTransform = WorldMatrixWithScale;
         }
     }
 #endif

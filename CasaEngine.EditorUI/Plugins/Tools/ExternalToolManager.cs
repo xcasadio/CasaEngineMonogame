@@ -1,9 +1,13 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.SceneManagement;
 
-namespace CasaEngine.Editor.Tools;
+namespace CasaEngine.EditorUI.Plugins.Tools;
 
 public class ExternalToolManager
 {
@@ -141,8 +145,8 @@ public class ExternalToolManager
                 || tool.ExternalTool.Window.IsDisposed)
             {
 #if !DEBUG
-                    try
-                    {
+                try
+                {
 #endif
                 tool = (IExternalTool)t.Assembly.CreateInstance(t.FullName);
                 tool.ExternalTool.Window.Show();
@@ -150,11 +154,11 @@ public class ExternalToolManager
                 _customEditors.Remove(t);
                 _customEditors.Add(t, tool);
 #if !DEBUG
-                    }
-                    catch (Exception ex)
-                    {
-                        //DebugHelper.ShowException(ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    //DebugHelper.ShowException(ex);
+                }
 #endif                    
             }
             else
@@ -177,5 +181,4 @@ public class ExternalToolManager
             p.Value.ExternalTool.Window.Close();
         }
     }
-
 }

@@ -50,10 +50,8 @@ namespace Microsoft.Xna.Framework
         {
             base.Initialize();
             Content = new ContentManager(Services, _contentDir);
-            LoadContent();
         }
 
-        protected virtual void LoadContent() { }
         protected virtual void UnloadContent() { }
         protected virtual void Update(GameTime gameTime) { }
         protected virtual void Draw(GameTime gameTime) { }

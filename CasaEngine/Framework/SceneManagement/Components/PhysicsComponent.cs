@@ -71,7 +71,7 @@ public class PhysicsComponent : PhysicsBaseComponent
         //_shape.Position = Owner.Coordinates.LocalPosition;
         //_shape.Orientation = Owner.Coordinates.Rotation;
 
-        var worldMatrix = WorldMatrix;
+        var worldMatrix = WorldMatrixWithScale;
         //var worldMatrix = Matrix.CreateFromQuaternion(Orientation) * Matrix.CreateTranslation(Position);
 
         switch (PhysicsType)

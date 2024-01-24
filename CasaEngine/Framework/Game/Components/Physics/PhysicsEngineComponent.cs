@@ -1,9 +1,7 @@
 ﻿using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
-using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -29,7 +27,7 @@ public class PhysicsEngineComponent : GameComponent
     public override void Update(GameTime gameTime)
     {
 #if EDITOR
-        if (!(Game as CasaEngineGame).GameManager.IsRunningInGameEditorMode)
+        if (!(Game as CasaEngineGame).IsRunningInGameEditorMode)
         {
             return;
         }

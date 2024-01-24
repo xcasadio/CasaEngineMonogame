@@ -38,27 +38,31 @@ public partial class MainWindow : Window
         WorldEditorControl.GameStarted += OnGameStarted;
 
         ContentBrowserControl.InitializeFromGameEditor(WorldEditorControl.GameEditor);
+
+        OpenProject(_projectFileName);
     }
 
     private void OnGameStarted(object? sender, EventArgs e)
     {
-        _isGameReadyToStart = true;
-        OpenProject(_projectFileName);
+        //_isGameReadyToStart = true;
+        //OpenProject(_projectFileName);
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        LoadWorkSpace();
+
         _isWindowLoaded = true;
-        OpenProject(_projectFileName);
+        //OpenProject(_projectFileName);
     }
 
     private void OpenProject(string projectFileName)
     {
-        if (!_isWindowLoaded || !_isGameReadyToStart)
-        {
-            //MessageBox.Show(this, "Open project only after the window is loaded and the game is initialized");
-            return;
-        }
+        //if (!_isWindowLoaded || !_isGameReadyToStart)
+        //{
+        //    //MessageBox.Show(this, "Open project only after the window is loaded and the game is initialized");
+        //    return;
+        //}
 
         if (!File.Exists(projectFileName))
         {
@@ -69,10 +73,7 @@ public partial class MainWindow : Window
         LogManager.Instance.WriteInfo($"Project opened {projectFileName}");
 
         GameSettings.Load(projectFileName);
-
         RegisterFlowGraphNodes();
-
-        LoadWorkSpace();
     }
 
     private static void RegisterFlowGraphNodes()

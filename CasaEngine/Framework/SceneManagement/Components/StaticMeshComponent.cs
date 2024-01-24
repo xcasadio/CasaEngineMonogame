@@ -12,29 +12,11 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 
 public class StaticMeshComponent : PrimitiveComponent
 {
-    public const int ComponentId = (int)ComponentIds.Mesh;
-
     private StaticMeshRendererComponent? _meshRendererComponent;
-    private StaticMesh? _mesh;
-    private Material? _material;
 
-    public StaticMesh? Mesh
-    {
-        get { return _mesh; }
-        set
-        {
-            _mesh = value;
-        }
-    }
+    public StaticMesh? Mesh { get; set; }
 
-    public Material? Material
-    {
-        get { return _material; }
-        set
-        {
-            _material = value;
-        }
-    }
+    public Material? Material { get; set; }
 
     public StaticMeshComponent()
     {
@@ -57,7 +39,7 @@ public class StaticMeshComponent : PrimitiveComponent
         base.InitializeWithWorld(world);
 
         _meshRendererComponent = world.Game.GetGameComponent<StaticMeshRendererComponent>();
-        Mesh?.Initialize(world.Game.GraphicsDevice, world.Game.GameManager.AssetContentManager);
+        Mesh?.Initialize(world.Game.GraphicsDevice, world.Game.AssetContentManager);
     }
 
     public override StaticMeshComponent Clone()
@@ -75,8 +57,8 @@ public class StaticMeshComponent : PrimitiveComponent
         }
 
         var camera = World.Game.GameManager.ActiveCamera;
-        var worldViewProj = WorldMatrix * camera.ViewMatrix * camera.ProjectionMatrix;
-        _meshRendererComponent.AddMesh(Mesh, Material, WorldMatrix, worldViewProj, camera.Position);
+        var worldViewProj = WorldMatrixWithScale * camera.ViewMatrix * camera.ProjectionMatrix;
+        _meshRendererComponent.AddMesh(Mesh, Material, WorldMatrixWithScale, worldViewProj, camera.Position);
     }
 
     public override BoundingBox GetBoundingBox()
@@ -90,7 +72,7 @@ public class StaticMeshComponent : PrimitiveComponent
 
             foreach (var vertex in vertices)
             {
-                var position = Vector3.Transform(vertex.Position, WorldMatrix);
+                var position = Vector3.Transform(vertex.Position, WorldMatrixWithScale);
                 min = Vector3.Min(min, position);
                 max = Vector3.Max(max, position);
             }
@@ -113,8 +95,8 @@ public class StaticMeshComponent : PrimitiveComponent
 
         if (meshElement.ToString() != "null")
         {
-            _mesh = new StaticMesh();
-            _mesh.Load(meshElement);
+            Mesh = new StaticMesh();
+            Mesh.Load(meshElement);
         }
 
         //material
@@ -129,7 +111,7 @@ public class StaticMeshComponent : PrimitiveComponent
         JObject newJObject = new();
         if (Mesh != null)
         {
-            _mesh.Save(newJObject, SaveOption.Editor);
+            Mesh.Save(newJObject);
             jObject.Add("mesh", newJObject);
         }
         else

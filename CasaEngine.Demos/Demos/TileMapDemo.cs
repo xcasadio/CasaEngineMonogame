@@ -7,8 +7,6 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
@@ -29,7 +27,7 @@ public class TileMapDemo : Demo
         var tileMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
 
         var entity = new AActor { Name = "TileMap" };
-        var tileMapComponent = new TileMapComponent(entity);
+        var tileMapComponent = new TileMapComponent();
         entity.RootComponent = tileMapComponent;
         entity.RootComponent.Position = new Vector3(0, 700, 0.0f);
         tileMapComponent.TileMapData = tileMapData;
@@ -43,13 +41,12 @@ public class TileMapDemo : Demo
         entity.RootComponent = animatedSprite;
         entity.RootComponent.Position = new Vector3(100, 550, 0.3f);
         //ressources
-        LoadSprites(game.GameManager.AssetContentManager, game.GraphicsDevice);
-        var animations = LoadAnimations(game.GameManager.AssetContentManager, game.GraphicsDevice);
+        LoadSprites(game.AssetContentManager, game.GraphicsDevice);
+        var animations = LoadAnimations(game.AssetContentManager, game.GraphicsDevice);
         foreach (var animation in animations)
         {
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
-        animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
         //===
         var physicsComponent = new Physics2dComponent();
         entity.AddComponent(physicsComponent);
@@ -66,25 +63,25 @@ public class TileMapDemo : Demo
 
     private void LoadSprites(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice)
     {
-        var spriteAssetInfos = GameSettings.AssetInfoManager.AssetInfos
+        var spriteAssetInfos = GameSettings.AssetCatalog.AssetInfos
             .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Sprite));
 
         foreach (var assetInfo in spriteAssetInfos)
         {
-            var spriteData = assetContentManager.Load<SpriteData>(assetInfo);
+            var spriteData = assetContentManager.Load<SpriteData>(assetInfo.Id);
         }
     }
 
     private List<Animation2dData> LoadAnimations(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice)
     {
-        var animationsAssetInfos = GameSettings.AssetInfoManager.AssetInfos
+        var animationsAssetInfos = GameSettings.AssetCatalog.AssetInfos
             .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Animation2d));
 
         var animations = new List<Animation2dData>();
 
         foreach (var assetInfo in animationsAssetInfos)
         {
-            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo);
+            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo.Id);
             animations.Add(animation2dData);
         }
 

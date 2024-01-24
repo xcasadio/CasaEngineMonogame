@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -18,19 +19,16 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
 
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
-        if (item is Component component)
+        switch (item)
         {
-            switch ((ComponentIds)component.ComponentId)
-            {
-                case ComponentIds.Mesh: return MeshComponenTemplate;
-                case ComponentIds.ArcBallCamera: return ArcBallCameraComponenTemplate;
-                case ComponentIds.GamePlay: return GamePlayComponenTemplate;
-                case ComponentIds.Physics: return PhysicsComponenTemplate;
-                case ComponentIds.Physics2d: return Physics2dComponenTemplate;
-                case ComponentIds.TileMap: return TileMapComponentTemplate;
-                case ComponentIds.AnimatedSprite: return AnimatedSpriteComponentTemplate;
-                case ComponentIds.StaticSprite: return StaticSpriteComponentTemplate;
-            }
+            case StaticMeshComponent: return MeshComponenTemplate;
+            case ArcBallCameraComponent: return ArcBallCameraComponenTemplate;
+            case ComponentIds.GamePlay: return GamePlayComponenTemplate;
+            case PhysicsComponent: return PhysicsComponenTemplate;
+            case Physics2dComponent: return Physics2dComponenTemplate;
+            case TileMapComponent: return TileMapComponentTemplate;
+            case AnimatedSpriteComponent: return AnimatedSpriteComponentTemplate;
+            case StaticSpriteComponent: return StaticSpriteComponentTemplate;
         }
 
         return null;

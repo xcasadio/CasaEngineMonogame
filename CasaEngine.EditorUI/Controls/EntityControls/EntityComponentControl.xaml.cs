@@ -9,6 +9,7 @@ using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,9 +26,9 @@ public partial class EntityComponentControl : UserControl
 
     private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: Component component })
+        if (sender is FrameworkElement { DataContext: ActorComponent component })
         {
-            component.Owner.ComponentManager.Remove(component);
+            component.Owner.RemoveComponent(component);
         }
     }
 
@@ -40,8 +41,8 @@ public partial class EntityComponentControl : UserControl
             var graphicsDevice = staticMeshComponent.Owner.RootComponent.World.Game.GraphicsDevice;
 
             staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
-            staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.RootComponent.World.Game.GameManager.AssetContentManager);
-            staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.World.Game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
+            staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.RootComponent.World.Game.AssetContentManager);
+            staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.World.Game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         }
     }
 
@@ -61,12 +62,17 @@ public partial class EntityComponentControl : UserControl
         {
             var shape = (Shape3d)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
             var entity = physicsComponent.Owner;
-            SetParametersFromBoundingBox(shape, entity.BoundingBox);
+            SetParametersFromBoundingBox(shape, entity.RootComponent?.BoundingBox ?? CreateDefaultBoundingBox());
             shape.Position = physicsComponent.Owner.RootComponent.Position;
             shape.Orientation = physicsComponent.Owner.RootComponent.Orientation;
 
             physicsComponent.Shape = shape;
         }
+    }
+
+    private static BoundingBox CreateDefaultBoundingBox()
+    {
+        return new BoundingBox(-Vector3.One / 2f, Vector3.One / 2f);
     }
 
     private void SetParametersFromBoundingBox(Shape3d shape, BoundingBox boundingBox)
@@ -107,11 +113,12 @@ public partial class EntityComponentControl : UserControl
     private void ComboBoxExternalComponent_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is ComboBox comboBox
-            && sender is FrameworkElement { DataContext: GamePlayComponent gamePlayComponent })
+            && sender is FrameworkElement { DataContext: AActor actor })
         {
-            var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
-            externalComponent.Initialize(gamePlayComponent.Owner);
-            gamePlayComponent.ExternalComponent = externalComponent;
+            System.Diagnostics.Debugger.Break();
+            //var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
+            //externalComponent.LoadContent(gamePlayComponent.Owner);
+            //gamePlayComponent.ExternalComponent = externalComponent;
         }
     }
 }

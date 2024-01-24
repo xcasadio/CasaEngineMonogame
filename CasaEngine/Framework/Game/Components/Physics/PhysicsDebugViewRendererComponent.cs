@@ -33,7 +33,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
     {
         if (DisplayPhysics)
         {
-            _physicsDebugRenderer.DrawDebugWorld(_game.GameManager.PhysicsEngineComponent.PhysicsEngine.World);
+            _physicsDebugRenderer.DrawDebugWorld(_game.PhysicsEngineComponent.PhysicsEngine.World);
         }
     }
 }

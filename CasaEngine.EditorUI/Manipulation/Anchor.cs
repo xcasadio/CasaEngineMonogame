@@ -1,10 +1,16 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Graphics;
-using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
 using CasaEngine.Framework.Graphics2D;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
+using EventArgs = System.EventArgs;
+using EventHandler = System.EventHandler;
 
-namespace CasaEngine.Editor.Manipulation;
+namespace CasaEngine.EditorUI.Manipulation;
 
 public class Anchor
 {

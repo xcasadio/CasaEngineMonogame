@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Editor.Manipulation;
+﻿using System;
+
+namespace CasaEngine.EditorUI.Manipulation;
 
 public class AnchorLocationChangedEventArgs
     : EventArgs

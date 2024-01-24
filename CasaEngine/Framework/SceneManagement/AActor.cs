@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Text.Json;
+using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement.Components;
 using Newtonsoft.Json.Linq;
 
@@ -25,11 +26,21 @@ public class AActor : UObject
         get => _rootComponent;
         set
         {
+#if EDITOR
+            if (_rootComponent != null)
+            {
+                ComponentRemoved?.Invoke(this, _rootComponent);
+            }
+#endif
+
             _rootComponent = value;
 
             if (_rootComponent != null)
             {
                 _rootComponent.Owner = this;
+#if EDITOR
+                ComponentAdded?.Invoke(this, _rootComponent);
+#endif
             }
         }
     }
@@ -56,7 +67,7 @@ public class AActor : UObject
     {
     }
 
-    public AActor(AActor actor)
+    public AActor(AActor actor) : base(actor)
     {
         _isEnabled = actor._isEnabled;
         Parent = actor.Parent;
@@ -132,24 +143,40 @@ public class AActor : UObject
     {
         _children.Add(actor);
         actor.Parent = this;
+
+#if EDITOR
+        ChildAdded?.Invoke(this, actor);
+#endif
     }
 
     public void RemoveChild(AActor actor)
     {
         _children.Remove(actor);
         actor.Parent = null;
+
+#if EDITOR
+        ChildRemoved?.Invoke(this, actor);
+#endif
     }
 
     public void AddComponent(ActorComponent component)
     {
         _components.Add(component);
         component.Owner = this;
+
+#if EDITOR
+        ComponentAdded?.Invoke(this, component);
+#endif
     }
 
     public void RemoveComponent(ActorComponent component)
     {
         _components.Remove(component);
         component.Owner = null;
+
+#if EDITOR
+        ComponentRemoved?.Invoke(this, component);
+#endif
     }
 
     public T? GetComponent<T>() where T : class
@@ -200,9 +227,9 @@ public class AActor : UObject
 
         for (int i = 0; i < _components.Count; i++)
         {
-            if (_components[i] is PrimitiveComponent primitiveComponent)
+            if (_components[i] is PrimitiveComponent sceneComponent)
             {
-                primitiveComponent.Draw(elapsedTime);
+                sceneComponent.Draw(elapsedTime);
             }
         }
 
@@ -227,14 +254,56 @@ public class AActor : UObject
 
     public override void Load(JsonElement element)
     {
-        base.Load(element);
+        base.Load(element.GetProperty("asset"));
+
+        var node = element.GetProperty("root_component");
+        if (node.ValueKind == JsonValueKind.Object)
+        {
+            RootComponent = GameSettings.ElementFactory.Load<SceneComponent>(node);
+        }
+
+        foreach (var componentNode in element.GetProperty("components").EnumerateArray())
+        {
+            AddComponent(GameSettings.ElementFactory.Load<ActorComponent>(componentNode));
+        }
+
+        /*foreach (var item in element.GetJsonPropertyByName("childen").Value.EnumerateArray())
+        {
+            //id of all child
+        }*/
     }
 
 #if EDITOR
 
+    public event EventHandler<AActor> ChildAdded;
+    public event EventHandler<AActor> ChildRemoved;
+
+    public event EventHandler<ActorComponent> ComponentAdded;
+    public event EventHandler<ActorComponent> ComponentRemoved;
+
     public override void Save(JObject node)
     {
         base.Save(node);
+
+        if (RootComponent != null)
+        {
+            JObject rootComponentNode = new();
+            RootComponent.Save(rootComponentNode);
+            node.Add("root_component", rootComponentNode);
+        }
+        else
+        {
+            node.Add("root_component", "null");
+        }
+
+        var componentsJArray = new JArray();
+        foreach (var component in _components)
+        {
+            JObject componentObject = new();
+            component.Save(componentObject);
+            componentsJArray.Add(componentObject);
+        }
+        node.Add("components", componentsJArray);
     }
 
 #endif

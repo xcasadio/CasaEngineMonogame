@@ -7,13 +7,20 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
-public class AssetInfoManager
+public class AssetCatalog
 {
-    private readonly Dictionary<long, AssetInfo> _assetInfos = new();
+    private readonly Dictionary<Guid, AssetInfo> _assetInfos = new();
 
     public bool IsLoaded { get; private set; }
 
     public IEnumerable<AssetInfo> AssetInfos => _assetInfos.Values;
+
+    public void Add(Guid id, string name, string fileName)
+    {
+        var assetInfo = new AssetInfo();
+
+        _assetInfos.Add(assetInfo.Id, assetInfo);
+    }
 
     public void Add(AssetInfo assetInfo)
     {
@@ -25,35 +32,9 @@ public class AssetInfoManager
 #endif
     }
 
-    [Obsolete]
-    public AssetInfo GetOrAdd(string fileName)
-    {
-        foreach (var assetInfo in _assetInfos.Values)
-        {
-            if (assetInfo.FileName == fileName)
-            {
-                return assetInfo;
-            }
-        }
-
-        var newAssetInfo = new AssetInfo();
-        newAssetInfo.Name = Path.GetFileNameWithoutExtension(fileName);
-        newAssetInfo.FileName = fileName;
-        Add(newAssetInfo);
-        return newAssetInfo;
-    }
-
     public AssetInfo? Get(Guid guid)
     {
-        //_assetInfos.TryGetValue(guid, out var assetInfo);
-        //return assetInfo;
-        System.Diagnostics.Debugger.Break();
-        return null;
-    }
-
-    public AssetInfo? Get(long assetId)
-    {
-        _assetInfos.TryGetValue(assetId, out var assetInfo);
+        _assetInfos.TryGetValue(guid, out var assetInfo);
         return assetInfo;
     }
 
@@ -67,14 +48,14 @@ public class AssetInfoManager
         return _assetInfos.Values.FirstOrDefault(x => x.FileName == fileName);
     }
 
-    public void Load(string fileName, SaveOption option)
+    public void Load(string fileName)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
 
         foreach (var assetInfoNode in jsonDocument.RootElement.GetProperty("asset_infos").EnumerateArray())
         {
             var assetInfo = new AssetInfo();
-            assetInfo.Load(assetInfoNode, option);
+            assetInfo.Load(assetInfoNode);
             Add(assetInfo);
         }
 
@@ -83,40 +64,12 @@ public class AssetInfoManager
 
 #if EDITOR
 
-    public event EventHandler<AssetInfo> AssetAdded;
-    public event EventHandler<AssetInfo> AssetRemoved;
-    public event EventHandler<EventArgs<AssetInfo, string>> AssetRenamed;
-    public event EventHandler AssetCleared;
+    public event EventHandler<AssetInfo>? AssetAdded;
+    public event EventHandler<AssetInfo>? AssetRemoved;
+    public event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
+    public event EventHandler? AssetCleared;
 
-    public void Save()
-    {
-        Save(Path.Combine(EngineEnvironment.ProjectPath, "AssetInfos.json"), SaveOption.Editor);
-    }
-
-    public void Save(string fileName, SaveOption option)
-    {
-        LogManager.Instance.WriteInfo($"Asset infos saved in {fileName}");
-
-        JObject root = new();
-        var assetInfoJArray = new JArray();
-
-        foreach (var assetInfo in _assetInfos)
-        {
-            var entityObject = new JObject(
-                new JProperty("id", assetInfo.Value.Id),
-                new JProperty("file_name", assetInfo.Value.FileName));
-
-            assetInfoJArray.Add(entityObject);
-        }
-
-        root.Add("asset_infos", assetInfoJArray);
-
-        using StreamWriter file = File.CreateText(fileName);
-        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
-        root.WriteTo(writer);
-    }
-
-    public void Remove(long id)
+    public void Remove(Guid id)
     {
         _assetInfos.TryGetValue(id, out var assetInfo);
         LogManager.Instance.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
@@ -143,9 +96,27 @@ public class AssetInfoManager
         AssetCleared?.Invoke(this, EventArgs.Empty);
     }
 
-    public bool CanRename(AssetInfo assetInfo, string newName)
+    public bool CanRename(string newName)
     {
-        return !_assetInfos.Any(x => string.Equals(x.Value.Name, newName, StringComparison.CurrentCultureIgnoreCase));
+        return !_assetInfos.Any(x => string.Equals(x.Value.Name, newName, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    public bool Rename(Guid id, string newName)
+    {
+        var assetInfo = Get(id);
+
+        if (assetInfo == null)
+        {
+            LogManager.Instance.WriteError($"Rename Entity : The id '{id}' is not present in the catalog. (new name is {newName})");
+            return false;
+        }
+
+        var oldName = assetInfo.Name;
+        assetInfo.Name = newName;
+
+        AssetRenamed?.Invoke(this, new EventArgs<AssetInfo, string>(assetInfo, oldName));
+
+        return true;
     }
 
     public void Rename(AssetInfo assetInfo, string newName)
@@ -154,6 +125,34 @@ public class AssetInfoManager
         assetInfo.Name = newName;
 
         AssetRenamed?.Invoke(this, new EventArgs<AssetInfo, string>(assetInfo, oldName));
+    }
+
+    public void Save()
+    {
+        Save(Path.Combine(EngineEnvironment.ProjectPath, "AssetInfos.json"));
+    }
+
+    public void Save(string fileName)
+    {
+        LogManager.Instance.WriteInfo($"Asset infos saved in {fileName}");
+
+        JObject root = new();
+        var assetInfoJArray = new JArray();
+
+        foreach (var assetInfo in _assetInfos)
+        {
+            var entityObject = new JObject(
+                new JProperty("id", assetInfo.Value.Id),
+                new JProperty("file_name", assetInfo.Value.FileName));
+
+            assetInfoJArray.Add(entityObject);
+        }
+
+        root.Add("asset_infos", assetInfoJArray);
+
+        using StreamWriter file = File.CreateText(fileName);
+        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
+        root.WriteTo(writer);
     }
 
 #endif

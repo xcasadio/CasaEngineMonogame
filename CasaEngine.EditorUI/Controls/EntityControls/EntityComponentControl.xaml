@@ -14,6 +14,7 @@
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              xmlns:components1="clr-namespace:CasaEngine.Framework.SceneManagement.Components;assembly=CasaEngine"
+             xmlns:sceneManagement="clr-namespace:CasaEngine.Framework.SceneManagement;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Control.Resources>
@@ -244,7 +245,7 @@
                                      CompoundTemplate="{StaticResource CompoundTemplate}"/>
 
 
-        <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type components:GamePlayComponent}">
+        <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type sceneManagement:GameplayProxy}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />

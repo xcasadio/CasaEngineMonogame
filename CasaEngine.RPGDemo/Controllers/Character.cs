@@ -185,7 +185,7 @@ public class Character
     {
         var animationName = GetAnimationName(animationIndex, null, withDirection);
 
-        if (AnimatedSpriteComponent?.CurrentAnimation?.Animation2dData.AssetInfo.Name == animationName)
+        if (AnimatedSpriteComponent?.CurrentAnimation?.Animation2dData.Name == animationName)
         {
             return;
         }

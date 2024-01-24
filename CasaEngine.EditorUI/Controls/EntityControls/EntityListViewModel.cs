@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.World;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -30,7 +31,7 @@ public class EntityListViewModel
         Entities.Clear();
     }
 
-    private void OnEntityRemoved(object? sender, Entity entity)
+    private void OnEntityRemoved(object? sender, AActor entity)
     {
         if (!_lock)
         {
@@ -45,7 +46,7 @@ public class EntityListViewModel
         }
     }
 
-    private void OnEntityAdded(object? sender, Entity entity)
+    private void OnEntityAdded(object? sender, AActor entity)
     {
         if (!_lock)
         {
@@ -53,7 +54,7 @@ public class EntityListViewModel
         }
     }
 
-    public EntityViewModel? GetFromEntity(Entity entity)
+    public EntityViewModel? GetFromEntity(AActor entity)
     {
         foreach (var entityViewModel in Entities)
         {
@@ -66,7 +67,7 @@ public class EntityListViewModel
         return null;
     }
 
-    public EntityViewModel Add(Entity entity)
+    public EntityViewModel Add(AActor entity)
     {
         _lock = true;
 
@@ -84,7 +85,7 @@ public class EntityListViewModel
         _lock = true;
 
         Entities.Remove(entityViewModel);
-        _world.RemoveEntityEditorMode(entityViewModel.Entity);
+        _world.RemoveEntityWithEditor(entityViewModel.Entity);
 
         _lock = false;
     }

@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets.Sprites;
 using Newtonsoft.Json.Linq;

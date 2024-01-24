@@ -36,7 +36,7 @@ public class AssetContentManagerAdapter : IArchiveManager
         var assetRelativePath = asset
             .Replace(EngineEnvironment.ProjectPath, string.Empty)
             .TrimStart('\\');
-        //var assetInfo = GameSettings.AssetInfoManager.Get(assetRelativePath);
+        //var assetInfo = GameSettings.AssetCatalog.Get(assetRelativePath);
         return _assetContentManager.LoadDirectly<T>(assetRelativePath);
     }
 }

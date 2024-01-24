@@ -21,8 +21,8 @@ public class PlayerStartComponent : SceneComponent
 
     public override BoundingBox GetBoundingBox()
     {
-        var min = Vector3.Transform(-Vector3.One / 2f, WorldMatrix);
-        var max = Vector3.Transform(Vector3.One / 2f, WorldMatrix);
+        var min = Vector3.Transform(-Vector3.One / 2f, WorldMatrixWithScale);
+        var max = Vector3.Transform(Vector3.One / 2f, WorldMatrixWithScale);
 
         return new BoundingBox(min, max);
     }

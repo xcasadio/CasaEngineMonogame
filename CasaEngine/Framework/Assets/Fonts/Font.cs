@@ -2,7 +2,6 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using CasaEngine.Core.Design;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -134,7 +133,7 @@ public class Font
 
         foreach (var texFileName in _texturesFileNames)
         {
-            Textures[i] = new Texture(texFileName, game.GameManager.AssetContentManager);
+            Textures[i] = new Texture(texFileName, game.AssetContentManager);
             i++;
         }
 

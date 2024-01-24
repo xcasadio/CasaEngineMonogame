@@ -1,27 +1,26 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.SceneManagement;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Animations;
 
-public class AnimationData : Asset
+public class AnimationData : UObject
 {
     public AnimationType AnimationType { get; set; }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         AnimationType = element.GetJsonPropertyByName("animation_type").Value.GetEnum<AnimationType>();
-        base.Load(element.GetProperty("asset"), option);
+        base.Load(element.GetProperty("asset"));
     }
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         jObject.Add("animation_type", AnimationType.ConvertToString());
-        base.Save(jObject, option);
+        base.Save(jObject);
     }
 #endif
 }

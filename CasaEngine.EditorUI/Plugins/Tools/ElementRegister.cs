@@ -1,7 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 
-namespace CasaEngine.Editor.Tools;
+namespace CasaEngine.EditorUI.Plugins.Tools;
 
 public static class ElementRegister
 {
@@ -19,7 +22,7 @@ public static class ElementRegister
 
         EntityComponentNames = executingAssembly
             .GetTypes()
-            .Where(x => !x.IsAbstract && !x.IsInterface && componentType.IsAssignableFrom(x) && x.GetCustomAttribute<DisplayNameAttribute>() != null)
+            .Where(x => !x.IsAbstract && !x.IsInterface && componentType.IsAssignableFrom(x) && CustomAttributeExtensions.GetCustomAttribute<DisplayNameAttribute>((MemberInfo)x) != null)
             .ToDictionary(x => x.GetCustomAttribute<DisplayNameAttribute>().DisplayName);
     }
 }

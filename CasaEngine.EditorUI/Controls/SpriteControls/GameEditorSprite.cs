@@ -14,6 +14,11 @@ public class GameEditorSprite : GameEditor2d
         DataContextChanged += OnDataContextChanged;
     }
 
+    protected override void InitializeGame()
+    {
+
+    }
+
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
         var spriteData = DataContext as SpriteDataViewModel;
@@ -23,6 +28,6 @@ public class GameEditorSprite : GameEditor2d
     protected override void CreateEntityComponents(AActor entity)
     {
         StaticSpriteComponent = new StaticSpriteComponent();
-        entity.ComponentManager.Add(StaticSpriteComponent);
+        entity.RootComponent = StaticSpriteComponent;
     }
 }

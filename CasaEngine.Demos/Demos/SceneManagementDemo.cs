@@ -22,7 +22,7 @@ public class SceneManagementDemo : Demo
         var boxPrimitive = new BoxPrimitive(game.GraphicsDevice);
         var staticMesh = boxPrimitive.CreateMesh();
         staticMesh.Initialize(game.GraphicsDevice, null);
-        staticMesh.Texture = game.GameManager.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
+        staticMesh.Texture = game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
 
         var gridSize = 10;
         var transF = 1f; //2.0f / gridSize;

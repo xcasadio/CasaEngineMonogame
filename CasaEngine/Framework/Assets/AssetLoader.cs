@@ -1,17 +1,16 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets;
 
-public class AssetLoader<T> : IAssetLoader where T : ISaveLoad, new()
+public class AssetLoader<T> : IAssetLoader where T : ISerializable, new()
 {
     public object LoadAsset(string fileName, GraphicsDevice device)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
         var asset = new T();
-        asset.Load(jsonDocument.RootElement, SaveOption.Editor);
+        asset.Load(jsonDocument.RootElement);
         return asset;
     }
 

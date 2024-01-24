@@ -24,7 +24,7 @@ public class Physics2dComponent : PhysicsBaseComponent
         }
     }
 
-    public Physics2dComponent(AActor owner = null) : base(owner)
+    public Physics2dComponent()
     {
         PhysicsDefinition.LinearFactor = new Vector3(1, 1, 0);
         PhysicsDefinition.AngularFactor = new Vector3(0, 0, 1);
@@ -58,7 +58,7 @@ public class Physics2dComponent : PhysicsBaseComponent
         _shape.Position = Position.ToVector2();
         //_shape.Rotation = Owner.Coordinates.Rotation;
 
-        var worldMatrix = WorldMatrix;
+        var worldMatrix = WorldMatrixWithScale;
         //var worldMatrix = Matrix.CreateFromQuaternion(Orientation) * Matrix.CreateTranslation(Position);
 
         switch (PhysicsType)

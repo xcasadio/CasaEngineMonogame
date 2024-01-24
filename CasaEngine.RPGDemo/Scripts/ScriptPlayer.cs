@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using CasaEngine.Engine.Physics;
+﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
@@ -58,7 +57,7 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
         //weapon
-        var weaponEntity = world.Game.GameManager.SpawnEntity("weapon_sword");
+        var weaponEntity = world.Game.SpawnEntity("weapon_sword");
         Character.SetWeapon(new MeleeWeapon(world.Game, weaponEntity));
         weaponEntity.IsVisible = false;
         weaponEntity.IsEnabled = false;
@@ -85,18 +84,4 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
 
         Controller.StateMachine.Transition(Controller.GetState((int)PlayerControllerState.Dying));
     }
-
-    public override void Load(JsonElement element)
-    {
-
-    }
-
-#if EDITOR
-
-    public override void Save(JObject jObject, SaveOption option)
-    {
-        base.Save(jObject, option);
-    }
-
-#endif
 }

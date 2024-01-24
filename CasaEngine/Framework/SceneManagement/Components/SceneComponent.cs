@@ -21,16 +21,42 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     private Matrix _lastWorldMatrix;
     public Coordinates Coordinates { get; }
 
-    public Matrix WorldMatrix
+    public Matrix WorldMatrixWithScale
+    {
+        get
+        {
+            if (Owner.RootComponent != null && Owner.RootComponent != this)
+            {
+                return Coordinates.LocalMatrixWithScale * Owner.RootComponent.WorldMatrixWithScale;
+            }
+
+            return Coordinates.LocalMatrixWithScale;
+        }
+    }
+
+    public Matrix WorldMatrixNoParentScale
     {
         get
         {
             if (Owner.RootComponent != this)
             {
-                return Coordinates.LocalMatrix * Owner.RootComponent.WorldMatrix;
+                return Coordinates.LocalMatrixWithScale * Owner.RootComponent.WorldMatrixNoScale;
             }
 
-            return Coordinates.LocalMatrix;
+            return Coordinates.LocalMatrixWithScale;
+        }
+    }
+
+    public Matrix WorldMatrixNoScale
+    {
+        get
+        {
+            if (Owner.RootComponent != this)
+            {
+                return Coordinates.LocalMatrixNoScale * Owner.RootComponent.WorldMatrixNoScale;
+            }
+
+            return Coordinates.LocalMatrixNoScale;
         }
     }
 
@@ -66,7 +92,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
 
     public abstract BoundingBox GetBoundingBox();
 
-    protected SceneComponent(AActor? owner = null)
+    protected SceneComponent()
     {
         Coordinates = new();
     }
@@ -80,7 +106,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     {
         base.InitializePrivate();
 
-        _lastWorldMatrix = WorldMatrix;
+        _lastWorldMatrix = WorldMatrixWithScale;
     }
 
     public virtual void OnEnabledValueChange()
@@ -97,12 +123,12 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     {
         base.Update(elapsedTime);
 
-        if (_lastWorldMatrix != WorldMatrix)
+        if (_lastWorldMatrix != WorldMatrixWithScale)
         {
             IsBoundingBoxDirty = true;
         }
 
-        _lastWorldMatrix = WorldMatrix;
+        _lastWorldMatrix = WorldMatrixWithScale;
     }
 
     public virtual void Draw(float elapsedTime)
@@ -113,6 +139,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     public override void Load(JsonElement element)
     {
         base.Load(element);
+        Coordinates.Load(element.GetProperty("coordinates"));
     }
 
 #if EDITOR
@@ -120,6 +147,10 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     public override void Save(JObject node)
     {
         base.Save(node);
+
+        var coordinatesObject = new JObject();
+        Coordinates.Save(coordinatesObject);
+        node.Add("coordinates", coordinatesObject);
     }
 
 #endif

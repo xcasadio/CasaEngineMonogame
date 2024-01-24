@@ -81,7 +81,7 @@ namespace CasaEngine.Framework.Debugger
 
             public FrameLog()
             {
-                // Initialize markers.
+                // LoadContent markers.
                 Bars = new MarkerCollection[MaxBars];
                 for (var i = 0; i < MaxBars; ++i)
                     Bars[i] = new MarkerCollection();
@@ -194,7 +194,7 @@ namespace CasaEngine.Framework.Debugger
                 Visible = false;
             }
 
-            // Initialize Parameters.
+            // LoadContent Parameters.
             logs = new FrameLog[2];
             for (var i = 0; i < logs.Length; ++i)
                 logs[i] = new FrameLog();
@@ -571,7 +571,7 @@ namespace CasaEngine.Framework.Debugger
             // Reset update count.
             Interlocked.Exchange(ref updateCount, 0);
 
-            SpriteFontBase font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
+            SpriteFontBase font = ((CasaEngineGame)Game).FontSystem.GetFont(10);
             var texture = debugManager.WhiteTexture;
             var depth_ = 0.0f;
 

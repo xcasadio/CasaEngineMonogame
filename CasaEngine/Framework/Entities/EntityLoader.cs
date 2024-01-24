@@ -1,7 +1,5 @@
 ﻿using System.Text.Json;
-using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.Entities;
@@ -15,14 +13,12 @@ public class EntityLoader
         return entity;
     }
 
+    //TODO : why do not use GameSettings.ElementFactory ???
     public static void LoadFromEntityReference(EntityReference entityReference, AssetContentManager assetContentManager)
     {
         if (entityReference.AssetId != Guid.Empty)
         {
-            var assetInfo = GameSettings.AssetInfoManager.Get(entityReference.AssetId);
-            var assetFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
-
-            var actor = assetContentManager.Load<AActor>(assetInfo);
+            var actor = assetContentManager.Load<AActor>(entityReference.AssetId);
             var entity = new AActor(actor);
             entityReference.Entity = entity;
             entity.Name = entityReference.Name;

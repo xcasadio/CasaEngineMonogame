@@ -54,11 +54,11 @@ namespace SandBoxGame
         protected override void LoadContent()
         {
             var world = new World();
-            world.Initialize(this);
-            GameManager.CurrentWorld = world;
+            world.LoadContent(this);
+            GameManager.SetWorldToLoad(world);
 
             //============ Camera ===============
-            var entity = new AActor { Name = "camera" };
+            var entity = new AActor(); // { Name = "camera" };
             var camera = new ArcBallCameraComponent();
             //var camera = new Camera3dIn2dAxisComponent(entity);
             //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
@@ -67,12 +67,12 @@ namespace SandBoxGame
             world.AddEntity(entity);
 
             //============ Box ===============
-            _boxEntity = new AActor { Name = "box" };
+            _boxEntity = new AActor(); // { Name = "box" };
             var meshComponent = new StaticMeshComponent();
             _boxEntity.RootComponent.Position = Vector3.Up * 0.5f;
             _boxEntity.AddComponent(meshComponent);
             meshComponent.Mesh = new BoxPrimitive(GraphicsDevice).CreateMesh();
-            meshComponent.Mesh.Initialize(GraphicsDevice, GameManager.AssetContentManager);
+            meshComponent.Mesh.Initialize(GraphicsDevice, AssetContentManager);
             meshComponent.Mesh.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
             _staticMesh = meshComponent.Mesh;
 
@@ -170,9 +170,9 @@ namespace SandBoxGame
             GraphicsDevice.SetVertexBuffer(_staticMesh.VertexBuffer);
             GraphicsDevice.Indices = _staticMesh.IndexBuffer;
 
-            DrawBoxWithEffect(gameTime, _effectColor, _materialColor, _boxEntity.RootComponent.WorldMatrix * Matrix.CreateTranslation(Vector3.UnitX * 2f));
-            DrawBoxWithEffect(gameTime, _effectTexture, _materialTexture, _boxEntity.RootComponent.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 2f));
-            DrawBoxWithEffect(gameTime, _effectTexture2, _materialTexture, _boxEntity.RootComponent.WorldMatrix * Matrix.CreateTranslation(-Vector3.UnitX * 4f));
+            DrawBoxWithEffect(gameTime, _effectColor, _materialColor, _boxEntity.RootComponent.WorldMatrixWithScale * Matrix.CreateTranslation(Vector3.UnitX * 2f));
+            DrawBoxWithEffect(gameTime, _effectTexture, _materialTexture, _boxEntity.RootComponent.WorldMatrixWithScale * Matrix.CreateTranslation(-Vector3.UnitX * 2f));
+            DrawBoxWithEffect(gameTime, _effectTexture2, _materialTexture, _boxEntity.RootComponent.WorldMatrixWithScale * Matrix.CreateTranslation(-Vector3.UnitX * 4f));
         }
 
         private void DrawBoxWithEffect(GameTime gameTime, Effect effect, Material material, Matrix world)

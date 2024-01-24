@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement;
@@ -11,7 +12,10 @@ public class UObject : ISerializable
     private bool _isInitialized;
 
     public Guid Id { get; private set; } = Guid.Empty;
+
     public string Name { get; set; }
+
+    public string FileName { get; set; }
 
     public UObject()
     {
@@ -20,7 +24,9 @@ public class UObject : ISerializable
 
     public UObject(UObject other)
     {
+#if EDITOR
         Name = other.Name;
+#endif
     }
 
     public void Initialize()
@@ -42,7 +48,25 @@ public class UObject : ISerializable
 
     public virtual void Load(JsonElement element)
     {
-        Id = element.GetProperty("id").GetGuid();
+        //TODO : remove
+        if (element.GetProperty("id").ValueKind == JsonValueKind.Number)
+        {
+            var id = element.GetProperty("id").GetInt32();
+            if (AssetInfo.GuidsById.TryGetValue(id, out var guid))
+            {
+                Id = guid;
+            }
+            else
+            {
+                Id = Guid.NewGuid();
+                AssetInfo.GuidsById.Add(id, Id);
+            }
+        }
+        else
+        {
+            Id = element.GetProperty("id").GetGuid();
+        }
+
         Name = element.GetProperty("name").GetString();
     }
 
@@ -56,9 +80,3 @@ public class UObject : ISerializable
 
 #endif
 }
-
-
-
-
-
-

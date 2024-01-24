@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using System.Collections;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace CasaEngine.Framework.Materials;
 

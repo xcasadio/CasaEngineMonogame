@@ -21,12 +21,13 @@ internal class CursorLoader : IAssetLoader
             throw new Win32Exception("CursorLoader.LoadAsset() : can't load the file " + fileName);
         }
 
-        var curs = new Cursor(handle.Value);
+        //var curs = new Cursor(handle.Value);
         // Note: force the cursor to own the handle so it gets released properly
-        var fi = typeof(Cursor).GetField("ownHandle", BindingFlags.NonPublic | BindingFlags.Instance);
-        fi.SetValue(curs, true);
+        //var fi = typeof(Cursor).GetField("ownHandle", BindingFlags.NonPublic | BindingFlags.Instance);
+        //fi.SetValue(curs, true);
 
-        return curs;
+        //return curs;
+        return null;
     }
 
     public bool IsFileSupported(string fileName)

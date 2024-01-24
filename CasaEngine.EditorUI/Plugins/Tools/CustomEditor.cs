@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Editor.Tools;
+﻿using System;
+
+namespace CasaEngine.EditorUI.Plugins.Tools;
 
 public class CustomEditor : Attribute
 {

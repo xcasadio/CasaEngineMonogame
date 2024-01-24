@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Data;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -14,9 +15,14 @@ public class ExternalComponentConverter : IValueConverter
             return keyValuePairList;
         }
 
-        if (value is ExternalComponent externalComponent)
+        if (value is KeyValuePair<Guid, Type> pair)
         {
-            return new KeyValuePair<int, Type>(externalComponent.ExternalComponentId, externalComponent.GetType());
+            return pair;
+        }
+
+        if (value is IEnumerable<KeyValuePair<Guid, Type>> pairs)
+        {
+            return pairs;
         }
 
         return null;

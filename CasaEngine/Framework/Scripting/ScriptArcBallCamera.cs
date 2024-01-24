@@ -4,6 +4,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Scripting;
 

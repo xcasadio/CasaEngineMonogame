@@ -4,7 +4,6 @@ using System.IO;
 using CasaEngine.Core.Logs;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -37,10 +36,10 @@ public class DemosGame : CasaEngineGame
 
     protected override void LoadContentPrivate()
     {
-        GameSettings.AssetInfoManager.Load("Content\\AssetInfos.json", SaveOption.Editor);
+        GameSettings.AssetCatalog.Load("Content\\AssetInfos.json");
 
         var world = new World();
-        GameManager.CurrentWorld = world;
+        GameManager.SetWorldToLoad(world);
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
         _demos.Add(new Collision3dBasicDemo());
@@ -60,7 +59,7 @@ public class DemosGame : CasaEngineGame
         _currentDemo = _demos[index];
         _currentDemo.Initialize(this);
         var camera = _currentDemo.CreateCamera(this);
-        GameManager.CurrentWorld.Initialize(this);
+        GameManager.CurrentWorld.LoadContent(this);
         _currentDemo.InitializeCamera(camera);
         GameManager.ActiveCamera = camera;
 
@@ -87,11 +86,4 @@ public class DemosGame : CasaEngineGame
 
         base.Update(gameTime);
     }
-
-    /*protected override void Draw(GameTime gameTime)
-    {
-        base.Draw(gameTime);
-
-        _currentDemo.Update(gameTime);
-    }*/
 }

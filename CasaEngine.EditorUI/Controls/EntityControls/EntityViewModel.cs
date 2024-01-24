@@ -1,11 +1,11 @@
-﻿using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class EntityViewModel : NotifyPropertyChangeBase
 {
-    public Entity Entity { get; }
+    public AActor Entity { get; }
     public ComponentListViewModel ComponentListViewModel { get; }
 
     public string Name
@@ -13,17 +13,17 @@ public class EntityViewModel : NotifyPropertyChangeBase
         get => Entity.Name;
     }
 
-    public EntityViewModel(Entity entity)
+    public EntityViewModel(AActor entity)
     {
         Entity = entity;
         ComponentListViewModel = new ComponentListViewModel(this);
 
-        GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
+        GameSettings.AssetCatalog.AssetRenamed += OnAssetRenamed;
     }
 
     private void OnAssetRenamed(object? sender, Core.Design.EventArgs<Framework.Assets.AssetInfo, string> e)
     {
-        if (e.Value.Id == Entity.AssetInfo.Id)
+        if (e.Value.Id == Entity.Id)
         {
             OnPropertyChanged("Name");
         }

@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 using Control = TomShane.Neoforce.Controls.Control;
 using CasaEngine.Framework.SceneManagement;
@@ -24,7 +23,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Add(control);
 
 #if EDITOR
-            ScreenWidgetComponent.World.Game.GameManager.UiManager.Add(control);
+            ScreenWidgetComponent.World.Game.UiManager.Add(control);
 #endif
         }
 
@@ -33,7 +32,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Remove(control);
 
 #if EDITOR
-            ScreenWidgetComponent.World.Game.GameManager.UiManager.Remove(control);
+            ScreenWidgetComponent.World.Game.UiManager.Remove(control);
 #endif
         }
 

@@ -8,6 +8,8 @@ using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.SceneManagement.Components;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -64,17 +66,19 @@ public partial class EntitiesControl : UserControl
         var entitiesViewModel = DataContext as EntityListViewModel;
         var newEntities = new List<EntityViewModel>();
 
-        foreach (var entity in entities.Cast<Entity>())
+        foreach (var entity in entities.Cast<SceneComponent>())
         {
             var newEntity = entity.Clone();
-            newEntity.Initialize(Game);
-            newEntities.Add(entitiesViewModel.Add(newEntity));
+            newEntity.Initialize();
+            newEntity.InitializeWithWorld(Game.GameManager.CurrentWorld);
+            System.Diagnostics.Debugger.Break();
+            //newEntities.Add(entitiesViewModel.Add(newEntity));
         }
 
         _gizmoComponent.Gizmo.Clear();
         foreach (var entityViewModel in newEntities)
         {
-            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity);
+            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
         }
 
         SetSelectedItem(newEntities[0]);
@@ -91,14 +95,14 @@ public partial class EntitiesControl : UserControl
         _isSelectionTriggerActive = false;
 
         var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-        Entity? selectedEntity = null;
+        SceneComponent? selectedEntity = null;
         if (gizmoComponent.Gizmo.Selection.Count > 0)
         {
-            selectedEntity = (Entity)gizmoComponent.Gizmo.Selection[0];
+            selectedEntity = (SceneComponent)gizmoComponent.Gizmo.Selection[0];
         }
 
         var entitiesViewModel = DataContext as EntityListViewModel;
-        SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity));
+        SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity.Owner));
 
         _isSelectionTriggerActive = true;
     }
@@ -129,8 +133,8 @@ public partial class EntitiesControl : UserControl
         }
         else
         {
-            gizmoComponent.Gizmo.Clear(); // TODO
-            gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity);
+            gizmoComponent.Gizmo.Clear(); // TODO : select in one function
+            gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
         }
 
         SetSelectedItem(entityViewModel);

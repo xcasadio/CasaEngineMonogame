@@ -2,6 +2,7 @@
 using CasaEngine.Core.Logs;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets;
@@ -11,6 +12,7 @@ public class AssetContentManager
     public const string DefaultCategory = "default";
     private readonly Dictionary<Type, IAssetLoader> _assetLoaderByType = new();
     private readonly Dictionary<string, AssetDictionary> _assetsDictionaryByCategory = new();
+
     public GraphicsDevice GraphicsDevice { get; private set; }
 
     public string RootDirectory { get; set; }
@@ -20,7 +22,7 @@ public class AssetContentManager
         RootDirectory = Environment.CurrentDirectory;
 
 #if EDITOR
-        GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
+        GameSettings.AssetCatalog.AssetRenamed += OnAssetRenamed;
 #endif
     }
 
@@ -40,7 +42,7 @@ public class AssetContentManager
         AddAsset(assetInfo.Id, assetInfo.Name, asset, categoryName);
     }
 
-    public void AddAsset(long id, string name, object asset, string categoryName = DefaultCategory)
+    public void AddAsset(Guid id, string name, object asset, string categoryName = DefaultCategory)
     {
         if (!_assetsDictionaryByCategory.ContainsKey(categoryName))
         {
@@ -56,34 +58,18 @@ public class AssetContentManager
         return (T?)asset;
     }
 
-    public T? GetAsset<T>(long id, string categoryName = DefaultCategory)
+    public T? GetAsset<T>(Guid id, string categoryName = DefaultCategory)
     {
         _assetsDictionaryByCategory[categoryName].Get(id, out object? asset);
         return (T?)asset;
     }
-
-    /*
-    public bool Rename(string oldName, string newName, string categoryName = DefaultCategory)
-    {
-        if (!_assetsDictionaryByCategory.ContainsKey(categoryName) || !_assetsDictionaryByCategory[categoryName].ContainsKey(oldName))
-        {
-            return false;
-        }
-
-        var asset = _assetsDictionaryByCategory[categoryName][oldName];
-        _assetsDictionaryByCategory[categoryName][newName] = asset;
-        _assetsDictionaryByCategory[categoryName].Remove(oldName);
-
-        return true;
-    }
-    */
 
     public bool IsFileSupported(string fileName)
     {
         return _assetLoaderByType.Values.Any(assetLoader => assetLoader.IsFileSupported(fileName));
     }
 
-    public T Load<T>(AssetInfo assetInfo, string categoryName = DefaultCategory)
+    public T Load<T>(Guid id, string categoryName = DefaultCategory)
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList))
         {
@@ -95,7 +81,7 @@ public class AssetContentManager
             _assetsDictionaryByCategory.Add(categoryName, categoryAssetList);
         }
 
-        if (categoryAssetList.Get(assetInfo.Id, out var asset))
+        if (categoryAssetList.Get(id, out var asset))
         {
             return (T)asset;
         }
@@ -104,7 +90,14 @@ public class AssetContentManager
 
         if (!_assetLoaderByType.ContainsKey(type))
         {
-            throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
+            throw new InvalidOperationException($"IAssetLoader not found for the type {type.FullName}");
+        }
+
+        var assetInfo = GameSettings.AssetCatalog.Get(id);
+
+        if (assetInfo == null)
+        {
+            throw new InvalidOperationException($"Asset not found with id '{id}'");
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
@@ -158,8 +151,6 @@ public class AssetContentManager
 
     internal void OnDeviceReset(object? sender, EventArgs e)
     {
-        //GraphicsDevice = sender as GraphicsDevice;
-
         foreach (var assetDictionaryByCategory in _assetsDictionaryByCategory)
         {
             foreach (var o in assetDictionaryByCategory.Value)
@@ -169,7 +160,9 @@ public class AssetContentManager
                     ((IDisposable)pair2.Value).Dispose();
                 }*/
 
-                if (o is Asset asset)
+                System.Diagnostics.Debugger.Break();
+
+                if (o is IAssetable asset)
                 {
                     asset.OnDeviceReset(GraphicsDevice, this);
                 }
@@ -204,15 +197,15 @@ public class AssetContentManager
     private class AssetDictionary : IEnumerable<object>
     {
         private readonly Dictionary<string, object> _assetsByName = new();
-        private readonly Dictionary<long, object> _assetsById = new();
+        private readonly Dictionary<Guid, object> _assetsById = new();
 
-        public void Add(long id, string name, object asset)
+        public void Add(Guid id, string name, object asset)
         {
             _assetsById[id] = asset;
             _assetsByName[name] = asset;
         }
 
-        public bool Get(long id, out object asset)
+        public bool Get(Guid id, out object asset)
         {
             return _assetsById.TryGetValue(id, out asset);
         }
@@ -222,7 +215,7 @@ public class AssetContentManager
             return _assetsByName.TryGetValue(name, out asset);
         }
 
-        public object Remove(long id, string name)
+        public object Remove(Guid id, string name)
         {
             _assetsById.Remove(id);
             return _assetsByName.Remove(name);

@@ -15,6 +15,11 @@ public class GameEditorAnimation2d : GameEditor2d
         DataContextChanged += OnDataContextChanged;
     }
 
+    protected override void InitializeGame()
+    {
+
+    }
+
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
         if (DataContext != null)
@@ -28,7 +33,7 @@ public class GameEditorAnimation2d : GameEditor2d
 
     protected override void CreateEntityComponents(AActor entity)
     {
-        AnimatedSpriteComponent = new AnimatedSpriteComponent(entity);
+        AnimatedSpriteComponent = new AnimatedSpriteComponent();
         entity.RootComponent = AnimatedSpriteComponent;
     }
 }

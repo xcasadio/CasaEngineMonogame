@@ -17,16 +17,16 @@ public partial class GameEditorWorldControl : UserControl
 
     private void ButtonLaunchGame_Click(object sender, RoutedEventArgs e)
     {
-        gameEditor.Game.GameManager.IsRunningInGameEditorMode = !gameEditor.Game.GameManager.IsRunningInGameEditorMode;
-        gameEditor.Game.GameManager.PhysicsEngineComponent.Enabled = gameEditor.Game.GameManager.IsRunningInGameEditorMode;
+        gameEditor.Game.IsRunningInGameEditorMode = !gameEditor.Game.IsRunningInGameEditorMode;
+        gameEditor.Game.PhysicsEngineComponent.Enabled = gameEditor.Game.IsRunningInGameEditorMode;
 
-        buttonLaunch.Content = gameEditor.Game.GameManager.IsRunningInGameEditorMode ? "Running" : "Launch";
+        buttonLaunch.Content = gameEditor.Game.IsRunningInGameEditorMode ? "Running" : "Launch";
     }
 
     private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
     {
         var world = gameEditor.Game.GameManager.CurrentWorld;
-        AssetSaver.SaveAsset(world.AssetInfo.FileName, world);
+        AssetSaver.SaveAsset(world.FileName, world);
     }
 
     private void ButtonTranslate_Click(object sender, RoutedEventArgs e)

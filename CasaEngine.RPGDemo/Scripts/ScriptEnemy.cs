@@ -1,8 +1,6 @@
 ﻿using System.Linq;
-using System.Text.Json;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.World;
@@ -83,18 +81,4 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
     {
         Controller.StateMachine.Transition(Controller.GetState((int)EnemyControllerState.Dying));
     }
-
-    public override void Load(JsonElement element)
-    {
-
-    }
-
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject, option);
-    }
-
-#endif
 }

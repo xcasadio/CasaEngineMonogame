@@ -34,9 +34,10 @@ public partial class GuiEditorControl : EditorControlBase
 
     public void OpenScreen(string fileName)
     {
-        var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
-        var screen = GameEditorGuiControl.GameEditor.Game.GameManager.AssetContentManager.Load<ScreenGui>(assetInfo);
-        screen.Initialize(GameEditorGuiControl.GameEditor.Game);
+        var assetInfo = GameSettings.AssetCatalog.GetByFileName(fileName);
+        var screen = GameEditorGuiControl.GameEditor.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
+        screen.Initialize();
+        screen.InitializeWithWorld(GameEditorGuiControl.GameEditor.Game.GameManager.CurrentWorld);
 
         foreach (var control in screen.Controls)
         {

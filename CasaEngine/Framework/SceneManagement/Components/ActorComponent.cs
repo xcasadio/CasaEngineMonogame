@@ -14,6 +14,7 @@ public abstract class ActorComponent : UObject
 
     protected ActorComponent()
     {
+        //Do nothing
     }
 
     protected ActorComponent(ActorComponent other)
@@ -53,8 +54,7 @@ public abstract class ActorComponent : UObject
     public override void Save(JObject jObject)
     {
         base.Save(jObject);
-
-        jObject.Add("version", 1);
+        
         jObject.Add("type", GetType().Name);
     }
 

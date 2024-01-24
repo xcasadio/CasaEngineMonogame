@@ -25,7 +25,7 @@ public class ThrowableWeapon : Weapon
 
     public override void Attach()
     {
-        var entity = Game.GameManager.SpawnEntity(_entityName);
+        var entity = Game.SpawnEntity(_entityName);
         InitializeEntity(entity);
     }
 

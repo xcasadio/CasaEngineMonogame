@@ -88,8 +88,8 @@ public class FpsCounter : DrawableGameComponent
 
     protected override void LoadContent()
     {
-        _font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
-        _spriteBatch = ((CasaEngineGame)Game).GameManager.SpriteBatch;
+        _font = ((CasaEngineGame)Game).FontSystem.GetFont(10);
+        _spriteBatch = ((CasaEngineGame)Game).SpriteBatch;
         _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
 
         if (_renderer2dComponent == null)

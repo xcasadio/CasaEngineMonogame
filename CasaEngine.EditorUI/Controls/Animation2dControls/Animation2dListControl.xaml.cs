@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -30,20 +31,19 @@ public partial class Animation2dListControl : UserControl
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-        var animation2dData = LoadAnimation(selectedItem.AssetInfo);
+        var animation2dData = LoadAnimation(selectedItem.AssetInfo.Id);
         SelectedItem = new Animation2dDataViewModel(animation2dData);
     }
 
-    private Animation2dData LoadAnimation(AssetInfo assetInfo)
+    private Animation2dData LoadAnimation(Guid id)
     {
-        var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
+        var assetContentManager = _gameEditor.Game.AssetContentManager;
         var graphicsDevice = _gameEditor.Game.GraphicsDevice;
-        var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo);
+        var animation2dData = assetContentManager.Load<Animation2dData>(id);
 
         foreach (var frameData in animation2dData.Frames)
         {
-            var frameAssetInfo = GameSettings.AssetInfoManager.Get(frameData.SpriteId);
-            assetContentManager.Load<SpriteData>(frameAssetInfo);
+            assetContentManager.Load<SpriteData>(frameData.SpriteId);
         }
 
         return animation2dData;
@@ -72,7 +72,7 @@ public partial class Animation2dListControl : UserControl
 
             if (inputTextBox.ShowDialog() == true)
             {
-                //_gameEditor.Game.GameManager.AssetContentManager.Rename(animation2dDataViewModel.Name, inputTextBox.Text);
+                //_gameEditor.Game.AssetContentManager.Rename(animation2dDataViewModel.Name, inputTextBox.Text);
                 animation2dDataViewModel.Name = inputTextBox.Text;
                 SortAnimations();
                 listBox.ScrollIntoView(listBox.SelectedItem);
@@ -105,7 +105,7 @@ public partial class Animation2dListControl : UserControl
     {
         if (SelectedItem is Animation2dDataViewModel animation2dDataViewModel)
         {
-            AssetSaver.SaveAsset(animation2dDataViewModel.AssetInfo.FileName, animation2dDataViewModel.Animation2dData);
+            AssetSaver.SaveAsset(animation2dDataViewModel.Animation2dData.FileName, animation2dDataViewModel.Animation2dData);
         }
     }
 }

@@ -35,6 +35,6 @@ public class FrameDataViewModel : NotifyPropertyChangeBase
     public FrameDataViewModel(FrameData frameData)
     {
         FrameData = frameData;
-        _assetInfo = GameSettings.AssetInfoManager.Get(frameData.SpriteId);
+        _assetInfo = GameSettings.AssetCatalog.Get(frameData.SpriteId);
     }
 }

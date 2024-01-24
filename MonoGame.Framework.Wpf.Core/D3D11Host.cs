@@ -171,6 +171,8 @@ namespace Microsoft.Xna.Framework
             graphicsDeviceManager.CreateDevice();
         }
 
+        protected abstract void LoadContent();
+
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
             _resetBackBuffer = true;
@@ -341,6 +343,7 @@ namespace Microsoft.Xna.Framework
             try
             {
                 Initialize();
+                LoadContent();
                 StartRendering();
             }
             catch (Exception ex)

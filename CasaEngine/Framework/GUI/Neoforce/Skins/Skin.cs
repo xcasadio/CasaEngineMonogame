@@ -362,7 +362,7 @@ public class Skin : Component
         }
         catch (Exception x)
         {
-            Manager.Logger.WriteError("Unable to load skin file. " + x.Message);
+            Manager.Logger.WriteError("Unable to load skin file. " + x);
         }
     }
 

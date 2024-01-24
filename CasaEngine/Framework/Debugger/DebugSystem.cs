@@ -6,10 +6,10 @@
 //-----------------------------------------------------------------------------
 
 /*
- * To get started with the GameDebugTools, go to your main game class, override the Initialize method and add the
+ * To get started with the GameDebugTools, go to your main game class, override the LoadContent method and add the
  * following line of code:
  * 
- * GameDebugTools.DebugSystem.Initialize(this, "MyFont");
+ * GameDebugTools.DebugSystem.LoadContent(this, "MyFont");
  * 
  * where "MyFont" is the name a SpriteFont in your content project. This method will initialize all of the debug
  * tools and add the necessary components to your game. To begin instrumenting your game, add the following line of 

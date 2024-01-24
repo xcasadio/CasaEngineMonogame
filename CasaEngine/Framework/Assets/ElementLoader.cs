@@ -1,59 +1,61 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Logs;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.SceneManagement;
-using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.Framework.Assets;
 
-public class ElementLoader<T> where T : ISaveLoad
+public class ElementFactory<T> where T : class
 {
-    private readonly Dictionary<int, Type> _TypesById = new();
+    private readonly Dictionary<Guid, Type> _typesById = new();
 
-    public void Register<TU>(int id) where TU : new()
+    public void Register<TU>(Guid id) where TU : class, new()
     {
-        if (_TypesById.ContainsKey(id))
+        if (_typesById.ContainsKey(id))
         {
             throw new ArgumentException("the id already exist");
         }
 
-        _TypesById[id] = typeof(TU);
+        _typesById[id] = typeof(TU);
     }
 
-    public T Load(JsonElement element)
+    public object Create(Guid id)
     {
-        var id = element.GetJsonPropertyByName("type").Value.GetInt32();
-
-        if (!_TypesById.ContainsKey(id))
+        if (!_typesById.ContainsKey(id))
         {
             LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
         }
 
-        var component = (T)Activator.CreateInstance(_TypesById[id]);
-        component.Load(element, SaveOption.Editor);
+        return Activator.CreateInstance(_typesById[id]);
+    }
+
+    public TU Load<TU>(JsonElement element) where TU : class, ISerializable
+    {
+        var id = element.GetProperty("type").GetGuid();
+        var component = Create(id) as TU;
+        component.Load(element);
         return component;
     }
 
 #if EDITOR
 
-    public KeyValuePair<int, Type>[] TypesById => _TypesById.ToArray();
+    public KeyValuePair<Guid, Type>[] TypesById => _typesById.ToArray();
 
-    public Type GetTypeFromId(int id)
+    public Type GetTypeFromId(Guid id)
     {
-        _TypesById.TryGetValue(id, out var type);
+        _typesById.TryGetValue(id, out var type);
         return type;
     }
 
-    public GameplayProxy Create(int id)
+    public IEnumerable<KeyValuePair<Guid, Type>> GetDerivedTypesFrom<T>() where T : class
     {
-        if (!_TypesById.ContainsKey(id))
+        foreach (var pair in _typesById
+                     .Where(x => x.Value is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }))
         {
-            LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
+            if (pair.Value.IsSubclassOf(typeof(T)))
+            {
+                yield return pair;
+            }
         }
-
-        var component = (GameplayProxy)Activator.CreateInstance(_TypesById[id]);
-        return component;
     }
 
 #endif

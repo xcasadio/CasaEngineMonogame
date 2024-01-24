@@ -26,11 +26,12 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
+using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
-public class TextureCube : Asset
+public class TextureCube : UObject, IAssetable
 {
     // XNA Texture.
     protected Microsoft.Xna.Framework.Graphics.TextureCube XnaTextureCube;
@@ -47,17 +48,18 @@ public class TextureCube : Asset
 
     public TextureCube(string filename, GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
     {
-        AssetInfo.Name = filename;
+        //Name = filename;
         IsRgbm = false;
         RgbmMaxRange = 50;
-        AssetInfo.FileName = filename;
-        if (File.Exists(AssetInfo.FileName) == false)
+        FileName = filename;
+
+        if (File.Exists(FileName) == false)
         {
-            throw new ArgumentException($"Failed to load cube map: File {AssetInfo.FileName} does not exists!");
+            throw new ArgumentException($"Failed to load cube map: File {FileName} does not exists!");
         }
         try
         {
-            XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo);
+            XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Id);
             Size = XnaTextureCube.Size;
             Resource.Name = filename;
         }
@@ -69,14 +71,22 @@ public class TextureCube : Asset
         {
             throw new InvalidOperationException($"Failed to load cube map: {filename}", e);
         }
-    } // TextureCube
+    }
 
     protected TextureCube() { }
 
-    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    public void Dispose()
     {
-        XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(AssetInfo);
-    } // RecreateResource
+        DisposeManagedResources();
+    }
 
-} // TextureCube
-// CasaEngine.Asset
+    protected virtual void DisposeManagedResources()
+    {
+        XnaTextureCube.Dispose();
+    }
+
+    public virtual void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    {
+        XnaTextureCube = assetContentManager.Load<Microsoft.Xna.Framework.Graphics.TextureCube>(Id);
+    }
+}

@@ -26,7 +26,6 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 */
 
-using CasaEngine.Core.Maths;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
@@ -131,7 +130,7 @@ public sealed class RenderTarget : Texture
         bool mipMap = false)
         : base(graphicsDevice)
     {
-        AssetInfo.Name = "Render Target";
+        //Name = "Render Target";
 
         SurfaceFormat = surfaceFormat;
         DepthFormat = hasDepthBuffer ? DepthFormat.Depth24 : DepthFormat.None;
@@ -161,7 +160,7 @@ public sealed class RenderTarget : Texture
         }
     } // Create
 
-    protected override void DisposeManagedResources()
+    protected void DisposeManagedResources()
     {
         base.DisposeManagedResources();
         GraphicsDevice.DeviceReset -= OnScreenSizeChanged;
@@ -180,7 +179,7 @@ public sealed class RenderTarget : Texture
         }
     } // OnScreenSizeChanged
 
-    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    public override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         Create();
         // Redo the bindings
@@ -192,7 +191,7 @@ public sealed class RenderTarget : Texture
                     new Microsoft.Xna.Framework.Graphics.RenderTargetBinding(_renderTargetBinding.Value.RenderTargets[i]._renderTarget);
             }
         }
-    } // RecreateResource
+    }
 
     internal static int CalculateMultiSampleQuality(AntiAliasingType antiAliasingTypeType)
     {
@@ -416,7 +415,8 @@ public sealed class RenderTarget : Texture
         }
 
         RenderTargets.Clear();
-    } // ClearRenderTargetPool
+    }
+    // ClearRenderTargetPool
 
     // A pool of all multiple render targets.
     private static readonly List<RenderTargetBinding> MultipleRenderTargets = new(0);

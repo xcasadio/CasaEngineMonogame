@@ -38,8 +38,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
         base.InitializeWithWorld(world);
 
         _skinnedMeshRendererComponent = World.Game.GetGameComponent<SkinnedMeshRendererComponent>();
-        //Mesh?.Initialize(game.GraphicsDevice);
-        //Mesh?.Texture?.Initialize(game.GraphicsDevice, game.GameManager.AssetContentManager);
+        //Mesh?.LoadContent(game.GraphicsDevice);
+        //Mesh?.Texture?.LoadContent(game.GraphicsDevice, game.AssetContentManager);
     }
 
     public override SkinnedMeshComponent Clone()
@@ -67,7 +67,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
         var camera = World.Game.GameManager.ActiveCamera;
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh,
-            WorldMatrix,
+            WorldMatrixWithScale,
             camera.ViewMatrix,
             camera.ProjectionMatrix,
             camera.Position);
@@ -93,8 +93,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
             max = Vector3.One * length;
         }
 
-        min = Vector3.Transform(min, WorldMatrix);
-        max = Vector3.Transform(max, WorldMatrix);
+        min = Vector3.Transform(min, WorldMatrixWithScale);
+        max = Vector3.Transform(max, WorldMatrixWithScale);
 
         return new BoundingBox(min, max);
     }

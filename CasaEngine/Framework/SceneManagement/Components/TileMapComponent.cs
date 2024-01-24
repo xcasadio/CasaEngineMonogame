@@ -16,14 +16,14 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 [DisplayName("Tile Map")]
 public class TileMapComponent : SceneComponent, ICollideableComponent
 {
-    public long TileMapDataAssetId { get; set; } = IdManager.InvalidId;
+    public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
     public TileSetData TileSetData { get; set; }
     private List<TileMapLayer> Layers { get; } = new();
     public PhysicsType PhysicsType { get; }
     public HashSet<Collision> Collisions { get; } = new();
 
-    public TileMapComponent(AActor? actor = null) : base(actor)
+    public TileMapComponent()
     {
         //Do nothing
     }
@@ -41,10 +41,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
 
         AssetInfo assetInfo;
 
-        if (TileMapDataAssetId != IdManager.InvalidId)
+        if (TileMapDataAssetId != Guid.Empty)
         {
-            assetInfo = GameSettings.AssetInfoManager.Get(TileMapDataAssetId);
-            TileMapData = World.Game.GameManager.AssetContentManager.Load<TileMapData>(assetInfo);
+            TileMapData = World.Game.AssetContentManager.Load<TileMapData>(TileMapDataAssetId);
         }
 
         if (TileMapData == null)
@@ -52,13 +51,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
             return;
         }
 
-        assetInfo = GameSettings.AssetInfoManager.Get(TileMapData.TileSetDataAssetId);
-        TileSetData = World.Game.GameManager.AssetContentManager.Load<TileSetData>(assetInfo);
+        TileSetData = World.Game.AssetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetId);
         var tileSize = TileSetData.TileSize;
 
-        assetInfo = GameSettings.AssetInfoManager.Get(TileSetData.SpriteSheetAssetId);
-        var texture = World.Game.GameManager.AssetContentManager.Load<Texture>(assetInfo);
-        texture.Load(World.Game.GameManager.AssetContentManager);
+        var texture = World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
+        texture.Load(World.Game.AssetContentManager);
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -113,7 +110,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                             case TileCollisionType.NoContactResponse:
                             case TileCollisionType.Blocked:
                                 var physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
-                                var worldMatrix = WorldMatrix;
+                                var worldMatrix = WorldMatrixWithScale;
                                 worldMatrix.Translation += new Vector3(
                                     x * tileSize.Width + tileSize.Width / 2f,
                                     -y * tileSize.Height - tileSize.Height / 2f,
@@ -178,8 +175,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
             max = Vector3.One * length;
         }
 
-        min = Vector3.Transform(min, WorldMatrix);
-        max = Vector3.Transform(max, WorldMatrix);
+        min = Vector3.Transform(min, WorldMatrixWithScale);
+        max = Vector3.Transform(max, WorldMatrixWithScale);
 
         return new BoundingBox(min, max);
     }
@@ -223,7 +220,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
     public override void Load(JsonElement element)
     {
         base.Load(element);
-        TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetInt64();
+        //TODO : remove
+        TileMapDataAssetId = AssetInfo.GuidsById[element.GetProperty("tile_map_data_asset_id").GetInt32()];
+        //TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetGuid();
     }
 
 #if EDITOR

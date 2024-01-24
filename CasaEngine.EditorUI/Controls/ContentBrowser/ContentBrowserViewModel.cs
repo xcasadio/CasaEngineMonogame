@@ -20,9 +20,9 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     {
         ContentItems.Add(new FolderItem { Name = "All" });
 
-        GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
-        GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;
-        GameSettings.AssetInfoManager.AssetCleared += OnAssetCleared;
+        GameSettings.AssetCatalog.AssetAdded += OnAssetAdded;
+        GameSettings.AssetCatalog.AssetRemoved += OnAssetRemoved;
+        GameSettings.AssetCatalog.AssetCleared += OnAssetCleared;
     }
 
     private void OnAssetAdded(object? sender, AssetInfo assetInfo)
@@ -96,7 +96,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
     private void AddContent(FolderItem rootFolderItem)
     {
-        foreach (var assetInfo in GameSettings.AssetInfoManager.AssetInfos)
+        foreach (var assetInfo in GameSettings.AssetCatalog.AssetInfos)
         {
             var folderItem = GetOrCreateFolders(rootFolderItem, assetInfo.FileName);
             var contentItem = new ContentItem(assetInfo) { Parent = folderItem };

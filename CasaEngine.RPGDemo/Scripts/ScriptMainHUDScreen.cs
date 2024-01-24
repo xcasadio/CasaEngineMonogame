@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Text.Json;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
@@ -50,17 +49,4 @@ public class ScriptMainHUDScreen : GameplayProxy
     {
 
     }
-
-    public override void Load(JsonElement element)
-    {
-    }
-
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject, option);
-    }
-
-#endif
 }

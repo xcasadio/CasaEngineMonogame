@@ -129,7 +129,7 @@ public static class StringBuilderExtensions
 
     private static void AppendNumberInternal(StringBuilder builder, int number, int decimalCount, AppendNumberOptions options)
     {
-        // Initialize variables for conversion.
+        // LoadContent variables for conversion.
         NumberFormatInfo nfi = CultureInfo.CurrentCulture.NumberFormat;
 
         int idx = numberString.Length;
