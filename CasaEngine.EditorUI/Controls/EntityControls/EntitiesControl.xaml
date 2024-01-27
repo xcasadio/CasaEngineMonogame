@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <TreeView x:Name="TreeView" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown">
+        <TreeView x:Name="TreeViewEntities" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown">
             <TreeView.ItemTemplate>
                 <DataTemplate>
                     <TreeViewItem Header="{Binding Name}" MouseDoubleClick="OnMouseDoubleClick"/>

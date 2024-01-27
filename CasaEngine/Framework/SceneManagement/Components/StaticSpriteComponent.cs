@@ -62,7 +62,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     {
         foreach (var (shape2d, collisionObject) in _collisionObjects)
         {
-            Physics2dHelper.UpdateBodyTransformation(WorldPosition, WorldRotation, WorldScale,
+            Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
                 collisionObject, shape2d, _spriteData.Origin, _spriteData.PositionInTexture);
         }
     }
@@ -101,11 +101,11 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         }
 
         _spriteRendererComponent.DrawSprite(_sprite,
-            new Vector2(WorldPosition.X, WorldPosition.Y),
+            new Vector2(Position.X, Position.Y),
             0.0f,
-            new Vector2(WorldScale.X, WorldScale.Y),
+            new Vector2(Scale.X, Scale.Y),
             Color.White,
-            WorldPosition.Z);
+            Position.Z);
     }
 
     public override void OnEnabledValueChange()
@@ -148,7 +148,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
                 _physicsEngineComponent, this, color);
             if (collisionObject != null)
             {
-                Physics2dHelper.UpdateBodyTransformation(WorldPosition, WorldRotation, WorldScale,
+                Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
                     collisionObject, collisionShape.Shape, _spriteData.Origin, _spriteData.PositionInTexture);
                 _physicsEngineComponent.AddCollisionObject(collisionObject);
                 _collisionObjects.Add(new(collisionShape.Shape, collisionObject));

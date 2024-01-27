@@ -37,7 +37,7 @@ public class AActor : UObject
 
             if (_rootComponent != null)
             {
-                _rootComponent.Owner = this;
+                _rootComponent.Attach(this);
 #if EDITOR
                 ComponentAdded?.Invoke(this, _rootComponent);
 #endif
@@ -162,7 +162,7 @@ public class AActor : UObject
     public void AddComponent(ActorComponent component)
     {
         _components.Add(component);
-        component.Owner = this;
+        component.Attach(this);
 
 #if EDITOR
         ComponentAdded?.Invoke(this, component);
@@ -172,8 +172,7 @@ public class AActor : UObject
     public void RemoveComponent(ActorComponent component)
     {
         _components.Remove(component);
-
-        component.Owner = null;
+        component.Detach();
 
 #if EDITOR
         ComponentRemoved?.Invoke(this, component);

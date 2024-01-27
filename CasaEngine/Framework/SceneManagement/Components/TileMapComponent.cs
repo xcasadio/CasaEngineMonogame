@@ -188,8 +188,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
             return;
         }
 
-        var translation = WorldPosition;
-        var scale = WorldScale.ToVector2();//new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
+        var translation = Position;
+        var scale = Scale.ToVector2();//new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
 
         var mapWidth = TileMapData.MapSize.Width;
         var mapHeight = TileMapData.MapSize.Height;

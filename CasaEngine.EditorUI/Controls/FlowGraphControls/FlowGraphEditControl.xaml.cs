@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using CasaEngine.DotNetCompiler;
 using CasaEngine.DotNetCompiler.CSharp;
 using CasaEngine.EditorUI.Controls.EntityControls;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 using FlowGraph;

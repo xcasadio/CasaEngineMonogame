@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.World;
 
-namespace CasaEngine.EditorUI.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 public class EntityListViewModel
 {

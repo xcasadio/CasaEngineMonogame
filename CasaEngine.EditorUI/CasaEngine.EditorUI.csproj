@@ -38,6 +38,7 @@
 		<None Remove="Resources\Icon_Translate_gray.png" />
 		<None Remove="Resources\non_visible_icon.png" />
 		<None Remove="Resources\open-file-folder-48.png" />
+		<None Remove="Resources\puzzle_icon.png" />
 		<None Remove="Resources\save-44-48.png" />
 		<None Remove="Resources\Save-icon.png" />
 		<None Remove="Resources\scissors.png" />
@@ -49,6 +50,7 @@
 	<ItemGroup>
 		<PackageReference Include="AvalonEdit" Version="6.3.0.90" />
 		<PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1" />
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
 		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
@@ -98,6 +100,7 @@
 		<Resource Include="Resources\Icon_Translate_gray.png" />
 		<Resource Include="Resources\non_visible_icon.png" />
 		<Resource Include="Resources\open-file-folder-48.png" />
+		<Resource Include="Resources\puzzle_icon.png" />
 		<Resource Include="Resources\save-44-48.png" />
 		<Resource Include="Resources\Save-icon.png" />
 		<Resource Include="Resources\scissors.png" />

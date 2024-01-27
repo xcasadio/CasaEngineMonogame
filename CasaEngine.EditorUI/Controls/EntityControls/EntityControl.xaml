@@ -5,62 +5,89 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
+             xmlns:components="clr-namespace:CasaEngine.Framework.SceneManagement.Components;assembly=CasaEngine"
+             xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" Grid.Column="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" VerticalAlignment="Center"/>
-
-                <Grid Grid.Row="0" Grid.Column="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Click="ButtonRenameEntity_OnClick">
-                        <Image Source="/Resources/icon_edit_16x16.png" Width="16" Height="16"/>
-                    </Button>
-                </Grid>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.RootComponent.Coordinates.Position}"/>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Rotation" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.RootComponent.Coordinates.Rotation}"/>
-
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.RootComponent.Coordinates.Scale}"/>
-            </Grid>
+            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Click="ButtonRenameEntity_OnClick">
+                <Image Source="/Resources/icon_edit_16x16.png" Width="16" Height="16"/>
+            </Button>
+            <Button Grid.Row="0" Grid.Column="1" Click="ButtonAddComponentClick">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
+                    <Label Content="Add" Padding="0"/>
+                </StackPanel>
+            </Button>
         </Grid>
 
-        <entityControls:EntityComponentsControl x:Name="entityComponentsControl" Grid.Row="1"/>
+        <TreeView Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
+                  ItemsSource="{Binding ComponentsHierarchyViewModel.ComponentsViewModel}" MinHeight="25"
+                  SelectedItemChanged="OnComponentSelectedItemChanged" KeyDown="TreeView_KeyDown">
+            <!--TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
+                </ContextMenu>
+            </TreeView.ContextMenu-->
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type viewModels:ComponentViewModel}" ItemsSource="{Binding Children}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Column="0" Source="/Resources/puzzle_icon.png" Width="16" Height="16"/>
+                        <Label Grid.Column="1" Content="{Binding Name}" VerticalAlignment="Center"/>
+                    </Grid>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <Expander Grid.Row="2"
+                  DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
+            <Expander.Header>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick" 
+                            DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
+                            <Label Content="Delete" Padding="0"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Expander.Header>
+
+            <Grid HorizontalAlignment="Stretch">
+                <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding }"/>
+            </Grid>
+
+            <b:Interaction.Behaviors>
+                <entityControls:StretchingExpanderHeaderBehavior />
+            </b:Interaction.Behaviors>
+        </Expander>
+
+        <!--entityControls:EntityComponentsControl x:Name="entityComponentsControl" Grid.Row="2"/-->
 
     </Grid>
 </UserControl>

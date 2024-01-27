@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
+using TomShane.Neoforce.Controls;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
@@ -10,7 +11,7 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 //Actor Components do not have a transform, meaning they do not have any physical location or rotation in the world.
 public abstract class ActorComponent : UObject
 {
-    public AActor? Owner { get; internal set; }
+    public AActor? Owner { get; private set; }
 
     public World.World World { get; private set; }
 
@@ -41,6 +42,16 @@ public abstract class ActorComponent : UObject
 
     public abstract ActorComponent Clone();
 
+    public virtual void Attach(AActor actor)
+    {
+        Owner = actor;
+    }
+
+    public virtual void Detach()
+    {
+        Owner = null;
+    }
+
     public virtual void Update(float elapsedTime)
     {
 
@@ -52,6 +63,7 @@ public abstract class ActorComponent : UObject
     }
 
 #if EDITOR
+
     public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
 
     public override void Save(JObject jObject)

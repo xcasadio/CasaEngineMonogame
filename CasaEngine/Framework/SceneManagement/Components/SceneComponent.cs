@@ -1,8 +1,11 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using Quaternion = Microsoft.Xna.Framework.Quaternion;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 #if EDITOR
 using XNAGizmo;
@@ -21,16 +24,27 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     private Matrix _lastWorldMatrix;
     public Coordinates Coordinates { get; }
 
+    /** What we are currently attached to. If valid, RelativeLocation etc. are used relative to this object */
+    public SceneComponent? Parent { get; set; }
+    public List<SceneComponent> Children { get; } = new();
+
     public Matrix WorldMatrixWithScale
     {
         get
         {
-            if (Owner?.RootComponent != null && Owner?.RootComponent != this)
+            var result = Coordinates.LocalMatrixWithScale;
+
+            if (Parent != null)
             {
-                return Coordinates.LocalMatrixWithScale * Owner.RootComponent.WorldMatrixWithScale;
+                result *= Parent.WorldMatrixWithScale;
             }
 
-            return Coordinates.LocalMatrixWithScale;
+            if (Owner.Parent?.RootComponent != null)
+            {
+                result *= Owner.Parent.RootComponent.WorldMatrixWithScale;
+            }
+
+            return result;
         }
     }
 
@@ -38,12 +52,19 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     {
         get
         {
-            if (Owner.RootComponent != this)
+            var result = Coordinates.LocalMatrixWithScale;
+
+            if (Parent != null)
             {
-                return Coordinates.LocalMatrixWithScale * Owner.RootComponent.WorldMatrixNoScale;
+                result *= Parent.WorldMatrixNoScale;
             }
 
-            return Coordinates.LocalMatrixWithScale;
+            if (Owner.Parent?.RootComponent != null)
+            {
+                result *= Owner.Parent.RootComponent.WorldMatrixNoScale;
+            }
+
+            return result;
         }
     }
 
@@ -51,35 +72,146 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     {
         get
         {
-            if (Owner.RootComponent != this)
+            var result = Coordinates.LocalMatrixNoScale;
+
+            if (Parent != null)
             {
-                return Coordinates.LocalMatrixNoScale * Owner.RootComponent.WorldMatrixNoScale;
+                result *= Parent.WorldMatrixNoScale;
             }
 
-            return Coordinates.LocalMatrixNoScale;
+            if (Owner.Parent?.RootComponent != null)
+            {
+                result *= Owner.Parent.RootComponent.WorldMatrixNoScale;
+            }
+
+            return result;
         }
     }
 
-    public Vector3 WorldPosition => Coordinates.Position + (Owner?.Parent?.RootComponent?.WorldPosition ?? Vector3.Zero);
-    public Quaternion WorldRotation => Coordinates.Rotation + (Owner?.Parent?.RootComponent?.WorldRotation ?? Quaternion.Identity);
-    public Vector3 WorldScale => Coordinates.Scale * (Owner?.Parent?.RootComponent?.WorldScale ?? Vector3.One);
-
-    public Vector3 Position
+    public Vector3 LocalPosition
     {
         get => Coordinates.Position;
         set => Coordinates.Position = value;
     }
 
-    public Vector3 Scale
+    public Quaternion LocalOrientation
+    {
+        get => Coordinates.Rotation;
+        set => Coordinates.Rotation = value;
+    }
+
+    public Vector3 LocalScale
     {
         get => Coordinates.Scale;
         set => Coordinates.Scale = value;
     }
 
+    public Vector3 Position
+    {
+        get
+        {
+            var position = LocalPosition;
+
+            if (Parent != null)
+            {
+                position += Parent.Position;
+            }
+
+            if (Owner?.Parent?.RootComponent != null)
+            {
+                position += Owner.Parent.RootComponent.Position;
+            }
+
+            return position;
+        }
+        set
+        {
+            var position = Vector3.Zero;
+
+            if (Parent != null)
+            {
+                position += Parent.Position;
+            }
+
+            if (Owner?.Parent?.RootComponent != null)
+            {
+                position += Owner.Parent.RootComponent.Position;
+            }
+
+            LocalPosition = value - position;
+        }
+    }
+
     public Quaternion Orientation
     {
-        get => Coordinates.Rotation;
-        set => Coordinates.Rotation = value;
+        get
+        {
+            var orientation = LocalOrientation;
+
+            if (Parent != null)
+            {
+                orientation += Parent.Orientation;
+            }
+
+            if (Owner?.Parent?.RootComponent != null)
+            {
+                orientation += Owner.Parent.RootComponent.Orientation;
+            }
+
+            return orientation;
+        }
+        set
+        {
+            var orientation = Quaternion.Identity;
+
+            if (Parent != null)
+            {
+                orientation += Parent.Orientation;
+            }
+
+            if (Owner?.Parent?.RootComponent != null)
+            {
+                orientation += Owner.Parent.RootComponent.Orientation;
+            }
+
+            LocalOrientation = value - orientation;
+        }
+    }
+
+    public Vector3 Scale
+    {
+        get
+        {
+            var scale = LocalScale;
+
+            if (Parent != null)
+            {
+                scale *= Parent.Position;
+            }
+
+            if (Owner?.Parent?.RootComponent != null)
+            {
+                scale *= Owner.Parent.RootComponent.Position;
+            }
+
+            return scale;
+        }
+        set
+        {
+            var scale = Vector3.One;
+
+            if (Parent != null)
+            {
+                scale *= Parent.Position;
+            }
+
+            if (Owner?.Parent?.RootComponent != null)
+            {
+                scale *= Owner.Parent.RootComponent.Position;
+            }
+
+            LocalPosition = value / scale;
+        }
     }
 
     public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
@@ -134,6 +266,20 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     public virtual void Draw(float elapsedTime)
     {
         //do nothing
+    }
+
+    public void AddChildComponent(SceneComponent component)
+    {
+        component.Parent = this;
+        Children.Add(component);
+        component.Attach(Owner);
+    }
+
+    public void RemoveChildComponent(SceneComponent component)
+    {
+        component.Parent = null;
+        Children.Remove(component);
+        component.Detach();
     }
 
     public override void Load(JsonElement element)

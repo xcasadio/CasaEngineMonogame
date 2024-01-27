@@ -23,7 +23,7 @@ public static class ElementRegister
         EntityComponentNames = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(x => x.GetTypes())
             .Where(t => t is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
-                        && t.IsSubclassOf(componentType))
+                        && t.IsSubclassOf(componentType) && t.GetCustomAttribute<DisplayNameAttribute>() != null)
             .ToDictionary(x => x.GetCustomAttribute<DisplayNameAttribute>().DisplayName);
     }
 }

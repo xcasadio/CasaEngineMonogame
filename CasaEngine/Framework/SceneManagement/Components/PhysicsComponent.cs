@@ -27,10 +27,10 @@ public class PhysicsComponent : PhysicsBaseComponent
 
             if (_shape != null)
             {
-                _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
                 _shape.PropertyChanged += OnPropertyChanged;
-                _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
             }
+
+            _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
 
 #if EDITOR
             ReCreatePhysicsObject();

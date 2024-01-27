@@ -230,11 +230,11 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             //TODO : create list with all spriteData
             var sprite = Sprite.Create(spriteData, _assetContentManager);
             _spriteRenderer.DrawSprite(sprite,
-                new Vector2(WorldPosition.X, WorldPosition.Y),
+                new Vector2(Position.X, Position.Y),
                 0.0f,
-                new Vector2(WorldScale.X, WorldScale.Y),
+                new Vector2(Scale.X, Scale.Y),
                 Color.White,
-                WorldPosition.Z);
+                Position.Z);
         }
     }
 
@@ -279,7 +279,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
             foreach (var (shape2d, collisionObject) in collisionObjects)
             {
-                Physics2dHelper.UpdateBodyTransformation(WorldPosition, WorldRotation, WorldScale,
+                Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
                     collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
                 if (addCollision)
                 {

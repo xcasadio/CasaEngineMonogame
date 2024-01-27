@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Logs;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;

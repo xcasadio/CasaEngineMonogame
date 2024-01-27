@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
@@ -105,7 +106,6 @@ public partial class EntitiesControl : UserControl
         {
             var entitiesViewModel = DataContext as EntityListViewModel;
             SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity.Owner));
-
         }
 
         _isSelectionTriggerActive = true;
@@ -115,7 +115,7 @@ public partial class EntitiesControl : UserControl
     {
         var entitiesViewModel = new EntityListViewModel(Game.GameManager.CurrentWorld);
         DataContext = entitiesViewModel;
-        TreeView.ItemsSource = entitiesViewModel.Entities;
+        TreeViewEntities.ItemsSource = entitiesViewModel.Entities;
     }
 
     private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -127,18 +127,16 @@ public partial class EntitiesControl : UserControl
 
         _isSelectionTriggerFromGizmoActive = false;
 
-        var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-
         var entityViewModel = e.NewValue as EntityViewModel;
 
         if (e.NewValue == null)
         {
-            gizmoComponent.Gizmo.Clear();
+            _gizmoComponent.Gizmo.Clear();
         }
         else
         {
-            gizmoComponent.Gizmo.Clear(); // TODO : select in one function
-            gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            _gizmoComponent.Gizmo.Clear(); // TODO : select in one function
+            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
         }
 
         SetSelectedItem(entityViewModel);
@@ -152,16 +150,16 @@ public partial class EntitiesControl : UserControl
         {
             SelectedItem = selectedEntity;
 
-            if (TreeView.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
+            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
             {
                 treeViewItem.IsSelected = true;
             }
         }
         else
         {
-            foreach (var item in TreeView.ItemContainerGenerator.Items)
+            foreach (var item in TreeViewEntities.ItemContainerGenerator.Items)
             {
-                if (TreeView.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem treeViewItem)
+                if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem treeViewItem)
                 {
                     treeViewItem.IsSelected = false;
                 }
@@ -173,7 +171,7 @@ public partial class EntitiesControl : UserControl
     {
         if (e.Key == Key.Delete && e.IsToggled)
         {
-            if (TreeView.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem
+            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem
                 && treeViewItem.DataContext is EntityViewModel entityViewModel)
             {
                 var entitiesViewModel = DataContext as EntityListViewModel;

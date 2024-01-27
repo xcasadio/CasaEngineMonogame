@@ -3,9 +3,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.EditorUI.Controls.Common;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -13,6 +15,8 @@ namespace CasaEngine.EditorUI.Controls.EntityControls;
 public partial class EntityComponentsControl : UserControl
 {
     public CasaEngineGame Game { get; private set; }
+
+    private GizmoComponent? _gizmoComponent;
 
     public EntityComponentsControl()
     {
@@ -22,6 +26,7 @@ public partial class EntityComponentsControl : UserControl
     public void Initialize(CasaEngineGame game)
     {
         Game = game;
+        _gizmoComponent = Game.GetGameComponent<GizmoComponent>();
     }
 
     private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
@@ -54,6 +59,23 @@ public partial class EntityComponentsControl : UserControl
         {
             var entityViewModel = DataContext as EntityViewModel;
             entityViewModel.ComponentListViewModel.RemoveComponent(component);
+        }
+    }
+
+    private void OnComponentSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count == 0)
+        {
+            _gizmoComponent.Gizmo.Clear();
+        }
+        else if (e.AddedItems[0] is ComponentViewModel componentViewModel) // TODO : bug : combox is selected ???
+        {
+            _gizmoComponent.Gizmo.Clear(); // TODO : select in one function
+
+            if (componentViewModel.Component is SceneComponent sceneComponent)
+            {
+                _gizmoComponent.Gizmo.Selection.Add(sceneComponent);
+            }
         }
     }
 }

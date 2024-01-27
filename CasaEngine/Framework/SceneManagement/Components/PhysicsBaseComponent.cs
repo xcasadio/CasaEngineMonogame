@@ -76,6 +76,11 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         CreatePhysicsObject();
     }
 
+    public override void Detach()
+    {
+        DestroyPhysicsObject();
+    }
+
     public override void Update(float elapsedTime)
     {
 #if EDITOR

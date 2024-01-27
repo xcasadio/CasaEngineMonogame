@@ -1,7 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 
-namespace CasaEngine.EditorUI.Controls.EntityControls;
+namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 public class ComponentListViewModel : NotifyPropertyChangeBase
 {

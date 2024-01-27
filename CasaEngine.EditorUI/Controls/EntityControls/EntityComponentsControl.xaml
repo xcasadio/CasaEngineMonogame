@@ -23,7 +23,8 @@
 
         <ListBox x:Name="ListBoxComponents" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
                  ItemsSource="{Binding ComponentListViewModel.Components}"
-                 ScrollViewer.CanContentScroll="False">
+                 ScrollViewer.CanContentScroll="False"
+                 SelectionChanged="OnComponentSelectionChanged">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -31,7 +32,7 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Expander>
+                    <Expander DataContext="{Binding Component}">
                         <Expander.Header>
                             <Grid HorizontalAlignment="{Binding Path=HorizontalAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContentPresenter}}, Mode=OneWayToSource}">
                                 <Grid.ColumnDefinitions>
@@ -39,15 +40,15 @@
                                     <ColumnDefinition Width="Auto" MaxWidth="20" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="{Binding Component.DisplayName}" HorizontalAlignment="Stretch"/>
-                                <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick" DataContext="{Binding Component}">
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" HorizontalAlignment="Stretch"/>
+                                <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick" DataContext="{Binding }">
                                     <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
                                 </Button>
                             </Grid>
                         </Expander.Header>
 
                         <Grid HorizontalAlignment="Stretch">
-                            <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding Component }"/>
+                            <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding }"/>
                         </Grid>
                     </Expander>
                 </DataTemplate>
