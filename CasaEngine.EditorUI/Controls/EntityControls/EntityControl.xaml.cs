@@ -68,20 +68,20 @@ public partial class EntityControl : UserControl
 
     private void OnEntityOrientationChanged(object? sender, EventArgs e)
     {
-        var entity = sender as SceneComponent;
-        RotationControl.Value = entity.Coordinates.Rotation;
+        var coordinates = sender as Coordinates;
+        RotationControl.Value = coordinates.Rotation;
     }
 
     private void OnEntityPositionChanged(object? sender, EventArgs e)
     {
-        var entity = sender as SceneComponent;
-        Vector3ControlPosition.Value = entity.Coordinates.Position;
+        var coordinates = sender as Coordinates;
+        Vector3ControlPosition.Value = coordinates.Position;
     }
 
     private void OnEntityScaleChanged(object? sender, EventArgs e)
     {
-        var entity = sender as SceneComponent;
-        Vector3ControlScale.Value = entity.Scale;
+        var coordinates = sender as Coordinates;
+        Vector3ControlScale.Value = coordinates.Scale;
     }
 
     private void ButtonRenameEntity_OnClick(object sender, RoutedEventArgs e)

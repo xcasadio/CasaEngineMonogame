@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Plugins.Tools;
 
@@ -17,12 +18,12 @@ public static class ElementRegister
 
     private static void SetEntityComponentNames()
     {
-        var componentType = typeof(Component);
-        var executingAssembly = Assembly.GetExecutingAssembly();
+        var componentType = typeof(ActorComponent);
 
-        EntityComponentNames = executingAssembly
-            .GetTypes()
-            .Where(x => !x.IsAbstract && !x.IsInterface && componentType.IsAssignableFrom(x) && CustomAttributeExtensions.GetCustomAttribute<DisplayNameAttribute>((MemberInfo)x) != null)
+        EntityComponentNames = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(x => x.GetTypes())
+            .Where(t => t is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
+                        && t.IsSubclassOf(componentType))
             .ToDictionary(x => x.GetCustomAttribute<DisplayNameAttribute>().DisplayName);
     }
 }

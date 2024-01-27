@@ -5,7 +5,7 @@ namespace CasaEngine.Framework.GUI;
 
 public static class ControlHelper
 {
-    static public IDictionary<string, Type> TypesByName { get; }
+    public static IDictionary<string, Type> TypesByName { get; }
 
     static ControlHelper()
     {

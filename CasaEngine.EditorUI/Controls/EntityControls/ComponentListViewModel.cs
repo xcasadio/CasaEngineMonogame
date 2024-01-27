@@ -13,6 +13,11 @@ public class ComponentListViewModel : NotifyPropertyChangeBase
     {
         EntityViewModel = entityViewModel;
 
+        if (entityViewModel.Entity.RootComponent != null)
+        {
+            Components.Add(new ComponentViewModel(entityViewModel.Entity.RootComponent));
+        }
+
         foreach (var component in entityViewModel.Entity.Components)
         {
             Components.Add(new ComponentViewModel(component));

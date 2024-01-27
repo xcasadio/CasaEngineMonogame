@@ -241,13 +241,15 @@ public class AActor : UObject
         GameplayProxy?.Draw();
     }
 
-    public void ScreenResized(int width, int height)
+    public void OnScreenResized(int width, int height)
     {
+        RootComponent?.OnScreenResized(width, height);
+
         for (int i = 0; i < _components.Count; i++)
         {
             if (_components[i] is SceneComponent sceneComponent)
             {
-                sceneComponent.ScreenResized(width, height);
+                sceneComponent.OnScreenResized(width, height);
             }
         }
     }

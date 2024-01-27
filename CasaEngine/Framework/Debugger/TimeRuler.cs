@@ -217,7 +217,7 @@ namespace CasaEngine.Framework.Debugger
                 throw new InvalidOperationException("TimeRuler.LoadContent() : Renderer2dComponent is null");
             }
 
-            OnResize((Game as CasaEngineGame).ScreenSizeWidth, (Game as CasaEngineGame).ScreenSizeHeight);
+            OnScreenResized((Game as CasaEngineGame).ScreenSizeWidth, (Game as CasaEngineGame).ScreenSizeHeight);
 
             base.LoadContent();
         }
@@ -297,7 +297,7 @@ namespace CasaEngine.Framework.Debugger
         }
 #endif
 
-        public void OnResize(int width, int height)
+        public void OnScreenResized(int width, int height)
         {
             Width = (int)(GraphicsDevice.Viewport.Width * 0.8f);
 

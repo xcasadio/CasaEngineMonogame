@@ -59,9 +59,9 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
     }
 
-    public override void ScreenResized(int width, int height)
+    public override void OnScreenResized(int width, int height)
     {
-        base.ScreenResized(width, height);
+        base.OnScreenResized(width, height);
         _needToComputeViewMatrix = true;
     }
 }

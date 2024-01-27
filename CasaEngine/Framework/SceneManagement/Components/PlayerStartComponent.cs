@@ -1,9 +1,11 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
+[DisplayName("Player Start")]
 public class PlayerStartComponent : SceneComponent
 {
     public PlayerStartComponent() : base()

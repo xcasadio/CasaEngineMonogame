@@ -42,10 +42,9 @@ public partial class EntityComponentsControl : UserControl
         {
             var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
             var component = (ActorComponent)Activator.CreateInstance(componentType);
+            entityViewModel.Entity.AddComponent(component);
             component.Initialize();
             component.InitializeWithWorld(Game.GameManager.CurrentWorld);
-
-            entityViewModel.Entity.AddComponent(component);
         }
     }
 

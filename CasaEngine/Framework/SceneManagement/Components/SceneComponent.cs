@@ -114,7 +114,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         //do nothing
     }
 
-    public virtual void ScreenResized(int width, int height)
+    public virtual void OnScreenResized(int width, int height)
     {
         //do nothing
     }

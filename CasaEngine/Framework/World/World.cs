@@ -11,6 +11,9 @@ using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+#if EDITOR
+using XNAGizmo;
+#endif
 
 namespace CasaEngine.Framework.World;
 
@@ -222,11 +225,11 @@ public sealed class World : UObject
         }
     }
 
-    public void ScreenResized(int width, int height)
+    public void OnScreenResized(int width, int height)
     {
         foreach (var entity in Entities)
         {
-            entity.ScreenResized(width, height);
+            entity.OnScreenResized(width, height);
         }
     }
 
@@ -306,6 +309,39 @@ public sealed class World : UObject
     public event EventHandler? EntitiesClear;
     public event EventHandler<AActor> EntityAdded;
     public event EventHandler<AActor> EntityRemoved;
+
+    public IEnumerable<ITransformable> GetSelectableComponents()
+    {
+        var selectables = new List<ITransformable>();
+
+        foreach (var entity in _entities)
+        {
+            AddActor(entity, selectables);
+        }
+
+        return selectables;
+    }
+
+    public void AddActor(AActor actor, List<ITransformable> selectables)
+    {
+        if (actor.RootComponent != null)
+        {
+            selectables.Add(actor.RootComponent);
+
+            foreach (var actorComponent in actor.Components)
+            {
+                if (actorComponent is SceneComponent sceneComponent)
+                {
+                    selectables.Add(sceneComponent);
+                }
+            }
+        }
+
+        foreach (var child in actor.Children)
+        {
+            AddActor(child, selectables);
+        }
+    }
 
     public void AddEntityWithEditor(AActor entity)
     {

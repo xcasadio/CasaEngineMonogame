@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Shapes;
@@ -13,6 +14,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
+[DisplayName("Static Sprite")]
 public class StaticSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable
 {
     private Sprite? _sprite;

@@ -155,13 +155,6 @@ public class AssetContentManager
         {
             foreach (var o in assetDictionaryByCategory.Value)
             {
-                /*if (assetByFileName.Value is IDisposable) //TODO : useful or buggy ?
-                {
-                    ((IDisposable)pair2.Value).Dispose();
-                }*/
-
-                System.Diagnostics.Debugger.Break();
-
                 if (o is IAssetable asset)
                 {
                     asset.OnDeviceReset(GraphicsDevice, this);

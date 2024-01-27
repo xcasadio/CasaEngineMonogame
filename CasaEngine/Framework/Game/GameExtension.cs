@@ -97,15 +97,4 @@ public static class GameExtension
 
         return false;
     }
-
-    public static void ScreenResize(this Microsoft.Xna.Framework.Game game, int width, int height)
-    {
-        foreach (var component in game.Components)
-        {
-            if (component is IGameComponentResizable resizable)
-            {
-                resizable?.OnResize(width, height);
-            }
-        }
-    }
 }

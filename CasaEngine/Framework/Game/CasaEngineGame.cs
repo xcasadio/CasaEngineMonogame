@@ -18,6 +18,7 @@ using CasaEngine.Framework.SceneManagement;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
+using FlowGraph.Attributes;
 
 namespace CasaEngine.Framework.Game;
 
@@ -121,8 +122,20 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
     public void OnScreenResized(int width, int height)
     {
-        this.ScreenResize(width, height);
-        GameManager.CurrentWorld?.ScreenResized(width, height);
+        foreach (var component in Components)
+        {
+            if (component is IGameComponentResizable resizable)
+            {
+                resizable?.OnScreenResized(width, height);
+            }
+        }
+
+        GameManager.CurrentWorld?.OnScreenResized(width, height);
+
+        if (GameManager.ActiveCamera != null)
+        {
+            GraphicsDevice.Viewport = new Viewport(GameManager.ActiveCamera.Viewport.Bounds);
+        }
 
 #if EDITOR
         if (UseGui)

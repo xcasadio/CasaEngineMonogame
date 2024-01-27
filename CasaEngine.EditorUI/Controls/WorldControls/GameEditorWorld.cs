@@ -61,7 +61,10 @@ public class GameEditorWorld : GameEditor
 
                     var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
                     gizmoComponent.Gizmo.Clear();
-                    gizmoComponent.AddActor(entityReference.Entity);
+                    if (entityReference.Entity.RootComponent != null)
+                    {
+                        gizmoComponent.Gizmo.Selection.Add(entityReference.Entity.RootComponent);
+                    }
                     gizmoComponent.Gizmo.RaiseSelectionChanged();
                 }
                 else
@@ -110,8 +113,10 @@ public class GameEditorWorld : GameEditor
                 var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
                 //TODO : do it in one function
                 gizmoComponent.Gizmo.Clear();
-                gizmoComponent.AddActor(entity);
-                gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
+                if (entity.RootComponent != null)
+                {
+                    gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
+                }
                 gizmoComponent.Gizmo.RaiseSelectionChanged();
             }
         }

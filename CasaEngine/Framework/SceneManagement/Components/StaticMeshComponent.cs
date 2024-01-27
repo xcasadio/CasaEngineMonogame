@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Text.Json;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -10,6 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
+[DisplayName("Static Mesh")]
 public class StaticMeshComponent : PrimitiveComponent
 {
     private StaticMeshRendererComponent? _meshRendererComponent;

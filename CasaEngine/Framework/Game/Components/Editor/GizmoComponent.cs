@@ -42,10 +42,7 @@ public class GizmoComponent : DrawableGameComponent
     {
         if (Gizmo.GetSelectionPool() == null && _game.GameManager.CurrentWorld != null)
         {
-            foreach (var actor in _game.GameManager.CurrentWorld.Entities)
-            {
-                AddActor(actor);
-            }
+            Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
         }
         else if (Gizmo.GetSelectionPool() == null)
         {
@@ -153,27 +150,6 @@ public class GizmoComponent : DrawableGameComponent
         }
         scale = Vector3.Clamp(scale, Vector3.Zero, scale);
         transformable.Scale = scale;
-    }
-
-    public void AddActor(AActor actor)
-    {
-        if (actor.RootComponent != null)
-        {
-            Gizmo.Selection.Add(actor.RootComponent);
-
-            foreach (var actorComponent in actor.Components)
-            {
-                if (actorComponent is SceneComponent sceneComponent)
-                {
-                    Gizmo.Selection.Add(sceneComponent);
-                }
-            }
-        }
-
-        foreach (var child in actor.Children)
-        {
-            AddActor(child);
-        }
     }
 }
 

@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel;
+using System.Reflection;
+using System.Text.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
@@ -50,11 +52,12 @@ public abstract class ActorComponent : UObject
     }
 
 #if EDITOR
+    public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
 
     public override void Save(JObject jObject)
     {
         base.Save(jObject);
-        
+
         jObject.Add("type", GetType().Name);
     }
 

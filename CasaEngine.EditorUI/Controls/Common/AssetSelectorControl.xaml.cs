@@ -14,7 +14,7 @@ public partial class AssetSelectorControl : UserControl
 {
     private const string NoAssetDefined = "no asset defined";
 
-    public static readonly DependencyProperty AssetIdItemProperty = DependencyProperty.Register(nameof(AssetId), typeof(long), typeof(AssetSelectorControl), new FrameworkPropertyMetadata(Guid.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnComponentPropertyChanged, null));
+    public static readonly DependencyProperty AssetIdItemProperty = DependencyProperty.Register(nameof(AssetId), typeof(Guid), typeof(AssetSelectorControl), new FrameworkPropertyMetadata(Guid.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnComponentPropertyChanged, null));
     public static readonly DependencyProperty AssetFullPathProperty = DependencyProperty.Register(nameof(AssetFullPath), typeof(string), typeof(AssetSelectorControl));
 
     public Guid AssetId

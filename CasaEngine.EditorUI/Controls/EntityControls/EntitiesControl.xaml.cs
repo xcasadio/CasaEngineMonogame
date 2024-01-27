@@ -101,8 +101,12 @@ public partial class EntitiesControl : UserControl
             selectedEntity = (SceneComponent)gizmoComponent.Gizmo.Selection[0];
         }
 
-        var entitiesViewModel = DataContext as EntityListViewModel;
-        SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity.Owner));
+        if (selectedEntity != null)
+        {
+            var entitiesViewModel = DataContext as EntityListViewModel;
+            SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity.Owner));
+
+        }
 
         _isSelectionTriggerActive = true;
     }

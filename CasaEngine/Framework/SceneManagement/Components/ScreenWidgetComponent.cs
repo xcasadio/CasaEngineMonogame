@@ -1,8 +1,10 @@
 ﻿using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
+using System.ComponentModel;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
+[DisplayName("Screen Widget")]
 public class ScreenWidgetComponent : SceneComponent
 {
     public ScreenGui ScreenGui { get; set; }

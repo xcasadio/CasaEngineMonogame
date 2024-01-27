@@ -70,6 +70,7 @@ public class GameManager
             var fileName = Path.Combine(EngineEnvironment.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
             _currentWorld.Load(fileName);
             _worldToLoad = null;
+            _isNewWorld = true;
         }
 
         if (_isNewWorld)
@@ -83,6 +84,7 @@ public class GameManager
 #endif
 
             _isNewWorld = false;
+            OnWorldChange();
         }
 
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
@@ -107,14 +109,12 @@ public class GameManager
     public void SetWorldToLoad(string worldNameToLoad)
     {
         _worldToLoad = worldNameToLoad;
-        _isNewWorld = true;
     }
 
     public void SetWorldToLoad(World.World world)
     {
         _currentWorld = world;
         _isNewWorld = true;
-        OnWorldChange();
     }
 
     private void OnWorldChange()

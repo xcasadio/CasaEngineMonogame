@@ -71,8 +71,8 @@ public abstract class CameraComponent : SceneComponent
     {
         base.InitializeWithWorld(world);
 
-        _viewport.Width = World.Game.GraphicsDevice.PresentationParameters.BackBufferWidth;
-        _viewport.Height = World.Game.GraphicsDevice.PresentationParameters.BackBufferHeight;
+        _viewport.Width = World.Game.ScreenSizeWidth;
+        _viewport.Height = World.Game.ScreenSizeHeight;
         _viewport.MinDepth = 1.0f;
         _viewport.MaxDepth = 1000.0f;
     }
@@ -80,7 +80,7 @@ public abstract class CameraComponent : SceneComponent
     protected abstract void ComputeProjectionMatrix();
     protected abstract void ComputeViewMatrix();
 
-    public override void ScreenResized(int width, int height)
+    public override void OnScreenResized(int width, int height)
     {
         _viewport.Width = width;
         _viewport.Height = height;

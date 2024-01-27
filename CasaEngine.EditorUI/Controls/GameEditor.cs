@@ -31,8 +31,8 @@ public abstract class GameEditor : WpfGame
         Game = new CasaEngineGame(null, graphicsDeviceService);
         Game.IsRunningInGameEditorMode = true;
         Game.UseGui = UseGui;
+        Game.GameManager.WorldChanged += OnWorldChanged;
         InitializeGame();
-
         Game.InitializeWithEditor();
 
         if (UseGui)
@@ -61,6 +61,14 @@ public abstract class GameEditor : WpfGame
         _isInitialized = true;
     }
 
+    private void OnWorldChanged(object? sender, EventArgs e)
+    {
+        if (ActualWidth > 0 && ActualHeight > 0)
+        {
+            OnScreenResized((int)ActualWidth, (int)ActualHeight);
+        }
+    }
+
     protected override void Update(GameTime gameTime)
     {
         Game.UpdateWithEditor(gameTime);
@@ -86,9 +94,14 @@ public abstract class GameEditor : WpfGame
         var newSizeWidth = (int)sizeInfo.NewSize.Width;
         var newSizeHeight = (int)sizeInfo.NewSize.Height;
 
-        //in editor the camera is an element of the world
-        Game?.GameManager.ActiveCamera?.ScreenResized(newSizeWidth, newSizeHeight);
-        Game?.OnScreenResized(newSizeWidth, newSizeHeight);
+        OnScreenResized(newSizeWidth, newSizeHeight);
         base.OnRenderSizeChanged(sizeInfo);
+    }
+
+    private void OnScreenResized(int width, int height)
+    {
+        //in editor the camera is an element of the wornewSizeHeightld
+        Game?.GameManager.ActiveCamera?.OnScreenResized(width, height);
+        Game?.OnScreenResized(width, height);
     }
 }

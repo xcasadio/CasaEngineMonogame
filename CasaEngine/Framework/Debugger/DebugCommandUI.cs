@@ -584,7 +584,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
     }
 
 
-    public void OnResize(int width, int height)
+    public void OnScreenResized(int width, int height)
     {
 
     }

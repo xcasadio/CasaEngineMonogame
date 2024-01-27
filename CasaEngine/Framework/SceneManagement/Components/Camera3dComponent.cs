@@ -44,9 +44,9 @@ public abstract class Camera3dComponent : CameraComponent
         _needToComputeProjectionMatrix = false;
     }
 
-    public override void ScreenResized(int width, int height)
+    public override void OnScreenResized(int width, int height)
     {
-        base.ScreenResized(width, height);
+        base.OnScreenResized(width, height);
         ComputeFieldOfView();
     }
 
