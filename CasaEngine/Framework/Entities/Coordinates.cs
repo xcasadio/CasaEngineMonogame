@@ -75,7 +75,7 @@ public class Coordinates
     {
         Scale = Vector3.One;
         Rotation = Quaternion.Identity;
-        Position = Vector3.One;
+        Position = Vector3.Zero;
         SetDirtyMatrix();
     }
 

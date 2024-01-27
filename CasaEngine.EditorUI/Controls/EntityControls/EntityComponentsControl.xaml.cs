@@ -54,7 +54,6 @@ public partial class EntityComponentsControl : UserControl
         {
             var entityViewModel = DataContext as EntityViewModel;
             entityViewModel.ComponentListViewModel.RemoveComponent(component);
-            component.Owner.RemoveComponent(component);
         }
     }
 }

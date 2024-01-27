@@ -79,7 +79,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     public override void Update(float elapsedTime)
     {
 #if EDITOR
-        if (!World.Game.IsRunningInGameEditorMode)
+        if (World.Game.IsRunningInGameEditorMode)
         {
             return;
         }
@@ -92,6 +92,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
             //Set only the owner
             //Test how to set all the hierarchy, but how we do with several physic component ?
+            //TODO bug : use localMatrix + Actor matrix to calculated the right position of the root component
             Owner.RootComponent.Coordinates.Position = position;
             Owner.RootComponent.Coordinates.Rotation = rotation;
         }

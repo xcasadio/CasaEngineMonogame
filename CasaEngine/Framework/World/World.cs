@@ -96,11 +96,13 @@ public sealed class World : UObject
     public void BeginPlay()
     {
 #if EDITOR
-        if (!Game.IsRunningInGameEditorMode)
-#endif
+        if (Game.IsRunningInGameEditorMode)
         {
-            GameplayProxy?.OnBeginPlay(this);
+            return;
         }
+#endif
+
+        GameplayProxy?.OnBeginPlay(this);
 
         foreach (var entity in _entities)
         {

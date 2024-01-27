@@ -202,7 +202,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public override void Update(float elapsedTime)
     {
 #if EDITOR
-        if (!World.Game.IsRunningInGameEditorMode)
+        if (World.Game.IsRunningInGameEditorMode)
         {
             return;
         }

@@ -10,10 +10,12 @@ namespace CasaEngine.Framework.Game.Components.Physics;
 
 public class PhysicsEngineComponent : GameComponent
 {
+    private readonly CasaEngineGame? _casaEngineGame;
     public PhysicsEngine PhysicsEngine { get; private set; }
 
     public PhysicsEngineComponent(CasaEngineGame game) : base(game)
     {
+        _casaEngineGame = Game as CasaEngineGame;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.Physics;
     }
@@ -27,7 +29,7 @@ public class PhysicsEngineComponent : GameComponent
     public override void Update(GameTime gameTime)
     {
 #if EDITOR
-        if (!(Game as CasaEngineGame).IsRunningInGameEditorMode)
+        if (_casaEngineGame.IsRunningInGameEditorMode)
         {
             return;
         }
@@ -139,10 +141,15 @@ public class PhysicsEngineComponent : GameComponent
             AngularFactor = physicsDefinition.AngularFactor
         };
 
+#if EDITOR
+        body.CollisionFlags = CollisionFlags.None;
+#else
         if (!isDynamic)
         {
             body.CollisionFlags |= CollisionFlags.StaticObject;
-        }
+        } 
+#endif
+
 
         if (physicsDefinition.DebugColor.HasValue)
         {
