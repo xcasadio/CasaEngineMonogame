@@ -52,6 +52,8 @@ public partial class EntityComponentsControl : UserControl
     {
         if (sender is FrameworkElement { DataContext: ActorComponent component })
         {
+            var entityViewModel = DataContext as EntityViewModel;
+            entityViewModel.ComponentListViewModel.RemoveComponent(component);
             component.Owner.RemoveComponent(component);
         }
     }

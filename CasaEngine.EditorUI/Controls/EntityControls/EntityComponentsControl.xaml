@@ -40,7 +40,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0" Text="{Binding Component.DisplayName}" HorizontalAlignment="Stretch"/>
-                                <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick">
+                                <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick" DataContext="{Binding Component}">
                                     <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
                                 </Button>
                             </Grid>

@@ -172,6 +172,7 @@ public class AActor : UObject
     public void RemoveComponent(ActorComponent component)
     {
         _components.Remove(component);
+
         component.Owner = null;
 
 #if EDITOR

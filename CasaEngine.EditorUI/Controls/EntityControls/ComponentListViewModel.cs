@@ -43,4 +43,16 @@ public class ComponentListViewModel : NotifyPropertyChangeBase
             }
         }
     }
+
+    public void RemoveComponent(ActorComponent component)
+    {
+        if (EntityViewModel.Entity.RootComponent == component)
+        {
+            EntityViewModel.Entity.RootComponent = null;
+        }
+        else
+        {
+            EntityViewModel.Entity.RemoveComponent(component);
+        }
+    }
 }

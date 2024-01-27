@@ -25,7 +25,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     {
         get
         {
-            if (Owner.RootComponent != null && Owner.RootComponent != this)
+            if (Owner?.RootComponent != null && Owner?.RootComponent != this)
             {
                 return Coordinates.LocalMatrixWithScale * Owner.RootComponent.WorldMatrixWithScale;
             }

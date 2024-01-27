@@ -18,7 +18,6 @@ using CasaEngine.Framework.SceneManagement;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
-using FlowGraph.Attributes;
 
 namespace CasaEngine.Framework.Game;
 
@@ -134,7 +133,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         if (GameManager.ActiveCamera != null)
         {
-            GraphicsDevice.Viewport = new Viewport(GameManager.ActiveCamera.Viewport.Bounds);
+            SetViewport(GameManager.ActiveCamera.Viewport.Bounds);
         }
 
 #if EDITOR
@@ -146,6 +145,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         UiManager.OnScreenResized(width, height);
 #endif
 
+    }
+
+    public void SetViewport(Rectangle viewportBounds)
+    {
+        GraphicsDevice.Viewport = new Viewport(viewportBounds);
     }
 
     private void HandleUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)

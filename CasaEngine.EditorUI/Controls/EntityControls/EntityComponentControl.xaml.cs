@@ -24,14 +24,6 @@ public partial class EntityComponentControl : UserControl
         InitializeComponent();
     }
 
-    private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: ActorComponent component })
-        {
-            component.Owner.RemoveComponent(component);
-        }
-    }
-
     private void StaticMeshComponent_MeshSelection_OnClick(object sender, RoutedEventArgs e)
     {
         var selectStaticMeshWindow = new SelectStaticMeshWindow();

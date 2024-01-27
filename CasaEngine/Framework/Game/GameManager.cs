@@ -37,7 +37,7 @@ public class GameManager
                 }
 
                 //TODO: why change min an max depth create bugs ?
-                _game.GraphicsDevice.Viewport = new Viewport(_activeCamera.Viewport.Bounds);
+                _game.SetViewport(_activeCamera.Viewport.Bounds);
             }
         }
     }
