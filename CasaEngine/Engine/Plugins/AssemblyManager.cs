@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Engine.Plugins;
 
-public class PluginManager
+public class AssemblyManager
 {
     public void Load(string fileName)
     {

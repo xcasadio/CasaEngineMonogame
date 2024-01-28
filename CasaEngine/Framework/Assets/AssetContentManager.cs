@@ -22,7 +22,7 @@ public class AssetContentManager
         RootDirectory = Environment.CurrentDirectory;
 
 #if EDITOR
-        GameSettings.AssetCatalog.AssetRenamed += OnAssetRenamed;
+        AssetCatalog.AssetRenamed += OnAssetRenamed;
 #endif
     }
 
@@ -93,7 +93,7 @@ public class AssetContentManager
             throw new InvalidOperationException($"IAssetLoader not found for the type {type.FullName}");
         }
 
-        var assetInfo = GameSettings.AssetCatalog.Get(id);
+        var assetInfo = AssetCatalog.Get(id);
 
         if (assetInfo == null)
         {

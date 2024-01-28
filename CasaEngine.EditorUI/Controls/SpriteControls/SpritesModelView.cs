@@ -14,16 +14,16 @@ public class SpritesModelView
 
     public SpritesModelView()
     {
-        GameSettings.AssetCatalog.AssetAdded += OnAssetAdded;
-        GameSettings.AssetCatalog.AssetRemoved += OnAssetRemoved;
-        GameSettings.AssetCatalog.AssetCleared += OnAssetCleared;
+        AssetCatalog.AssetAdded += OnAssetAdded;
+        AssetCatalog.AssetRemoved += OnAssetRemoved;
+        AssetCatalog.AssetCleared += OnAssetCleared;
 
         LoadAllSpriteAssetInfos();
     }
 
     private void LoadAllSpriteAssetInfos()
     {
-        foreach (var assetInfo in GameSettings.AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Sprite))
+        foreach (var assetInfo in AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Sprite))
         {
             SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo));
         }

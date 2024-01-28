@@ -83,7 +83,7 @@ public partial class AssetSelectorControl : UserControl
 
     private void OnComponentPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
-        var assetInfo = GameSettings.AssetCatalog.Get(AssetId);
+        var assetInfo = AssetCatalog.Get(AssetId);
         SetCurrentValue(AssetFullPathProperty, assetInfo != null ? assetInfo.FileName : NoAssetDefined);
 
         //var isInitializing = !_templateApplied && _initializingProperty == null;

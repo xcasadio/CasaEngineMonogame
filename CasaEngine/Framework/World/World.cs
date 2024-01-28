@@ -67,7 +67,7 @@ public sealed class World : UObject
     public void LoadContent(CasaEngineGame game)
     {
         Game = game;
-        LoadContent(GameSettings.AssetCatalog.IsLoaded);
+        LoadContent(AssetCatalog.IsLoaded);
     }
 
     private void LoadContent(bool withReference)

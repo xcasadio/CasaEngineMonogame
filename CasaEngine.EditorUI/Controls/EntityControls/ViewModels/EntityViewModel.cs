@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 
@@ -21,7 +22,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
         ComponentListViewModel = new ComponentListViewModel(this);
         ComponentsHierarchyViewModel = new ComponentsHierarchyViewModel(this);
 
-        GameSettings.AssetCatalog.AssetRenamed += OnAssetRenamed;
+        AssetCatalog.AssetRenamed += OnAssetRenamed;
     }
 
     private void OnAssetRenamed(object? sender, Core.Design.EventArgs<Framework.Assets.AssetInfo, string> e)

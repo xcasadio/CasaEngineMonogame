@@ -4,6 +4,7 @@ using System.IO;
 using CasaEngine.Core.Logs;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -36,7 +37,7 @@ public class DemosGame : CasaEngineGame
 
     protected override void LoadContentPrivate()
     {
-        GameSettings.AssetCatalog.Load("Content\\AssetInfos.json");
+        AssetCatalog.Load("Content\\AssetInfos.json");
 
         var world = new World();
         GameManager.SetWorldToLoad(world);

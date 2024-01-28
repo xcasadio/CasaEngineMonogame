@@ -6,6 +6,7 @@ using System.Windows.Input;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
@@ -59,13 +60,13 @@ public partial class EntityControl : UserControl
 
         if (inputTextBox.ShowDialog() == true)
         {
-            GameSettings.AssetCatalog.Rename(entity.Entity.Id, inputTextBox.Text);
+            AssetCatalog.Rename(entity.Entity.Id, inputTextBox.Text);
         }
     }
 
     private bool ValidateEntityNewName(string? newName)
     {
-        return GameSettings.AssetCatalog.CanRename(newName);
+        return AssetCatalog.CanRename(newName);
     }
 
     private void OnComponentSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

@@ -14,16 +14,16 @@ public class Animation2dAssetListModelView
 
     public Animation2dAssetListModelView()
     {
-        GameSettings.AssetCatalog.AssetAdded += OnAssetAdded;
-        GameSettings.AssetCatalog.AssetRemoved += OnAssetRemoved;
-        GameSettings.AssetCatalog.AssetCleared += OnAssetCleared;
+        AssetCatalog.AssetAdded += OnAssetAdded;
+        AssetCatalog.AssetRemoved += OnAssetRemoved;
+        AssetCatalog.AssetCleared += OnAssetCleared;
 
         LoadAllAnimation2dAssetInfos();
     }
 
     private void LoadAllAnimation2dAssetInfos()
     {
-        foreach (var assetInfo in GameSettings.AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Animation2d))
+        foreach (var assetInfo in AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Animation2d))
         {
             Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo));
         }

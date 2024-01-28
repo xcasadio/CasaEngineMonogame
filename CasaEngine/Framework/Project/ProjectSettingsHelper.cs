@@ -32,7 +32,7 @@ public static class ProjectSettingsHelper
 
         if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName))
         {
-            GameSettings.PluginManager.Load(GameSettings.ProjectSettings.GameplayDllName);
+            GameSettings.AssemblyManager.Load(GameSettings.ProjectSettings.GameplayDllName);
         }
 
 #if EDITOR

@@ -12,7 +12,7 @@ public class EnemyDyingState : IState<Controller>
     {
         controller.Character.Dying();
         var effectEntity = controller.Character.Owner.RootComponent.World.Game.SpawnEntity("smoke_ring_effect");
-        effectEntity.RootComponent.Coordinates.Position = controller.Character.Owner.RootComponent.WorldPosition;
+        effectEntity.RootComponent.Coordinates.Position = controller.Character.Owner.RootComponent.Position;
         var animatedSpriteComponent = effectEntity.GetComponent<AnimatedSpriteComponent>();
         animatedSpriteComponent.SetCurrentAnimation(0, true);
 

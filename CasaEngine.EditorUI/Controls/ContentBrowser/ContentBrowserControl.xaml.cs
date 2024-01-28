@@ -50,7 +50,7 @@ public partial class ContentBrowserControl : UserControl
     {
         InitializeComponent();
 
-        GameSettings.AssetCatalog.AssetRenamed += OnAssetRenamed;
+        AssetCatalog.AssetRenamed += OnAssetRenamed;
     }
 
     public void InitializeFromGameEditor(GameEditor gameEditor)
@@ -206,7 +206,7 @@ public partial class ContentBrowserControl : UserControl
                                 .Replace(EngineEnvironment.ProjectPath, string.Empty)
                                 .TrimStart(Path.DirectorySeparatorChar);
                             imageFileAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
-                            GameSettings.AssetCatalog.Add(imageFileAssetInfo);
+                            AssetCatalog.Add(imageFileAssetInfo);
 
                             //Create texture asset
                             var texture = new Texture(imageFileAssetInfo.Id, _gameEditor.Game.GraphicsDevice);
@@ -216,9 +216,9 @@ public partial class ContentBrowserControl : UserControl
                             var textureFileName = textureAssetInfo.Name + Constants.FileNameExtensions.Texture;
                             textureAssetInfo.FileName = Path.Combine(pathFileName, textureFileName).TrimStart(Path.DirectorySeparatorChar);
                             AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, texture.FileName), texture);
-                            GameSettings.AssetCatalog.Add(textureAssetInfo);
+                            AssetCatalog.Add(textureAssetInfo);
 
-                            GameSettings.AssetCatalog.Save();
+                            AssetCatalog.Save();
 
                             ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
                         }
@@ -234,7 +234,7 @@ public partial class ContentBrowserControl : UserControl
 
     private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
     {
-        GameSettings.AssetCatalog.Save();
+        AssetCatalog.Save();
     }
 
     private void ListBoxFolderContentCreate_Click(object sender, RoutedEventArgs e)
@@ -255,7 +255,7 @@ public partial class ContentBrowserControl : UserControl
     {
         var inputTextBox = new InputTextBox();
 
-        var assetInfo = GameSettings.AssetCatalog.Get(actor.Id);
+        var assetInfo = AssetCatalog.Get(actor.Id);
 
         inputTextBox.Text = assetInfo.Name;
 
@@ -269,9 +269,9 @@ public partial class ContentBrowserControl : UserControl
             //save asset
             assetInfo.Name = inputTextBox.Text;
             assetInfo.FileName = Path.Combine(folderItem.FullPath, assetInfo.Name + extension);
-            GameSettings.AssetCatalog.Add(assetInfo);
+            AssetCatalog.Add(assetInfo);
             AssetSaver.SaveAsset(assetInfo.FileName, actor);
-            GameSettings.AssetCatalog.Save();
+            AssetCatalog.Save();
         }
     }
 
@@ -284,7 +284,7 @@ public partial class ContentBrowserControl : UserControl
 
         var contentItem = ListBoxFolderContent.SelectedItem as ContentItem;
 
-        GameSettings.AssetCatalog.Remove(contentItem.AssetInfo.Id);
+        AssetCatalog.Remove(contentItem.AssetInfo.Id);
     }
 
     private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
@@ -339,8 +339,8 @@ public partial class ContentBrowserControl : UserControl
             };
             AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName), spriteData);
 
-            GameSettings.AssetCatalog.Add(assetInfo);
-            GameSettings.AssetCatalog.Save();
+            AssetCatalog.Add(assetInfo);
+            AssetCatalog.Save();
         }
     }
 

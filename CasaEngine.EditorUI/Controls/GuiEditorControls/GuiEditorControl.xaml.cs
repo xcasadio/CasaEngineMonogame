@@ -1,4 +1,5 @@
 ﻿using System.Windows.Input;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
@@ -34,7 +35,7 @@ public partial class GuiEditorControl : EditorControlBase
 
     public void OpenScreen(string fileName)
     {
-        var assetInfo = GameSettings.AssetCatalog.GetByFileName(fileName);
+        var assetInfo = AssetCatalog.GetByFileName(fileName);
         var screen = GameEditorGuiControl.GameEditor.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
         screen.Initialize();
         screen.InitializeWithWorld(GameEditorGuiControl.GameEditor.Game.GameManager.CurrentWorld);

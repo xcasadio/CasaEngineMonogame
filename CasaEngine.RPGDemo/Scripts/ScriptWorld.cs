@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
@@ -39,7 +40,7 @@ public class ScriptWorld : GameplayProxy
         camera3dIn2dAxisComponent.Target = new Vector3(world.Game.Window.ClientBounds.Size.X / 2f, world.Game.Window.ClientBounds.Size.Y / 2f, 0.0f);
 
         //mainHUD
-        var assetInfo = GameSettings.AssetCatalog.GetByFileName("Screens\\MainHUD\\MainHUD.screen");
+        var assetInfo = AssetCatalog.GetByFileName("Screens\\MainHUD\\MainHUD.screen");
         var screen = world.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
         screen.GameplayProxy = new ScriptMainHUDScreen();
         screen.Initialize();

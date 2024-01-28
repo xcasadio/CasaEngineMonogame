@@ -7,48 +7,48 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
-public class AssetCatalog
+public static class AssetCatalog
 {
-    private readonly Dictionary<Guid, AssetInfo> _assetInfos = new();
+    private static readonly Dictionary<Guid, AssetInfo> _assetInfos = new();
 
-    public bool IsLoaded { get; private set; }
+    public static bool IsLoaded { get; private set; }
 
-    public IEnumerable<AssetInfo> AssetInfos => _assetInfos.Values;
+    public static IEnumerable<AssetInfo> AssetInfos => _assetInfos.Values;
 
-    public void Add(Guid id, string name, string fileName)
+    public static void Add(Guid id, string name, string fileName)
     {
         var assetInfo = new AssetInfo();
 
         _assetInfos.Add(assetInfo.Id, assetInfo);
     }
 
-    public void Add(AssetInfo assetInfo)
+    public static void Add(AssetInfo assetInfo)
     {
         _assetInfos.Add(assetInfo.Id, assetInfo);
 
 #if EDITOR
         LogManager.Instance.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
-        AssetAdded?.Invoke(this, assetInfo);
+        AssetAdded?.Invoke(null, assetInfo);
 #endif
     }
 
-    public AssetInfo? Get(Guid guid)
+    public static AssetInfo? Get(Guid guid)
     {
         _assetInfos.TryGetValue(guid, out var assetInfo);
         return assetInfo;
     }
 
-    public AssetInfo? Get(string name)
+    public static AssetInfo? Get(string name)
     {
         return _assetInfos.Values.FirstOrDefault(x => x.Name == name);
     }
 
-    public AssetInfo? GetByFileName(string fileName)
+    public static AssetInfo? GetByFileName(string fileName)
     {
         return _assetInfos.Values.FirstOrDefault(x => x.FileName == fileName);
     }
 
-    public void Load(string fileName)
+    public static void Load(string fileName)
     {
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
 
@@ -64,19 +64,19 @@ public class AssetCatalog
 
 #if EDITOR
 
-    public event EventHandler<AssetInfo>? AssetAdded;
-    public event EventHandler<AssetInfo>? AssetRemoved;
-    public event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
-    public event EventHandler? AssetCleared;
+    public static event EventHandler<AssetInfo>? AssetAdded;
+    public static event EventHandler<AssetInfo>? AssetRemoved;
+    public static event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
+    public static event EventHandler? AssetCleared;
 
-    public void Remove(Guid id)
+    public static void Remove(Guid id)
     {
         _assetInfos.TryGetValue(id, out var assetInfo);
         LogManager.Instance.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         _assetInfos.Remove(id);
         DeleteFile(assetInfo);
         Save();
-        AssetRemoved?.Invoke(this, assetInfo);
+        AssetRemoved?.Invoke(null, assetInfo);
     }
 
     private static void DeleteFile(AssetInfo assetInfo)
@@ -88,20 +88,20 @@ public class AssetCatalog
         }
     }
 
-    public void Clear()
+    public static void Clear()
     {
         LogManager.Instance.WriteTrace("Clear all assets");
 
         _assetInfos.Clear();
-        AssetCleared?.Invoke(this, EventArgs.Empty);
+        AssetCleared?.Invoke(null, EventArgs.Empty);
     }
 
-    public bool CanRename(string newName)
+    public static bool CanRename(string newName)
     {
         return !_assetInfos.Any(x => string.Equals(x.Value.Name, newName, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    public bool Rename(Guid id, string newName)
+    public static bool Rename(Guid id, string newName)
     {
         var assetInfo = Get(id);
 
@@ -114,25 +114,25 @@ public class AssetCatalog
         var oldName = assetInfo.Name;
         assetInfo.Name = newName;
 
-        AssetRenamed?.Invoke(this, new EventArgs<AssetInfo, string>(assetInfo, oldName));
+        AssetRenamed?.Invoke(null, new EventArgs<AssetInfo, string>(assetInfo, oldName));
 
         return true;
     }
 
-    public void Rename(AssetInfo assetInfo, string newName)
+    public static void Rename(AssetInfo assetInfo, string newName)
     {
         var oldName = assetInfo.Name;
         assetInfo.Name = newName;
 
-        AssetRenamed?.Invoke(this, new EventArgs<AssetInfo, string>(assetInfo, oldName));
+        AssetRenamed?.Invoke(null, new EventArgs<AssetInfo, string>(assetInfo, oldName));
     }
 
-    public void Save()
+    public static void Save()
     {
         Save(Path.Combine(EngineEnvironment.ProjectPath, "AssetInfos.json"));
     }
 
-    public void Save(string fileName)
+    public static void Save(string fileName)
     {
         LogManager.Instance.WriteInfo($"Asset infos saved in {fileName}");
 

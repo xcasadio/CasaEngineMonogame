@@ -63,7 +63,7 @@ public class TileMapDemo : Demo
 
     private void LoadSprites(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice)
     {
-        var spriteAssetInfos = GameSettings.AssetCatalog.AssetInfos
+        var spriteAssetInfos = AssetCatalog.AssetInfos
             .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Sprite));
 
         foreach (var assetInfo in spriteAssetInfos)
@@ -74,7 +74,7 @@ public class TileMapDemo : Demo
 
     private List<Animation2dData> LoadAnimations(AssetContentManager assetContentManager, GraphicsDevice graphicsDevice)
     {
-        var animationsAssetInfos = GameSettings.AssetCatalog.AssetInfos
+        var animationsAssetInfos = AssetCatalog.AssetInfos
             .Where(x => x.FileName.EndsWith(Constants.FileNameExtensions.Animation2d));
 
         var animations = new List<Animation2dData>();
