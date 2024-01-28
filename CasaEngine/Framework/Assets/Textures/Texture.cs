@@ -111,8 +111,14 @@ public class Texture : UObject, IAssetable
 
         PreferredSamplerState = element.GetProperty("sampler_state").GetSamplerState();
         //TODO : remove
-        _texture2dAssetId = AssetInfo.GuidsById[element.GetProperty("texture_asset_id").GetInt32()];
-        //_texture2dAssetId = element.GetProperty("texture_asset_id").GetGuid();
+        if (element.GetProperty("texture_asset_id").ValueKind == JsonValueKind.Number)
+        {
+            _texture2dAssetId = AssetInfo.GuidsById[element.GetProperty("texture_asset_id").GetInt32()];
+        }
+        else
+        {
+            _texture2dAssetId = element.GetProperty("texture_asset_id").GetGuid();
+        }
 
         //if (!string.IsNullOrEmpty(AssetInfo.FileName) && File.Exists(AssetInfo.FileName))
         //{

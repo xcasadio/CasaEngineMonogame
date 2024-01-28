@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Data;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 
@@ -38,7 +39,7 @@ public partial class WorldPropertiesControl : UserControl
     {
         if (sender is ComboBox comboBox)
         {
-            var gameplayProxy = (GameplayProxy)GameSettings.ElementFactory.Create(((KeyValuePair<Guid, Type>)comboBox.SelectedValue).Key);
+            var gameplayProxy = ElementFactory.Create<GameplayProxy>(((Type)comboBox.SelectedValue).Name);
             _game.GameManager.CurrentWorld.GameplayProxy = gameplayProxy;
         }
     }

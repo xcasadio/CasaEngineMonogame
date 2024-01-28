@@ -8,6 +8,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -242,13 +243,15 @@ public sealed class World : UObject
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
         var jsonDocument = JsonDocument.Parse(File.ReadAllText(fullFileName));
         Load(jsonDocument.RootElement);
+        Name = Path.GetFileNameWithoutExtension(fileName);
+        FileName = fileName.Replace(EngineEnvironment.ProjectPath, string.Empty).TrimStart('\\');
     }
 
     public void Load(JsonElement element)
     {
         ClearEntities();
         _entityReferences.Clear();
-        base.Load(element.GetProperty("asset"));
+        base.Load(element);
 
         foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())
         {
@@ -265,11 +268,13 @@ public sealed class World : UObject
         }*/
 
         //TODO : remove
-        if (element.TryGetProperty("external_component", out var externalComponentNode)
-            && externalComponentNode.GetProperty("type").GetInt32() != -1)
+        if (element.TryGetProperty("external_component", out var externalComponentNode))
         {
-            var guid = externalComponentNode.GetProperty("type").GetInt32() == 1005 ? Guid.Parse("4A0E16E6-33F3-4D7B-A9E1-22A11F9EC910") : Guid.Empty;
-            GameplayProxy = (GameplayProxy)GameSettings.ElementFactory.Create(guid);
+            if (externalComponentNode.ValueKind == JsonValueKind.Object
+                && externalComponentNode.GetProperty("type").GetInt32() != -1)
+            {
+                GameplayProxy = (GameplayProxy)ElementFactory.Create<ScriptArcBallCamera>(nameof(ScriptArcBallCamera));
+            }
         }
     }
 

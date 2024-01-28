@@ -1,47 +1,41 @@
 {
-  "asset": {
-    "id": 0,
-    "name": "DefaultWorld",
-    "file_name": "DefaultWorld.world"
-  },
+  "id": 0,
+  "name": "DefaultWorld",
+  "file_name": "DefaultWorld.world",
   "entity_references": [
     {
       "asset_id": -1,
       "entity": {
-        "asset": {
-          "id": 1,
-          "name": "ground",
-          "file_name": null
-        },
-        "version": 1,
-        "coordinates": {
-          "position": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
+        "id": 1,
+        "name": "ground",
+		"root_component": {
+		  "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
+          "name": "StaticMeshComponent",
+          "type": "StaticMeshComponent",
+		  "coordinates": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "center_of_rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "scale": {
+              "x": 100.0,
+              "y": 1.0,
+              "z": 100.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
           },
-          "center_of_rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "scale": {
-            "x": 100.0,
-            "y": 1.0,
-            "z": 100.0
-          },
-          "rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0,
-            "w": 1.0
-          }
-        },
-        "components": [
-          {
-            "version": 1,
-            "type": 2,
-            "mesh": {
+		  "mesh": {
               "primitive_type": "TriangleList",
               "vertices": [
                 {
@@ -119,10 +113,35 @@
               ],
               "texture_asset_id": 1001
             }
-          },
+		},
+        "components": [
           {
-            "version": 1,
-            "type": 5,
+		    "id": "fc007d02-51ce-4281-bca8-1510d295f1f7",
+            "name": "PhysicsComponent",
+            "type": "PhysicsComponent",
+		    "coordinates": {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "center_of_rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              }
+            },
             "physics_definition": {
               "physics_type": "Static",
               "additional_angular_damping_factor": 0.01,
@@ -171,7 +190,7 @@
                 "w": 1.0
               },
               "w": 100.0,
-              "h": 0.0001,
+              "h": 1.0,
               "l": 100.0
             }
           }
@@ -284,46 +303,6 @@
           "z": 0.0,
           "w": 1.0
         }
-      }
-    },
-    {
-      "asset_id": -1,
-      "entity": {
-        "asset": {
-          "id": 967,
-          "name": "Asset_1029",
-          "file_name": null
-        },
-        "version": 1,
-        "coordinates": {
-          "position": {
-            "x": -0.17074925,
-            "y": -1.236228,
-            "z": -2.4091392
-          },
-          "center_of_rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "scale": {
-            "x": 1.0,
-            "y": 1.0,
-            "z": 1.0
-          },
-          "rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0,
-            "w": 1.0
-          }
-        },
-        "components": [
-          {
-            "version": 1,
-            "type": 13
-          }
-        ]
       }
     }
   ]

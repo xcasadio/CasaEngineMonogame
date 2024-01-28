@@ -33,16 +33,14 @@ public class EntityReference : ISerializable
     public void Load(JsonElement element)
     {
         //TODO : remove
-        var id = element.GetProperty("asset_id").GetInt32();
-
-        if (id >= 0)
+        if (element.GetProperty("asset_id").ValueKind == JsonValueKind.Number)
         {
-            AssetId = AssetInfo.GuidsById[id];
-            //AssetId = element.GetProperty("asset_id").GetGuid();
+            var id = element.GetProperty("id").GetInt32();
+            AssetId = id >= 0 ? AssetInfo.GuidsById[id] : Guid.Empty;
         }
         else
         {
-            AssetId = Guid.Empty;
+            AssetId = element.GetProperty("asset_id").GetGuid();
         }
 
         if (AssetId == Guid.Empty)

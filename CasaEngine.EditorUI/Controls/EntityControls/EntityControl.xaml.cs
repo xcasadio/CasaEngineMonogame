@@ -27,6 +27,7 @@ public partial class EntityControl : UserControl
     }
 
     private CasaEngineGame? _game;
+    private GizmoComponent? _gizmoComponent;
 
     public EntityControl()
     {
@@ -42,6 +43,7 @@ public partial class EntityControl : UserControl
     {
         _game = (CasaEngineGame)sender;
         //entityComponentsControl.Initialize(_game);
+        _gizmoComponent = _game.GetGameComponent<GizmoComponent>();
     }
 
     private void ButtonRenameEntity_OnClick(object sender, RoutedEventArgs e)
@@ -68,7 +70,13 @@ public partial class EntityControl : UserControl
 
     private void OnComponentSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
-        SelectedComponent = treeViewComponents.SelectedItem as ComponentViewModel;
+        var componentViewModel = treeViewComponents.SelectedItem as ComponentViewModel;
+        SelectedComponent = componentViewModel;
+
+        if (componentViewModel?.Component is SceneComponent sceneComponent)
+        {
+            SelectInGizmo(sceneComponent);
+        }
     }
 
     private void ButtonAddComponentClick(object sender, RoutedEventArgs e)
@@ -97,9 +105,7 @@ public partial class EntityControl : UserControl
 
                 if (componentViewModel.Component is SceneComponent sceneComponent)
                 {
-                    var gizmoComponent = _game.GetGameComponent<GizmoComponent>();
-                    gizmoComponent.Gizmo.Clear();
-                    gizmoComponent.Gizmo.Selection.Add(sceneComponent);
+                    SelectInGizmo(sceneComponent);
                 }
             }
             else
@@ -110,6 +116,12 @@ public partial class EntityControl : UserControl
             component.Initialize();
             component.InitializeWithWorld(_game.GameManager.CurrentWorld);
         }
+    }
+
+    private void SelectInGizmo(SceneComponent sceneComponent)
+    {
+        _gizmoComponent.Gizmo.Clear();
+        _gizmoComponent.Gizmo.Selection.Add(sceneComponent);
     }
 
     private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)

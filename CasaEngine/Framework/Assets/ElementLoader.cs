@@ -1,61 +1,45 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Logs;
 using CasaEngine.Core.Serialization;
 
 namespace CasaEngine.Framework.Assets;
 
-public class ElementFactory<T> where T : class
+public static class ElementFactory
 {
-    private readonly Dictionary<Guid, Type> _typesById = new();
-
-    public void Register<TU>(Guid id) where TU : class, new()
+    public static T Create<T>(string typeName) where T : class
     {
-        if (_typesById.ContainsKey(id))
-        {
-            throw new ArgumentException("the id already exist");
-        }
-
-        _typesById[id] = typeof(TU);
+        var type = FindTypeByName(typeName);
+        return Activator.CreateInstance(type) as T;
     }
 
-    public object Create(Guid id)
+    public static T Load<T>(JsonElement element) where T : class, ISerializable
     {
-        if (!_typesById.ContainsKey(id))
-        {
-            LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
-        }
-
-        return Activator.CreateInstance(_typesById[id]);
-    }
-
-    public TU Load<TU>(JsonElement element) where TU : class, ISerializable
-    {
-        var id = element.GetProperty("type").GetGuid();
-        var component = Create(id) as TU;
+        var typeName = element.GetProperty("type").GetString();
+        var component = Create<T>(typeName);
         component.Load(element);
         return component;
     }
 
-#if EDITOR
-
-    public KeyValuePair<Guid, Type>[] TypesById => _typesById.ToArray();
-
-    public Type GetTypeFromId(Guid id)
+    private static Type? FindTypeByName(string? typeName)
     {
-        _typesById.TryGetValue(id, out var type);
-        return type;
+        if (string.IsNullOrEmpty(typeName))
+        {
+            return null;
+        }
+
+        return AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(x => x.GetTypes())
+            .FirstOrDefault(x => string.Equals(x.Name, typeName, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    public IEnumerable<KeyValuePair<Guid, Type>> GetDerivedTypesFrom<T>() where T : class
+#if EDITOR
+
+    public static IEnumerable<Type> GetDerivedTypesFrom<T>() where T : class
     {
-        foreach (var pair in _typesById
-                     .Where(x => x.Value is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }))
-        {
-            if (pair.Value.IsSubclassOf(typeof(T)))
-            {
-                yield return pair;
-            }
-        }
+        var type = typeof(T);
+        return AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(x => x.GetTypes())
+            .Where(x => x is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
+                        && x.IsSubclassOf(type));
     }
 
 #endif

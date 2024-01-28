@@ -1,9 +1,12 @@
 ﻿using System.Numerics;
 using System.Text.Json;
 using CasaEngine.Core.Design;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using TomShane.Neoforce.Controls.Serialization;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -166,15 +169,15 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
 
             if (Parent != null)
             {
-                orientation += Parent.Orientation;
+                orientation *= Quaternion.Inverse(Parent.Orientation);
             }
 
             if (Owner?.Parent?.RootComponent != null)
             {
-                orientation += Owner.Parent.RootComponent.Orientation;
+                orientation *= Quaternion.Inverse(Owner.Parent.RootComponent.Orientation);
             }
 
-            LocalOrientation = value - orientation;
+            LocalOrientation = value * orientation;
         }
     }
 
@@ -286,6 +289,11 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     {
         base.Load(element);
         Coordinates.Load(element.GetProperty("coordinates"));
+
+        foreach (var childComponentNode in element.GetProperty("children_component").EnumerateArray())
+        {
+            Children.Add(ElementFactory.Load<SceneComponent>(childComponentNode));
+        }
     }
 
 #if EDITOR
@@ -297,6 +305,15 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         var coordinatesObject = new JObject();
         Coordinates.Save(coordinatesObject);
         node.Add("coordinates", coordinatesObject);
+
+        var childrenObject = new JArray();
+        foreach (var child in Children)
+        {
+            var childObject = new JObject();
+            child.Save(childObject);
+            childrenObject.Add(childObject);
+        }
+        node.Add("children_component", childrenObject);
     }
 
 #endif

@@ -13,7 +13,7 @@ public class EntityLoader
         return entity;
     }
 
-    //TODO : why do not use GameSettings.ElementFactory ???
+    //TODO : why do not use ElementFactory ???
     public static void LoadFromEntityReference(EntityReference entityReference, AssetContentManager assetContentManager)
     {
         if (entityReference.AssetId != Guid.Empty)

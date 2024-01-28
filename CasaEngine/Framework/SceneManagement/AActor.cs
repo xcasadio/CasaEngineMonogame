@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement.Components;
 using Newtonsoft.Json.Linq;
@@ -256,17 +257,17 @@ public class AActor : UObject
 
     public override void Load(JsonElement element)
     {
-        base.Load(element.GetProperty("asset"));
+        base.Load(element);
 
         var node = element.GetProperty("root_component");
         if (node.ValueKind == JsonValueKind.Object)
         {
-            RootComponent = GameSettings.ElementFactory.Load<SceneComponent>(node);
+            RootComponent = ElementFactory.Load<SceneComponent>(node);
         }
 
         foreach (var componentNode in element.GetProperty("components").EnumerateArray())
         {
-            AddComponent(GameSettings.ElementFactory.Load<ActorComponent>(componentNode));
+            AddComponent(ElementFactory.Load<ActorComponent>(componentNode));
         }
 
         /*foreach (var item in element.GetJsonPropertyByName("childen").Value.EnumerateArray())

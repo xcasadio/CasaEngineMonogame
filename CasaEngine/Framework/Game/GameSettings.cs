@@ -2,13 +2,11 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Plugins;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
-using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.Game;
 
 public static class GameSettings
 {
-    public static ElementFactory<UObject> ElementFactory { get; } = new();
     public static AssetCatalog AssetCatalog { get; } = new();
     public static ProjectSettings ProjectSettings { get; } = new();
     public static PluginManager PluginManager { get; } = new();

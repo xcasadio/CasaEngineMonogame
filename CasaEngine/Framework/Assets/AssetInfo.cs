@@ -60,11 +60,18 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
 
     public void Load(JsonElement element)
     {
-        var id = element.GetProperty("id").GetInt32();
+        //TODO remove
+        if (element.GetProperty("id").ValueKind == JsonValueKind.Number)
+        {
+            var id = element.GetProperty("id").GetInt32();
 
-        GuidsById.Add(id, Guid.NewGuid());
-        Id = GuidsById[id];
-        //Id = element.GetProperty("id").GetGuid();
+            GuidsById.Add(id, Guid.NewGuid());
+            Id = GuidsById[id];
+        }
+        else
+        {
+            Id = element.GetProperty("id").GetGuid();
+        }
 
         if (element.TryGetProperty("file_name", out var fileNameNode))
         {
