@@ -1,4 +1,4 @@
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -154,7 +154,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
     private void HandleUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
     {
-        LogManager.Instance.WriteException((e.ExceptionObject as Exception)!);
+        Logs.WriteException((e.ExceptionObject as Exception)!);
     }
 
     public AActor SpawnEntity(string assetName)
@@ -245,7 +245,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     private void InitializeGui()
     {
         UiManager = new Manager(this, Services.GetService<IGraphicsDeviceService>(), "Default",
-            new AssetContentManagerAdapter(AssetContentManager), LogManager.Instance);
+            new AssetContentManagerAdapter(AssetContentManager));
         UiManager.UpdateOrder = (int)ComponentUpdateOrder.GUI;
         UiManager.DrawOrder = (int)ComponentDrawOrder.GUIBegin;
         Components.Add(UiManager);

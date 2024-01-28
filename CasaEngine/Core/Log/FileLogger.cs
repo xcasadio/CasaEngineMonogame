@@ -1,22 +1,51 @@
-﻿using System.Diagnostics;
+﻿namespace CasaEngine.Core.Log;
 
-namespace CasaEngine.Core.Logs;
-
-public class DebugLogger : ILog
+public class FileLogger : ILogger
 {
+    private StreamWriter _stream;
     private readonly string _trace = "[Trace] ";
     private readonly string _debug = "[Debug] ";
     private readonly string _info = "[Info] ";
     private readonly string _warning = "[Warning] ";
     private readonly string _error = "[Error] ";
 
-    public void Close()
+    public FileLogger(string fileName)
     {
+        _stream = new StreamWriter(fileName, false);
+        _stream.AutoFlush = true;
     }
 
-    private void Write(string msg)
+    public void Close()
     {
-        Debug.Write($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {msg}");
+        _stream.Close();
+        _stream = null;
+    }
+
+    private void Write(string msg, bool displayTime)
+    {
+        if (displayTime)
+        {
+            _stream.Write($"{DateTime.Now:T} ");
+        }
+
+        _stream.Write(msg);
+    }
+
+    private void Write(params object[]? args)
+    {
+        bool first = true;
+
+        if (args != null)
+        {
+            foreach (var arg in args)
+            {
+                if (arg is string msg)
+                {
+                    Write(msg, first);
+                    first = false;
+                }
+            }
+        }
     }
 
     public void WriteTrace(string msg)
@@ -43,4 +72,5 @@ public class DebugLogger : ILog
     {
         Write(_error + msg + Environment.NewLine);
     }
+
 }

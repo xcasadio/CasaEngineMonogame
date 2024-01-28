@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.Engine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,7 +27,7 @@ public static class AssetCatalog
         _assetInfos.Add(assetInfo.Id, assetInfo);
 
 #if EDITOR
-        LogManager.Instance.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+        Logs.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         AssetAdded?.Invoke(null, assetInfo);
 #endif
     }
@@ -72,7 +72,7 @@ public static class AssetCatalog
     public static void Remove(Guid id)
     {
         _assetInfos.TryGetValue(id, out var assetInfo);
-        LogManager.Instance.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+        Logs.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         _assetInfos.Remove(id);
         DeleteFile(assetInfo);
         Save();
@@ -90,7 +90,7 @@ public static class AssetCatalog
 
     public static void Clear()
     {
-        LogManager.Instance.WriteTrace("Clear all assets");
+        Logs.WriteTrace("Clear all assets");
 
         _assetInfos.Clear();
         AssetCleared?.Invoke(null, EventArgs.Empty);
@@ -107,7 +107,7 @@ public static class AssetCatalog
 
         if (assetInfo == null)
         {
-            LogManager.Instance.WriteError($"Rename Entity : The id '{id}' is not present in the catalog. (new name is {newName})");
+            Logs.WriteError($"Rename Entity : The id '{id}' is not present in the catalog. (new name is {newName})");
             return false;
         }
 
@@ -134,7 +134,7 @@ public static class AssetCatalog
 
     public static void Save(string fileName)
     {
-        LogManager.Instance.WriteInfo($"Asset infos saved in {fileName}");
+        Logs.WriteInfo($"Asset infos saved in {fileName}");
 
         JObject root = new();
         var assetInfoJArray = new JArray();

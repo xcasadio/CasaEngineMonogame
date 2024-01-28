@@ -55,7 +55,7 @@ public class AActor : UObject
         set
         {
             _isEnabled = value;
-            //LogManager.Instance.WriteTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
+            //Logs.WriteTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
             OnEnabledValueChange();
         }
     }

@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.ContentBrowser;
 using CasaEngine.EditorUI.Windows;
@@ -66,11 +66,11 @@ public partial class MainWindow : Window
 
         if (!File.Exists(projectFileName))
         {
-            LogManager.Instance.WriteError($"Can't open project {projectFileName}");
+            Logs.WriteError($"Can't open project {projectFileName}");
             return;
         }
 
-        LogManager.Instance.WriteInfo($"Project opened {projectFileName}");
+        Logs.WriteInfo($"Project opened {projectFileName}");
 
         GameSettings.Load(projectFileName);
         RegisterFlowGraphNodes();
@@ -122,7 +122,7 @@ public partial class MainWindow : Window
         }
         catch (Exception e)
         {
-            LogManager.Instance.WriteException(e);
+            Logs.WriteException(e);
         }
     }
 
@@ -142,7 +142,7 @@ public partial class MainWindow : Window
         }
         catch (Exception e)
         {
-            LogManager.Instance.WriteException(e);
+            Logs.WriteException(e);
         }
     }
 
@@ -167,7 +167,7 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() == true)
         {
             ProjectSettingsHelper.CreateProject(dialog.ProjectName, dialog.ProjectPath);
-            LogManager.Instance.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
+            Logs.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
         }
     }
 

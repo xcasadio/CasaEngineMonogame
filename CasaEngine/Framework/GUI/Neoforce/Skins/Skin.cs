@@ -1,4 +1,5 @@
 using System.Xml;
+using CasaEngine.Core.Log;
 using FontStashSharp;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -68,7 +69,7 @@ public class Skin : Component
     private string GetFolder()
     {
         var path = Path.GetFullPath(Manager.SkinDirectory) + _name + "\\";
-        if (!Directory.Exists(path) /*|| !File.Exists(path + "Skin.xnb")*/)
+        if (!Directory.Exists(path))
         {
             path = string.Empty;
         }
@@ -196,7 +197,7 @@ public class Skin : Component
 
         if (needed)
         {
-            Manager.Logger.WriteError("Missing required attribute \"" + attrib + "\" in the skin file.");
+            Logs.WriteError("Missing required attribute \"" + attrib + "\" in the skin file.");
         }
         return defval;
     }
@@ -212,7 +213,7 @@ public class Skin : Component
         }
         else if (needed)
         {
-            Manager.Logger.WriteError("Missing required attribute \"" + attrib + "\" in the skin file.");
+            Logs.WriteError("Missing required attribute \"" + attrib + "\" in the skin file.");
         }
         else
         {
@@ -293,7 +294,7 @@ public class Skin : Component
                 {
                     if (!string.Equals(_name, xname, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Manager.Logger.WriteError("Skin name defined in the skin file doesn't match requested skin.");
+                        Logs.WriteError("Skin name defined in the skin file doesn't match requested skin.");
                     }
 
                     _name = xname;
@@ -302,7 +303,7 @@ public class Skin : Component
                 {
                     if (!string.Equals(addon, xname, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Manager.Logger.WriteError("Skin name defined in the skin file doesn't match addon name.");
+                        Logs.WriteError("Skin name defined in the skin file doesn't match addon name.");
                     }
                 }
 
@@ -313,12 +314,12 @@ public class Skin : Component
                 }
                 catch (Exception x)
                 {
-                    Manager.Logger.WriteError("Unable to resolve skin file version. " + x.Message);
+                    Logs.WriteError("Unable to resolve skin file version. " + x.Message);
                 }
 
                 if (xversion != Manager.SkinVersion)
                 {
-                    Manager.Logger.WriteError("This version of Neoforce Controls can only read skin files in version of " + Manager.SkinVersion.ToString() + ".");
+                    Logs.WriteError("This version of Neoforce Controls can only read skin files in version of " + Manager.SkinVersion.ToString() + ".");
                 }
 
                 if (!isaddon)
@@ -362,7 +363,7 @@ public class Skin : Component
         }
         catch (Exception x)
         {
-            Manager.Logger.WriteError("Unable to load skin file. " + x);
+            Logs.WriteError("Unable to load skin file. " + x);
         }
     }
 

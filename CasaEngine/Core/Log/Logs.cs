@@ -1,44 +1,27 @@
-﻿namespace CasaEngine.Core.Logs;
+﻿namespace CasaEngine.Core.Log;
 
-public enum LogVerbosity
+public static class Logs
 {
-    Trace = 0,
-    Debug = 1,
-    Info = 2,
-    Warning = 3,
-    Error = 4,
-    None = 5
-}
+    private static readonly List<ILogger> _loggers = new();
+    private static LogVerbosity _verbosity = LogVerbosity.Debug;
 
-public sealed class LogManager : ILogger
-{
-
-    private static LogManager? _instance;
-    private readonly List<ILog> _loggers = new();
-    private LogVerbosity _verbosity = LogVerbosity.Debug;
-
-    public static LogManager Instance
-    {
-        get { return _instance ??= new LogManager(); }
-    }
-
-    public LogVerbosity Verbosity
+    public static LogVerbosity Verbosity
     {
         get => _verbosity;
         set => _verbosity = value;
     }
 
-    public void AddLogger(ILog log)
+    public static void AddLogger(ILogger logger)
     {
-        if (log == null)
+        if (logger == null)
         {
-            throw new ArgumentNullException(nameof(log));
+            throw new ArgumentNullException(nameof(logger));
         }
 
-        _loggers.Add(log);
+        _loggers.Add(logger);
     }
 
-    public void Close()
+    public static void Close()
     {
         foreach (var log in _loggers)
         {
@@ -48,7 +31,7 @@ public sealed class LogManager : ILogger
         _loggers.Clear();
     }
 
-    public void WriteTrace(string msg)
+    public static void WriteTrace(string msg)
     {
         if (_verbosity > LogVerbosity.Trace)
         {
@@ -61,7 +44,7 @@ public sealed class LogManager : ILogger
         }
     }
 
-    public void WriteDebug(string msg)
+    public static void WriteDebug(string msg)
     {
         if (_verbosity > LogVerbosity.Debug)
         {
@@ -74,7 +57,7 @@ public sealed class LogManager : ILogger
         }
     }
 
-    public void WriteInfo(string msg)
+    public static void WriteInfo(string msg)
     {
         if (_verbosity > LogVerbosity.Info)
         {
@@ -87,7 +70,7 @@ public sealed class LogManager : ILogger
         }
     }
 
-    public void WriteWarning(string msg)
+    public static void WriteWarning(string msg)
     {
         if (_verbosity > LogVerbosity.Warning)
         {
@@ -100,7 +83,7 @@ public sealed class LogManager : ILogger
         }
     }
 
-    public void WriteError(string msg)
+    public static void WriteError(string msg)
     {
         if (_verbosity > LogVerbosity.Error)
         {
@@ -113,7 +96,7 @@ public sealed class LogManager : ILogger
         }
     }
 
-    public void WriteException(Exception e)
+    public static void WriteException(Exception e)
     {
         if (_verbosity > LogVerbosity.Error)
         {

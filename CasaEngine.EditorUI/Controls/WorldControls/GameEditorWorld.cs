@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -69,7 +69,7 @@ public class GameEditorWorld : GameEditor
                 }
                 else
                 {
-                    LogManager.Instance.WriteWarning($"The asset with the type {extension} is not supported");
+                    Logs.WriteWarning($"The asset with the type {extension} is not supported");
                 }
 
                 return;

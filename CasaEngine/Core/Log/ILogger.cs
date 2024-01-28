@@ -1,6 +1,6 @@
-﻿namespace CasaEngine.Core.Logs;
+﻿namespace CasaEngine.Core.Log;
 
-public interface ILog
+public interface ILogger
 {
     void Close();
     void WriteTrace(string msg);

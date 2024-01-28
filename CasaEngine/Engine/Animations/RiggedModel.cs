@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core.Logs;
+﻿using CasaEngine.Core.Log;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -444,8 +444,8 @@ public class RiggedModel
 
         public void SetAnimationFpsCreateFrames(int animationFramesPerSecond, RiggedModel model, bool loopAnimation)
         {
-            LogManager.Instance.WriteTrace("________________________________________________________");
-            LogManager.Instance.WriteTrace("Animation name: " + AnimationName + "  DurationInSeconds: " + DurationInSeconds + "  DurationInSecondsLooping: " + DurationInSecondsLooping);
+            Logs.WriteTrace("________________________________________________________");
+            Logs.WriteTrace("Animation name: " + AnimationName + "  DurationInSeconds: " + DurationInSeconds + "  DurationInSecondsLooping: " + DurationInSecondsLooping);
             _fps = animationFramesPerSecond;
             TotalFrames = (int)(DurationInSeconds * (double)(animationFramesPerSecond));
             TicksPerFramePerSecond = TicksPerSecond / (double)(animationFramesPerSecond);
@@ -463,7 +463,7 @@ public class RiggedModel
                 AnimatedNodes[i].FrameOrientationTimes = new double[TotalFrames];
 
                 // print name of node as we loop
-                LogManager.Instance.WriteTrace("name " + AnimatedNodes[i].NodeName);
+                Logs.WriteTrace("name " + AnimatedNodes[i].NodeName);
 
                 // Loop destination frames.
                 for (int j = 0; j < TotalFrames; j++)
@@ -670,10 +670,10 @@ public class RiggedModel
 
             ////if (targetNodeConsoleName == n.nodeName || targetNodeConsoleName == "")
             ////{
-            //    LogManager.Instance.WriteTrace("" + "AnimationTime: " + animTime.ToStringTrimed());
-            //    LogManager.Instance.WriteTrace(" q : " + " index1: " + qindex1 + " index2: " + qindex2 + " time1: " + tq1.ToStringTrimed() + "  time2: " + tq2.ToStringTrimed() + "  interpolationTime: " + tqi.ToStringTrimed() + "  quaternion: " + q.ToStringTrimed());
-            //    LogManager.Instance.WriteTrace(" p : " + " index1: " + pindex1 + " index2: " + pindex2 + " time1: " + tp1.ToStringTrimed() + "  time2: " + tp2.ToStringTrimed() + "  interpolationTime: " + tpi.ToStringTrimed() + "  position: " + p.ToStringTrimed());
-            //    LogManager.Instance.WriteTrace(" s : " + " index1: " + sindex1 + " index2: " + sindex2 + " time1: " + ts1.ToStringTrimed() + "  time2: " + ts2.ToStringTrimed() + "  interpolationTime: " + tsi.ToStringTrimed() + "  scale: " + s.ToStringTrimed());
+            //    Logs.WriteTrace("" + "AnimationTime: " + animTime.ToStringTrimed());
+            //    Logs.WriteTrace(" q : " + " index1: " + qindex1 + " index2: " + qindex2 + " time1: " + tq1.ToStringTrimed() + "  time2: " + tq2.ToStringTrimed() + "  interpolationTime: " + tqi.ToStringTrimed() + "  quaternion: " + q.ToStringTrimed());
+            //    Logs.WriteTrace(" p : " + " index1: " + pindex1 + " index2: " + pindex2 + " time1: " + tp1.ToStringTrimed() + "  time2: " + tp2.ToStringTrimed() + "  interpolationTime: " + tpi.ToStringTrimed() + "  position: " + p.ToStringTrimed());
+            //    Logs.WriteTrace(" s : " + " index1: " + sindex1 + " index2: " + sindex2 + " time1: " + ts1.ToStringTrimed() + "  time2: " + ts2.ToStringTrimed() + "  interpolationTime: " + tsi.ToStringTrimed() + "  scale: " + s.ToStringTrimed());
             ////}
 
             //s *= .01f;

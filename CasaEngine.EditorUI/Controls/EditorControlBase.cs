@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Windows.Controls;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
@@ -129,11 +129,11 @@ public abstract class EditorControlBase : UserControl, IEditorControl
             layoutSerializer.LayoutSerializationCallback += layoutSerializationCallback;
             using var reader = new StreamReader(fileName);
             layoutSerializer.Deserialize(reader);
-            LogManager.Instance.WriteDebug($"Load Layout '{fileName}'");
+            Logs.WriteDebug($"Load Layout '{fileName}'");
         }
         catch (Exception e)
         {
-            LogManager.Instance.WriteException(e);
+            Logs.WriteException(e);
         }
     }
 
@@ -144,12 +144,12 @@ public abstract class EditorControlBase : UserControl, IEditorControl
             XmlLayoutSerializer layoutSerializer = new XmlLayoutSerializer(dockingManager);
             using var writer = new StreamWriter(fileName);
             layoutSerializer.Serialize(writer);
-            LogManager.Instance.WriteDebug($"Save Layout '{fileName}'");
+            Logs.WriteDebug($"Save Layout '{fileName}'");
 
         }
         catch (Exception e)
         {
-            LogManager.Instance.WriteException(e);
+            Logs.WriteException(e);
         }
     }
 }

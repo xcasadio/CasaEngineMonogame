@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Animation2dControls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls;
@@ -62,7 +62,7 @@ public partial class ContentBrowserControl : UserControl
 
     private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        LogManager.Instance.WriteDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
+        Logs.WriteDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
 
         if (sender is not FrameworkElement frameworkElement)
         {
@@ -198,7 +198,7 @@ public partial class ContentBrowserControl : UserControl
                         {
                             //copy file
                             File.Copy(fileName, destFileName, true);
-                            LogManager.Instance.WriteTrace($"Copy {fileName} -> {destFileName}");
+                            Logs.WriteTrace($"Copy {fileName} -> {destFileName}");
 
                             //create image file assetinfo
                             var imageFileAssetInfo = new AssetInfo();

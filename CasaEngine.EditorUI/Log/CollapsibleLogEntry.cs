@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CasaEngine.EditorUI.Logs;
+namespace CasaEngine.EditorUI.Log;
 
 public class CollapsibleLogEntry : LogEntry
 {

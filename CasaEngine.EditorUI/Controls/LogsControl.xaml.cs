@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Controls;
-using CasaEngine.Core.Logs;
-using CasaEngine.EditorUI.Logs;
+using CasaEngine.Core.Log;
+using CasaEngine.EditorUI.Log;
 
 namespace CasaEngine.EditorUI.Controls;
 
@@ -11,10 +11,10 @@ public partial class LogsControl : UserControl
 
     public LogsControl()
     {
-        LogManager.Instance.AddLogger(new DebugLogger());
-        LogManager.Instance.Verbosity = LogVerbosity.Trace;
+        Logs.AddLogger(new DebugLogger());
+        Logs.Verbosity = LogVerbosity.Trace;
 
-        LogManager.Instance.AddLogger(new LogEditor(LogEntries));
+        Logs.AddLogger(new LoggerEditor(LogEntries));
         InitializeComponent();
     }
 }

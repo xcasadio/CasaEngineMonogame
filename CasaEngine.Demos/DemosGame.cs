@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -21,9 +21,9 @@ public class DemosGame : CasaEngineGame
 
     protected override void Initialize()
     {
-        LogManager.Instance.AddLogger(new DebugLogger());
-        LogManager.Instance.AddLogger(new FileLogger("log.txt"));
-        LogManager.Instance.Verbosity = LogVerbosity.Trace;
+        Logs.AddLogger(new DebugLogger());
+        Logs.AddLogger(new FileLogger("log.txt"));
+        Logs.Verbosity = LogVerbosity.Trace;
 
         EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
         GameSettings.ProjectSettings.IsMouseVisible = true;

@@ -4,7 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
@@ -78,7 +78,7 @@ public partial class ProjectLauncherWindow : Window
         {
             ProjectSettingsHelper.CreateProject(dialog.ProjectName, dialog.ProjectPath);
             _projects.Add(GameSettings.ProjectSettings.ProjectFileOpened);
-            LogManager.Instance.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
+            Logs.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
             OpenEditor(GameSettings.ProjectSettings.ProjectFileOpened);
         }
     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.Engine;
 using CasaEngine.Framework.SceneManagement;
 
@@ -32,7 +32,7 @@ public class ExternalToolManager
 
         if (!Directory.Exists(fullPath))
         {
-            LogManager.Instance.WriteError($"ExternalToolManager : can't find the directory {fullPath}");
+            Logs.WriteError($"ExternalToolManager : can't find the directory {fullPath}");
             return;
         }
 
@@ -170,7 +170,7 @@ public class ExternalToolManager
         }
         else
         {
-            LogManager.Instance.WriteWarning("Can't find editor for type of object '" + obj.GetType().FullName + "'");
+            Logs.WriteWarning("Can't find editor for type of object '" + obj.GetType().FullName + "'");
         }
     }
 

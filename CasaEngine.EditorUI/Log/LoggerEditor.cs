@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 
-namespace CasaEngine.EditorUI.Logs;
+namespace CasaEngine.EditorUI.Log;
 
-public class LogEditor : ILog
+public class LoggerEditor : ILogger
 {
     private readonly ObservableCollection<LogEntry> _logs;
 
-    public LogEditor(ObservableCollection<LogEntry> logs)
+    public LoggerEditor(ObservableCollection<LogEntry> logs)
     {
         _logs = logs;
     }

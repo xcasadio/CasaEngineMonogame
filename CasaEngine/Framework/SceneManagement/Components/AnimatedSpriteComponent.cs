@@ -2,7 +2,7 @@
 using System.Text.Json;
 using BulletSharp;
 using CasaEngine.Core.Design;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
@@ -223,7 +223,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
             if (spriteData == null)
             {
-                LogManager.Instance.WriteError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
+                Logs.WriteError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
                 return;
             }
 
