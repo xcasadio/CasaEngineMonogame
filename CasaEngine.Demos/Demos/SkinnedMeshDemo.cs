@@ -20,9 +20,9 @@ public class SkinnedMeshDemo : Demo
         var entity = new AActor { Name = "Skinned mesh" };
         var skinnedMeshComponent = new SkinnedMeshComponent();
         entity.RootComponent = skinnedMeshComponent;
-        entity.RootComponent.Position = new Vector3(0, 0, 0);
-        entity.RootComponent.Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
-        entity.RootComponent.Scale = new Vector3(0.1f, 0.1f, 0.1f);
+        entity.RootComponent.LocalPosition = new Vector3(0, 0, 0);
+        entity.RootComponent.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
+        entity.RootComponent.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
 
         var skinModelLoader = new RiggedModelLoader(game.Content, game.Content.Load<Effect>("Shaders\\skinEffect"));
         var debugTexture = game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName).Resource;
