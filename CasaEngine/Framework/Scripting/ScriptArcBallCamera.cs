@@ -164,4 +164,9 @@ public class ScriptArcBallCamera : GameplayProxy
     {
 
     }
+
+    public override ScriptArcBallCamera Clone()
+    {
+        return new ScriptArcBallCamera();
+    }
 }

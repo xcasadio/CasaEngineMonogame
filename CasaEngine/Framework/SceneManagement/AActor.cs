@@ -72,9 +72,9 @@ public class AActor : UObject
     {
         _isEnabled = actor._isEnabled;
         Parent = actor.Parent;
-        RootComponent = actor.RootComponent;
+        RootComponent = actor.RootComponent?.Clone() as SceneComponent;
         GameplayProxyClassName = actor.GameplayProxyClassName;
-        GameplayProxy = actor.GameplayProxy;
+        GameplayProxy = actor.GameplayProxy?.Clone();
 
         foreach (var component in actor._components)
         {

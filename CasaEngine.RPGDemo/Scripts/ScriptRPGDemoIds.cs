@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Scripting;
-
-namespace CasaEngine.RPGDemo.Scripts;
+﻿namespace CasaEngine.RPGDemo.Scripts;
 
 public enum RPGDemoScriptIds
 {

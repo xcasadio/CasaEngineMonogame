@@ -6,10 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using XNAGizmo;
 
@@ -67,13 +65,14 @@ public partial class EntitiesControl : UserControl
         var entitiesViewModel = DataContext as EntityListViewModel;
         var newEntities = new List<EntityViewModel>();
 
-        foreach (var entity in entities.Cast<SceneComponent>())
+        var actors = entities.Cast<SceneComponent>().Select(x => x.Owner).ToHashSet();
+
+        foreach (var entity in actors)
         {
             var newEntity = entity.Clone();
             newEntity.Initialize();
             newEntity.InitializeWithWorld(Game.GameManager.CurrentWorld);
-            System.Diagnostics.Debugger.Break();
-            //newEntities.Add(entitiesViewModel.Add(newEntity));
+            newEntities.Add(entitiesViewModel.Add(newEntity));
         }
 
         _gizmoComponent.Gizmo.Clear();

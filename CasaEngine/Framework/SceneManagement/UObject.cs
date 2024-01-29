@@ -1,32 +1,32 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement;
 
-//The base class of all UE objects.
 public class UObject : ISerializable
 {
     private bool _isInitialized;
 
-    public Guid Id { get; private set; } = Guid.Empty;
+    public Guid Id { get; private set; }
 
     public string Name { get; set; }
 
     public string FileName { get; set; }
 
+    //if this object comes from an asset (example an actor created in the content browser)
+    public Guid AssetId { get; set; }
+
     public UObject()
     {
-
+        Id = Guid.NewGuid();
     }
 
-    public UObject(UObject other)
+    public UObject(UObject other) : this()
     {
-#if EDITOR
-        Name = other.Name;
-#endif
+        Name = $"Copy of {other.Name}";
+        FileName = other.FileName;
     }
 
     public void Initialize()
@@ -40,10 +40,7 @@ public class UObject : ISerializable
 
     protected virtual void InitializePrivate()
     {
-        if (Id == Guid.Empty)
-        {
-            Id = Guid.NewGuid();
-        }
+        //Do nothing
     }
 
     public virtual void Load(JsonElement element)

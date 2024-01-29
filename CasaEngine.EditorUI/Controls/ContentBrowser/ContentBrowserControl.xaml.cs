@@ -18,8 +18,6 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
@@ -62,8 +60,6 @@ public partial class ContentBrowserControl : UserControl
 
     private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        Logs.WriteDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
-
         if (sender is not FrameworkElement frameworkElement)
         {
             return;
@@ -94,11 +90,16 @@ public partial class ContentBrowserControl : UserControl
 
         switch (extension)
         {
-            case Constants.FileNameExtensions.EntityFlowGraph:
+            case Constants.FileNameExtensions.Entity:
                 var entityControl = window.GetEditorControl<EntityEditorControl>();
                 window.ActivateEditorControl<EntityEditorControl>();
                 entityControl.LoadEntity(fileRelativePath);
                 break;
+            /*case Constants.FileNameExtensions.EntityFlowGraph:
+                var entityControlFlowGraph = window.GetEditorControl<EntityEditorControl>();
+                window.ActivateEditorControl<EntityEditorControl>();
+                entityControlFlowGraph.LoadEntity(fileRelativePath);
+                break;*/
             case Constants.FileNameExtensions.Sprite:
                 var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                 window.ActivateEditorControl<SpriteEditorControl>();
@@ -255,7 +256,7 @@ public partial class ContentBrowserControl : UserControl
     {
         var inputTextBox = new InputTextBox();
 
-        var assetInfo = AssetCatalog.Get(actor.Id);
+        var assetInfo = new AssetInfo(actor.Id);
 
         inputTextBox.Text = assetInfo.Name;
 

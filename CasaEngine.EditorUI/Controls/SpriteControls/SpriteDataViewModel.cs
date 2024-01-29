@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CasaEngine.EditorUI.Controls.PropertyGridTypeEditor;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 

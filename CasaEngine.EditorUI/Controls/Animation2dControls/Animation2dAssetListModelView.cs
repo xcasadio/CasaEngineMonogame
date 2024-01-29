@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 

@@ -1,22 +1,17 @@
 ﻿using System.Windows;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
-using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class GameEditorEntity : GameEditor
 {
-    private AActor _cameraEntity;
-    private ArcBallCameraComponent _camera;
+    private bool _isEntityMustBeLoaded;
 
     public GameEditorEntity()
     {
@@ -26,20 +21,18 @@ public class GameEditorEntity : GameEditor
 
     protected override void InitializeGame()
     {
+        var gizmoComponent = new GizmoComponent(Game);
+        var gridComponent = new GridComponent(Game);
         new AxisComponent(Game);
+        Game.GameManager.WorldChanged += OnWorldChanged;
     }
 
-    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    private void OnWorldChanged(object? sender, System.EventArgs e)
     {
-        if (DataContext != null)
+        if (_isEntityMustBeLoaded)
         {
-            var entityViewModel = DataContext as EntityViewModel;
-            entityViewModel.Entity.Initialize();
-            entityViewModel.Entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
-            Game.GameManager.ActiveCamera = _camera;
-            Game.GameManager.CurrentWorld.ClearEntities();
-            Game.GameManager.CurrentWorld.AddEntity(_cameraEntity);
-            Game.GameManager.CurrentWorld.AddEntity(entityViewModel.Entity);
+            LoadEntityFromDataContext();
+            _isEntityMustBeLoaded = false;
         }
     }
 
@@ -48,6 +41,33 @@ public class GameEditorEntity : GameEditor
         base.LoadContent();
         Game.GameManager.SetWorldToLoad(new World());
         Game.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (DataContext == null)
+        {
+            return;
+        }
+
+        if (Game.GameManager.CurrentWorld?.Game != null)
+        {
+            LoadEntityFromDataContext();
+        }
+        else
+        {
+            _isEntityMustBeLoaded = true;
+        }
+    }
+
+    private void LoadEntityFromDataContext()
+    {
+        var entityViewModel = DataContext as EntityViewModel;
+        entityViewModel.Entity.Initialize();
+        var world = Game.GameManager.CurrentWorld;
+        entityViewModel.Entity.InitializeWithWorld(world);
+        world.ClearEntities();
+        world.AddEntityWithEditor(entityViewModel.Entity);
     }
 
     private void OnDrop(object sender, DragEventArgs e)

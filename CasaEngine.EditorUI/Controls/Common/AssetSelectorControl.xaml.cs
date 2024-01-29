@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 

@@ -69,7 +69,7 @@ public class AssetContentManager
         return _assetLoaderByType.Values.Any(assetLoader => assetLoader.IsFileSupported(fileName));
     }
 
-    public T Load<T>(Guid id, string categoryName = DefaultCategory)
+    public T Load<T>(Guid id, string categoryName = DefaultCategory) where T : class
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList))
         {
@@ -103,6 +103,14 @@ public class AssetContentManager
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+
+        if (newAsset is UObject gameObject)
+        {
+            gameObject.AssetId = assetInfo.Id;
+            gameObject.Name = assetInfo.Name;
+            gameObject.FileName = assetInfo.FileName;
+        }
+
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;
     }

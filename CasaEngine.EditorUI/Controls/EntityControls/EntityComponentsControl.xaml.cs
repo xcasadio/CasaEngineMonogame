@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.SceneManagement.Components;

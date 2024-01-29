@@ -6,7 +6,7 @@ public class Constants
     {
         //world
         public const string Entity = ".entity";
-        public const string EntityFlowGraph = ".entityFlowgraph";
+        //public const string EntityFlowGraph = ".flowgraph";
         public const string World = ".world";
 
         //asset

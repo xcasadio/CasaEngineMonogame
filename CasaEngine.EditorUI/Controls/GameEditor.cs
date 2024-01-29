@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using CasaEngine.EditorUI.Inputs;
 using CasaEngine.Framework.Game;
@@ -12,13 +10,13 @@ namespace CasaEngine.EditorUI.Controls;
 
 public abstract class GameEditor : WpfGame
 {
-    private bool _isInitialized;
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
     public bool UseGui { get; protected init; }
+    protected bool IsGameInitialized { get; private set; }
 
-    protected override bool CanRender => _isInitialized && IsVisible;
+    protected override bool CanRender => IsGameInitialized && IsVisible;
 
     protected GameEditor(bool useGui = false)
     {
@@ -55,10 +53,9 @@ public abstract class GameEditor : WpfGame
     protected override void LoadContent()
     {
         Game.LoadContentWithEditor();
-        Game.GameManager.EndLoadContent();
 
         GameStarted?.Invoke(Game, EventArgs.Empty);
-        _isInitialized = true;
+        IsGameInitialized = true;
     }
 
     private void OnWorldChanged(object? sender, EventArgs e)

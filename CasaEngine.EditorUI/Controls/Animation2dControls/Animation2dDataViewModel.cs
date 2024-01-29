@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;

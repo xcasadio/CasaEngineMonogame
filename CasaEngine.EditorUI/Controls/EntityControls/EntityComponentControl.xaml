@@ -15,6 +15,7 @@
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              xmlns:components1="clr-namespace:CasaEngine.Framework.SceneManagement.Components;assembly=CasaEngine"
              xmlns:sceneManagement="clr-namespace:CasaEngine.Framework.SceneManagement;assembly=CasaEngine"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="400">
     <Control.Resources>
@@ -463,21 +464,31 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Expander Grid.Row="0" Header="Transform" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.Position}"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Rotation" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.Rotation}"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.Position}"/>
 
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.Scale}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Rotation" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.Rotation}"/>
 
-        <ContentControl Grid.Row="3" Grid.ColumnSpan="2" x:Name="componentControl" Content="{Binding}" 
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Coordinates.Scale}"/>
+            </Grid>
+        </Expander>
+
+        <ContentControl Grid.Row="1" x:Name="componentControl" Content="{Binding}" 
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
             <ContentControl.ContentTemplateSelector>
                 <entityControls:EntityComponentTemplateSelector

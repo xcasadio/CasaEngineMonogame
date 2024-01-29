@@ -58,7 +58,12 @@
             </TreeView.ItemTemplate>
         </TreeView>
 
-        <Expander Grid.Row="2"
+        <Grid Grid.Row="2"
+            DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
+            <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding }"/>
+        </Grid>
+
+        <!--Expander Grid.Row="2"
                   DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
             <Expander.Header>
                 <Grid HorizontalAlignment="Stretch">
@@ -85,9 +90,6 @@
             <b:Interaction.Behaviors>
                 <entityControls:StretchingExpanderHeaderBehavior />
             </b:Interaction.Behaviors>
-        </Expander>
-
-        <!--entityControls:EntityComponentsControl x:Name="entityComponentsControl" Grid.Row="2"/-->
-
+        </Expander-->
     </Grid>
 </UserControl>

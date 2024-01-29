@@ -7,14 +7,13 @@ using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
-using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
+using static Assimp.Metadata;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
 
@@ -50,7 +49,7 @@ public class GameEditorWorld : GameEditor
             {
                 var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
 
-                var extension = Path.GetExtension(assetInfo.Name);
+                var extension = Path.GetExtension(assetInfo.FileName);
 
                 if (extension == Constants.FileNameExtensions.Entity)
                 {
@@ -64,6 +63,15 @@ public class GameEditorWorld : GameEditor
                     if (entityReference.Entity.RootComponent != null)
                     {
                         gizmoComponent.Gizmo.Selection.Add(entityReference.Entity.RootComponent);
+
+                        var position = e.GetPosition(this);
+                        var camera = Game?.GameManager.ActiveCamera;
+                        var ray = RayHelper.CalculateRayFromScreenCoordinate(
+                            new Vector2((float)position.X, (float)position.Y),
+                            camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
+
+                        //TODO : check intersection with object or the plane XZ
+                        entityReference.Entity.RootComponent.Coordinates.Position = ray.Position + ray.Direction * 5.0f;
                     }
                     gizmoComponent.Gizmo.RaiseSelectionChanged();
                 }

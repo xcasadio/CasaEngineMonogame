@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,7 +7,6 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;

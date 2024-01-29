@@ -17,10 +17,9 @@ public class EntityReference : ISerializable
     public static EntityReference CreateFromAssetInfo(AssetInfo assetInfo, AssetContentManager assetContentManager)
     {
         var entityReference = new EntityReference();
-        System.Diagnostics.Debugger.Break();
         entityReference.AssetId = assetInfo.Id;
         entityReference.Name = assetInfo.Name;
-        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo.Id);
+        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo.Id).Clone();
 
         if (entityReference.Entity.RootComponent != null)
         {

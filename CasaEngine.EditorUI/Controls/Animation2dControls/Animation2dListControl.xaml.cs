@@ -7,7 +7,6 @@ using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 

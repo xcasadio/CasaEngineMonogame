@@ -21,4 +21,6 @@ public abstract class GameplayProxy : UObject
     public abstract void OnHitEnded(Collision collision);
     public abstract void OnBeginPlay(World.World world);
     public abstract void OnEndPlay(World.World world);
+
+    public abstract GameplayProxy Clone();
 }

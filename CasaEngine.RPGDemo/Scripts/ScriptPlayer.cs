@@ -68,6 +68,11 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
 
     }
 
+    public override ScriptPlayer Clone()
+    {
+        return new ScriptPlayer();
+    }
+
     private void OnAnimationFinished(object sender, Framework.Assets.Animations.Animation2d animation2d)
     {
         if (sender is ActorComponent component)

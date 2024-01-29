@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 

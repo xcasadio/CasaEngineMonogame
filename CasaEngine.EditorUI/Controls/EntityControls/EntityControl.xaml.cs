@@ -7,13 +7,9 @@ using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.SceneManagement.Components;
-using CasaEngine.WpfControls;
-using Microsoft.Xna.Framework;
-using Xceed.Wpf.Toolkit.Primitives;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -102,12 +98,7 @@ public partial class EntityControl : UserControl
 
             if (treeViewComponents.SelectedItem is ComponentViewModel selectedComponentViewModel)
             {
-                selectedComponentViewModel.AddChildComponent(componentViewModel);
-
-                if (componentViewModel.Component is SceneComponent sceneComponent)
-                {
-                    SelectInGizmo(sceneComponent);
-                }
+                selectedComponentViewModel.AddComponent(componentViewModel);
             }
             else
             {
@@ -116,6 +107,11 @@ public partial class EntityControl : UserControl
 
             component.Initialize();
             component.InitializeWithWorld(_game.GameManager.CurrentWorld);
+
+            if (componentViewModel.Component is SceneComponent sceneComponent)
+            {
+                SelectInGizmo(sceneComponent);
+            }
         }
     }
 

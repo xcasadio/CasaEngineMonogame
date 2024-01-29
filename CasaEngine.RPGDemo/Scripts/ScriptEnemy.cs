@@ -68,6 +68,11 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
 
     }
 
+    public override ScriptEnemy Clone()
+    {
+        return new ScriptEnemy();
+    }
+
     private void OnAnimationFinished(object sender, CasaEngine.Framework.Assets.Animations.Animation2d animation2d)
     {
         if (sender is ActorComponent component)

@@ -1,6 +1,5 @@
 ﻿using System.Windows.Input;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;

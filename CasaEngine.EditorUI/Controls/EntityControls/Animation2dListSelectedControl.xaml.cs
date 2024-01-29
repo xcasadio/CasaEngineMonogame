@@ -3,8 +3,6 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;

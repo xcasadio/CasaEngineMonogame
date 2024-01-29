@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
@@ -51,5 +50,10 @@ public class ScriptWorld : GameplayProxy
     public override void OnEndPlay(World world)
     {
 
+    }
+
+    public override ScriptWorld Clone()
+    {
+        return new ScriptWorld();
     }
 }

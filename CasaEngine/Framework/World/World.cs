@@ -45,6 +45,7 @@ public sealed class World : UObject
 
     public void AddEntity(AActor entity)
     {
+        System.Diagnostics.Debug.Assert(entity != null, "AddEntity() : Actor can't be null");
         _baseObjectsToAdd.Add(entity);
     }
 
@@ -323,13 +324,13 @@ public sealed class World : UObject
 
         foreach (var entity in _entities)
         {
-            AddActor(entity, selectables);
+            AddSelectablesFromActor(entity, selectables);
         }
 
         return selectables;
     }
 
-    public void AddActor(AActor actor, List<ITransformable> selectables)
+    private void AddSelectablesFromActor(AActor actor, List<ITransformable> selectables)
     {
         if (actor.RootComponent != null)
         {
@@ -346,7 +347,7 @@ public sealed class World : UObject
 
         foreach (var child in actor.Children)
         {
-            AddActor(child, selectables);
+            AddSelectablesFromActor(child, selectables);
         }
     }
 

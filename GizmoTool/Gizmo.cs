@@ -430,8 +430,11 @@ namespace XNAGizmo
                         if (!_copyActivated)
                         {
                             _copyActivated = true;
-                            //Debug.WriteLine($"{DateTime.Now.TimeOfDay} copy {Selection.Count} entities");
-                            CopyTriggered?.Invoke(this, Selection);
+
+                            if (Selection.Count > 0)
+                            {
+                                CopyTriggered?.Invoke(this, Selection);
+                            }
                         }
                     }
                     else

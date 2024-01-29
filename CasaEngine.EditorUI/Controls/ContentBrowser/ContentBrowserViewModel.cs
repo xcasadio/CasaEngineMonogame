@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;

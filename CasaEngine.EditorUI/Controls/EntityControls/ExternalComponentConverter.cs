@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Data;
-using CasaEngine.Framework.SceneManagement;
-using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 

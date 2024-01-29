@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using Path = System.IO.Path;
 
 namespace CasaEngine.EditorUI.Controls.SpriteControls;
