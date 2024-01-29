@@ -99,8 +99,8 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
 
     public Quaternion LocalOrientation
     {
-        get => Coordinates.Rotation;
-        set => Coordinates.Rotation = value;
+        get => Coordinates.Orientation;
+        set => Coordinates.Orientation = value;
     }
 
     public Vector3 LocalScale
@@ -142,6 +142,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
             }
 
             LocalPosition = value - position;
+            IsBoundingBoxDirty = true;
         }
     }
 
@@ -178,6 +179,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
             }
 
             LocalOrientation = value * orientation;
+            IsBoundingBoxDirty = true;
         }
     }
 
@@ -189,12 +191,12 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
 
             if (Parent != null)
             {
-                scale *= Parent.Position;
+                scale *= Parent.Scale;
             }
 
             if (Owner?.Parent?.RootComponent != null)
             {
-                scale *= Owner.Parent.RootComponent.Position;
+                scale *= Owner.Parent.RootComponent.Scale;
             }
 
             return scale;
@@ -205,15 +207,16 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
 
             if (Parent != null)
             {
-                scale *= Parent.Position;
+                scale *= Parent.Scale;
             }
 
             if (Owner?.Parent?.RootComponent != null)
             {
-                scale *= Owner.Parent.RootComponent.Position;
+                scale *= Owner.Parent.RootComponent.Scale;
             }
 
-            LocalPosition = value / scale;
+            LocalScale = value / scale;
+            IsBoundingBoxDirty = true;
         }
     }
 

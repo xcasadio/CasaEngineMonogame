@@ -22,10 +22,10 @@ public class Collision3dBasicDemo : Demo
         //============ Create ground ===============
         var entity = new AActor { Name = "ground" };
         //===
-        var physicsComponent = new PhysicsComponent();
+        var physicsComponent = new BoxCollisionComponent();
         entity.AddComponent(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
-        physicsComponent.Shape = new Box { Size = new Vector3(50, 1, 50) };
+        physicsComponent.LocalScale = new Vector3(50, 1, 50);
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
         //===
         var meshComponent = new StaticMeshComponent();
@@ -55,11 +55,11 @@ public class Collision3dBasicDemo : Demo
                 {
                     entity = new AActor { Name = $"box {i}-{k}" };
                     //===
-                    physicsComponent = new PhysicsComponent();
+                    physicsComponent = new BoxCollisionComponent();
                     physicsComponent.Position = start + new Vector3(i, k, j);
                     entity.AddComponent(physicsComponent);
                     physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
-                    physicsComponent.Shape = new Box { Size = Vector3.One };
+                    physicsComponent.LocalScale = Vector3.One;
                     physicsComponent.PhysicsDefinition.Mass = mass;
                     //===
                     meshComponent = new StaticMeshComponent();

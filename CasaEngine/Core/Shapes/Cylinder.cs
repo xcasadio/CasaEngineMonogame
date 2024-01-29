@@ -16,9 +16,8 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
     {
         get
         {
-            var position = Position;
             var halfSize = new Vector3(Length / 2f + Radius, Radius, Radius); // X oriented
-            return new BoundingBox(position - halfSize, position + halfSize);
+            return new BoundingBox(halfSize, halfSize);
         }
     }
 
@@ -32,7 +31,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Type == other.Type && Position.Equals(other.Position) && Orientation.Equals(other.Orientation) && Radius.Equals(other.Radius) && Length.Equals(other.Length);
+        return Type == other.Type && Radius.Equals(other.Radius) && Length.Equals(other.Length);
     }
 
     public override bool Equals(object? obj)
@@ -45,7 +44,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int)Type, Position, Orientation, Radius, Length);
+        return HashCode.Combine((int)Type, Radius, Length);
     }
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius} Length:{Length}}}";

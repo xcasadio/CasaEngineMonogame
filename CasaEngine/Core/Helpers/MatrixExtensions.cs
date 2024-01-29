@@ -63,7 +63,7 @@ public static class MatrixExtensions
 
         Matrix result = new Matrix();
 
-        // Rotation
+        // Orientation
         float xx = rotation.X * rotation.X;
         float yy = rotation.Y * rotation.Y;
         float zz = rotation.Z * rotation.Z;

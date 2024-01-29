@@ -12,9 +12,8 @@ public class Sphere : Shape3d
     {
         get
         {
-            var position = Position;
             var radiusVector = new Vector3(Radius);
-            return new BoundingBox(position - radiusVector, position + radiusVector);
+            return new BoundingBox(radiusVector, radiusVector);
         }
     }
 
@@ -27,7 +26,7 @@ public class Sphere : Shape3d
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Type == other.Type && Position.Equals(other.Position) && Orientation.Equals(other.Orientation) && Radius.Equals(other.Radius);
+        return Type == other.Type && Radius.Equals(other.Radius);
     }
 
     public override bool Equals(object? obj)
@@ -40,7 +39,7 @@ public class Sphere : Shape3d
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int)Type, Position, Orientation, Radius);
+        return HashCode.Combine((int)Type, Radius);
     }
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";

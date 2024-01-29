@@ -8,10 +8,10 @@ namespace CasaEngine.Framework.Entities;
 
 public class EntityReference : ISerializable
 {
-    //if id = InvalidId => no reference, the world save the entire entity
+    //if id = Guid.Empty => no reference, the world save the entire entity
     public Guid AssetId { get; set; } = Guid.Empty;
     public string Name { get; set; }
-    public Coordinates InitialCoordinates { get; internal set; } = new();
+    public Coordinates InitialCoordinates { get; } = new();
     public AActor Entity { get; internal set; }
 
     public static EntityReference CreateFromAssetInfo(AssetInfo assetInfo, AssetContentManager assetContentManager)

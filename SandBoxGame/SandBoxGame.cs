@@ -3,7 +3,6 @@ using System.Linq;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Graphics;

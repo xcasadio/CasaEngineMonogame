@@ -8,7 +8,6 @@ namespace CasaEngine.Core.Shapes;
 
 public abstract class Shape2d
 {
-    [Browsable(false)]
     public Shape2dType Type { get; }
     public Vector2 Position { get; set; } = Vector2.Zero;
     public float Rotation { get; set; }

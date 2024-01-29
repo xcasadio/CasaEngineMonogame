@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;

@@ -110,7 +110,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                             case TileCollisionType.NoContactResponse:
                             case TileCollisionType.Blocked:
                                 var physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
-                                var worldMatrix = WorldMatrixWithScale;
+                                var worldMatrix = WorldMatrixNoScale;
                                 worldMatrix.Translation += new Vector3(
                                     x * tileSize.Width + tileSize.Width / 2f,
                                     -y * tileSize.Height - tileSize.Height / 2f,
@@ -120,11 +120,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                                 var tileCollisionManager = new TileCollisionManager(this, layerIndex, x, y);
                                 if (tileData.CollisionType == TileCollisionType.NoContactResponse)
                                 {
-                                    var collisionObject = physicsEngineComponent.AddGhostObject(rectangle, ref worldMatrix, tileCollisionManager);
+                                    var collisionObject = physicsEngineComponent.AddGhostObject(rectangle, LocalScale, ref worldMatrix, tileCollisionManager);
                                 }
                                 else
                                 {
-                                    var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, ref worldMatrix, tileCollisionManager,
+                                    var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, LocalScale, ref worldMatrix, tileCollisionManager,
                                         new PhysicsDefinition { Friction = 0f });
                                 }
 

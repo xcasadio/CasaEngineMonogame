@@ -215,6 +215,11 @@ public sealed class World : UObject
                 entityBase.Draw(0f);
             }
         }
+        /*
+        foreach (var entity in _entities)
+        {
+            entity.Draw(0f);
+        }*/
 
         _entitiesVisible.Clear();
 

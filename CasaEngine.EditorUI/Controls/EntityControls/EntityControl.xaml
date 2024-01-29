@@ -23,14 +23,14 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" FontSize="14" />
             <Button Grid.Column="1" Click="ButtonRenameEntity_OnClick">
                 <Image Source="/Resources/icon_edit_16x16.png" Width="16" Height="16"/>
             </Button>
             <Button Grid.Row="0" Grid.Column="1" Click="ButtonAddComponentClick">
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
-                    <Label Content="Add" Padding="0"/>
+                    <Image Source="/Resources/add-icon.png" Height="12" Width="12" Margin="0,0,2,0"/>
+                    <TextBlock Text="Add" Padding="0"/>
                 </StackPanel>
             </Button>
         </Grid>

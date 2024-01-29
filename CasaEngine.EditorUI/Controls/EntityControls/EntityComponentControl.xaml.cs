@@ -75,7 +75,7 @@ public partial class EntityComponentControl : UserControl
     private void OnEntityOrientationChanged(object? sender, EventArgs e)
     {
         var coordinates = sender as Coordinates;
-        RotationControl.Value = coordinates.Rotation;
+        RotationControl.Value = coordinates.Orientation;
     }
 
     private void OnEntityPositionChanged(object? sender, EventArgs e)
@@ -112,22 +112,6 @@ public partial class EntityComponentControl : UserControl
             null, new object[] { graphicsDevice }, null, null);
     }
 
-    private void PhysicComponent_ShapeSelection_OnClick(object sender, RoutedEventArgs e)
-    {
-        var selectPhysicsShapeWindow = new SelectPhysicsShapeWindow();
-        if (selectPhysicsShapeWindow.ShowDialog() == true
-            && sender is FrameworkElement { DataContext: PhysicsComponent physicsComponent })
-        {
-            var shape = (Shape3d)Activator.CreateInstance(selectPhysicsShapeWindow.SelectedType);
-            var entity = physicsComponent.Owner;
-            SetParametersFromBoundingBox(shape, entity.RootComponent?.BoundingBox ?? CreateDefaultBoundingBox());
-            shape.Position = physicsComponent.Owner.RootComponent.Position;
-            shape.Orientation = physicsComponent.Owner.RootComponent.Orientation;
-
-            physicsComponent.Shape = shape;
-        }
-    }
-
     private static BoundingBox CreateDefaultBoundingBox()
     {
         return new BoundingBox(-Vector3.One / 2f, Vector3.One / 2f);
@@ -146,7 +130,6 @@ public partial class EntityComponentControl : UserControl
                 var y = boundingBox.Max.Y - boundingBox.Min.Y;
                 var z = boundingBox.Max.Z - boundingBox.Min.Z;
                 box.Size = new Vector3(x, y, z);
-
                 break;
             case Shape3dType.Capsule:
                 var capsule = shape as Capsule;

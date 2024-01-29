@@ -144,8 +144,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         foreach (var collisionShape in _spriteData.CollisionShapes)
         {
             var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, WorldMatrixWithScale,
-                _physicsEngineComponent, this, color);
+            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsEngineComponent, this, color);
             if (collisionObject != null)
             {
                 Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,

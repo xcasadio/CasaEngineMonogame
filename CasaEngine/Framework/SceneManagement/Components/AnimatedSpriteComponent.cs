@@ -176,8 +176,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
                 foreach (var collisionShape in spriteData.CollisionShapes)
                 {
                     var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, WorldMatrixWithScale,
-                        _physicsEngineComponent, this, color);
+                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsEngineComponent, this, color);
                     if (collisionObject != null)
                     {
                         _collisionObjectByFrameId[frame.SpriteId].Add(new(collisionShape.Shape, collisionObject));

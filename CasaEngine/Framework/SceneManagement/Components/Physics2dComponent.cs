@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
@@ -8,19 +7,22 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
-[DisplayName("Physics 2d")]
-public class Physics2dComponent : PhysicsBaseComponent
+public abstract class Physics2dComponent : PhysicsBaseComponent
 {
     private Shape2d? _shape;
     private BoundingBox _boundingBox;
 
-    public Shape2d? Shape
+    protected Shape2d? Shape
     {
         get => _shape;
         set
         {
             _shape = value;
             _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
+
+#if EDITOR
+            ReCreatePhysicsObject();
+#endif
         }
     }
 
@@ -35,19 +37,6 @@ public class Physics2dComponent : PhysicsBaseComponent
         _shape = other._shape;
     }
 
-    public override Physics2dComponent Clone()
-    {
-        return new Physics2dComponent(this);
-    }
-
-    public void SetPosition(Vector3 position)
-    {
-        var physicObject = _rigidBody ?? _collisionObject;
-        var worldMatrix = physicObject.WorldTransform;
-        worldMatrix.Translation = position;
-        physicObject.WorldTransform = worldMatrix;
-    }
-
     protected override void CreatePhysicsObject()
     {
         if (PhysicsEngineComponent == null || _shape == null)
@@ -56,27 +45,30 @@ public class Physics2dComponent : PhysicsBaseComponent
         }
 
         _shape.Position = Position.ToVector2();
-        //_shape.Rotation = Owner.Coordinates.Rotation;
+        //_shape.Orientation = Owner.Coordinates.Orientation;
 
-        var worldMatrix = WorldMatrixWithScale;
+        var worldMatrix = WorldMatrixNoScale;
         //var worldMatrix = Matrix.CreateFromQuaternion(Orientation) * Matrix.CreateTranslation(Position);
 
         switch (PhysicsType)
         {
             case PhysicsType.Static:
                 _collisionObject =
-                    PhysicsEngineComponent.AddStaticObject(_shape, ref worldMatrix, this, PhysicsDefinition);
+                    PhysicsEngineComponent.AddStaticObject(_shape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
                 break;
             case PhysicsType.Kinetic:
-                _collisionObject = PhysicsEngineComponent.AddGhostObject(_shape, ref worldMatrix, this);
+                _collisionObject = PhysicsEngineComponent.AddGhostObject(_shape, LocalScale, ref worldMatrix, this);
                 break;
             default:
-                _rigidBody = PhysicsEngineComponent.AddRigidBody(_shape, ref worldMatrix, this, PhysicsDefinition);
+                _rigidBody = PhysicsEngineComponent.AddRigidBody(_shape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
                 break;
         }
     }
 
-    public override BoundingBox GetBoundingBox() => _boundingBox;
+    public override BoundingBox GetBoundingBox()
+    {
+        return _boundingBox;
+    }
 
     public override void Load(JsonElement element)
     {

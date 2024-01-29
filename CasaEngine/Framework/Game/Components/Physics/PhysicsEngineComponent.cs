@@ -40,22 +40,22 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.SendEvents();
     }
 
-    public CollisionObject CreateGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color color)
+    public CollisionObject CreateGhostObject(Shape2d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color color)
     {
-        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionShape = ConvertToCollisionShape(shape, localScale);
         return CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
     }
 
-    public CollisionObject AddGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+    public CollisionObject AddGhostObject(Shape2d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
-        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionShape = ConvertToCollisionShape(shape, localScale);
         var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         return collisionObject;
     }
 
-    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+    public CollisionObject AddGhostObject(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
-        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionShape = ConvertToCollisionShape(shape, localScale);
         var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         return collisionObject;
     }
@@ -85,26 +85,26 @@ public class PhysicsEngineComponent : GameComponent
         return ghostObject;
     }
 
-    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddStaticObject(Shape3d shape3d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        return AddRigidBody(shape3d, ref worldMatrix, component, physicsDefinition);
+        return AddRigidBody(shape3d, localScale, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddStaticObject(Shape2d shape2d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
         physicsDefinition.Mass = 0f;
-        return AddRigidBody(shape2d, ref worldMatrix, component, physicsDefinition);
+        return AddRigidBody(shape2d, localScale, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(Shape3d shape3d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddRigidBody(Shape3d shape3d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        var collisionShape = ConvertToCollisionShape(shape3d);
+        var collisionShape = ConvertToCollisionShape(shape3d, localScale);
         return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(Shape2d shape2d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddRigidBody(Shape2d shape2d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        var collisionShape = ConvertToCollisionShape(shape2d);
+        var collisionShape = ConvertToCollisionShape(shape2d, localScale);
         return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
     }
 
@@ -147,7 +147,7 @@ public class PhysicsEngineComponent : GameComponent
         if (!isDynamic)
         {
             body.CollisionFlags |= CollisionFlags.StaticObject;
-        } 
+        }
 #endif
 
 
@@ -166,7 +166,7 @@ public class PhysicsEngineComponent : GameComponent
         return body;
     }
 
-    private CollisionShape ConvertToCollisionShape(Shape2d shape)
+    private CollisionShape ConvertToCollisionShape(Shape2d shape, Vector3 localScale)
     {
         CollisionShape collisionShape;
 
@@ -188,11 +188,12 @@ public class PhysicsEngineComponent : GameComponent
                 throw new ArgumentOutOfRangeException();
         }
 
+        collisionShape.LocalScaling = localScale;
         collisionShape.UserObject = this;
         return collisionShape;
     }
 
-    private CollisionShape ConvertToCollisionShape(Shape3d shape)
+    private CollisionShape ConvertToCollisionShape(Shape3d shape, Vector3 localScale)
     {
         CollisionShape collisionShape;
 
@@ -219,6 +220,8 @@ public class PhysicsEngineComponent : GameComponent
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
+        collisionShape.LocalScaling = localScale;
 
         collisionShape.UserObject = this;
         return collisionShape;

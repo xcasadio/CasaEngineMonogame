@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Entities;
 public class Coordinates
 {
     private Vector3 _position;
-    private Quaternion _rotation;
+    private Quaternion _orientation;
     private Vector3 _scale;
     private Matrix _localMatrixWithScale;
     private Matrix _localMatrixNoScale;
@@ -45,12 +45,12 @@ public class Coordinates
         }
     }
 
-    public Quaternion Rotation
+    public Quaternion Orientation
     {
-        get => _rotation;
+        get => _orientation;
         set
         {
-            _rotation = value;
+            _orientation = value;
             SetDirtyMatrix();
 #if EDITOR
             OrientationChanged?.Invoke(this, EventArgs.Empty);
@@ -74,7 +74,7 @@ public class Coordinates
     public Coordinates()
     {
         Scale = Vector3.One;
-        Rotation = Quaternion.Identity;
+        Orientation = Quaternion.Identity;
         Position = Vector3.Zero;
         SetDirtyMatrix();
     }
@@ -87,7 +87,7 @@ public class Coordinates
     public void CopyFrom(Coordinates other)
     {
         _scale = other._scale;
-        _rotation = other._rotation;
+        _orientation = other._orientation;
         _position = other._position;
         SetDirtyMatrix();
     }
@@ -103,7 +103,7 @@ public class Coordinates
         {
             var translation = Matrix.CreateTranslation(Position);
             var scale = Matrix.CreateScale(Scale);
-            var rotation = Matrix.CreateFromQuaternion(Rotation);
+            var rotation = Matrix.CreateFromQuaternion(Orientation);
             _localMatrixWithScale = scale * rotation * translation;
             _localMatrixNoScale = rotation * translation;
             _localMatrixChanged = false;
@@ -114,7 +114,7 @@ public class Coordinates
     {
         Position = element.GetProperty("position").GetVector3();
         Scale = element.GetProperty("scale").GetVector3();
-        Rotation = element.GetProperty("rotation").GetQuaternion();
+        Orientation = element.GetProperty("rotation").GetQuaternion();
         SetDirtyMatrix();
     }
 
@@ -134,7 +134,7 @@ public class Coordinates
         jObject.Add("scale", newObject);
 
         newObject = new JObject();
-        Rotation.Save(newObject);
+        Orientation.Save(newObject);
         jObject.Add("rotation", newObject);
     }
 

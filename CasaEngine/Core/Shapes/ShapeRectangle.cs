@@ -20,17 +20,16 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         }
     }
 
-    public ShapeRectangle() : base(Shape2dType.Rectangle)
+    public ShapeRectangle(int width = 1, int height = 1) : base(Shape2dType.Rectangle)
     {
-
+        Width = width;
+        Height = height;
     }
 
     public ShapeRectangle(int x, int y, int w, int h)
-        : this()
+        : this(w, h)
     {
         Position = new Vector2(x, y);
-        Width = w;
-        Height = h;
     }
 
     public bool Equals(ShapeRectangle? other)
