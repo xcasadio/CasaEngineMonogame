@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using TomShane.Neoforce.Controls.Serialization;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
+using CasaEngine.Framework.World;
 
 #if EDITOR
 using XNAGizmo;
@@ -240,11 +241,46 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         Coordinates = new(other.Coordinates);
     }
 
+    public override void Attach(AActor actor)
+    {
+        base.Attach(actor);
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].Attach(actor);
+        }
+    }
+
+    public override void Detach()
+    {
+        base.Detach();
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].Detach();
+        }
+    }
+
     protected override void InitializePrivate()
     {
         base.InitializePrivate();
 
         _lastWorldMatrix = WorldMatrixWithScale;
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].InitializePrivate();
+        }
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        base.InitializeWithWorld(world);
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].InitializeWithWorld(world);
+        }
     }
 
     public virtual void OnEnabledValueChange()
@@ -267,11 +303,19 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         }
 
         _lastWorldMatrix = WorldMatrixWithScale;
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].Update(elapsedTime);
+        }
     }
 
     public virtual void Draw(float elapsedTime)
     {
-        //do nothing
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].Draw(elapsedTime);
+        }
     }
 
     public void AddChildComponent(SceneComponent component)

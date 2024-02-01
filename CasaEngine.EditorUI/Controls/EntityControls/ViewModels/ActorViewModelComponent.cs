@@ -3,6 +3,7 @@ using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
+//used only to create the root node in the tree view
 public class ActorViewModelComponent : ComponentViewModel
 {
     public EntityViewModel EntityViewModel { get; }

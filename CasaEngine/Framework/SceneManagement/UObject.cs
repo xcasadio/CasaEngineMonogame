@@ -21,6 +21,7 @@ public class UObject : ISerializable
     public UObject()
     {
         Id = Guid.NewGuid();
+        Name = "Object " + Id;
     }
 
     public UObject(UObject other) : this()

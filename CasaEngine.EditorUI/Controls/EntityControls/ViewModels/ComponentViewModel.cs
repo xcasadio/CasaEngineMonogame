@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
+using CasaEngine.Core.Log;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 
@@ -29,14 +30,9 @@ public class ComponentViewModel : NotifyPropertyChangeBase
             sceneComponent.AddChildComponent(componentToAdd);
             Children.Add(componentViewModel);
         }
-    }
-
-    public void AddChildComponent(ComponentViewModel componentViewModel)
-    {
-        if (Component is SceneComponent sceneComponent && componentViewModel.Component is SceneComponent componentToAdd)
+        else
         {
-            sceneComponent.AddChildComponent(componentToAdd);
-            Children.Add(componentViewModel);
+            Logs.WriteError($"Can't add the component {componentViewModel.Component.GetType().Name} to the actor {componentViewModel.Owner.Name}");
         }
     }
 

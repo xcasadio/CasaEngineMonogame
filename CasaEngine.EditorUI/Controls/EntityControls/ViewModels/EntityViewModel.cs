@@ -6,7 +6,7 @@ namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 public class EntityViewModel : NotifyPropertyChangeBase
 {
     public AActor Entity { get; }
-    public ComponentListViewModel ComponentListViewModel { get; }
+    //public ComponentListViewModel ComponentListViewModel { get; }
     public ComponentsHierarchyViewModel ComponentsHierarchyViewModel { get; }
 
     public string Name
@@ -17,7 +17,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
     public EntityViewModel(AActor entity)
     {
         Entity = entity;
-        ComponentListViewModel = new ComponentListViewModel(this);
+        //ComponentListViewModel = new ComponentListViewModel(this);
         ComponentsHierarchyViewModel = new ComponentsHierarchyViewModel(this);
 
         AssetCatalog.AssetRenamed += OnAssetRenamed;
@@ -33,8 +33,8 @@ public class EntityViewModel : NotifyPropertyChangeBase
 
     public void AddComponent(ComponentViewModel componentViewModel)
     {
-        ComponentsHierarchyViewModel.RootComponentViewModel.AddChildComponent(componentViewModel);
-        Entity.AddComponent(componentViewModel.Component);
+        ComponentsHierarchyViewModel.RootComponentViewModel.AddComponent(componentViewModel);
+        //Entity.AddComponent(componentViewModel.Component);
     }
 
     public void RemoveComponent(ComponentViewModel componentViewModel)

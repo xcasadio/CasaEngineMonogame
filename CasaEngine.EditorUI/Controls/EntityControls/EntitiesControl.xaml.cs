@@ -78,7 +78,10 @@ public partial class EntitiesControl : UserControl
         _gizmoComponent.Gizmo.Clear();
         foreach (var entityViewModel in newEntities)
         {
-            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            if (entityViewModel.Entity.RootComponent != null)
+            {
+                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            }
         }
 
         SetSelectedItem(newEntities[0]);
@@ -134,8 +137,11 @@ public partial class EntitiesControl : UserControl
         }
         else
         {
-            _gizmoComponent.Gizmo.Clear(); // TODO : select in one function
-            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            _gizmoComponent.Gizmo.Clear();
+            if (entityViewModel.Entity.RootComponent != null)
+            {
+                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            }
         }
 
         SetSelectedItem(entityViewModel);
@@ -168,10 +174,9 @@ public partial class EntitiesControl : UserControl
 
     private void TreeView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
-        if (e.Key == Key.Delete && e.IsToggled)
+        if (e is { Key: Key.Delete, IsToggled: true })
         {
-            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem
-                && treeViewItem.DataContext is EntityViewModel entityViewModel)
+            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem { DataContext: EntityViewModel entityViewModel })
             {
                 var entitiesViewModel = DataContext as EntityListViewModel;
                 entitiesViewModel.Remove(entityViewModel);

@@ -12,13 +12,17 @@ using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
-using static Assimp.Metadata;
+using Point = System.Windows.Point;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public class GameEditorWorld : GameEditor
 {
+    private GizmoComponent? _gizmoComponent;
+    private World _world;
+
     public GameEditorWorld()
     {
         Drop += OnDrop;
@@ -37,6 +41,7 @@ public class GameEditorWorld : GameEditor
         //must be open by content browser
         Game.GameManager.SetWorldToLoad(GameSettings.ProjectSettings.FirstWorldLoaded);
         Game.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
+        _gizmoComponent = Game.GetGameComponent<GizmoComponent>();
     }
 
     private void OnDrop(object sender, DragEventArgs e)
@@ -54,26 +59,7 @@ public class GameEditorWorld : GameEditor
                 if (extension == Constants.FileNameExtensions.Entity)
                 {
                     var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, Game.AssetContentManager);
-                    entityReference.Entity.Initialize();
-                    entityReference.Entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
-                    Game.GameManager.CurrentWorld.AddEntityReference(entityReference);
-
-                    var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-                    gizmoComponent.Gizmo.Clear();
-                    if (entityReference.Entity.RootComponent != null)
-                    {
-                        gizmoComponent.Gizmo.Selection.Add(entityReference.Entity.RootComponent);
-
-                        var position = e.GetPosition(this);
-                        var camera = Game?.GameManager.ActiveCamera;
-                        var ray = RayHelper.CalculateRayFromScreenCoordinate(
-                            new Vector2((float)position.X, (float)position.Y),
-                            camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
-
-                        //TODO : check intersection with object or the plane XZ
-                        entityReference.Entity.RootComponent.Coordinates.Position = ray.Position + ray.Direction * 5.0f;
-                    }
-                    gizmoComponent.Gizmo.RaiseSelectionChanged();
+                    CreateEntity(entityReference.Entity, e.GetPosition(this));
                 }
                 else
                 {
@@ -93,12 +79,6 @@ public class GameEditorWorld : GameEditor
             {
                 e.Handled = true;
 
-                var position = e.GetPosition(this);
-                var camera = Game?.GameManager.ActiveCamera;
-                var ray = RayHelper.CalculateRayFromScreenCoordinate(
-                    new Vector2((float)position.X, (float)position.Y),
-                    camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
-
                 var entity = new AActor();
 
                 if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)
@@ -110,23 +90,37 @@ public class GameEditorWorld : GameEditor
                     entity.RootComponent = new PlayerStartComponent();
                 }
 
-                entity.RootComponent.Coordinates.Position = ray.Position + ray.Direction * 15.0f;
-
-                entity.Initialize();
-                entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
-
-                Game?.GameManager.CurrentWorld.AddEntityWithEditor(entity);
-
-                //select this entity
-                var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-                //TODO : do it in one function
-                gizmoComponent.Gizmo.Clear();
-                if (entity.RootComponent != null)
-                {
-                    gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
-                }
-                gizmoComponent.Gizmo.RaiseSelectionChanged();
+                CreateEntity(entity, e.GetPosition(this));
             }
+            else
+            {
+                Logs.WriteWarning($"The action {dragAndDropInfo.Action} is not supported");
+            }
+        }
+    }
+
+    private void CreateEntity(AActor entity, Point mousePosition)
+    {
+        entity.Initialize();
+        entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
+
+        Game?.GameManager.CurrentWorld.AddEntityWithEditor(entity);
+
+        _gizmoComponent.Gizmo.Clear();
+        if (entity.RootComponent != null)
+        {
+            _gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
+
+            var position = mousePosition;
+            var camera = Game?.GameManager.ActiveCamera;
+            var ray = RayHelper.CalculateRayFromScreenCoordinate(
+                new Vector2((float)position.X, (float)position.Y),
+                camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
+
+            //TODO : check intersection with object or the plane XZ
+            entity.RootComponent.Coordinates.Position = ray.Position + ray.Direction * 5.0f;
+
+            _gizmoComponent.Gizmo.RaiseSelectionChanged();
         }
     }
 }
