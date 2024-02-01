@@ -26,6 +26,7 @@ public class ComponentsHierarchyViewModel : NotifyPropertyChangeBase
         if (actor.RootComponent != null)
         {
             var componentViewModel = new ComponentViewModel(actor.RootComponent);
+            componentViewModel.Parent = RootComponentViewModel;
             RootComponentViewModel.Children.Add(componentViewModel);
 
             foreach (var componentChild in actor.RootComponent.Children)
@@ -37,26 +38,28 @@ public class ComponentsHierarchyViewModel : NotifyPropertyChangeBase
         foreach (var component in actor.Components)
         {
             var componentViewModel = new ComponentViewModel(component);
+            componentViewModel.Parent = RootComponentViewModel;
             RootComponentViewModel.Children.Add(componentViewModel);
 
             if (component is SceneComponent sceneComponent)
             {
-                foreach (var componentChild in sceneComponent.Children)
+                foreach (var childComponent in sceneComponent.Children)
                 {
-                    AddChild(RootComponentViewModel, componentChild);
+                    AddChild(RootComponentViewModel, childComponent);
                 }
             }
         }
     }
 
-    private void AddChild(ComponentViewModel componentViewModel, SceneComponent componentChild)
+    private void AddChild(ComponentViewModel parentComponentViewModel, SceneComponent componentChild)
     {
-        var componentChildViewModel = new ComponentViewModel(componentChild);
-        componentViewModel.Children.Add(componentChildViewModel);
+        var childComponentViewModel = new ComponentViewModel(componentChild);
+        childComponentViewModel.Parent = parentComponentViewModel;
+        parentComponentViewModel.Children.Add(childComponentViewModel);
 
         foreach (var component in componentChild.Children)
         {
-            AddChild(componentChildViewModel, component);
+            AddChild(childComponentViewModel, component);
         }
     }
 

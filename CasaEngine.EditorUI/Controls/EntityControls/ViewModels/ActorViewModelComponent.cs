@@ -26,6 +26,22 @@ public class ActorViewModelComponent : ComponentViewModel
             EntityViewModel.Entity.AddComponent(componentViewModel.Component);
         }
 
+        componentViewModel.Parent = this;
         Children.Add(componentViewModel);
+    }
+
+    public override void RemoveComponent(ComponentViewModel componentViewModel)
+    {
+        if (Owner.RootComponent == componentViewModel.Component)
+        {
+            Owner.RootComponent = null;
+        }
+        else
+        {
+            Owner.RemoveComponent(componentViewModel.Component);
+        }
+
+        componentViewModel.Parent = null;
+        Children.Remove(componentViewModel);
     }
 }

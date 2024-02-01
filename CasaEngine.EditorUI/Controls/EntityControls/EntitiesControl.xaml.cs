@@ -8,6 +8,7 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using XNAGizmo;
 
@@ -32,6 +33,21 @@ public partial class EntitiesControl : UserControl
     public EntitiesControl()
     {
         InitializeComponent();
+
+        TreeViewEntities.ItemMoved = ItemMoved;
+    }
+
+    private void ItemMoved(object item, object newparent)
+    {
+        if (item is EntityViewModel entityViewModel && newparent is EntityViewModel parentEntityViewModel)
+        {
+            if (entityViewModel.Parent != null)
+            {
+                entityViewModel.Parent.RemoveActorChild(entityViewModel);
+            }
+
+            parentEntityViewModel.AddActorChild(entityViewModel);
+        }
     }
 
     public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)

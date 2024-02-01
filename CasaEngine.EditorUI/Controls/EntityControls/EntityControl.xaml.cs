@@ -9,6 +9,7 @@ using CasaEngine.EditorUI.Plugins.Tools;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -29,6 +30,21 @@ public partial class EntityControl : UserControl
     public EntityControl()
     {
         InitializeComponent();
+
+        treeViewComponents.ItemMoved = ItemMoved;
+    }
+
+    private void ItemMoved(object item, object newparent)
+    {
+        if (item is ComponentViewModel componentViewModel && newparent is ComponentViewModel parentComponentViewModel)
+        {
+            if (componentViewModel.Parent != null)
+            {
+                componentViewModel.Parent.RemoveComponent(componentViewModel);
+            }
+
+            parentComponentViewModel.AddComponent(componentViewModel);
+        }
     }
 
     public void InitializeFromGameEditor(GameEditor gameEditor)
@@ -136,8 +152,7 @@ public partial class EntityControl : UserControl
         {
             if (treeViewComponents.SelectedItem is ComponentViewModel componentViewModel)
             {
-                var entityViewModel = DataContext as EntityViewModel;
-                entityViewModel.RemoveComponent(componentViewModel);
+                componentViewModel.Parent.RemoveComponent(componentViewModel);
 
                 if (componentViewModel.Component is SceneComponent sceneComponent)
                 {

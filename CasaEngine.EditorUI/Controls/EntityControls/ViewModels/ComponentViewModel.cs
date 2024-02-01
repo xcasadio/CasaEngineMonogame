@@ -9,10 +9,17 @@ namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 public class ComponentViewModel : NotifyPropertyChangeBase
 {
-    public string Name { get; protected set; }
+    private ComponentViewModel? _parent;
+    public string Name { get; internal set; }
     public bool OnlyForEditor { get; set; }
     public ActorComponent Component { get; }
     public virtual AActor Owner => Component.Owner;
+
+    public ComponentViewModel? Parent
+    {
+        get => _parent;
+        internal set => SetField(ref _parent, value);
+    }
 
     public ObservableCollection<ComponentViewModel> Children { get; } = new();
 
@@ -27,6 +34,7 @@ public class ComponentViewModel : NotifyPropertyChangeBase
     {
         if (Component is SceneComponent sceneComponent && componentViewModel.Component is SceneComponent componentToAdd)
         {
+            componentViewModel.Parent = this;
             sceneComponent.AddChildComponent(componentToAdd);
             Children.Add(componentViewModel);
         }
@@ -36,17 +44,14 @@ public class ComponentViewModel : NotifyPropertyChangeBase
         }
     }
 
-    public void RemoveComponent(ComponentViewModel componentViewModel)
+    public virtual void RemoveComponent(ComponentViewModel componentViewModel)
     {
-        if (Owner.RootComponent == componentViewModel.Component)
+        if (Component is SceneComponent sceneComponent)
         {
-            Owner.RootComponent = null;
-        }
-        else
-        {
-            Owner.RemoveComponent(componentViewModel.Component);
+            sceneComponent.RemoveChildComponent(componentViewModel.Component as SceneComponent);
         }
 
+        componentViewModel.Parent = null;
         Children.Remove(componentViewModel);
     }
 }

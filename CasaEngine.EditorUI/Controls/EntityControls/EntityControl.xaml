@@ -8,6 +8,7 @@
              xmlns:components="clr-namespace:CasaEngine.Framework.SceneManagement.Components;assembly=CasaEngine"
              xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
              xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800">
     <Grid>
@@ -35,7 +36,7 @@
             </Button>
         </Grid>
 
-        <TreeView Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
+        <common:TreeViewEx Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
                   ItemsSource="{Binding ComponentsHierarchyViewModel.ComponentsViewModel}" MinHeight="25"
                   SelectedItemChanged="OnComponentSelectedItemChanged" KeyDown="TreeView_KeyDown">
             <!--TreeView.ContextMenu>
@@ -56,7 +57,7 @@
                     </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
-        </TreeView>
+        </common:TreeViewEx>
 
         <Grid Grid.Row="2"
             DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">

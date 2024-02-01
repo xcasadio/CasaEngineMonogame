@@ -1,26 +1,40 @@
 ﻿using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement;
+using System.Collections.ObjectModel;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 public class EntityViewModel : NotifyPropertyChangeBase
 {
-    public AActor Entity { get; }
-    //public ComponentListViewModel ComponentListViewModel { get; }
-    public ComponentsHierarchyViewModel ComponentsHierarchyViewModel { get; }
+    private EntityViewModel? _parent;
 
     public string Name
     {
         get => Entity.Name;
     }
 
+    public AActor Entity { get; }
+
+    public EntityViewModel? Parent
+    {
+        get => _parent;
+        internal set => SetField(ref _parent, value);
+    }
+
+    public ObservableCollection<EntityViewModel> Children { get; } = new();
+    public ComponentsHierarchyViewModel ComponentsHierarchyViewModel { get; }
+
     public EntityViewModel(AActor entity)
     {
         Entity = entity;
-        //ComponentListViewModel = new ComponentListViewModel(this);
         ComponentsHierarchyViewModel = new ComponentsHierarchyViewModel(this);
 
         AssetCatalog.AssetRenamed += OnAssetRenamed;
+
+        if (entity.Parent != null)
+        {
+            Parent = new EntityViewModel(entity.Parent);
+        }
     }
 
     private void OnAssetRenamed(object? sender, Core.Design.EventArgs<Framework.Assets.AssetInfo, string> e)
@@ -34,36 +48,19 @@ public class EntityViewModel : NotifyPropertyChangeBase
     public void AddComponent(ComponentViewModel componentViewModel)
     {
         ComponentsHierarchyViewModel.RootComponentViewModel.AddComponent(componentViewModel);
-        //Entity.AddComponent(componentViewModel.Component);
     }
 
-    public void RemoveComponent(ComponentViewModel componentViewModel)
+    public void AddActorChild(EntityViewModel entityViewModel)
     {
-        foreach (var child in ComponentsHierarchyViewModel.RootComponentViewModel.Children)
-        {
-            if (RemoveRemoveComponent(ComponentsHierarchyViewModel.RootComponentViewModel, child, componentViewModel))
-            {
-                return;
-            }
-        }
+        entityViewModel.Parent = this;
+        Entity.AddChild(entityViewModel.Entity);
+        Children.Add(entityViewModel);
     }
 
-    private bool RemoveRemoveComponent(ComponentViewModel parentComponentViewModel, ComponentViewModel componentViewModel, ComponentViewModel componentViewModelToRemove)
+    public void RemoveActorChild(EntityViewModel entityViewModel)
     {
-        if (componentViewModel == componentViewModelToRemove)
-        {
-            parentComponentViewModel.RemoveComponent(componentViewModel);
-            return true;
-        }
-
-        foreach (var child in componentViewModel.Children)
-        {
-            if (RemoveRemoveComponent(componentViewModel, child, componentViewModelToRemove))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        entityViewModel.Parent = null;
+        Entity.RemoveChild(entityViewModel.Entity);
+        Children.Remove(entityViewModel);
     }
 }
