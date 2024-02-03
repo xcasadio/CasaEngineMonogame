@@ -22,9 +22,9 @@ public static class ElementFactory
 
             switch (typeId)
             {
-                case 1: //GamePlay
-                    typeName = "";
-                    break;
+                //case 1: //GamePlay
+                //    typeName = "";
+                //    break;
                 case 2: //Mesh
                     typeName = nameof(StaticMeshComponent);
                     break;
@@ -62,8 +62,7 @@ public static class ElementFactory
                     typeName = nameof(PlayerStartComponent);
                     break;
                 default:
-                    throw new InvalidDataException("Component type not supported");
-                    break;
+                    throw new InvalidDataException($"Component type {typeId} not supported");
             }
         }
         else

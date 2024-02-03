@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.Entities;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
@@ -39,7 +41,8 @@ public class TileMapDataViewModel : NotifyPropertyChangeBase
 
     public void LoadMap(string fileName, AssetContentManager assetContentManager)
     {
-        TileMapData = TileMapLoader.LoadMapFromFile(fileName);
+        var assetInfo = AssetCatalog.GetByFileName(fileName);
+        TileMapData = assetContentManager.Load<TileMapData>(assetInfo.Id);
 
         if (TileMapData.TileSetDataAssetId != Guid.Empty)
         {

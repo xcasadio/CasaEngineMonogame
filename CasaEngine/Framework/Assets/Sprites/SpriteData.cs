@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Sprites;
@@ -19,8 +18,14 @@ public class SpriteData : UObject
         base.Load(element.GetProperty("asset"));
 
         //TODO : remove
-        SpriteSheetAssetId = AssetInfo.GuidsById[element.GetJsonPropertyByName("sprite_sheet_asset_id").Value.GetInt32()];
-        //SpriteSheetAssetId = element.GetJsonPropertyByName("sprite_sheet_asset_id").Value.GetGuid();
+        if (element.GetProperty("sprite_sheet_asset_id").ValueKind == JsonValueKind.Number)
+        {
+            SpriteSheetAssetId = AssetInfo.GuidsById[element.GetProperty("sprite_sheet_asset_id").GetInt32()];
+        }
+        else
+        {
+            SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
+        }
         PositionInTexture = element.GetJsonPropertyByName("location").Value.GetRectangle();
         Origin = element.GetJsonPropertyByName("hotspot").Value.GetPoint();
 

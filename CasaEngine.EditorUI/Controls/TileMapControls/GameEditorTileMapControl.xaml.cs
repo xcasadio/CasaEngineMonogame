@@ -43,7 +43,7 @@ public partial class GameEditorTileMapControl : UserControl
             return;
         }
 
-        AssetSaver.SaveAsset(tileMapDataViewModel.TileMapData.Name, tileMapDataViewModel.TileMapData);
+        AssetSaver.SaveAsset(tileMapDataViewModel.TileMapData.FileName, tileMapDataViewModel.TileMapData);
         Logs.WriteInfo($"Entity {tileMapDataViewModel.TileMapData.Name} saved ({tileMapDataViewModel.TileMapData.FileName})");
     }
 }

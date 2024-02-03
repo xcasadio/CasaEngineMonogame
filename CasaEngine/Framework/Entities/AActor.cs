@@ -280,6 +280,7 @@ public class AActor : UObject
         {
             if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number
                 && componentNode.GetProperty("type").GetInt32() == 1
+                && componentNode.TryGetProperty("external_component", out _)
                 && componentNode.GetProperty("external_component").ValueKind == JsonValueKind.Object)
             {
                 GameplayProxy = ElementFactory.Create<GameplayProxy>(componentNode.GetProperty("external_component").GetProperty("type").GetString());
