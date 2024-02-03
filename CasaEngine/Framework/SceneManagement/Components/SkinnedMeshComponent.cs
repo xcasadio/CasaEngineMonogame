@@ -37,7 +37,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
     {
         base.InitializeWithWorld(world);
 
-        _skinnedMeshRendererComponent = World.Game.GetGameComponent<SkinnedMeshRendererComponent>();
+        _skinnedMeshRendererComponent = Owner.World.Game.GetGameComponent<SkinnedMeshRendererComponent>();
         //Mesh?.LoadContent(game.GraphicsDevice);
         //Mesh?.Texture?.LoadContent(game.GraphicsDevice, game.AssetContentManager);
     }
@@ -64,7 +64,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
             return;
         }
 
-        var camera = World.Game.GameManager.ActiveCamera;
+        var camera = Owner.World.Game.GameManager.ActiveCamera;
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh,
             WorldMatrixWithScale,

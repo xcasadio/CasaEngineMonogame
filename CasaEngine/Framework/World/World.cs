@@ -143,6 +143,15 @@ public sealed class World : UObject
 
         _octree.ApplyPendingMoves();
 
+#if EDITOR
+        if (!Game.IsRunningInGameEditorMode)
+        {
+            GameplayProxy?.Update(elapsedTime);
+        }
+#else
+        GameplayProxy?.Update(elapsedTime);
+#endif
+
         foreach (var screen in _screens)
         {
             screen.Update(elapsedTime);
@@ -151,14 +160,14 @@ public sealed class World : UObject
 
     private bool IsBoundingBoxDirty(AActor actor)
     {
-        if (actor.RootComponent?.IsBoundingBoxDirty ?? false)
+        if (actor.RootComponent?.IsWorldMatrixChange ?? false)
         {
             return true;
         }
 
         foreach (var component in actor.Components)
         {
-            if (component is SceneComponent { IsBoundingBoxDirty: true })
+            if (component is SceneComponent { IsWorldMatrixChange: true })
             {
                 return true;
             }
@@ -277,9 +286,14 @@ public sealed class World : UObject
         if (element.TryGetProperty("external_component", out var externalComponentNode))
         {
             if (externalComponentNode.ValueKind == JsonValueKind.Object
+                && externalComponentNode.GetProperty("type").ValueKind == JsonValueKind.Number
                 && externalComponentNode.GetProperty("type").GetInt32() != -1)
             {
                 GameplayProxy = (GameplayProxy)ElementFactory.Create<ScriptArcBallCamera>(nameof(ScriptArcBallCamera));
+            }
+            else
+            {
+                GameplayProxy = ElementFactory.Create<GameplayProxy>(externalComponentNode.GetProperty("type").GetString());
             }
         }
     }
@@ -290,6 +304,10 @@ public sealed class World : UObject
 
         foreach (var control in screenGui.Controls)
         {
+            if (!control.Initialized)
+            {
+                control.Initialize(Game.UiManager);
+            }
             Game.UiManager.Add(control);
         }
     }

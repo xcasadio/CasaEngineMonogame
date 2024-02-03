@@ -11,7 +11,7 @@ public class EnemyDyingState : IState<Controller>
     public void Enter(Controller controller)
     {
         controller.Character.Dying();
-        var effectEntity = controller.Character.Owner.RootComponent.World.Game.SpawnEntity("smoke_ring_effect");
+        var effectEntity = controller.Character.Owner.RootComponent.Owner.World.Game.SpawnEntity("smoke_ring_effect");
         effectEntity.RootComponent.Coordinates.Position = controller.Character.Owner.RootComponent.Position;
         var animatedSpriteComponent = effectEntity.GetComponent<AnimatedSpriteComponent>();
         animatedSpriteComponent.SetCurrentAnimation(0, true);

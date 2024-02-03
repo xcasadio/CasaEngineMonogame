@@ -93,6 +93,7 @@ public class GameManager
 
 #if EDITOR
         _cameraEditorEntity.Update(elapsedTime);
+        _cameraEditorEntity.GameplayProxy.Update(elapsedTime);
 #endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))

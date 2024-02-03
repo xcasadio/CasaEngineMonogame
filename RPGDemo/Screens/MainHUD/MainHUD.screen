@@ -1,9 +1,6 @@
 {
-  "asset": {
     "id": 11999,
     "name": "MainHUD",
-    "file_name": "Screens\\MainHUD\\MainHUD.screen"
-  },
   "version": 1,
   "coordinates": {
     "position": {
@@ -28,6 +25,8 @@
       "w": 1.0
     }
   },
+  "root_component" : "null",
+  "components": [],
   "external_component": "null",
   "controls": [
     {

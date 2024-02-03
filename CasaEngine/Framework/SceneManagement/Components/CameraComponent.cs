@@ -71,8 +71,8 @@ public abstract class CameraComponent : SceneComponent
     {
         base.InitializeWithWorld(world);
 
-        _viewport.Width = World.Game.ScreenSizeWidth;
-        _viewport.Height = World.Game.ScreenSizeHeight;
+        _viewport.Width = Owner.World.Game.ScreenSizeWidth;
+        _viewport.Height = Owner.World.Game.ScreenSizeHeight;
         _viewport.MinDepth = 1.0f;
         _viewport.MaxDepth = 1000.0f;
     }

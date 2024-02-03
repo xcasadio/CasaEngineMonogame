@@ -15,6 +15,7 @@ using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
@@ -240,7 +241,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
         AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
         AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
-        //AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
+        AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
     }
 
     private void InitializeGui()

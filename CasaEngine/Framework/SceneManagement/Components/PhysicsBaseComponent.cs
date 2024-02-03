@@ -84,7 +84,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     public override void Update(float elapsedTime)
     {
 #if EDITOR
-        if (World.Game.IsRunningInGameEditorMode)
+        if (Owner.World.Game.IsRunningInGameEditorMode)
         {
             return;
         }

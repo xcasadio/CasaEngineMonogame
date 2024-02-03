@@ -15,8 +15,6 @@ public abstract class ActorComponent : UObject
 {
     public AActor? Owner { get; private set; }
 
-    public World.World World { get; private set; }
-
     protected ActorComponent()
     {
         //Do nothing
@@ -24,7 +22,6 @@ public abstract class ActorComponent : UObject
 
     protected ActorComponent(ActorComponent other)
     {
-        World = other.World;
         Owner = other.Owner;
     }
 
@@ -35,8 +32,6 @@ public abstract class ActorComponent : UObject
 
     public virtual void InitializeWithWorld(World.World world)
     {
-        World = world;
-
         //if initialized
 
         //register event in blueprint like tick or BeginPlay

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
@@ -8,7 +7,7 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -48,11 +47,11 @@ public class TileMapDemo : Demo
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
         //===
-        var physicsComponent = new Physics2dComponent();
+        var physicsComponent = new CircleCollisionComponent();
         entity.AddComponent(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
         physicsComponent.PhysicsDefinition.Mass = 1.0f;
-        physicsComponent.Shape = new ShapeCircle(25);
+        physicsComponent.Scale = new Vector3(25);
         physicsComponent.PhysicsDefinition.ApplyGravity = false;
         physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
 

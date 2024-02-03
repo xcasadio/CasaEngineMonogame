@@ -10,7 +10,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
     private readonly CasaEngineGame _game;
 
 
-    public bool DisplayPhysics { get; set; }
+    public bool DisplayPhysics { get; set; } = true;
 
     public PhysicsDebugViewRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {

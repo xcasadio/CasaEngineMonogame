@@ -97,11 +97,11 @@ public partial class EntityComponentControl : UserControl
         if (selectStaticMeshWindow.ShowDialog() == true
             && sender is FrameworkElement { DataContext: StaticMeshComponent staticMeshComponent })
         {
-            var graphicsDevice = staticMeshComponent.Owner.RootComponent.World.Game.GraphicsDevice;
+            var graphicsDevice = staticMeshComponent.Owner.RootComponent.Owner.World.Game.GraphicsDevice;
 
             staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
-            staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.RootComponent.World.Game.AssetContentManager);
-            staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.World.Game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
+            staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager);
+            staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         }
     }
 

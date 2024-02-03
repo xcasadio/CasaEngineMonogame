@@ -50,9 +50,9 @@ public class CameraTargeted2dComponent : Camera3dComponent
 
         if (Target != null)
         {
-            var viewport = World.Game.GraphicsDevice.Viewport;
-            var screenWidth = World.Game.ScreenSizeWidth;
-            var screenHeight = World.Game.ScreenSizeHeight;
+            var viewport = Owner.World.Game.GraphicsDevice.Viewport;
+            var screenWidth = Owner.World.Game.ScreenSizeWidth;
+            var screenHeight = Owner.World.Game.ScreenSizeHeight;
             var targetPosition = Target?.RootComponent?.Coordinates.Position ?? Vector3.Zero;
 
             Rectangle deadZone = new Rectangle(
@@ -109,7 +109,7 @@ public class CameraTargeted2dComponent : Camera3dComponent
     {
 
         var fov = FieldOfView * 0.5f;
-        float z = -((float)World.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
+        float z = -((float)Owner.World.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
         Position = new(-_offset.X, -_offset.Y, z);
 
         _target = new(-_offset.X, -_offset.Y, 0.0f);

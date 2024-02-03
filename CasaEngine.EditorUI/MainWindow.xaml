@@ -47,24 +47,6 @@
             <TabItem Header="World">
                 <worldControls:WorldEditorControl x:Name="WorldEditorControl"/>
             </TabItem>
-            <TabItem Header="Entity">
-                <entityControls:EntityEditorControl />
-            </TabItem>
-            <TabItem Header="Sprite">
-                <spriteControls:SpriteEditorControl />
-            </TabItem>
-            <TabItem Header="Animation 2d">
-                <animation2dControls:Animation2dEditorControl/>
-            </TabItem>
-            <TabItem Header="Tile Map">
-                <tileMapControls:TileMapEditorControl/>
-            </TabItem>
-            <TabItem Header="ScreenGui">
-                <guiEditorControls:GuiEditorControl/>
-            </TabItem>
-            <TabItem Header="Settings">
-                <controls:SettingsControl x:Name="SettingsControl"/>
-            </TabItem>
 
         </TabControl>
 

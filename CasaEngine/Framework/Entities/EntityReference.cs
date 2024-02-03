@@ -35,7 +35,7 @@ public class EntityReference : ISerializable
         //TODO : remove
         if (element.GetProperty("asset_id").ValueKind == JsonValueKind.Number)
         {
-            var id = element.GetProperty("id").GetInt32();
+            var id = element.GetProperty("asset_id").GetInt32();
             AssetId = id >= 0 ? AssetInfo.GuidsById[id] : Guid.Empty;
         }
         else

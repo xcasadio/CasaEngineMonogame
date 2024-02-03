@@ -1,4 +1,4 @@
-﻿using CasaEngine.Framework.SceneManagement;
+﻿using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;

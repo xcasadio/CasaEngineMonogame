@@ -43,7 +43,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
 
         if (TileMapDataAssetId != Guid.Empty)
         {
-            TileMapData = World.Game.AssetContentManager.Load<TileMapData>(TileMapDataAssetId);
+            TileMapData = Owner.World.Game.AssetContentManager.Load<TileMapData>(TileMapDataAssetId);
         }
 
         if (TileMapData == null)
@@ -51,11 +51,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
             return;
         }
 
-        TileSetData = World.Game.AssetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetId);
+        TileSetData = Owner.World.Game.AssetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetId);
         var tileSize = TileSetData.TileSize;
 
-        var texture = World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
-        texture.Load(World.Game.AssetContentManager);
+        var texture = Owner.World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
+        texture.Load(Owner.World.Game.AssetContentManager);
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -109,7 +109,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                         {
                             case TileCollisionType.NoContactResponse:
                             case TileCollisionType.Blocked:
-                                var physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
+                                var physicsEngineComponent = Owner.World.Game.GetGameComponent<PhysicsEngineComponent>();
                                 var worldMatrix = WorldMatrixNoScale;
                                 worldMatrix.Translation += new Vector3(
                                     x * tileSize.Width + tileSize.Width / 2f,
@@ -132,7 +132,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                         }
                     }
 
-                    tile.Initialize(World.Game);
+                    tile.Initialize(Owner.World.Game);
                     tileMapLayer.Tiles.Add(tile);
                 }
             }

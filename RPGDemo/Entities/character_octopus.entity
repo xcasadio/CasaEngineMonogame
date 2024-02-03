@@ -1,9 +1,6 @@
 {
-  "asset": {
     "id": 10066,
     "name": "character_octopus",
-    "file_name": "Entities\\character_octopus.entity"
-  },
   "version": 1,
   "coordinates": {
     "position": {
@@ -28,8 +25,7 @@
       "w": 1.0
     }
   },
-  "components": [
-    {
+  "root_component": {
       "version": 1,
       "type": 6,
       "color": {
@@ -54,11 +50,12 @@
         227
       ]
     },
+  "components": [
     {
       "version": 1,
       "type": 1,
       "external_component": {
-        "type": 1004
+        "type": "ScriptEnemy"
       }
     },
     {

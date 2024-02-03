@@ -1,7 +1,7 @@
 using System;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
@@ -51,7 +51,7 @@ public class ThrowableWeapon : Weapon
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        physics2dComponent.SetPosition(Character.Owner.RootComponent.Position + new Vector3(offset, 0f));
+        physics2dComponent.Position = Character.Owner.RootComponent.Position + new Vector3(offset, 0f);
 
         var direction = Character.CurrentDirection switch
         {

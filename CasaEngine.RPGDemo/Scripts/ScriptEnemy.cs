@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Controllers.EnemyState;
@@ -21,15 +21,15 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
 
         Character = new Character(Owner);
         Controller = new EnemyController(Character);
-
-        Character.AnimatationPrefix = "octopus";
-        Character.AnimatedSpriteComponent.AnimationFinished += OnAnimationFinished;
     }
 
     public override void InitializeWithWorld(World world)
     {
         Character.Initialize(world.Game);
         Controller.Initialize(world.Game);
+
+        Character.AnimatationPrefix = "octopus";
+        Character.AnimatedSpriteComponent.AnimationFinished += OnAnimationFinished;
     }
 
     public override void Update(float elapsedTime)

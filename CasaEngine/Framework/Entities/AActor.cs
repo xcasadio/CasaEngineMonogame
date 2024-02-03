@@ -14,6 +14,7 @@ public class AActor : UObject
     private readonly List<ActorComponent> _components = new();
     private readonly List<AActor> _children = new();
     private SceneComponent? _rootComponent;
+    public World.World World { get; private set; }
 
     public bool IsInitialized { get; private set; }
     public AActor? Parent { get; private set; }
@@ -70,6 +71,7 @@ public class AActor : UObject
 
     public AActor(AActor actor) : base(actor)
     {
+        World = actor.World;
         _isEnabled = actor._isEnabled;
         Parent = actor.Parent;
         RootComponent = actor.RootComponent?.Clone() as SceneComponent;
@@ -78,12 +80,12 @@ public class AActor : UObject
 
         foreach (var component in actor._components)
         {
-            _components.Add(component.Clone());
+            AddComponent(component.Clone());
         }
 
         foreach (var child in actor._children)
         {
-            _children.Add(child.Clone());
+            AddChild(child.Clone());
         }
     }
 
@@ -115,6 +117,8 @@ public class AActor : UObject
 
     public void InitializeWithWorld(World.World world)
     {
+        World = world;
+
         RootComponent?.InitializeWithWorld(world);
 
         for (int i = 0; i < _components.Count; i++)
@@ -219,7 +223,14 @@ public class AActor : UObject
             _children[i].Update(elapsedTime);
         }
 
+#if EDITOR
+        if (!World.Game.IsRunningInGameEditorMode)
+        {
+            GameplayProxy?.Update(elapsedTime);
+        }
+#else
         GameplayProxy?.Update(elapsedTime);
+#endif
     }
 
     public void Draw(float elapsedTime)
@@ -267,7 +278,15 @@ public class AActor : UObject
 
         foreach (var componentNode in element.GetProperty("components").EnumerateArray())
         {
-            AddComponent(ElementFactory.Load<ActorComponent>(componentNode));
+            if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number &&
+                componentNode.GetProperty("type").GetInt32() == 1)
+            {
+                GameplayProxy = ElementFactory.Create<GameplayProxy>(componentNode.GetProperty("external_component").GetProperty("type").GetString());
+            }
+            else
+            {
+                AddComponent(ElementFactory.Load<ActorComponent>(componentNode));
+            }
         }
 
         /*foreach (var item in element.GetJsonPropertyByName("childen").Value.EnumerateArray())

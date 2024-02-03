@@ -1,10 +1,9 @@
 ﻿using System.IO;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

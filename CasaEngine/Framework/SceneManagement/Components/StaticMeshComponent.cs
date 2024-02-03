@@ -57,7 +57,7 @@ public class StaticMeshComponent : PrimitiveComponent
             return;
         }
 
-        var camera = World.Game.GameManager.ActiveCamera;
+        var camera = Owner.World.Game.GameManager.ActiveCamera;
         var worldViewProj = WorldMatrixWithScale * camera.ViewMatrix * camera.ProjectionMatrix;
         _meshRendererComponent.AddMesh(Mesh, Material, WorldMatrixWithScale, worldViewProj, camera.Position);
     }

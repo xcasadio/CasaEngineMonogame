@@ -2,6 +2,7 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -18,7 +19,7 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
         set
         {
             _shape = value;
-            _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
+            ComputeBoundingBox();
 
 #if EDITOR
             ReCreatePhysicsObject();
@@ -44,7 +45,7 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
             return;
         }
 
-        _shape.Position = Position.ToVector2();
+        //_shape.Position = Position.ToVector2();
         //_shape.Orientation = Owner.Coordinates.Orientation;
 
         var worldMatrix = WorldMatrixNoScale;
@@ -70,6 +71,24 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
         return _boundingBox;
     }
 
+    private void ComputeBoundingBox()
+    {
+        _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
+
+        if (Owner != null)
+        {
+            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixWithScale);
+            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixWithScale);
+            _boundingBox = new BoundingBox(min, max);
+        }
+    }
+
+    public override void Attach(AActor actor)
+    {
+        base.Attach(actor);
+        ComputeBoundingBox();
+    }
+
     public override void Load(JsonElement element)
     {
         base.Load(element);
@@ -77,7 +96,16 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
         var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "\"null\"")
         {
-            Shape = ShapeLoader.LoadShape2d(shapeElement);
+            var shape = ShapeLoader.LoadShape2d(shapeElement);
+
+            if (shape is ShapeCircle circle)
+            {
+                Scale = new Vector3(circle.Radius);
+            }
+            else if (shape is ShapeRectangle rectangle)
+            {
+                Scale = new Vector3(rectangle.Width, rectangle.Height, 1f);
+            }
         }
     }
 
@@ -86,7 +114,7 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
     public override void Save(JObject jObject)
     {
         base.Save(jObject);
-
+        /*
         if (_shape != null)
         {
             var newJObject = new JObject();
@@ -96,7 +124,7 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
         else
         {
             jObject.Add("shape", "null");
-        }
+        }*/
     }
 #endif
 }

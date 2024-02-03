@@ -146,13 +146,13 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         base.InitializeWithWorld(world);
 
-        _spriteRenderer = World.Game.GetGameComponent<SpriteRendererComponent>();
-        _assetContentManager = World.Game.AssetContentManager;
-        _physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
+        _spriteRenderer = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
+        _assetContentManager = Owner.World.Game.AssetContentManager;
+        _physicsEngineComponent = Owner.World.Game.GetGameComponent<PhysicsEngineComponent>();
 
         foreach (var assetId in _animationAssetIds)
         {
-            var animation2dData = World.Game.AssetContentManager.Load<Animation2dData>(assetId);
+            var animation2dData = Owner.World.Game.AssetContentManager.Load<Animation2dData>(assetId);
             var animation2d = new Animation2d(animation2dData);
             animation2d.Initialize();
             Animations.Add(animation2d);
@@ -162,7 +162,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         {
             foreach (var frame in animation.Animation2dData.Frames)
             {
-                var spriteData = World.Game.AssetContentManager.Load<SpriteData>(frame.SpriteId);
+                var spriteData = Owner.World.Game.AssetContentManager.Load<SpriteData>(frame.SpriteId);
                 if (spriteData.CollisionShapes.Count == 0)
                 {
                     continue;
@@ -201,7 +201,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public override void Update(float elapsedTime)
     {
 #if EDITOR
-        if (World.Game.IsRunningInGameEditorMode)
+        if (Owner.World.Game.IsRunningInGameEditorMode)
         {
             return;
         }
@@ -249,7 +249,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         {
             if (frame.SpriteId == CurrentAnimation.CurrentFrame)
             {
-                return World.Game.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+                return Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
             }
         }
         return null;
@@ -257,7 +257,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
     private void OnFrameChanged(object? sender, (Guid oldFrame, Guid newFrame) arg)
     {
-        IsBoundingBoxDirty = true;
+        IsWorldMatrixChange = true;
         RemoveCollisionsFromFrame(arg.oldFrame);
         AddOrUdpateCollisionFromFrame(arg.newFrame, true);
 
@@ -354,7 +354,19 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         foreach (var animationNode in element.GetProperty("animations").EnumerateArray())
         {
-            _animationAssetIds.Add(animationNode.GetGuid());
+            Guid id;
+
+            //TODO remove
+            if (animationNode.ValueKind == JsonValueKind.Number)
+            {
+                id = AssetInfo.GuidsById[animationNode.GetInt32()];
+            }
+            else
+            {
+                id = animationNode.GetGuid();
+            }
+
+            _animationAssetIds.Add(id);
         }
     }
 

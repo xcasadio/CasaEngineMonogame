@@ -7,7 +7,7 @@ namespace CasaEngine.Core.Shapes;
 
 public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
 {
-    public float Radius { get; set; }
+    public float Radius { get; set; } = 1f;
 
     public override BoundingBox BoundingBox
     {

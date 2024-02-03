@@ -27,14 +27,14 @@ public abstract class Shape2d
 #if EDITOR
     public virtual void Save(JObject jObject)
     {
-        jObject.Add("version", 1);
+        //jObject.Add("version", 1);
         jObject.Add("shape_type", Type.ConvertToString());
 
-        var newObject = new JObject();
-        Position.Save(newObject);
-        jObject.Add("location", newObject);
+        //var newObject = new JObject();
+        //Position.Save(newObject);
+        //jObject.Add("location", newObject);
 
-        jObject.Add("orientation", Rotation);
+        //jObject.Add("orientation", Rotation);
     }
 #endif
 }

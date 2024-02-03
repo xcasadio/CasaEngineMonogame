@@ -24,7 +24,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Add(control);
 
 #if EDITOR
-            ScreenWidgetComponent.World.Game.UiManager.Add(control);
+            ScreenWidgetComponent.Owner.World.Game.UiManager.Add(control);
 #endif
         }
 
@@ -33,7 +33,7 @@ namespace CasaEngine.Framework.GUI
             _controls.Remove(control);
 
 #if EDITOR
-            ScreenWidgetComponent.World.Game.UiManager.Remove(control);
+            ScreenWidgetComponent.Owner.World.Game.UiManager.Remove(control);
 #endif
         }
 
@@ -52,7 +52,7 @@ namespace CasaEngine.Framework.GUI
 
         public void Draw()
         {
-            throw new NotImplementedException();
+            //do nothing
         }
 
         public override void Load(JsonElement element)

@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

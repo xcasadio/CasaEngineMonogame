@@ -13,7 +13,7 @@ public class ChildActorComponent : SceneComponent
         set
         {
             _actor = value;
-            IsBoundingBoxDirty = true;
+            IsWorldMatrixChange = true;
         }
     }
 

@@ -55,7 +55,7 @@ public partial class AssetSelectorControl : UserControl
             {
                 if (staticMeshComponent.Mesh != null)
                 {
-                    var assetContentManager = staticMeshComponent.Owner.RootComponent.World.Game.AssetContentManager;
+                    var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
                     staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(contentBrowserControl.SelectedItem.Id);
 
                     if (staticMeshComponent.Mesh.Texture?.Resource == null)

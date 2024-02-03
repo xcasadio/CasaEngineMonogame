@@ -2,6 +2,7 @@
 using System.Text.Json;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -29,7 +30,7 @@ public abstract class PhysicsComponent : PhysicsBaseComponent
                 _shape.PropertyChanged += OnPropertyChanged;
             }
 
-            _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
+            ComputeBoundingBox();
 
 #if EDITOR
             ReCreatePhysicsObject();
@@ -87,15 +88,33 @@ public abstract class PhysicsComponent : PhysicsBaseComponent
         return _boundingBox;
     }
 
+    private void ComputeBoundingBox()
+    {
+        _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
+
+        if (Owner != null)
+        {
+            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixWithScale);
+            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixWithScale);
+            _boundingBox = new BoundingBox(min, max);
+        }
+    }
+
+    public override void Attach(AActor actor)
+    {
+        base.Attach(actor);
+        ComputeBoundingBox();
+    }
+
     public override void Load(JsonElement element)
     {
         base.Load(element);
 
-        var shapeElement = element.GetProperty("shape");
+        /*var shapeElement = element.GetProperty("shape");
         if (shapeElement.GetRawText() != "null")
         {
             Shape = ShapeLoader.LoadShape3d(shapeElement);
-        }
+        }*/
     }
 
 #if EDITOR
@@ -103,7 +122,7 @@ public abstract class PhysicsComponent : PhysicsBaseComponent
     public override void Save(JObject jObject)
     {
         base.Save(jObject);
-
+        /*
         if (_shape != null)
         {
             var newJObject = new JObject();
@@ -113,7 +132,7 @@ public abstract class PhysicsComponent : PhysicsBaseComponent
         else
         {
             jObject.Add("shape", "null");
-        }
+        }*/
     }
 
 #endif

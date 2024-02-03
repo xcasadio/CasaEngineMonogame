@@ -1,9 +1,6 @@
 {
-  "asset": {
-    "id": 10065,
-    "name": "character_link",
-    "file_name": "Entities\\character_link.entity"
-  },
+    "id": 10036,
+    "name": "weapon_rock",
   "version": 1,
   "coordinates": {
     "position": {
@@ -28,8 +25,7 @@
       "w": 1.0
     }
   },
-  "components": [
-    {
+  "root_component": {
       "version": 1,
       "type": 6,
       "color": {
@@ -39,46 +35,10 @@
         "a": 255
       },
       "sprite_effect": "None",
-      "animations": [
-        228,
-        229,
-        230,
-        231,
-        232,
-        233,
-        234,
-        235,
-        236,
-        237,
-        238,
-        239,
-        240,
-        241,
-        242,
-        243,
-        244,
-        245,
-        246,
-        247,
-        248,
-        249,
-        250,
-        251,
-        252,
-        253,
-        254,
-        255,
-        256,
-        257,
-        258,
-        259,
-        260,
-        261,
-        262,
-        263,
-        264
-      ]
+      "animations": [2204]
     },
+  "components": [
+    
     {
       "version": 1,
       "type": 4,
@@ -93,9 +53,9 @@
         "angular_factor": {
           "x": 0.0,
           "y": 0.0,
-          "z": 0.0
+          "z": 1.0
         },
-        "angular_sleeping_threshold": 0.0,
+        "angular_sleeping_threshold": 1.0,
         "friction": 0.0,
         "linear_damping": 0.0,
         "linear_factor": {
@@ -103,13 +63,13 @@
           "y": 1.0,
           "z": 0.0
         },
-        "linear_sleeping_threshold": 0.0,
+        "linear_sleeping_threshold": 0.8,
         "local_inertia": {
           "x": 0.0,
           "y": 0.0,
           "z": 0.0
         },
-        "mass": 10.0,
+        "mass": 1.0,
         "restitution": 0.0,
         "rolling_friction": 0.0,
         "apply_gravity": false,
@@ -123,15 +83,13 @@
           "y": 0.0
         },
         "orientation": 0.0,
-        "radius": 25.0
+        "radius": 20.0
       }
     },
     {
       "version": 1,
       "type": 1,
-      "external_component": {
-        "type": 1003
-      }
+      "external_component_id": -1
     }
   ]
 }

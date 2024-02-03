@@ -49,8 +49,8 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     {
         base.InitializeWithWorld(world);
 
-        _spriteRendererComponent = World.Game.GetGameComponent<SpriteRendererComponent>();
-        _physicsEngineComponent = World.Game.GetGameComponent<PhysicsEngineComponent>();
+        _spriteRendererComponent = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
+        _physicsEngineComponent = Owner.World.Game.GetGameComponent<PhysicsEngineComponent>();
     }
 
     public override StaticSpriteComponent Clone()
@@ -132,11 +132,11 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     private void LoadSpriteData(string? spriteDataName)
     {
-        _spriteData = World.Game.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
-        _sprite = Sprite.Create(_spriteData, World.Game.AssetContentManager);
+        _spriteData = Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
+        _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
-        IsBoundingBoxDirty = true;
+        IsWorldMatrixChange = true;
     }
 
     private void AddCollisions()

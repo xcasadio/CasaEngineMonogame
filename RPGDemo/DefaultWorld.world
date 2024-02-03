@@ -1,18 +1,13 @@
 {
-  "asset": {
-    "id": 0,
-    "name": "DefaultWorld",
-    "file_name": "DefaultWorld.world"
-  },
+  "id": "9b366ad0-1edf-4025-9eff-b38d3af2b3f3",
+  "name": "DefaultWorld"
+  ,
   "entity_references": [
     {
       "asset_id": -1,
       "entity": {
-        "asset": {
           "id": 4026,
           "name": "tileMap",
-          "file_name": null
-        },
         "root_component": {
 			"id": 1,
 			"name": "TileMapComponent",
@@ -39,6 +34,7 @@
 				"w": 1.0
 			  }
 			},
+			"children_component": [],
 			"type": 8,
 			"tile_map_data_asset_id": 4000
 		  },
@@ -102,11 +98,8 @@
     {
       "asset_id": -1,
       "entity": {
-        "asset": {
-          "id": 11181,
-          "name": "camera",
-          "file_name": null
-        },
+        "id": 11181,
+        "name": "camera",
         "version": 1,
         "coordinates": {
           "position": {
@@ -131,8 +124,7 @@
             "w": 1.0
           }
         },
-        "components": [
-          {
+        "root_component": {
             "version": 1,
             "type": 11,
             "view_distance": 0.0,
@@ -145,12 +137,12 @@
               "max_depth": 1000.0
             },
             "fieldOfView": 0.8377581
-          }
-        ]
+          },
+        "components": []
       }
     }
   ],
   "external_component": {
-    "type": 1005
+    "type": "ScriptWorld"
   }
 }

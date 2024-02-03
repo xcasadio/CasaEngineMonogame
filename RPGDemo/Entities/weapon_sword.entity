@@ -1,8 +1,6 @@
 {
-  "asset": {
-    "id": 10901,
-    "file_name": "Entities\\smoke_ring_effect.entity"
-  },
+    "id": 10272,
+    "name": "weapon_sword",
   "version": 1,
   "coordinates": {
     "position": {
@@ -27,7 +25,7 @@
       "w": 1.0
     }
   },
-  "components": [
+  "root_component": 
     {
       "version": 1,
       "type": 6,
@@ -39,13 +37,27 @@
       },
       "sprite_effect": "None",
       "animations": [
-        10695
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215
       ]
     },
+  "components": [
     {
       "version": 1,
       "type": 1,
-      "external_component_id": -1
+      "external_component": {
+        "type": "ScriptPlayerWeapon"
+      }
     }
   ]
 }

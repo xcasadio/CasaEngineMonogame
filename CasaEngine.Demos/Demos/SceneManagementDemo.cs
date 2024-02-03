@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
