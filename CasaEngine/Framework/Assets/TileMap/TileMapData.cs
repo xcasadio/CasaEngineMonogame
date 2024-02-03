@@ -15,12 +15,27 @@ public class TileMapData : UObject
 
     public override void Load(JsonElement element)
     {
-        base.Load(element.GetProperty("asset"));
+        //TODO remove
+        if (element.TryGetProperty("asset", out _))
+        {
+            base.Load(element.GetProperty("asset"));
+        }
+        else
+        {
+            base.Load(element);
+        }
 
         MapSize = element.GetProperty("map_size").GetSize();
+
         //TODO : remove
-        TileSetDataAssetId = AssetInfo.GuidsById[element.GetProperty("tile_set_asset_id").GetInt32()];
-        //TileSetDataAssetId = element.GetProperty("tile_set_asset_id").GetGuid();
+        if (element.GetProperty("tile_set_asset_id").ValueKind == JsonValueKind.Number)
+        {
+            TileSetDataAssetId = AssetInfo.GuidsById[element.GetProperty("tile_set_asset_id").GetInt32()];
+        }
+        else
+        {
+            TileSetDataAssetId = element.GetProperty("tile_set_asset_id").GetGuid();
+        }
 
         Layers.AddRange(element.GetElements("layers", o =>
         {

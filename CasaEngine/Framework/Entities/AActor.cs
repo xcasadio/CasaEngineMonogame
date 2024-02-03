@@ -278,8 +278,9 @@ public class AActor : UObject
 
         foreach (var componentNode in element.GetProperty("components").EnumerateArray())
         {
-            if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number &&
-                componentNode.GetProperty("type").GetInt32() == 1)
+            if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number
+                && componentNode.GetProperty("type").GetInt32() == 1
+                && componentNode.GetProperty("external_component").ValueKind == JsonValueKind.Object)
             {
                 GameplayProxy = ElementFactory.Create<GameplayProxy>(componentNode.GetProperty("external_component").GetProperty("type").GetString());
             }
