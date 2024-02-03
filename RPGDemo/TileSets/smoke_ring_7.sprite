@@ -1,7 +1,7 @@
 {
   "asset": {
     "id": 10693,
-    "file_name": "TileSets\\smoke_ring_7.sprite"
+    "name": "smoke_ring_7"
   },
   "sprite_sheet_asset_id": 10479,
   "location": {

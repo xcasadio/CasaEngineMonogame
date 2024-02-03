@@ -37,9 +37,7 @@ public abstract class GameEditor2d : GameEditor
 
     protected override void LoadContent()
     {
-        base.LoadContent();
-
-        CameraEntity = new AActor();
+        CameraEntity = new AActor { Name = "camera GameEditor2d" };
         var camera = new Camera3dIn2dAxisComponent();
         CameraEntity.RootComponent = camera;
         var screenXBy2 = Game.ScreenSizeWidth / 2f;
@@ -54,7 +52,7 @@ public abstract class GameEditor2d : GameEditor
         Game.GameManager.SetWorldToLoad(new World());
         //Game.GameManager.CurrentWorld.LoadContent(Game);
 
-        _entity = new AActor();
+        _entity = new AActor { Name = "actor GameEditor2d" }; ;
         CreateEntityComponents(_entity);
         if (_entity.RootComponent != null)
         {
@@ -62,8 +60,11 @@ public abstract class GameEditor2d : GameEditor
         }
 
         _entity.Initialize();
-        //_entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
         Game.GameManager.CurrentWorld.AddEntity(_entity);
+        Game.GameManager.CurrentWorld.LoadContent(Game);
+        _entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
+
+        base.LoadContent();
     }
 
     protected override void Update(GameTime gameTime)

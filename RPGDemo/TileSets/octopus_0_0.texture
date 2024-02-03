@@ -2,7 +2,7 @@
   "asset": {
     "id": 10003,
     "name": "octopus_0_0",
-    "file_name": "TileSets\\octopus_0_0.texture"
+    "name": "octopus_0_0"
   },
   "texture_asset_id": 10002,
   "sampler_state": {

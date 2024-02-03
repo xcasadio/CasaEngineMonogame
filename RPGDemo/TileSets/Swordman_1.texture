@@ -2,7 +2,7 @@
   "asset": {
     "id": 10007,
     "name": "Swordman_1",
-    "file_name": "TileSets\\Swordman_1.texture"
+    "name": "Swordman_1"
   },
   "texture_asset_id": 10006,
   "sampler_state": {

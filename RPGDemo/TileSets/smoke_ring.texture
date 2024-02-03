@@ -1,7 +1,7 @@
 {
   "asset": {
     "id": 10479,
-    "file_name": "TileSets\\smoke_ring.texture"
+    "name": "smoke_ring"
   },
   "texture_asset_id": 10478,
   "sampler_state": {
