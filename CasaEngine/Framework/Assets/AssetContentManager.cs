@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework.Graphics;

@@ -46,10 +46,10 @@ internal class CalculatorTokenBinaryOperator : CalculatorToken
         _operator = @operator;
     }
 
-    public CalculatorTokenBinaryOperator(Calculator calculator, JsonElement element, SaveOption option)
+    public CalculatorTokenBinaryOperator(Calculator calculator, JsonElement element)
         : base(calculator)
     {
-        Load(element, option);
+        Load(element);
     }
 
     public override float Evaluate()
@@ -115,26 +115,26 @@ internal class CalculatorTokenBinaryOperator : CalculatorToken
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         jObject.Add("type", ((int)CalculatorTokenType.BinaryOperator).ToString());
         jObject.Add("operator", ((int)_operator).ToString());
 
         var leftElement = new JObject();
-        _left.Save(leftElement, option);
+        _left.Save(leftElement);
         jObject.Add("left", leftElement);
 
         var rightElement = new JObject();
-        _right.Save(rightElement, option);
+        _right.Save(rightElement);
         jObject.Add("right", rightElement);
     }
 #endif
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         _operator = element.GetProperty("operator").GetEnum<BinaryOperator>();
-        _left = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("left"), option);
-        _right = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("right"), option);
+        _left = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("left"));
+        _right = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("right"));
 
     }
 }

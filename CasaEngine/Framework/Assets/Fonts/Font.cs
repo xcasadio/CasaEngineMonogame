@@ -90,10 +90,10 @@ public class Font
         Kernings = new List<FontKerning>();
     }
 
-    public Font(XmlElement node, SaveOption option)
+    public Font(XmlElement node)
         : this()
     {
-        Load(node, option);
+        Load(node);
     }
 
     public Vector2 MeasureString(StringBuilder str)
@@ -158,7 +158,7 @@ public class Font
         */
     }
 
-    public void Load(XmlElement el, SaveOption opt)
+    public void Load(XmlElement el)
     {
 
         Common = new FontCommon(el.SelectSingleNode("Font/Common"));
@@ -229,7 +229,7 @@ public class Font
         }
     }
 
-    public void Save(XmlElement el, SaveOption opt)
+    public void Save(XmlElement el)
     {
         //XmlNode fontNode = el.OwnerDocument.CreateElement("Font");
         //el.AppendChild(fontNode);
@@ -263,7 +263,7 @@ public class Font
         //}
     }
 
-    public void Save(BinaryWriter bw, SaveOption option)
+    public void Save(BinaryWriter bw)
     {
         throw new Exception("The method or operation is not implemented.");
     }
@@ -474,7 +474,7 @@ public class FontCommon
         Base = int.Parse(node.Attributes["base"].Value);
     }
 
-    public void Save(XmlNode node, SaveOption option)
+    public void Save(XmlNode node)
     {
         XmlNode fontNode = node.OwnerDocument.CreateElement("Common");
         node.AppendChild(fontNode);
@@ -594,7 +594,7 @@ public class FontChar
         XAdvance = int.Parse(node.Attributes["xadvance"].Value);
     }
 
-    public void Save(XmlNode node, SaveOption option)
+    public void Save(XmlNode node)
     {
         XmlNode charNode = node.OwnerDocument.CreateElement("Char");
         node.AppendChild(charNode);
@@ -642,7 +642,7 @@ public class FontKerning
         Amount = int.Parse(node.Attributes["amount"].Value);
     }
 
-    public void Save(XmlNode node, SaveOption option)
+    public void Save(XmlNode node)
     {
         XmlNode kerningNode = node.OwnerDocument.CreateElement("Kerning");
         node.AppendChild(kerningNode);

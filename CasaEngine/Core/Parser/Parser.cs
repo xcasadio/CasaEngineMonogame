@@ -220,14 +220,14 @@ public abstract class Parser
     }
 
 #if EDITOR
-    public void Save(JObject jObject, SaveOption option)
+    public void Save(JObject jObject)
     {
-        _calculator.Save(jObject, option);
+        _calculator.Save(jObject);
     }
 #endif
 
-    public void Load(JsonElement element, SaveOption option)
+    public void Load(JsonElement element)
     {
-        _calculator.Load(element, option);
+        _calculator.Load(element);
     }
 }

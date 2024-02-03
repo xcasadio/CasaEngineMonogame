@@ -16,7 +16,7 @@ public class CSharpDynamicScriptController : DotNetDynamicScriptController
     protected override SyntaxTree GetSyntaxTree(string code)
     {
         var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11);
-        return CSharpSyntaxTree.ParseText(code, options);
+        return CSharpSyntaxTree.ParseText(code);
     }
 
     protected override Compilation AddReferences(string rootPath, Compilation compilation)

@@ -42,12 +42,12 @@ public class InputConfigurations
         _configs.Remove(name);
     }
 
-    public void Save(JObject jObject, SaveOption option)
+    public void Save(JObject jObject)
     {
 
     }
 
-    public void Load(JsonElement element, SaveOption option)
+    public void Load(JsonElement element)
     {
 
     }

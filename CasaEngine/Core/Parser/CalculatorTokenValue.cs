@@ -25,10 +25,10 @@ internal class CalculatorTokenValue : CalculatorToken
         _type = 1;
     }
 
-    public CalculatorTokenValue(Calculator calculator, JsonElement element, SaveOption option)
+    public CalculatorTokenValue(Calculator calculator, JsonElement element)
         : base(calculator)
     {
-        Load(element, option);
+        Load(element);
     }
 
     public override float Evaluate()
@@ -37,7 +37,7 @@ internal class CalculatorTokenValue : CalculatorToken
     }
 
 #if EDITOR
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         jObject.Add("type", CalculatorTokenType.Value.ConvertToString());
         jObject.Add("value", _type == 0 ? _value : _string);
@@ -45,7 +45,7 @@ internal class CalculatorTokenValue : CalculatorToken
 
 #endif
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         _type = (int)element.GetProperty("type").GetEnum<CalculatorTokenType>();
 

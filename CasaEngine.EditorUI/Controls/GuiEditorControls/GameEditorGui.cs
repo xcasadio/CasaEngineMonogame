@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using CasaEngine.EditorUI.DragAndDrop;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;

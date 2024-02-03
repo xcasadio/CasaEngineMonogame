@@ -17,10 +17,10 @@ internal class CalculatorTokenFunction : CalculatorToken
         _args = args;
     }
 
-    public CalculatorTokenFunction(Calculator calculator, JsonElement element, SaveOption option)
+    public CalculatorTokenFunction(Calculator calculator, JsonElement element)
         : base(calculator)
     {
-        Load(element, option);
+        Load(element);
     }
 
     public override float Evaluate()
@@ -28,7 +28,7 @@ internal class CalculatorTokenFunction : CalculatorToken
         return Calculator.Parser.EvaluateFunction(_functionName, _args);
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         _functionName = element.GetProperty("FunctionName").GetString();
         var args = new List<string>();
@@ -43,7 +43,7 @@ internal class CalculatorTokenFunction : CalculatorToken
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         jObject.Add("type", CalculatorTokenType.Value.ConvertToString());
         jObject.Add("function_name", _functionName);

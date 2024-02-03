@@ -15,10 +15,10 @@ internal class CalculatorTokenKeyword : CalculatorToken
         _keyword = keyword;
     }
 
-    public CalculatorTokenKeyword(Calculator calculator, JsonElement element, SaveOption option)
+    public CalculatorTokenKeyword(Calculator calculator, JsonElement element)
         : base(calculator)
     {
-        Load(element, option);
+        Load(element);
     }
 
     public override float Evaluate()
@@ -26,14 +26,14 @@ internal class CalculatorTokenKeyword : CalculatorToken
         return Calculator.Parser.EvaluateKeyword(_keyword);
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         _keyword = element.GetProperty("keyword").GetString();
     }
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         jObject.Add("type", CalculatorTokenType.Keyword.ConvertToString());
         jObject.Add("keyword", _keyword);

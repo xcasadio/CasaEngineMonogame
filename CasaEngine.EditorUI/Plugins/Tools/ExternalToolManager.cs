@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.EditorUI.Plugins.Tools;

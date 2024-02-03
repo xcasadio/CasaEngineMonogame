@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.SceneManagement.Components;

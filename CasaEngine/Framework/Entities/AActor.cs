@@ -1,11 +1,11 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.SceneManagement;
+namespace CasaEngine.Framework.Entities;
 
 //Actor is the base class for an Object that can be placed or spawned in a level.
 public class AActor : UObject

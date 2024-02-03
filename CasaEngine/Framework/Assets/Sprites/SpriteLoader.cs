@@ -10,7 +10,7 @@ public class SpriteLoader
 {
     private const string SpriteDatasNodeName = "sprites";
 
-    public static List<SpriteData> LoadFromFile(string fileName, AssetContentManager assetContentManager, SaveOption option)
+    public static List<SpriteData> LoadFromFile(string fileName, AssetContentManager assetContentManager)
     {
         List<SpriteData> spriteDatas = new List<SpriteData>();
 

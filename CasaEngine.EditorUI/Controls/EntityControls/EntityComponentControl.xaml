@@ -15,6 +15,7 @@
              xmlns:components="clr-namespace:CasaEngine.Framework.SceneManagement.Components;assembly=CasaEngine"
              xmlns:sceneManagement="clr-namespace:CasaEngine.Framework.SceneManagement;assembly=CasaEngine"
              xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:scripting="clr-namespace:CasaEngine.Framework.Scripting;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="400">
     <Control.Resources>
@@ -232,7 +233,7 @@
             </ItemsControl>
         </DataTemplate>
 
-        <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type sceneManagement:GameplayProxy}">
+        <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type scripting:GameplayProxy}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />

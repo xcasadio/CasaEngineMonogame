@@ -3,7 +3,7 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.SceneManagement;
+namespace CasaEngine.Framework.Entities;
 
 public class UObject : ISerializable
 {

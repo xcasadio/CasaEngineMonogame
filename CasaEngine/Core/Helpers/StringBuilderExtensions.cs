@@ -102,8 +102,7 @@ public static class StringBuilderExtensions
     /// <summary>
     /// Convert float to string and add to string builder.
     /// </summary>
-    public static void AppendNumber(this StringBuilder builder, float number, int decimalCount,
-        AppendNumberOptions options)
+    public static void AppendNumber(this StringBuilder builder, float number, int decimalCount, AppendNumberOptions options)
     {
         // Handle NaN, Infinity cases.
         if (float.IsNaN(number))

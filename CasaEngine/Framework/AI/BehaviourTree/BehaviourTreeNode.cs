@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.SceneManagement;
+﻿using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.Framework.AI.BehaviourTree;
 

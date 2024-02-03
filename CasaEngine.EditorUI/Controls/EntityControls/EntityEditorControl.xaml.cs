@@ -2,6 +2,7 @@
 using System.Windows;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;

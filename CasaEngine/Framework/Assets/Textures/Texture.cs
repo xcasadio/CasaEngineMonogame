@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;

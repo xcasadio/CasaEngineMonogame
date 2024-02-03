@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Entities;
 
-namespace CasaEngine.Framework.SceneManagement;
+namespace CasaEngine.Framework.Scripting;
 
 public abstract class GameplayProxy : UObject
 {

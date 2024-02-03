@@ -18,6 +18,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;

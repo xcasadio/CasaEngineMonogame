@@ -29,9 +29,9 @@ public class Move
         Name = name;
     }
 
-    public Move(JsonElement element, SaveOption option)
+    public Move(JsonElement element)
     {
-        Load(element, option);
+        Load(element);
     }
 
     public bool Match(int index, InputManager.KeyState[] buttons)
@@ -56,7 +56,7 @@ public class Move
         return x == Sequence[index].Count;
     }
 
-    public void Load(JsonElement element, SaveOption option)
+    public void Load(JsonElement element)
     {
         Name = element.GetProperty("name").GetString();
 
@@ -76,7 +76,7 @@ public class Move
 
 #if EDITOR
 
-    public void Save(JObject jObject, SaveOption option)
+    public void Save(JObject jObject)
     {
         jObject.Add("name", Name);
 

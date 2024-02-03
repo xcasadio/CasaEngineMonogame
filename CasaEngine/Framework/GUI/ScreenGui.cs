@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 using Control = TomShane.Neoforce.Controls.Control;
 using CasaEngine.Framework.SceneManagement;

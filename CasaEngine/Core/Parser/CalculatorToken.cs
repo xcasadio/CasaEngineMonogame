@@ -31,9 +31,9 @@ internal abstract class CalculatorToken
         return _calculator.Parser.EvaluateKeyword(keyword);
     }
 
-    public abstract void Load(JsonElement element, SaveOption option);
+    public abstract void Load(JsonElement element);
 
 #if EDITOR
-    public abstract void Save(JObject jObject, SaveOption option);
+    public abstract void Save(JObject jObject);
 #endif
 }

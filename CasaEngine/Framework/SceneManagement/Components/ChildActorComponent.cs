@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Framework.Entities;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 

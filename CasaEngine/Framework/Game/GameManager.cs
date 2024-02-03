@@ -1,5 +1,6 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;

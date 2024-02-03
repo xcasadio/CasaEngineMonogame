@@ -3,7 +3,7 @@ using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Entities;
+namespace CasaEngine.Core.Maths;
 
 public class Coordinates
 {

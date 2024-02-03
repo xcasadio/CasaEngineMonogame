@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.EditorUI.Plugins.Tools;

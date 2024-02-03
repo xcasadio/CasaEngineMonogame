@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement;
+using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 

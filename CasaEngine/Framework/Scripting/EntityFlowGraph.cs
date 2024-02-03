@@ -5,11 +5,11 @@ namespace CasaEngine.Framework.Scripting;
 /*
 public class EntityFlowGraph : Entity
 {
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element, option);
+        base.Load(element);
 
-        //FlowGraph.Load(element.GetElement("flow_graph"), option);
+        //FlowGraph.Load(element.GetElement("flow_graph"));
     }
 
 #if EDITOR
@@ -37,11 +37,11 @@ public class EntityFlowGraph : Entity
         gamePlayComponent.GameplayProxy = InstanciatedObject;
     }
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
-        //FlowGraph.Save(jObject, option);
+        //FlowGraph.Save(jObject);
     }
 #endif
 }*/

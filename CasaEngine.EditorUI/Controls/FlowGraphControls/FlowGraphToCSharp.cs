@@ -217,7 +217,7 @@ public class GeneratedClass : GameplayProxy
         ##OnEndPlay##
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
 
     }
