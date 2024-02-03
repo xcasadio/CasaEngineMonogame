@@ -1,18 +1,18 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public partial class GameEditorWorldControl : UserControl
 {
-    private GameScreenControlViewModel? ScreenControlViewModel => DataContext as GameScreenControlViewModel;
+    private WorldEditorViewModel? ScreenControlViewModel => DataContext as WorldEditorViewModel;
 
     public GameEditorWorldControl()
     {
         InitializeComponent();
-
-        DataContext = new GameScreenControlViewModel(gameEditor);
+        DataContext = new WorldEditorViewModel(gameEditor);
     }
 
     private void ButtonLaunchGame_Click(object sender, RoutedEventArgs e)

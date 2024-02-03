@@ -8,7 +8,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <common:TreeViewEx x:Name="TreeViewEntities" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown">
+        <common:TreeViewEx x:Name="TreeViewEntities" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown"
+                           ItemsSource="{Binding Entities}">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type viewModels:EntityViewModel}" ItemsSource="{Binding Children}">
                     <Grid>

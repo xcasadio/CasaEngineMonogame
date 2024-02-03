@@ -37,7 +37,7 @@
         </Grid>
 
         <common:TreeViewEx Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
-                  ItemsSource="{Binding ComponentsHierarchyViewModel.ComponentsViewModel}" MinHeight="25"
+                  ItemsSource="{Binding ComponentListViewModel.ComponentsViewModel}" MinHeight="25"
                   SelectedItemChanged="OnComponentSelectedItemChanged" KeyDown="TreeView_KeyDown">
             <!--TreeView.ContextMenu>
                 <ContextMenu>

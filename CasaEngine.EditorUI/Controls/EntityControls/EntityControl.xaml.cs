@@ -142,7 +142,7 @@ public partial class EntityControl : UserControl
         if (sender is FrameworkElement { DataContext: ActorComponent component })
         {
             var entityViewModel = DataContext as EntityViewModel;
-            entityViewModel.ComponentsHierarchyViewModel.RemoveComponent(component);
+            entityViewModel.ComponentListViewModel.RemoveComponent(component);
         }
     }
 

@@ -4,12 +4,12 @@ using CasaEngine.Framework.SceneManagement.Components;
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 //used only to create the root node in the tree view
-public class ActorViewModelComponent : ComponentViewModel
+public class RootNodeComponentViewModel : ComponentViewModel
 {
     public EntityViewModel EntityViewModel { get; }
     public override AActor Owner => EntityViewModel.Entity;
 
-    public ActorViewModelComponent(EntityViewModel entityViewModel) : base(null)
+    public RootNodeComponentViewModel(EntityViewModel entityViewModel) : base(null)
     {
         EntityViewModel = entityViewModel;
         Name = $"{EntityViewModel.Name} (self)";

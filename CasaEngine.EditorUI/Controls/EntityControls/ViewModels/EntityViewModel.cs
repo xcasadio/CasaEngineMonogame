@@ -8,7 +8,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
 {
     private EntityViewModel? _parent;
 
-    public string Name
+    public virtual string Name
     {
         get => Entity.Name;
     }
@@ -22,16 +22,16 @@ public class EntityViewModel : NotifyPropertyChangeBase
     }
 
     public ObservableCollection<EntityViewModel> Children { get; } = new();
-    public ComponentsHierarchyViewModel ComponentsHierarchyViewModel { get; }
+    public ComponentListViewModel ComponentListViewModel { get; }
 
     public EntityViewModel(AActor entity)
     {
         Entity = entity;
-        ComponentsHierarchyViewModel = new ComponentsHierarchyViewModel(this);
+        ComponentListViewModel = new ComponentListViewModel(this);
 
         AssetCatalog.AssetRenamed += OnAssetRenamed;
 
-        if (entity.Parent != null)
+        if (entity?.Parent != null)
         {
             Parent = new EntityViewModel(entity.Parent);
         }
@@ -47,17 +47,17 @@ public class EntityViewModel : NotifyPropertyChangeBase
 
     public void AddComponent(ComponentViewModel componentViewModel)
     {
-        ComponentsHierarchyViewModel.RootComponentViewModel.AddComponent(componentViewModel);
+        ComponentListViewModel.RootComponentViewModel.AddComponent(componentViewModel);
     }
 
-    public void AddActorChild(EntityViewModel entityViewModel)
+    public virtual void AddActorChild(EntityViewModel entityViewModel)
     {
         entityViewModel.Parent = this;
         Entity.AddChild(entityViewModel.Entity);
         Children.Add(entityViewModel);
     }
 
-    public void RemoveActorChild(EntityViewModel entityViewModel)
+    public virtual void RemoveActorChild(EntityViewModel entityViewModel)
     {
         entityViewModel.Parent = null;
         Entity.RemoveChild(entityViewModel.Entity);

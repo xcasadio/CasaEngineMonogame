@@ -8,20 +8,24 @@ namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 public class EntityListViewModel
 {
     private bool _lock;
-    private readonly World _world;
+    private readonly RootNodeEntityViewModel _worldViewModel;
 
     public ObservableCollection<EntityViewModel> Entities { get; } = new();
 
-    public EntityListViewModel(World world)
+    public EntityListViewModel(RootNodeEntityViewModel worldViewModelViewModel)
     {
-        _world = world;
-        world.EntityAdded += OnEntityAdded;
-        world.EntityRemoved += OnEntityRemoved;
-        world.EntitiesClear += OnEntitiesClear;
+        _worldViewModel = worldViewModelViewModel;
+        //worldViewModelViewModel.World.EntityAdded += OnEntityAdded;
+        //worldViewModelViewModel.World.EntityRemoved += OnEntityRemoved;
+        //worldViewModelViewModel.World.EntitiesClear += OnEntitiesClear;
 
-        foreach (var worldEntity in world.Entities)
+        Entities.Add(worldViewModelViewModel);
+
+        foreach (var entity in worldViewModelViewModel.World.Entities)
         {
-            Entities.Add(new EntityViewModel(worldEntity));
+            var entityViewModel = new EntityViewModel(entity);
+            entityViewModel.Parent = worldViewModelViewModel;
+            worldViewModelViewModel.Children.Add(entityViewModel);
         }
     }
 
@@ -38,7 +42,8 @@ public class EntityListViewModel
             {
                 if (entityViewModel.Entity == entity)
                 {
-                    Entities.Remove(entityViewModel);
+                    //Entities.Remove(entityViewModel);
+                    _worldViewModel.RemoveActorChild(entityViewModel);
                     break;
                 }
             }
@@ -49,7 +54,9 @@ public class EntityListViewModel
     {
         if (!_lock)
         {
-            Entities.Add(new EntityViewModel(entity));
+            var entityViewModel = new EntityViewModel(entity);
+            entityViewModel.Parent = _worldViewModel;
+            _worldViewModel.Children.Add(entityViewModel);
         }
     }
 
@@ -69,23 +76,16 @@ public class EntityListViewModel
     public EntityViewModel Add(AActor entity)
     {
         _lock = true;
-
-        _world.AddEntityWithEditor(entity);
-        var entityViewModel = new EntityViewModel(entity);
-        Entities.Add(entityViewModel);
-
+        _worldViewModel.AddActorChild(new EntityViewModel(entity));
         _lock = false;
 
-        return entityViewModel;
+        return new EntityViewModel(entity);
     }
 
     public void Remove(EntityViewModel entityViewModel)
     {
         _lock = true;
-
-        Entities.Remove(entityViewModel);
-        _world.RemoveEntityWithEditor(entityViewModel.Entity);
-
+        _worldViewModel.RemoveActorChild(entityViewModel);
         _lock = false;
     }
 }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -104,13 +105,13 @@ public class GameEditorWorld : GameEditor
         entity.Initialize();
         entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
 
-        Game?.GameManager.CurrentWorld.AddEntityWithEditor(entity);
+        var worldEditorViewModel = DataContext as WorldEditorViewModel;
+        worldEditorViewModel.EntitiesViewModel.Add(entity);
+        //Game?.GameManager.CurrentWorld.AddEntityWithEditor(entity);
 
         _gizmoComponent.Gizmo.Clear();
         if (entity.RootComponent != null)
         {
-            _gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
-
             var position = mousePosition;
             var camera = Game?.GameManager.ActiveCamera;
             var ray = RayHelper.CalculateRayFromScreenCoordinate(
@@ -120,7 +121,9 @@ public class GameEditorWorld : GameEditor
             //TODO : check intersection with object or the plane XZ
             entity.RootComponent.Coordinates.Position = ray.Position + ray.Direction * 5.0f;
 
-            _gizmoComponent.Gizmo.RaiseSelectionChanged();
+            //TODO : devrait etre selectionné tout seul avec le changement de dataContext
+            //_gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
+            //_gizmoComponent.Gizmo.RaiseSelectionChanged();
         }
     }
 }

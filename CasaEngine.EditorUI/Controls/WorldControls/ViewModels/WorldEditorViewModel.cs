@@ -1,17 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using Microsoft.Xna.Framework;
 using XNAGizmo;
 
-namespace CasaEngine.EditorUI.Controls.WorldControls;
+namespace CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 
-public class GameScreenControlViewModel : INotifyPropertyChanged
+public class WorldEditorViewModel : NotifyPropertyChangeBase
 {
-    private readonly CasaEngineGame? _game;
+    private CasaEngineGame? _game;
     private GizmoComponent? _gizmoComponent;
+    private EntityListViewModel _entitiesViewModel;
+
+    public EntityListViewModel EntitiesViewModel
+    {
+        get => _entitiesViewModel;
+        private set => SetField(ref _entitiesViewModel, value);
+    }
 
     public bool IsTranslationMode
     {
@@ -63,7 +69,7 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
         }
     }
 
-    public GameScreenControlViewModel(GameEditorWorld gameEditorWorld)
+    public WorldEditorViewModel(GameEditorWorld gameEditorWorld)
     {
         _game = gameEditorWorld.Game;
         gameEditorWorld.GameStarted += OnGameGameStarted;
@@ -71,13 +77,20 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
 
     private void OnGameGameStarted(object? sender, EventArgs e)
     {
-        CasaEngineGame game = (CasaEngineGame)sender;
-        _gizmoComponent = game.GetGameComponent<GizmoComponent>();
+        _game = sender as CasaEngineGame;
+        _game.GameManager.WorldChanged += OnWorldChanged;
+        _gizmoComponent = _game.GetGameComponent<GizmoComponent>();
         _gizmoComponent.Gizmo.GizmoModeChangedEvent += OnGizmoModeChangedEvent;
         _gizmoComponent.Gizmo.TransformSpaceChangedEvent += OnTransformSpaceChangedEvent;
 
         OnGizmoModeChangedEvent(this, EventArgs.Empty);
         OnTransformSpaceChangedEvent(this, EventArgs.Empty);
+    }
+
+    private void OnWorldChanged(object? sender, EventArgs e)
+    {
+        var worldViewModel = new RootNodeEntityViewModel(_game.GameManager.CurrentWorld);
+        EntitiesViewModel = new EntityListViewModel(worldViewModel);
     }
 
     private void OnGizmoModeChangedEvent(object? sender, EventArgs e)
@@ -91,20 +104,5 @@ public class GameScreenControlViewModel : INotifyPropertyChanged
     {
         OnPropertyChanged(nameof(IsTransformSpaceLocal));
         OnPropertyChanged(nameof(IsTransformSpaceWorld));
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
     }
 }

@@ -38,29 +38,6 @@ public class GizmoComponent : DrawableGameComponent
         _inputComponent = Game.GetGameComponent<InputComponent>();
     }
 
-    protected override void LoadContent()
-    {
-        base.LoadContent();
-
-        _game.GameManager.WorldChanged += OnWorldChanged;
-    }
-
-    private void OnWorldChanged(object? sender, EventArgs e)
-    {
-        _game.GameManager.CurrentWorld.EntityAdded += OnEntityAdded;
-        _game.GameManager.CurrentWorld.EntityRemoved += OnEntityRemoved;
-    }
-
-    private void OnEntityAdded(object? sender, AActor e)
-    {
-        Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
-    }
-
-    private void OnEntityRemoved(object? sender, AActor e)
-    {
-        Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
-    }
-
     public override void Update(GameTime gameTime)
     {
         if (Gizmo.GetSelectionPool() == null && _game.GameManager.CurrentWorld != null)

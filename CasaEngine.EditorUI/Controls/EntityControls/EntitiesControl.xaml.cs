@@ -131,9 +131,7 @@ public partial class EntitiesControl : UserControl
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
-        var entitiesViewModel = new EntityListViewModel(Game.GameManager.CurrentWorld);
-        DataContext = entitiesViewModel;
-        TreeViewEntities.ItemsSource = entitiesViewModel.Entities;
+        TreeViewEntities.ItemsSource = (DataContext as EntityListViewModel).Entities;
     }
 
     private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -146,21 +144,13 @@ public partial class EntitiesControl : UserControl
         _isSelectionTriggerFromGizmoActive = false;
 
         var entityViewModel = e.NewValue as EntityViewModel;
+        _gizmoComponent.Gizmo.Clear();
 
-        if (e.NewValue == null)
+        if (entityViewModel?.Entity?.RootComponent != null)
         {
-            _gizmoComponent.Gizmo.Clear();
+            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            SetSelectedItem(entityViewModel);
         }
-        else
-        {
-            _gizmoComponent.Gizmo.Clear();
-            if (entityViewModel.Entity.RootComponent != null)
-            {
-                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
-            }
-        }
-
-        SetSelectedItem(entityViewModel);
 
         _isSelectionTriggerFromGizmoActive = true;
     }

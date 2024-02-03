@@ -4,7 +4,7 @@ using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
-public class ComponentsHierarchyViewModel : NotifyPropertyChangeBase
+public class ComponentListViewModel : NotifyPropertyChangeBase
 {
     public ComponentViewModel RootComponentViewModel { get; private set; }
 
@@ -12,13 +12,17 @@ public class ComponentsHierarchyViewModel : NotifyPropertyChangeBase
 
     public EntityViewModel EntityViewModel { get; }
 
-    public ComponentsHierarchyViewModel(EntityViewModel entityViewModel)
+    public ComponentListViewModel(EntityViewModel entityViewModel)
     {
         EntityViewModel = entityViewModel;
 
-        RootComponentViewModel = new ActorViewModelComponent(EntityViewModel);
+        RootComponentViewModel = new RootNodeComponentViewModel(EntityViewModel);
         ComponentsViewModel.Add(RootComponentViewModel);
-        CreateComponentHierarchy(entityViewModel.Entity);
+
+        if (entityViewModel.Entity != null)
+        {
+            CreateComponentHierarchy(entityViewModel.Entity);
+        }
     }
 
     private void CreateComponentHierarchy(AActor actor)
