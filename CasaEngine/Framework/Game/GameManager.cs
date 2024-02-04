@@ -154,7 +154,7 @@ public class GameManager
     {
         var cameraEditor = new ArcBallCameraComponent();
         cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        cameraEntity.GameplayProxy = new ScriptArcBallCamera();
+        cameraEntity.GameplayProxyClassName = nameof(ScriptArcBallCamera);
         return cameraEditor;
     }
 #endif
