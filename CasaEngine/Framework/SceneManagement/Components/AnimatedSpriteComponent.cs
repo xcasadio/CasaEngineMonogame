@@ -212,6 +212,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             CurrentAnimation?.Update(elapsedTime);
             UpdateCollisionFromFrame(CurrentAnimation.CurrentFrame);
         }
+
+        base.Update(elapsedTime);
     }
 
     public override void Draw(float elapsedTime)

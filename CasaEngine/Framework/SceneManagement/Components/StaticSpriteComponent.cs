@@ -65,6 +65,8 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
             Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
                 collisionObject, shape2d, _spriteData.Origin, _spriteData.PositionInTexture);
         }
+
+        base.Update(elapsedTime);
     }
 
     public override BoundingBox GetBoundingBox()

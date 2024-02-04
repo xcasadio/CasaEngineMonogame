@@ -59,6 +59,8 @@ public class CameraLookAtComponent : Camera3dComponent
         {
             _needToComputeViewMatrix = true;
         }
+
+        base.Update(elapsedTime);
     }
 
     protected override void ComputeViewMatrix()

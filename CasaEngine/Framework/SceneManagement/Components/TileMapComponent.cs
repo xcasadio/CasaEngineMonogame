@@ -155,6 +155,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                 tile.Update(elapsedTime);
             }
         }
+
+        base.Update(elapsedTime);
     }
 
     public override BoundingBox GetBoundingBox()

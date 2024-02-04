@@ -49,12 +49,9 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public override void Update(float elapsedTime)
     {
-        if (SkinnedMesh == null)
-        {
-            return;
-        }
+        SkinnedMesh?.Update(elapsedTime);
 
-        SkinnedMesh.Update(elapsedTime);
+        base.Update(elapsedTime);
     }
 
     public override void Draw(float elapsedTime)

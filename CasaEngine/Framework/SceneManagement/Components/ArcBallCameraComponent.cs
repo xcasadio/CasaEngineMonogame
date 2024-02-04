@@ -151,11 +151,6 @@ public class ArcBallCameraComponent : Camera3dComponent
         return new ArcBallCameraComponent(this);
     }
 
-    public override void Update(float elapsedTime)
-    {
-        //Do nothing
-    }
-
     protected override void ComputeViewMatrix()
     {
         var position = _target - Direction * _distance;

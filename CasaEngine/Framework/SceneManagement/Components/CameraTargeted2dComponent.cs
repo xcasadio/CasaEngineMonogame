@@ -103,6 +103,8 @@ public class CameraTargeted2dComponent : Camera3dComponent
                 }
             }
         }
+
+        base.Update(elapsedTime);
     }
 
     protected override void ComputeViewMatrix()

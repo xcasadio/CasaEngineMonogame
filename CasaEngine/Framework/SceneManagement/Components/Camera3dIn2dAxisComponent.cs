@@ -46,11 +46,6 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         return new Camera3dIn2dAxisComponent(this);
     }
 
-    public override void Update(float elapsedTime)
-    {
-        //Do nothing
-    }
-
     protected override void ComputeViewMatrix()
     {
         var fov = FieldOfView * 0.5f;

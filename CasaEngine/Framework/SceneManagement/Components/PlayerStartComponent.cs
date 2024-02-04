@@ -29,10 +29,6 @@ public class PlayerStartComponent : SceneComponent
         return new BoundingBox(min, max);
     }
 
-    public override void Update(float elapsedTime)
-    {
-    }
-
     public override void Load(JsonElement element)
     {
         base.Load(element);
