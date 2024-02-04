@@ -1,16 +1,12 @@
-﻿using System.Numerics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
-using TomShane.Neoforce.Controls.Serialization;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
-using CasaEngine.Framework.World;
 
 #if EDITOR
 using XNAGizmo;
@@ -239,6 +235,11 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     protected SceneComponent(SceneComponent other) : base(other)
     {
         Coordinates = new(other.Coordinates);
+
+        foreach (var child in other.Children)
+        {
+            AddChildComponent(child.Clone() as SceneComponent);
+        }
     }
 
     public override void Attach(AActor actor)
@@ -339,7 +340,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
 
         foreach (var childComponentNode in element.GetProperty("children_component").EnumerateArray())
         {
-            Children.Add(ElementFactory.Load<SceneComponent>(childComponentNode));
+            AddChildComponent(ElementFactory.Load<SceneComponent>(childComponentNode));
         }
     }
 

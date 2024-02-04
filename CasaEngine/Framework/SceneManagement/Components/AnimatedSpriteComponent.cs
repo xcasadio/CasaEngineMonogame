@@ -349,6 +349,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
     public override void Load(JsonElement element)
     {
+        base.Load(element);
+
         Color = element.GetProperty("color").GetColor();
         SpriteEffect = element.GetProperty("sprite_effect").GetEnum<SpriteEffects>();
 

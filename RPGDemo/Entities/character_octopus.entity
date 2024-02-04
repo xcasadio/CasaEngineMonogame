@@ -2,6 +2,12 @@
     "id": 10066,
     "name": "character_octopus",
   "version": 1,
+  "script_class_name" : "ScriptEnemy",
+  "root_component": {
+      "version": 1,
+      "type": 6,
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "AnimatedSpriteComponent",
   "coordinates": {
     "position": {
       "x": 0.0,
@@ -25,9 +31,6 @@
       "w": 1.0
     }
   },
-  "root_component": {
-      "version": 1,
-      "type": 6,
       "color": {
         "r": 255,
         "g": 255,
@@ -48,19 +51,36 @@
         225,
         226,
         227
-      ]
-    },
-  "components": [
-    {
-      "version": 1,
-      "type": 1,
-      "external_component": {
-        "type": "ScriptEnemy"
-      }
-    },
-    {
+      ],
+	  "children_component" : [
+		{
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "CircleCollisionComponent",
       "version": 1,
       "type": 4,
+  "coordinates": {
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "center_of_rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "scale": {
+      "x": 25.0,
+      "y": 25.0,
+      "z": 25.0
+    },
+    "rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "w": 1.0
+    }
+  },
       "physics_definition": {
         "physics_type": "Dynamic",
         "additional_angular_damping_factor": 0.01,
@@ -103,7 +123,10 @@
         },
         "orientation": 0.0,
         "radius": 25.0
-      }
+      },
+	  "children_component" : []
     }
-  ]
+	  ]
+    },
+  "components": [ ]
 }

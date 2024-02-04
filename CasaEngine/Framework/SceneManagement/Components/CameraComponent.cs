@@ -94,6 +94,7 @@ public abstract class CameraComponent : SceneComponent
 
     public override void Load(JsonElement element)
     {
+        base.Load(element);
         _viewDistance = element.GetProperty("view_distance").GetSingle();
         _viewport = element.GetJsonPropertyByName("viewport").Value.GetViewPort();
     }

@@ -101,6 +101,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public override void Load(JsonElement element)
     {
+        base.Load(element);
+
         var meshElement = element.GetProperty("skinned_mesh");
 
         if (meshElement.ToString() != "null")

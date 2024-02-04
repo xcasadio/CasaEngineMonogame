@@ -5,7 +5,6 @@ using System.Windows.Input;
 using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Control = TomShane.Neoforce.Controls.Control;
@@ -28,7 +27,7 @@ public class GameEditorGui : GameEditor2d
         Cursor = Cursors.None;
     }
 
-    private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (DataContext is ScreenViewModel screenViewModel)
         {

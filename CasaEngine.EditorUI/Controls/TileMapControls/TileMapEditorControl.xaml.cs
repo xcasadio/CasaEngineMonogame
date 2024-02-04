@@ -1,8 +1,5 @@
-﻿using System.IO;
-using System.Windows.Input;
-using CasaEngine.Engine;
+﻿using System.Windows.Input;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.TileMap;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;

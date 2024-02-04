@@ -3,8 +3,6 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.SceneManagement;
-using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.World;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;

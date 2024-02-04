@@ -15,21 +15,6 @@ public class EntityReference : ISerializable
     public Coordinates InitialCoordinates { get; } = new();
     public AActor Entity { get; internal set; }
 
-    public static EntityReference CreateFromAssetInfo(AssetInfo assetInfo, AssetContentManager assetContentManager)
-    {
-        var entityReference = new EntityReference();
-        entityReference.AssetId = assetInfo.Id;
-        entityReference.Name = assetInfo.Name;
-        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo.Id).Clone();
-
-        if (entityReference.Entity.RootComponent != null)
-        {
-            entityReference.Entity.RootComponent.Coordinates.CopyFrom(entityReference.InitialCoordinates);
-        }
-
-        return entityReference;
-    }
-
     public void Load(JsonElement element)
     {
         //TODO : remove
@@ -55,6 +40,21 @@ public class EntityReference : ISerializable
     }
 
 #if EDITOR
+
+    public static EntityReference CreateFromAssetInfo(AssetInfo assetInfo, AssetContentManager assetContentManager)
+    {
+        var entityReference = new EntityReference();
+        entityReference.AssetId = assetInfo.Id;
+        entityReference.Name = assetInfo.Name;
+        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo.Id).Clone();
+
+        if (entityReference.Entity.RootComponent != null)
+        {
+            entityReference.Entity.RootComponent.Coordinates.CopyFrom(entityReference.InitialCoordinates);
+        }
+
+        return entityReference;
+    }
 
     public void Save(JObject jObject)
     {

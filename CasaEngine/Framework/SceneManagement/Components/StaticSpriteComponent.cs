@@ -122,6 +122,8 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     public override void Load(JsonElement element)
     {
+        base.Load(element);
+
         var spriteDataName = element.GetProperty("spriteDataName").GetString();
 
         if (!string.Equals(spriteDataName, "null", StringComparison.CurrentCultureIgnoreCase))

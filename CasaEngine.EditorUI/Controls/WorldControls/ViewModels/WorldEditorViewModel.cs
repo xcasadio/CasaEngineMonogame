@@ -2,7 +2,6 @@
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using Microsoft.Xna.Framework;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls.ViewModels;

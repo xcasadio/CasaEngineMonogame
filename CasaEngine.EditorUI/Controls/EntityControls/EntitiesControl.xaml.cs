@@ -8,7 +8,6 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using XNAGizmo;
 
@@ -178,7 +177,7 @@ public partial class EntitiesControl : UserControl
         }
     }
 
-    private void TreeView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private void TreeView_KeyDown(object sender, KeyEventArgs e)
     {
         if (e is { Key: Key.Delete, IsToggled: true })
         {

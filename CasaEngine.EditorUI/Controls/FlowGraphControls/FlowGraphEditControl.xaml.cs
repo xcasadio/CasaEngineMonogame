@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement;
 
 namespace CasaEngine.EditorUI.Controls.FlowGraphControls;
 

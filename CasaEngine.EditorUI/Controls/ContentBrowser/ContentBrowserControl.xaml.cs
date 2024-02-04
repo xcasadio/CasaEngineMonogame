@@ -20,7 +20,6 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework;
 using Point = System.Windows.Point;
 

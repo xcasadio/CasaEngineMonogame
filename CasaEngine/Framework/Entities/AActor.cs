@@ -110,6 +110,11 @@ public class AActor : UObject
             _children[i].Initialize();
         }
 
+        if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
+        {
+            GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+        }
+
         GameplayProxy?.Initialize(this);
 
         IsInitialized = true;
@@ -186,9 +191,20 @@ public class AActor : UObject
 
     public T? GetComponent<T>() where T : class
     {
-        if (RootComponent is T)
+        if (RootComponent != null)
         {
-            return RootComponent as T;
+            if (RootComponent is T component)
+            {
+                return component;
+            }
+
+            for (int i = 0; i < RootComponent.Children.Count; i++)
+            {
+                if (RootComponent.Children[i] is T child)
+                {
+                    return child;
+                }
+            }
         }
 
         for (int i = 0; i < _components.Count; i++)
@@ -270,6 +286,12 @@ public class AActor : UObject
     {
         base.Load(element);
 
+        //TODO remove
+        if (element.TryGetProperty("script_class_name", out _))
+        {
+            GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
+        }
+
         var node = element.GetProperty("root_component");
         if (node.ValueKind == JsonValueKind.Object)
         {
@@ -283,7 +305,8 @@ public class AActor : UObject
                 && componentNode.TryGetProperty("external_component", out _)
                 && componentNode.GetProperty("external_component").ValueKind == JsonValueKind.Object)
             {
-                GameplayProxy = ElementFactory.Create<GameplayProxy>(componentNode.GetProperty("external_component").GetProperty("type").GetString());
+                var typeName = componentNode.GetProperty("external_component").GetProperty("type").GetString();
+                GameplayProxyClassName = typeName;
             }
             else if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number
                      && componentNode.GetProperty("type").GetInt32() != 1)
@@ -329,6 +352,8 @@ public class AActor : UObject
             componentsJArray.Add(componentObject);
         }
         node.Add("components", componentsJArray);
+
+        node.Add("script_class_name", GameplayProxyClassName);
     }
 
 #endif

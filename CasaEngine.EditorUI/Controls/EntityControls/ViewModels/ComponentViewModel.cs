@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Reflection;
 using CasaEngine.Core.Log;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;

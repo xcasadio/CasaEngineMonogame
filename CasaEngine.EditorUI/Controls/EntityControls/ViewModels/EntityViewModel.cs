@@ -1,5 +1,4 @@
 ﻿using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.SceneManagement;
 using System.Collections.ObjectModel;
 using CasaEngine.Framework.Entities;
 
@@ -38,7 +37,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
         }
     }
 
-    private void OnAssetRenamed(object? sender, Core.Design.EventArgs<Framework.Assets.AssetInfo, string> e)
+    private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
     {
         if (e.Value.Id == Entity.Id)
         {

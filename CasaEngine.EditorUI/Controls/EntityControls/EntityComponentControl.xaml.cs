@@ -7,9 +7,7 @@ using CasaEngine.Core.Shapes;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.WpfControls;
 using Microsoft.Xna.Framework;
@@ -152,15 +150,4 @@ public partial class EntityComponentControl : UserControl
         }
     }
 
-    private void ComboBoxExternalComponent_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (sender is ComboBox comboBox
-            && sender is FrameworkElement { DataContext: AActor actor })
-        {
-            System.Diagnostics.Debugger.Break();
-            //var externalComponent = GameSettings.ScriptLoader.Create(((KeyValuePair<int, Type>)comboBox.SelectedValue).Key);
-            //externalComponent.LoadContent(gamePlayComponent.Owner);
-            //gamePlayComponent.ExternalComponent = externalComponent;
-        }
-    }
 }

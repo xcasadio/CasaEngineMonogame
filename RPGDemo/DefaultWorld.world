@@ -101,32 +101,34 @@
         "id": 11181,
         "name": "camera",
         "version": 1,
-        "coordinates": {
-          "position": {
-            "x": 3.0748892,
-            "y": 0.5550308,
-            "z": 2.5794868
-          },
-          "center_of_rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "scale": {
-            "x": 1.0,
-            "y": 1.0,
-            "z": 1.0
-          },
-          "rotation": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0,
-            "w": 1.0
-          }
-        },
         "root_component": {
             "version": 1,
             "type": 11,
+		    "id": "00000000-0000-0000-0000-000000000000",
+		    "name": "Camera3dIn2dAxisComponent",
+			"coordinates": {
+			  "position": {
+				"x": 3.0748892,
+				"y": 0.5550308,
+				"z": 2.5794868
+			  },
+			  "center_of_rotation": {
+				"x": 0.0,
+				"y": 0.0,
+				"z": 0.0
+			  },
+			  "scale": {
+				"x": 1.0,
+				"y": 1.0,
+				"z": 1.0
+			  },
+			  "rotation": {
+				"x": 0.0,
+				"y": 0.0,
+				"z": 0.0,
+				"w": 1.0
+			  }
+			},
             "view_distance": 0.0,
             "viewport": {
               "x": 0,
@@ -136,7 +138,8 @@
               "min_depth": 1.0,
               "max_depth": 1000.0
             },
-            "fieldOfView": 0.8377581
+            "fieldOfView": 0.8377581,
+			"children_component" : []
           },
         "components": []
       }

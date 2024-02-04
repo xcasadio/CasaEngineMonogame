@@ -30,7 +30,8 @@ public sealed class World : UObject
 
     public CasaEngineGame Game { get; private set; }
     public IEnumerable<ScreenGui> Screens => _screens;
-    public GameplayProxy? GameplayProxy { get; set; }
+    public string GameplayProxyClassName { get; set; }
+    public GameplayProxy? GameplayProxy { get; private set; }
     public IList<AActor> Entities => _entities;
 
     public bool DisplaySpacePartitioning { get; set; }
@@ -93,6 +94,13 @@ public sealed class World : UObject
         var camera = _entities.Select(x => x.GetComponent<CameraComponent>()).First(x => x != null);
         Game.GameManager.ActiveCamera = camera;
 #endif
+
+        if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
+        {
+            GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+        }
+
+        //GameplayProxy?.Initialize(this);
     }
 
     public void BeginPlay()
@@ -289,15 +297,22 @@ public sealed class World : UObject
                 && externalComponentNode.GetProperty("type").ValueKind == JsonValueKind.Number
                 && externalComponentNode.GetProperty("type").GetInt32() != -1)
             {
-                GameplayProxy = (GameplayProxy)ElementFactory.Create<ScriptArcBallCamera>(nameof(ScriptArcBallCamera));
+                GameplayProxyClassName = nameof(ScriptArcBallCamera);
+                //GameplayProxy = (GameplayProxy)ElementFactory.Create<ScriptArcBallCamera>(nameof(ScriptArcBallCamera));
             }
             else
             {
                 if (externalComponentNode.ValueKind == JsonValueKind.Object || externalComponentNode.GetString() != "null")
                 {
-                    GameplayProxy = ElementFactory.Create<GameplayProxy>(externalComponentNode.GetProperty("type").GetString());
+                    GameplayProxyClassName = externalComponentNode.GetProperty("type").GetString();
                 }
             }
+        }
+
+        //TODO remove
+        if (element.TryGetProperty("script_class_name", out _))
+        {
+            GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
         }
     }
 
@@ -437,17 +452,7 @@ public sealed class World : UObject
             entitiesJArray.Add(entityObject);
         }
 
-        jObject.Add("entity_references", entitiesJArray);
-
-        if (GameplayProxy == null)
-        {
-            jObject.Add("external_component", "null");
-        }
-        else
-        {
-            var externalComponentNode = new JObject { { "type", GameplayProxy.GetType().Name } };
-            jObject.Add("external_component", externalComponentNode);
-        }
+        jObject.Add("script_class_name", GameplayProxyClassName);
     }
 
 #endif

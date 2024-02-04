@@ -7,9 +7,9 @@ using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -145,7 +145,7 @@ public partial class EntityControl : UserControl
         }
     }
 
-    private void TreeView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private void TreeView_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Delete && e.IsToggled)
         {
@@ -158,6 +158,22 @@ public partial class EntityControl : UserControl
                     var gizmoComponent = _game.GetGameComponent<GizmoComponent>();
                     gizmoComponent.Gizmo.Selection.Remove(sceneComponent);
                 }
+            }
+        }
+    }
+
+    private void ComboBoxGameplayProxyClassName_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox comboBox
+            && sender is FrameworkElement { DataContext: ComponentViewModel componentViewModel })
+        {
+            if (componentViewModel is RootNodeComponentViewModel rootNodeComponentViewModel)
+            {
+                rootNodeComponentViewModel.EntityViewModel.Entity.GameplayProxyClassName = comboBox.SelectedValue as string;
+            }
+            else
+            {
+                componentViewModel.Owner.GameplayProxyClassName = comboBox.SelectedValue as string;
             }
         }
     }

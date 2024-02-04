@@ -4,8 +4,6 @@ using System.Collections.ObjectModel;
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Framework.Entities;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.TileMapControls;
 

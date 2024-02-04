@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 using DotNetCodeGenerator;
 using DotNetCodeGenerator.Ast;

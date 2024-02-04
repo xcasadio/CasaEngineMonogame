@@ -23,7 +23,8 @@ public class TileMapDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         //============ tileMap ===============
-        var tileMapData = TileMapLoader.LoadMapFromFile(@"Maps\map_1_1.tileMap");
+        var assetInfo = AssetCatalog.GetByFileName(@"Maps\map_1_1.tileMap");
+        var tileMapData = game.AssetContentManager.Load<TileMapData>(assetInfo.Id);
 
         var entity = new AActor { Name = "TileMap" };
         var tileMapComponent = new TileMapComponent();

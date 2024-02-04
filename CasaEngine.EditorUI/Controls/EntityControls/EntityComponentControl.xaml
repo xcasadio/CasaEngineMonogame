@@ -33,10 +33,10 @@
         </ObjectDataProvider>
 
         <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetDatas" 
-                            ObjectType="{x:Type entityControls:ExternalComponentRegisteredDataAccess}">
+                            ObjectType="{x:Type entityControls:GameplayProxyClassesRegisteredDataAccess}">
         </ObjectDataProvider>
 
-        <entityControls:ExternalComponentConverter x:Key="ExternalComponentConverter" />
+        <entityControls:ScriptClassNameConverter x:Key="ScriptClassNameConverter" />
 
         <DataTemplate x:Key="physicsDefinitionComponentTemplate" DataType="{x:Type physics:PhysicsDefinition}">
             <Expander Header="Physics Definition" HorizontalAlignment="Stretch" IsExpanded="True">
@@ -154,31 +154,35 @@
         </DataTemplate>
 
         <DataTemplate x:Key="BoxTemplate" DataType="{x:Type shapes:Box}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Size" />
-                <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Size}" />
-            </Grid>
+            <Expander Header="Box parameters" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Size" />
+                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Size}" />
+                </Grid>
+            </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="SphereTemplate" DataType="{x:Type shapes:Sphere}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
-                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
-            </Grid>
+            <Expander Header="Sphere parameters" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
+                    <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
+                </Grid>
+            </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="CapsuleTemplate" DataType="{x:Type shapes:Capsule}">
@@ -233,141 +237,133 @@
             </ItemsControl>
         </DataTemplate>
 
-        <DataTemplate x:Key="gamePlayComponentTemplate" DataType="{x:Type scripting:GameplayProxy}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="GameplayProxy list" VerticalAlignment="Center"/>
-                <ComboBox Grid.Row="1" Grid.Column="1" 
-                          SelectionChanged="ComboBoxExternalComponent_OnSelectionChanged"
-                          SelectedValue="{Binding Path=ExternalComponent, Converter={StaticResource ExternalComponentConverter}, Mode=OneWay}" 
-                          ItemsSource="{Binding Source={StaticResource ExternalComponentRegistered}, Converter={StaticResource ExternalComponentConverter}}"
-                          DisplayMemberPath="Value.Name"/>
-            </Grid>
-        </DataTemplate>
-
         <DataTemplate x:Key="animatedSpriteComponentTemplate" DataType="{x:Type components:AnimatedSpriteComponent}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <Expander Header="Animated sprite" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Color" />
-                <wpfControls:ColorEditor Grid.Row="0" Grid.Column="1" Value="{Binding Color}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color" />
+                    <wpfControls:ColorEditor Grid.Row="0" Grid.Column="1" Value="{Binding Color}"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Sprite Effect" />
-                <ComboBox Grid.Row="1" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Sprite Effect" />
+                    <ComboBox Grid.Row="1" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
                           ItemsSource="{Binding Source={StaticResource SpriteEffectsEnumValues}}"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Animations" />
-                <Grid Grid.Row="2" Grid.Column="1">
-                    <entityControls:Animation2dListSelectedControl DataContext="{Binding}"/>
-                </Grid>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Animations" />
+                    <Grid Grid.Row="2" Grid.Column="1">
+                        <entityControls:Animation2dListSelectedControl DataContext="{Binding}"/>
+                    </Grid>
 
-            </Grid>
+                </Grid>
+            </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="staticSpriteComponentTemplate" DataType="{x:Type components:StaticSpriteComponent}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <Expander Header="Sprite" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Sprite" />
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SpriteData.Name}" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Sprite" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SpriteData.Name}" />
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Color" />
-                <wpfControls:ColorEditor Grid.Row="1" Grid.Column="1" Value="{Binding Color}"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Color" />
+                    <wpfControls:ColorEditor Grid.Row="1" Grid.Column="1" Value="{Binding Color}"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Sprite Effect" />
-                <ComboBox Grid.Row="2" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Sprite Effect" />
+                    <ComboBox Grid.Row="2" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
                           ItemsSource="{Binding Source={StaticResource SpriteEffectsEnumValues}}"/>
-            </Grid>
+                </Grid>
+            </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Stretch">
-                    <TextBlock Text="Mesh : " />
-                    <TextBlock Text="nb vertices = " />
-                    <TextBlock Text="{Binding Mesh.VertexBuffer.VertexCount}" />
-                    <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
-                </StackPanel>
+                    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                        <TextBlock Text="Mesh : " />
+                        <TextBlock Text="nb vertices = " />
+                        <TextBlock Text="{Binding Mesh.VertexBuffer.VertexCount}" />
+                        <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
+                    </StackPanel>
 
-                <common:AssetSelectorControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" AssetId="{Binding Mesh.TextureAssetId, Mode=TwoWay}"/>
-            </Grid>
+                    <common:AssetSelectorControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" AssetId="{Binding Mesh.TextureAssetId, Mode=TwoWay}"/>
+                </Grid>
+            </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <Expander Header="Arc ball camera" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0"/>
-                <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1"  Value="{Binding Position, Mode=OneWay}"></wpfControls:Vector3Editor>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0"/>
+                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1"  Value="{Binding Position, Mode=OneWay}"></wpfControls:Vector3Editor>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Distance}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Distance}" />
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
-                <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding FieldOfView, Mode=TwoWay}" Increment="0.05"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
+                    <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding FieldOfView, Mode=TwoWay}" Increment="0.05"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Viewport X" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Viewport.X, Mode=TwoWay}" Increment="10"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Viewport X" Margin="0,0,5,0"/>
+                    <xctk:IntegerUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Viewport.X, Mode=TwoWay}" Increment="10"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Viewport Y" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Viewport.Y, Mode=TwoWay}" Increment="10"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Viewport Y" Margin="0,0,5,0"/>
+                    <xctk:IntegerUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Viewport.Y, Mode=TwoWay}" Increment="10"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Viewport Width" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Viewport.Width, Mode=TwoWay}" Increment="10"/>
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Viewport Width" Margin="0,0,5,0"/>
+                    <xctk:IntegerUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Viewport.Width, Mode=TwoWay}" Increment="10"/>
 
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Viewport Height" Margin="0,0,5,0"/>
-                <xctk:IntegerUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Viewport.Height, Mode=TwoWay}" Increment="10"/>
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Viewport Height" Margin="0,0,5,0"/>
+                    <xctk:IntegerUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Viewport.Height, Mode=TwoWay}" Increment="10"/>
 
-                <TextBlock Grid.Row="7" Grid.Column="0" Text="Viewport Min Depth" Margin="0,0,5,0"/>
-                <xctk:DecimalUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Viewport.MinDepth, Mode=TwoWay}" Increment="10"/>
+                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Viewport Min Depth" Margin="0,0,5,0"/>
+                    <xctk:DecimalUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Viewport.MinDepth, Mode=TwoWay}" Increment="10"/>
 
-                <TextBlock Grid.Row="8" Grid.Column="0" Text="Viewport Max Depth" Margin="0,0,5,0"/>
-                <xctk:DecimalUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Viewport.MaxDepth, Mode=TwoWay}" Increment="10"/>
+                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Viewport Max Depth" Margin="0,0,5,0"/>
+                    <xctk:DecimalUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Viewport.MaxDepth, Mode=TwoWay}" Increment="10"/>
 
-            </Grid>
+                </Grid>
+            </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="physicsComponentTemplate" DataType="{x:Type components:PhysicsComponent}">
@@ -385,9 +381,11 @@
         </DataTemplate>
 
         <DataTemplate x:Key="tileMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
-            <Grid>
-                <common:AssetSelectorControl AssetId="{Binding TileMapDataAssetId, Mode=TwoWay}"/>
-            </Grid>
+            <Expander Header="Tile map" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Grid>
+                    <common:AssetSelectorControl AssetId="{Binding TileMapDataAssetId, Mode=TwoWay}"/>
+                </Grid>
+            </Expander>
         </DataTemplate>
 
     </Control.Resources>
@@ -427,15 +425,13 @@
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                 <ContentControl.ContentTemplateSelector>
                     <entityControls:EntityComponentTemplateSelector
-                    ArcBallCameraComponenTemplate="{StaticResource arcBallCameraComponentTemplate}"
-                    MeshComponenTemplate="{StaticResource meshComponentTemplate}"
-                    GamePlayComponenTemplate="{StaticResource gamePlayComponentTemplate}"
-                    PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
-                    Physics2dComponenTemplate="{StaticResource physics2dComponentTemplate}"
-                    TileMapComponentTemplate="{StaticResource tileMapComponentTemplate}"
-                    StaticSpriteComponentTemplate="{StaticResource staticSpriteComponentTemplate}"
-                    AnimatedSpriteComponentTemplate="{StaticResource animatedSpriteComponentTemplate}"
-                />
+                        ArcBallCameraComponenTemplate="{StaticResource arcBallCameraComponentTemplate}"
+                        MeshComponenTemplate="{StaticResource meshComponentTemplate}"
+                        PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
+                        Physics2dComponenTemplate="{StaticResource physics2dComponentTemplate}"
+                        TileMapComponentTemplate="{StaticResource tileMapComponentTemplate}"
+                        StaticSpriteComponentTemplate="{StaticResource staticSpriteComponentTemplate}"
+                        AnimatedSpriteComponentTemplate="{StaticResource animatedSpriteComponentTemplate}" />
                 </ContentControl.ContentTemplateSelector>
             </ContentControl>
         </Grid>

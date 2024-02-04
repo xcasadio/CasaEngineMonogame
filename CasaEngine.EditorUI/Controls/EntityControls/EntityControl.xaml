@@ -11,11 +11,18 @@
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetDatas" 
+                            ObjectType="{x:Type entityControls:GameplayProxyClassesRegisteredDataAccess}">
+        </ObjectDataProvider>
+
+        <entityControls:ScriptClassNameConverter x:Key="ExternalComponentConverter" />
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="1">
@@ -66,15 +73,20 @@
                 <entityControls:EntityDetailTemplateSelector>
                     <entityControls:EntityDetailTemplateSelector.EntityTemplate>
                         <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                            <Expander Header="Script" HorizontalAlignment="Stretch" IsExpanded="True">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Text="Script class name" />
-                                <TextBlock Grid.Column="1" Text="{Binding EntityViewModel.Entity.GameplayProxyClassName}" />
-                            </Grid>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Script classs name" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" 
+                                              SelectionChanged="ComboBoxGameplayProxyClassName_OnSelectionChanged"
+                                              SelectedValue="{Binding Path=EntityViewModel.Entity.GameplayProxyClassName, Mode=OneWay}" 
+                                              ItemsSource="{Binding Source={StaticResource ExternalComponentRegistered}, Converter={StaticResource ExternalComponentConverter}}"/>
+                                </Grid>
+                            </Expander>
                         </DataTemplate>
                     </entityControls:EntityDetailTemplateSelector.EntityTemplate>
                     <entityControls:EntityDetailTemplateSelector.ComponenTemplate>

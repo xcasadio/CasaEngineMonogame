@@ -1,34 +1,37 @@
 {
-    "id": 10272,
-    "name": "weapon_sword",
+  "id": 10272,
+  "name": "weapon_sword",
   "version": 1,
-  "coordinates": {
-    "position": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "center_of_rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "scale": {
-      "x": 1.0,
-      "y": 1.0,
-      "z": 1.0
-    },
-    "rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0,
-      "w": 1.0
-    }
-  },
+  "script_class_name" : "ScriptPlayerWeapon",
   "root_component": 
     {
       "version": 1,
       "type": 6,
+      "id": "00000000-0000-0000-0000-000000000000",
+      "name": "AnimatedSpriteComponent",
+	  "coordinates": {
+		"position": {
+		  "x": 0.0,
+		  "y": 0.0,
+		  "z": 0.0
+		},
+		"center_of_rotation": {
+		  "x": 0.0,
+		  "y": 0.0,
+		  "z": 0.0
+		},
+		"scale": {
+		  "x": 1.0,
+		  "y": 1.0,
+		  "z": 1.0
+		},
+		"rotation": {
+		  "x": 0.0,
+		  "y": 0.0,
+		  "z": 0.0,
+		  "w": 1.0
+		}
+	  },
       "color": {
         "r": 255,
         "g": 255,
@@ -49,15 +52,8 @@
         213,
         214,
         215
-      ]
+      ],
+	  "children_component" : []
     },
-  "components": [
-    {
-      "version": 1,
-      "type": 1,
-      "external_component": {
-        "type": "ScriptPlayerWeapon"
-      }
-    }
-  ]
+  "components": []
 }

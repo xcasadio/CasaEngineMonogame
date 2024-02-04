@@ -94,12 +94,18 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
         if (collisionObject != null)
         {
-            collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
-            //Set only the owner
-            //Test how to set all the hierarchy, but how we do with several physic component ?
-            //TODO bug : use localMatrix + Actor matrix to calculated the right position of the root component
-            Owner.RootComponent.Coordinates.Position = position;
-            Owner.RootComponent.Coordinates.Orientation = rotation;
+            //TODO : affect only first parent ??
+            SceneComponent rootComponent = Owner.Parent?.RootComponent.Parent; // ?? Owner.RootComponent;
+
+            if (rootComponent != null)
+            {
+                collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
+                //Set only the owner
+                //Test how to set all the hierarchy, but how we do with several physic component ?
+                //TODO bug : use localMatrix + Actor matrix to calculated the right position of the root component
+                rootComponent.Coordinates.Position = position;
+                rootComponent.Coordinates.Orientation = rotation;
+            }
         }
     }
 
@@ -158,6 +164,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public override void Load(JsonElement element)
     {
+        base.Load(element);
         PhysicsDefinition.Load(element.GetProperty("physics_definition"));
     }
 

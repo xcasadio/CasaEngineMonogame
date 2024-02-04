@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
@@ -29,7 +28,7 @@ public partial class WorldPropertiesControl : UserControl
         var binding = new Binding
         {
             Source = Resources["ExternalComponentRegistered"],
-            Converter = (IValueConverter)Resources["ExternalComponentConverter"]
+            Converter = (IValueConverter)Resources["ScriptClassNameConverter"]
         };
 
         BindingOperations.SetBinding(comboBoxExternalComponent, ItemsControl.ItemsSourceProperty, binding);
@@ -39,8 +38,7 @@ public partial class WorldPropertiesControl : UserControl
     {
         if (sender is ComboBox comboBox)
         {
-            var gameplayProxy = ElementFactory.Create<GameplayProxy>(((Type)comboBox.SelectedValue).Name);
-            _game.GameManager.CurrentWorld.GameplayProxy = gameplayProxy;
+            _game.GameManager.CurrentWorld.GameplayProxyClassName = comboBox.SelectedValue as string;
         }
     }
 }

@@ -4,13 +4,13 @@ using System.Windows.Data;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
-public class ExternalComponentConverter : IValueConverter
+public class ScriptClassNameConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
     {
-        if (value is IEnumerable<KeyValuePair<int, Type>> keyValuePairList)
+        if (value is IEnumerable<KeyValuePair<Guid, Type>> pairs)
         {
-            return keyValuePairList;
+            return pairs;
         }
 
         if (value is KeyValuePair<Guid, Type> pair)
@@ -18,9 +18,14 @@ public class ExternalComponentConverter : IValueConverter
             return pair;
         }
 
-        if (value is IEnumerable<KeyValuePair<Guid, Type>> pairs)
+        if (value is string name)
         {
-            return pairs;
+            return name;
+        }
+
+        if (value is IEnumerable<string> types)
+        {
+            return types;
         }
 
         return null;

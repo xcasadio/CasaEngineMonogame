@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Reflection.Metadata.Ecma335;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows;
 using CasaEngine.Core.Log;
-using Utils;
 
 namespace CasaEngine.EditorUI.Controls.Common
 {
@@ -45,7 +43,7 @@ namespace CasaEngine.EditorUI.Controls.Common
                     _draggedItem = SelectedItem;
                     if (_draggedItem != null)
                     {
-                        var finalDropEffect = DragDrop.DoDragDrop(this, this.SelectedValue, DragDropEffects.Move);
+                        var finalDropEffect = DragDrop.DoDragDrop(this, SelectedValue, DragDropEffects.Move);
                         //Checking target is not null and item is dragging(moving)
                         if (finalDropEffect == DragDropEffects.Move && _target != null)
                         {

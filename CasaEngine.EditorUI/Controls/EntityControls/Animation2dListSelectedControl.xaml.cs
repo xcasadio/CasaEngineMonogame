@@ -20,11 +20,12 @@ public partial class Animation2dListSelectedControl : UserControl
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        var animatedSpriteComponent = DataContext as AnimatedSpriteComponent;
-
-        _animation2dSelectedListModelView = new Animation2dSelectedListModelView(animatedSpriteComponent);
-
-        animation2dList.ItemsSource = _animation2dSelectedListModelView.Animations;
+        if (DataContext != null)
+        {
+            var animatedSpriteComponent = DataContext as AnimatedSpriteComponent;
+            _animation2dSelectedListModelView = new Animation2dSelectedListModelView(animatedSpriteComponent);
+            animation2dList.ItemsSource = _animation2dSelectedListModelView.Animations;
+        }
     }
 
     private void ButtonAddAnimation_OnClick(object sender, RoutedEventArgs e)
