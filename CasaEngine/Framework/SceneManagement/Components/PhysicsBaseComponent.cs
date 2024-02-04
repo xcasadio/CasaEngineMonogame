@@ -6,6 +6,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using SharpDX.Direct3D9;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
@@ -14,14 +15,14 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     protected PhysicsEngineComponent? PhysicsEngineComponent;
     private bool _lock;
 
-    //dynamic
+    //dynamic object
     private Vector3 _velocity;
     private float _maxSpeed;
     private float _maxForce;
     private float _maxTurnRate;
     protected RigidBody? _rigidBody;
 
-    //static
+    //static object
     protected CollisionObject? _collisionObject;
 
     public HashSet<Collision> Collisions { get; } = new();
@@ -105,6 +106,8 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public override void OnEnabledValueChange()
     {
+        base.OnEnabledValueChange();
+
         if (Owner == null)
         {
             return;
@@ -152,7 +155,6 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     public void ApplyImpulse(Vector3 impulse, Vector3 relativePosition)
     {
         //do nothing with _collisionObject
-
         _rigidBody?.ApplyImpulse(impulse, relativePosition);
     }
 

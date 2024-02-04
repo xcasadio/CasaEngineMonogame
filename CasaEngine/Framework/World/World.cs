@@ -227,7 +227,7 @@ public sealed class World : UObject
 
         foreach (var entityBase in _entitiesVisible)
         {
-            if (entityBase.RootComponent != null)
+            if (entityBase.IsVisible && entityBase.RootComponent != null)
             {
                 entityBase.Draw(0f);
             }

@@ -2,7 +2,6 @@ using System;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
 using Microsoft.Xna.Framework;
@@ -32,26 +31,9 @@ public class ThrowableWeapon : Weapon
     private void InitializeEntity(AActor entity)
     {
         //TODO : remove it => must be set by editor
-        var scriptEnemyWeapon = new ScriptEnemyWeapon();
-        entity.GameplayProxy = scriptEnemyWeapon;
+        entity.GameplayProxyClassName = nameof(ScriptEnemyWeapon);
 
         entity.Initialize();
-
-        var offsetLength = 20f;
-
-        var physics2dComponent = entity.GetComponent<Physics2dComponent>();
-        var animatedSpriteComponent = entity.GetComponent<AnimatedSpriteComponent>();
-
-        var offset = Character.CurrentDirection switch
-        {
-            Character2dDirection.Up => Vector2.UnitY * offsetLength,
-            Character2dDirection.Down => -Vector2.UnitY * offsetLength,
-            Character2dDirection.Left => -Vector2.UnitX * offsetLength,
-            Character2dDirection.Right => Vector2.UnitX * offsetLength,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
-        physics2dComponent.Position = Character.Owner.RootComponent.Position + new Vector3(offset, 0f);
 
         var direction = Character.CurrentDirection switch
         {
@@ -62,8 +44,20 @@ public class ThrowableWeapon : Weapon
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        physics2dComponent.Velocity = direction.ToVector3() * 200f;
-        animatedSpriteComponent.SetCurrentAnimation("rock", true);
+        (entity.GameplayProxy as ScriptEnemyWeapon).InitialVelocity = direction.ToVector3() * 200f;
+
+        var offsetLength = 25f;
+
+        var offset = Character.CurrentDirection switch
+        {
+            Character2dDirection.Up => Vector2.UnitY * offsetLength,
+            Character2dDirection.Down => -Vector2.UnitY * offsetLength,
+            Character2dDirection.Left => -Vector2.UnitX * offsetLength,
+            Character2dDirection.Right => Vector2.UnitX * offsetLength,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        entity.RootComponent.Position = Character.Owner.RootComponent.Position + new Vector3(offset, 0f);
     }
 
     public override void UnAttachWeapon()

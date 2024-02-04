@@ -41,7 +41,7 @@ public class ScriptWorld : GameplayProxy
         //mainHUD
         var assetInfo = AssetCatalog.GetByFileName("Screens\\MainHUD\\MainHUD.screen");
         var screen = world.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
-        screen.GameplayProxy = new ScriptMainHUDScreen();
+        screen.GameplayProxyClassName = nameof(ScriptMainHUDScreen);
         screen.Initialize();
         screen.InitializeWithWorld(world);
         world.AddScreen(screen);

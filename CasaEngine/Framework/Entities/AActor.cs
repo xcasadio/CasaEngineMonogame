@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.World;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
@@ -48,7 +49,7 @@ public class AActor : UObject
     }
 
     public string GameplayProxyClassName { get; set; }
-    public GameplayProxy? GameplayProxy { get; set; }
+    public GameplayProxy? GameplayProxy { get; private set; }
 
     public bool IsEnabled
     {
@@ -143,9 +144,17 @@ public class AActor : UObject
     {
         RootComponent.OnEnabledValueChange();
 
-        foreach (var child in Children)
+        for (int i = 0; i < _components.Count; i++)
         {
-            child.OnEnabledValueChange();
+            if (_components[i] is SceneComponent sceneComponent)
+            {
+                sceneComponent.OnEnabledValueChange();
+            }
+        }
+
+        for (int i = 0; i < _children.Count; i++)
+        {
+            _children[i].OnEnabledValueChange();
         }
     }
 

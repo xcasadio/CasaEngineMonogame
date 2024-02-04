@@ -89,13 +89,13 @@
 			  "y": 1.0,
 			  "z": 0.0
 			},
-			"linear_sleeping_threshold": 0.8,
+			"linear_sleeping_threshold": 0.1,
 			"local_inertia": {
 			  "x": 0.0,
 			  "y": 0.0,
 			  "z": 0.0
 			},
-			"mass": 1.0,
+			"mass": 10.0,
 			"restitution": 0.0,
 			"rolling_friction": 0.0,
 			"apply_gravity": false,

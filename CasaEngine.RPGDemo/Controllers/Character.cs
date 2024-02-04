@@ -251,7 +251,7 @@ public class Character
                 else
                 {
                     opponentScriptCharacter.Controller.StateMachine.HandleMessage(
-                        new Message(Guid.Empty, Guid.Empty, (int)MessageType.Hit, 0, null));
+                        new Message(Owner.Id, opponentGamePlayComponent.Id, (int)MessageType.Hit, 0, null));
                 }
             }
         }

@@ -163,7 +163,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
         var assetInfo = AssetCatalog.Get(assetName);
         var entity = AssetContentManager.Load<AActor>(assetInfo.Id).Clone();
-        entity.Initialize();
         GameManager.CurrentWorld.AddEntity(entity);
         return entity;
     }

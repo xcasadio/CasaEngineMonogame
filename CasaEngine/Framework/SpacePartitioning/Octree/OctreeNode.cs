@@ -282,6 +282,7 @@ public class OctreeNode<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void CoreGetContainedObjects(ref BoundingFrustum frustum, List<T> results, Func<T, bool> filter)
     {
+        //TODO : check if IsVisible is true
         var ct = frustum.Contains(Bounds);
         if (ct == ContainmentType.Contains)
         {

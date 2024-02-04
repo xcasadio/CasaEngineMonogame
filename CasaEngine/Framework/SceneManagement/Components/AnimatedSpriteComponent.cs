@@ -309,6 +309,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
     public override void OnEnabledValueChange()
     {
+        base.OnEnabledValueChange();
+
         if (CurrentAnimation != null)
         {
             if (Owner.IsEnabled)

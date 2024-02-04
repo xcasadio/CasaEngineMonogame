@@ -37,6 +37,11 @@ public abstract class ActorComponent : UObject
         //register event in blueprint like tick or BeginPlay
     }
 
+    public virtual void OnEnabledValueChange()
+    {
+        //Do nothing
+    }
+
     public abstract ActorComponent Clone();
 
     public virtual void Attach(AActor actor)

@@ -284,14 +284,22 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         }
     }
 
-    public virtual void OnEnabledValueChange()
+    public override void OnEnabledValueChange()
     {
-        //do nothing
+        base.OnEnabledValueChange();
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].OnEnabledValueChange();
+        }
     }
 
     public virtual void OnScreenResized(int width, int height)
     {
-        //do nothing
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].OnScreenResized(width, height);
+        }
     }
 
     public override void Update(float elapsedTime)

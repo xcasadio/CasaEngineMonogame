@@ -112,6 +112,8 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     public override void OnEnabledValueChange()
     {
+        base.OnEnabledValueChange();
+
         if (Owner.IsEnabled)
         {
             AddCollisions();

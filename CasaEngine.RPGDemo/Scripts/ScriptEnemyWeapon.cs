@@ -1,15 +1,23 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptEnemyWeapon : GameplayProxy
 {
+    public Vector3 InitialVelocity { get; set; }
+
     public override void InitializeWithWorld(World world)
     {
+        var physics2dComponent = Owner.GetComponent<Physics2dComponent>();
+        var animatedSpriteComponent = Owner.GetComponent<AnimatedSpriteComponent>();
 
+        physics2dComponent.Velocity = InitialVelocity;
+        animatedSpriteComponent.SetCurrentAnimation("rock", true);
     }
 
     public override void Update(float elapsedTime)
