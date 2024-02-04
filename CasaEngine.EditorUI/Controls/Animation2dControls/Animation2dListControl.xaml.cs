@@ -54,7 +54,7 @@ public partial class Animation2dListControl : UserControl
         _gameEditor.GameStarted += OnGameStarted;
     }
 
-    private void OnGameStarted(object? sender, System.EventArgs e)
+    private void OnGameStarted(object? sender, EventArgs e)
     {
         DataContext = new Animation2dAssetListModelView();
     }
